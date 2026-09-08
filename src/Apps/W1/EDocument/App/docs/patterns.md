@@ -214,3 +214,29 @@ The codebase uses compiler directives to manage deprecation:
 - `#if not CLEANSCHEMA26` / `#if not CLEANSCHEMA29` -- table schema changes (field removals) that need separate cleanup due to schema migration constraints
 
 When reading the code, content inside these blocks is legacy. The code outside (or in the `#else` branch) is the current implementation.
+
+## Notification state vs. display
+
+Purchase Document Draft notifications are split across two codeunits so that a
+call site tells you whether UI is raised.
+
+`"E-Doc. Draft Notif. State"` (6436) owns the `E-Document Notification` rows, the
+Sub Total mismatch calculation, and its telemetry. It never constructs or sends a
+`Notification` and knows nothing about `My Notifications`.
+
+`"E-Document Notification"` (6123) is the only codeunit consumers call. It gates on
+`My Notifications`, delegates state changes downward, builds `Notification` objects,
+and hosts the `Dismiss…`/`Disable…` action handlers. The dependency is one-way.
+
+The procedure verb is the contract:
+
+| Prefix | Guarantee |
+|---|---|
+| `Add…` / `Refresh…` / `Remove…` / `ReArm…` | State only, never displays |
+| `Show…` / `RefreshAndShow…` | Displays a notification |
+| `Is…` | Query, no side effects |
+
+Handler names passed to `Notification.AddAction` are resolved by string at runtime,
+so `DismissSubTotalMismatchNotification` and friends cannot be renamed safely.
+
+*Updated: 2026-08-05 -- documented the notification state vs. display split.*

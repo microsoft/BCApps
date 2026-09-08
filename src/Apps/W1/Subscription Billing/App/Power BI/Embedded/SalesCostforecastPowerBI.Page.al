@@ -7,8 +7,8 @@ page 8108 "Sales Cost forecast Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales and Cost forecast';
-    AboutTitle = 'About Sales and Cost forecast';
+    Caption = 'Sales and Cost forecast (Power BI)';
+    AboutTitle = 'About Sales and Cost forecast (Power BI)';
     AboutText = 'The Sales and Cost forecast report provides the forecast of Monthly Recurring Revenue and Monthly Recurring Cost for the future months and years. This report provides detailed insights into which salespersons and customers are driving future subscription performance.';
 
     layout

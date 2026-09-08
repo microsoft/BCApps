@@ -34,8 +34,8 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// Sets the filter on the target configuration to sources that could match the supplied template.
     /// Use this to restrict which possible sources exist based on the input record.
     /// </summary>
-    /// <param name="TemplateCode"></param>
-    /// <param name="QltyInspectSourceConfig"></param>
+    /// <param name="TemplateCode">The template code used to find compatible generation rules.</param>
+    /// <param name="QltyInspectSourceConfig">The source configuration record on which the applicable source table filter is set.</param>
     internal procedure SetFilterToApplicableTemplates(TemplateCode: Code[20]; var QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.")
     var
         TempSearchQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -85,11 +85,10 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     end;
 
     /// <summary>
-    /// Sets the filter on the target configuration to sources that could match the supplied template.
+    /// Builds a filter containing every source and target table used by source configurations.
     /// Use this to restrict which possible sources exist based on the input record.
     /// </summary>
-    /// <param name="TemplateCode"></param>
-    /// <param name="QltyInspectSourceConfig"></param>
+    /// <returns>A table number filter that includes the configured source and non-inspection target tables.</returns>
     internal procedure GetFilterForAvailableConfigurations() Filter: Text
     var
         AvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
@@ -178,16 +177,16 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// Finds the first matching generation rule and record.
     /// Note that TempQltyInspectionGenRule can be used to supply optional input filters, however it will be replaced upon output.
     /// </summary>
-    /// <param name="CurrentRecursionDepth"></param>
-    /// <param name="UseActivationFilter"></param>
-    /// <param name="IsManualCreation"></param>
-    /// <param name="TargetRecordRef"></param>
-    /// <param name="OptionalItem"></param>
-    /// <param name="TempAvailableQltyInspectSourceConfig"></param>
-    /// <param name="TempAlreadySearchedsQltyInspectSourceConfig"></param>
-    /// <param name="OptionalSpecificTemplate"></param>
+    /// <param name="CurrentRecursionDepth">The remaining traversal depth before the search raises an error.</param>
+    /// <param name="UseActivationFilter">Specifies whether rules are filtered by their activation trigger.</param>
+    /// <param name="IsManualCreation">Specifies whether activation filtering selects rules available for manual creation.</param>
+    /// <param name="TargetRecordRef">The current source record; updated to the record on which a rule is found.</param>
+    /// <param name="OptionalItem">The optional item used to evaluate item and item attribute filters.</param>
+    /// <param name="TempAvailableQltyInspectSourceConfig">The available source configurations used to traverse to related records.</param>
+    /// <param name="TempAlreadySearchedsQltyInspectSourceConfig">The source configurations already traversed during this search.</param>
+    /// <param name="OptionalSpecificTemplate">The template code to require, or blank to consider any template.</param>
     /// <param name="TempQltyInspectionGenRule">Filters are copied from the input, but will be replaced on output.</param>
-    /// <returns></returns>
+    /// <returns>True if a matching generation rule and source record are found.</returns>
     local procedure FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth: Integer; UseActivationFilter: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var TempAlreadySearchedsQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -270,7 +269,9 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     /// If there is no item attribute filter, returns true.
     /// If there is an item attribute filter, then it must match.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="QltyInspectionGenRule">The generation rule whose item attribute filter is evaluated.</param>
+    /// <param name="Item">The item to evaluate against the rule.</param>
+    /// <returns>True if the item exists and either no attribute filter is set or the item matches it.</returns>
     internal procedure DoesMatchItemAttributeFiltersOrNoFilter(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var Item: Record Item): Boolean
     var
         TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary;
@@ -294,6 +295,12 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         exit(not TempsItem.IsEmpty());
     end;
 
+    /// <summary>
+    /// Copies enabled generation rules for a template to a temporary record in sort order.
+    /// </summary>
+    /// <param name="TemplateCode">The template code for which compatible rules are selected.</param>
+    /// <param name="TempQltyInspectionGenRule">The temporary record that receives the compatible generation rules.</param>
+    /// <returns>True if at least one compatible generation rule is found.</returns>
     internal procedure FindAllCompatibleGenerationRules(TemplateCode: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -310,6 +317,11 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
             until QltyInspectionGenRule.Next() = 0;
     end;
 
+    /// <summary>
+    /// Verifies that an enabled generation rule exists for a template and optionally opens the rule page to create one.
+    /// </summary>
+    /// <param name="TemplateCode">The template code to verify, or blank to skip the check.</param>
+    /// <returns>True if the template is blank or a compatible generation rule exists after the optional user action.</returns>
     internal procedure EnsureCompatibleGenerationRuleExists(TemplateCode: Code[20]): Boolean
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";

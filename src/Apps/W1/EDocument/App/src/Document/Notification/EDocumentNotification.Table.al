@@ -39,6 +39,12 @@ table 6126 "E-Document Notification"
             Caption = 'Message';
             ToolTip = 'Specifies the message of the E-Document notification.';
         }
+        field(6; Dismissed; Boolean)
+        {
+            Caption = 'Dismissed';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the user has dismissed the notification.';
+        }
     }
     keys
     {

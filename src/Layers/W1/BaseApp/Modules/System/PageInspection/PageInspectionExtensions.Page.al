@@ -50,9 +50,9 @@ page 9633 "Page Inspection Extensions"
                 field(TypeOfExtension; TypeOfExtension)
                 {
                     ApplicationArea = All;
-                    Caption = 'Extension execution info and type.';
+                    Caption = 'Type of extension.';
                     ShowCaption = false;
-                    ToolTip = 'Specifies extension execution information and extension type.';
+                    ToolTip = 'Specifies extension type.';
                 }
             }
         }
@@ -85,16 +85,11 @@ page 9633 "Page Inspection Extensions"
     trigger OnAfterGetRecord()
     var
         AllObjWithCaption: Record AllObjWithCaption;
-        ExtensionExecutionInfo: Record "Extension Execution Info";
-        ExtensionType: Text;
-        ExtensionInfo: Text;
-        SeparatorText: Text;
     begin
         Version := StrSubstNo('%1.%2.%3', Rec."Version Major", Rec."Version Minor", Rec."Version Build");
         PublishedBy := StrSubstNo('by %1', Rec.Publisher);
 
-        ExtensionType := '';
-        ExtensionInfo := '';
+        TypeOfExtension := '';
 
         if AllObjWithCaption.ReadPermission() then begin
             AllObjWithCaption.Reset();
@@ -103,14 +98,14 @@ page 9633 "Page Inspection Extensions"
             // page added by extension
             AllObjWithCaption.SetRange("Object ID", CurrentPageId);
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Page);
-            if AllObjWithCaption.FindFirst() then
-                ExtensionType := ExtensionType + ', ' + NewPageLbl;
+            if not AllObjWithCaption.IsEmpty() then
+                TypeOfExtension := TypeOfExtension + ', ' + NewPageLbl;
 
             // table added by extension
             AllObjWithCaption.SetRange("Object ID", CurrentTableId);
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-            if AllObjWithCaption.FindFirst() then
-                ExtensionType := ExtensionType + ', ' + NewTableLbl;
+            if not AllObjWithCaption.IsEmpty() then
+                TypeOfExtension := TypeOfExtension + ', ' + NewTableLbl;
 
             AllObjWithCaption.Reset();
             AllObjWithCaption.SetRange("App Package ID", Rec."Package ID");
@@ -118,42 +113,17 @@ page 9633 "Page Inspection Extensions"
             // page extended by extension
             AllObjWithCaption.SetRange("Object Subtype", StrSubstNo('%1', CurrentPageId));
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::PageExtension);
-            if AllObjWithCaption.FindFirst() then
-                ExtensionType := ExtensionType + ', ' + ExtPageLbl;
+            if not AllObjWithCaption.IsEmpty() then
+                TypeOfExtension := TypeOfExtension + ', ' + ExtPageLbl;
 
             // table extended by extension
             AllObjWithCaption.SetRange("Object Subtype", StrSubstNo('%1', CurrentTableId));
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::TableExtension);
-            if AllObjWithCaption.FindFirst() then
-                ExtensionType := ExtensionType + ', ' + ExtTableLbl;
+            if not AllObjWithCaption.IsEmpty() then
+                TypeOfExtension := TypeOfExtension + ', ' + ExtTableLbl;
 
-            ExtensionType := DelChr(ExtensionType, '<', ',');
-
-            AllObjWithCaption.Reset();
-            AllObjWithCaption.SetRange("App Package ID", Rec."Package ID");
-
-            if AllObjWithCaption.FindFirst() then
-                if ExtensionExecutionInfo.ReadPermission() then begin
-                    ExtensionExecutionInfo.Reset();
-                    ExtensionExecutionInfo.SetRange("Form ID", CurrentFormId);
-                    ExtensionExecutionInfo.SetRange("Runtime Package ID", AllObjWithCaption."App Runtime Package ID");
-
-                    if ExtensionExecutionInfo.FindFirst() then
-                        ExtensionInfo := StrSubstNo(
-                            MillisecondsAndSubscribersLbl,
-                            Format(ExtensionExecutionInfo."Execution Time"),
-                            Format(ExtensionExecutionInfo."Subscriber Execution Count"))
-                    else
-                        ExtensionInfo := NoExtensionInfoLbl;
-                end;
+            TypeOfExtension := DelChr(TypeOfExtension, '<', ',');
         end;
-
-        if (StrLen(ExtensionType) > 0) and (StrLen(ExtensionInfo) > 0) then
-            SeparatorText := '; '
-        else
-            SeparatorText := '';
-
-        TypeOfExtension := StrSubstNo(TypeOfExtensionFmtLbl, ExtensionInfo, SeparatorText, ExtensionType);
 
         SetSourceSpecification();
     end;
@@ -165,18 +135,20 @@ page 9633 "Page Inspection Extensions"
         IsExtensionListVisible: Boolean;
         IsSourceSpecificationEnabled: Boolean;
         TypeOfExtension: Text;
-        CurrentFormId: Guid;
         CurrentPageId: Integer;
         CurrentTableId: Integer;
         NewPageLbl: Label 'Adds page';
         NewTableLbl: Label 'Adds table';
         ExtPageLbl: Label 'Extends page';
         ExtTableLbl: Label 'Extends table';
-        MillisecondsAndSubscribersLbl: Label '%1ms, %2 subs.', Comment = '%1 is millisceonds, %2 is subscribers. "subs." is an abbreviation of "subscribers"';
-        NoExtensionInfoLbl: Label 'No extension info';
-        TypeOfExtensionFmtLbl: Label '%1%2%3', Locked = true;
 
     procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; FormId: Guid)
+    begin
+        if IsNullGuid(FormId) then; // Kept to not break existing code that calls this method with 3 parameters. The FormId parameter is not used in the current implementation.
+        FilterForExtAffectingPage(PageId, TableId);
+    end;
+
+    procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer)
     var
         VSCodeRequestHelper: Codeunit "Page Inspection VS Code Helper";
     begin
@@ -185,9 +157,7 @@ page 9633 "Page Inspection Extensions"
 
         CurrentPageId := PageId;
         CurrentTableId := TableId;
-        CurrentFormId := FormId;
-
-        VSCodeRequestHelper.FilterForExtAffectingPage(PageId, TableId, FormId, Rec);
+        VSCodeRequestHelper.FilterForExtAffectingPage(PageId, TableId, Rec);
         CurrPage.Update(false);
     end;
 

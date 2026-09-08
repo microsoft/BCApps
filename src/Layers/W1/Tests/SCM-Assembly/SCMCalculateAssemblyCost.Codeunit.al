@@ -18,6 +18,7 @@ using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using System.Environment.Configuration;
 
 codeunit 137911 "SCM Calculate Assembly Cost"
@@ -526,6 +527,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         // Overhead variance on the assembly output. Such a variance drifts "Cost Amount (Actual)" away from the
         // rolled standard cost.
         Initialize();
+        SetCheckDocTotalAmounts(false);
         // Adjustment must run only on the explicit "Adjust Cost - Item Entries" calls below, so that the exact
         // posting sequence that reproduces the bug is preserved.
         LibraryInventory.SetAutomaticCostAdjmtNever();
@@ -537,11 +539,6 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         // either. With both automatic and expected G/L cost posting off, no assembly/adjustment step posts to G/L,
         // so no General Posting Setup account (Inventory Adjmt./Overhead Applied/...) is ever required.
         LibraryInventory.SetExpectedCostPosting(false);
-
-        // Belt-and-suspenders: also fill the inventory/manufacturing accounts on every existing General Posting
-        // Setup combination (the assembly output/resource capacity postings use the blank-Gen.-Bus./MANUFACT combo,
-        // which some localizations such as DK leave incomplete) so the test never depends on country-specific setup.
-        EnsureAllGeneralPostingSetupAccounts();
 
         // The purchase postings below (component receipt+invoice and freight item charge invoice) post to G/L and
         // therefore need a VAT Posting Setup for the vendor's "VAT Bus. Posting Group" and the line's "VAT Prod.
@@ -565,7 +562,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         // "Gen. Prod. Posting Group"; in some localizations the resource defaults to a group (e.g. FREIGHT) that has
         // no General Posting Setup for that Gen. Bus. group, so posting fails with "General Posting Setup does not
         // exist". Reusing the assembly item's group guarantees a valid combination (the assembly output posts with
-        // the same pair) whose accounts EnsureAllGeneralPostingSetupAccounts has already filled.
+        // the same pair) for which the test creates an explicit General Posting Setup.
         Resource.Validate("Gen. Prod. Posting Group", AssemblyItem."Gen. Prod. Posting Group");
         Resource.Modify(true);
         LibraryKitting.CreateBOMComponentLine(
@@ -667,6 +664,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
 
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
+        LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Calculate Assembly Cost");
     end;
 
@@ -701,6 +699,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         AssemblyHeader: Record "Assembly Header";
     begin
         LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, DueDate, ItemNo, '', Qty, '');
+        EnsureGeneralPostingSetup(AssemblyHeader."Gen. Bus. Posting Group", AssemblyHeader."Gen. Prod. Posting Group");
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
     end;
 
@@ -721,19 +720,25 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Item.Modify(true);
     end;
 
-    local procedure EnsureAllGeneralPostingSetupAccounts()
+    local procedure EnsureGeneralPostingSetup(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
     begin
-        // Fill the inventory/manufacturing accounts on every existing General Posting Setup combination so cost
-        // adjustment/assembly posting does not depend on country-specific demo data leaving accounts blank
-        // (e.g. the blank-Gen.-Bus./MANUFACT combo used by resource capacity postings in DK/CH).
-        if GeneralPostingSetup.FindSet() then
-            repeat
-                LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
-                LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
-                GeneralPostingSetup.Modify(true);
-            until GeneralPostingSetup.Next() = 0;
+        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
+        LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure SetCheckDocTotalAmounts(CheckDocTotalAmounts: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Check Doc. Total Amounts", CheckDocTotalAmounts);
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure PostPositiveAdjustment(ItemNo: Code[20]; Qty: Decimal)
@@ -787,6 +792,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchaseLine.Modify(true);
+        EnsureGeneralPostingSetup(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
@@ -805,6 +811,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
           PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Charge (Item)", CreateItemChargeNoWithVATProdGroup(), Quantity);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchaseLine.Modify(true);
+        EnsureGeneralPostingSetup(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         AssignItemChargeToReceipt(PurchaseLine, PurchRcptLine);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
     end;
@@ -872,4 +879,3 @@ codeunit 137911 "SCM Calculate Assembly Cost"
     begin
     end;
 }
-

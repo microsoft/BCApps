@@ -1,0 +1,230 @@
+name: BC ExtRequest Triage Dispatcher
+
+on:
+  issue_comment:
+    types: [created]
+  schedule:
+    - cron: "0 1/6 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+concurrency:
+  group: >-
+    bc-extrequest-triage-${{
+      github.event_name == 'issue_comment' &&
+      format('feedback-{0}', github.event.issue.number) ||
+      'scheduled'
+    }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch_feedback:
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      github.event_name == 'issue_comment' &&
+      github.event.comment.user.type != 'Bot' &&
+      !endsWith(github.event.comment.user.login, '[bot]') &&
+      contains(github.event.comment.body, '/not-accurate')
+    runs-on: ubuntu-latest
+    environment: triage
+    env:
+      AGENT_REPO: microsoft/BCAppsTriage
+      AGENT_REPO_NAME: BCAppsTriage
+      AGENT_WORKFLOW: bc-extrequest-triage-feedback.yml
+      AGENT_REF: main
+    steps:
+      - name: Check whether feedback was already recorded
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $marker = "<!-- bc-extrequest-feedback-recorded:$env:COMMENT_ID -->"
+          $comments = (gh api `
+            "repos/$env:GITHUB_REPOSITORY/issues/${{ github.event.issue.number }}/comments" `
+            --paginate --jq '.[].body // ""') -join "`n"
+          if ($comments.Contains($marker)) {
+              Add-Content -Path $env:GITHUB_OUTPUT -Value 'process=false'
+              Write-Host 'Feedback was already recorded for this comment.'
+              exit 0
+          }
+
+          Add-Content -Path $env:GITHUB_OUTPUT -Value 'process=true'
+
+      - name: Check out dispatcher scripts
+        if: steps.detect.outputs.process == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-triage
+
+      - name: Create correlation token
+        if: steps.detect.outputs.process == 'true'
+        id: correlation
+        run: Add-Content -Path $env:GITHUB_OUTPUT -Value "run_token=$([guid]::NewGuid())"
+
+      - name: Mint token for BCAppsTriage
+        if: steps.detect.outputs.process == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.AGENT_REPO_NAME }}
+
+      - name: Start feedback telemetry
+        if: steps.detect.outputs.process == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          FEEDBACK_COMMENT_ID: ${{ github.event.comment.id }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          gh workflow run $env:AGENT_WORKFLOW --repo $env:AGENT_REPO --ref $env:AGENT_REF `
+            -f "issue_number=$env:ISSUE_NUMBER" `
+            -f "feedback_comment_id=$env:FEEDBACK_COMMENT_ID" `
+            -f "run_token=$env:RUN_TOKEN"
+
+      - name: Await feedback telemetry
+        if: steps.detect.outputs.process == 'true'
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+          RUN_LIST_LIMIT: 40
+          WATCH_INTERVAL_SECONDS: 10
+        run: ./.github/scripts/bc-extrequest-triage/await-agent-run.ps1
+
+      - name: Post feedback acknowledgement
+        if: steps.detect.outputs.process == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $acknowledgementPath = Join-Path $env:RUNNER_TEMP 'acknowledgement.md'
+          @"
+          <!-- bc-extrequest-feedback-recorded:$env:COMMENT_ID -->
+          **Feedback recorded**
+
+          Thanks - your ``/not-accurate`` feedback has been logged and will be reviewed.
+          "@ | Set-Content -Path $acknowledgementPath
+          gh issue comment $env:ISSUE_NUMBER `
+            --repo $env:GITHUB_REPOSITORY `
+            --body-file $acknowledgementPath
+
+  discover_eligible_extensibility_requests:
+    name: Discover eligible extensibility requests
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      (
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: ubuntu-latest
+    outputs:
+      issues: ${{ steps.find-issues.outputs.issues }}
+    steps:
+      - name: Check out dispatcher scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-triage
+
+      - name: Find eligible issues
+        id: find-issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./.github/scripts/bc-extrequest-triage/find-eligible-issues.ps1
+
+  dispatch_and_apply_extensibility_request_triage:
+    name: Triage BCApps issue #${{ matrix.issue }}
+    needs: discover_eligible_extensibility_requests
+    if: >-
+      needs.discover_eligible_extensibility_requests.result == 'success' &&
+      needs.discover_eligible_extensibility_requests.outputs.issues != '' &&
+      needs.discover_eligible_extensibility_requests.outputs.issues != '[]'
+    runs-on: ubuntu-latest
+    environment: triage
+    env:
+      AGENT_REPO: microsoft/BCAppsTriage
+      AGENT_REPO_NAME: BCAppsTriage
+      AGENT_WORKFLOW: bc-extrequest-triage-agent.yml
+      AGENT_REF: main
+    strategy:
+      fail-fast: false
+      matrix:
+        issue: ${{ fromJson(needs.discover_eligible_extensibility_requests.outputs.issues) }}
+    steps:
+      - name: Check out dispatcher scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/bc-extrequest-triage
+
+      - name: Create correlation token
+        id: correlation
+        run: Add-Content -Path $env:GITHUB_OUTPUT -Value "run_token=$([guid]::NewGuid())"
+
+      - name: Mint token for BCAppsTriage
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.AGENT_REPO_NAME }}
+
+      - name: Start ExtRequest triage
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ matrix.issue }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          gh workflow run $env:AGENT_WORKFLOW --repo $env:AGENT_REPO --ref $env:AGENT_REF `
+            -f "issue_number=$env:ISSUE_NUMBER" `
+            -f "run_token=$env:RUN_TOKEN"
+
+      - name: Await ExtRequest triage
+        id: await
+        timeout-minutes: 30
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_TOKEN: ${{ steps.correlation.outputs.run_token }}
+          RUN_LIST_LIMIT: 100
+          WATCH_INTERVAL_SECONDS: 15
+        run: ./.github/scripts/bc-extrequest-triage/await-agent-run.ps1
+
+      - name: Download triage result
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_ID: ${{ steps.await.outputs.run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Path result -Force | Out-Null
+          gh run download $env:RUN_ID --repo $env:AGENT_REPO `
+            --name bc-extrequest-triage-result `
+            --dir result
+
+      - name: Apply triage result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ matrix.issue }}
+        run: ./.github/scripts/bc-extrequest-triage/apply-triage-result.ps1

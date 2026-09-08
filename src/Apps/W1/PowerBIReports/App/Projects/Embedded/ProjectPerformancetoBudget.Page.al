@@ -11,8 +11,8 @@ page 37037 "Project Performance to Budget"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Performance to Budget';
-    AboutTitle = 'About Project Performance to Budget';
+    Caption = 'Project Performance to Budget (Power BI)';
+    AboutTitle = 'About Project Performance to Budget (Power BI)';
     AboutText = 'The Project Performance to Budget report highlights key metrics, including Budget Total Cost, Actual Total Cost, and the variance and percentage variance from the budget. It features a table that details these metrics by project, offering a clear view of cost performance and deviations from budgeted targets.';
 
     layout

@@ -6,7 +6,6 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Utilities;
@@ -187,6 +186,8 @@ page 3307 "PA Demo Guide"
         BackActionEnabled, FinishActionEnabled, NextActionEnabled, WelcomeStepVisible, ChooseDemoOption, ShowDemoFilesToDownloadVisible, TopBannerVisible : Boolean;
         DemoFilesToDownloadText, FinalStepHeadline, FinalStepText : Text;
         PayablesAgentTelemetryTok: Label 'Payables Agent', Locked = true;
+        DemoInvoicesSentTok: Label 'Sent demo sample invoices by email', Locked = true;
+        DemoInvoicesPreparedTok: Label 'Prepared demo sample invoices to send on agent activation', Locked = true;
         DemoFilesToDownloadLbl: Label 'Click here to select and download sample invoices (%1 file(s) available)', Comment = '%1 = number of files';
         FinalStepHeadlineEmailLbl: Label 'Sample invoices sent!';
         FinalStepTextEmailLbl: Label 'We have prepared the sample invoices and will send them when the agent is activated. If this is the first time you configure the agent, the agent is activated when you select "Update" on the configuration page. When the agent is activated you should see them appear as tasks on the agent''s avatar in the top right corner of the home screen';
@@ -227,11 +228,13 @@ page 3307 "PA Demo Guide"
 
     local procedure FinishAction();
     var
-        EDocSamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
         GuidedExperience: Codeunit "Guided Experience";
     begin
         if DemoOption = DemoOption::"Send Demo Email" then
-            EDocSamplePurchInvFile.ModifyAll("Send By Email", true);
+            if PADemoGuide.SendDemoInvoicesByEmail() then
+                Session.LogMessage('0000V8C', DemoInvoicesSentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok)
+            else
+                Session.LogMessage('0000V8D', DemoInvoicesPreparedTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
         Session.LogMessage('0000PJV', 'Ran demo guide for payables agent', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"PA Demo Guide");
         CurrPage.Close();

@@ -58,7 +58,7 @@ codeunit 13639 "OIOUBL-Export Issued Reminder"
                 until IssuedReminderLine.NEXT() = 0;
                 OIOUBLCommonLogic.InsertTaxSubtotal(
                   TaxTotalElement,
-                  IssuedReminderLine."VAT Calculation Type".AsInteger(),
+                  IssuedReminderLine."VAT Calculation Type",
                   TaxableAmount,
                   TaxAmount,
                   VATPercentage,
@@ -77,7 +77,7 @@ codeunit 13639 "OIOUBL-Export Issued Reminder"
                 // Invoice->TaxTotal->TaxSubtotal
                 OIOUBLCommonLogic.InsertTaxSubtotal(
                   TaxTotalElement,
-                  IssuedReminderLine."VAT Calculation Type".AsInteger(),
+                  IssuedReminderLine."VAT Calculation Type",
                   TaxableAmount,
                   TaxAmount,
                   VATPercentage,
@@ -97,7 +97,7 @@ codeunit 13639 "OIOUBL-Export Issued Reminder"
             until IssuedReminderLine.NEXT() = 0;
             OIOUBLCommonLogic.InsertTaxSubtotal(
               TaxTotalElement,
-              IssuedReminderLine."VAT Calculation Type".AsInteger(),
+              IssuedReminderLine."VAT Calculation Type",
               TaxableAmount,
               TaxAmount,
               VATPercentage,

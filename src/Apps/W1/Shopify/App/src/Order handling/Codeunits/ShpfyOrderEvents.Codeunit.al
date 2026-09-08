@@ -32,8 +32,19 @@ codeunit 30162 "Shpfy Order Events"
     begin
     end;
 
+    /// <summary>
+    /// Raised after mapping a Shopify order (customer, item, shipping, payment, tax area).
+    /// </summary>
+    /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
+    /// <param name="Result">Whether all mappings succeeded.</param>
+    [IntegrationEvent(false, false)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    internal procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
+    begin
+    end;
+
     [InternalEvent(false)]
-    /// <summary> 
+    /// <summary>
     /// Description for OnBeforeMapCustomer.
     /// </summary>
     /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>

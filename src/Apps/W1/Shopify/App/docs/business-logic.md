@@ -2,6 +2,22 @@
 
 This document covers the major processing flows in the Shopify Connector, focusing on decision points, non-obvious behavior, and what can go wrong.
 
+## Authentication and token lifecycle
+
+The connector authenticates to Shopify with **expiring offline access tokens** (public apps must migrate to these by 2027-01-01). An access token lives for 1 hour; a refresh token lives for 90 days and is rotated on each refresh. Tokens are held on `Shpfy Registered Store New` (keyed by store URL) -- the access and refresh tokens as `SecretText` in IsolatedStorage, with `Token Expires At` and `Refresh Token Expires At` as fields.
+
+`ShpfyCommunicationMgt.GetAccessToken` calls `ShpfyAuthenticationMgt.EnsureValidAccessToken` before every API request, so the following happens transparently in any session, interactive or background:
+
+- **Fast path** -- a valid expiring token is used as-is.
+- **Refresh** -- when the access token is within a 5-minute buffer of expiry, `RefreshAccessToken` exchanges the refresh token (`grant_type=refresh_token`) for a new access + refresh token. On this on-demand path it makes a single attempt (the token is still valid, so a transient failure is left for the next call); a 401 or a lapsed refresh token is terminal and surfaces a "reconnect the store" error.
+- **Migration** -- a legacy non-expiring token (no refresh token stored) is migrated once via token exchange. This is best-effort: if it fails the existing token is kept (it still works until the deadline); on success Shopify revokes the old token, so the exchange is irreversible per shop. Because a legacy store has no refresh token, the fast-path check never short-circuits it, so migration is throttled by a `Last Migration Attempt` timestamp (retried at most once per hour) to avoid re-attempting a failing migration on every API call in a sync loop.
+
+Refresh and migration are serialized with a table lock plus a double-checked re-read, because Shopify allows only one refreshable token per app and store -- this keeps concurrent sessions (or multiple BC companies sharing a shop) from thrashing the token. As a safety net, an unexpected 401 from a normal API call triggers a single forced refresh and retry.
+
+When a refresh token has fully lapsed (90 days idle), refresh is terminal: API calls surface a "reconnect the store" error and the Shop Card shows a reconnect notification.
+
+*Updated: 2026-07-11 -- Expiring offline access token support (slice 637954)*
+
 ## Product synchronization
 
 Product sync is bi-directional, controlled by the Shop's `"Sync Item"` setting (To Shopify, From Shopify, or disabled). The two directions have fundamentally different architectures.
@@ -141,9 +157,9 @@ The `IDocumentSource` interface determines which Shopify document (return or ref
 
 Refund lines carry a `"Restock Type"` that affects inventory: Return means items go back to stock, Cancel means they were never shipped, NoRestock is purely financial. Lines with non-restock types are mapped to G/L accounts (`"Refund Acc. non-restock Items"`) instead of item lines on the credit memo.
 
-For return-with-exchange cases, order import fetches exchange line items from the order's returns and flags the matching Shopify order lines as exchange items. Sales document creation excludes those order lines from the original invoice. Refund import then fetches the refund's return exchange lines and creates synthetic negative-quantity refund lines, so the credit memo offsets the exchange item without adding a balancing refund-account line.
+For return-with-exchange cases, order import fetches exchange line items from the order's returns and flags the matching Shopify order lines as exchange items. Because Shopify adds the exchange line to an order that BC may already have processed, those exchange lines are also excluded from the processed-order conflict check, so a legitimate exchange no longer raises a spurious "already processed / edition received" error on the order. Sales document creation excludes the flagged order lines from the original invoice. Refund import then fetches the refund's return exchange lines and creates synthetic negative-quantity refund lines, so the credit memo offsets the exchange item without adding a balancing refund-account line. When the kept exchange item is more expensive than the returned item, Shopify floors the refund at 0 (the customer pays the difference), so the returned (+qty) and exchange (-qty) item lines net to a negative credit-memo total; that net is left to stand -- no balancing refund-account line is added to force the total back up to the floored refund amount.
 
-*Updated: 2026-07-29 -- Refund-with-exchange handling now uses exchange GraphQL queries*
+*Updated: 2026-08-14 -- Exchange lines excluded from processed-order conflict detection; no balancing line for more-expensive exchange items*
 
 ## Inventory synchronization
 

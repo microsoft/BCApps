@@ -26,5 +26,4 @@ interface "ISFTP Client"
     procedure Get(Path: Text; var Result: Interface "ISFTP File"): Boolean
     procedure CreateDirectory(Path: Text): Boolean
     procedure SetSHA256Fingerprints(FingerPrints: List of [Text])
-    procedure SetMD5Fingerprints(FingerPrints: List of [Text])
 }

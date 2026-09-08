@@ -7,8 +7,8 @@ page 6306 "Emissions vs Baseline Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Realized Emissions vs. Baseline';
-    AboutTitle = 'About Realized Emissions vs. Baseline';
+    Caption = 'Realized Emissions vs. Baseline (Power BI)';
+    AboutTitle = 'About Realized Emissions vs. Baseline (Power BI)';
     AboutText = 'The Realized Emissions by Bassline report breaks down your carbon emissions and allows for comparison against a defined baseline period. This allows you to track your progress against the baseline and monitor trends against a previous period.';
 
     layout

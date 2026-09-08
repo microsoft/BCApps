@@ -284,9 +284,11 @@ codeunit 144512 "ERM Calculate VAT per Lines"
 
     local procedure FacturaInvoiceExcelExport(SalesHeader: Record "Sales Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         OrderFacturaInvoice: Report "Order Factura-Invoice (A)";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(SalesHeader."No.");
         FileName := LibraryReportValidation.GetFileName();
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type");
@@ -296,14 +298,17 @@ codeunit 144512 "ERM Calculate VAT per Lines"
         OrderFacturaInvoice.SetFileNameSilent(FileName);
         OrderFacturaInvoice.UseRequestPage(false);
         OrderFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PostedFacturaInvoiceExcelExport(DocumentNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesInvHeader: Record "Sales Invoice Header";
         PostedFacturaInvoice: Report "Posted Factura-Invoice (A)";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(DocumentNo);
         FileName := LibraryReportValidation.GetFileName();
         SalesInvHeader.SetRange("No.", DocumentNo);
@@ -312,20 +317,24 @@ codeunit 144512 "ERM Calculate VAT per Lines"
         PostedFacturaInvoice.SetFileNameSilent(FileName);
         PostedFacturaInvoice.UseRequestPage(false);
         PostedFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyFacturaTotals(CurrencyCode: Code[10])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         VATAmount: Decimal;
         TotalInclVAT: Decimal;
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         VATAmount := LibraryVariableStorage.DequeueDecimal();
         TotalInclVAT := LibraryVariableStorage.DequeueDecimal();
         CalcCurrencyVATAmount(VATAmount, TotalInclVAT, CurrencyCode);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyFactura_VATAmount(FileName, Format(VATAmount), 7);
         LibraryRUReports.VerifyFactura_AmountInclVAT(FileName, Format(TotalInclVAT), 7);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure SalesDocCalcVATPerLineFactura(CurrencyCode: Code[10])

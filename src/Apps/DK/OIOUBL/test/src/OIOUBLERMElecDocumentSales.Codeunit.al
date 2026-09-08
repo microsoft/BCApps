@@ -348,6 +348,270 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure LineDiscountAllowanceChargeUsesLineTaxCategory();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO] The InvoiceLine AllowanceCharge created for a line discount uses the line's VAT tax category (StandardRated) and VAT %, not the hardcoded ReverseCharge / line-discount %.
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with a line that has a line discount.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        CreateSalesLineWithDiscount(SalesLine, SalesHeader, LibraryRandom.RandIntInRange(1, 50));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.FindFirst();
+
+        // [WHEN] Run report "OIOUBL-Create Elec. Invoices"
+        RunReportCreateElecSalesInvoices(DocumentNo);
+        InitializeLibraryXPathXMLReader(OIOUBLNewFileMock.PopFilePath());
+
+        // [THEN] The InvoiceLine AllowanceCharge uses the StandardRated category and the line VAT % (not ReverseCharge / line-discount %).
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:InvoiceLine/cac:AllowanceCharge/cac:TaxCategory/cbc:ID', 'StandardRated');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:InvoiceLine/cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', FormatAmount(SalesInvoiceLine."VAT %"));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure HeaderDiscountGrossesUpLineTaxTotalSalesInvoice();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        DocumentNo: Code[20];
+        ExpectedLineTaxable: Decimal;
+        ExpectedLineTax: Decimal;
+    begin
+        // [SCENARIO] A header (invoice) discount makes the InvoiceLine TaxTotal gross up to the pre-invoice-discount base and the document AllowanceCharge use the line VAT category + %, while the summary keeps the real posted VAT base so per-category totals reconcile (F-LIB404).
+        Initialize();
+        SetCalcInvoiceDiscount(false);
+
+        // [GIVEN] Posted sales invoice, one StandardRated line, with an invoice (header) discount; prices excluding VAT.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        CreateSalesLineItemWithInvoiceDiscount(SalesLine, SalesHeader, CreateSalesItem(FindNormalVAT()), LibraryRandom.RandDecInRange(100, 200, 2));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.FindFirst();
+        ExpectedLineTaxable := SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount";
+        ExpectedLineTax := (SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount) + Round(SalesInvoiceLine."Inv. Discount Amount" * SalesInvoiceLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision());
+
+        // [WHEN] Run report "OIOUBL-Create Elec. Invoices"
+        RunReportCreateElecSalesInvoices(DocumentNo);
+        InitializeLibraryXPathXMLReader(OIOUBLNewFileMock.PopFilePath());
+
+        // [THEN] Exactly one document AllowanceCharge, using StandardRated + line VAT % + the discount amount.
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:AllowanceCharge', 1);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:ID', 'StandardRated');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', FormatAmount(SalesInvoiceLine."VAT %"));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cbc:Amount', FormatAmount(SalesInvoiceLine."Inv. Discount Amount"));
+
+        // [THEN] The InvoiceLine TaxTotal is grossed up to (Amount + Inv. Discount Amount) with matching VAT.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:InvoiceLine/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', FormatAmount(ExpectedLineTaxable));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:InvoiceLine/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxAmount', FormatAmount(ExpectedLineTax));
+
+        // [THEN] The document summary TaxSubtotal keeps the real posted VAT base (Amount) and VAT (reconciliation: line - allowance = summary).
+        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', FormatAmount(SalesInvoiceLine.Amount), 0);
+        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex('//cac:TaxTotal/cac:TaxSubtotal/cbc:TaxAmount', FormatAmount(SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount), 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure MultipleVATCategoriesProduceAllowanceAndSubtotalPerCategory();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATBusPostingGroup: Code[20];
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO] Two StandardRated lines at DIFFERENT positive rates (25% and 10%) plus a genuine ReverseCharge line, each carrying an invoice discount, produce one document AllowanceCharge and one summary TaxSubtotal per (category, rate) group (grouping fix + F-LIB404). VAT posting setups are created explicitly and share the header's VAT Bus. Posting Group, so the classification is deterministic and not dependent on demo data.
+        Initialize();
+        SetCalcInvoiceDiscount(false);
+
+        // [GIVEN] Posted sales invoice whose lines resolve to three VAT posting setups sharing the header VAT Bus. Posting Group: StandardRated 25%, StandardRated 10% and ReverseCharge.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        VATBusPostingGroup := SalesHeader."VAT Bus. Posting Group";
+        CreateSalesLineItemWithInvoiceDiscount(
+            SalesLine, SalesHeader,
+            CreateSalesItem(CreateVATProdPostingGroupWithSetup(VATBusPostingGroup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 25)),
+            LibraryRandom.RandDecInRange(100, 200, 2));
+        CreateSalesLineItemWithInvoiceDiscount(
+            SalesLine, SalesHeader,
+            CreateSalesItem(CreateVATProdPostingGroupWithSetup(VATBusPostingGroup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 10)),
+            LibraryRandom.RandDecInRange(100, 200, 2));
+        CreateSalesLineItemWithInvoiceDiscount(
+            SalesLine, SalesHeader,
+            CreateSalesItem(CreateVATProdPostingGroupWithSetup(VATBusPostingGroup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", 0)),
+            LibraryRandom.RandDecInRange(100, 200, 2));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] Run report "OIOUBL-Create Elec. Invoices"
+        RunReportCreateElecSalesInvoices(DocumentNo);
+        InitializeLibraryXPathXMLReader(OIOUBLNewFileMock.PopFilePath());
+
+        // [THEN] Three document AllowanceCharges: two StandardRated (25% and 10%) and one ReverseCharge.
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:AllowanceCharge', 3);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:ID', 'StandardRated', 2);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:ID', 'ReverseCharge', 1);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', '25.00', 1);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', '10.00', 1);
+
+        // [THEN] The document summary has one TaxSubtotal per (category, rate) group (three), so every allowance category is present (F-LIB404).
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal', 3);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cac:TaxCategory/cbc:ID', 'StandardRated', 2);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cac:TaxCategory/cbc:ID', 'ReverseCharge', 1);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent', '25.00', 1);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent', '10.00', 1);
+
+        // [THEN] The 25% StandardRated group reconciles: summary TaxableAmount = line net, TaxAmount = posted line VAT, allowance Amount = line invoice discount.
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetRange("VAT Calculation Type", SalesInvoiceLine."VAT Calculation Type"::"Normal VAT");
+        SalesInvoiceLine.SetRange("VAT %", 25);
+        SalesInvoiceLine.FindFirst();
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal[cac:TaxCategory/cbc:Percent=''25.00'']/cbc:TaxableAmount', FormatAmount(SalesInvoiceLine.Amount));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal[cac:TaxCategory/cbc:Percent=''25.00'']/cbc:TaxAmount', FormatAmount(SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:AllowanceCharge[cac:TaxCategory/cbc:Percent=''25.00'']/cbc:Amount', FormatAmount(SalesInvoiceLine."Inv. Discount Amount"));
+
+        // [THEN] The ReverseCharge summary subtotal carries no VAT.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal[cac:TaxCategory/cbc:ID=''ReverseCharge'']/cbc:TaxAmount', FormatAmount(0));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure MultipleLinesSameVATGroupAccumulateIntoSingleAllowanceAndSubtotal();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProdPostingGroup: Code[20];
+        DocumentNo: Code[20];
+        ExpectedNet: Decimal;
+        ExpectedVAT: Decimal;
+        ExpectedDiscount: Decimal;
+    begin
+        // [SCENARIO] Two lines that share the SAME VAT posting setup are accumulated into a single document AllowanceCharge and a single summary TaxSubtotal whose amounts equal the sums of the lines (grouping accumulation).
+        Initialize();
+        SetCalcInvoiceDiscount(false);
+
+        // [GIVEN] Posted sales invoice with two StandardRated lines that share one VAT posting setup, each with an invoice discount.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        VATProdPostingGroup := CreateVATProdPostingGroupWithSetup(SalesHeader."VAT Bus. Posting Group", VATPostingSetup."VAT Calculation Type"::"Normal VAT", 25);
+        CreateSalesLineItemWithInvoiceDiscount(SalesLine, SalesHeader, CreateSalesItem(VATProdPostingGroup), LibraryRandom.RandDecInRange(100, 200, 2));
+        CreateSalesLineItemWithInvoiceDiscount(SalesLine, SalesHeader, CreateSalesItem(VATProdPostingGroup), LibraryRandom.RandDecInRange(100, 200, 2));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.FindSet();
+        repeat
+            ExpectedNet += SalesInvoiceLine.Amount;
+            ExpectedVAT += SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+            ExpectedDiscount += SalesInvoiceLine."Inv. Discount Amount";
+        until SalesInvoiceLine.Next() = 0;
+
+        // [WHEN] Run report "OIOUBL-Create Elec. Invoices"
+        RunReportCreateElecSalesInvoices(DocumentNo);
+        InitializeLibraryXPathXMLReader(OIOUBLNewFileMock.PopFilePath());
+
+        // [THEN] Exactly one document AllowanceCharge and one summary TaxSubtotal, with amounts equal to the accumulated line values.
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:AllowanceCharge', 1);
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal', 1);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cbc:Amount', FormatAmount(ExpectedDiscount));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cbc:TaxableAmount', FormatAmount(ExpectedNet));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cbc:TaxAmount', FormatAmount(ExpectedVAT));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ZeroRatedLineWithInvoiceDiscountUsesZeroRatedGroup();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO] A ZeroRated (0% Normal VAT) line carrying an invoice discount emits a document AllowanceCharge and a summary TaxSubtotal in the ZeroRated category, with percent 0 and no VAT, and the InvoiceLine TaxTotal is grossed up with zero tax.
+        Initialize();
+        SetCalcInvoiceDiscount(false);
+
+        // [GIVEN] Posted sales invoice with a single ZeroRated (0% Normal VAT) line carrying an invoice discount.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        CreateSalesLineItemWithInvoiceDiscount(
+            SalesLine, SalesHeader,
+            CreateSalesItem(CreateVATProdPostingGroupWithSetup(SalesHeader."VAT Bus. Posting Group", VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0)),
+            LibraryRandom.RandDecInRange(100, 200, 2));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.FindFirst();
+
+        // [WHEN] Run report "OIOUBL-Create Elec. Invoices"
+        RunReportCreateElecSalesInvoices(DocumentNo);
+        InitializeLibraryXPathXMLReader(OIOUBLNewFileMock.PopFilePath());
+
+        // [THEN] The document AllowanceCharge uses the ZeroRated category, percent 0 and the discount amount.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:ID', 'ZeroRated');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', FormatAmount(0));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cbc:Amount', FormatAmount(SalesInvoiceLine."Inv. Discount Amount"));
+
+        // [THEN] The summary TaxSubtotal is ZeroRated with the net taxable and no VAT.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cac:TaxCategory/cbc:ID', 'ZeroRated');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cbc:TaxableAmount', FormatAmount(SalesInvoiceLine.Amount));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxTotal[not(parent::cac:InvoiceLine)]/cac:TaxSubtotal/cbc:TaxAmount', FormatAmount(0));
+
+        // [THEN] The InvoiceLine TaxTotal is grossed up to (Amount + Inv. Discount Amount) with zero tax.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:InvoiceLine/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', FormatAmount(SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount"));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:InvoiceLine/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxAmount', FormatAmount(0));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure HeaderDiscountGrossesUpLineTaxTotalSalesCrMemo();
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        DocumentNo: Code[20];
+        ExpectedLineTaxable: Decimal;
+        ExpectedLineTax: Decimal;
+    begin
+        // [SCENARIO] The Sales Credit Memo header (invoice) discount grosses up the CreditNoteLine TaxTotal and uses the line VAT category + % on the document AllowanceCharge.
+        Initialize();
+        SetCalcInvoiceDiscount(false);
+
+        // [GIVEN] Posted sales credit memo, one StandardRated line, with an invoice (header) discount.
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
+        CreateSalesLineItemWithInvoiceDiscount(SalesLine, SalesHeader, CreateSalesItem(FindNormalVAT()), LibraryRandom.RandDecInRange(100, 200, 2));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesCrMemoLine.SetRange("Document No.", DocumentNo);
+        SalesCrMemoLine.FindFirst();
+        ExpectedLineTaxable := SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount";
+        ExpectedLineTax := (SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount) + Round(SalesCrMemoLine."Inv. Discount Amount" * SalesCrMemoLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision());
+
+        // [WHEN] Run report "OIOUBL-Create Elec. Cr. Memos"
+        RunReportCreateElecSalesCrMemos(DocumentNo);
+        InitializeLibraryXPathXMLReader(OIOUBLNewFileMock.PopFilePath());
+
+        // [THEN] The document AllowanceCharge uses StandardRated + the line VAT % + the discount amount.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:ID', 'StandardRated');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', FormatAmount(SalesCrMemoLine."VAT %"));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge/cbc:Amount', FormatAmount(SalesCrMemoLine."Inv. Discount Amount"));
+
+        // [THEN] The CreditNoteLine TaxTotal is grossed up to (Amount + Inv. Discount Amount) with matching VAT.
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:CreditNoteLine/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', FormatAmount(ExpectedLineTaxable));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:CreditNoteLine/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxAmount', FormatAmount(ExpectedLineTax));
+    end;
+
+    [Test]
     [HandlerFunctions('PostandSendModalPageHandler')]
     procedure PostAndSendSalesInvoiceOIOUBL();
     var
@@ -1695,6 +1959,60 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         SalesLine.Validate("Line Discount Amount", LineDiscountAmt);
         SalesLine.Validate("Inv. Discount Amount", InvDiscountAmt);
         SalesLine.Modify(true);
+    end;
+
+    local procedure CreateSalesItem(VATProdPostingGroup: Code[20]): Code[20]
+    var
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        Item.Modify(true);
+        exit(Item."No.");
+    end;
+
+    local procedure CreateVATProdPostingGroupWithSetup(VATBusPostingGroup: Code[20]; VATCalculationType: Enum "Tax Calculation Type"; VATRate: Decimal): Code[20]
+    var
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // Create a VAT Posting Setup for the given VAT Bus. Posting Group so the (Bus x Prod) pair - which drives the
+        // posted line's VAT Calculation Type / category - deterministically resolves to the requested type and rate.
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Identifier", LibraryUtility.GenerateRandomCode(VATPostingSetup.FieldNo("VAT Identifier"), Database::"VAT Posting Setup"));
+        VATPostingSetup.Validate("VAT Calculation Type", VATCalculationType);
+        VATPostingSetup.Validate("VAT %", VATRate);
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then
+            VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        case true of
+            VATCalculationType = VATCalculationType::"Reverse Charge VAT":
+                VATPostingSetup.Validate("Tax Category", 'AE');
+            VATRate > 0:
+                VATPostingSetup.Validate("Tax Category", 'S');
+            else
+                VATPostingSetup.Validate("Tax Category", 'Z');
+        end;
+        VATPostingSetup.Modify(true);
+        exit(VATProductPostingGroup.Code);
+    end;
+
+    local procedure CreateSalesLineItemWithInvoiceDiscount(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; ItemNo: Code[20]; InvDiscountAmt: Decimal)
+    begin
+        CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo);
+        SalesLine.Validate("Inv. Discount Amount", InvDiscountAmt);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure SetCalcInvoiceDiscount(NewValue: Boolean)
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Calc. Inv. Discount", NewValue);
+        SalesReceivablesSetup.Modify(true);
     end;
 
     local procedure CreateElectronicDocumentFormat(DocFormatCode: Code[20]; DocFormatUsage: Enum "Electronic Document Format Usage"; CodeunitID: Integer);

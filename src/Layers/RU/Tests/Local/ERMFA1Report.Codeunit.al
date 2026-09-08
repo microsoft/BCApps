@@ -751,50 +751,62 @@ codeunit 144711 "ERM FA-1 Report"
 
     local procedure RunFAReleaseActReport(FADocHeader: Record "FA Document Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAReleaseActRep: Report "FA Release Act FA-1";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(FADocHeader."No.");
         FADocHeader.SetRecFilter();
         FAReleaseActRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         FAReleaseActRep.SetTableView(FADocHeader);
         FAReleaseActRep.UseRequestPage(false);
         FAReleaseActRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedFAReleaseActReport(PostedFADocHeader: Record "Posted FA Doc. Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedFAReleaseActRep: Report "FA Posted Release Act FA-1";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(PostedFADocHeader."No.");
         PostedFADocHeader.SetRecFilter();
         PostedFAReleaseActRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedFAReleaseActRep.SetTableView(PostedFADocHeader);
         PostedFAReleaseActRep.UseRequestPage(false);
         PostedFAReleaseActRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunSalesReleaseActReport(SalesHeader: Record "Sales Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesFAReleaseRep: Report "Sales FA Release FA-1";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(SalesHeader."No.");
         SalesHeader.SetRecFilter();
         SalesFAReleaseRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         SalesFAReleaseRep.SetTableView(SalesHeader);
         SalesFAReleaseRep.UseRequestPage(false);
         SalesFAReleaseRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedSalesReleaseActReport(SalesInvHeader: Record "Sales Invoice Header")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PostedSalesFAReleaseRep: Report "Posted Sales FA Release FA-1";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(SalesInvHeader."No.");
         SalesInvHeader.SetRecFilter();
         PostedSalesFAReleaseRep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedSalesFAReleaseRep.SetTableView(SalesInvHeader);
         PostedSalesFAReleaseRep.UseRequestPage(false);
         PostedSalesFAReleaseRep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyFA1ReportValues(FixedAsset: Record "Fixed Asset"; ReasonDocNo: Code[20]; ReasonDocDate: Date; DocNo: Code[20]; DocDate: Date; FADocDate: Date)

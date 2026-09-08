@@ -21,6 +21,16 @@ GraphQL queries. `Shpfy Communication Events` publishes internal events
 for every API interaction (`OnClientSend`, `OnClientPost`, `OnClientGet`,
 `OnGetContent`, `OnGetAccessToken`) -- tests use these to mock responses.
 
+`GetAccessToken` ensures a valid expiring offline access token before each
+request via `ShpfyAuthenticationMgt.EnsureValidAccessToken` (refresh a
+near-expiry token or migrate a legacy non-expiring one, on demand), and
+`ExecuteWebRequest` forces a single token refresh and retry on an
+unexpected 401. A lapsed 90-day refresh token is terminal: the Shop Card
+shows a reconnect notification. See the app-level business-logic.md for
+the full token lifecycle.
+
+*Updated: 2026-07-11 -- Expiring offline access token support (slice 637954)*
+
 `Shpfy Background Syncs` orchestrates all sync operations via Job Queue,
 splitting between background-allowed and foreground-only shops.
 
@@ -95,6 +105,7 @@ same HS code.
 - The `Shpfy Cue` table uses FlowFields for role center counts: unmapped
   customers/products/companies, unprocessed orders/shipments, sync errors.
 - Empty sync time sentinel is `2004-01-01` (`GetEmptySyncTime()`), not `0DT`.
+- Authentication uses expiring offline access tokens: `EnsureValidAccessToken` (from `GetAccessToken`) refreshes before expiry and migrates legacy non-expiring tokens on demand. A lapsed 90-day refresh token requires reconnecting the shop from the Shop Card.
 - Three page extensions embed Shopify Activities into standard role centers
   and add Shops, Customers, Companies, Products, Orders, Refunds, Returns,
   Gift Cards, Transactions, and Payouts to the Shopify navigation group.

@@ -184,9 +184,15 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
                     else
                         BalAccType := '';
 
-                    FcyAcyAmt := "Source Currency Amount";
-                    FcyAcyBalance := FcyAcyBalance + "Source Currency Amount";
-                    Exrate := CalcExrate("Source Currency Amount", Amount, "G/L Account"."Source Currency Code");
+                    if IsGLAccountSourceCurrency("Source Currency Code") then begin
+                        FcyAcyAmt := "Source Currency Amount";
+                        FcyAcyBalance := FcyAcyBalance + "Source Currency Amount";
+                        Exrate := CalcExrate("Source Currency Amount", Amount, "G/L Account"."Source Currency Code");
+                    end else begin
+                        FcyAcyAmt := 0;
+                        Exrate := 0;
+                    end;
+
                     OnAfterOnAfterGetRecord("G/L Account", "G/L Entry", FcyAcyAmt, FcyAcyBalance, Exrate);
                 end;
 
@@ -608,6 +614,21 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
 
         GenJourLine2.SetRange("Bal. Account No.");
         GenJourLine2.SetRange("Bal. Account Type");
+    end;
+
+    local procedure IsGLAccountSourceCurrency(CurrencyCode: Code[10]): Boolean
+    var
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+    begin
+        if CurrencyCode = '' then
+            exit(false);
+
+        if CurrencyCode = "G/L Account"."Source Currency Code" then
+            exit(true);
+
+        GLAccountSourceCurrency.SetRange("G/L Account No.", "G/L Account"."No.");
+        GLAccountSourceCurrency.SetRange("Currency Code", CurrencyCode);
+        exit(not GLAccountSourceCurrency.IsEmpty());
     end;
 
     [IntegrationEvent(false, false)]

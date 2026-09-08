@@ -1555,5 +1555,85 @@
     "codeunitName": "Remittance REP Check UT",
     "method": "RemittanceAdviceEntrieShouldAllPayedDocumentsWithPartiallyPaid",
     "bug": "RU: shared W1 test fails under RU base-app behavior in the merged RU build; runs+passes for W1/other countries. Disabled globally (low value, RU pipeline enablement)."
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxItems"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxItemsFiltersToCurrentUser"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPatchReportInboxItemMarksRead"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxItemsNotAllowed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxContentRequiresKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxContentByKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxContentNotAllowed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileRequiresKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileByKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxFileNotAllowed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxCompanies"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxItemsAcrossCompanies"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileForEntryInAnotherCompanyIsNotWidenedSilently"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileForEntryInAnotherCompanyWhenNamed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxContentDoesNotResolveAnotherCompany"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxCompaniesNotAllowed"
   }
 ]

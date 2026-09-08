@@ -7,8 +7,8 @@ page 6277 "Emissions vs Target Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Realized Emissions vs. Target';
-    AboutTitle = 'About Realized Emissions vs. Target';
+    Caption = 'Realized Emissions vs. Target (Power BI)';
+    AboutTitle = 'About Realized Emissions vs. Target (Power BI)';
     AboutText = 'The Realized Emissions by Target report breaks down your carbon emissions and allows for comparison against the target. This allows you to effectively monitor planned progress and drive continuous improvement to sustainability goals.';
 
     layout

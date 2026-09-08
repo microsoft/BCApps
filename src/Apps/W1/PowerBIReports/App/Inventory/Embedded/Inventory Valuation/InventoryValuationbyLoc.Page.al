@@ -11,8 +11,8 @@ page 37058 "Inventory Valuation by Loc."
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Valuation by Location';
-    AboutTitle = 'About Inventory Valuation by Location';
+    Caption = 'Inventory Valuation by Location (Power BI)';
+    AboutTitle = 'About Inventory Valuation by Location (Power BI)';
     AboutText = 'The Inventory Valuation by Location report features a Treemap that visualizes ending balance quantities by location. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
 
     layout

@@ -262,6 +262,33 @@ table 4325 "SOA Setup"
         exit(false);
     end;
 
+    /// <summary>
+    /// Gets the setup record of the agent that owns the current session. Only meaningful inside an agent
+    /// session, where the session identity is the agent identity. Callers must not fall back to an
+    /// unfiltered read, because that picks an arbitrary agent once more than one agent exists.
+    /// </summary>
+    internal procedure GetForCurrentAgentSession(): Boolean
+    var
+        CurrentUserSecurityID: Guid;
+    begin
+        CurrentUserSecurityID := UserSecurityId();
+        exit(GetBasedOnAgentUserSecurityID(CurrentUserSecurityID, false));
+    end;
+
+    /// <summary>
+    /// Determines whether the specified identity is the configured owner or agent, including the fallback for setups created before an explicit owner was stored.
+    /// </summary>
+    internal procedure IsAuthorizedUserSecurityID(UserSecurityID: Guid): Boolean
+    var
+        OwnerUserSecurityID: Guid;
+    begin
+        OwnerUserSecurityID := "Owner User Security ID";
+        if IsNullGuid(OwnerUserSecurityID) then
+            OwnerUserSecurityID := "User Security ID";
+
+        exit((UserSecurityID = OwnerUserSecurityID) or (UserSecurityID = "User Security ID"));
+    end;
+
     internal procedure GetDefaultMessageLimit(): Integer
     begin
         exit(100);

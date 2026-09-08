@@ -51,6 +51,8 @@ codeunit 148301 "Expense Rule Test"
         AdditionalDetailsLbl: Label 'additional details';
         PerDiemForLbl: Label 'Per Diem for: %1', Comment = '%1 = Date';
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
+        RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
+        RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
 
     [Test]
     procedure AmountLCYIsConvertedBasedOnCurrencyInExpense()
@@ -3071,8 +3073,8 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.Close();
 
         // [WHEN] Update "Expense Ext. Doc. No.", "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(30));
-        ExpenseReportLine.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(30));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(30), 1, 100));
+        ExpenseReportLine.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(30), 1, 30));
         ExpenseReportLine.Modify();
 
         // [THEN] Verify that expense Rule Violation is true before adding Itemization.
@@ -3799,13 +3801,13 @@ codeunit 148301 "Expense Rule Test"
         Commit();
 
         // [WHEN] Update Participant Name.
-        asserterror ExpenseReportLineParticipant.validate("Participant Name", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Organization.
-        asserterror ExpenseReportLineParticipant.validate("Participant Organization", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Organization", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
@@ -3817,13 +3819,13 @@ codeunit 148301 "Expense Rule Test"
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Title.
-        asserterror ExpenseReportLineParticipant.validate("Participant Title", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Title", CopyStr(LibraryRandom.RandText(10), 1, 30));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Email.
-        asserterror ExpenseReportLineParticipant.validate("Participant Email", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Email", CopyStr(LibraryRandom.RandText(10), 1, 80));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
@@ -6989,8 +6991,8 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.Close();
 
         // [WHEN] Update "Expense Ext. Doc. No.", "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(30));
-        ExpenseReportLine.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(30));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(30), 1, 100));
+        ExpenseReportLine.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(30), 1, 30));
         ExpenseReportLine.Modify();
 
         // [THEN] Verify that expense Rule Violation is true before adding Participant.
@@ -8290,13 +8292,166 @@ codeunit 148301 "Expense Rule Test"
             StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Non-Refundable Amount"), 0, ExpenseReportLine.TableCaption()));
     end;
 
+    [Test]
+    procedure RequiredSpecificMerchantFailsForMileageCategory()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO 641894] Required Specific Merchant cannot be enabled on an expense rule for a mileage category.
+        Initialize();
+
+        // [GIVEN] An expense rule for a mileage category.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::Mileage);
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+
+        // [WHEN] Required Specific Merchant is enabled.
+        asserterror ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+
+        // [THEN] Validation fails because merchant requirements do not apply to mileage.
+        Assert.ExpectedError(
+            StrSubstNo(
+                RequiredSpecificMerchantNotAllowedForMileageErr,
+                ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
+                ExpenseCategory.FieldCaption("Expense Detail Required"),
+                ExpenseCategory."Expense Detail Required"::Mileage,
+                ExpenseCategory.TableCaption(),
+                ExpenseCategory.Code));
+    end;
+
+    [Test]
+    procedure RequiredSpecificMerchantSucceedsForNonMileageCategory()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO 641894] Required Specific Merchant can be enabled on an expense rule for a non-mileage category.
+        Initialize();
+
+        // [GIVEN] An expense rule for a participants category.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::Participants);
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+
+        // [WHEN] Required Specific Merchant is enabled.
+        ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+        ExpenseRuleHeader.Modify(true);
+
+        // [THEN] The flag is set.
+        Assert.IsTrue(ExpenseRuleHeader."Required Specific Merchant", RequiredSpecificMerchantEnabledMsg);
+    end;
+
+    [Test]
+    procedure ChangingCategoryToMileageFailsWhenRequiredSpecificMerchant()
+    var
+        ParticipantsCategory: Record "Expense Category";
+        MileageCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO 641894] The expense category cannot be changed to a mileage category while Required Specific Merchant is enabled.
+        Initialize();
+
+        // [GIVEN] Participants and mileage categories.
+        LibraryExpense.CreateExpenseCategory(ParticipantsCategory, ParticipantsCategory."Reimbursement Type"::"Company Paid", ParticipantsCategory."Expense Detail Required"::Participants);
+        LibraryExpense.CreateExpenseCategory(MileageCategory, MileageCategory."Reimbursement Type"::"Company Paid", MileageCategory."Expense Detail Required"::Mileage);
+
+        // [GIVEN] An expense rule for the participants category with Required Specific Merchant enabled.
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ParticipantsCategory.Code);
+        ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+        ExpenseRuleHeader.Modify(true);
+
+        // [WHEN] The category is changed to the mileage category.
+        asserterror ExpenseRuleHeader.Validate("Expense Category Code", MileageCategory.Code);
+
+        // [THEN] Validation fails because merchant requirements do not apply to mileage.
+        Assert.ExpectedError(
+            StrSubstNo(
+                RequiredSpecificMerchantNotAllowedForMileageErr,
+                ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
+                MileageCategory.FieldCaption("Expense Detail Required"),
+                MileageCategory."Expense Detail Required"::Mileage,
+                MileageCategory.TableCaption(),
+                MileageCategory.Code));
+    end;
+
+    [Test]
+    procedure SpecificMerchantNameFailsWhenNotRequired()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO 641894] A specific merchant name cannot be entered while Required Specific Merchant is disabled.
+        Initialize();
+
+        // [GIVEN] An expense rule with Required Specific Merchant disabled.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::Participants);
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+
+        // [WHEN] A specific merchant name is entered.
+        asserterror ExpenseRuleHeader.Validate("Specific Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(ExpenseRuleHeader."Specific Merchant Name")));
+
+        // [THEN] Validation fails because Required Specific Merchant must be enabled first.
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    procedure SpecificMerchantNameSucceedsWhenRequired()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        MerchantName: Text[100];
+    begin
+        // [SCENARIO 641894] A specific merchant name can be entered while Required Specific Merchant is enabled.
+        Initialize();
+        MerchantName := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(MerchantName));
+
+        // [GIVEN] An expense rule with Required Specific Merchant enabled.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::Participants);
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+        ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+
+        // [WHEN] A specific merchant name is entered.
+        ExpenseRuleHeader.Validate("Specific Merchant Name", MerchantName);
+        ExpenseRuleHeader.Modify(true);
+
+        // [THEN] The name is stored.
+        Assert.AreEqual(MerchantName, ExpenseRuleHeader."Specific Merchant Name", StrSubstNo(ValueMustBeEqualErr, ExpenseRuleHeader.FieldCaption("Specific Merchant Name"), MerchantName, ExpenseRuleHeader.TableCaption()));
+    end;
+
+    [Test]
+    procedure RequiredSpecificMerchantCannotBeClearedWhenNameSet()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO 641894] Required Specific Merchant cannot be disabled while a specific merchant name is still set.
+        Initialize();
+
+        // [GIVEN] An expense rule with Required Specific Merchant enabled and a merchant name set.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::Participants);
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+        ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+        ExpenseRuleHeader.Validate("Specific Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(ExpenseRuleHeader."Specific Merchant Name")));
+        ExpenseRuleHeader.Modify(true);
+
+        // [WHEN] Required Specific Merchant is disabled.
+        asserterror ExpenseRuleHeader.Validate("Required Specific Merchant", false);
+
+        // [THEN] Validation fails because the merchant name must be cleared first.
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
     local procedure Initialize()
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         Workflow: Record Workflow;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Rule Test");
+        LibraryExpense.CleanTransactionalData();
         LibraryExpense.CleanUpBeforeTesting();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Default VAT Bus. Posting Group" := '';
+        ExpenseAgentSetup.Modify();
         LibraryVariableStorage.Clear();
         if IsInitialized then
             exit;
@@ -9210,6 +9365,14 @@ codeunit 148301 "Expense Rule Test"
             ExpenseReportLineItemization.Amount := Amount;
             ExpenseReportLineItemization.Modify();
         end;
+    end;
+
+    local procedure CreateExpenseRuleHeaderForCategory(var ExpenseRuleHeader: Record "Expense Rule Header"; ExpenseCategoryCode: Code[20])
+    begin
+        ExpenseRuleHeader.Init();
+        ExpenseRuleHeader.Validate("Expense Category Code", ExpenseCategoryCode);
+        ExpenseRuleHeader.Validate("Effective Date", WorkDate());
+        ExpenseRuleHeader.Insert(true);
     end;
 
     [ModalPageHandler]

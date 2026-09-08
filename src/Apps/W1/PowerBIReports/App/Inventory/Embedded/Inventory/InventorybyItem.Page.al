@@ -11,8 +11,8 @@ page 37023 "Inventory by Item"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory by Item';
-    AboutTitle = 'About Inventory by Item';
+    Caption = 'Inventory by Item (Power BI)';
+    AboutTitle = 'About Inventory by Item (Power BI)';
     AboutText = 'The Inventory by Item report provides inventory quantities by item, offering insights into the sources of supply and demand. Helping organizations understand item-level inventory status, manage stock effectively, and make informed decisions about the state of supply and demand.';
 
     layout

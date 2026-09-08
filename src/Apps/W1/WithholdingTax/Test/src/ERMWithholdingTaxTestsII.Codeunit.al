@@ -16,6 +16,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.WithholdingTax;
+using Microsoft.WithholdingTax.Employee;
 using System.TestLibraries.Utilities;
 
 codeunit 148322 "ERM Withholding Tax Tests II"
@@ -43,6 +44,8 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         WHTAccountCodeEmptyErr: Label '%1 must have a value in Withholding Tax Posting Setup: Withholding Tax Bus. Post. Group=%2, Withholding Tax Prod. Post. Group=%3. It cannot be zero or empty.',
                                 Comment = '%1 = Field Caption, %2 = WHT Business Posting Group Code, %3 = WHT Product Posting Group Code';
         WHTProdPostGroupNotCopiedErr: Label 'Withholding Tax Prod. Post. Group must be copied from the applied Invoice to the Payment line.';
+        EmployeeOnlyOptionErr: Label 'The %1 option can be used only when the withholding tax is for employees.', Comment = '%1 = field caption';
+        ThresholdPeriodNotAllowedErr: Label 'The %1 can be specified only when %2 is %3 or %4.', Comment = '%1 = Withholding Threshold Period field caption, %2 = Withholding Threshold Base field caption, %3 = Category in Period option, %4 = Total in Period option';
         IsInitialized: Boolean;
 
     [Test]
@@ -637,6 +640,130 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         Assert.AreEqual(WHTProdPostingGroup.Code, WHTEntry."Wthldg. Tax Prod. Post. Group", WHTProdPostGroupNotCopiedErr);
     end;
 
+    [Test]
+    procedure CalculationBaseNetBlockedForNonEmployeeParty()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 646962] Calculation Base other than Gross is blocked when the party is not Employee.
+        Initialize();
+
+        // [GIVEN] Withholding Tax Posting Setup whose Business Posting Group has Party Applicability Vendor.
+        CreateWHTPostingSetupWithPartyApplicability(WHTPostingSetup, "Withholding Party Type"::Vendor);
+
+        // [WHEN] Validate Calculation Base to Net.
+        asserterror WHTPostingSetup.Validate("Calculation Base", WHTPostingSetup."Calculation Base"::Net);
+
+        // [THEN] An error is thrown that the option is available for employees only.
+        Assert.ExpectedError(StrSubstNo(EmployeeOnlyOptionErr, WHTPostingSetup.FieldCaption("Calculation Base")));
+    end;
+
+    [Test]
+    procedure CalculationMethodCompoundBlockedForNonEmployeeParty()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 646962] Calculation Method Compound is blocked when the party is not Employee.
+        Initialize();
+
+        // [GIVEN] Withholding Tax Posting Setup whose Business Posting Group has Party Applicability Vendor.
+        CreateWHTPostingSetupWithPartyApplicability(WHTPostingSetup, "Withholding Party Type"::Vendor);
+
+        // [WHEN] Validate Calculation Method to Compound.
+        asserterror WHTPostingSetup.Validate("Calculation Method", WHTPostingSetup."Calculation Method"::Compound);
+
+        // [THEN] An error is thrown that the option is available for employees only.
+        Assert.ExpectedError(StrSubstNo(EmployeeOnlyOptionErr, WHTPostingSetup.FieldCaption("Calculation Method")));
+    end;
+
+    [Test]
+    procedure ThresholdBaseNonRecordBlockedForNonEmployeeParty()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 646962] Withholding Threshold Base other than Record/Line is blocked when the party is not Employee.
+        Initialize();
+
+        // [GIVEN] Withholding Tax Posting Setup whose Business Posting Group has Party Applicability Vendor.
+        CreateWHTPostingSetupWithPartyApplicability(WHTPostingSetup, "Withholding Party Type"::Vendor);
+
+        // [WHEN] Validate Withholding Threshold Base to Document.
+        asserterror WHTPostingSetup.Validate("WHT Threshold Base", WHTPostingSetup."WHT Threshold Base"::Document);
+
+        // [THEN] An error is thrown that the option is available for employees only.
+        Assert.ExpectedError(StrSubstNo(EmployeeOnlyOptionErr, WHTPostingSetup.FieldCaption("WHT Threshold Base")));
+    end;
+
+    [Test]
+    procedure EmployeeOnlyOptionsAllowedForEmployeeParty()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 646962] Net, Compound and non-Record threshold base are allowed when the party is Employee.
+        Initialize();
+
+        // [GIVEN] Withholding Tax Posting Setup whose Business Posting Group has Party Applicability Employee.
+        CreateWHTPostingSetupWithPartyApplicability(WHTPostingSetup, "Withholding Party Type"::Employee);
+
+        // [WHEN] Validate Calculation Base, Calculation Method and Withholding Threshold Base to the employee-only options.
+        WHTPostingSetup.Validate("Calculation Base", WHTPostingSetup."Calculation Base"::Net);
+        WHTPostingSetup.Validate("Calculation Method", WHTPostingSetup."Calculation Method"::Compound);
+        WHTPostingSetup.Validate("WHT Threshold Base", WHTPostingSetup."WHT Threshold Base"::"Category Period");
+        WHTPostingSetup.Modify(true);
+
+        // [THEN] The values are accepted.
+        Assert.AreEqual(WHTPostingSetup."Calculation Base"::Net, WHTPostingSetup."Calculation Base", ValueMustBeSameMsg);
+        Assert.AreEqual(WHTPostingSetup."Calculation Method"::Compound, WHTPostingSetup."Calculation Method", ValueMustBeSameMsg);
+        Assert.AreEqual(WHTPostingSetup."WHT Threshold Base"::"Category Period", WHTPostingSetup."WHT Threshold Base", ValueMustBeSameMsg);
+    end;
+
+    [Test]
+    procedure ThresholdPeriodBlockedWhenBaseIsNotPeriod()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 646963] Withholding Threshold Period is blocked when Withholding Threshold Base is not Category in Period or Total in Period.
+        Initialize();
+
+        // [GIVEN] Withholding Tax Posting Setup for Employee with Withholding Threshold Base Record/Line.
+        CreateWHTPostingSetupWithPartyApplicability(WHTPostingSetup, "Withholding Party Type"::Employee);
+        WHTPostingSetup.Validate("WHT Threshold Base", WHTPostingSetup."WHT Threshold Base"::Record);
+
+        // [WHEN] Validate Withholding Threshold Period to Month.
+        asserterror WHTPostingSetup.Validate("WHT Threshold Period", WHTPostingSetup."WHT Threshold Period"::Month);
+
+        // [THEN] An error is thrown that the period requires a period-based threshold base.
+        Assert.ExpectedError(
+          StrSubstNo(ThresholdPeriodNotAllowedErr, WHTPostingSetup.FieldCaption("WHT Threshold Period"), WHTPostingSetup.FieldCaption("WHT Threshold Base"),
+            Format(WHTPostingSetup."WHT Threshold Base"::"Category Period"), Format(WHTPostingSetup."WHT Threshold Base"::"Total Period")));
+    end;
+
+    [Test]
+    procedure ThresholdPeriodAllowedWhenBaseIsCategoryPeriod()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 646963] Withholding Threshold Period is allowed when Withholding Threshold Base is Category in Period.
+        Initialize();
+
+        // [GIVEN] Withholding Tax Posting Setup for Employee with Withholding Threshold Base Category in Period.
+        CreateWHTPostingSetupWithPartyApplicability(WHTPostingSetup, "Withholding Party Type"::Employee);
+        WHTPostingSetup.Validate("WHT Threshold Base", WHTPostingSetup."WHT Threshold Base"::"Category Period");
+
+        // [WHEN] Validate Withholding Threshold Period to Month.
+        WHTPostingSetup.Validate("WHT Threshold Period", WHTPostingSetup."WHT Threshold Period"::Month);
+        WHTPostingSetup.Modify(true);
+
+        // [THEN] The value is accepted.
+        Assert.AreEqual(WHTPostingSetup."WHT Threshold Period"::Month, WHTPostingSetup."WHT Threshold Period", ValueMustBeSameMsg);
+    end;
+
     local procedure Initialize()
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -853,6 +980,18 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         WHTPostingSetup.Validate("Prepaid Wthldg. Tax Acc. Code", '');
         WHTPostingSetup.Validate("Realized Withholding Tax Type", WHTPostingSetup."Realized Withholding Tax Type"::Invoice);
         WHTPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateWHTPostingSetupWithPartyApplicability(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; PartyApplicability: Enum "Withholding Party Type")
+    var
+        WHTBusinessPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
+        WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+    begin
+        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusinessPostingGroup);
+        WHTBusinessPostingGroup.Validate("Party Applicability", PartyApplicability);
+        WHTBusinessPostingGroup.Modify(true);
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
+        LibraryWithholdingTax.CreateWHTPostingSetup(WHTPostingSetup, WHTBusinessPostingGroup.Code, WHTProductPostingGroup.Code);
     end;
 
     local procedure CreateCurrencyWithExchangeRate(): Code[10]

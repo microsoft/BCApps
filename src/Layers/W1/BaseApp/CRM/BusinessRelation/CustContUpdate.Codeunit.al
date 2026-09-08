@@ -11,7 +11,8 @@ using Microsoft.Sales.Customer;
 
 codeunit 5056 "CustCont-Update"
 {
-    Permissions = tabledata Contact = rimd;
+    Permissions = tabledata Contact = rimd,
+                  tabledata "Contact Business Relation" = r;
 
     trigger OnRun()
     begin

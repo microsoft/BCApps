@@ -10,6 +10,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sustainability.ExciseTax;
@@ -28,6 +29,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryInventory: Codeunit "Library - Inventory";
         IsInitialized: Boolean;
         TotalTaxAmtMismatchTransLogPurchaseLbl: Label 'Total tax amount mismatch in transaction log for purchase';
         UnexpectedJournalLineCntLbl: Label 'Unexpected number of excise journal lines';
@@ -35,6 +37,13 @@ codeunit 148351 "Excise Tax Calculation Tests"
         ExciseRecordNotCreatedLbl: Label '%1 was not created successfully', Comment = '%1= TableCaption';
         ExciseTaxBasisMismatchLbl: Label 'Excise Tax Basis mismatch';
         QtyForExciseTaxMissingLbl: Label 'Qty for Excise Tax was not populated';
+        TableRelationErr: Label 'cannot be found in the related table';
+        CopyCountMismatchLbl: Label 'Both excise tax lines should be copied from the source item.';
+        TaxTypeNotCopiedLbl: Label 'The excise tax type was not copied to the target item.';
+        ExciseTaxPostedTooEarlyLbl: Label 'Item ledger entry should not be marked as excise tax posted while another tax type is still pending';
+        ExciseTaxNotFullyPostedLbl: Label 'Item ledger entry should be marked as excise tax posted once all tax types are posted';
+        ExciseTaxPostedIgnoreNotAllowedLbl: Label 'Item ledger entry should be marked as excise tax posted; a tax type not allowed for the entry type must not block it';
+        ExciseTaxPostedIgnoreDisabledLbl: Label 'Item ledger entry should be marked as excise tax posted; a disabled tax type must not block it';
 
     [Test]
     procedure ExciseTaxTypeCreationForWeightBasis()
@@ -446,6 +455,262 @@ codeunit 148351 "Excise Tax Calculation Tests"
         Assert.AreEqual(ExpectedTotal, SumTransactionLogTaxAmountForTaxType(TaxTypeCode), TotalTaxAmtMismatchTransLogPurchaseLbl);
     end;
 
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure MultipleExciseTaxesGenerateSeparateJournalLinesPerType()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+        FirstTaxCode: Code[20];
+        SecondTaxCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 626127] An item with two excise tax types produces a separate excise journal line per type for the same item ledger entry.
+        Initialize();
+
+        // [GIVEN] Two enabled excise tax types, each with purchase permission and a rate.
+        Quantity := LibraryRandom.RandInt(2000);
+        FirstTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::Weight);
+        SecondTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::"Sugar Content");
+
+        // [GIVEN] An item configured with BOTH excise tax types.
+        LibraryExciseTax.CreateItemWithExciseTax(Item, FirstTaxCode);
+        LibraryExciseTax.CreateItemExciseTax(Item."No.", SecondTaxCode);
+
+        // [GIVEN] An excise journal batch with no tax type filter, so both types are processed.
+        SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
+        SustExciseJournalBatch.Validate(Type, SustExciseJournalBatch.Type::Excises);
+        SustExciseJournalBatch."Excise Tax Type Filter" := '';
+        SustExciseJournalBatch.Modify(true);
+
+        // [GIVEN] A single posted purchase for the item (one item ledger entry).
+        CreateAndPostPurchase(Item."No.", Quantity);
+
+        // [WHEN] Excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] Exactly one journal line exists for each tax type - the same ledger entry taxed once per type.
+        VerifyJournalLineCountForTaxType(FirstTaxCode, 1);
+        VerifyJournalLineCountForTaxType(SecondTaxCode, 1);
+    end;
+
+    [Test]
+    procedure CopyExciseTaxesFromItemCopiesAllLines()
+    var
+        SourceItem: Record Item;
+        TargetItem: Record Item;
+        ItemExciseTax: Record "Item Excise Tax";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+        FirstTaxCode: Code[20];
+        SecondTaxCode: Code[20];
+        CopiedCount: Integer;
+    begin
+        // [SCENARIO 626127] Copy from Item copies every excise tax line from a source item to a target item.
+        Initialize();
+
+        // [GIVEN] A source item configured with two excise tax types.
+        FirstTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::Weight);
+        SecondTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::"Sugar Content");
+        LibraryExciseTax.CreateItemWithExciseTax(SourceItem, FirstTaxCode);
+        LibraryExciseTax.CreateItemExciseTax(SourceItem."No.", SecondTaxCode);
+
+        // [GIVEN] A target item with no excise tax setup.
+        LibraryInventory.CreateItem(TargetItem);
+
+        // [WHEN] Excise taxes are copied from the source item to the target item.
+        CopiedCount := ItemExciseTax.CopyExciseTaxesFromItem(SourceItem."No.", TargetItem."No.");
+
+        // [THEN] Both excise tax lines are copied to the target item.
+        Assert.AreEqual(2, CopiedCount, CopyCountMismatchLbl);
+        Assert.IsTrue(ItemExciseTax.Get(TargetItem."No.", FirstTaxCode), TaxTypeNotCopiedLbl);
+        Assert.IsTrue(ItemExciseTax.Get(TargetItem."No.", SecondTaxCode), TaxTypeNotCopiedLbl);
+    end;
+
+    [Test]
+    procedure DisabledExciseTaxTypeCannotBeAssignedToItem()
+    var
+        Item: Record Item;
+        DisabledTaxType: Record "Excise Tax Type";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+    begin
+        // [SCENARIO 626127] A disabled excise tax type cannot be assigned to an item.
+        Initialize();
+
+        // [GIVEN] A disabled excise tax type and an item.
+        DisabledTaxType := LibraryExciseTax.CreateExciseTaxType('', ExciseTaxBasis::Weight, false);
+        LibraryInventory.CreateItem(Item);
+
+        // [WHEN] The disabled excise tax type is assigned to the item.
+        asserterror LibraryExciseTax.CreateItemExciseTax(Item."No.", DisabledTaxType.Code);
+
+        // [THEN] It is rejected because the tax type is not one of the enabled excise tax types.
+        Assert.ExpectedError(TableRelationErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler,UIConfirmHandler')]
+    procedure SecondExciseTaxTypeGeneratedAfterFirstTaxTypePosted()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+        FirstTaxCode: Code[20];
+        SecondTaxCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 626127] After one excise tax type is posted for an item ledger entry, a second tax type on the same item is still generated for that entry.
+        Initialize();
+
+        // [GIVEN] Two enabled excise tax types, each with purchase permission and a rate.
+        Quantity := LibraryRandom.RandInt(2000);
+        FirstTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::Weight);
+        SecondTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::"Sugar Content");
+
+        // [GIVEN] An item configured with BOTH excise tax types.
+        LibraryExciseTax.CreateItemWithExciseTax(Item, FirstTaxCode);
+        LibraryExciseTax.CreateItemExciseTax(Item."No.", SecondTaxCode);
+
+        // [GIVEN] An excise journal batch that only processes the first tax type.
+        SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
+        SustExciseJournalBatch.Validate(Type, SustExciseJournalBatch.Type::Excises);
+        SustExciseJournalBatch.Validate("Excise Tax Type Filter", FirstTaxCode);
+        SustExciseJournalBatch.Modify(true);
+
+        // [GIVEN] A single posted purchase for the item (one item ledger entry).
+        CreateAndPostPurchase(Item."No.", Quantity);
+
+        // [GIVEN] The first excise tax type is generated and posted for that ledger entry.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+        VerifyJournalLineCountForTaxType(FirstTaxCode, 1);
+        RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
+        VerifyTransactionLogCountForTaxType(FirstTaxCode, 1);
+
+        // [THEN] The item ledger entry is not yet marked as excise tax posted because the second tax type is still pending.
+        FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
+        Assert.IsFalse(ItemLedgerEntry."Excise Tax Posted", ExciseTaxPostedTooEarlyLbl);
+
+        // [WHEN] The second excise tax type is generated for the same ledger entry.
+        SustExciseJournalBatch.Validate("Excise Tax Type Filter", SecondTaxCode);
+        SustExciseJournalBatch.Modify(true);
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] A journal line is created for the second tax type on the already-taxed ledger entry.
+        VerifyJournalLineCountForTaxType(SecondTaxCode, 1);
+
+        // [WHEN] The second excise tax type is posted.
+        RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
+        VerifyTransactionLogCountForTaxType(SecondTaxCode, 1);
+
+        // [THEN] The item ledger entry is now marked as excise tax posted because all tax types are posted.
+        FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
+        Assert.IsTrue(ItemLedgerEntry."Excise Tax Posted", ExciseTaxNotFullyPostedLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler,UIConfirmHandler')]
+    procedure ExciseTaxPostedWhenRemainingTaxTypeNotAllowedForEntryType()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        NotAllowedTaxType: Record "Excise Tax Type";
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+        AllowedTaxCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 626127] The ledger entry is marked as excise tax posted once the applicable tax types are posted, even when the item also has a tax type that is not allowed for the entry's type.
+        Initialize();
+
+        // [GIVEN] One tax type that allows purchase (with a rate), and a second enabled tax type that does NOT allow purchase.
+        Quantity := LibraryRandom.RandInt(2000);
+        AllowedTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::Weight);
+        NotAllowedTaxType := LibraryExciseTax.CreateExciseTaxType('', ExciseTaxBasis::"Sugar Content", true);
+        LibraryExciseTax.CreateExciseTaxEntryPermission(NotAllowedTaxType.Code, "Excise Entry Type"::Purchase, false);
+        LibraryExciseTax.CreateExciseTaxEntryPermission(NotAllowedTaxType.Code, "Excise Entry Type"::Sale, true);
+
+        // [GIVEN] An item configured with BOTH tax types.
+        LibraryExciseTax.CreateItemWithExciseTax(Item, AllowedTaxCode);
+        LibraryExciseTax.CreateItemExciseTax(Item."No.", NotAllowedTaxType.Code);
+
+        // [GIVEN] An excise journal batch that processes all tax types.
+        SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
+        SustExciseJournalBatch.Validate(Type, SustExciseJournalBatch.Type::Excises);
+        SustExciseJournalBatch."Excise Tax Type Filter" := '';
+        SustExciseJournalBatch.Modify(true);
+
+        // [GIVEN] A single posted purchase for the item (one item ledger entry).
+        CreateAndPostPurchase(Item."No.", Quantity);
+
+        // [WHEN] Excise journal lines are generated and posted.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] Only the purchase-allowed tax type produced a journal line.
+        VerifyJournalLineCountForTaxType(AllowedTaxCode, 1);
+        VerifyJournalLineCountForTaxType(NotAllowedTaxType.Code, 0);
+
+        RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
+
+        // [THEN] The ledger entry is marked as excise tax posted: the only applicable tax type is posted and the not-allowed tax type does not block it.
+        FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
+        Assert.IsTrue(ItemLedgerEntry."Excise Tax Posted", ExciseTaxPostedIgnoreNotAllowedLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler,UIConfirmHandler')]
+    procedure ExciseTaxPostedWhenRemainingTaxTypeIsDisabled()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        DisabledTaxType: Record "Excise Tax Type";
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
+        ExciseTaxBasis: Enum "Excise Tax Basis";
+        EnabledTaxCode: Code[20];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 626127] The ledger entry is marked as excise tax posted once the enabled tax types are posted, even when the item also has a tax type that was disabled after being assigned.
+        Initialize();
+
+        // [GIVEN] One enabled tax type (purchase allowed, with a rate), and a second tax type that will be disabled after assignment.
+        Quantity := LibraryRandom.RandInt(2000);
+        EnabledTaxCode := LibraryExciseTax.SetupTaxType(ExciseTaxBasis::Weight);
+        DisabledTaxType := LibraryExciseTax.CreateExciseTaxType('', ExciseTaxBasis::"Sugar Content", true);
+        LibraryExciseTax.CreateExciseTaxEntryPermission(DisabledTaxType.Code, "Excise Entry Type"::Purchase, true);
+
+        // [GIVEN] An item configured with BOTH tax types, then the second tax type is disabled.
+        LibraryExciseTax.CreateItemWithExciseTax(Item, EnabledTaxCode);
+        LibraryExciseTax.CreateItemExciseTax(Item."No.", DisabledTaxType.Code);
+        DisabledTaxType.Validate(Enabled, false);
+        DisabledTaxType.Modify(true);
+
+        // [GIVEN] An excise journal batch that processes all tax types.
+        SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
+        SustExciseJournalBatch.Validate(Type, SustExciseJournalBatch.Type::Excises);
+        SustExciseJournalBatch."Excise Tax Type Filter" := '';
+        SustExciseJournalBatch.Modify(true);
+
+        // [GIVEN] A single posted purchase for the item (one item ledger entry).
+        CreateAndPostPurchase(Item."No.", Quantity);
+
+        // [WHEN] Excise journal lines are generated and posted.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] Only the enabled tax type produced a journal line.
+        VerifyJournalLineCountForTaxType(EnabledTaxCode, 1);
+        VerifyJournalLineCountForTaxType(DisabledTaxType.Code, 0);
+
+        RegisterExciseJournal(SustExciseJournalBatch."Journal Template Name", SustExciseJournalBatch.Name);
+
+        // [THEN] The ledger entry is marked as excise tax posted: the disabled tax type does not block it.
+        FindItemLedgerEntry(ItemLedgerEntry, Item."No.");
+        Assert.IsTrue(ItemLedgerEntry."Excise Tax Posted", ExciseTaxPostedIgnoreDisabledLbl);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -477,12 +742,12 @@ codeunit 148351 "Excise Tax Calculation Tests"
 
     local procedure VerifyItemExciseTaxDetail(ItemNo: Code[20]; TaxTypeCode: Code[20])
     var
-        Item: Record Item;
+        ItemExciseTax: Record "Item Excise Tax";
     begin
-        Item.Get(ItemNo);
-        Assert.AreEqual(TaxTypeCode, Item."Excise Tax Type", ExciseTaxBasisMismatchLbl);
-        Assert.IsTrue(Item."Quantity for Excise Tax" <> 0, QtyForExciseTaxMissingLbl);
-        Assert.IsTrue(Item."Excise Unit of Measure Code" <> '', QtyForExciseTaxMissingLbl);
+        ItemExciseTax.Get(ItemNo, TaxTypeCode);
+        Assert.AreEqual(TaxTypeCode, ItemExciseTax."Excise Tax Type Code", ExciseTaxBasisMismatchLbl);
+        Assert.IsTrue(ItemExciseTax."Quantity for Excise Tax" <> 0, QtyForExciseTaxMissingLbl);
+        Assert.IsTrue(ItemExciseTax."Excise Unit of Measure Code" <> '', QtyForExciseTaxMissingLbl);
     end;
 
     local procedure VerifyTaxTypeCreated(TaxTypeCode: Code[20]; TaxBasis: Enum "Excise Tax Basis")
@@ -720,6 +985,12 @@ codeunit 148351 "Excise Tax Calculation Tests"
     begin
         ExciseTaxTransLog.SetRange("Excise Tax Type", TaxTypeCode);
         Assert.AreEqual(ExpectedCount, ExciseTaxTransLog.Count(), UnexpectedTransLogCntLbl);
+    end;
+
+    local procedure FindItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemNo: Code[20])
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.FindFirst();
     end;
 
     [RequestPageHandler]

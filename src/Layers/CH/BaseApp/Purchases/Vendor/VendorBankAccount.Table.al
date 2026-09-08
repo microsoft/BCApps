@@ -536,8 +536,11 @@ table 288 "Vendor Bank Account"
         DomesticIBAN := CHMgt.IsDomesticIBAN(IBAN);
 
         // Payment Type 2.2
+        // When the Clearing No. field is left blank, the bank clearing number is derived from the domestic IBAN,
+        // but only when no SWIFT Code is provided so SWIFT-routed accounts still classify as Payment Type 3/4.
         if ("Payment Form" = "Payment Form"::"Bank Payment Domestic") and
-           ("Clearing No." <> '') and DomesticCurrency and DomesticIBAN and
+           (("Clearing No." <> '') or (("SWIFT Code" = '') and (CHMgt.GetClearingNoFromIBAN(IBAN) <> ''))) and
+           DomesticCurrency and DomesticIBAN and
            (IBAN <> '')
         then begin
             PaymentType := DummyPaymentExportData."Swiss Payment Type"::"2.2";

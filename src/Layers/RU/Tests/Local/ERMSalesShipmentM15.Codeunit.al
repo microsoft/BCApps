@@ -230,8 +230,10 @@ codeunit 144706 "ERM Sales Shipment M-15"
 
     local procedure PrintM15SalesOrder(var SalesHeader: Record "Sales Header"; var LineQty: Integer; Preview: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesShipmentM15: Report "Sales Shipment M-15";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         LineQty := LibraryRandom.RandIntInRange(2, 5);
@@ -246,14 +248,17 @@ codeunit 144706 "ERM Sales Shipment M-15"
         SalesShipmentM15.UseRequestPage(false);
         SalesShipmentM15.Run();
         SalesHeader.Find(); // re-read record as there is an assignments inside report
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintM15SalesShipment(var LineQty: Integer) DocumentNo: Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         PostedSalesShipmentM15: Report "Posted Sales Shipment M-15";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Initialize();
 
         LineQty := LibraryRandom.RandIntInRange(2, 5);
@@ -267,6 +272,7 @@ codeunit 144706 "ERM Sales Shipment M-15"
         PostedSalesShipmentM15.SetFileNameSilent(LibraryReportValidation.GetFileName());
         PostedSalesShipmentM15.UseRequestPage(false);
         PostedSalesShipmentM15.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure GetSalesOrderIntWrittenAmount(var SalesHeader: Record "Sales Header"): Text

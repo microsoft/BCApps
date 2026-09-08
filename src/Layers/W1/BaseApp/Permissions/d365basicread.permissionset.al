@@ -193,7 +193,6 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Direct Trans. Line" = R,
                   tabledata Drive = R,
                   tabledata "Event Subscription" = R,
-                  tabledata "Extension Execution Info" = R,
                   tabledata "Feature Key" = R,
                   tabledata Field = R,
                   tabledata File = R,

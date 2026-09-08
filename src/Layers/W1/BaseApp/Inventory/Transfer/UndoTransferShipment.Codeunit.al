@@ -64,6 +64,7 @@ codeunit 9030 "Undo Transfer Shipment"
         AlreadyReceivedErr: Label 'This shipment has already been received. Undo Shipment can only be applied to posted, but not received Transfer Lines.';
         NoDerivedTransOrderLineNoErr: Label 'The Transfer Shipment Line is missing a value in the field Derived Trans. Order Line No. This is automatically populated when posting new Transfer Shipments';
         NoTransOrderLineNoErr: Label 'The Transfer Shipment Line is missing a value in the field Trans. Order Line No. This is automatically populated when posting new Transfer Shipments';
+        NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
 
     procedure SetHideDialog(NewHideDialog: Boolean)
     begin
@@ -86,9 +87,9 @@ codeunit 9030 "Undo Transfer Shipment"
         TransShptLine.SetFilter(Quantity, '<>0');
         TransShptLine.SetRange("Correction Line", false);
         OnCodeOnAfterTransShptLineSetFilters(TransShptLine);
-
         if TransShptLine.IsEmpty() then
-            Error(AlreadyReversedErr);
+            Error(NoLinesToReverseErr);
+
         TransShptLine.FindSet();
         repeat
             if not HideDialog then

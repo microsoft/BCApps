@@ -682,9 +682,10 @@ codeunit 5611 "Calculate Normal Depreciation"
         AccountingPeriod: Record "Accounting Period";
         Result: Boolean;
         IsHandled: Boolean;
+        NewYearDateOverride: Date;
     begin
         IsHandled := false;
-        OnBeforeSetHalfYearConventionMethod(FADeprBook, DeprMethod, Year365Days, FirstDeprDate, NewYearDate, Result, IsHandled);
+        OnBeforeSetHalfYearConventionMethod(FADeprBook, DeprMethod, Year365Days, FirstDeprDate, NewYearDate, Result, IsHandled, NewYearDateOverride);
         if IsHandled then
             exit(Result);
 
@@ -702,7 +703,10 @@ codeunit 5611 "Calculate Normal Depreciation"
           "Starting Date", '>=%1',
           DepreciationCalc.ToMorrow(FADeprBook."Depreciation Starting Date", Year365Days, DeprBook."Use Accounting Period"));
         AccountingPeriod.FindFirst();
-        NewYearDate := AccountingPeriod."Starting Date";
+        if NewYearDateOverride <> 0D then
+            NewYearDate := NewYearDateOverride
+        else
+            NewYearDate := AccountingPeriod."Starting Date";
         if FirstDeprDate >= NewYearDate then
             exit(false);
 
@@ -1156,7 +1160,7 @@ codeunit 5611 "Calculate Normal Depreciation"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetHalfYearConventionMethod(FADeprBook: Record "FA Depreciation Book"; DeprMethod: Enum "FA Depr. Method Internal"; Year365Days: Boolean; FirstDeprDate: Date; NewYearDate: Date; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeSetHalfYearConventionMethod(FADeprBook: Record "FA Depreciation Book"; DeprMethod: Enum "FA Depr. Method Internal"; Year365Days: Boolean; FirstDeprDate: Date; NewYearDate: Date; var Result: Boolean; var IsHandled: Boolean; var NewYearDateOverride: Date)
     begin
     end;
 }

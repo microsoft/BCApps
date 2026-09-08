@@ -30,6 +30,8 @@ codeunit 8353 "MCP Config Missing Object" implements "MCP Config Warning"
                         AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
                     MCPConfigurationTool."Object Type"::Query:
                         AllObj.SetRange("Object Type", AllObj."Object Type"::Query);
+                    MCPConfigurationTool."Object Type"::Codeunit:
+                        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
                 end;
                 AllObj.SetRange("Object ID", MCPConfigurationTool."Object ID");
                 if AllObj.IsEmpty() then begin

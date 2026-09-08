@@ -239,6 +239,29 @@ codeunit 11503 CHMgt
         exit(CopyStr(DtaMgt.IBANDELCHR(IBAN), 1, 2) in ['CH', 'LI']);
     end;
 
+    /// <summary>
+    /// Extracts the Swiss bank clearing number (IID) from a domestic (CH/LI) IBAN.
+    /// </summary>
+    /// <param name="IBAN">The IBAN to read the clearing number from.</param>
+    /// <returns>The clearing number from IBAN positions 5-9 with leading zeros stripped, or an empty code if the IBAN is not a domestic IBAN or is too short.</returns>
+    internal procedure GetClearingNoFromIBAN(IBAN: Code[50]) ClearingNo: Code[5]
+    var
+        DtaMgt: Codeunit DtaMgt;
+        PureIBAN: Text;
+    begin
+        // Swiss/Liechtenstein IBANs carry the 5-digit bank clearing number (IID) in positions 5-9,
+        // so it can be derived from the IBAN without a separately maintained Clearing No.
+        if not IsDomesticIBAN(IBAN) then
+            exit('');
+
+        // IBANDELCHR expects Code[37]; IBANs are at most 34 characters, so this never truncates real data.
+        PureIBAN := DtaMgt.IBANDELCHR(CopyStr(IBAN, 1, 37));
+        if StrLen(PureIBAN) < 9 then
+            exit('');
+
+        ClearingNo := CopyStr(DelChr(CopyStr(PureIBAN, 5, 5), '<', '0'), 1, 5);
+    end;
+
     procedure IsDomesticCurrency(CurrencyCode: Code[10]): Boolean
     var
         DtaMgt: Codeunit DtaMgt;

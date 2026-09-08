@@ -450,6 +450,7 @@ table 18478 "Sub Order Comp. List Vend"
         DeliveryChallanLine.SetCurrentKey("Delivery Challan No.", "Item No.");
         DeliveryChallanLine.SetRange("Delivery Challan No.", DeliveryChallanHeader."No.");
         DeliveryChallanLine.SetRange("Item No.", "Item No.");
+        DeliveryChallanLine.SetRange("Variant Code", "Variant Code");
         if DeliveryChallanLine.FindFirst() then begin
             DeliveryChallanLine.CalcFields("Remaining Quantity");
             if (DeliveryChallanLine."Remaining Quantity" <
@@ -463,6 +464,7 @@ table 18478 "Sub Order Comp. List Vend"
             ItemLedgerEntry.SetRange("Location Code", DeliveryChallanLine."Vendor Location");
             ItemLedgerEntry.SetRange("External Document No.", DeliveryChallanLine."Delivery Challan No.");
             ItemLedgerEntry.SetRange("Item No.", "Item No.");
+            ItemLedgerEntry.SetRange("Variant Code", "Variant Code");
             if ItemLedgerEntry.FindFirst() then
                 "Applies-to Entry" := ItemLedgerEntry."Entry No."
             else

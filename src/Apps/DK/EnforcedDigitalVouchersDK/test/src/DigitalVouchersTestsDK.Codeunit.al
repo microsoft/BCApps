@@ -196,6 +196,11 @@ codeunit 148016 "Digital Vouchers Tests DK"
         DigitalVoucherEntrySetupPage."Check Type".SetValue(Format(DigitalVoucherEntrySetup."Check Type"::"No Check"));
         asserterror DigitalVoucherEntrySetupPage.Close();
         Assert.ExpectedError(NotAllowedToChangeWhenEnforcedErr);
+        Clear(DigitalVoucherEntrySetupPage);
+        DigitalVoucherEntrySetupPage.OpenEdit();
+        DigitalVoucherEntrySetupPage.Filter.SetFilter("Entry Type", Format(DigitalVoucherEntrySetup."Entry Type"::"Sales Document"));
+        DigitalVoucherEntrySetupPage."Check Type".SetValue(Format(DigitalVoucherEntrySetup."Check Type"::"Attachment"));
+        DigitalVoucherEntrySetupPage.Close();
         UnbindSubscription(DigVouchersEnableEnforce);
     end;
 

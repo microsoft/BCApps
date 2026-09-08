@@ -24,8 +24,6 @@ codeunit 137050 "SCM Sales Order Management"
         SuggestAssignmentErr: Label 'Qty. to Invoice must have a value in Sales Line';
         AgentServiceCodeValidationErr: Label 'Shipping Agent Service Code must be equal to %1', Comment = '%1 = Shipping Agent Service Code';
         GrossWeightErr: Label '%1 must be calculated in %2.', Comment = '%1=Field Caption; %2 Page Caption.';
-        ForceErrorForDocumentNo: Code[20];
-        ForcedValidationErr: Label 'Forced error to simulate a validation failure during test.';
 
     [Test]
     [Scope('OnPrem')]
@@ -998,18 +996,6 @@ codeunit 137050 "SCM Sales Order Management"
     local procedure OnInsertShipmentHeader(var Rec: Record "Sales Shipment Header"; RunTrigger: Boolean)
     begin
         Commit();
-    end;
-
-    procedure SetForceErrorForDocumentNo(DocumentNo: Code[20])
-    begin
-        ForceErrorForDocumentNo := DocumentNo;
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"Sales Order Subform", 'OnBeforeNoOnAfterValidate', '', false, false)]
-    local procedure ForceErrorOnNoOnAfterValidate(var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
-    begin
-        if (ForceErrorForDocumentNo <> '') and (SalesLine."Document No." = ForceErrorForDocumentNo) then
-            Error(ForcedValidationErr);
     end;
 }
 

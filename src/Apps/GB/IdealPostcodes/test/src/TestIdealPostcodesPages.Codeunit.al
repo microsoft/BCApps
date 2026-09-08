@@ -1945,7 +1945,7 @@ codeunit 148121 "Test IdealPostcodes Pages"
     [Scope('OnPrem')]
     procedure PostcodeSearchScenarioModalPageHandler(var IPCAddressLookup: TestPage "IPC Address Lookup")
     begin
-        IPCAddressLookup."Post Code".Value('TESTPOSTCODE');
+        IPCAddressLookup.GoToKey(2);
         IPCAddressLookup.OK().Invoke();
     end;
 

@@ -251,7 +251,7 @@ table 31075 "VIES Declaration Header CZL"
         field(20; "Declaration Type"; Option)
         {
             Caption = 'Declaration Type';
-            OptionCaption = 'Normal,Corrective,Corrective-Supplementary (Obsolete)';
+            OptionCaption = 'Normal,Corrective,Corrective-Supplementary';
             OptionMembers = Normal,Corrective,"Corrective-Supplementary";
             DataClassification = CustomerContent;
 
@@ -263,8 +263,7 @@ table 31075 "VIES Declaration Header CZL"
                         Error(LineExistErr, FieldCaption("Declaration Type"));
                     if "Declaration Type" = "Declaration Type"::Normal then
                         "Corrected Declaration No." := '';
-                    if "Declaration Type" = "Declaration Type"::"Corrective-Supplementary" then
-                        Error(NoLongerSupportedErr);
+                    CheckDeclarationType();
                 end;
             end;
         }

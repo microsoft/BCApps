@@ -35,7 +35,6 @@ codeunit 148194 IntegrationHelpers
         SignUpAuthentication.StorageSet(SignUpConnectionSetup."Client Secret", this.DummyId());
         SignUpAuthentication.StorageSet(SignUpConnectionSetup."Client Tenant", this.ClientTenantId());
 
-        SignUpConnectionSetup."Authentication URL" := this.SetMockServiceUrl('/%1/oauth2/token');
         SignUpConnectionSetup."Environment Type" := SignUpConnectionSetup."Environment Type"::Test;
         SignUpConnectionSetup.Modify(true);
     end;

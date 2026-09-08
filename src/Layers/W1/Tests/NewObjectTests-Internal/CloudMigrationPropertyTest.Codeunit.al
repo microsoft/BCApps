@@ -472,6 +472,9 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Source Code Setup");
         ListOfTablesToMigrate.Add(Database::"Source Code");
         ListOfTablesToMigrate.Add(Database::"Special Equipment");
+        ListOfTablesToMigrate.Add(Database::"Spend Request");
+        ListOfTablesToMigrate.Add(Database::"Spend Request Detail");
+        ListOfTablesToMigrate.Add(Database::"Spend Request To G/L Link");
         ListOfTablesToMigrate.Add(Database::"Standard Address");
         ListOfTablesToMigrate.Add(Database::"Standard Cost Worksheet Name");
         ListOfTablesToMigrate.Add(Database::"Standard Cost Worksheet");

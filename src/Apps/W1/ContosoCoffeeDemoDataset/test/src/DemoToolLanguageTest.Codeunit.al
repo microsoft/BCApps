@@ -1,5 +1,7 @@
 namespace Microsoft.Test.DemoTool;
 
+using Microsoft.DemoData.Inventory;
+using Microsoft.DemoData.Warehousing;
 using Microsoft.DemoTool;
 
 codeunit 148049 "Demo Tool Language Test"
@@ -62,6 +64,18 @@ codeunit 148049 "Demo Tool Language Test"
         // [THEN] When running of the Contoso Demo Tool again, there should be dialog pops up warning a language mismatch 
         // Checking for the dialog is done in the handler function
         ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::All);
+    end;
+
+    [Test]
+    procedure InventoryAndWarehousingUseSameOwnLogisticsLocation()
+    var
+        CreateLocation: Codeunit "Create Location";
+        CreateWhseLocation: Codeunit "Create Whse Location";
+    begin
+        // [SCENARIO] Inventory and Warehousing use the same localized code for the own-logistics in-transit location
+
+        // [THEN] Both modules resolve the own-logistics in-transit location to the same code
+        Assert.AreEqual(CreateLocation.OwnLogLocation(), CreateWhseLocation.TransitLocation(), 'Inventory and Warehousing must use the same own-logistics in-transit location.');
     end;
 
     [ConfirmHandler]

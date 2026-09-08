@@ -268,10 +268,14 @@ report 10480 "Electronic Carta Porte MX"
                     Employee.Get("Operator Code");
                 end;
             }
+#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
             dataitem(QRCode; "Integer")
+#pragma warning restore AL0589
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
+#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
                 column(QRCode; TempSalesShipmentHeader."QR Code")
+#pragma warning restore AL0589
                 {
                 }
                 column(QRCode_Number; Number)
@@ -417,20 +421,20 @@ report 10480 "Electronic Carta Porte MX"
         Total_PriceCaptionLbl: Label 'Total Price';
         Subtotal_CaptionLbl: Label 'Subtotal:';
         Total_CaptionLbl: Label 'Total:';
-        Original_StringCaptionLbl: Label 'Cadena original del complemento de certificación digital del SAT', Comment = 'Locked';
-        Digital_StampCaptionSATLbl: Label 'Sello digital del SAT', Comment = 'Locked';
-        Digital_StampCaptionLbl: Label 'Sello digital del emisor', Comment = 'Locked';
-        DocumentFooterLbl: Label 'Este documento es una representación impresa de un CFDI.', Comment = 'Locked';
+        Original_StringCaptionLbl: Label 'Cadena original del complemento de certificación digital del SAT', Locked = true;
+        Digital_StampCaptionSATLbl: Label 'Sello digital del SAT', Locked = true;
+        Digital_StampCaptionLbl: Label 'Sello digital del emisor', Locked = true;
+        DocumentFooterLbl: Label 'Este documento es una representación impresa de un CFDI.', Locked = true;
         SATTaxRegimeClassification: Text[100];
         TaxRegimeLbl: Label 'Regimen Fiscal:';
         SATTipoRelacion: Text[100];
         SATFolioFiscal: Text[100];
-        TransferRFCNoLbl: Label 'XAXX010101000', Comment = 'Locked';
-        FiscalRegimeLbl: Label 'Régimen fiscal', Comment = 'Locked';
-        ClientCartaPorteLbl: Label 'Cliente Extranjero carta porte', Comment = 'Locked';
+        TransferRFCNoLbl: Label 'XAXX010101000', Locked = true;
+        FiscalRegimeLbl: Label 'Régimen fiscal', Locked = true;
+        ClientCartaPorteLbl: Label 'Cliente Extranjero carta porte', Locked = true;
         UsoCFDILbl: Label 'Uso de CFDI';
         UsoCFDDescriptionLbl: Label 'P01 - Por definir';
-        TotalAmountLbl: Label 'CERO XXX 00/ 100 XXX', Comment = 'Locked';
+        TotalAmountLbl: Label 'CERO XXX 00/ 100 XXX', Locked = true;
         OriginalStringBase64Text: Text;
         DigitalSignatureBase64Text: Text;
         DigitalSignaturePACBase64Text: Text;

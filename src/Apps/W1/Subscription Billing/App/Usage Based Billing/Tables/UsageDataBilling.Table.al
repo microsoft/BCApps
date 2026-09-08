@@ -114,7 +114,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -132,7 +134,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -152,7 +156,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }

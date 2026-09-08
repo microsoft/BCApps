@@ -96,15 +96,24 @@ codeunit 148350 "Library - Excise Tax"
     end;
 
     procedure CreateItemWithExciseTax(var Item: Record Item; TaxTypeCode: Code[20])
-    var
-        UnitOfMeasure: Record "Unit of Measure";
     begin
         LibraryInventory.CreateItem(Item);
+        CreateItemExciseTax(Item."No.", TaxTypeCode);
+    end;
+
+    procedure CreateItemExciseTax(ItemNo: Code[20]; TaxTypeCode: Code[20]): Record "Item Excise Tax"
+    var
+        ItemExciseTax: Record "Item Excise Tax";
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        Item.Validate("Excise Tax Type", TaxTypeCode);
-        Item.Validate("Quantity for Excise Tax", LibraryRandom.RandDec(1, 3));
-        Item.Validate("Excise Unit of Measure Code", UnitOfMeasure.Code);
-        Item.Modify(true);
+        ItemExciseTax.Init();
+        ItemExciseTax."Item No." := ItemNo;
+        ItemExciseTax.Validate("Excise Tax Type Code", TaxTypeCode);
+        ItemExciseTax.Validate("Quantity for Excise Tax", LibraryRandom.RandDec(1, 3));
+        ItemExciseTax.Validate("Excise Unit of Measure Code", UnitOfMeasure.Code);
+        ItemExciseTax.Insert(true);
+        exit(ItemExciseTax);
     end;
 
     procedure CreateFixedAssetWithExciseTax(var FixedAsset: Record "Fixed Asset"; TaxTypeCode: Code[20])
@@ -204,9 +213,11 @@ codeunit 148350 "Library - Excise Tax"
         ExciseTaxType: Record "Excise Tax Type";
         ExciseTaxEntryPermission: Record "Excise Tax Entry Permission";
         ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ItemExciseTax: Record "Item Excise Tax";
     begin
         ExciseTaxType.DeleteAll();
         ExciseTaxEntryPermission.DeleteAll();
         ExciseTaxItemFARate.DeleteAll();
+        ItemExciseTax.DeleteAll();
     end;
 }

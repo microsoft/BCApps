@@ -10,7 +10,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 table 6841 "Spend Request Detail"
 {
     Caption = 'Spend Request Document Detail';
-    ReplicateData = false;
     DataClassification = CustomerContent;
 
     fields
@@ -69,6 +68,7 @@ table 6841 "Spend Request Detail"
             Editable = false;
             DecimalPlaces = 0 : 5;
             InitValue = 1;
+            AutoFormatType = 0;
             ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
 
             trigger OnValidate()

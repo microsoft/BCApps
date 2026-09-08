@@ -6,6 +6,8 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
@@ -13,6 +15,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
+using System.Agents;
 using System.Security.User;
 
 codeunit 148300 "Library - Expense"
@@ -24,6 +27,53 @@ codeunit 148300 "Library - Expense"
         LibraryHumanResource: Codeunit "Library - Human Resource";
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
+
+    /// <summary>
+    /// Creates or reuses the Expense Agent and ensures that it is enabled for the current company.
+    /// </summary>
+    /// <returns>The user security ID of the enabled Expense Agent.</returns>
+    internal procedure EnsureExpenseAgentEnabled(): Guid
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        Agent: Record Agent;
+        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+        AgentSetup: Codeunit "Agent Setup";
+        AgentUserSecurityId: Guid;
+    begin
+        if ExpenseAgentSetup.Get() then
+            AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+
+        if not IsNullGuid(AgentUserSecurityId) then
+            if Agent.Get(AgentUserSecurityId) then begin
+                AgentSetup.GetSetupRecord(
+                    TempAgentSetupBuffer,
+                    AgentUserSecurityId,
+                    "Agent Metadata Provider"::"Expense Agent",
+                    '',
+                    '',
+                    '');
+                if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled then begin
+                    TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+                    AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
+                end;
+                EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
+                exit(AgentUserSecurityId);
+            end;
+
+        Clear(AgentUserSecurityId);
+        AgentSetup.GetSetupRecord(
+            TempAgentSetupBuffer,
+            AgentUserSecurityId,
+            "Agent Metadata Provider"::"Expense Agent",
+            CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."User Name")),
+            CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."Display Name")),
+            'Processes employee expenses for the current company.');
+        TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+        AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
+
+        EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
+        exit(AgentUserSecurityId);
+    end;
 
     internal procedure CreateExpenseUser(var ExpenseUser: Record "Expense User")
     begin
@@ -255,6 +305,49 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLine.Insert(true);
     end;
 
+    internal procedure CreateSpendRequest(var SpendRequest: Record "Spend Request")
+    begin
+        SpendRequest.Init();
+        SpendRequest."Document Type" := SpendRequest."Document Type"::"Travel Request";
+        SpendRequest.Insert(true);
+    end;
+
+    internal procedure CreateSpendRequestDetail(SpendRequestNo: Code[20]; ExpectedAmount: Decimal)
+    var
+        SpendRequestDetail: Record "Spend Request Detail";
+        RecordRef: RecordRef;
+    begin
+        SpendRequestDetail.Init();
+        SpendRequestDetail.Validate("Spend Request No.", SpendRequestNo);
+
+        RecordRef.GetTable(SpendRequestDetail);
+        SpendRequestDetail.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, SpendRequestDetail.FieldNo("Line No.")));
+        SpendRequestDetail.Insert(true);
+        SpendRequestDetail.Validate("Expected Amount", ExpectedAmount);
+        SpendRequestDetail.Modify(true);
+    end;
+
+    internal procedure CreateTraveler(SpendRequestNo: Code[20]; ExpenseUserNo: Code[20])
+    var
+        Traveler: Record Traveler;
+        RecordRef: RecordRef;
+    begin
+        Traveler.Init();
+        Traveler.Validate("Spend Request No.", SpendRequestNo);
+
+        RecordRef.GetTable(Traveler);
+        Traveler.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, Traveler.FieldNo("Line No.")));
+        Traveler.Insert(true);
+        Traveler.Validate("Expense User No.", ExpenseUserNo);
+        Traveler.Modify(true);
+    end;
+
+    internal procedure SetSpendRequestStatus(var SpendRequest: Record "Spend Request"; NewStatus: Enum "Spend Request Status")
+    begin
+        SpendRequest.Status := NewStatus;
+        SpendRequest.Modify();
+    end;
+
     procedure InitializeExpenseSourceCode()
     var
         SourceCode: Record "Source Code";
@@ -273,6 +366,7 @@ codeunit 148300 "Library - Expense"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         HumanResourcesSetup: Record "Human Resources Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         ExpenseAgentSetup.Get();
         // Always assign fresh no. series so tests never inherit a partially-consumed series from a previous run.
@@ -287,6 +381,10 @@ codeunit 148300 "Library - Expense"
         HumanResourcesSetup.Get();
         HumanResourcesSetup.Validate("Employee Nos.", LibraryUtility.GetGlobalNoSeriesCode());
         HumanResourcesSetup.Modify(true);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Spend Request No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        GeneralLedgerSetup.Modify(true);
     end;
 
     procedure UpdateEnableApprovalWorkflowInAgentSetup(EnableApprovalWorkflow: Boolean)
@@ -532,16 +630,47 @@ codeunit 148300 "Library - Expense"
         ExpenseApprovalSetup.Insert();
     end;
 
+    internal procedure CreateExpensePolicy(var ExpensePolicy: Record "Expense Policy"; ExpenseCategoryCode: Code[20]; PolicyText: Text[2048])
+    begin
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategoryCode;
+        ExpensePolicy."Policy Text" := PolicyText;
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+    end;
+
+    internal procedure CreateExpensePolicyEvaluation(var ExpensePolicyEvaluation: Record "Expense Policy Evaluation"; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; EvaluationReason: Text[2048]; Compliant: Boolean)
+    begin
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := EvaluationReason;
+        ExpensePolicyEvaluation.Compliant := Compliant;
+        ExpensePolicyEvaluation.Insert(true);
+    end;
+
     procedure CleanUpBeforeTesting()
     var
         ExpenseGroup: Record "Expense Group";
         ExpenseLocation: Record "Expense Location";
         ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
     begin
         ExpenseGroup.DeleteAll();
         ExpenseUser.DeleteAll();
         ExpenseLocation.DeleteAll();
+
+        // Codeunit test isolation keeps data written by earlier test methods, so shared policy
+        // master data must be reset between tests. A leaked blank-category policy in particular
+        // would otherwise apply to every report line and skew policy-status assertions.
+        ExpensePolicyEvaluation.DeleteAll();
+        ExpensePolicy.DeleteAll();
 
         // Ensure the agent is disabled so tests that toggle approval workflow don't fail
         // when the test environment was left with the agent enabled.
@@ -558,6 +687,8 @@ codeunit 148300 "Library - Expense"
         ExpenseItemization: Record "Expense Itemization";
         ExpenseParticipant: Record "Expense Participant";
         ExpensePerDiem: Record "Expense Per Diem";
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseVendor: Record "Expense Vendor";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLineItem: Record "Expense Report Line Item";
@@ -565,6 +696,7 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
         ExpenseRuleViolation: Record "Expense Rule Violation";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
         // First, clear expense report references to avoid "cannot delete attachment" validation.
         Expense.ModifyAll("Expense Report No.", '');
@@ -575,15 +707,29 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLineParticip.DeleteAll();
         ExpenseReportLinePerDiem.DeleteAll();
         ExpenseReportLine.DeleteAll();
+        ExpenseActivityLogEntry.DeleteAll();
         ExpenseReportHeader.DeleteAll();
         ExpenseReportRuleViolation.DeleteAll();
 
         ExpenseParticipant.DeleteAll();
         ExpenseItemization.DeleteAll();
         ExpensePerDiem.DeleteAll();
+        ExpenseVATSpecification.DeleteAll(false);
 
         Expense.DeleteAll();
         ExpenseRuleViolation.DeleteAll();
+        ExpenseVendor.DeleteAll();
+    end;
+
+    local procedure EnableExpenseAgentSetup(
+        var ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentUserSecurityId: Guid)
+    begin
+        if not ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.InitRecord();
+        ExpenseAgentSetup."User Security ID" := AgentUserSecurityId;
+        ExpenseAgentSetup.Validate("Enable Agent", true);
+        ExpenseAgentSetup.Modify(false);
     end;
 
     local procedure DeleteExpenseAttachments()

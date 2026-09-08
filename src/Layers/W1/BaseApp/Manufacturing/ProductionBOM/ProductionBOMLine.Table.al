@@ -410,7 +410,7 @@ table 99000772 "Production BOM Line"
         if IsHandled then
             exit;
 
-        if IsTemporary then
+        if IsTemporary() then
             exit;
 
         if "Version Code" = '' then begin
@@ -622,4 +622,3 @@ table 99000772 "Production BOM Line"
     begin
     end;
 }
-

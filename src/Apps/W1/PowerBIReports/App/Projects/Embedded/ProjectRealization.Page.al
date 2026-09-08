@@ -11,8 +11,8 @@ page 37036 "Project Realization"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Realization';
-    AboutTitle = 'About Project Realization';
+    Caption = 'Project Realization (Power BI)';
+    AboutTitle = 'About Project Realization (Power BI)';
     AboutText = 'The Project Realization report features key metrics like Billable Invoice Price and Actual Total Price to support Realization percent per project. Enabling organizations to measure actual performance and achievements against planned or budgeted expectations.';
 
     layout

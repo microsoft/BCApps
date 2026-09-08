@@ -8,7 +8,7 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-codeunit 99001516 "Subc. Req. Wksh. Make Ord."
+codeunit 20516 "Subc. Req. Wksh. Make Ord."
 {
 #if not CLEAN29
     var
@@ -26,7 +26,24 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 #pragma warning restore AL0432
             exit;
 #endif
-        HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, RequisitionLine);
+        HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine, '', false, false)]
+    local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
+    var
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
+            exit;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader, '', false, false)]
@@ -50,6 +67,8 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", OnPurchOrderChgAndResheduleOnAfterGetPurchHeader, '', false, false)]
     local procedure OnPurchOrderChgAndResheduleOnAfterGetPurchHeader(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -57,15 +76,18 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 #pragma warning restore AL0432
             exit;
 #endif
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderLineAttachments(PurchaseLine, RequisitionLine);
         UpdateSubcontractingComponentPurchLines(PurchaseLine, RequisitionLine);
     end;
 
-    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")
+    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
         SubcPurchaseOrderCreator.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchaseLine, RequisitionLine);
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderLineAttachments(PurchaseLine, RequisitionLine);
+        SubcPurchaseOrderCreator.InsertSubcontractingProdOrderComments(PurchaseLine, RequisitionLine, NextLineNo);
         if (RequisitionLine."Prod. Order No." <> '') and (RequisitionLine."Operation No." <> '') then begin
             ProdOrderRoutingLine.SetLoadFields("Transfer WIP Item");
             if ProdOrderRoutingLine.Get(

@@ -21,6 +21,7 @@
         IsInitialized: Boolean;
         CannotBeLessThanMsg: Label 'cannot be less than %1', Comment = '.';
         CannotBeMoreThanMsg: Label 'cannot be more than %1', Comment = '.';
+        PrepmtAmtToDeductMisalignedErr: Label 'Prepmt Amt to Deduct must stay aligned with the posted prepayment after toggling Qty. to Invoice.';
 
     [Test]
     [Scope('OnPrem')]
@@ -801,6 +802,57 @@
         PostPurchPrepmtInvoice(PurchaseHeaderOrder);
 
         VerifyDescriptionOnPostedInvoiceRoundingLine(PurchaseHeaderOrder);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtAmtToDeductStableWhenTogglingQtyToInvoice()
+    var
+        PurchOrderHeader: Record "Purchase Header";
+        PurchInvoiceHeader: Record "Purchase Header";
+        PurchOrderLine: Record "Purchase Line";
+        ExpectedPrepmtAmtToDeduct: Decimal;
+    begin
+        // [FEATURE] [Rounding]
+        // [SCENARIO 644912] "Prepmt Amt to Deduct" does not fluctuate when "Qty. to Invoice" is toggled after posting the prepayment invoice
+        Initialize();
+
+        // [GIVEN] Purchase Order with 100% Prepayment, Qty = 2, "Qty. to Receive" = 1, "Qty. to Invoice" = 1, "Direct Unit Cost" = 42.963
+        PreparePurchOrder(PurchOrderHeader);
+        AddPurchOrderLine(PurchOrderLine, PurchOrderHeader, 2, 42.963, 100, 0);
+        UpdateQtysInLine(PurchOrderLine, 1, 1);
+
+        // [GIVEN] The value posted for the invoiced quantity is the prorated Round(1 * Round(2 * 42.963) / 2) = 42.97
+        ExpectedPrepmtAmtToDeduct := 42.97;
+
+        // [GIVEN] Prepayment invoice is posted
+        PostPurchPrepmtInvoice(PurchOrderHeader);
+        PurchOrderLine.Find();
+        PurchOrderLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtAmtToDeduct);
+
+        // [WHEN] "Qty. to Invoice" is changed to 0 and then back to 1
+        PurchOrderLine.Validate("Qty. to Invoice", 0);
+        PurchOrderLine.Modify(true);
+        PurchOrderLine.Validate("Qty. to Invoice", 1);
+        PurchOrderLine.Modify(true);
+
+        // [THEN] "Prepmt Amt to Deduct" stays 42.97 and does not flip to 42.96
+        Assert.AreEqual(
+          ExpectedPrepmtAmtToDeduct, PurchOrderLine."Prepmt Amt to Deduct",
+          PrepmtAmtToDeductMisalignedErr);
+
+        // [WHEN] The order is fully received and invoiced
+        PurchInvoiceHeader."Buy-from Vendor No." := PurchOrderHeader."Buy-from Vendor No.";
+        CreatePurchInvoice(PurchInvoiceHeader, PurchOrderHeader."Prices Including VAT");
+        UpdateQtysInLine(PurchOrderLine, 2, 0);
+        PurchOrderHeader.Find();
+        LibraryPurchase.PostPurchaseDocument(PurchOrderHeader, true, false);
+        GetReceiptLine(PurchInvoiceHeader, PurchOrderHeader."Last Receiving No.");
+        LibraryPurchase.PostPurchaseDocument(PurchInvoiceHeader, false, true);
+
+        // [THEN] The full posted prepayment (42.97 + 42.96 = 85.93) is deducted with no rounding lost
+        PurchOrderLine.Find();
+        PurchOrderLine.TestField("Prepmt Amt Deducted", PurchOrderLine."Prepmt. Amt. Inv.");
     end;
 
     local procedure Initialize()

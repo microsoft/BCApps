@@ -113,6 +113,7 @@ codeunit 139768 "UT Page Bank Deposit"
         PostedBankDepositHeader: Record "Posted Bank Deposit Header";
         PostedBankDepositLine: Record "Posted Bank Deposit Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        PostedBankDeposit: TestPage "Posted Bank Deposit";
         CustomerLedgerEntries: TestPage "Customer Ledger Entries";
     begin
         // Purpose of the test is to validate AccountLedgerEntries - OnAction trigger of the Page ID: 10144, Posted Deposit Subform.
@@ -124,13 +125,16 @@ codeunit 139768 "UT Page Bank Deposit"
         CreateDetailedCustomerLedgerEntry(CustLedgerEntry."Entry No.", PostedBankDepositLine."Account No.");
 
         // Exercise: Show Account Ledger Entries.
+        OpenPostedBankDepositPage(PostedBankDeposit, PostedBankDepositHeader);
+        PostedBankDeposit.Subform.GotoRecord(PostedBankDepositLine);
         CustomerLedgerEntries.Trap();
-        PostedBankDepositLine.ShowAccountLedgerEntries();
+        PostedBankDeposit.Subform.AccountLedgerEntries.Invoke();
 
         // Verify: Verify Customer No and Amount on the Customer Ledger Entries.
         CustomerLedgerEntries."Customer No.".AssertEquals(PostedBankDepositLine."Account No.");
         CustomerLedgerEntries.Amount.AssertEquals(PostedBankDepositLine.Amount);
         CustomerLedgerEntries.Close();
+        PostedBankDeposit.Close();
     end;
 
     [Test]
@@ -139,6 +143,7 @@ codeunit 139768 "UT Page Bank Deposit"
     var
         PostedBankDepositHeader: Record "Posted Bank Deposit Header";
         PostedBankDepositLine: Record "Posted Bank Deposit Line";
+        PostedBankDeposit: TestPage "Posted Bank Deposit";
         CustomerCard: TestPage "Customer Card";
     begin
         // Purpose of the test is to validate AccountCard - OnAction trigger of the Page ID: 10144, Posted Deposit Subform.
@@ -148,12 +153,15 @@ codeunit 139768 "UT Page Bank Deposit"
         LibraryVariableStorage.Enqueue(PostedBankDepositLine."Account No.");  // Enqueue values for use in CustomerCardPageHandler.
 
         // Exercise: Show Account Card - Customer Card.
+        OpenPostedBankDepositPage(PostedBankDeposit, PostedBankDepositHeader);
+        PostedBankDeposit.Subform.GotoRecord(PostedBankDepositLine);
         CustomerCard.Trap();
-        PostedBankDepositLine.ShowAccountCard();
+        PostedBankDeposit.Subform.AccountCard.Invoke();
 
         // Verify: Verify Customer No on Customer Card.
         CustomerCard."No.".AssertEquals(PostedBankDepositLine."Account No.");
         CustomerCard.Close();
+        PostedBankDeposit.Close();
     end;
 
     [Test]

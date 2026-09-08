@@ -14,8 +14,6 @@ codeunit 134827 "UT Item Table"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
-        ItemNotRegisteredTxt: Label 'This item is not registered. To continue, choose one of the following options:';
-        ItemNameWithFilterCharsTxt: Label '&I*t|e(m''I)t)e&m*';
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -23,6 +21,9 @@ codeunit 134827 "UT Item Table"
         isInitialized: Boolean;
         InternationalUoMEachTxt: Label 'EA', Locked = true;
         NonExistingInternationalUoMTxt: Label 'NOTEXIST', Locked = true;
+        ItemNotRegisteredTxt: Label 'This item is not registered. To continue, choose one of the following options:';
+        ItemNameWithFilterCharsTxt: Label '&I*t|e(m''I)t)e&m*';
+        ItemTrackingCodeNotUpdatedErr: Label 'Item Tracking Code must be updated on the item template.';
 
     [Test]
     [Scope('OnPrem')]
@@ -533,6 +534,67 @@ codeunit 134827 "UT Item Table"
 
         Assert.AreEqual(Item[2]."No.", Item[1].GetItemNo(RandomText1), '');
         Assert.AreEqual(Item[4]."No.", Item[1].GetItemNo(RandomText2), '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestModifyItemTemplateItemTrackingCodeAfterItemDeletion()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemTempl: Record "Item Templ.";
+        ItemTrackingCode: Record "Item Tracking Code";
+        Location: Record Location;
+        LibraryCosting: Codeunit "Library - Costing";
+        LibraryFiscalYear: Codeunit "Library - Fiscal Year";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+    begin
+        // [SCENARIO 644909] User can modify Item Template after item deletion
+        Initialize();
+
+        // [GIVEN] An item and a location with mandatory bins
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocation(Location);
+        Location.Validate("Bin Mandatory", true);
+        Location.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, '', '', '');
+
+        // [GIVEN] Positive and negative adjustments posted for the item in the bin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, Item."No.", Location.Code, Bin.Code, 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        LibraryInventory.CreateItemJournalLineInItemTemplate(
+            ItemJournalLine, Item."No.", Location.Code, Bin.Code, 1);
+        ItemJournalLine.Validate("Entry Type", ItemJournalLine."Entry Type"::"Negative Adjmt.");
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Item cost entries are adjusted, accounting periods are closed, and the item is deleted
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        LibraryFiscalYear.CloseAccountingPeriod();
+        LibraryFiscalYear.CreateFiscalYear();
+        Commit();
+
+        // [WHEN] Item is deleted
+        Item.Get(Item."No.");
+        Item.Delete(true);
+
+        // [GIVEN] An item template and warehouse-tracked item tracking code
+        ItemTempl.Init();
+        ItemTempl.Validate(Code, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemTempl.Code)));
+        ItemTempl.Insert(true);
+
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+
+        // [WHEN] Item template item tracking code is modified
+        ItemTempl.Validate("Item Tracking Code", ItemTrackingCode.Code);
+
+        // [THEN] No error occurs and value is applied
+        Assert.AreEqual(ItemTrackingCode.Code, ItemTempl."Item Tracking Code", ItemTrackingCodeNotUpdatedErr);
     end;
 
     local procedure Initialize()

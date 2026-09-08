@@ -11,8 +11,8 @@ page 37102 "Key Sales Influencers"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Key Sales Influencers';
-    AboutTitle = 'About Key Sales Influencers';
+    Caption = 'Key Sales Influencers (Power BI)';
+    AboutTitle = 'About Key Sales Influencers (Power BI)';
     AboutText = 'The Key Sales Influencers report identifies the key factors driving sales performance, highlighting the most impactful variables and trends based on the sales data like items, customers and dimensions.';
 
     layout

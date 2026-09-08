@@ -144,7 +144,6 @@ codeunit 9002 "Permission Manager"
         AllProfile: Record "All Profile";
         UsersInPlans: Query "Users in Plans";
         Plan: Query Plan;
-        IsAllProfileFiltered: Boolean;
     begin
         UsersInPlans.SetRange(User_Security_ID, UserSecurityID);
         if not UsersInPlans.Open() then
@@ -156,28 +155,25 @@ codeunit 9002 "Permission Manager"
         Plan.Read();
 
         if Plan.Role_Center_ID = 9022 then // 9022 = Page::"Business Manager Role Center"
-            FilterProfileToBusinessManager(AllProfile, IsAllProfileFiltered)
+            FilterProfileToBusinessManager(AllProfile)
         else
             AllProfile.SetRange("Role Center ID", Plan.Role_Center_ID);
 
         if not AllProfile.FindFirst() then
             exit; // the plan does not have a role center, so they'll get the app-wide default role center
 
-        // Create the user personalization record
-        if not UserPersonalization.Get(UserSecurityID) then begin
-            UserPersonalization.Init();
-            UserPersonalization.Validate("User SID", UserSecurityID);
-            UserPersonalization.Validate("Profile ID", AllProfile."Profile ID");
-            UserPersonalization.Validate("App ID", AllProfile."App ID");
-            UserPersonalization.Validate(Scope, AllProfile.Scope);
-            UserPersonalization.Insert();
-        end else
-            if IsAllProfileFiltered then begin
-                UserPersonalization.Validate("Profile ID", AllProfile."Profile ID");
-                UserPersonalization.Validate("App ID", AllProfile."App ID");
-                UserPersonalization.Validate(Scope, AllProfile.Scope);
-                UserPersonalization.Modify();
-            end;
+        // Only assign a role center to users that don't have one yet. Never overwrite an existing
+        // user's Profile ID, otherwise a plan re-sync (e.g. Retrieve Users) would silently reset the
+        // user's customized Role Center back to the plan default.
+        if UserPersonalization.Get(UserSecurityID) then
+            exit;
+
+        UserPersonalization.Init();
+        UserPersonalization.Validate("User SID", UserSecurityID);
+        UserPersonalization.Validate("Profile ID", AllProfile."Profile ID");
+        UserPersonalization.Validate("App ID", AllProfile."App ID");
+        UserPersonalization.Validate(Scope, AllProfile.Scope);
+        UserPersonalization.Insert();
     end;
 
     procedure CanCurrentUserManagePlansAndGroups(): Boolean
@@ -215,22 +211,18 @@ codeunit 9002 "Permission Manager"
         exit(CopyStr(CryptographyManagement.GenerateHash(InputText, 2), 1, 250)); // 2 corresponds to SHA256
     end;
 
-    local procedure FilterProfileToBusinessManager(var AllProfile: Record "All Profile"; var IsFiltered: Boolean)
+    local procedure FilterProfileToBusinessManager(var AllProfile: Record "All Profile")
     var
         Company: Record Company;
     begin
         if not Company.Get(CompanyName()) then
             exit;
 
-        if Company."Evaluation Company" then begin
-            if Company.Name.ToLower().StartsWith('cronus') then begin
-                AllProfile.SetRange("Profile ID", 'Business Manager Evaluation');
-                IsFiltered := true;
-            end;
-        end else begin
-            AllProfile.SetRange("Profile ID", 'Business Manager');
-            IsFiltered := true;
-        end;
+        if Company."Evaluation Company" and Company.Name.ToLower().StartsWith('cronus') then
+            AllProfile.SetRange("Profile ID", 'Business Manager Evaluation')
+        else
+            if not Company."Evaluation Company" then
+                AllProfile.SetRange("Profile ID", 'Business Manager');
     end;
 
     local procedure GetCharRepresentationOfPermission(PermissionOption: Integer): Text[1]

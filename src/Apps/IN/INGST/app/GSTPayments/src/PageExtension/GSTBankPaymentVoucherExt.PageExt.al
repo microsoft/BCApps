@@ -184,7 +184,13 @@ pageextension 18243 "GST Bank Payment Voucher Ext" extends "Bank Payment Voucher
     local procedure CallTaxEngine()
     var
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        CalculateTax.RunOnBeforeUpdateTaxAmountOnGenJnlLine(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
+        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

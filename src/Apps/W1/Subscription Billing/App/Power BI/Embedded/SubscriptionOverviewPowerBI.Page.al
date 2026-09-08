@@ -7,8 +7,8 @@ page 8110 "Subscription Overview Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Subscription Overview';
-    AboutTitle = 'About Subscription Overview';
+    Caption = 'Subscription Overview (Power BI)';
+    AboutTitle = 'About Subscription Overview (Power BI)';
     AboutText = 'The Subscription Overview provides a comprehensive view of subscription performance, offering insights into metrics such as Monthly Recurring Revenue, Total Contract Value, Churn and top-performing customers or vendors.';
 
     layout

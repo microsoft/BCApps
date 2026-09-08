@@ -70,6 +70,7 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     begin
         GetString(HeaderObj, 'id', MaxStrLen(TempHeader."Sales Invoice No."), TempHeader."Sales Invoice No.");
         GetDate(HeaderObj, 'issue_date', TempHeader."Document Date");
+        GetDate(HeaderObj, 'issue_date', TempHeader."Invoice Date");
         GetDate(HeaderObj, 'due_date', TempHeader."Due Date");
 
         GetString(HeaderObj, 'document_currency_code', MaxStrLen(TempHeader."Currency Code"), CurrencyText);

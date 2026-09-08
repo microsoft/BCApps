@@ -189,6 +189,25 @@ page 6996 "Expense Agent Setup"
                 field("Use Rules"; Rec."Use Rules")
                 {
                 }
+                field("Evaluate Policies"; Rec."Evaluate Policies")
+                {
+                    ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
+
+                    trigger OnValidate()
+                    var
+                        ExpensePoliciesPage: Page "Expense Policies";
+                    begin
+                        if Rec."Evaluate Policies" and (not xRec."Evaluate Policies") then begin
+                            if not Confirm(ActivatePolicyEvalQst, false) then
+                                Error('');
+                            ExpensePoliciesPage.Editable(true);
+                            ExpensePoliciesPage.Run();
+                        end;
+                    end;
+                }
+                field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                {
+                }
                 field("Do Not Allow Expenses Older Than"; Rec."Do Not Allow Exp. Older Than")
                 {
                 }
@@ -373,6 +392,14 @@ page 6996 "Expense Agent Setup"
                     RunObject = Page "VAT Posting Setup";
                     ToolTip = 'Opens the page to define reduced VAT rates for expense management.';
                 }
+                action("Mileage Rate Setup")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Mileage Rate Setup';
+                    Image = CalculateConsumption;
+                    RunObject = Page "Mileage Rate Setup";
+                    ToolTip = 'Opens the page to set up time-valid mileage rates that apply based on the transaction date.';
+                }
                 action("Apply Default Settings")
                 {
                     ApplicationArea = Basic, Suite;
@@ -435,6 +462,7 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
+        ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 
     local procedure ValidateSelectedMailboxExists()
     var

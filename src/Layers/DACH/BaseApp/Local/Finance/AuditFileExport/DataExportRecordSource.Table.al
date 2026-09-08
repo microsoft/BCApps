@@ -47,7 +47,9 @@ table 11004 "Data Export Record Source"
                 FindDataFilterField();
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(4; "Table Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("Table No.")));
@@ -83,7 +85,9 @@ table 11004 "Data Export Record Source"
             Caption = 'Relation To Table No.';
             TableRelation = AllObj."Object ID" where("Object Type" = const(Table));
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(8; "Relation To Table Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("Relation To Table No.")));

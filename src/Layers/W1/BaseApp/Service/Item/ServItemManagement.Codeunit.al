@@ -419,6 +419,7 @@ codeunit 5920 ServItemManagement
         ConfirmManagement: Codeunit "Confirm Management";
         NoSeries: Codeunit "No. Series";
         IsHandled: Boolean;
+        SkipConfirm: Boolean;
     begin
         OnBeforeCreateServItemOnServItemLine(ServItemLine);
         ServItemLine.TestField("Service Item No.", '');
@@ -426,12 +427,14 @@ codeunit 5920 ServItemManagement
         ServItemLine.TestField(Description);
 
         IsHandled := false;
-        OnCreateServItemOnServItemLineOnBeforeConfirmCreateServItem(ServItemLine, IsHandled);
+        SkipConfirm := false;
+        OnCreateServItemOnServItemLineOnBeforeConfirmCreateServItem(ServItemLine, IsHandled, SkipConfirm);
         if IsHandled then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text000), true) then
-            exit;
+        if not SkipConfirm then
+            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text000), true) then
+                exit;
 
         Clear(ServItem);
         ServItem.Init();
@@ -777,7 +780,7 @@ codeunit 5920 ServItemManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCreateServItemOnServItemLineOnBeforeConfirmCreateServItem(var ServiceItemLine: Record "Service Item Line"; var IsHandled: Boolean)
+    local procedure OnCreateServItemOnServItemLineOnBeforeConfirmCreateServItem(var ServiceItemLine: Record "Service Item Line"; var IsHandled: Boolean; var SkipConfirm: Boolean)
     begin
     end;
 

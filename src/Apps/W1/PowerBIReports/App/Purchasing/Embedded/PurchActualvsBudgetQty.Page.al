@@ -11,8 +11,8 @@ page 37020 "Purch. Actual vs. Budget Qty."
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchase Actual vs. Budget Quantity';
-    AboutTitle = 'About Purchase Actual vs. Budget Quantity';
+    Caption = 'Purchase Actual vs. Budget Quantity (Power BI)';
+    AboutTitle = 'About Purchase Actual vs. Budget Quantity (Power BI)';
     AboutText = 'The Purchases Actual vs. Budget Quantity report offers a comparative analysis of purchase quantities against budgeted quantities. It includes variance and variance percentage metrics to clearly show how actual purchases align with budgeted targets.';
 
     layout

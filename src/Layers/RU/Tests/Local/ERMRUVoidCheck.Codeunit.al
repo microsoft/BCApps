@@ -863,24 +863,30 @@ codeunit 144015 "ERM RU Void Check"
 
     local procedure PrintCashOutgoingOrder(GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashOutgoingOrder: Report "Cash Outgoing Order";
     begin
+        BindSubscription(RUReportDownloadHandler);
         CashOutgoingOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         GenJournalLine.SetRecFilter();
         CashOutgoingOrder.SetTableView(GenJournalLine);
         CashOutgoingOrder.UseRequestPage(false);
         CashOutgoingOrder.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintCashIngoingOrder(GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CashIngoingOrder: Report "Cash Ingoing Order";
     begin
+        BindSubscription(RUReportDownloadHandler);
         CashIngoingOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         GenJournalLine.SetRecFilter();
         CashIngoingOrder.SetTableView(GenJournalLine);
         CashIngoingOrder.UseRequestPage(false);
         CashIngoingOrder.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyVendorLedgerEntries(VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; ExpectedCount: Integer; IsOpen: Boolean)

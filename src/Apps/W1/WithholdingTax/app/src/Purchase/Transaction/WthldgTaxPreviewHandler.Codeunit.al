@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.WithholdingTax;
 
-using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.Navigate;
-using Microsoft.Purchases.Posting;
 
 codeunit 6792 "Wthldg Tax Preview Handler"
 {
@@ -75,26 +73,12 @@ codeunit 6792 "Wthldg Tax Preview Handler"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostPurchaseDoc', '', false, false)]
-    local procedure OnBeforePostPurchaseDoc()
-    begin
-        TempWithholdingTaxEntry.Reset();
-        if not TempWithholdingTaxEntry.IsEmpty() then
-            TempWithholdingTaxEntry.DeleteAll();
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post", OnBeforeCode, '', false, false)]
-    local procedure OnBeforeGenJnlDoc()
-    begin
-        TempWithholdingTaxEntry.Reset();
-        if not TempWithholdingTaxEntry.IsEmpty() then
-            TempWithholdingTaxEntry.DeleteAll();
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", 'OnAfterBindSubscription', '', false, false)]
     local procedure OnAfterBindSubscription()
     begin
         PreviewPosting := true;
+        TempWithholdingTaxEntry.Reset();
+        TempWithholdingTaxEntry.DeleteAll();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Preview", 'OnAfterUnBindSubscription', '', false, false)]

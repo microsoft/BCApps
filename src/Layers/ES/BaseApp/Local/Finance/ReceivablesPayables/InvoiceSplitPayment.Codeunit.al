@@ -124,6 +124,7 @@ codeunit 7000005 "Invoice-Split Payment"
             GenJnlLine."Reason Code" := SalesHeader."Reason Code";
             GenJnlLine."External Document No." := GenJnlLineExtDocNo;
             GenJnlLine.Validate("Currency Code", SalesHeader."Currency Code");
+            GenJnlLine."Posting Group" := SalesHeader."Customer Posting Group";
             GenJnlLine.Amount := -TotalAmount;
             GenJnlLine."Amount (LCY)" := -TotalAmountLCY;
             GenJnlLine."System-Created Entry" := true;
@@ -194,6 +195,7 @@ codeunit 7000005 "Invoice-Split Payment"
         GenJnlLine."Reason Code" := SalesHeader."Reason Code";
         GenJnlLine."External Document No." := GenJnlLineExtDocNo;
         GenJnlLine.Validate("Currency Code", SalesHeader."Currency Code");
+        GenJnlLine."Posting Group" := SalesHeader."Customer Posting Group";
         GenJnlLine."System-Created Entry" := true;
         GenJnlLine."On Hold" := SalesHeader."On Hold";
         GenJnlLine."Source Code" := SourceCode;

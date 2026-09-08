@@ -42,4 +42,8 @@ enum 9760 "SFTP Exception Type"
     {
         Caption = 'Untrusted Server Exception';
     }
+    value(8; "File Too Large Exception")
+    {
+        Caption = 'File Too Large Exception';
+    }
 }

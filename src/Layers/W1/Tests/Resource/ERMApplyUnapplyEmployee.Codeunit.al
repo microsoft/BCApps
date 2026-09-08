@@ -301,6 +301,140 @@
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestPaymentDoesNotApplyToOtherPayments()
+    var
+        Employee: Record Employee;
+        GenJournalLine: Record "Gen. Journal Line";
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        PaymentAmount: Decimal;
+        Counter: Integer;
+    begin
+        // [SCENARIO 9529] Posting a payment for an employee with "Apply to Oldest" while an open expense exceeds
+        // the new payment applies the payment to the expense only; older payments are not consumed.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+
+        // [GIVEN] An employee with Application Method = "Apply to Oldest"
+        CreateEmployee(Employee);
+        Employee.Validate("Application Method", Employee."Application Method"::"Apply to Oldest");
+        Employee.Modify(true);
+
+        // [GIVEN] 3 posted payments of amount "A" on sequential dates
+        PaymentAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+        for Counter := 1 to 3 do
+            CreateAndPostGenJournalLine(
+                GenJournalLine, Employee."No.", GenJournalLine."Document Type"::Payment, PaymentAmount, WorkDate() + 1 + Counter);
+
+        // [GIVEN] An expense of 2.5 * "A", posted last but back-dated before all payments, so it stays open
+        CreateAndPostGenJournalLine(
+            GenJournalLine, Employee."No.", GenJournalLine."Document Type"::" ", -PaymentAmount * 5 / 2, WorkDate() + 1);
+        EmployeeLedgerEntry.SetRange("Employee No.", Employee."No.");
+#pragma warning disable AA0210
+        EmployeeLedgerEntry.SetRange("Document Type", EmployeeLedgerEntry."Document Type"::" ");
+#pragma warning restore AA0210
+        EmployeeLedgerEntry.FindFirst();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(-PaymentAmount * 5 / 2, EmployeeLedgerEntry."Remaining Amount",
+            'Expense should be open at its full amount before the new payment is posted.');
+
+        // [WHEN] A payment of 2 * "A" is posted
+        CreateAndPostGenJournalLine(
+            GenJournalLine, Employee."No.", GenJournalLine."Document Type"::Payment, PaymentAmount * 2, WorkDate() + 5);
+
+        // [THEN] The expense is fully applied and closed
+        EmployeeLedgerEntry.FindFirst();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, EmployeeLedgerEntry."Remaining Amount", 'Expense should be fully applied.');
+        Assert.IsFalse(EmployeeLedgerEntry.Open, 'Expense should be closed.');
+
+        // [THEN] The expense excess reduces the oldest payment only; the other payments are not consumed
+#pragma warning disable AA0210
+        EmployeeLedgerEntry.SetRange("Document Type", EmployeeLedgerEntry."Document Type"::Payment);
+        EmployeeLedgerEntry.SetCurrentKey("Posting Date");
+        EmployeeLedgerEntry.SetAscending("Posting Date", true);
+#pragma warning restore AA0210
+        EmployeeLedgerEntry.FindSet();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(PaymentAmount / 2, EmployeeLedgerEntry."Remaining Amount",
+            'Oldest payment should absorb only the expense excess.');
+        EmployeeLedgerEntry.Next();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(PaymentAmount, EmployeeLedgerEntry."Remaining Amount", 'Second payment should remain open.');
+        EmployeeLedgerEntry.Next();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(PaymentAmount, EmployeeLedgerEntry."Remaining Amount", 'Third payment should remain open.');
+        EmployeeLedgerEntry.Next();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, EmployeeLedgerEntry."Remaining Amount", 'New payment should be fully applied.');
+        Assert.IsFalse(EmployeeLedgerEntry.Open, 'New payment should be closed.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestPaymentExactOffsetSettlesNewDocument()
+    var
+        Employee: Record Employee;
+        GenJournalLine: Record "Gen. Journal Line";
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        PaymentAmount: Decimal;
+        ExpenseRemaining: Decimal;
+    begin
+        // [SCENARIO 9529] Exact-offset boundary for the tightened "< 0" early exit. The open same-sign payment plus
+        // the new payment net to exactly zero against the newer expense, but the older expense must still flip the
+        // sign decision. In this net-balance-opposes-the-new-document edge the new payment must be settled in full
+        // and the residual must land on the expenses - exactly as summing every open entry would. Exiting at the
+        // exact zero (the former "<= 0" behaviour) would leave the new payment open instead, so this locks in the
+        // "< 0" comparison.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+
+        // [GIVEN] An employee with Application Method = "Apply to Oldest"
+        CreateEmployee(Employee);
+        Employee.Validate("Application Method", Employee."Application Method"::"Apply to Oldest");
+        Employee.Modify(true);
+        PaymentAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+
+        // [GIVEN] An open payment of "A" (same sign as the new payment), dated after the expenses
+        CreateAndPostGenJournalLine(
+            GenJournalLine, Employee."No.", GenJournalLine."Document Type"::Payment, PaymentAmount, WorkDate() + 3);
+
+        // [GIVEN] An older expense of "A" and a newer expense of "3 * A", back-dated so they stay open
+        CreateAndPostGenJournalLine(
+            GenJournalLine, Employee."No.", GenJournalLine."Document Type"::" ", -PaymentAmount, WorkDate() + 1);
+        CreateAndPostGenJournalLine(
+            GenJournalLine, Employee."No.", GenJournalLine."Document Type"::" ", -PaymentAmount * 3, WorkDate() + 2);
+
+        // [WHEN] A payment of "2 * A" is posted (weighing: +2A +A -3A = exactly 0, then -A after the older expense)
+        CreateAndPostGenJournalLine(
+            GenJournalLine, Employee."No.", GenJournalLine."Document Type"::Payment, PaymentAmount * 2, WorkDate() + 10);
+
+        // [THEN] The new payment is settled in full - not left open with a flipped remaining amount
+        EmployeeLedgerEntry.SetRange("Employee No.", Employee."No.");
+#pragma warning disable AA0210
+        EmployeeLedgerEntry.SetRange("Document Type", EmployeeLedgerEntry."Document Type"::Payment);
+        EmployeeLedgerEntry.SetRange("Posting Date", WorkDate() + 10);
+#pragma warning restore AA0210
+        EmployeeLedgerEntry.FindFirst();
+        EmployeeLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, EmployeeLedgerEntry."Remaining Amount", 'New payment should be fully applied.');
+        Assert.IsFalse(EmployeeLedgerEntry.Open, 'New payment should be closed.');
+
+        // [THEN] Only the net balance (-A) remains, and it stays on the expenses - not on the new payment
+        EmployeeLedgerEntry.Reset();
+        EmployeeLedgerEntry.SetRange("Employee No.", Employee."No.");
+#pragma warning disable AA0210
+        EmployeeLedgerEntry.SetRange("Document Type", EmployeeLedgerEntry."Document Type"::" ");
+#pragma warning restore AA0210
+        EmployeeLedgerEntry.FindSet();
+        repeat
+            EmployeeLedgerEntry.CalcFields("Remaining Amount");
+            ExpenseRemaining += EmployeeLedgerEntry."Remaining Amount";
+        until EmployeeLedgerEntry.Next() = 0;
+        Assert.AreEqual(-PaymentAmount, ExpenseRemaining, 'Only the net balance should remain, on the expenses.');
+    end;
+
+    [Test]
     [HandlerFunctions('ApplyingEmployeeEntriesPageHandler')]
     [Scope('OnPrem')]
     procedure CheckAmountOnApplyEmployeeEntriesPage()
