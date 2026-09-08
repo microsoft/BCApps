@@ -9,8 +9,6 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Quote]
     end;
@@ -43,6 +41,12 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         InvoiceIdErr: Label 'The invoice ID should differ from the quote ID.', Locked = true;
         MailingJobErr: Label 'The mailing job is not created.', Locked = true;
 
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     local procedure InitializeForSending()
     var
         TempEmailAccount: Record "Email Account";
@@ -67,6 +71,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create Sales Quotes and use a GET method to retrieve them
+
+        Initialize();
 
         // [GIVEN] 2 quotes in the table
         CreateSalesQuoteWithLines(SalesHeader);
@@ -105,6 +111,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         QuoteExists: Boolean;
     begin
         // [SCENARIO] Create sales quotes JSON and use HTTP POST to create them
+
+        Initialize();
 
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
@@ -151,6 +159,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     begin
         // [SCENARIO] Create sales quote with specific currency set and use HTTP POST to create it
 
+        Initialize();
+
         // [GIVEN] a quote with a non-LCY currencyCode set
         LibrarySales.CreateCustomer(Customer);
         CustomerNo := Customer."No.";
@@ -180,18 +190,24 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     [Test]
     procedure TestModifyQuotes()
     begin
+        Initialize();
+
         TestMultipleModifyQuotes(false, false);
     end;
 
     [Test]
     procedure TestEmptyModifyQuotes()
     begin
+        Initialize();
+
         TestMultipleModifyQuotes(true, false);
     end;
 
     [Test]
     procedure TestPartialModifyQuotes()
     begin
+        Initialize();
+
         TestMultipleModifyQuotes(false, true);
     end;
 
@@ -285,6 +301,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
     begin
         // [SCENARIO] Create sales quotes and use HTTP DELETE to delete them
 
+        Initialize();
+
         // [GIVEN] 2 quotes in the table
         CreateSalesQuoteWithLines(SalesHeader);
         QuoteID[1] := SalesHeader."No.";
@@ -330,6 +348,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         QuoteExists: Boolean;
     begin
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
+        Initialize();
+
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -371,11 +391,6 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Quote, SalesQuote."No.".VALUE());
         ApiRecordRef.GETTABLE(ApiSalesHeader);
         PageRecordRef.GETTABLE(PageSalesHeader);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'VAT Reporting Date');
-
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API quote do not match');
     end;
@@ -389,6 +404,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         DiscountPct: Decimal;
     begin
         // [SCENARIO] When a quote is created, the GET Method should update the quote and assign a total
+
+        Initialize();
 
         // [GIVEN] a quote without totals assigned
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Quote);
@@ -419,6 +436,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         InvDiscAmount: Decimal;
     begin
         // [SCENARIO] When a quote is created, the GET Method should update the quote and redistribute the discount amount
+
+        Initialize();
 
         // [GIVEN] a quote with discount amount that should be redistributed
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Quote);
@@ -456,6 +475,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         QuoteID: Text;
     begin
         // [SCENARIO 184721] Create Sales Quote, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         LibrarySales.CreateCustomerWithAddress(Customer);
 
         // [GIVEN] an item with unit price and unit cost
@@ -502,6 +523,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         QuoteID: Text;
     begin
         // [SCENARIO 184721] Clearing manually set discount
+
+        Initialize();
 
         // [GIVEN] an item with unit price and unit cost
         LibraryInventory.CreateItemWithUnitPriceAndUnitCost(
@@ -550,6 +573,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] User can send a sales quote through the API.
+        Initialize();
+
         InitializeForSending();
 
         // [GIVEN] Draft sales quote exists
@@ -593,6 +618,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         InvoiceEmailSubject: Text;
     begin
         // [SCENARIO] User can convert a sales quote to a sales invoice through the API.
+
+        Initialize();
 
         // [GIVEN] Sales quote exists
         CreateSalesQuoteWithLines(SalesHeader);
@@ -651,6 +678,8 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         OrderEmailSubject: Text;
     begin
         // [SCENARIO] User can convert a sales quote to a sales order through the API.
+
+        Initialize();
 
         // [GIVEN] Sales quote exists
         CreateSalesQuoteWithLines(SalesHeader);
@@ -779,9 +808,6 @@ codeunit 139723 "APIV1 - Sales Quotes E2E"
         LibrarySmallBusiness.CreateCustomer(Customer);
         LibrarySmallBusiness.CreateItem(Item);
         LibrarySmallBusiness.CreateSalesQuoteHeaderWithLines(SalesHeader, Customer, Item, 1, 1);
-        SalesHeader.Validate("Posting Date", WorkDate());
-        SalesHeader.Validate("Document Date", WorkDate());
-        SalesHeader.Modify(true);
     end;
 
     local procedure FindSalesHeader(var SalesHeader: Record "Sales Header"; CustomerNo: Text; QuoteNumber: Text): Boolean

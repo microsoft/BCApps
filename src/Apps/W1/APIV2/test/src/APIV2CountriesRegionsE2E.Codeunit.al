@@ -8,8 +8,6 @@ codeunit 139810 "APIV2 - Countries/Regions E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Country/Region]
     end;
@@ -158,6 +156,9 @@ codeunit 139810 "APIV2 - Countries/Regions E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -221,7 +222,6 @@ codeunit 139810 "APIV2 - Countries/Regions E2E"
         // VerifyPropertyInJSON(CountryRegionJSON, 'addressFormat', Format(CountryRegion."Address Format"));
     end;
 }
-
 
 
 

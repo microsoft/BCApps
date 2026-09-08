@@ -9,8 +9,6 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Order]
     end;
@@ -35,6 +33,9 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
@@ -431,8 +432,6 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("No."), Database::"Purchase Header");
         LibraryUtility.AddTempField(
           TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Posting Description"), Database::"Purchase Header");
-        LibraryUtility.AddTempField(
-            TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Order Date"), Database::"Purchase Header");
         // Special ignore case for GB
         LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Invoice Received Date"), Database::"Purchase Header");
         // Special ignore case for ES
@@ -447,14 +446,14 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
             LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, RecordField."No.", Database::"Purchase Header");
 
         // Time zone will impact how the date from the page vs WebService is saved. If removed this will fail in snap between 12:00 - 1 AM
-        if Time() < 020000T then
+        if Time() < 020000T then begin
+            LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Order Date"), Database::"Purchase Header");
             LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Posting Date"), Database::"Purchase Header");
+        end;
 
         PagePurchaseHeader.Get(PagePurchaseHeader."Document Type"::Order, PurchaseOrder."No.".Value());
         ApiRecordRef.GetTable(ApiPurchaseHeader);
         PageRecordRef.GetTable(PagePurchaseHeader);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, Database::"Purchase Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API order do not match');
@@ -609,6 +608,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can recieve and invoice a purchase order through the API.
 
         // [GIVEN] Create vendors and a Purchase order with lines

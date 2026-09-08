@@ -25,12 +25,6 @@ codeunit 139879 "E2E PowerBI Project Test"
     TestType = Uncategorized;
     Access = Internal;
 
-    trigger OnRun()
-    begin
-        LibGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibGraphMgt: Codeunit "Library - Graph Mgt";
@@ -44,6 +38,12 @@ codeunit 139879 "E2E PowerBI Project Test"
         PowerBIEndpoints: Enum "PowerBI API Endpoints";
         ResponseEmptyErr: Label 'Response should not be empty.';
 
+    local procedure Initialize()
+    begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     [Test]
     procedure TestGetJobs()
     var
@@ -53,6 +53,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Jobs are created
         LibJob.CreateJob(Job);
         Job.Validate("Starting Date", WorkDate());
@@ -114,6 +116,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Job tasks are created
         LibJob.CreateJob(Job);
         LibJob.CreateJobTask(Job, JobTask);
@@ -160,6 +164,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Job planning lines are created
         LibJob.CreateJob(Job);
         LibJob.CreateJobTask(Job, JobTask);
@@ -223,6 +229,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Job ledger entries are posted
         LibJob.CreateJob(Job);
         LibJob.CreateJobTask(Job, JobTask);
@@ -289,6 +297,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Purchase order is created with outstanding lines
         LibJob.CreateJob(Job);
         CreatePOWithJob(PurchHeader, Job);
@@ -341,6 +351,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Purchase lines exist outside of the query filter
         PurchHeader.Init();
         PurchHeader."Document Type" := PurchHeader."Document Type"::Invoice;
@@ -405,6 +417,8 @@ codeunit 139879 "E2E PowerBI Project Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Purchase order is created with received not invoiced lines
         LibJob.CreateJob(Job);
         CreatePOWithJob(PurchHeader, Job);

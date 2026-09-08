@@ -8,8 +8,6 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Retained Earnings]
     end;
@@ -65,6 +63,8 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IF IsInitialized THEN
             EXIT;
 

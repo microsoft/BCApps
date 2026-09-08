@@ -9,8 +9,6 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
@@ -74,6 +72,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create posted and unposted Sales invoices and use a GET method to retrieve them
         // [GIVEN] 2 invoices, one posted and one unposted
         CreateSalesInvoices(InvoiceID1, InvoiceID2);
@@ -106,6 +106,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         OrderIdValue: Text;
         OrderNoValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a Sales Invoice from a Sales Order and use GET method to retrieve them and check the orderId and orderNumber
         // [GIVEN] A sales invoice created by posting a sales order
         LibrarySales.CreateSalesOrder(SalesHeader);
@@ -149,6 +151,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         TargetURL: Text;
         InvoiceJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create posted and unposted Sales invoices and use HTTP POST to delete them
         // [GIVEN] 2 invoices, one posted and one unposted
 
@@ -200,6 +204,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         InvoiceJSON: Text;
         CurrencyCode: Code[10];
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create posted and unposted with specific currency set and use HTTP POST to create them
 
         // [GIVEN] an Invoice with a non-LCY currencyCode set
@@ -247,6 +253,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         Email: Text;
         CurrencyCode: Code[10];
     begin
+        Initialize();
+
         // [SCENARIO 285872] Create posted and unposted with specific email set and use HTTP POST to create them
         Email := 'test@microsoft.com';
         // [GIVEN] an Customer with  no email set
@@ -298,6 +306,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         TargetURL: Text;
         InvoiceJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create unposted with specific document and due date set and use HTTP POST to create them
 
         LibraryGraphMgt.SetLicenseSafeWorkDate();
@@ -340,18 +350,24 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     [Test]
     procedure TestModifyInvoices()
     begin
+        Initialize();
+
         TestMultipleModifyInvoices(false, false);
     end;
 
     [Test]
     procedure TestEmptyModifyInvoices()
     begin
+        Initialize();
+
         TestMultipleModifyInvoices(true, false);
     end;
 
     [Test]
     procedure TestPartialModifyInvoices()
     begin
+        Initialize();
+
         TestMultipleModifyInvoices(false, true);
     end;
 
@@ -443,6 +459,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         TargetURL: Text;
         InvoiceWithBlanksJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Sales Invoice with all the Ids filled, use a PATCH method to blank the Ids and the Codes
         LibrarySales.CreateCustomerWithAddress(Customer);
 
@@ -507,6 +525,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         NewInvoiceNumber: Text;
         NewInvoiceNumberJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create draft invoice and issue a patch request to change the number
         // [GIVEN] 1 draft invoice and a json with a new number
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -529,6 +549,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create unposted Sales invoice and use HTTP DELETE to delete it
         // [GIVEN] An unposted invoice
         CreateDraftSalesInvoice(SalesHeader);
@@ -566,6 +588,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         TargetURL: Text;
         InvoiceJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an invoice both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted invoice
@@ -614,9 +638,6 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Invoice, SalesInvoice."No.".Value());
         ApiRecordRef.GetTable(ApiSalesHeader);
         PageRecordRef.GetTable(PageSalesHeader);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
-
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API Invoice do not match');
 
@@ -632,6 +653,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         TargetURL: Text;
         DiscountPct: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO 184721] When an invoice is created,the GET Method should update the invoice and assign a total
         // [GIVEN] 2 invoices, one posted and one unposted without totals assigned
         LibraryApplicationArea.EnableFoundationSetup();
@@ -665,6 +688,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         DiscountAmt: Decimal;
         InvDiscAmount: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO 184721] When an invoice is created, the GET Method should update the invoice and assign a total
         // [GIVEN] 2 invoices, one posted and one unposted with discount amount that should be redistributed
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
@@ -700,6 +725,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         InvoiceJSON: Text;
         CurrencyCode: Code[10];
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an invoice wihtout Customer throws an error
 
         // [GIVEN] a sales invoice JSON with currency only
@@ -728,6 +755,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         InvoiceID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Sales Invoice, use a PATCH method to change it and then verify the changes
         LibrarySales.CreateCustomerWithAddress(Customer);
 
@@ -774,6 +803,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         InvoiceID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Clearing manually set discount
 
         // [GIVEN] an item with unit price and unit cost
@@ -830,6 +861,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         PostedInvoiceEmailAddress: Text;
         PostedInvoiceEmailSubject: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can post a sales invoice through the API.
 
         // [GIVEN] Draft sales invoice exists
@@ -876,6 +909,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can post and send a sales invoice through the API.
         InitializeForSending();
 
@@ -914,6 +949,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted sales invoice through API.
 
         // [GIVEN] Posted sales invoice exists
@@ -922,7 +959,6 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         DocumentId := SalesInvoiceHeader."Draft Invoice SystemId";
 
         // Special case for AU
-        EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
 
         Commit();
@@ -951,6 +987,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted sales invoice through API.
         InitializeForSending();
 
@@ -960,7 +998,6 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         DocumentId := SalesInvoiceHeader."Draft Invoice SystemId";
 
         // Special case for AU
-        EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
 
         Commit();
@@ -992,6 +1029,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can send a posted sales invoice through the API.
         InitializeForSending();
 
@@ -1024,6 +1063,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can send a draft sales invoice through the API.
         InitializeForSending();
 
@@ -1056,6 +1097,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can send a draft sales invoice through the API.
         InitializeForSending();
 
@@ -1096,6 +1139,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         CreditMemoEmailAddress: Text;
         CreditMemoEmailSubject: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can create a corrective credit memo for the posted sales invoice through the API.
 
         // [GIVEN] A posted sales invoice exists
@@ -1140,6 +1185,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can map systemId with Draft Invoice SystemId
 
         // [GIVEN] Posted sales invoice exists
@@ -1312,20 +1359,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     local procedure CreateCancelledSalesInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         CreatePostedSalesInvoice(SalesInvoiceHeader);
-        EnsureReasonCode();
-        LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
-        Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
-    end;
-
-    local procedure EnsureReasonCode()
-    var
-        ReasonCode: Record "Reason Code";
-    begin
-        if not ReasonCode.IsEmpty() then
-            exit;
-
-        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateSalesInvoices(var InvoiceID1: Text; var InvoiceID2: Text)
@@ -1406,4 +1440,10 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         LibraryGraphMgt.VerifyIDInJson(ResponseText);
     end;
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }

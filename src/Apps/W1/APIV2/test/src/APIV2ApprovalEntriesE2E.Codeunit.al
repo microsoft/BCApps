@@ -4,12 +4,6 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibraryApproval: Codeunit "Library - Document Approvals";
@@ -27,6 +21,8 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Check that approval entries can be retrieved via API
 
         // [GIVEN] a Sales order exists
@@ -48,5 +44,11 @@ codeunit 139917 "APIV2 - Approval Entries E2E"
             Assert.ExpectedError('Request failed with error: ' + GetLastErrorText());
 
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'id', ApprovalEntryId), 'Could not find approval entry');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

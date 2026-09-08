@@ -14,8 +14,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
@@ -88,6 +86,8 @@ codeunit 148349 "Expense PerDiem Locations Test"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense PerDiem Locations Test");
         if IsInitialized then
             exit;

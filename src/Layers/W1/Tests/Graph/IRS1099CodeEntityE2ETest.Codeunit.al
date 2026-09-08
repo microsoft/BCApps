@@ -5,8 +5,6 @@ codeunit 135519 "IRS 1099 Code Entity E2E Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [IRS 1099 Form-Box]
     end;
 
@@ -37,10 +35,11 @@ codeunit 135519 "IRS 1099 Code Entity E2E Test"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         if IsInitialized then
             exit;
 
         IsInitialized := true;
     end;
 }
-

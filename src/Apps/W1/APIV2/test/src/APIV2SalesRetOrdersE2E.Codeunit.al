@@ -8,8 +8,6 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Sales] [Return Order]
     end;
 
@@ -26,6 +24,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a sales return order and use GET to retrieve it
         // [GIVEN] A sales return order
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Return Order", '');
@@ -46,6 +46,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a sales return order and GET it by SystemId
         // [GIVEN] A sales return order
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Return Order", '');
@@ -68,6 +70,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales return order with $expand=dimensionSetLines
         // [GIVEN] A sales return order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Return Order");
@@ -94,6 +98,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales return order with $expand=attachments
         // [GIVEN] A sales return order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Return Order");
@@ -120,6 +126,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales return order with $expand=documentAttachments
         // [GIVEN] A sales return order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Return Order");
@@ -146,6 +154,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales return order with $expand=pdfDocument
         // [GIVEN] A sales return order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Return Order");
@@ -172,6 +182,8 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales return order with $expand=salesReturnOrderLines
         // [GIVEN] A sales return order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Return Order");
@@ -195,5 +207,11 @@ codeunit 139924 "APIV2 - Sales Ret. Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

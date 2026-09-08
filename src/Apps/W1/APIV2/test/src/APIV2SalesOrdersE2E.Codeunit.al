@@ -9,8 +9,6 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Order]
     end;
@@ -42,6 +40,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Sales Orders and use a GET method to retrieve them
 
         // [GIVEN] 2 orders in the table
@@ -80,6 +80,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         TargetURL: Text;
         OrderJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create sales orders JSON and use HTTP POST to create them
 
         LibraryGraphMgt.SetLicenseSafeWorkDate();
@@ -131,6 +133,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         TargetURL: Text;
         OrderJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create sales order for customer with location and use HTTP POST to create it
 
         // [GIVEN] an order with customer with location code
@@ -174,6 +178,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         OrderJSON: Text;
         CurrencyCode: Code[10];
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create sales order with specific currency set and use HTTP POST to create it
 
         // [GIVEN] an order with a non-LCY currencyCode set
@@ -209,18 +215,24 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     [Test]
     procedure TestModifyOrders()
     begin
+        Initialize();
+
         TestMultipleModifyOrders(false, false);
     end;
 
     [Test]
     procedure TestEmptyModifyOrders()
     begin
+        Initialize();
+
         TestMultipleModifyOrders(true, false);
     end;
 
     [Test]
     procedure TestPartialModifyOrders()
     begin
+        Initialize();
+
         TestMultipleModifyOrders(false, true);
     end;
 
@@ -289,6 +301,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create sales orders and use HTTP DELETE to delete them
 
         // [GIVEN] 2 orders in the table
@@ -335,6 +349,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         TargetURL: Text;
         OrderJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create an order both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
@@ -382,8 +398,6 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Order, SalesOrder."No.".Value());
         ApiRecordRef.GetTable(ApiSalesHeader);
         PageRecordRef.GetTable(PageSalesHeader);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API order do not match');
@@ -397,6 +411,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         TargetURL: Text;
         DiscountPct: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO 184721] When an order is created, the GET Method should update the order and assign a total
         // [GIVEN] an order without totals assigned
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Order);
@@ -426,6 +442,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         DiscountAmt: Decimal;
         InvDiscAmount: Decimal;
     begin
+        Initialize();
+
         // [SCENARIO 184721] When an order is created, the GET Method should update the order and redistribute the discount amount
         // [GIVEN] an order with discount amount that should be redistributed
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(SalesHeader, DiscountPct, SalesHeader."Document Type"::Order);
@@ -460,6 +478,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         OrderNo: Text;
         OrderId: Guid;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Sales Order, use a PATCH method to change it and then verify the changes
 
         // [GIVEN] an order with lines
@@ -496,6 +516,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         ResponseText: Text;
         OrderNo: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Clearing manually set discount
 
         // [GIVEN] an order
@@ -532,6 +554,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can ship and invoice a sales order through the API.
 
         // [GIVEN] a sales order with lines
@@ -653,4 +677,10 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         LibraryGraphMgt.VerifyIDInJson(ResponseText);
     end;
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }

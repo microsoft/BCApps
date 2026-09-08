@@ -8,8 +8,6 @@ codeunit 139807 "APIV2 - Item Categories E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item Category]
     end;
@@ -158,6 +156,9 @@ codeunit 139807 "APIV2 - Item Categories E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -219,7 +220,6 @@ codeunit 139807 "APIV2 - Item Categories E2E"
         VerifyPropertyInJSON(ItemCategoryJSON, 'displayName', ItemCategory.Description);
     end;
 }
-
 
 
 

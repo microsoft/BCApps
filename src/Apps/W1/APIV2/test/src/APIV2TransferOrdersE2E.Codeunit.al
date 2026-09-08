@@ -8,8 +8,6 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Inventory] [Transfer]
     end;
 
@@ -29,6 +27,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a transfer order and use GET to retrieve it
         // [GIVEN] A transfer order
         LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
@@ -53,6 +53,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a transfer order and GET it by SystemId
         // [GIVEN] A transfer order
         LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
@@ -79,6 +81,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a transfer order with $expand=dimensionSetLines
         // [GIVEN] A transfer order
         if not TransferHeader.FindFirst() then begin
@@ -108,6 +112,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a transfer order with $expand=attachments
         // [GIVEN] A transfer order
         if not TransferHeader.FindFirst() then begin
@@ -137,6 +143,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a transfer order with $expand=documentAttachments
         // [GIVEN] A transfer order
         if not TransferHeader.FindFirst() then begin
@@ -166,6 +174,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a transfer order with $expand=pdfDocument
         // [GIVEN] A transfer order
         if not TransferHeader.FindFirst() then begin
@@ -195,6 +205,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a transfer order with $expand=transferOrderLines
         // [GIVEN] A transfer order
         if not TransferHeader.FindFirst() then begin
@@ -218,5 +230,11 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

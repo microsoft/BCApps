@@ -5,8 +5,6 @@ codeunit 135547 "Webhook Logs E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [API] [Webhook]
     end;
 
@@ -121,6 +119,8 @@ codeunit 135547 "Webhook Logs E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         CleanActivityLogs();
         AddActivityLog('first', 'red');
         AddActivityLog('second', 'yellow');
@@ -155,4 +155,3 @@ codeunit 135547 "Webhook Logs E2E"
         ActivityLog.DeleteAll();
     end;
 }
-

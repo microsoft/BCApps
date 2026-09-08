@@ -9,8 +9,6 @@ codeunit 139739 "APIV1 - Item Variants E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item] [Variant]
     end;
@@ -25,6 +23,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant through a POST method and check if it was created
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with itemId
         CreateItem(Item);
         Commit();
@@ -49,6 +49,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant with non-existing itemId
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with non-existing itemId
         ItemId := CreateGuid();
         ItemVariantJSON := CreateItemVariantJsonWithItemId(ItemId, ItemVariantCode);
@@ -70,6 +72,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant through a POST method and check if it was created
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with itemNumber
         CreateItem(Item);
         Commit();
@@ -95,6 +99,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant with non-existing itemNumber
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with non-existing itemNumber
         ItemNo := LibraryUtility.GenerateRandomCode(ItemVariant.FieldNo(Code), Database::"Item Variant");
         ItemVariantJSON := CreateItemVariantJsonWithItemNo(ItemNo, ItemVariantCode);
@@ -116,6 +122,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant through a POST method and check if it was created
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with itemNumber and itemId
         CreateItem(Item);
         Commit();
@@ -141,6 +149,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant with mismatching itemNumber and itemId
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with mismatching itemNumber and itemId
         CreateItem(Item1);
         CreateItem(Item2);
@@ -164,6 +174,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot create an Item Variant if there is an item variant with same itemNumber and code
+        Initialize();
+
         // [GIVEN] a JSON text with an item variant with same itemNumber and code
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -186,6 +198,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Get a simple customer with a GET request to the service.
+        Initialize();
+
         // [GIVEN] An item variant exists in the system
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -211,6 +225,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         // [GIVEN] an item variant exists in the system
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -243,6 +259,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         // [GIVEN] an item variant exists in the system
         CreateItem(Item1);
         CreateItem(Item2);
@@ -276,6 +294,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
+        Initialize();
+
         // [GIVEN] an item variant exists in the system
         CreateItem(Item1);
         CreateItem(Item2);
@@ -305,6 +325,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create an item variant, use a DELETE method to remove it and then verify the deletion
+        Initialize();
+
         // [GIVEN] an item variant in the system
         CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -331,6 +353,8 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Cannot delete an item variant in use
+        Initialize();
+
         // [GIVEN] an item variant in the system and used in a sales order line
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
@@ -346,13 +370,18 @@ codeunit 139739 "APIV1 - Item Variants E2E"
 
     var
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
-        LibraryGraphDocumentTools: Codeunit "Library - Graph Document Tools";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
         Assert: Codeunit "Assert";
         ServiceNameTxt: Label 'itemVariants';
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 
     local procedure CreateItem(var Item: Record Item)
     begin
@@ -430,8 +459,6 @@ codeunit 139739 "APIV1 - Item Variants E2E"
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesOrder(SalesHeader);
-        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
-            SalesHeader."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
         SalesLine."Variant Code" := ItemVariant.Code;
         SalesLine.Modify();

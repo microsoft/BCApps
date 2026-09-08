@@ -13,7 +13,6 @@ interface "API Test Auth Provider"
     /// <summary>
     /// Configures authentication for an API test request.
     /// </summary>
-    /// <param name="TargetURL">The final request URL after URL overrides have been applied.</param>
     /// <param name="Authentication">The authentication context to configure.</param>
-    procedure ConfigureAuthentication(TargetURL: Text; var Authentication: Codeunit "API Test Auth Context");
+    procedure ConfigureAuthentication(var Authentication: Codeunit "API Test Auth Context");
 }

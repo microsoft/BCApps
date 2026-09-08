@@ -7,8 +7,6 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Vendor Payments] [Apply Vendor Entries]
     end;
@@ -174,6 +172,9 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Apply Vendor Ent. E2E");
 
         if not isInitialized then

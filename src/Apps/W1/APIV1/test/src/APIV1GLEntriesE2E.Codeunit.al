@@ -9,8 +9,6 @@ codeunit 139730 "APIV1 - GLEntries E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [G/L Entry]
     end;
@@ -28,6 +26,8 @@ codeunit 139730 "APIV1 - GLEntries E2E"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryApplicationArea.EnableFoundationSetup();
         IF IsInitialized THEN
             EXIT;

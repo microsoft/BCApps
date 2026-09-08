@@ -9,8 +9,6 @@ codeunit 139831 "APIV2 - Automation RS Package"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Config. Package]
     end;
@@ -32,6 +30,9 @@ codeunit 139831 "APIV2 - Automation RS Package"
     var
         TenantConfigPackageFile: Record "Tenant Config. Package File";
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         TenantConfigPackageFile.DELETEALL(true);
 
         SamplePackageFile := GenerateSamplePackageFile();
@@ -334,7 +335,6 @@ codeunit 139831 "APIV2 - Automation RS Package"
         ConfigPackage.Insert(true);
     end;
 }
-
 
 
 

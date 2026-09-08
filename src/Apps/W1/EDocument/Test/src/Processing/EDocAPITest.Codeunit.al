@@ -16,12 +16,6 @@ codeunit 135575 "E-Doc. API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
 
@@ -35,6 +29,7 @@ codeunit 135575 "E-Doc. API Test"
         EDocsApiServiceNameTok: Label 'eDocuments', Locked = true;
     begin
         // [SCENARIO] Get E-Document from api page
+        Initialize();
 
         // [GIVEN] Related document for e document
         CreatePurchaseHeader(PurchaseHeader);
@@ -63,6 +58,7 @@ codeunit 135575 "E-Doc. API Test"
         CreateEDocumentsServiceTxt: Label 'createEDocuments', Locked = true;
     begin
         // [SCENARIO] Create E-Document using api page
+        Initialize();
 
         // [GIVEN] E-Document service
         EDocumentService.Init();
@@ -77,6 +73,12 @@ codeunit 135575 "E-Doc. API Test"
 
         // [THEN] Response is empty
         Assert.AreEqual('', Response, 'Response should be empty.');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 
     local procedure VerifyEDocumentResponse(EDocument: Record "E-Document"; Response: Text)

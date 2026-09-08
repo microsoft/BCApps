@@ -8,8 +8,6 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Sales] [Order] [Archive]
     end;
 
@@ -27,6 +25,8 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Archive a sales order and use GET to retrieve the archive
         // [GIVEN] An archived sales order
         EnsureSalesOrderArchive(SalesHeaderArchive);
@@ -47,6 +47,8 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales order archive with $expand=dimensionSetLines
         // [GIVEN] An archived sales order
         EnsureSalesOrderArchive(SalesHeaderArchive);
@@ -69,6 +71,8 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales order archive with $expand=attachments
         // [GIVEN] An archived sales order
         EnsureSalesOrderArchive(SalesHeaderArchive);
@@ -91,6 +95,8 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a sales order archive with $expand=documentAttachments
         // [GIVEN] An archived sales order
         EnsureSalesOrderArchive(SalesHeaderArchive);
@@ -122,5 +128,11 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }
