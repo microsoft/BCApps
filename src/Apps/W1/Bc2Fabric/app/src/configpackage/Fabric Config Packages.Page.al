@@ -126,7 +126,7 @@ page 50108 "Fabric Config Packages"
             }
             action(ImportPackage)
             {
-                Caption = 'Import Package';
+                Caption = 'Import package';
                 ApplicationArea = All;
                 Image = Import;
                 ToolTip = 'Imports a configuration package definition from a JSON file.';
@@ -144,7 +144,7 @@ page 50108 "Fabric Config Packages"
             }
             action(ExportPackage)
             {
-                Caption = 'Export Package';
+                Caption = 'Export package';
                 ApplicationArea = All;
                 Image = Export;
                 ToolTip = 'Exports the selected configuration package definition to a JSON file.';
@@ -162,6 +162,17 @@ page 50108 "Fabric Config Packages"
                     FileName := Rec."Code" + '.json';
                     DownloadFromStream(InStream, '', '', '', FileName);
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(Activate_Promoted; Activate) { }
+                actionref(Deactivate_Promoted; Deactivate) { }
+                actionref(Reapply_Promoted; Reapply) { }
             }
         }
     }

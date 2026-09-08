@@ -248,7 +248,7 @@ page 50104 "Fabric Platform Setup"
                     ApplicationArea = All;
                     Enabled = EnableActionEnabled;
                     Image = Setup;
-                    ToolTip = 'Connects to Microsoft Fabric using the configured credentials and runs the platform setup pipeline. This is asynchronous; follow progress on Synchronization Overview.';
+                    ToolTip = 'Connects to Microsoft Fabric using the configured credentials and runs the platform setup pipeline. This is asynchronous; follow progress on Synchronization overview.';
 
                     trigger OnAction()
                     var
@@ -263,7 +263,7 @@ page 50104 "Fabric Platform Setup"
                     Caption = 'Disconnect from Fabric';
                     ApplicationArea = All;
                     Image = Delete;
-                    ToolTip = 'Cancels in-flight runs and removes the platform export resources for this tenant.';
+                    ToolTip = 'Cancels in-flight runs, removes the Fabric export resources for this tenant, and resets the synchronization state. Use Stop synchronization instead if you only want to pause and resume later.';
 
                     trigger OnAction()
                     var
@@ -275,7 +275,7 @@ page 50104 "Fabric Platform Setup"
                 }
                 action(TestConnection)
                 {
-                    Caption = 'Test Connection';
+                    Caption = 'Test connection';
                     ApplicationArea = All;
                     Image = Process;
                     ToolTip = 'Tests the connection to Microsoft Fabric using the configured credentials.';
@@ -287,13 +287,29 @@ page 50104 "Fabric Platform Setup"
                         FabricPlatformMgt.TestConnection();
                     end;
                 }
+                action(AddToWorkspace)
+                {
+                    Caption = 'Add to workspace';
+                    ApplicationArea = All;
+                    Image = UserSetup;
+                    ToolTip = 'Grants the service principal (Principal ID) Contributor access on the selected Fabric workspace. Run this once after selecting the workspace.';
+
+                    trigger OnAction()
+                    var
+                        AdminClient: Codeunit "Fabric Platform Admin Client";
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                    begin
+                        AdminClient.AddServicePrincipalToWorkspace(Rec."Fabric Workspace ID", CredMgt.GetPrincipalId());
+                        Message(SPAddedToWorkspaceMsg, Rec."Fabric Workspace Name");
+                    end;
+                }
             }
             action(StartExport)
             {
                 Caption = 'Start synchronization';
                 ApplicationArea = All;
                 Image = Start;
-                ToolTip = 'Starts continuous export. This is asynchronous; follow progress on Synchronization Overview.';
+                ToolTip = 'Starts continuous export. This is asynchronous; follow progress on Synchronization overview.';
 
                 trigger OnAction()
                 var
@@ -308,7 +324,7 @@ page 50104 "Fabric Platform Setup"
                 Caption = 'Stop synchronization';
                 ApplicationArea = All;
                 Image = Stop;
-                ToolTip = 'Cancels any in-flight export run and disables continuous export.';
+                ToolTip = 'Pauses synchronization and cancels any in-flight run, but keeps your Fabric connection and synchronization state so you can resume later with Start synchronization.';
 
                 trigger OnAction()
                 var
@@ -316,22 +332,6 @@ page 50104 "Fabric Platform Setup"
                 begin
                     FabricPlatformMgt.StopExport();
                     CurrPage.Update(false);
-                end;
-            }
-            action(AddToWorkspace)
-            {
-                Caption = 'Add to Workspace';
-                ApplicationArea = All;
-                Image = UserSetup;
-                ToolTip = 'Grants the service principal (Principal ID) Contributor access on the selected Fabric workspace. Run this once after selecting the workspace.';
-
-                trigger OnAction()
-                var
-                    AdminClient: Codeunit "Fabric Platform Admin Client";
-                    CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                begin
-                    AdminClient.AddServicePrincipalToWorkspace(Rec."Fabric Workspace ID", CredMgt.GetPrincipalId());
-                    Message(SPAddedToWorkspaceMsg, Rec."Fabric Workspace Name");
                 end;
             }
             action(Refresh)
@@ -375,7 +375,7 @@ page 50104 "Fabric Platform Setup"
             }
             action(ConfigPackages)
             {
-                Caption = 'Configuration Packages';
+                Caption = 'Configuration packages';
                 ApplicationArea = All;
                 Image = Setup;
                 RunObject = page "Fabric Config Packages";
@@ -387,7 +387,7 @@ page 50104 "Fabric Platform Setup"
 
                 action(ExportSummary)
                 {
-                    Caption = 'Synchronization Overview';
+                    Caption = 'Synchronization overview';
                     ApplicationArea = All;
                     Image = History;
                     RunObject = page "Fabric Platform Export Summary";
@@ -395,7 +395,7 @@ page 50104 "Fabric Platform Setup"
                 }
                 action(ExportDetails)
                 {
-                    Caption = 'Synchronization Details';
+                    Caption = 'Synchronization details';
                     ApplicationArea = All;
                     Image = ViewDetails;
                     RunObject = page "Fabric Platform Export Details";

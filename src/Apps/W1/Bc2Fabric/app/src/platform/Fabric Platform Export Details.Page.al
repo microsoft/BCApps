@@ -116,7 +116,7 @@ page 50102 "Fabric Platform Export Details"
             }
             action(ShowZeroChangeRows)
             {
-                Caption = 'Show Rows with No Changes';
+                Caption = 'Show rows with no changes';
                 ApplicationArea = All;
                 Image = ShowList;
                 Visible = not ShowRowsWithNoChanges;
@@ -131,7 +131,7 @@ page 50102 "Fabric Platform Export Details"
             }
             action(HideZeroChangeRows)
             {
-                Caption = 'Hide Rows with No Changes';
+                Caption = 'Hide rows with no changes';
                 ApplicationArea = All;
                 Image = Filter;
                 Visible = ShowRowsWithNoChanges;
@@ -164,6 +164,11 @@ page 50102 "Fabric Platform Export Details"
         {
             Caption = 'Errors';
             Filters = where("Error Message" = filter(<> ''));
+        }
+        view(UnchangedRecords)
+        {
+            Caption = 'Unchanged records';
+            Filters = where("Records Updated" = filter(0), "Records Inserted" = filter(0), "Records Deleted" = filter(0));
         }
     }
 

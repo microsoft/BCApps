@@ -45,7 +45,7 @@ page 50101 "Fabric Platform Companies"
         {
             action(AddCompany)
             {
-                Caption = 'Add Company';
+                Caption = 'Add company';
                 ApplicationArea = All;
                 Image = New;
                 ToolTip = 'Adds a company to the Fabric export selection.';

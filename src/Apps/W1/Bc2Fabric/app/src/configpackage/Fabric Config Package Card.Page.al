@@ -117,7 +117,7 @@ page 50106 "Fabric Config Package Card"
             }
             action(ExportPackage)
             {
-                Caption = 'Export Package';
+                Caption = 'Export package';
                 ApplicationArea = All;
                 Image = Export;
                 ToolTip = 'Exports this configuration package definition to a JSON file.';
@@ -135,6 +135,17 @@ page 50106 "Fabric Config Package Card"
                     FileName := Rec."Code" + '.json';
                     DownloadFromStream(InStream, '', '', '', FileName);
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(Activate_Promoted; Activate) { }
+                actionref(Deactivate_Promoted; Deactivate) { }
+                actionref(Reapply_Promoted; Reapply) { }
             }
         }
     }

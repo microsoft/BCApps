@@ -62,7 +62,7 @@ page 50105 "Fabric Platform Tables"
         {
             action(AddTable)
             {
-                Caption = 'Add Table';
+                Caption = 'Add table';
                 ApplicationArea = All;
                 Image = New;
                 ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 500 tables can be selected.';

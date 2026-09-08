@@ -8,9 +8,10 @@ page 150016 "Fabric Companies FactBox"
 page 50116 "Fabric Companies FactBox"
 #endif
 {
-    Caption = 'Companies to Sync';
+    Caption = 'Enabled Companies';
     PageType = ListPart;
     SourceTable = "Tenant Fabric Companies";
+    SourceTableView = where(Enabled = const(true));
     Editable = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -26,11 +27,6 @@ page 50116 "Fabric Companies FactBox"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the company included in the Fabric export.';
-                }
-                field(Enabled; Rec.Enabled)
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies whether this company is exported. Disabled companies are skipped.';
                 }
             }
         }
