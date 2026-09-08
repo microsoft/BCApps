@@ -2706,7 +2706,6 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreRecord := true;
     end;
 
-#if not CLEAN31
 #pragma warning disable AS0105
     [Obsolete('Remove calls to this procedure. Service items are always synchronized to Field Service customer assets; item-product synchronization disables customer asset conversion.', '30.0')]
     internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
@@ -2743,7 +2742,6 @@ codeunit 6610 "FS Int. Table Subscriber"
             IgnoreRecord := true;
     end;
 #pragma warning restore AS0105
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnAfterInitSynchJob', '', true, true)]
     local procedure LogTelemetryOnAfterInitSynchJob(ConnectionType: TableConnectionType; IntegrationTableID: Integer)

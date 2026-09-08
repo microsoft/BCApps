@@ -87,7 +87,6 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
     end;
 
-#if not CLEAN31
     /// <summary>
     /// Retained for compatibility. Service items are now always synchronized to Field Service customer assets, so this procedure leaves the synchronization decision unchanged.
     /// </summary>
@@ -99,7 +98,6 @@ codeunit 139205 "FS Integration Test Library"
     begin
     end;
 #pragma warning restore AS0105
-#endif
 
     procedure MarkArchivedServiceOrder(ServiceHeader: Record "Service Header")
     var
