@@ -385,6 +385,12 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
 
     internal procedure ModifyAccount(var AccountToModify: Record "Ext. SharePoint Account"; AccountWithNewValues: Record "Ext. SharePoint Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
     begin
+        case AccountToModify."Authentication Type" of
+            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                AccountToModify.ClearClientSecretAuthentication();
+            Enum::"Ext. SharePoint Auth Type"::Certificate:
+                AccountToModify.ClearCertificateAuthentication();
+        end;
         AccountToModify.TransferFields(AccountWithNewValues, false);
         case AccountToModify."Authentication Type" of
             Enum::"Ext. SharePoint Auth Type"::"Client Secret":
