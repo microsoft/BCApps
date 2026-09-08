@@ -1012,6 +1012,7 @@ codeunit 5826 "Matched Order Line Mgmt."
                     PurchaseLineInvoice."Description 2" := PurchaseLineOrder."Description 2";
                     PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
                     PurchaseLineInvoice.Validate("Location Code", PurchaseLineOrder."Location Code");
+                    PurchaseLineInvoice.Validate("Dimension Set ID", PurchaseLineOrder."Dimension Set ID");
                     OnGetPurchaseOrderLinesOnBeforeInsertPurchaseLineInvoice(PurchaseLineInvoice, PurchaseLineOrder);
                     PurchaseLineInvoice.Insert(true);
 
