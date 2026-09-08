@@ -557,6 +557,10 @@ page 9652 "Report Layout Selection"
 
     local procedure ShowResolvedLayoutParts()
     var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+        LayoutKey: Text;
         HeaderDisplay: Text;
         HeaderSource: Text;
         ThemeDisplay: Text;
@@ -565,9 +569,19 @@ page 9652 "Report Layout Selection"
         if Rec."Report ID" = 0 then
             Error(SelectReportFirstErr);
 
-        // Walk the same Tenant Report Layout Cfg precedence the platform uses at render time, so the message reflects
-        // the parts that will actually apply — including report, company and global defaults — not only a layout-level row.
-        LookupHelper.GetResolvedPartDisplays(Rec."Report ID", '', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        if TenantReportLayoutSelection.Get(Rec."Report ID", SelectedCompany, EmptyGuid) then begin
+            ReportLayoutList.SetRange("Report ID", TenantReportLayoutSelection."Report ID");
+            ReportLayoutList.SetRange("Name", TenantReportLayoutSelection."Layout Name");
+            ReportLayoutList.SetRange("Application ID", TenantReportLayoutSelection."App ID");
+            if ReportLayoutList.FindFirst() then
+                LayoutKey := LookupHelper.CompositeLayoutKey(ReportLayoutList);
+        end;
+
+        if LayoutKey <> '' then
+            LookupHelper.GetResolvedPartDisplays(Rec."Report ID", LayoutKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource)
+        else
+            LookupHelper.GetReportLevelPartDisplays(Rec."Report ID", HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+
         Message(ShowLayoutPartsMsg, FormatPartDisplay(HeaderDisplay, HeaderSource), FormatPartDisplay(ThemeDisplay, ThemeSource));
     end;
 
