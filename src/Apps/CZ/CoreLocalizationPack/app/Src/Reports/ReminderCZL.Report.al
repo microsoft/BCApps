@@ -485,7 +485,7 @@ report 31182 "Reminder CZL"
 
                 if LogInteraction and not IsReportInPreviewMode() then
                     SegManagement.LogDocument(
-                      8, "No.", 0, 0, Database::Customer, "Customer No.", '', '', "Posting Description", '');
+                      8, "No.", 0, 0, Database::Customer, "Customer No.", '', '', "Issued Reminder Header".GetLogInteractionDescription(), '');
 
                 if "Currency Code" = '' then
                     "Currency Code" := "General Ledger Setup"."LCY Code";

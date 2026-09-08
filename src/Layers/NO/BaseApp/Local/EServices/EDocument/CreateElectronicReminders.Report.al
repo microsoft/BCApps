@@ -36,7 +36,7 @@ report 10642 "Create Electronic Reminders"
 
                 if LogInteraction then
                     SegManagement.LogDocument(
-                      8, "No.", 0, 0, DATABASE::Customer, "Customer No.", '', '', "Posting Description", '');
+                      8, "No.", 0, 0, DATABASE::Customer, "Customer No.", '', '', "Issued Reminder Header".GetLogInteractionDescription(), '');
 
                 Commit();
                 Counter := Counter + 1;

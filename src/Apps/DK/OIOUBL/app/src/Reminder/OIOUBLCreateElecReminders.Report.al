@@ -26,7 +26,7 @@ report 13632 "OIOUBL-Create Elec. Reminders"
 
                 if LogInteraction then
                     SegManagement.LogDocument(
-                      8, "No.", 0, 0, DATABASE::Customer, "Customer No.", '', '', "Posting Description", '');
+                      8, "No.", 0, 0, DATABASE::Customer, "Customer No.", '', '', "Issued Reminder Header".GetLogInteractionDescription(), '');
 
                 COMMIT();
                 Counter := Counter + 1;
