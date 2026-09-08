@@ -54,6 +54,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         EDocHelpers: Codeunit "EDoc. Helpers";
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
+        InvoiceLineXPathLbl: Label '/Invoice/cac:InvoiceLine[cbc:ID=''%1'']/cac:OrderLineReference/cac:OrderReference/cbc:ID', Comment = '%1 = Invoice line number', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
 
@@ -880,7 +881,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetRange("Shipment No.", SecondShipmentNo);
         SalesInvoiceLine.FindFirst();
-        InvoiceLineXPath := StrSubstNo('/Invoice/cac:InvoiceLine[cbc:ID=''%1'']/cac:OrderLineReference/cac:OrderReference/cbc:ID', Format(SalesInvoiceLine."Line No.", 0, 9));
+        InvoiceLineXPath := StrSubstNo(InvoiceLineXPathLbl, Format(SalesInvoiceLine."Line No.", 0, 9));
         Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, InvoiceLineXPath),
             StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
     end;
