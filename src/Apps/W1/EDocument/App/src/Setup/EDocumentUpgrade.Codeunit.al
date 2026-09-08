@@ -74,5 +74,4 @@ codeunit 6168 "E-Document Upgrade"
     begin
         exit('MS-EDoc-ProcessDraftEnum-20260407');
     end;
-
 }
