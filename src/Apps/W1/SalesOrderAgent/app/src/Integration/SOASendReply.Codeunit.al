@@ -14,6 +14,7 @@ using System.Telemetry;
 codeunit 4419 "SOA Send Reply"
 {
     Access = Internal;
+    Permissions = tabledata "Email Inbox" = r;
     InherentEntitlements = X;
     InherentPermissions = X;
     TableNo = "Agent Task Message";

@@ -12,6 +12,7 @@ using System.Email;
 codeunit 4398 "SOA Task Message"
 {
     Access = Internal;
+    Permissions = tabledata "Email Inbox" = r;
     InherentEntitlements = X;
     InherentPermissions = X;
 
