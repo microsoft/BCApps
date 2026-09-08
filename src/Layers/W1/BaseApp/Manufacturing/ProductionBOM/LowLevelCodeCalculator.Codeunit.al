@@ -275,7 +275,7 @@ codeunit 3687 "Low-Level Code Calculator"
         BOMComponentItems.Close();
     end;
 
-    local procedure AddKeyToList(BOMKey: Text)
+    local procedure AddKeyToTree(BOMKey: Text)
     begin
         NodeKeysAddedToTree.Set(BOMKey, true);
     end;
@@ -287,8 +287,8 @@ codeunit 3687 "Low-Level Code Calculator"
             exit;
 
         BOMStructure.AddRelation(Parent, Child);
-        AddKeyToList(Parent.GetKey());
-        AddKeyToList(Child.GetKey());
+        AddKeyToTree(Parent.GetKey());
+        AddKeyToTree(Child.GetKey());
     end;
 
     local procedure CheckItemProductionBOMIsCertified(var ItemProductionBOMs: Query "Item Production BOMs"): Boolean
