@@ -25,7 +25,7 @@ page 50104 "Fabric Platform Setup"
         {
             group(Destination)
             {
-                Caption = 'Fabric Destination';
+                Caption = 'Fabric Connection Setup';
 
                 field("Fabric Workspace Name"; WorkspaceNameValue)
                 {
@@ -134,7 +134,7 @@ page 50104 "Fabric Platform Setup"
             }
             group(Options)
             {
-                Caption = 'Configuration';
+                Caption = 'Data Synchronization Setup';
 
                 field("Minutes Between Exports"; Rec."Minutes Between Exports")
                 {
