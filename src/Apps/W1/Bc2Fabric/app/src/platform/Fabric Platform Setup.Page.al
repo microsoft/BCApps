@@ -372,14 +372,14 @@ page 50104 "Fabric Platform Setup"
                     RunObject = page "Fabric Platform Companies";
                     ToolTip = 'Selects the companies to export.';
                 }
-            }
-            action(ConfigPackages)
-            {
-                Caption = 'Configuration packages';
-                ApplicationArea = All;
-                Image = Setup;
-                RunObject = page "Fabric Config Packages";
-                ToolTip = 'Activates a curated set of tables from a shipped configuration package.';
+                action(ConfigPackages)
+                {
+                    Caption = 'Import/Export Configuration';
+                    ApplicationArea = All;
+                    Image = Setup;
+                    RunObject = page "Fabric Config Packages";
+                    ToolTip = 'Activates a curated set of tables from a shipped configuration package.';
+                }
             }
             group(Monitoring)
             {
@@ -422,6 +422,7 @@ page 50104 "Fabric Platform Setup"
 
                 actionref(Tables_Promoted; Tables) { }
                 actionref(Companies_Promoted; Companies) { }
+                actionref(ConfigPackages_Promoted; ConfigPackages) { }
             }
             group(Category_Monitoring)
             {
