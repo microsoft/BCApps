@@ -554,7 +554,7 @@ report 20 "Calc. and Post VAT Settlement"
                     GenJnlLine.Description := Text004;
                     GenJnlLine.Amount := VATAmount + VATAmountOfPropDedSettled;
                     GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-                    GenJnlLine."Source Currency Amount" := SourceCurrencyAmount(VATAmount, VATAmountAddCurr);
+                    GenJnlLine."Source Currency Amount" := SourceCurrencyAmount(VATAmount + VATAmountOfPropDedSettled, VATAmountAddCurr);
                     GenJnlLine."Source Code" := SourceCodeSetup."VAT Settlement";
                     GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Manual VAT Entry";
 
