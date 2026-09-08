@@ -202,6 +202,7 @@ codeunit 7201 "CDS Integration Impl."
         GeneralFailureErr: Label 'The setup failed because of a generic error. You must sign in to the Dataverse organization with an account that has System Administrator role and make sure that another import or deletion of a PowerApps solution is not currently in progress.';
         InvalidUriErr: Label 'The value entered is not a valid URL.';
         MustUseHttpsErr: Label 'The application is set up to support secure connections (HTTPS) to the Dataverse environment only. You cannot use HTTP.';
+        InvalidHostSuffixErr: Label 'The Dataverse environment URL must be a %1 address.', Comment = '%1 = the expected host suffix, for example dynamics.com';
         ReplaceServerAddressQst: Label 'The URL is not valid. Do you want to replace it with the URL suggested below?\\Entered URL: "%1".\Suggested URL: "%2".', Comment = '%1 and %2 are URLs';
         CDSConnectionURLWrongErr: Label 'The URL is incorrect. Enter the URL for the Dataverse environment.';
         TemporaryConnectionPrefixTok: Label 'TEMP-Dataverse-', Locked = true;
@@ -4284,12 +4285,52 @@ codeunit 7201 "CDS Integration Impl."
         if UriHelper2.Scheme() <> 'https' then
             Error(MustUseHttpsErr);
 
+        CheckServerAddressHostSuffix(ServerAddress);
+
         ProposedUri := UriHelper2.GetLeftPart(UriPartialHelper.Authority);
 
         // Test that a specific port number is given
         if ((UriHelper2.Port() = 443) or (UriHelper2.Port() = 80)) and (LowerCase(ServerAddress) <> LowerCase(ProposedUri)) then
             if Confirm(StrSubstNo(ReplaceServerAddressQst, ServerAddress, ProposedUri)) then
                 ServerAddress := ProposedUri;
+    end;
+
+    /// <summary>
+    /// For online (SaaS) connections, verifies that the user-entered environment URL host belongs to
+    /// the trusted host suffix of the configured Dataverse cloud, so it cannot be redirected to a
+    /// malicious endpoint. On-premises deployments are skipped because they legitimately use arbitrary
+    /// hosts, and clouds that do not define a host suffix are skipped as well.
+    /// </summary>
+    /// <param name="ServerAddress">The environment URL entered by the user.</param>
+    internal procedure CheckServerAddressHostSuffix(ServerAddress: Text)
+    var
+        Endpoints: Interface "Dataverse Cloud Endpoints";
+        UriHelper: DotNet Uri;
+        UriHelper2: DotNet Uri;
+        UriKindHelper: DotNet UriKind;
+        HostSuffix: Text;
+        HostName: Text;
+    begin
+        if (ServerAddress = '') or (ServerAddress = TestServerAddressTok) then
+            exit;
+
+        // Only pin the host for online (SaaS) connections; on-premises deployments legitimately use arbitrary hosts.
+        if not EnvironmentInfo.IsSaaS() then
+            exit;
+
+        Endpoints := GetDataverseCloudEndpoints();
+        HostSuffix := Endpoints.GetEnvironmentHostSuffix();
+        if HostSuffix = '' then
+            exit;
+
+        if not UriHelper.TryCreate(ServerAddress, UriKindHelper.Absolute, UriHelper2) then
+            if not UriHelper.TryCreate('https://' + ServerAddress, UriKindHelper.Absolute, UriHelper2) then
+                exit; // malformed URLs are reported by the caller's existing validation
+
+        HostName := LowerCase(UriHelper2.Host());
+        HostSuffix := LowerCase(HostSuffix);
+        if not (HostName.EndsWith('.' + HostSuffix) or (HostName = HostSuffix)) then
+            Error(InvalidHostSuffixErr, HostSuffix);
     end;
 
     [Scope('OnPrem')]
