@@ -1577,7 +1577,7 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
         Item: Record Item;
@@ -1615,6 +1615,31 @@ codeunit 139204 "FS Integration Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DisableCustomerAssetConversionOnlyMarksActualChanges()
+    var
+        CRMProduct: Record "CRM Product";
+        AdditionalFieldsWereModified: Boolean;
+    begin
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] Customer asset conversion only marks the product as modified when its value changes.
+
+        // [WHEN] Customer asset conversion is already disabled.
+        FSIntegrationTestLibrary.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+
+        // [THEN] The product is not marked as modified.
+        Assert.IsFalse(AdditionalFieldsWereModified, 'An unchanged product should not be marked as modified.');
+
+        // [WHEN] Customer asset conversion is enabled and then disabled.
+        CRMProduct.ConvertToCustomerAsset := true;
+        FSIntegrationTestLibrary.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+
+        // [THEN] Customer asset conversion is disabled and the product is marked as modified.
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
+        Assert.IsTrue(AdditionalFieldsWereModified, 'A changed product should be marked as modified.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ItemProductMappingDisablesCustomerAssetConversion()
     var
         CRMProduct: Record "CRM Product";
