@@ -453,6 +453,7 @@ table 6214 "Sustainability Jnl. Line"
     var
         SustJournalBatch: Record "Sustainability Jnl. Batch";
         SustJournalLine: Record "Sustainability Jnl. Line";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
         SustJournalLine.SetRange("Journal Template Name", "Journal Template Name");
         SustJournalLine.SetRange("Journal Batch Name", "Journal Batch Name");
@@ -460,6 +461,8 @@ table 6214 "Sustainability Jnl. Line"
         if SustJournalLine.IsEmpty() then
             if SustJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
                 ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(SustJournalBatch);
+
+        SustJnlLineGLEntry.DeleteCollectedGLEntries(Rec);
     end;
 
     trigger OnInsert()
@@ -479,8 +482,12 @@ table 6214 "Sustainability Jnl. Line"
     end;
 
     trigger OnRename()
+    var
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
         ApprovalsMgmt.OnRenameRecordInApprovalRequest(xRec.RecordId, RecordId);
+
+        SustJnlLineGLEntry.MoveCollectedGLEntries(xRec, Rec);
     end;
 
     var
@@ -583,10 +590,14 @@ table 6214 "Sustainability Jnl. Line"
     end;
 
     local procedure ClearGLCollectionInformation(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    var
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
         SustainabilityJnlLine."Collected from G/L Entries" := false;
         SustainabilityJnlLine."Collect From Date" := 0D;
         SustainabilityJnlLine."Collect To Date" := 0D;
+
+        SustJnlLineGLEntry.DeleteCollectedGLEntries(SustainabilityJnlLine);
     end;
 
     local procedure ClearEmissionInformation(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")

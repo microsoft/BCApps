@@ -4,10 +4,12 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Journal;
+using Microsoft.Sustainability.Ledger;
 
 codeunit 6218 "Sustainability Calc. Mgt."
 {
     var
+        CollectingSustainabilityJnlLine: Record "Sustainability Jnl. Line";
         EmissionScopeCache: Dictionary of [Code[20], Enum "Emission Scope"];
         CalculationFoundationCache: Dictionary of [Code[20], Enum "Calculation Foundation"];
         FromToFilterLbl: Label '%1..%2', Locked = true;
@@ -222,13 +224,14 @@ codeunit 6218 "Sustainability Calc. Mgt."
         GLEntry: Record "G/L Entry";
     begin
         FilterGLEntry(SustainAccountCategory, FromDate, ToDate, GLEntry);
-        GLEntry.CalcSums(Amount);
-        exit(Abs(GLEntry.Amount));
+        exit(GetTotalGLEntryAmount(GLEntry));
     end;
 
     internal procedure CollectGeneralLedgerAmount(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
     var
+        GLEntry: Record "G/L Entry";
         SustainAccountCategory: Record "Sustain. Account Category";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
         CollectAmountFromGLEntry: Page "Collect Amount from G/L Entry";
         FromDate, ToDate : Date;
     begin
@@ -237,26 +240,100 @@ codeunit 6218 "Sustainability Calc. Mgt."
         SustainAccountCategory.Get(SustainabilityJnlLine."Account Category");
         SustainAccountCategory.SetRecFilter();
 
+        SetCollectingJournalLine(SustainabilityJnlLine);
+
+        CollectAmountFromGLEntry.SetCollectingJournalLine(SustainabilityJnlLine);
         CollectAmountFromGLEntry.SetTableView(SustainAccountCategory);
         CollectAmountFromGLEntry.LookupMode(true);
         if CollectAmountFromGLEntry.RunModal() = Action::LookupOK then begin
             CollectAmountFromGLEntry.GetDates(FromDate, ToDate);
-            SustainabilityJnlLine.Validate("Custom Amount", GetCollectableGLAmount(SustainAccountCategory, FromDate, ToDate));
+
+            FilterGLEntry(SustainAccountCategory, FromDate, ToDate, GLEntry);
+            SustainabilityJnlLine.Validate("Custom Amount", GetTotalGLEntryAmount(GLEntry));
             SustainabilityJnlLine.SetGLCollectionInformation(FromDate, ToDate);
+
+            SustJnlLineGLEntry.StoreCollectedGLEntries(SustainabilityJnlLine, GLEntry);
         end;
+    end;
+
+    internal procedure SetCollectingJournalLine(SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+        CollectingSustainabilityJnlLine := SustainabilityJnlLine;
     end;
 
     internal procedure FilterGLEntry(SustainAccountCategory: Record "Sustain. Account Category"; FromDate: Date; ToDate: Date; var GLEntry: Record "G/L Entry");
     begin
         GLEntry.Reset();
-        GLEntry.SetCurrentKey("Sust. Collected", "G/L Account No.", "Posting Date");
-        GLEntry.SetRange("Sust. Collected", false);
+        GLEntry.SetCurrentKey("G/L Account No.", "Posting Date");
         GLEntry.SetFilter("G/L Account No.", SustainAccountCategory."G/L Account Filter");
         GLEntry.SetFilter("Global Dimension 1 Code", SustainAccountCategory."Global Dimension 1 Filter");
         GLEntry.SetFilter("Global Dimension 2 Code", SustainAccountCategory."Global Dimension 2 Filter");
         if (FromDate <> 0D) or (ToDate <> 0D) then
             GLEntry.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
         OnAfterFilterGLEntry(SustainAccountCategory, FromDate, ToDate, GLEntry);
+
+        MarkCollectableGLEntries(SustainAccountCategory.Code, FromDate, ToDate, GLEntry);
+    end;
+
+    local procedure MarkCollectableGLEntries(AccountCategoryCode: Code[20]; FromDate: Date; ToDate: Date; var GLEntry: Record "G/L Entry")
+    var
+        CollectedGLEntryNos: Dictionary of [Integer, Boolean];
+    begin
+        AddPostedGLEntryNos(AccountCategoryCode, FromDate, ToDate, CollectedGLEntryNos);
+        AddGLEntryNosCollectedOnOtherJournalLines(AccountCategoryCode, FromDate, ToDate, CollectedGLEntryNos);
+
+        GLEntry.ClearMarks();
+        if GLEntry.FindSet() then
+            repeat
+                if not CollectedGLEntryNos.ContainsKey(GLEntry."Entry No.") then
+                    GLEntry.Mark(true);
+            until GLEntry.Next() = 0;
+
+        GLEntry.MarkedOnly(true);
+    end;
+
+    local procedure AddPostedGLEntryNos(AccountCategoryCode: Code[20]; FromDate: Date; ToDate: Date; var CollectedGLEntryNos: Dictionary of [Integer, Boolean])
+    var
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
+    begin
+        SustGLSustLedgerRel.SetCurrentKey("Account Category", "G/L Entry No.");
+        SustGLSustLedgerRel.SetRange("Account Category", AccountCategoryCode);
+        if (FromDate <> 0D) or (ToDate <> 0D) then
+            SustGLSustLedgerRel.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
+        SustGLSustLedgerRel.SetLoadFields("G/L Entry No.");
+        if SustGLSustLedgerRel.FindSet() then
+            repeat
+                if not CollectedGLEntryNos.ContainsKey(SustGLSustLedgerRel."G/L Entry No.") then
+                    CollectedGLEntryNos.Add(SustGLSustLedgerRel."G/L Entry No.", true);
+            until SustGLSustLedgerRel.Next() = 0;
+    end;
+
+    local procedure AddGLEntryNosCollectedOnOtherJournalLines(AccountCategoryCode: Code[20]; FromDate: Date; ToDate: Date; var CollectedGLEntryNos: Dictionary of [Integer, Boolean])
+    var
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
+    begin
+        SustJnlLineGLEntry.SetCurrentKey("Account Category", "G/L Entry No.");
+        SustJnlLineGLEntry.SetRange("Account Category", AccountCategoryCode);
+        if (FromDate <> 0D) or (ToDate <> 0D) then
+            SustJnlLineGLEntry.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
+        if SustJnlLineGLEntry.FindSet() then
+            repeat
+                if not SustJnlLineGLEntry.BelongsToJournalLine(CollectingSustainabilityJnlLine) then
+                    if not CollectedGLEntryNos.ContainsKey(SustJnlLineGLEntry."G/L Entry No.") then
+                        CollectedGLEntryNos.Add(SustJnlLineGLEntry."G/L Entry No.", true);
+            until SustJnlLineGLEntry.Next() = 0;
+    end;
+
+    local procedure GetTotalGLEntryAmount(var GLEntry: Record "G/L Entry"): Decimal
+    var
+        TotalAmount: Decimal;
+    begin
+        if GLEntry.FindSet() then
+            repeat
+                TotalAmount += GLEntry.Amount;
+            until GLEntry.Next() = 0;
+
+        exit(Abs(TotalAmount));
     end;
 
     [IntegrationEvent(false, false)]
