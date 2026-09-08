@@ -110,7 +110,7 @@ table 7775 "Copilot Settings"
             exit(true);
 
         foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
-            if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, true) then
+            if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, false) then
                 exit(false);
 
         exit(true);

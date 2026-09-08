@@ -232,7 +232,7 @@ codeunit 7774 "Copilot Capability Impl"
 
         // check privacy notices
         foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
-            if (PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, true) <> Enum::"Privacy Notice Approval State"::Agreed) then
+            if (PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, false) <> Enum::"Privacy Notice Approval State"::Agreed) then
                 exit(false);
 
         exit(true);
