@@ -1434,7 +1434,7 @@ xmlport 1610 "Sales Invoice - PEPPOL BIS 3.0"
                           TaxCategoryPercent,
                           TaxTotalTaxSchemeID);
 
-                        PEPPOLMgt.GetTaxExemptionReason(TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
+                        PEPPOLMgt.GetTaxExemptionReason(TempVATAmtLine, TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
                     end;
                 }
 
