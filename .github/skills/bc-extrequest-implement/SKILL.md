@@ -1,13 +1,14 @@
 ---
 name: bc-extrequest-implement
 description: >
-  Fix a single GitHub extensibility issue end to end and open a draft pull request. Reads the issue,
-  produces a guideline-aligned code fix on its own branch, and opens a draft PR that explains
-  what was changed and why. The issue MUST carry the `ext-ready-to-implement` label, which acts
-  as a guard.
+  Fix a single GitHub extensibility issue end to end. Reads the issue and produces a
+  guideline-aligned code fix. In standalone mode it opens a draft pull request; in batch-worker
+  mode it creates one issue commit and returns a machine-readable result to the calling workflow.
+  The issue MUST carry the `ext-ready-to-implement` label, which acts as a guard.
   The issue, source code, and pull request live in the current GitHub repository.
-  No tests, no build, and no BC container are involved - this skill only edits source and opens
-  a PR. Runs both interactively (VS Code / Copilot CLI) and unattended (workflow). TRIGGER when
+  No tests, no build, and no BC container are involved - this skill only edits source and either
+  opens a PR or returns its issue commit to the batch workflow. Runs both interactively
+  (VS Code / Copilot CLI) and unattended (workflow). TRIGGER when
   the user asks to fix a GitHub issue by number, or provides an issue ID to fix with this skill.
   DO NOT TRIGGER when the user only wants to investigate an issue, or when the target is an Azure
   DevOps work item.
@@ -16,10 +17,11 @@ allowed-tools: ['view', 'create', 'edit', 'grep', 'glob', 'powershell', 'ask_use
 
 # BC Extensibility Request Implementation Skill
 
-This skill fixes one GitHub extensibility issue and opens a draft pull request.
-It reads the issue, applies a guideline-aligned code change on a dedicated branch, and opens a
-draft PR with a clear explanation in the same repository. It does **not** create tests, build,
-publish, or run anything.
+This skill fixes one GitHub extensibility issue. It reads the issue and applies a
+guideline-aligned code change. In its default standalone mode it uses a dedicated branch and opens
+a draft PR with a clear explanation in the same repository. In batch-worker mode it creates one
+issue commit in an isolated worktree and leaves PR creation to the calling workflow. It does
+**not** create tests, build, publish, or run anything.
 The author reviews the fix in the PR.
 
 It runs unchanged in two situations:
@@ -39,6 +41,9 @@ development environment is required.
   not make any changes. This is the single gate that authorizes the skill to act on an issue.
 - **Single issue**: This skill fixes one issue per run. If more than one issue number is provided,
   use the first one and warn.
+- **Explicit execution mode**: `EXT_REQ_SKILL_MODE=batch-worker` is the only way to enable
+  batch-worker mode. Otherwise use standalone behavior. Batch-worker mode still fixes exactly one
+  issue; it changes only branch, push, and PR ownership.
 - **Single repository**: The issue, code changes, branch, and draft pull request all belong to the
   current repository.
 - **GitHub only**: This skill only handles GitHub issues via the `gh` CLI.
@@ -93,6 +98,15 @@ Review the current conversation and the most recent user message to identify:
 
 Store as `issue_number`.
 
+Determine `execution_mode`:
+
+- If environment variable `EXT_REQ_SKILL_MODE` is exactly `batch-worker`, store
+  `execution_mode = batch-worker`.
+- Otherwise store `execution_mode = standalone`.
+- In batch-worker mode, environment variable `EXT_REQ_BATCH_RESULT_PATH` must be a non-empty
+  absolute path outside the repository. If it is missing, relative, or points inside the
+  repository, STOP before making changes.
+
 ---
 
 ## Step 2: Detect Repository Defaults
@@ -123,6 +137,10 @@ Store as `issue_number`.
    Store as `temp_dir`. Never write scratch files into git-tracked folders.
 
 4. **Detect the execution environment** (`agent_mode`):
+
+   If `execution_mode == batch-worker`, set `agent_mode = batch-worker`, record the current branch,
+   and skip the remaining detection in this section. The calling workflow owns the disposable
+   worktree and branch.
 
    This skill runs in two structurally different environments that require different branch and
    PR handling:
@@ -269,6 +287,10 @@ There is no approval gate. Proceed directly to implementing the fix.
 
 The branch handling depends on `agent_mode` from Step 2.4.
 
+**If `agent_mode` is `batch-worker`:** the calling workflow has already created an isolated
+worktree and temporary branch at the current team-batch head. Stay on the current branch. Do not
+fetch, create, switch, reset, or delete branches.
+
 **If `agent_mode` is `coding-agent`:** the cloud platform already created the working branch
 (`copilot/<slug>`) and opened the draft PR. **Do not create a new branch and do not switch
 branches.** Stay on the current branch and continue to Step 6. The `copilot/*` branch name is
@@ -401,7 +423,48 @@ not lead to any code change, explaining why - do not open an empty PR.
 
 ---
 
+## Step 7.5: Return a Batch-Worker Result
+
+Run this step only when `agent_mode == batch-worker`. Standalone and coding-agent executions skip
+it and continue to Step 8.
+
+After the issue commit succeeds:
+
+1. Resolve the commit SHA with `git rev-parse HEAD`.
+2. Build the same issue-focused summary and `Changes Made` entries that would have been used in the
+   standalone PR body.
+3. Write one UTF-8 JSON object to the absolute path in `EXT_REQ_BATCH_RESULT_PATH`:
+
+   ```json
+   {
+     "issue_number": 12345,
+     "issue_title": "Issue title",
+     "issue_url": "https://github.com/owner/repository/issues/12345",
+     "summary": "Two to four sentences describing the request and implementation.",
+     "changes_made": [
+       "Object or procedure - what changed and why"
+     ],
+     "labels": [
+       "Team: Finance",
+       "event-request"
+     ],
+     "commit_sha": "full commit SHA"
+   }
+   ```
+
+   `labels` must contain the issue labels prepared in Step 3.6, excluding
+   `ext-ready-to-implement`. `changes_made` must contain at least one entry. Do not include Markdown
+   bullet prefixes in the array values.
+4. Do not write this result anywhere inside the repository.
+5. Do not push, create or edit a pull request, or modify the issue.
+6. Print a short completion message and STOP successfully. Do not continue to Step 8.
+
+---
+
 ## Step 8: Push and Open (or Update) the Draft PR
+
+This step applies only to `self-driven` and `coding-agent` modes. Batch-worker mode must have
+stopped after Step 7.5.
 
 The push and PR handling depend on `agent_mode` from Step 2.4. In both modes the final result is
 exactly **one draft PR** whose title, body, and labels follow the formats below.

@@ -49,6 +49,7 @@ function Send-ImplementationTelemetry {
         -Repository $Repository `
         -IssueNumber $IssueNumber `
         -IssueUrl $telemetryContext.IssueUrl `
+        -BatchId '' `
         -Model $Model `
         -PullRequestNumber $PullRequestNumber `
         -PullRequestUrl $PullRequestUrl `

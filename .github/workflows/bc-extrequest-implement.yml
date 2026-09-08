@@ -31,6 +31,7 @@ jobs:
   implement:
     if: >
       github.event_name == 'issues' &&
+      (vars.EXT_REQ_IMPLEMENTATION_MODE == '' || vars.EXT_REQ_IMPLEMENTATION_MODE == 'per-issue') &&
       github.event.label.name == 'ext-ready-to-implement' &&
       github.event.issue.state == 'open' &&
       github.event.issue.type.name == 'Task'
@@ -113,6 +114,9 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
         run: |
           ./.github/scripts/bc-extrequest-implement/invoke-implementation.ps1 `
             -IssueNumber ([long]$env:ISSUE_NUMBER) `
@@ -122,7 +126,10 @@ jobs:
             -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')
 
   record-pr-outcome:
-    if: github.event_name == 'pull_request_target' && startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-')
+    if: >
+      github.event_name == 'pull_request_target' &&
+      (startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-') ||
+       startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/team-'))
     runs-on: ubuntu-latest
 
     steps:
@@ -171,6 +178,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
         run: |
           ./.github/scripts/bc-extrequest-implement/send-pr-outcome-telemetry.ps1 `
             -PullRequestNumber ([long]$env:PULL_REQUEST_NUMBER) `
