@@ -220,6 +220,7 @@ codeunit 7774 "Copilot Capability Impl"
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         RequiredPrivacyNotices: List of [Code[50]];
         RequiredPrivacyNotice: Code[50];
+        SkipCheckInEval: Boolean;
     begin
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.SetLoadFields(Status);
@@ -233,12 +234,9 @@ codeunit 7774 "Copilot Capability Impl"
 
         // check privacy notices
         foreach RequiredPrivacyNotice in RequiredPrivacyNotices do begin
-            if RequiredPrivacyNotice = SystemPrivacyNoticeReg.GetMicrosoftCopilotID() then begin
-                if PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, false) <> Enum::"Privacy Notice Approval State"::Agreed then
-                    exit(false);
-            end else
-                if PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice) <> Enum::"Privacy Notice Approval State"::Agreed then
-                    exit(false);
+            SkipCheckInEval := RequiredPrivacyNotice <> SystemPrivacyNoticeReg.GetMicrosoftCopilotID();
+            if PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, SkipCheckInEval) <> Enum::"Privacy Notice Approval State"::Agreed then
+                exit(false);
         end;
 
         exit(true);

@@ -104,6 +104,7 @@ table 7775 "Copilot Settings"
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         RequiredPrivacyNotices: List of [Code[50]];
         RequiredPrivacyNotice: Code[50];
+        SkipCheckInEval: Boolean;
     begin
         CopilotCapability.OnGetRequiredPrivacyNotices(Rec.Capability, Rec."App Id", RequiredPrivacyNotices);
 
@@ -111,12 +112,9 @@ table 7775 "Copilot Settings"
             exit(true);
 
         foreach RequiredPrivacyNotice in RequiredPrivacyNotices do begin
-            if RequiredPrivacyNotice = SystemPrivacyNoticeReg.GetMicrosoftCopilotID() then begin
-                if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, false) then
-                    exit(false);
-            end else
-                if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice) then
-                    exit(false);
+            SkipCheckInEval := RequiredPrivacyNotice <> SystemPrivacyNoticeReg.GetMicrosoftCopilotID();
+            if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, SkipCheckInEval) then
+                exit(false);
         end;
 
         exit(true);
