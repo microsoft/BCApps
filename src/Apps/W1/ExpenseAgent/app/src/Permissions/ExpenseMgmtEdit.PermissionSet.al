@@ -46,5 +46,6 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata Traveler = IMD,
         tabledata "Expense VAT Specification" = IMD,
         tabledata "Expense Report Line VAT Spec." = IMD,
+        tabledata "Expense Activities Cue" = IMD,
         tabledata "Expense Vendor" = RIMD;
 }
