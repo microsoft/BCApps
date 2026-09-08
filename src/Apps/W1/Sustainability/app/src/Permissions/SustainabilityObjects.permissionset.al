@@ -38,6 +38,7 @@ permissionset 6210 "Sustainability - Objects"
         table "Sustainability Ledger Entry" = X,
         table "Sustainability Value Entry" = X,
         table "Sust. G/L - Sust. Ledger Rel." = X,
+        table "Sust. Jnl. Line G/L Entry" = X,
         table "Sustainability Setup" = X,
         table "Emission Fee" = X,
         table "Sust. Account (Analysis View)" = X,

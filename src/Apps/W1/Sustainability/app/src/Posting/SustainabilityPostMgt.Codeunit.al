@@ -8,7 +8,6 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Sustainability.Account;
-using Microsoft.Sustainability.Calculation;
 using Microsoft.Sustainability.Emission;
 using Microsoft.Sustainability.Journal;
 using Microsoft.Sustainability.Ledger;
@@ -19,7 +18,8 @@ codeunit 6212 "Sustainability Post Mgt"
     Permissions =
         tabledata "Sustainability Ledger Entry" = i,
         tabledata "Sustainability Value Entry" = i,
-        tabledata "Sust. G/L - Sust. Ledger Rel." = ri;
+        tabledata "Sust. G/L - Sust. Ledger Rel." = ri,
+        tabledata "Sust. Jnl. Line G/L Entry" = r;
 
     procedure InsertLedgerEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line")
     var
@@ -58,31 +58,21 @@ codeunit 6212 "Sustainability Post Mgt"
 
     local procedure CreateGLEntryRelations(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; SustLedgerEntryNo: Integer)
     var
-        CollectableGLEntry: Record "G/L Entry";
         GLEntry: Record "G/L Entry";
-        SustainAccountCategory: Record "Sustain. Account Category";
         SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
-        GLEntryNos: List of [Integer];
-        CollectedGLEntryNo: Integer;
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
         if not SustainabilityJnlLine."Collected from G/L Entries" then
             exit;
 
-        if not SustainAccountCategory.Get(SustainabilityJnlLine."Account Category") then
+        SustJnlLineGLEntry.SetJournalLineFilter(SustainabilityJnlLine);
+        if not SustJnlLineGLEntry.FindSet() then
             exit;
 
-        SustainabilityCalcMgt.FilterGLEntry(
-            SustainAccountCategory, SustainabilityJnlLine."Collect From Date", SustainabilityJnlLine."Collect To Date", CollectableGLEntry);
-        CollectableGLEntry.SetLoadFields("Entry No.");
-        if CollectableGLEntry.FindSet() then
-            repeat
-                GLEntryNos.Add(CollectableGLEntry."Entry No.");
-            until CollectableGLEntry.Next() = 0;
-
-        foreach CollectedGLEntryNo in GLEntryNos do
-            if GLEntry.Get(CollectedGLEntryNo) then
-                SustGLSustLedgerRel.CreateRelation(GLEntry, SustLedgerEntryNo, SustainabilityJnlLine."Account Category");
+        repeat
+            if GLEntry.Get(SustJnlLineGLEntry."G/L Entry No.") then
+                SustGLSustLedgerRel.CreateRelation(GLEntry, SustLedgerEntryNo, SustJnlLineGLEntry."Account Category");
+        until SustJnlLineGLEntry.Next() = 0;
     end;
 
     procedure InsertValueEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")

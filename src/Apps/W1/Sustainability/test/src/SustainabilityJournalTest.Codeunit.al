@@ -450,7 +450,6 @@ codeunit 148181 "Sustainability Journal Test"
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure PostingNonCollectedJnlLineCreatesNoGLEntryRelations()
     var
-        GLEntry: Record "G/L Entry";
         SustainAccountCategory: Record "Sustain. Account Category";
         SustainabilityAccount: Record "Sustainability Account";
         SustainabilityJnlLine: Record "Sustainability Jnl. Line";
@@ -475,11 +474,10 @@ codeunit 148181 "Sustainability Journal Test"
         // [WHEN] The journal is posted.
         SustLedgerEntryNo := PostSustainabilityJnlLine(SustainabilityJnlLine);
 
-        // [THEN] No relation record is created and the G/L entry is not flagged as collected.
+        // [THEN] No relation record is created for the sustainability entry nor for the G/L entry.
         SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", SustLedgerEntryNo);
         Assert.RecordIsEmpty(SustGLSustLedgerRel);
-        GLEntry.Get(GLEntryNo);
-        Assert.IsFalse(GLEntry."Sust. Collected", CollectableAmountMustBeEqualLbl);
+        VerifyNoGLEntryRelation(GLEntryNo);
 
         // [THEN] The G/L entry remains collectable.
         Assert.AreEqual(
@@ -514,7 +512,6 @@ codeunit 148181 "Sustainability Journal Test"
     procedure CollectableGLAmountRespectsGlobalDimensionFilter()
     var
         DimensionValue: array[2] of Record "Dimension Value";
-        GLEntry: Record "G/L Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SustainAccountCategory: Record "Sustain. Account Category";
         SustainabilityAccount: Record "Sustainability Account";
@@ -544,12 +541,11 @@ codeunit 148181 "Sustainability Journal Test"
         Assert.AreEqual(
             400, SustainabilityCalcMgt.GetCollectableGLAmount(SustainAccountCategory, WorkDate(), WorkDate()), CollectableAmountMustBeEqualLbl);
 
-        // [THEN] The entry carrying "D2" is not flagged as collected after posting.
+        // [THEN] The entry carrying "D2" is not collected after posting.
         CreateSustainabilityJnlLine(SustainabilityJnlLine, SustainabilityAccount);
         CollectAmountFromGL(SustainabilityJnlLine, WorkDate(), WorkDate());
         PostSustainabilityJnlLine(SustainabilityJnlLine);
-        GLEntry.Get(OutOfScopeGLEntryNo);
-        Assert.IsFalse(GLEntry."Sust. Collected", CollectableAmountMustBeEqualLbl);
+        VerifyNoGLEntryRelation(OutOfScopeGLEntryNo);
 
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -682,7 +678,9 @@ codeunit 148181 "Sustainability Journal Test"
 
         CreateSustainabilityJnlLine(SecondSustainabilityJnlLine, SustainabilityAccount);
         CollectAmountFromGL(SecondSustainabilityJnlLine, WorkDate(), WorkDate() + 1);
-        Assert.AreEqual(300, SecondSustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
+
+        // [THEN] Line 2 collects 200 only, because the first entry is already collected on line 1.
+        Assert.AreEqual(200, SecondSustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
 
         // [WHEN] The batch is posted.
         PostSustainabilityJnlBatch(FirstSustainabilityJnlLine);
@@ -696,6 +694,167 @@ codeunit 148181 "Sustainability Journal Test"
         Assert.RecordCount(SustGLSustLedgerRel, 1);
         SustGLSustLedgerRel.SetRange("G/L Entry No.", SecondGLEntryNo);
         Assert.RecordCount(SustGLSustLedgerRel, 1);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CollectAmountFromGLEntryModalPageHandler')]
+    procedure CollectingTheSamePeriodOnASecondJnlLineCollectsNothing()
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainabilityAccount: Record "Sustainability Account";
+        FirstSustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        SecondSustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        GLAccountNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A general ledger entry collected on a journal line is not collectable on another line of the same category.
+        Initialize();
+
+        // [GIVEN] G/L account "G" with one posted G/L entry of 1000 and a sustainability category collecting from "G".
+        CreateGLCollectionSetup(GLAccountNo, SustainAccountCategory, SustainabilityAccount);
+        PostGLEntry(GLAccountNo, WorkDate(), 1000, '');
+
+        // [GIVEN] A journal line that collected the full period.
+        CreateSustainabilityJnlLine(FirstSustainabilityJnlLine, SustainabilityAccount);
+        CollectAmountFromGL(FirstSustainabilityJnlLine, WorkDate(), WorkDate());
+        Assert.AreEqual(1000, FirstSustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
+
+        // [WHEN] A second journal line of the same category collects the same period.
+        CreateSustainabilityJnlLine(SecondSustainabilityJnlLine, SustainabilityAccount);
+        CollectAmountFromGL(SecondSustainabilityJnlLine, WorkDate(), WorkDate());
+
+        // [THEN] The second line collects nothing, so the entry cannot be counted twice.
+        Assert.AreEqual(0, SecondSustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CollectAmountFromGLEntryModalPageHandler')]
+    procedure RecollectingTheSamePeriodOnTheSameJnlLineKeepsTheAmount()
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        GLAccountNo: Code[20];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] The entries a journal line collected are not excluded when the same line collects again.
+        Initialize();
+
+        // [GIVEN] G/L account "G" with one posted G/L entry of 1000 and a sustainability category collecting from "G".
+        CreateGLCollectionSetup(GLAccountNo, SustainAccountCategory, SustainabilityAccount);
+        PostGLEntry(GLAccountNo, WorkDate(), 1000, '');
+
+        // [GIVEN] A journal line that collected the full period.
+        CreateSustainabilityJnlLine(SustainabilityJnlLine, SustainabilityAccount);
+        CollectAmountFromGL(SustainabilityJnlLine, WorkDate(), WorkDate());
+
+        // [WHEN] The same journal line collects the same period again.
+        CollectAmountFromGL(SustainabilityJnlLine, WorkDate(), WorkDate());
+
+        // [THEN] The collected amount is unchanged.
+        Assert.AreEqual(1000, SustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CollectAmountFromGLEntryModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure CollectingGLEntryForOneCategoryDoesNotBlockAnotherCategory()
+    var
+        FirstSustainAccountCategory: Record "Sustain. Account Category";
+        SecondSustainAccountCategory: Record "Sustain. Account Category";
+        FirstSustainabilityAccount: Record "Sustainability Account";
+        SecondSustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
+        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
+        GLAccountNo: Code[20];
+        GLEntryNo, SustLedgerEntryNo : Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Collection is tracked per category, so a category can collect a general ledger entry that another category collected.
+        Initialize();
+
+        // [GIVEN] G/L account "G" with one posted G/L entry of 1000 and two sustainability categories collecting from "G".
+        CreateGLCollectionSetup(GLAccountNo, FirstSustainAccountCategory, FirstSustainabilityAccount);
+        CreateGLCollectionSetupForGLAccount(GLAccountNo, SecondSustainAccountCategory, SecondSustainabilityAccount);
+        GLEntryNo := PostGLEntry(GLAccountNo, WorkDate(), 1000, '');
+
+        // [GIVEN] The G/L entry was collected and posted for the first category.
+        CreateSustainabilityJnlLine(SustainabilityJnlLine, FirstSustainabilityAccount);
+        CollectAmountFromGL(SustainabilityJnlLine, WorkDate(), WorkDate());
+        PostSustainabilityJnlLine(SustainabilityJnlLine);
+
+        // [WHEN] The collectable amount is calculated for the second category.
+        // [THEN] The G/L entry is still collectable for the second category.
+        Assert.AreEqual(
+            1000, SustainabilityCalcMgt.GetCollectableGLAmount(SecondSustainAccountCategory, WorkDate(), WorkDate()),
+            CollectableAmountMustBeEqualLbl);
+
+        // [WHEN] A journal line of the second category collects the G/L entry and is posted.
+        Clear(SustainabilityJnlLine);
+        CreateSustainabilityJnlLine(SustainabilityJnlLine, SecondSustainabilityAccount);
+        CollectAmountFromGL(SustainabilityJnlLine, WorkDate(), WorkDate());
+        SustLedgerEntryNo := PostSustainabilityJnlLine(SustainabilityJnlLine);
+
+        // [THEN] The G/L entry is linked to both sustainability entries, one per category.
+        VerifyGLEntryRelation(GLEntryNo, SustLedgerEntryNo, SecondSustainAccountCategory.Code, 1000);
+        SustGLSustLedgerRel.SetRange("G/L Entry No.", GLEntryNo);
+        Assert.RecordCount(SustGLSustLedgerRel, 2);
+
+        // [THEN] The G/L entry is no longer collectable for the second category.
+        Assert.AreEqual(
+            0, SustainabilityCalcMgt.GetCollectableGLAmount(SecondSustainAccountCategory, WorkDate(), WorkDate()),
+            CollectableAmountMustBeEqualLbl);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CollectAmountFromGLEntryModalPageHandler,ConfirmHandler,MessageHandler')]
+    procedure PostingLinksOnlyTheGLEntriesCollectedOnTheJnlLine()
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJnlLine: Record "Sustainability Jnl. Line";
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
+        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
+        GLAccountNo: Code[20];
+        CollectedGLEntryNo, LateGLEntryNo, SustLedgerEntryNo : Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Posting links the general ledger entries that produced the collected amount, not the ones matching the period at posting time.
+        Initialize();
+
+        // [GIVEN] G/L account "G" with one posted G/L entry of 1000 and a sustainability category collecting from "G".
+        CreateGLCollectionSetup(GLAccountNo, SustainAccountCategory, SustainabilityAccount);
+        CollectedGLEntryNo := PostGLEntry(GLAccountNo, WorkDate(), 1000, '');
+
+        // [GIVEN] A sustainability journal line that collected 1000 for a three day period.
+        CreateSustainabilityJnlLine(SustainabilityJnlLine, SustainabilityAccount);
+        CollectAmountFromGL(SustainabilityJnlLine, WorkDate(), WorkDate() + 2);
+        Assert.AreEqual(1000, SustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
+
+        // [GIVEN] A G/L entry of 400 is posted in the same period after the amount was collected.
+        LateGLEntryNo := PostGLEntry(GLAccountNo, WorkDate() + 1, 400, '');
+
+        // [WHEN] The journal is posted.
+        SustLedgerEntryNo := PostSustainabilityJnlLine(SustainabilityJnlLine);
+
+        // [THEN] Only the G/L entry that produced the collected amount is linked to the sustainability entry.
+        SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", SustLedgerEntryNo);
+        Assert.RecordCount(SustGLSustLedgerRel, 1);
+        VerifyGLEntryRelation(CollectedGLEntryNo, SustLedgerEntryNo, SustainAccountCategory.Code, 1000);
+        VerifyNoGLEntryRelation(LateGLEntryNo);
+
+        // [THEN] The G/L entry posted after the collection is still collectable.
+        Assert.AreEqual(
+            400, SustainabilityCalcMgt.GetCollectableGLAmount(SustainAccountCategory, WorkDate(), WorkDate() + 2),
+            CollectableAmountMustBeEqualLbl);
 
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -854,10 +1013,15 @@ codeunit 148181 "Sustainability Journal Test"
     end;
 
     local procedure CreateGLCollectionSetup(var GLAccountNo: Code[20]; var SustainAccountCategory: Record "Sustain. Account Category"; var SustainabilityAccount: Record "Sustainability Account")
+    begin
+        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
+        CreateGLCollectionSetupForGLAccount(GLAccountNo, SustainAccountCategory, SustainabilityAccount);
+    end;
+
+    local procedure CreateGLCollectionSetupForGLAccount(GLAccountNo: Code[20]; var SustainAccountCategory: Record "Sustain. Account Category"; var SustainabilityAccount: Record "Sustainability Account")
     var
         SubcategoryCode: Code[20];
     begin
-        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
         SustainAccountCategory := CreateSustAccountCategoryWithGLAccountNo(GLAccountNo);
 
         SubcategoryCode := LibraryUtility.GenerateGUID();
@@ -984,7 +1148,14 @@ codeunit 148181 "Sustainability Journal Test"
         Assert.AreEqual(ExpectedCategoryCode, SustGLSustLedgerRel."Account Category", RelationMustExistLbl);
         Assert.AreEqual(ExpectedAmount, SustGLSustLedgerRel."Collected Amount", RelationMustExistLbl);
         Assert.AreEqual(GLEntry."Posting Date", SustGLSustLedgerRel."Posting Date", RelationMustExistLbl);
-        Assert.IsTrue(GLEntry."Sust. Collected", RelationMustExistLbl);
+    end;
+
+    local procedure VerifyNoGLEntryRelation(GLEntryNo: Integer)
+    var
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
+    begin
+        SustGLSustLedgerRel.SetRange("G/L Entry No.", GLEntryNo);
+        Assert.RecordIsEmpty(SustGLSustLedgerRel);
     end;
 
     local procedure VerifyCollectionInformation(ActualCollected: Boolean; ActualFromDate: Date; ActualToDate: Date; ExpectedCollected: Boolean; ExpectedFromDate: Date; ExpectedToDate: Date)
