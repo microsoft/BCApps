@@ -203,6 +203,33 @@ table 6923 "Expense User"
             Editable = false;
             ToolTip = 'Specifies the identifier used to correlate the welcome email with its delivery from the outbox.';
         }
+        field(60; "Approval Limit"; Decimal)
+        {
+            Caption = 'Approval Limit';
+            ToolTip = 'Specifies the maximum expense report amount this user can approve. Leave empty when Unlimited Approval is selected.';
+            AutoFormatType = 0;
+            BlankZero = true;
+
+            trigger OnValidate()
+            begin
+                if Rec."Approval Limit" < 0 then
+                    Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit"));
+
+                if Rec."Approval Limit" <> 0 then
+                    Rec."Unlimited Approval" := false;
+            end;
+        }
+        field(61; "Unlimited Approval"; Boolean)
+        {
+            Caption = 'Unlimited Approval';
+            ToolTip = 'Specifies that this user can approve expense reports without a maximum amount.';
+
+            trigger OnValidate()
+            begin
+                if Rec."Unlimited Approval" then
+                    Rec."Approval Limit" := 0;
+            end;
+        }
     }
 
     keys
@@ -240,6 +267,7 @@ table 6923 "Expense User"
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending welcome emails.';
         CurrentBCUserHasNoAuthEmailErr: Label 'Your Business Central user account is not linked to an authentication email, so it cannot be matched to an Expense User. Ask your administrator to set the Authentication Email on your user record in Business Central.';
         CurrentBCUserNotMatchedToExpenseUserErr: Label 'No Expense User exists for the email %1 used by your Business Central account. Ask your administrator to create an Expense User with this email, or to update the email on the existing Expense User to match.', Comment = '%1 = authentication email of the current Business Central user';
+        ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
 
     trigger OnDelete()
     var

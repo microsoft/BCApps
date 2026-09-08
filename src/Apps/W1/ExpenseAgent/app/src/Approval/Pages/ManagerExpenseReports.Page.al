@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using System.Security.User;
 
 page 6981 "Manager Expense Reports"
 {
@@ -191,15 +190,12 @@ page 6981 "Manager Expense Reports"
     trigger OnOpenPage()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
-        if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
-            if not UserSetup."Unlimited Expense Approval" then
+        if ExpenseAgentSetup."Enable Approval Workflow" then
+            if not ExpenseReportApprovalMgmt.IsApprovalAdministrator() then
                 ExpenseReportApprovalMgmt.FilterExpenseReports(Rec, Rec.FieldNo("Approver Expense User ID"))
-        end;
     end;
 }
