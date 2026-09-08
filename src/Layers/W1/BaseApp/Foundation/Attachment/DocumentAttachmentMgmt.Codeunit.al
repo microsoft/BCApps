@@ -1627,7 +1627,13 @@ codeunit 1173 "Document Attachment Mgmt"
     end;
 
     local procedure SetDocumentTypeForPostedDocument(var DocumentAttachment: Record "Document Attachment"; PostedDocumentTableID: Integer)
+    var
+        IsHandled: Boolean;
     begin
+        OnBeforeSetDocumentTypeForPostedDocument(DocumentAttachment, PostedDocumentTableID, IsHandled);
+        if IsHandled then
+            exit;
+
         case PostedDocumentTableID of
             Database::"Sales Invoice Header",
             Database::"Purch. Inv. Header":
@@ -1787,6 +1793,11 @@ codeunit 1173 "Document Attachment Mgmt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyAttachmentsForPostedDocsLines(var FromRecRef: RecordRef; var ToRecRef: RecordRef; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetDocumentTypeForPostedDocument(var DocumentAttachment: Record "Document Attachment"; PostedDocumentTableID: Integer; var IsHandled: Boolean)
     begin
     end;
 
