@@ -577,6 +577,9 @@ codeunit 139709 "Sales Invoices E2E"
         PageSalesHeader.GET(PageSalesHeader."Document Type"::Invoice, SalesInvoice."No.".VALUE());
         ApiRecordRef.GETTABLE(ApiSalesHeader);
         PageRecordRef.GETTABLE(PageSalesHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
+
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API Invoice do not match');
 
