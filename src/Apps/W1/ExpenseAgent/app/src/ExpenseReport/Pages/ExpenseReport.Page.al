@@ -138,16 +138,37 @@ page 6910 "Expense Report"
                 }
                 group("Approver Comment")
                 {
-                    Caption = 'Approver Comment';
-                    Visible = Rec.Status = Rec.Status::Rejected;
+                    Caption = 'Approval Comments';
+
                     field(ApproverComment; ApproverComment)
                     {
                         ApplicationArea = Basic, Suite;
-                        Importance = Additional;
-                        MultiLine = true;
-                        ShowCaption = false;
+                        Caption = 'Approver Comment';
+                        DrillDown = true;
                         Editable = false;
-                        ToolTip = 'Specifies the approver comment for the expense report.';
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the approver. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ApproverComment <> '' then
+                                Message(ApproverComment);
+                        end;
+                    }
+                    field(SubmitterComment; SubmitterComment)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Submitter Comment';
+                        DrillDown = true;
+                        Editable = false;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the submitter. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if SubmitterComment <> '' then
+                                Message(SubmitterComment);
+                        end;
                     }
                 }
             }
@@ -258,7 +279,7 @@ page 6910 "Expense Report"
             part(Activity; "Expense Activity Log FactBox")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Activity Log';
+                Caption = 'History';
                 SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
                               "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';
@@ -497,6 +518,7 @@ page 6910 "Expense Report"
                         CurrPage.SaveRecord();
                     end;
                 }
+#if not CLEAN30
                 action(VATSpecification)
                 {
                     ApplicationArea = Basic, Suite;
@@ -505,8 +527,12 @@ page 6910 "Expense Report"
                     RunObject = Page "Expense Report Line VAT Spec.";
                     RunPageLink = "Document No." = field("No."), "Document Line No." = const(0);
                     ToolTip = 'View the VAT details for the record.';
-                    Visible = (Rec."No." <> '') and AllowVATReclaim;
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by Expense Report Statistics';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action("Spend Request")
                 {
                     ApplicationArea = Basic, Suite;
@@ -659,9 +685,14 @@ page 6910 "Expense Report"
                 actionref(dimension_Promoted; Dimensions)
                 {
                 }
+#if not CLEAN30
                 actionref(VATSpecification_Promoted; VATSpecification)
                 {
+                    ObsoleteReason = 'Replaced by Expense Report Statistics';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 actionref("Spend Request_Promoted"; "Spend Request")
                 {
                 }
@@ -712,6 +743,7 @@ page 6910 "Expense Report"
     begin
         SetControlVisibility();
         ApproverComment := Rec.GetApproverComment();
+        SubmitterComment := Rec.GetSubmitterComment();
     end;
 
     var
@@ -723,7 +755,7 @@ page 6910 "Expense Report"
         DocNoVisible: Boolean;
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
-        AllowVATReclaim: Boolean;
+        SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
 
@@ -743,7 +775,6 @@ page 6910 "Expense Report"
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
 
         ExpenseAgentSetup.GetRecordOnce();
-        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         AgentEnabled := ExpenseAgentSetup."Enable Agent";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;

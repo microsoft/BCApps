@@ -41,7 +41,7 @@ codeunit 110000 "Interface Basis Data"
         Window.Open(DemoDataSetup."Progress Window Design");
         Window.Update(3, XBasisData);
         Steps := 0;
-        MaxSteps := 199; // Number of calls to RunCodeunit
+        MaxSteps := 198; // Number of calls to RunCodeunit
         RunCodeunit(CODEUNIT::"Create Price Calculation Setup");
         RunCodeunit(CODEUNIT::"Create Getting Started Data");
         RunCodeunit(CODEUNIT::"Create Profiles");
@@ -54,7 +54,6 @@ codeunit 110000 "Interface Basis Data"
         RunCodeunit(CODEUNIT::"Create Finance Charge Text");
         RunCodeunit(CODEUNIT::"Create Reminder Terms");
         RunCodeunit(CODEUNIT::"Create Reminder Level");
-        RunCodeunit(CODEUNIT::"Create Reminder Text");
         RunCodeunit(Codeunit::"Create Reminder Automation");
         RunCodeunit(CODEUNIT::"Create Language");
         RunCodeunit(CODEUNIT::"Create Country/Region");
@@ -928,4 +927,3 @@ codeunit 110000 "Interface Basis Data"
         RunCodeunit(Codeunit::"Create New Employee Template");
     end;
 }
-

@@ -11,9 +11,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using System.EMail;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -24,20 +21,6 @@ using System.Utilities;
 /// </summary>
 codeunit 1890 "Reminder Communication"
 {
-
-    internal procedure NewReminderCommunicationEnabled(): Boolean
-#if not CLEAN27
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-#endif
-    begin
-#if not CLEAN27
-        exit(FeatureManagementFacade.IsEnabled(FeatureIdTok));
-#else
-    exit(true);
-#endif
-    end;
-
     /// <summary>
     /// Finds the description text for a line fee based on reminder level and customer language settings.
     /// </summary>
@@ -53,21 +36,17 @@ codeunit 1890 "Reminder Communication"
         LanguageCode: Code[10];
         Result: Text[100];
     begin
-        if NewReminderCommunicationEnabled() then begin
-            LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(CustLedgerEntry."Customer No.");
+        LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(CustLedgerEntry."Customer No.");
 
-            // Check if there is a reminder attachment text for the Reminder Level
-            if ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", LanguageCode) then
+        // Check if there is a reminder attachment text for the Reminder Level
+        if TryGetReminderAttachmentText(ReminderLevel."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then
+            Result := SubstituteInlineFeeDescription(ReminderAttachmentText."Inline Fee Description", ReminderLevel, ReminderLine)
+        else begin
+            // If there are no reminder attachment text for the language, check the Reminder Terms attachment text
+            ReminderTerms.Get(ReminderLevel."Reminder Terms Code");
+            if TryGetReminderAttachmentText(ReminderTerms."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then
                 Result := SubstituteInlineFeeDescription(ReminderAttachmentText."Inline Fee Description", ReminderLevel, ReminderLine)
-            else begin
-                // If there are no reminder attachment text for the language, check the Reminder Terms attachment text
-                ReminderTerms.Get(ReminderLevel."Reminder Terms Code");
-                if ReminderAttachmentText.Get(ReminderTerms."Reminder Attachment Text", LanguageCode) then
-                    Result := SubstituteInlineFeeDescription(ReminderAttachmentText."Inline Fee Description", ReminderLevel, ReminderLine)
-            end;
-        end
-        else
-            Result := SubstituteInlineFeeDescription(ReminderLevel."Add. Fee per Line Description", ReminderLevel, ReminderLine);
+        end;
 
         if Result = '' then
             if GLAccount.Get(ReminderLine."No.") then
@@ -88,29 +67,22 @@ codeunit 1890 "Reminder Communication"
         LineSpacing, NextLineNo : Integer;
         LanguageCode: Code[10];
     begin
-        if NewReminderCommunicationEnabled() then begin
-            LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(ReminderHeader."Customer No.");
-            ReminderLine.Reset();
-            ReminderLine.SetRange("Reminder No.", ReminderHeader."No.");
-            ReminderLine."Reminder No." := ReminderHeader."No.";
+        LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(ReminderHeader."Customer No.");
+        ReminderLine.Reset();
+        ReminderLine.SetRange("Reminder No.", ReminderHeader."No.");
+        ReminderLine."Reminder No." := ReminderHeader."No.";
 
-            if ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", LanguageCode) then begin
+        if TryGetReminderAttachmentText(ReminderLevel."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then begin
+            LineSpacing := CalculateLineSpacingForBeginningText(ReminderLine, ReminderAttachmentText);
+            ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Beginning Text", NextLineNo, LineSpacing);
+        end
+        else begin
+            ReminderTerms.Get(ReminderLevel."Reminder Terms Code");
+            if TryGetReminderAttachmentText(ReminderTerms."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then begin
                 LineSpacing := CalculateLineSpacingForBeginningText(ReminderLine, ReminderAttachmentText);
-                ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Beginning Text", NextLineNo, LineSpacing);
-            end
-            else begin
-                ReminderTerms.Get(ReminderLevel."Reminder Terms Code");
-                if ReminderAttachmentText.Get(ReminderTerms."Reminder Attachment Text", LanguageCode) then begin
-                    LineSpacing := CalculateLineSpacingForBeginningText(ReminderLine, ReminderAttachmentText);
-                    ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Beginning Text", NextLineNo, LineSpacing)
-                end;
+                ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Beginning Text", NextLineNo, LineSpacing)
             end;
         end;
-
-#if not CLEAN27
-        if not NewReminderCommunicationEnabled() then
-            IntroduceBeginningTextFromReminderText(ReminderHeader, ReminderLevel, ReminderLine);
-#endif
     end;
 
     /// <summary>
@@ -127,111 +99,36 @@ codeunit 1890 "Reminder Communication"
         LanguageCode: Code[10];
         LineSpacing, NextLineNo : Integer;
     begin
-        if NewReminderCommunicationEnabled() then begin
-            LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(ReminderHeader."Customer No.");
-            ReminderLine.Reset();
-            ReminderLine.SetRange("Reminder No.", ReminderHeader."No.");
-            ReminderLine.SetFilter(
-              "Line Type", '%1|%2|%3',
-              ReminderLine."Line Type"::"Reminder Line",
-              ReminderLine."Line Type"::"Additional Fee",
-              ReminderLine."Line Type"::Rounding);
-
-            if ReminderLine.FindLast() then
-                NextLineNo := ReminderLine."Line No."
-            else
-                NextLineNo := 0;
-
-            ReminderLine.SetRange("Line Type");
-            ReminderLine2 := ReminderLine;
-            ReminderLine2.CopyFilters(ReminderLine);
-            ReminderLine2.SetFilter("Line Type", '<>%1', ReminderLine2."Line Type"::"Line Fee");
-
-            if ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", LanguageCode) then begin
-                LineSpacing := CalculateLineSpacingForEndingText(ReminderLine, ReminderLine2, ReminderAttachmentText);
-                ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Ending Text", NextLineNo, LineSpacing);
-            end
-            else begin
-                ReminderTerms.Get(ReminderLevel."Reminder Terms Code");
-                if ReminderAttachmentText.Get(ReminderTerms."Reminder Attachment Text", LanguageCode) then begin
-                    LineSpacing := CalculateLineSpacingForEndingText(ReminderLine, ReminderLine2, ReminderAttachmentText);
-                    ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Ending Text", NextLineNo, LineSpacing);
-                end;
-            end;
-        end;
-
-#if not CLEAN27
-        if not NewReminderCommunicationEnabled() then
-            IntroduceEndingTextFromReminderText(ReminderHeader, ReminderLevel, ReminderLine);
-#endif
-    end;
-
-#if not CLEAN27
-    [Obsolete('Reminder Text is being obsoleted. Use the new records Reminder Attachment Text and Reminder Email Text', '24.0')]
-    local procedure IntroduceBeginningTextFromReminderText(var ReminderHeader: Record "Reminder Header"; var ReminderLevel: Record "Reminder Level"; var ReminderLine: Record "Reminder Line")
-    var
-        ReminderText: Record "Reminder Text";
-        LineSpacing, NextLineNo : Integer;
-    begin
-        ReminderText.Reset();
-        ReminderText.SetRange("Reminder Terms Code", ReminderHeader."Reminder Terms Code");
-        ReminderText.SetRange("Reminder Level", ReminderLevel."No.");
-        ReminderText.SetRange(Position, ReminderText.Position::Beginning);
-        ReminderHeader.OnInsertBeginTextsOnAfterReminderTextSetFilters(ReminderText, ReminderHeader);
-
-        ReminderLine.Reset();
-        ReminderLine.SetRange("Reminder No.", ReminderHeader."No.");
-        ReminderLine."Reminder No." := ReminderHeader."No.";
-        if ReminderLine.Find('-') then begin
-            LineSpacing := ReminderLine."Line No." div (ReminderText.Count + 2);
-            if LineSpacing = 0 then
-                Error(NoEnoughSpaceForTextErr);
-        end else
-            LineSpacing := 10000;
-
-        NextLineNo := 0;
-        ReminderHeader.InsertTextLines(ReminderHeader, ReminderText, NextLineNo, LineSpacing);
-    end;
-
-    [Obsolete('Reminder Text is being obsoleted. Use the new records Reminder Attachment Text and Reminder Email Text', '24.0')]
-    local procedure IntroduceEndingTextFromReminderText(var ReminderHeader: Record "Reminder Header"; var ReminderLevel: Record "Reminder Level"; var ReminderLine: Record "Reminder Line")
-    var
-        ReminderText: Record "Reminder Text";
-        ReminderLine2: Record "Reminder Line";
-        LineSpacing, NextLineNo : Integer;
-    begin
-        ReminderText.SetRange("Reminder Terms Code", ReminderHeader."Reminder Terms Code");
-        ReminderText.SetRange("Reminder Level", ReminderLevel."No.");
-        ReminderText.SetRange(Position, ReminderText.Position::Ending);
-        ReminderHeader.OnInsertEndTextsOnAfterReminderTextSetFilters(ReminderText, ReminderHeader);
-
+        LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(ReminderHeader."Customer No.");
         ReminderLine.Reset();
         ReminderLine.SetRange("Reminder No.", ReminderHeader."No.");
         ReminderLine.SetFilter(
-            "Line Type", '%1|%2|%3',
-            ReminderLine."Line Type"::"Reminder Line",
-            ReminderLine."Line Type"::"Additional Fee",
-            ReminderLine."Line Type"::Rounding);
-        ReminderHeader.OnInsertEndTextsOnAfterReminderLineSetFilters(ReminderLine, ReminderHeader);
+          "Line Type", '%1|%2|%3',
+          ReminderLine."Line Type"::"Reminder Line",
+          ReminderLine."Line Type"::"Additional Fee",
+          ReminderLine."Line Type"::Rounding);
+
         if ReminderLine.FindLast() then
             NextLineNo := ReminderLine."Line No."
         else
             NextLineNo := 0;
+
         ReminderLine.SetRange("Line Type");
         ReminderLine2 := ReminderLine;
         ReminderLine2.CopyFilters(ReminderLine);
         ReminderLine2.SetFilter("Line Type", '<>%1', ReminderLine2."Line Type"::"Line Fee");
-        if ReminderLine2.Next() <> 0 then begin
-            LineSpacing :=
-              (ReminderLine2."Line No." - ReminderLine."Line No.") div
-              (ReminderText.Count + 2);
-            if LineSpacing = 0 then
-                Error(NoEnoughSpaceForTextErr);
-        end else
-            LineSpacing := 10000;
-        ReminderHeader.InsertTextLines(ReminderHeader, ReminderText, NextLineNo, LineSpacing);
+        if TryGetReminderAttachmentText(ReminderLevel."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then begin
+            LineSpacing := CalculateLineSpacingForEndingText(ReminderLine, ReminderLine2, ReminderAttachmentText);
+            ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Ending Text", NextLineNo, LineSpacing);
+        end
+        else begin
+            ReminderTerms.Get(ReminderLevel."Reminder Terms Code");
+            if TryGetReminderAttachmentText(ReminderTerms."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then begin
+                LineSpacing := CalculateLineSpacingForEndingText(ReminderLine, ReminderLine2, ReminderAttachmentText);
+                ReminderHeader.InsertTextLines(ReminderHeader, ReminderAttachmentText, Enum::"Reminder Line Type"::"Ending Text", NextLineNo, LineSpacing);
+            end;
+        end;
     end;
-#endif
 
     local procedure GetCustomerLanguageOrDefaultUserLanguage(CustomerNo: Code[20]): Code[10]
     var
@@ -481,14 +378,23 @@ codeunit 1890 "Reminder Communication"
         ReminderEmailText: Record "Reminder Email Text";
         MailManagement: Codeunit "Mail Management";
     begin
-        if NewReminderCommunicationEnabled() then begin
-            AmtDueTxt := '';
-            GreetingTxt := '';
-            ClosingTxt := '';
-            BodyTxt := ReplaceTextTok;
-            DescriptionTxt := ReminderEmailText.GetDescriptionLbl();
-            IssuedReminderHeader.CalcFields("Email Text");
+        AmtDueTxt := '';
+        GreetingTxt := '';
+        ClosingTxt := '';
+        BodyTxt := ReplaceTextTok;
+        DescriptionTxt := ReminderEmailText.GetDescriptionLbl();
+        IssuedReminderHeader.CalcFields("Email Text");
 
+        if IssuedReminderHeader."Email Text".HasValue() then begin
+            GreetingTxt := ReminderEmailText.GetDefaultGreetingLbl();
+            ClosingTxt := ReminderEmailText.GetDefaultClosingLbl();
+            if Format(IssuedReminderHeader."Due Date") <> '' then
+                if not MailManagement.IsHandlingGetEmailBody() then begin
+                    SelectEmailBodyText(IssuedReminderHeader, AmtDueTxt);
+                    AmtDueTxt := StripHtmlTags(AmtDueTxt);
+                    SubstituteRelatedValues(AmtDueTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
+                end;
+        end else begin
             ReminderEmailText.SetAutoCalcFields("Body Text");
             if GetReminderEmailText(IssuedReminderHeader, ReminderEmailText) then begin
                 GreetingTxt := ReminderEmailText.Greeting;
@@ -497,7 +403,7 @@ codeunit 1890 "Reminder Communication"
                     if not MailManagement.IsHandlingGetEmailBody() then begin
                         SelectEmailBodyText(ReminderEmailText, IssuedReminderHeader, AmtDueTxt);
                         AmtDueTxt := StripHtmlTags(AmtDueTxt);
-                        SubstituteRelatedValues(AmtDueTxt, IssuedReminderHeader, IssuedReminderHeader.CalculateTotalIncludingVAT(), CopyStr(CompanyName, 1, 100));
+                        SubstituteRelatedValues(AmtDueTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
                     end;
             end else begin
                 GreetingTxt := ReminderEmailText.GetDefaultGreetingLbl();
@@ -505,13 +411,9 @@ codeunit 1890 "Reminder Communication"
                     AmtDueTxt := StrSubstNo(ReminderEmailText.GetAmtDueLbl(), IssuedReminderHeader."Due Date");
                 ClosingTxt := ReminderEmailText.GetDefaultClosingLbl();
             end;
-            SubstituteRelatedValues(GreetingTxt, IssuedReminderHeader, IssuedReminderHeader.CalculateTotalIncludingVAT(), CopyStr(CompanyName, 1, 100));
-            SubstituteRelatedValues(ClosingTxt, IssuedReminderHeader, IssuedReminderHeader.CalculateTotalIncludingVAT(), CopyStr(CompanyName, 1, 100));
         end;
-#if not CLEAN27
-        if not NewReminderCommunicationEnabled() then
-            PopulateEmailTextFromReminderText(IssuedReminderHeader, CompanyInfo, GreetingTxt, AmtDueTxt, BodyTxt, ClosingTxt, DescriptionTxt, NNC_TotalInclVAT);
-#endif
+        SubstituteRelatedValues(GreetingTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
+        SubstituteRelatedValues(ClosingTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
     end;
 
     local procedure SelectEmailBodyText(var ReminderEmailText: Record "Reminder Email Text"; var IssuedReminderHeader: Record "Issued Reminder Header"; var BodyTxt: Text)
@@ -570,65 +472,6 @@ codeunit 1890 "Reminder Communication"
 
         OnAfterSubstituteRelatedValues(BodyTxt, IssuedReminderHeader);
     end;
-
-#if not CLEAN27
-    local procedure PopulateEmailTextFromReminderText(var IssuedReminderHeader: Record "Issued Reminder Header"; var CompanyInfo: Record "Company Information"; var GreetingTxt: Text; var AmtDueTxt: Text; var BodyTxt: Text; var ClosingTxt: Text; var DescriptionTxt: Text; NNC_TotalInclVAT: Decimal)
-    var
-        ReminderEmailText: Record "Reminder Email Text";
-        EmailTextInStream: InStream;
-        EmailTextLine: Text;
-    begin
-        AmtDueTxt := '';
-        BodyTxt := '';
-        GreetingTxt := ReminderEmailText.GetDefaultGreetingLbl();
-        ClosingTxt := ReminderEmailText.GetDefaultClosingLbl();
-        DescriptionTxt := ReminderEmailText.GetDescriptionLbl();
-        if Format(IssuedReminderHeader."Due Date") <> '' then
-            AmtDueTxt := StrSubstNo(ReminderEmailText.GetAmtDueLbl(), IssuedReminderHeader."Due Date");
-
-        if GetEmailTextInStream(EmailTextInStream, IssuedReminderHeader) then begin
-            AmtDueTxt := '';
-            BodyTxt := '';
-
-            while EmailTextInStream.ReadText(EmailTextLine) > 0 do
-                BodyTxt += EmailTextLine;
-
-            SubstituteRelatedValues(BodyTxt, IssuedReminderHeader, NNC_TotalInclVAT, CompanyInfo.Name);
-        end else
-            BodyTxt := ReminderEmailText.GetBodyLbl();
-    end;
-
-    local procedure GetEmailTextInStream(var EmailTextInStream: InStream; var IssuedReminderHeader: Record "Issued Reminder Header"): Boolean
-    var
-        ReminderText: Record "Reminder Text";
-        ReminderTextPosition: Enum "Reminder Text Position";
-    begin
-        IssuedReminderHeader.CalcFields("Email Text");
-        ReminderText.SetAutoCalcFields("Email Text");
-
-        // if there is email text on the reminder, prepare to read it                       
-        if IssuedReminderHeader."Email Text".HasValue() then begin
-            IssuedReminderHeader."Email Text".CreateInStream(EmailTextInStream);
-            exit(true);
-        end;
-
-        // otherwise, if there is email text on the reminder level, prepare to read it                       
-        if ReminderText.Get(IssuedReminderHeader."Reminder Terms Code", IssuedReminderHeader."Reminder Level", ReminderTextPosition::"Email Body", 0) then
-            if ReminderText."Email Text".HasValue() then begin
-                ReminderText."Email Text".CreateInStream(EmailTextInstream);
-                exit(true);
-            end;
-
-        // otherwise, if there is email text on the reminder terms, prepare to read it                       
-        if ReminderText.Get(IssuedReminderHeader."Reminder Terms Code", 0, ReminderTextPosition::"Email Body", 0) then
-            if ReminderText."Email Text".HasValue() then begin
-                ReminderText."Email Text".CreateInStream(EmailTextInstream);
-                exit(true)
-            end;
-
-        exit(false)
-    end;
-#endif
 
     internal procedure CheckMissMatchBetweenLanguages(var ReminderTerms: Record "Reminder Terms"): Boolean
     var
@@ -917,13 +760,13 @@ codeunit 1890 "Reminder Communication"
             Error(ReminderLevelNotFoundErr, IssuedReminderHeader."Reminder Level", IssuedReminderHeader."Reminder Terms Code");
 
         LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(IssuedReminderHeader."Customer No.");
-        if ReminderEmailText.Get(ReminderLevel."Reminder Email Text", LanguageCode) then
+        if TryGetReminderEmailText(ReminderLevel."Reminder Email Text", LanguageCode, ReminderEmailText) then
             exit(true);
 
         if not ReminderTerms.Get(IssuedReminderHeader."Reminder Terms Code") then
             Error(ReminderTermNotFoundErr, IssuedReminderHeader."Reminder Terms Code");
 
-        if ReminderEmailText.Get(ReminderTerms."Reminder Email Text", LanguageCode) then
+        if TryGetReminderEmailText(ReminderTerms."Reminder Email Text", LanguageCode, ReminderEmailText) then
             exit(true);
 
         exit(false);
@@ -979,16 +822,32 @@ codeunit 1890 "Reminder Communication"
             Error(ReminderLevelNotFoundErr, IssuedReminderHeader."Reminder Level", IssuedReminderHeader."Reminder Terms Code");
 
         LanguageCode := GetCustomerLanguageOrDefaultUserLanguage(IssuedReminderHeader."Customer No.");
-        if ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", LanguageCode) then
+        if TryGetReminderAttachmentText(ReminderLevel."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then
             exit(true);
 
         if not ReminderTerms.Get(IssuedReminderHeader."Reminder Terms Code") then
             Error(ReminderTermNotFoundErr, IssuedReminderHeader."Reminder Terms Code");
 
-        if ReminderAttachmentText.Get(ReminderTerms."Reminder Attachment Text", LanguageCode) then
+        if TryGetReminderAttachmentText(ReminderTerms."Reminder Attachment Text", LanguageCode, ReminderAttachmentText) then
             exit(true);
 
         exit(false);
+    end;
+
+    local procedure TryGetReminderAttachmentText(AttachmentTextId: Guid; LanguageCode: Code[10]; var ReminderAttachmentText: Record "Reminder Attachment Text"): Boolean
+    begin
+        if IsNullGuid(AttachmentTextId) then
+            exit(false);
+
+        exit(ReminderAttachmentText.Get(AttachmentTextId, LanguageCode));
+    end;
+
+    local procedure TryGetReminderEmailText(EmailTextId: Guid; LanguageCode: Code[10]; var ReminderEmailText: Record "Reminder Email Text"): Boolean
+    begin
+        if IsNullGuid(EmailTextId) then
+            exit(false);
+
+        exit(ReminderEmailText.Get(EmailTextId, LanguageCode));
     end;
 
     local procedure StripHtmlTags(HtmlText: Text): Text
@@ -1011,9 +870,6 @@ codeunit 1890 "Reminder Communication"
     end;
 
     var
-#if not CLEAN27
-        FeatureIdTok: Label 'ReminderTermsCommunicationTexts', Locked = true;
-#endif
         ReplaceTextTok: Label '==ReplaceText==', Locked = true;
         PDFFileExtensionTok: Label '.pdf', Locked = true;
         CommaSeparatedTok: Label '%1, %2', Locked = true;
