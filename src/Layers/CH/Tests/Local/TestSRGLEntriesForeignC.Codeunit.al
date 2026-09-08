@@ -15,6 +15,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
         LibraryCH: Codeunit "Library - CH";
         LibraryERM: Codeunit "Library - ERM";
         LibraryCostAccounting: Codeunit "Library - Cost Accounting";
+        Assert: Codeunit Assert;
 
     [Test]
     [HandlerFunctions('ReportRequestPageHandler,GLAccountCreationMessageHandler')]
@@ -86,9 +87,92 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
         VerifyReportData(GenJournalLine, GLAccountNo);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VerifySourceCurrencyVATAmountOnForeignPurchaseVATEntry()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
+        Currency: Record Currency;
+        CurrencyCode: Code[10];
+        ExpenseAccountNo: Code[20];
+        VATPct: Decimal;
+        GrossAmount: Decimal;
+        ExpectedNet: Decimal;
+        ExpectedVAT: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647818] Source-currency VAT G/L entry of a foreign-currency purchase must carry the VAT amount, not the net amount.
+        Initialize();
+
+        // [GIVEN] A foreign currency (1:1 rate) and source-currency posting on both the expense and the purchase VAT account
+        VATPct := 25;
+        GrossAmount := 1000;
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate() - 1, 1, 1);
+        Currency.Get(CurrencyCode);
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryCH.CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibraryCH.CreateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", '', '');
+        VATPostingSetup.Validate("VAT %", VATPct);
+        VATPostingSetup.Modify(true);
+        ExpenseAccountNo := CreateGLAccount(GeneralPostingSetup, VATPostingSetup, CurrencyCode);
+        SetSourceCurrencyPosting(VATPostingSetup."Purchase VAT Account", CurrencyCode);
+
+        // [GIVEN] A purchase general journal line in the foreign currency for a VAT-inclusive amount
+        CreatePurchaseJnlLineFCY(GenJournalLine, ExpenseAccountNo, CurrencyCode, VATPostingSetup, GrossAmount);
+
+        // [WHEN] The journal line is posted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The expense G/L entry keeps the net amount and the VAT G/L entry keeps the VAT amount, both in source currency
+        ExpectedNet := Round(GrossAmount / (1 + VATPct / 100), Currency."Amount Rounding Precision");
+        ExpectedVAT := GrossAmount - ExpectedNet;
+        VerifySourceCurrencyAmount(GenJournalLine."Document No.", ExpenseAccountNo, ExpectedNet);
+        VerifySourceCurrencyAmount(GenJournalLine."Document No.", VATPostingSetup."Purchase VAT Account", ExpectedVAT);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
+    end;
+
+    local procedure SetSourceCurrencyPosting(GLAccountNo: Code[20]; CurrencyCode: Code[10])
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.Get(GLAccountNo);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"Same Currency");
+        GLAccount.Validate("Source Currency Code", CurrencyCode);
+        GLAccount.Modify(true);
+    end;
+
+    local procedure CreatePurchaseJnlLineFCY(var GenJournalLine: Record "Gen. Journal Line"; ExpenseAccountNo: Code[20]; CurrencyCode: Code[10]; VATPostingSetup: Record "VAT Posting Setup"; GrossAmount: Decimal)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        LibraryCostAccounting.SetupGeneralJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::"G/L Account", ExpenseAccountNo, GrossAmount);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure VerifySourceCurrencyAmount(DocumentNo: Code[20]; GLAccountNo: Code[20]; ExpectedSrcCurrAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedSrcCurrAmount, GLEntry."Source Currency Amount",
+            StrSubstNo('Source Currency Amount on G/L entry for account %1 is incorrect.', GLAccountNo));
     end;
 
     [Normal]
