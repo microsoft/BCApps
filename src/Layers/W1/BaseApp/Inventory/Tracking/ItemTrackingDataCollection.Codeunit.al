@@ -561,7 +561,7 @@ codeunit 6501 "Item Tracking Data Collection"
           "Unit of Measure Code", "Variant Code", "Breakbulk No.", "Action Type");
         WhseActivLine.SetLoadFields(
           "Item No.", "Variant Code", "Location Code", "Activity Type", "No.", "Line No.",
-          "Source Type", "Source Subtype", "Source No.", "Source Line No.",
+          "Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.",
           "Lot No.", "Serial No.", "Package No.", "Qty. Outstanding (Base)");
         WhseActivLine.SetRange("Item No.", TrackingSpecification."Item No.");
         WhseActivLine.SetRange("Variant Code", TrackingSpecification."Variant Code");
@@ -598,6 +598,8 @@ codeunit 6501 "Item Tracking Data Collection"
         TempWhseActivLine.SetRange("Source Subtype", WhseActivLine."Source Subtype");
         TempWhseActivLine.SetRange("Source No.", WhseActivLine."Source No.");
         TempWhseActivLine.SetRange("Source Line No.", WhseActivLine."Source Line No.");
+        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then
+            TempWhseActivLine.SetRange("Source Subline No.", WhseActivLine."Source Subline No.");
         TempWhseActivLine.SetRange("Item No.", WhseActivLine."Item No.");
         TempWhseActivLine.SetRange("Variant Code", WhseActivLine."Variant Code");
         TempWhseActivLine.SetRange("Location Code", WhseActivLine."Location Code");
@@ -638,7 +640,11 @@ codeunit 6501 "Item Tracking Data Collection"
         TempGlobalReservEntry."Source Type" := Database::"Warehouse Activity Line";
         TempGlobalReservEntry."Source Subtype" := WhseActivLine."Activity Type".AsInteger();
         TempGlobalReservEntry."Source ID" := WhseActivLine."No.";
-        TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Line No.";
+        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then begin
+            TempGlobalReservEntry."Source Prod. Order Line" := WhseActivLine."Source Line No.";
+            TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Source Subline No.";
+        end else
+            TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Line No.";
         TempGlobalReservEntry."Serial No." := WhseActivLine."Serial No.";
         TempGlobalReservEntry."Lot No." := WhseActivLine."Lot No.";
         TempGlobalReservEntry."Package No." := WhseActivLine."Package No.";
@@ -654,7 +660,11 @@ codeunit 6501 "Item Tracking Data Collection"
         TempGlobalReservEntry.SetRange("Source Type", WhseActivLine."Source Type");
         TempGlobalReservEntry.SetRange("Source Subtype", WhseActivLine."Source Subtype");
         TempGlobalReservEntry.SetRange("Source ID", WhseActivLine."Source No.");
-        TempGlobalReservEntry.SetRange("Source Ref. No.", WhseActivLine."Source Line No.");
+        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then begin
+            TempGlobalReservEntry.SetRange("Source Prod. Order Line", WhseActivLine."Source Line No.");
+            TempGlobalReservEntry.SetRange("Source Ref. No.", WhseActivLine."Source Subline No.");
+        end else
+            TempGlobalReservEntry.SetRange("Source Ref. No.", WhseActivLine."Source Line No.");
         TempGlobalReservEntry.SetRange("Item No.", WhseActivLine."Item No.");
         TempGlobalReservEntry.SetRange("Variant Code", WhseActivLine."Variant Code");
         TempGlobalReservEntry.SetRange("Location Code", WhseActivLine."Location Code");
@@ -670,11 +680,16 @@ codeunit 6501 "Item Tracking Data Collection"
 
     local procedure PickBelongsToCurrentSource(var WhseActivLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification" temporary): Boolean
     begin
-        exit(
-           (WhseActivLine."Source Type" = TrackingSpecification."Source Type") and
-           (WhseActivLine."Source Subtype" = TrackingSpecification."Source Subtype") and
-           (WhseActivLine."Source No." = TrackingSpecification."Source ID") and
-           (WhseActivLine."Source Line No." = TrackingSpecification."Source Ref. No."));
+        if (WhseActivLine."Source Type" <> TrackingSpecification."Source Type") or
+        (WhseActivLine."Source Subtype" <> TrackingSpecification."Source Subtype") or
+        (WhseActivLine."Source No." <> TrackingSpecification."Source ID") then
+        exit(false);
+ 
+        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then
+        exit((WhseActivLine."Source Line No." = TrackingSpecification."Source Prod. Order Line") and
+            (WhseActivLine."Source Subline No." = TrackingSpecification."Source Ref. No."));
+ 
+        exit(WhseActivLine."Source Line No." = TrackingSpecification."Source Ref. No.");
     end;
 
     local procedure CreateEntrySummary(TrackingSpecification: Record "Tracking Specification" temporary; TempReservEntry: Record "Reservation Entry" temporary)
