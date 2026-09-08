@@ -366,11 +366,19 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     internal procedure DisableCustomerAssetConversion(var CRMProduct: Record "CRM Product"; var AdditionalFieldsWereModified: Boolean)
+    var
+        ExistingCRMProduct: Record "CRM Product";
     begin
         if CRMProduct.ConvertToCustomerAsset then begin
             CRMProduct.ConvertToCustomerAsset := false;
             AdditionalFieldsWereModified := true;
+            exit;
         end;
+
+        ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
+        if ExistingCRMProduct.Get(CRMProduct.ProductId) then
+            if ExistingCRMProduct.ConvertToCustomerAsset then
+                AdditionalFieldsWereModified := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnTransferFieldData', '', true, false)]
