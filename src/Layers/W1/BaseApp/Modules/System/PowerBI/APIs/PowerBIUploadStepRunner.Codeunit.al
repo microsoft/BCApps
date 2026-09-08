@@ -104,6 +104,7 @@ codeunit 6334 "Power BI Upload Step Runner"
         if OperationResult.Successful then begin
             GlobalUploadTracker.TransitionTo(Enum::"Power BI Upload Status"::ImportStarted);
             GlobalUploadTracker.SetImportId(ImportId);
+            GlobalUploadTracker.SetTargetWorkspace(GlobalTargetWorkspaceId);
         end else
             if OperationResult.ShouldRetry then
                 GlobalUploadTracker.ScheduleRetry(GetRetryAfterOrDefault(OperationResult.RetryAfter))

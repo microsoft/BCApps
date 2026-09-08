@@ -451,7 +451,7 @@ codeunit 139098 "Power BI Synchronizer Tests"
         // [GIVEN] A writable shared workspace exists and a deployable report is configured to deploy to it
         WorkspaceId := CreateGuid();
         PowerBITestSubscriber.AddWorkspace(WorkspaceId, 'Shared Workspace');
-        SetupDeployableReportInWorkspace(WorkspaceId);
+        SetupDeployableReportInWorkspace(WorkspaceId, 'Shared Workspace');
         PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
 
         // [WHEN] The synchronizer runs
@@ -507,7 +507,7 @@ codeunit 139098 "Power BI Synchronizer Tests"
         // [GIVEN] The configured workspace is NOT among the user's writable workspaces
         MissingWorkspaceId := CreateGuid();
         PowerBITestSubscriber.AddWorkspace(CreateGuid(), 'Some Other Workspace');
-        SetupDeployableReportInWorkspace(MissingWorkspaceId);
+        SetupDeployableReportInWorkspace(MissingWorkspaceId, 'Deleted Workspace');
         PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
 
         // [WHEN] The synchronizer runs
@@ -611,13 +611,14 @@ codeunit 139098 "Power BI Synchronizer Tests"
     end;
 
     [Test]
-    procedure TestDeployActionCopiesWorkspaceFromCompanyInformation()
+    procedure TestDeployRecordsWorkspaceTheReportLandedIn()
     var
         PowerBIDeployment: Record "Power BI Deployment";
         WorkspaceId: Guid;
         ReportDeployments: TestPage "Power BI Report Deployments";
     begin
-        // [SCENARIO] Deploying from the Report Deployments page stamps the Company Information workspace onto the deployment
+        // [SCENARIO] Deploying from the Report Deployments page uploads to the Company Information workspace,
+        // and the deployment record afterwards shows the workspace the report actually landed in
         SetupBase();
 
         // [GIVEN] A writable workspace configured on Company Information, and it is an evaluation company so the action is enabled
@@ -627,16 +628,23 @@ codeunit 139098 "Power BI Synchronizer Tests"
         SetEvaluationCompany(true);
         PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
 
-        // [WHEN] The user selects the test report and deploys it
+        // [WHEN] The user selects the test report, deploys it, and the deployment runs
         ReportDeployments.OpenView();
         ReportDeployments.GoToKey(Enum::"Power BI Deployable Report"::"Test Report");
         ReportDeployments.Deploy.Invoke();
         ReportDeployments.Close();
 
-        // [THEN] The created deployment carries the workspace configured on Company Information
+        Assert.IsTrue(RunSynchronizer(), 'Synchronizer should succeed');
+
+        // [THEN] The report was uploaded to the Company Information workspace
+        Assert.AreEqual(
+            WorkspaceId,
+            PowerBITestSubscriber.GetLastTargetWorkspaceId(),
+            'The report should be deployed to the Company Information workspace');
+
+        // [THEN] The deployment record shows the workspace the report landed in
         PowerBIDeployment.Get(Enum::"Power BI Deployable Report"::"Test Report");
-        Assert.AreEqual(WorkspaceId, PowerBIDeployment."Power BI Workspace Id", 'Deployment should use the Company Information workspace id');
-        Assert.AreEqual('HQ Workspace', PowerBIDeployment."Power BI Workspace Name", 'Deployment should use the Company Information workspace name');
+        Assert.AreEqual(WorkspaceId, PowerBIDeployment."Power BI Workspace Id", 'Deployment should record the workspace it was uploaded to');
     end;
 
     #endregion
@@ -656,6 +664,7 @@ codeunit 139098 "Power BI Synchronizer Tests"
         PowerBICustomerReports: Record "Power BI Customer Reports";
         JobQueueEntry: Record "Job Queue Entry";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        EmptyWorkspaceId: Guid;
     begin
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 
@@ -683,6 +692,8 @@ codeunit 139098 "Power BI Synchronizer Tests"
 
         AzureADMgtSetup."Auth Flow Codeunit ID" := 0;
         AzureADMgtSetup.Modify();
+
+        SetCompanyInformationWorkspace(EmptyWorkspaceId, '');
     end;
 
     local procedure SetupSystemBlob()
@@ -709,16 +720,17 @@ codeunit 139098 "Power BI Synchronizer Tests"
     var
         EmptyWorkspaceId: Guid;
     begin
-        SetupDeployableReportInWorkspace(EmptyWorkspaceId);
+        SetupDeployableReportInWorkspace(EmptyWorkspaceId, '');
     end;
 
-    local procedure SetupDeployableReportInWorkspace(WorkspaceId: Guid)
+    local procedure SetupDeployableReportInWorkspace(WorkspaceId: Guid; WorkspaceName: Text[200])
     var
         PowerBIDeployment: Record "Power BI Deployment";
     begin
+        SetCompanyInformationWorkspace(WorkspaceId, WorkspaceName);
+
         PowerBIDeployment.Init();
         PowerBIDeployment."Report Id" := Enum::"Power BI Deployable Report"::"Test Report";
-        PowerBIDeployment."Power BI Workspace Id" := WorkspaceId;
         PowerBIDeployment.Insert();
     end;
 

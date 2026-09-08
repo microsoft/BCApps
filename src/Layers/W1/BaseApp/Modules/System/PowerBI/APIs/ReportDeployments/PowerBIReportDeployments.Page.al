@@ -1,5 +1,4 @@
 namespace System.Integration.PowerBI;
-using Microsoft.Foundation.Company;
 using System.Environment;
 
 page 6347 "Power BI Report Deployments"
@@ -94,27 +93,17 @@ page 6347 "Power BI Report Deployments"
                     var
                         PowerBIDeployment: Record "Power BI Deployment";
                         SelectedBuffer: Record "Power BI Deployment Buffer";
-                        CompanyInformation: Record "Company Information";
                         PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
-                        TargetWorkspaceId: Guid;
-                        TargetWorkspaceName: Text[200];
                     begin
                         SelectedBuffer.LoadReports();
                         CurrPage.SetSelectionFilter(SelectedBuffer);
                         if not SelectedBuffer.FindSet() then
                             Error(NoReportSelectedErr);
 
-                        if CompanyInformation.Get() then begin
-                            TargetWorkspaceId := CompanyInformation."Power BI Workspace Id";
-                            TargetWorkspaceName := CompanyInformation."Power BI Workspace Name";
-                        end;
-
                         repeat
                             if not PowerBIDeployment.Get(SelectedBuffer."Report Id") then begin
                                 PowerBIDeployment.Init();
                                 PowerBIDeployment."Report Id" := SelectedBuffer."Report Id";
-                                PowerBIDeployment."Power BI Workspace Id" := TargetWorkspaceId;
-                                PowerBIDeployment."Power BI Workspace Name" := TargetWorkspaceName;
                                 PowerBIDeployment.Insert(true);
                             end;
                         until SelectedBuffer.Next() = 0;

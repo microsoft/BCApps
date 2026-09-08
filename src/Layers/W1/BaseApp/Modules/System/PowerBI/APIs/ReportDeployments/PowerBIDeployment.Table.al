@@ -59,11 +59,6 @@ table 6316 "Power BI Deployment"
             Caption = 'Power BI Workspace Id';
             DataClassification = SystemMetadata;
         }
-        field(10; "Power BI Workspace Name"; Text[200])
-        {
-            Caption = 'Power BI Workspace Name';
-            DataClassification = SystemMetadata;
-        }
     }
 
     keys
