@@ -92,8 +92,16 @@ codeunit 37315 "PEPPOL30 BE Tax Info" implements "PEPPOL Tax Info Provider"
     procedure GetTaxExemptionReason(var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
     begin
         PEPPOL30.GetTaxExemptionReason(VATProductPostingGroupCategory, TaxExemptionReasonTxt, TaxCategoryID);
-        if (TaxExemptionReasonTxt = '') and (TaxCategoryID = Escompte.GetExemptTaxCategory()) then
+    end;
+
+    procedure GetTaxExemptionReason(VATAmtLine: Record "VAT Amount Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
+    begin
+        if Escompte.IsCompensationLine(VATAmtLine) then begin
             TaxExemptionReasonTxt := Escompte.GetCompensationExemptionReason();
+            exit;
+        end;
+
+        GetTaxExemptionReason(VATProductPostingGroupCategory, TaxExemptionReasonTxt, TaxCategoryID);
     end;
 
     procedure IsZeroVatCategory(TaxCategory: Code[10]): Boolean

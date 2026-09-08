@@ -39,6 +39,8 @@ codeunit 148720 "PEPPOL30 BE Pmt Disc Tests"
         IsInitialized: Boolean;
         InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
         EscompteExemptionReasonTxt: Label 'Conditional early-payment discount, not part of the taxable amount';
+        ExemptionReasonXPathTxt: Label '//cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:TaxExemptionReason', Locked = true;
+        GenuineExemptionReasonTxt: Label 'Exempt under article 44', Locked = true;
 
     [Test]
     procedure BESalesInvoiceEscompteCompensation()
@@ -89,6 +91,69 @@ codeunit 148720 "PEPPOL30 BE Pmt Disc Tests"
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:ChargeTotalAmount', '3.34');
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', '133.85');
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:PayableAmount', '133.85');
+    end;
+
+    [Test]
+    procedure BESalesInvoiceExemptLineKeepsOwnExemptionReason()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        CustomerNo: Code[20];
+        PaymentTermsCode: Code[10];
+    begin
+        // [SCENARIO 643204] A genuinely exempt VAT breakdown keeps its own exemption reason when the escompte compensation is present.
+        Initialize();
+
+        // [GIVEN] Payment Terms with a 3% payment discount and a customer that uses them
+        PaymentTermsCode := CreatePaymentTermsWithDiscount(3);
+        CustomerNo := CreateCustomerWithAddressAndGLN();
+
+        // [GIVEN] A posted sales invoice with a 21% line and an exempt (category E) line whose VAT product posting group is described
+        PostSalesInvoice(
+          SalesInvoiceHeader, CustomerNo, PaymentTermsCode,
+          CreateVATPostingSetupWithPmtDiscount(GetVATBusPostingGroup(CustomerNo), 21), 111.2,
+          CreateExemptVATPostingSetup(GetVATBusPostingGroup(CustomerNo), GenuineExemptionReasonTxt), 100);
+
+        // [WHEN] The posted invoice is exported to PEPPOL BIS 3.0 using the Belgian sales format
+        SalesInvoiceHeader.SetRecFilter();
+        ExportInvoiceToBlob(SalesInvoiceHeader, TempBlob);
+        InitXPathXMLReaderForInvoice(TempBlob);
+
+        // [THEN] Three VAT breakdowns are written: Standard, the genuine Exempt one and the compensating Exempt one
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxTotal/cac:TaxSubtotal', 3);
+
+        // [THEN] The escompte reason is used once, and the genuine exempt breakdown keeps the reason from its VAT product posting group
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath(ExemptionReasonXPathTxt, EscompteExemptionReasonTxt, 1);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath(ExemptionReasonXPathTxt, GenuineExemptionReasonTxt, 1);
+    end;
+
+    [Test]
+    procedure BESalesInvoiceWithoutPmtDiscountHasNoEscompteReason()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        CustomerNo: Code[20];
+    begin
+        // [SCENARIO 643204] An exempt VAT breakdown without an exemption reason is not given the escompte reason when there is no payment discount.
+        Initialize();
+
+        // [GIVEN] A customer without payment discount terms
+        CustomerNo := CreateCustomerWithAddressAndGLN();
+
+        // [GIVEN] A posted sales invoice with a single exempt (category E) line whose VAT product posting group has no description
+        PostSalesInvoice(
+          SalesInvoiceHeader, CustomerNo, '',
+          CreateExemptVATPostingSetup(GetVATBusPostingGroup(CustomerNo), ''), 100,
+          '', 0);
+
+        // [WHEN] The posted invoice is exported to PEPPOL BIS 3.0 using the Belgian sales format
+        SalesInvoiceHeader.SetRecFilter();
+        ExportInvoiceToBlob(SalesInvoiceHeader, TempBlob);
+        InitXPathXMLReaderForInvoice(TempBlob);
+
+        // [THEN] The single Exempt breakdown is not given the escompte exemption reason
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxTotal/cac:TaxSubtotal', 1);
+        LibraryXPathXMLReader.VerifyNodeCountWithValueByXPath(ExemptionReasonXPathTxt, EscompteExemptionReasonTxt, 0);
     end;
 
     local procedure Initialize()
@@ -200,9 +265,15 @@ codeunit 148720 "PEPPOL30 BE Pmt Disc Tests"
     end;
 
     local procedure PostSalesInvoiceWithPmtDiscount(var SalesInvoiceHeader: Record "Sales Invoice Header"; CustomerNo: Code[20]; PaymentTermsCode: Code[10]; UnitPrice: Decimal; VATPct: Decimal)
+    begin
+        PostSalesInvoice(
+          SalesInvoiceHeader, CustomerNo, PaymentTermsCode,
+          CreateVATPostingSetupWithPmtDiscount(GetVATBusPostingGroup(CustomerNo), VATPct), UnitPrice, '', 0);
+    end;
+
+    local procedure PostSalesInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"; CustomerNo: Code[20]; PaymentTermsCode: Code[10]; FirstVATProdPostingGroup: Code[20]; FirstUnitPrice: Decimal; SecondVATProdPostingGroup: Code[20]; SecondUnitPrice: Decimal)
     var
         SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
     begin
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
         SalesHeader.Validate("Payment Terms Code", PaymentTermsCode);
@@ -210,13 +281,49 @@ codeunit 148720 "PEPPOL30 BE Pmt Disc Tests"
         SalesHeader.Validate("Your Reference", LibraryUtility.GenerateGUID());
         SalesHeader.Modify(true);
 
-        LibrarySales.CreateSalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
-        SalesLine.Validate("VAT Prod. Posting Group", CreateVATPostingSetupWithPmtDiscount(SalesHeader."VAT Bus. Posting Group", VATPct));
-        SalesLine.Validate("Unit Price", UnitPrice);
-        SalesLine.Modify(true);
+        AddSalesLine(SalesHeader, FirstVATProdPostingGroup, FirstUnitPrice);
+        if SecondVATProdPostingGroup <> '' then
+            AddSalesLine(SalesHeader, SecondVATProdPostingGroup, SecondUnitPrice);
 
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure AddSalesLine(var SalesHeader: Record "Sales Header"; VATProdPostingGroup: Code[20]; UnitPrice: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        SalesLine.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure GetVATBusPostingGroup(CustomerNo: Code[20]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CustomerNo);
+        exit(Customer."VAT Bus. Posting Group");
+    end;
+
+    local procedure CreateExemptVATPostingSetup(VATBusPostingGroup: Code[20]; ProductPostingGroupDescription: Text[100]): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATProductPostingGroup.Validate(Description, ProductPostingGroupDescription);
+        VATProductPostingGroup.Modify(true);
+
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProductPostingGroup.Code);
+        VATPostingSetup."VAT Identifier" := LibraryUtility.GenerateGUID();
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", 0);
+        VATPostingSetup.Validate("Tax Category", 'E');
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+        exit(VATProductPostingGroup.Code);
     end;
 
     local procedure CreateVATPostingSetupWithPmtDiscount(VATBusPostingGroup: Code[20]; VATPct: Decimal): Code[20]

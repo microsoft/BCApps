@@ -1480,7 +1480,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                           TaxCategoryPercent,
                           TaxTotalTaxSchemeID);
 
-                        PEPPOLTaxInfoProvider.GetTaxExemptionReason(TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
+                        PEPPOLTaxInfoProvider.GetTaxExemptionReason(TempVATAmtLine, TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
                     end;
                 }
 

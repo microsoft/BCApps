@@ -1529,7 +1529,7 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                           TaxCategoryPercent,
                           TaxTotalTaxSchemeID);
 
-                        PEPPOLTaxInfoProvider.GetTaxExemptionReason(TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
+                        PEPPOLTaxInfoProvider.GetTaxExemptionReason(TempVATAmtLine, TempVATProductPostingGroup, TaxExemptionReason, TaxTotalTaxCategoryID);
                     end;
                 }
 
