@@ -21,7 +21,11 @@ report 107 "Customer - Order Summary"
     ToolTip = 'View the order detail (the quantity not yet shipped) for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+#if CLEAN30
     DefaultRenderingLayout = Excel;
+#else
+    DefaultRenderingLayout = Word;
+#endif
 
     dataset
     {
@@ -462,6 +466,7 @@ report 107 "Customer - Order Summary"
             Type = Excel;
             Summary = 'Built in layout for the Customer Order Summary excel report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Customer Order Summary Word';
@@ -472,6 +477,7 @@ report 107 "Customer - Order Summary"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
