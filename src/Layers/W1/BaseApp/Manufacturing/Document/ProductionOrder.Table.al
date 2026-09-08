@@ -868,7 +868,6 @@ table 5405 "Production Order"
         Text010: Label 'You may have changed a dimension.\\Do you want to update the lines?';
         Text011: Label 'You cannot change Finished Production Order dimensions.';
 #pragma warning restore AA0074
-        CannotDeleteWithPickedQtyErr: Label 'You cannot delete the production order because one or more components have a picked quantity that has not been consumed. Consume or return the picked quantity before deleting the production order.';
 
     protected var
         HideValidationDialog: Boolean;
@@ -1655,8 +1654,7 @@ table 5405 "Production Order"
         ProdOrderComponent.SetRange("Prod. Order No.", "No.");
         if ProdOrderComponent.FindSet() then
             repeat
-                if (ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)" then
-                    Error(CannotDeleteWithPickedQtyErr);
+                ProdOrderComponent.CheckPickedQtyBeforeDeletion();
             until ProdOrderComponent.Next() = 0;
     end;
 

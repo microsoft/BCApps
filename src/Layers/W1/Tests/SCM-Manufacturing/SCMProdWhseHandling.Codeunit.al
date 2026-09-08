@@ -61,6 +61,8 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         QtyPickedBaseShouldBePositiveErr: Label 'Qty. Picked (Base) should be positive after registering pick.';
         ActConsumptionQtyShouldBeZeroErr: Label 'Act. Consumption (Qty) should be zero.';
         ProdOrderShouldExistErr: Label 'Production Order should still exist after blocked deletion.';
+        ProdOrderComponentShouldExistErr: Label 'Production Order Component should still exist after blocked deletion.';
+        ProdOrderLineShouldExistErr: Label 'Production Order Line should still exist after blocked deletion.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1704,71 +1706,91 @@ codeunit 137298 "SCM Prod. Whse. Handling"
     end;
 
     [Test]
-    procedure DeleteReleasedProdOrderBlockedWhenComponentHasPickedQty()
+    procedure DeleteProdOrderComponentBlockedWhenComponentHasPickedQty()
+    var
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647854] Deleting a production order component is blocked when it has picked quantity not yet consumed.
+        Initialize();
+
+        // [GIVEN] Released production order "PO" with a fully registered warehouse pick.
+        CreateProductionOrderWithRegisteredWarehousePick(ProductionOrder, Location);
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetFilter("Qty. Picked (Base)", '>0');
+        ProdOrderComponent.FindFirst();
+        Commit();
+
+        // [WHEN] Delete a picked production order component.
+        asserterror ProdOrderComponent.Delete(true);
+
+        // [THEN] Deletion is blocked and the component still exists.
+        Assert.ExpectedError(CannotDeleteWithPickedQtyErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.IsTrue(
+            ProdOrderComponent.Get(
+                ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.",
+                ProdOrderComponent."Prod. Order Line No.", ProdOrderComponent."Line No."),
+            ProdOrderComponentShouldExistErr);
+    end;
+
+    [Test]
+    procedure DeleteProdOrderLineBlockedWhenComponentHasPickedQty()
+    var
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647854] Deleting a production order line is blocked when a component has picked quantity not yet consumed.
+        Initialize();
+
+        // [GIVEN] Released production order "PO" with a fully registered warehouse pick.
+        CreateProductionOrderWithRegisteredWarehousePick(ProductionOrder, Location);
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetFilter("Qty. Picked (Base)", '>0');
+        ProdOrderComponent.FindFirst();
+        ProdOrderLine.Get(
+            ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        Commit();
+
+        // [WHEN] Delete the production order line that owns the picked component.
+        asserterror ProdOrderLine.Delete(true);
+
+        // [THEN] Deletion is blocked and the production order line still exists.
+        Assert.ExpectedError(CannotDeleteWithPickedQtyErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.IsTrue(
+            ProdOrderLine.Get(ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No."),
+            ProdOrderLineShouldExistErr);
+    end;
+
+    local procedure CreateProductionOrderWithRegisteredWarehousePick(var ProductionOrder: Record "Production Order"; var Location: Record Location)
     var
         ParentItem: Record Item;
         CompItem1: Record Item;
         CompItem2: Record Item;
-        Location: Record Location;
-        ProductionOrder: Record "Production Order";
-        ProdOrderComponent: Record "Prod. Order Component";
-        RegisteredWhseActivityLine: Record "Registered Whse. Activity Line";
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         WarehouseActivityLine: Record "Warehouse Activity Line";
     begin
-        // [FEATURE] [AI test 0.4]
-        // [SCENARIO 647854] Deleting a Released Production Order is blocked when a component has picked quantity not yet consumed.
-        Initialize();
-
-        // [GIVEN] Location with bins and "Warehouse Pick (mandatory)" for production consumption, released production order "PO" with two components stocked in bins.
         CreateProductionOrderWithLocationBinsAndTwoComponents(ProductionOrder, Location, ParentItem, CompItem1, CompItem2);
         Location."Prod. Consump. Whse. Handling" := "Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)";
         Location.Modify(true);
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
 
-        // [GIVEN] Warehouse pick is created and fully registered for "PO".
         ProductionOrder.SetHideValidationDialog(true);
         ProductionOrder.CreatePick(CopyStr(UserId(), 1, 50), 0, false, false, false);
         FindWarehouseActivityLine(
-          WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
-          Location.Code, WarehouseActivityLine."Action Type"::Take);
+            WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
+            Location.Code, WarehouseActivityLine."Action Type"::Take);
         WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
-
-        // [GIVEN] No active warehouse pick lines remain for "PO".
-        WarehouseActivityLine.Reset();
-        WarehouseActivityLine.SetRange("Source No.", ProductionOrder."No.");
-        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
-        Assert.RecordIsEmpty(WarehouseActivityLine);
-
-        // [GIVEN] Registered warehouse pick lines remain for "PO".
-        RegisteredWhseActivityLine.SetRange("Source No.", ProductionOrder."No.");
-        RegisteredWhseActivityLine.SetRange("Activity Type", RegisteredWhseActivityLine."Activity Type"::Pick);
-        Assert.RecordIsNotEmpty(RegisteredWhseActivityLine);
-
-        // [GIVEN] Component has positive Qty. Picked (Base) and zero Act. Consumption (Qty.).
-        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComponent.FindFirst();
-        ProdOrderComponent.CalcFields("Act. Consumption (Qty)");
-        Assert.IsTrue(ProdOrderComponent."Qty. Picked (Base)" > 0, QtyPickedBaseShouldBePositiveErr);
-        Assert.AreEqual(0, ProdOrderComponent."Act. Consumption (Qty)", ActConsumptionQtyShouldBeZeroErr);
-        Commit();
-
-        // [WHEN] Delete the production order.
-        asserterror ProductionOrder.Delete(true);
-
-        // [THEN] Error is raised because picked quantity has not been consumed.
-        Assert.ExpectedError(CannotDeleteWithPickedQtyErr);
-        Assert.ExpectedErrorCode('Dialog');
-
-        // [THEN] Production order and its components still exist.
-        Assert.IsTrue(ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No."), ProdOrderShouldExistErr);
-        ProdOrderComponent.Reset();
-        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        Assert.RecordIsNotEmpty(ProdOrderComponent);
     end;
 
     local procedure Initialize()

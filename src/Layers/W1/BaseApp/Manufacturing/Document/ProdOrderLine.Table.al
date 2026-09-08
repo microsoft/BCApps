@@ -1087,6 +1087,9 @@ table 5406 "Prod. Order Line"
                 Error(
                   Text99000000,
                   TableCaption, "Line No.", PurchLine.TableCaption());
+
+            if not CalledFromHeader then
+                CheckPickedQtyBeforeDeletion();
         end;
 
         ProdOrderLineReserve.DeleteLine(Rec);
@@ -1829,6 +1832,19 @@ table 5406 "Prod. Order Line"
     procedure SuspendDeletionCheck(Suspend: Boolean)
     begin
         CalledFromHeader := Suspend;
+    end;
+
+    local procedure CheckPickedQtyBeforeDeletion()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        ProdOrderComponent.SetRange(Status, Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", "Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", "Line No.");
+        if ProdOrderComponent.FindSet() then
+            repeat
+                ProdOrderComponent.CheckPickedQtyBeforeDeletion();
+            until ProdOrderComponent.Next() = 0;
     end;
 
     procedure GetRemainingPutAwayQty(): Decimal
