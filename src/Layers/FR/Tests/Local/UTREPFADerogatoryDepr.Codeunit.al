@@ -1,9 +1,13 @@
+#if not CLEAN30
 codeunit 144026 "UT REP FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -18,7 +22,6 @@ codeunit 144026 "UT REP FA Derogatory Depr."
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreReportCalculateDepreciationError()
     begin
         // Purpose of the test is to validate OnPreReport trigger of Report ID - 5692 Calculate Depreciation.
@@ -36,7 +39,6 @@ codeunit 144026 "UT REP FA Derogatory Depr."
     [Test]
     [HandlerFunctions('CancelFALedgerEntriesRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreReportCancelFALedgerEntriesError()
     begin
         // Purpose of the test is to validate OnPreReport trigger of Report ID - 5688 Cancel FA Ledger Entries.
@@ -48,7 +50,6 @@ codeunit 144026 "UT REP FA Derogatory Depr."
     [Test]
     [HandlerFunctions('CancelFALedgerEntriesRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnPreReportCancelDisposalFALedgerEntriesError()
     begin
         // Purpose of the test is to validate OnPreReport trigger of Report ID - 5688 Cancel FA Ledger Entries.
@@ -57,24 +58,9 @@ codeunit 144026 "UT REP FA Derogatory Depr."
         OnPreReportCancelFALedgerEntries(true);
     end;
 
-    local procedure OnPreReportCancelFALedgerEntries(Disposal: Boolean)
-    begin
-        // Setup.
-        Initialize();
-        CreateDepreciationBook();
-        LibraryVariableStorage.Enqueue(Disposal);  // Required inside CancelFALedgerEntriesRequestPageHandler.
-
-        // Exercise.
-        asserterror REPORT.Run(REPORT::"Cancel FA Ledger Entries");
-
-        // Verify: You cannot cancel FA entries that were posted to a derogatory depreciation book. Instead you must cancel the FA entries posted to the depreciation book integrated with G/L.
-        Assert.ExpectedErrorCode(DialogErr);
-    end;
-
     [Test]
     [HandlerFunctions('CopyFAEntriesToGLBudgetRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnAfterGetRecordFixedAssetCopyFAEntriesToGLBudget()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -120,15 +106,6 @@ codeunit 144026 "UT REP FA Derogatory Depr."
         exit(DepreciationBook.Code);
     end;
 
-    local procedure CreateFixedAsset(): Code[20]
-    var
-        FixedAsset: Record "Fixed Asset";
-    begin
-        FixedAsset."No." := LibraryUTUtility.GetNewCode();
-        FixedAsset.Insert();
-        exit(FixedAsset."No.");
-    end;
-
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; FAPostingGroup: Code[20])
     begin
         FADepreciationBook."FA No." := CreateFixedAsset();
@@ -152,6 +129,22 @@ codeunit 144026 "UT REP FA Derogatory Depr."
         FALedgerEntry.Insert();
     end;
 
+    local procedure CreateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
+    begin
+        FAPostingGroup.Code := LibraryUTUtility.GetNewCode10();
+        FAPostingGroup."Derogatory Account" := LibraryUTUtility.GetNewCode();
+        FAPostingGroup.Insert();
+    end;
+
+    local procedure CreateFixedAsset(): Code[20]
+    var
+        FixedAsset: Record "Fixed Asset";
+    begin
+        FixedAsset."No." := LibraryUTUtility.GetNewCode();
+        FixedAsset.Insert();
+        exit(FixedAsset."No.");
+    end;
+
     local procedure CreateGLBudgetName(): Code[10]
     var
         GLBudgetName: Record "G/L Budget Name";
@@ -161,15 +154,21 @@ codeunit 144026 "UT REP FA Derogatory Depr."
         exit(GLBudgetName.Name);
     end;
 
-    local procedure CreateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
+    local procedure OnPreReportCancelFALedgerEntries(Disposal: Boolean)
     begin
-        FAPostingGroup.Code := LibraryUTUtility.GetNewCode10();
-        FAPostingGroup."Derogatory Account" := LibraryUTUtility.GetNewCode();
-        FAPostingGroup.Insert();
+        // Setup.
+        Initialize();
+        CreateDepreciationBook();
+        LibraryVariableStorage.Enqueue(Disposal);  // Required inside CancelFALedgerEntriesRequestPageHandler.
+
+        // Exercise.
+        asserterror REPORT.Run(REPORT::"Cancel FA Ledger Entries");
+
+        // Verify: You cannot cancel FA entries that were posted to a derogatory depreciation book. Instead you must cancel the FA entries posted to the depreciation book integrated with G/L.
+        Assert.ExpectedErrorCode(DialogErr);
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CalculateDepreciationRequestPageHandler(var CalculateDepreciation: TestRequestPage "Calculate Depreciation")
     var
         DocumentNo: Variant;
@@ -180,7 +179,6 @@ codeunit 144026 "UT REP FA Derogatory Depr."
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CancelFALedgerEntriesRequestPageHandler(var CancelFALedgerEntries: TestRequestPage "Cancel FA Ledger Entries")
     var
         CancelBook: Variant;
@@ -194,7 +192,6 @@ codeunit 144026 "UT REP FA Derogatory Depr."
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CopyFAEntriesToGLBudgetRequestPageHandler(var CopyFAEntriesToGLBudget: TestRequestPage "Copy FA Entries to G/L Budget")
     var
         CopyToGLBudgetName: Variant;
@@ -211,4 +208,4 @@ codeunit 144026 "UT REP FA Derogatory Depr."
         CopyFAEntriesToGLBudget.OK().Invoke();
     end;
 }
-
+#endif

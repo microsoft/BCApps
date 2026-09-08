@@ -40,7 +40,14 @@ table 5647 "FA Matrix Posting Type"
     procedure CreateTypes()
     var
         FADepreciationBook: Record "FA Depreciation Book";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        IsAcceleratedDeprFeatureEnabled: Boolean;
+#endif
     begin
+#if not CLEAN30
+        IsAcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+#endif
         if not FindSet() then begin
             InsertRec(1, FADepreciationBook.FieldCaption("Book Value"));
             InsertRec(2, FADepreciationBook.FieldCaption("Acquisition Cost"));
@@ -53,7 +60,14 @@ table 5647 "FA Matrix Posting Type"
             InsertRec(9, FADepreciationBook.FieldCaption("Gain/Loss"));
             InsertRec(10, FADepreciationBook.FieldCaption("Depreciable Basis"));
             InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
-            InsertRec(12, FADepreciationBook.FieldCaption(Derogatory));
+#if not CLEAN30
+            if IsAcceleratedDeprFeatureEnabled then
+                InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"))
+            else
+                InsertRec(12, FADepreciationBook.FieldCaption(Derogatory));
+#else
+            InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
+#endif
         end else
             repeat
                 if "Entry No." = 1 then
@@ -111,11 +125,27 @@ table 5647 "FA Matrix Posting Type"
                         Delete();
                         InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
                     end;
+#if not CLEAN30
+                if IsAcceleratedDeprFeatureEnabled then begin
+                    if "Entry No." = 12 then
+                        if "FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount") then begin
+                            Delete();
+                            InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
+                        end
+                end
+                else
+                    if "Entry No." = 12 then
+                        if "FA Posting Type Name" <> FADepreciationBook.FieldCaption(Derogatory) then begin
+                            Delete();
+                            InsertRec(12, FADepreciationBook.FieldCaption(Derogatory));
+                        end;
+#else
                 if "Entry No." = 12 then
-                    if "FA Posting Type Name" <> FADepreciationBook.FieldCaption(Derogatory) then begin
+                    if "FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount") then begin
                         Delete();
-                        InsertRec(12, FADepreciationBook.FieldCaption(Derogatory));
+                        InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
                     end;
+#endif
             until Next() = 0;
         OnAfterCreateTypes(Rec);
     end;

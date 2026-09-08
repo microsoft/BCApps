@@ -50,6 +50,8 @@ codeunit 31185 "Create FA Posting Group CZ"
 
     local procedure ValidateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group"; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; WriteDownAccount: Code[20]; Custom2Account: Code[20]; AcqCostAccOnDisposal: Code[20]; AccumDeprAccOnDisposal: Code[20]; WriteDownAccOnDisposal: Code[20]; Custom2AccountOnDisposal: Code[20]; GainsAccOnDisposal: Code[20]; LossesAccOnDisposal: Code[20]; BookValAccOnDispGain: Code[20]; BookValAccOnDispLoss: Code[20];
                                    SalesAccOnDispGain: Code[20]; SalesAccOnDispLoss: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20]; ApprecBalAccOnDisp: Code[20]; AppreciationAccOnDisposal: Code[20]; AppreciationAccount: Code[20]; AppreciationBalAccount: Code[20]; SalesBalAcc: Code[20])
+    var
+        CreateGLAccount: Codeunit "Create G/L Account";
     begin
         FAPostingGroup.Validate("Acquisition Cost Account", AcquisitionCostAccount);
         FAPostingGroup.Validate("Accum. Depreciation Account", AccumDepreciationAccount);
@@ -73,6 +75,10 @@ codeunit 31185 "Create FA Posting Group CZ"
         FAPostingGroup.Validate("Appreciation Account", AppreciationAccount);
         FAPostingGroup.Validate("Appreciation Bal. Account", AppreciationBalAccount);
         FAPostingGroup.Validate("Sales Bal. Acc.", SalesBalAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", CreateGLAccount.DerogatoryAccount());
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", CreateGLAccount.DerogExpenseAccForCredit());
+        FAPostingGroup.Validate("Derogatory Expense Acc.", CreateGLAccount.DerogExpenseAccForDebit());
     end;
 
     procedure Furniture(): Code[20]

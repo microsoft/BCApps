@@ -48,11 +48,11 @@ codeunit 144015 "ERM FR Feature Bugs"
     var
 #if not CLEAN28
         LibraryDimension: Codeunit "Library - Dimension";
+        LibraryFRLocalization: Codeunit "Library - FR Localization";
 #endif
+#if not CLEAN30
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
-#if not CLEAN28
-        LibraryFRLocalization: Codeunit "Library - FR Localization";
 #endif
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
@@ -65,8 +65,8 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
 
+#if not CLEAN30
     [Test]
-    [Scope('OnPrem')]
     procedure BookValueAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -98,7 +98,6 @@ codeunit 144015 "ERM FR Feature Bugs"
 
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure DerogatoryAmountAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -131,7 +130,6 @@ codeunit 144015 "ERM FR Feature Bugs"
 
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure DerogatoryEntriesAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -162,10 +160,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         VerifyFALedgerEntries(
           FANo, FALedgerEntry."FA Posting Type"::Depreciation, CalcDate('<1Y>', WorkDate()), -AcquisitionCostAmount);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ItemTrackingPageHandler')]
-    [Scope('OnPrem')]
     procedure PostedSalesInvoiceWithDecimalLotTrackingAndProdBOM()
     var
         SalesHeader: Record "Sales Header";
@@ -191,9 +189,9 @@ codeunit 144015 "ERM FR Feature Bugs"
         VerifyItemLedgerEntry(ItemNo, -TrackingQuantity, Format(TrackingQuantity), SalesHeader."Sell-to Customer No.");
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure PostingDatesAfterPostDepreciationAndDerogatoryFAJnl()
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -224,10 +222,10 @@ codeunit 144015 "ERM FR Feature Bugs"
         VerifyFALedgerEntries(
           FANo, FALedgerEntry."FA Posting Type"::Depreciation, CalcDate('<1Y>', WorkDate()), -AcquisitionCostAmount);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('GetShipmentLinesPageHandler')]
-    [Scope('OnPrem')]
     procedure ShipmentInvoicedForPostedSalesInvoiceGetShipmentLine()
     var
         SalesHeader: Record "Sales Header";
@@ -255,7 +253,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ShipmentInvoicedForMultiLinePostedSalesInvoice()
     var
         Customer: Record Customer;
@@ -294,7 +291,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure ShipmentInvoicedForSingleLinePostedSalesInvoice()
     var
         Customer: Record Customer;
@@ -327,7 +323,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     [Obsolete('Moved to Payment app', '28.0')]
     [Test]
     [HandlerFunctions('PaymentClassListPageHandler')]
-    [Scope('OnPrem')]
     procedure DefaultDimensionCodeForVendorOnPaymentSlip()
     var
         DefaultDimension: Record "Default Dimension";
@@ -348,7 +343,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     [Obsolete('Moved to Payment app', '28.0')]
     [Test]
     [HandlerFunctions('PaymentClassListPageHandler')]
-    [Scope('OnPrem')]
     procedure DefaultDimensionCodeForCustomerOnPaymentSlip()
     var
         DefaultDimension: Record "Default Dimension";
@@ -363,7 +357,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         DefaultDimensionCodeOnPaymentSlip(
           PaymentStepLedger.Sign::Debit, PaymentLine."Account Type"::Customer, DefaultDimension."No.", DefaultDimension."Dimension Code");
     end;
-#endif    
+#endif
 
 #if not CLEAN28
     [Obsolete('Moved to Payment app', '28.0')]
@@ -393,25 +387,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 #endif
 
-#if not CLEAN28
-    [Obsolete('Moved to Payment app', '28.0')]
-    local procedure DefaultDimensionCodeOnPaymentSlip(Sign: Option; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DimensionCode: Code[10])
-    var
-        DimensionSetEntry: Record "Dimension Set Entry";
-        DimensionSetID: Integer;
-    begin
-        CreatePaymentStatus(CreatePaymentClass(), Sign);
-
-        // Exercise: Create Payment Slip.
-        DimensionSetID := CreatePaymentSlip(AccountType, AccountNo);
-
-        // Verify: Verify Dimension Code on Dimension Set Entry.
-        DimensionSetEntry.SetRange("Dimension Set ID", DimensionSetID);
-        DimensionSetEntry.FindFirst();
-        DimensionSetEntry.TestField("Dimension Code", DimensionCode);
-    end;
-#endif      
-
     local procedure Initialize()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -419,6 +394,28 @@ codeunit 144015 "ERM FR Feature Bugs"
         GenJournalLine.DeleteAll();
         LibraryVariableStorage.Clear();
     end;
+
+#if not CLEAN30
+    local procedure CreateAndPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; FAPostingDate: Date; FAPostingType: Enum "Gen. Journal Line FA Posting Type"; FANo: Code[20]; DepreciationBookCode: Code[10]; Amount: Decimal)
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type",
+          GenJournalLine."Account Type"::"Fixed Asset", FANo, Amount);
+        GenJournalLine.Validate("FA Posting Type", FAPostingType);
+        GenJournalLine.Validate("FA Posting Date", FAPostingDate);
+        GenJournalLine.Validate("Posting Date", WorkDate());
+        GenJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", CreateGLAccount());
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+#endif
 
     local procedure CreateAndPostItemJournalLineWithLotTracking(ItemNo: Code[20]; Quantity: Decimal)
     var
@@ -444,6 +441,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));  // Post as Ship Only.
     end;
 
+#if not CLEAN30
     local procedure CreateAndSetupDepreciationBook(var DepreciationBook: Record "Depreciation Book")
     var
         FAJournalSetup: Record "FA Journal Setup";
@@ -452,6 +450,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         UpdateFAJournalSetup(FAJournalSetup);
     end;
+#endif
 
 #if not CLEAN28
     [Obsolete('Moved to Payment app', '28.0')]
@@ -466,7 +465,35 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDefaultDimensionCustomer(DefaultDimension, Customer."No.", Dimension.Code, DimensionValue.Code);
     end;
-#endif    
+#endif
+
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
+    local procedure CreateAndUpdateVendorWithDimension(var DefaultDimension: Record "Default Dimension")
+    var
+        Dimension: Record Dimension;
+        DimensionValue: Record "Dimension Value";
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryDimension.FindDimension(Dimension);
+        LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
+        LibraryDimension.CreateDefaultDimensionVendor(DefaultDimension, Vendor."No.", Dimension.Code, DimensionValue.Code);
+    end;
+#endif
+
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
+    local procedure CreateAndUpdateVendorWithIncompleteDimension(var DefaultDimension: Record "Default Dimension")
+    var
+        Dimension: Record Dimension;
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDefaultDimensionVendor(DefaultDimension, Vendor."No.", Dimension.Code, '');
+    end;
+#endif
 
     local procedure CreateCertifiedProductionBOMWithLotTrackedItem(): Code[20]
     var
@@ -483,6 +510,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         exit(Item."No.");
     end;
 
+#if not CLEAN30
     local procedure CreateDepreciationBookAndModifyDerogatoryCalculation(DerogatoryCalculation: Code[10]): Code[10]
     var
         DepreciationBook: Record "Depreciation Book";
@@ -537,26 +565,6 @@ codeunit 144015 "ERM FR Feature Bugs"
         UpdateFAPostingGroup(FixedAsset."FA Posting Group");
     end;
 
-    local procedure CreateAndPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; FAPostingDate: Date; FAPostingType: Enum "Gen. Journal Line FA Posting Type"; FANo: Code[20]; DepreciationBookCode: Code[10]; Amount: Decimal)
-    var
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GenJournalBatch: Record "Gen. Journal Batch";
-    begin
-        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
-        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type",
-          GenJournalLine."Account Type"::"Fixed Asset", FANo, Amount);
-        GenJournalLine.Validate("FA Posting Type", FAPostingType);
-        GenJournalLine.Validate("FA Posting Date", FAPostingDate);
-        GenJournalLine.Validate("Posting Date", WorkDate());
-        GenJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
-        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
-        GenJournalLine.Validate("Bal. Account No.", CreateGLAccount());
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-    end;
-
     local procedure CreateGLAccount(): Code[20]
     var
         GLAccount: Record "G/L Account";
@@ -564,6 +572,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryERM.CreateGLAccount(GLAccount);
         exit(GLAccount."No.");
     end;
+#endif
 
     local procedure CreateItem(): Code[20]
     var
@@ -607,6 +616,22 @@ codeunit 144015 "ERM FR Feature Bugs"
 
 #if not CLEAN28
     [Obsolete('Moved to Payment app', '28.0')]
+    local procedure CreatePaymentSlip(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]): Integer
+    var
+        PaymentHeader: Record "Payment Header";
+        PaymentLine: Record "Payment Line";
+    begin
+        LibraryFRLocalization.CreatePaymentHeader(PaymentHeader);
+        LibraryFRLocalization.CreatePaymentLine(PaymentLine, PaymentHeader."No.");
+        PaymentLine.Validate("Account Type", AccountType);
+        PaymentLine.Validate("Account No.", AccountNo);
+        PaymentLine.Modify(true);
+        exit(PaymentLine."Dimension Set ID");
+    end;
+#endif
+
+#if not CLEAN28
+    [Obsolete('Moved to Payment app', '28.0')]
     local procedure CreatePaymentStatus(PaymentClass: Text[30]; Sign: Option)
     var
         PaymentStatus: Record "Payment Status";
@@ -627,22 +652,7 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 #endif
 
-#if not CLEAN28
-    [Obsolete('Moved to Payment app', '28.0')]
-    local procedure CreatePaymentSlip(AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]): Integer
-    var
-        PaymentHeader: Record "Payment Header";
-        PaymentLine: Record "Payment Line";
-    begin
-        LibraryFRLocalization.CreatePaymentHeader(PaymentHeader);
-        LibraryFRLocalization.CreatePaymentLine(PaymentLine, PaymentHeader."No.");
-        PaymentLine.Validate("Account Type", AccountType);
-        PaymentLine.Validate("Account No.", AccountNo);
-        PaymentLine.Modify(true);
-        exit(PaymentLine."Dimension Set ID");
-    end;
-#endif
-
+#if not CLEAN30
     local procedure CreatePostDepreciationAndDerogatoryFAJournal(FANo: Code[20]; DepreciationBookCode: Code[10]; DepreciationAmount: Decimal; DerogatoryAmount: Decimal)
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -654,6 +664,7 @@ codeunit 144015 "ERM FR Feature Bugs"
           GenJournalLine, CalcDate('<1M>', WorkDate()), GenJournalLine."FA Posting Type"::Derogatory, FANo,
           DepreciationBookCode, -DerogatoryAmount);
     end;
+#endif
 
     local procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal)
     begin
@@ -693,32 +704,24 @@ codeunit 144015 "ERM FR Feature Bugs"
 
 #if not CLEAN28
     [Obsolete('Moved to Payment app', '28.0')]
-    local procedure CreateAndUpdateVendorWithDimension(var DefaultDimension: Record "Default Dimension")
+    local procedure DefaultDimensionCodeOnPaymentSlip(Sign: Option; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; DimensionCode: Code[10])
     var
-        Dimension: Record Dimension;
-        DimensionValue: Record "Dimension Value";
-        Vendor: Record Vendor;
+        DimensionSetEntry: Record "Dimension Set Entry";
+        DimensionSetID: Integer;
     begin
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryDimension.FindDimension(Dimension);
-        LibraryDimension.FindDimensionValue(DimensionValue, Dimension.Code);
-        LibraryDimension.CreateDefaultDimensionVendor(DefaultDimension, Vendor."No.", Dimension.Code, DimensionValue.Code);
+        CreatePaymentStatus(CreatePaymentClass(), Sign);
+
+        // Exercise: Create Payment Slip.
+        DimensionSetID := CreatePaymentSlip(AccountType, AccountNo);
+
+        // Verify: Verify Dimension Code on Dimension Set Entry.
+        DimensionSetEntry.SetRange("Dimension Set ID", DimensionSetID);
+        DimensionSetEntry.FindFirst();
+        DimensionSetEntry.TestField("Dimension Code", DimensionCode);
     end;
 #endif
 
-#if not CLEAN28
-    [Obsolete('Moved to Payment app', '28.0')]
-    local procedure CreateAndUpdateVendorWithIncompleteDimension(var DefaultDimension: Record "Default Dimension")
-    var
-        Dimension: Record Dimension;
-        Vendor: Record Vendor;
-    begin
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryDimension.CreateDimension(Dimension);
-        LibraryDimension.CreateDefaultDimensionVendor(DefaultDimension, Vendor."No.", Dimension.Code, '');
-    end;
-#endif    
-
+#if not CLEAN30
     local procedure RunCalculateDepreciationReport(DepreciationBookCode: Code[10])
     begin
         LibraryVariableStorage.Enqueue(DepreciationBookCode);
@@ -775,6 +778,7 @@ codeunit 144015 "ERM FR Feature Bugs"
             FALedgerEntry.TestField(Amount, Amount);
         until FALedgerEntry.Next() = 0;
     end;
+#endif
 
     local procedure VerifyItemLedgerEntry(ItemNo: Code[20]; Quantity: Decimal; LotNo: Code[20]; SourceNo: Code[20])
     var
@@ -800,7 +804,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CalculateDepreciationRequestPageHandler(var CalculateDepreciation: TestRequestPage "Calculate Depreciation")
     var
         DepreciationBookCode: Variant;
@@ -813,7 +816,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure GetShipmentLinesPageHandler(var GetShipmentLines: TestPage "Get Shipment Lines")
     var
         SellToCustomerNo: Variant;
@@ -824,7 +826,6 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure ItemTrackingPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     var
         TrackingQuantity: Variant;
@@ -838,15 +839,13 @@ codeunit 144015 "ERM FR Feature Bugs"
 #if not CLEAN28
     [Obsolete('Moved to Payment app', '28.0')]
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure PaymentClassListPageHandler(var PaymentClassList: TestPage "Payment Class List")
     begin
         PaymentClassList.OK().Invoke();
     end;
-#endif    
+#endif
 
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure DepreciationCalcConfirmHandler(Message: Text[1024]; var Reply: Boolean)
     begin
         Reply := false;

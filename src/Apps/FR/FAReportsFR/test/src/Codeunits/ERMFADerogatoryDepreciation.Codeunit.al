@@ -11,6 +11,9 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
+#if not CLEAN30
+using System.Environment.Configuration;
+#endif
 
 codeunit 148000 "ERM FA Derogatory Depreciation"
 {
@@ -28,6 +31,14 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+#if not CLEAN30
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432
+#endif
+        Assert: Codeunit Assert;
+        IsInitialized: Boolean;
 
     [Test]
     [HandlerFunctions('FAProjValueDerogRPH,ConfirmHandler')]
@@ -37,6 +48,8 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
     begin
         // [SCENARIO] Report "Fixed Asset - Projected Value (Derogatory)" shows correct depreciation amounts when run with empty GroupTotals
+        Initialize();
+
         // [GIVEN] Fixed Asset. Post Acquisition Cost with amount = "A"
         // [WHEN] Run report "Fixed Asset - Projected Value (Derogatory)" with empty Group Totals option
         // [THEN] Report shows Depreciation Amount = "A"
@@ -49,10 +62,28 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
     procedure FAProjectedValueReportWithDetails()
     begin
         // [SCENARIO] Report "Fixed Asset - Projected Value (Derogatory)" shows correct depreciation amounts when run with non-empty GroupTotals and Print Details=TRUE
+        Initialize();
+
         // [GIVEN] Fixed Asset. Post Acquisition Cost with amount = "A"
         // [WHEN] Run report "Fixed Asset - Projected Value (Derogatory)" with non-empty Group Totals and Print Details = TRUE
         // [THEN] Report shows Depreciation Amount = "A"
         FAProjectedValueReport(LibraryRandom.RandIntInRange(1, 7), true);  // Using Random value in range for GroupTotals and TRUE for Print Details.
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM FA Derogatory Depreciation");
+        if IsInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ERM FA Derogatory Depreciation");
+
+#if not CLEAN30
+        DisableAcceleratedDepreciationFeature();
+#endif
+        IsInitialized := true;
+        Commit();
+
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM FA Derogatory Depreciation");
     end;
 
     local procedure FAProjectedValueReport(GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group"; PrintDetails: Boolean)
@@ -113,10 +144,32 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         DepreciationBook.Validate("G/L Integration - Acq. Cost", true);
         DepreciationBook.Validate("G/L Integration - Depreciation", true);
+#if not CLEAN30
+#pragma warning disable AL0432
         DepreciationBook.Validate("G/L Integration - Derogatory", true);
+#pragma warning restore AL0432
+#else
+        DepreciationBook.Validate("Integration G/L - Derogatory", true);
+#endif
         DepreciationBook.Modify(true);
         exit(DepreciationBook.Code);
     end;
+
+#if not CLEAN30
+    local procedure DisableAcceleratedDepreciationFeature()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        if not FeatureDataUpdateStatus.Get(AcceleratedDeprFeature.GetAcceleratedDepreciationFeatureKey(), CompanyName()) then begin
+            FeatureDataUpdateStatus."Feature Key" := AcceleratedDeprFeature.GetAcceleratedDepreciationFeatureKey();
+            FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+        Assert.IsFalse(AcceleratedDeprFeature.IsEnabled(), 'The test requires the legacy feature-disabled route.');
+    end;
+#endif
 
     local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book")
     var
