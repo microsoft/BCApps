@@ -16,11 +16,10 @@ codeunit 932 "Asm. Whse. Activity Post"
         WMSManagement: Codeunit "WMS Management";
     begin
         SalesLine.SetSkipUpdateQtyToAsm(false);
-        if (WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Pick") and
-           (WarehouseActivityHeader."Source Document" = WarehouseActivityHeader."Source Document"::"Sales Order") and
-           WMSManagement.ATOInvtPickExists(SalesLine)
-        then
-            SalesLine.SetSkipUpdateQtyToAsm(true);
+        if WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Pick" then
+            if WarehouseActivityHeader."Source Document" = WarehouseActivityHeader."Source Document"::"Sales Order" then
+                if WMSManagement.ATOInvtPickExists(SalesLine) then
+                    SalesLine.SetSkipUpdateQtyToAsm(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnBeforeModifySalesLine', '', false, false)]

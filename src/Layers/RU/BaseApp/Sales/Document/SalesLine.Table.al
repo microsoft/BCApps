@@ -8872,7 +8872,7 @@ table 37 "Sales Line"
         ATOLink.UpdateQtyToAsmFromSalesLine(Rec);
     end;
 
-    procedure SetSkipUpdateQtyToAsm(NewSkipUpdateQtyToAsm: Boolean)
+    internal procedure SetSkipUpdateQtyToAsm(NewSkipUpdateQtyToAsm: Boolean)
     begin
         SkipUpdateQtyToAsm := NewSkipUpdateQtyToAsm;
     end;
@@ -9149,14 +9149,14 @@ table 37 "Sales Line"
         SetFilter("Shipment Date", AvailabilityFilter);
         if DocumentType = "Document Type"::"Return Order" then
             if Positive then
-                SetFilter("Quantity (Base)", '>0')
-            else
-                SetFilter("Quantity (Base)", '<0')
+            SetFilter("Quantity (Base)", '>0')
         else
-            if Positive then
-                SetFilter("Quantity (Base)", '<0')
-            else
-                SetFilter("Quantity (Base)", '>0');
+            SetFilter("Quantity (Base)", '<0')
+        else
+        if Positive then
+            SetFilter("Quantity (Base)", '<0')
+        else
+            SetFilter("Quantity (Base)", '>0');
         SetRange("Job No.", ' ');
 
         OnAfterFilterLinesForReservation(Rec, ReservationEntry, DocumentType, AvailabilityFilter, Positive);
