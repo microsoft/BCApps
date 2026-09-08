@@ -263,12 +263,15 @@ codeunit 134775 "Word & RDLC Report Selections"
     procedure OneCustomer_TwoSelections_RDLC_Ok_WORD_Ok()
     var
         Customer: Record Customer;
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         WordRDLCReportSelections: Codeunit "Word & RDLC Report Selections";
     begin
         // [FEATURE] [RDLC] [Word]
         // [SCENARIO 228763] Print customer statement report (SaveAs PDF) in case of one customer with entries,
         // [SCENARIO 228763] two report selections (1 - RDLC, 2 - WORD)
         Initialize();
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         BindSubscription(WordRDLCReportSelections);
 
         // [GIVEN] Report Selections setup:
@@ -498,12 +501,15 @@ codeunit 134775 "Word & RDLC Report Selections"
     procedure OneCustomer_TwoSelections_WORD_Ok_RDLC_Ok()
     var
         Customer: Record Customer;
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         WordRDLCReportSelections: Codeunit "Word & RDLC Report Selections";
     begin
         // [FEATURE] [RDLC] [Word]
         // [SCENARIO 228763] Print customer statement report (SaveAs PDF) in case of one customer with entries,
         // [SCENARIO 228763] two report selections (1 - WORD, 2 - RDLC)
         Initialize();
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         BindSubscription(WordRDLCReportSelections);
 
         // [GIVEN] Report Selections setup:
@@ -733,11 +739,14 @@ codeunit 134775 "Word & RDLC Report Selections"
     procedure TwoCustomers_OneSelection_RDLC_Ok()
     var
         Customer: array[2] of Record Customer;
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         WordRDLCReportSelections: Codeunit "Word & RDLC Report Selections";
     begin
         // [FEATURE] [RDLC]
         // [SCENARIO 228763] Print customer statement report (SaveAs PDF) in case of two customers with entries, one RDLC report selections
         Initialize();
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         BindSubscription(WordRDLCReportSelections);
 
         // [GIVEN] Report Selections setup:
@@ -880,11 +889,14 @@ codeunit 134775 "Word & RDLC Report Selections"
     procedure TwoCustomers_OneSelection_WORD_Ok()
     var
         Customer: array[2] of Record Customer;
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         WordRDLCReportSelections: Codeunit "Word & RDLC Report Selections";
     begin
         // [FEATURE] [Word]
         // [SCENARIO 228763] Print customer statement report (SaveAs PDF) in case of two customers with entries, one WORD report selections
         Initialize();
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         BindSubscription(WordRDLCReportSelections);
 
         // [GIVEN] Report Selections setup:
@@ -1317,4 +1329,3 @@ codeunit 134775 "Word & RDLC Report Selections"
         Statement.OK().Invoke();
     end;
 }
-
