@@ -123,10 +123,16 @@ page 50104 "Fabric Platform Setup"
                     Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported logging tables.';
                 }
+                field("Setup Complete"; Rec."Setup Complete")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether the platform setup pipeline completed successfully.';
+                }
             }
             group(Options)
             {
-                Caption = 'Export Options';
+                Caption = 'Configuration';
 
                 field("Minutes Between Exports"; Rec."Minutes Between Exports")
                 {
@@ -149,6 +155,12 @@ page 50104 "Fabric Platform Setup"
                     begin
                         NotifyValueUsedOnNextRun();
                     end;
+                }
+                field("Export Enabled"; Rec."Export Enabled")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether continuous export is currently enabled.';
                 }
             }
             group(Credentials)
@@ -204,23 +216,6 @@ page 50104 "Fabric Platform Setup"
                     begin
                         CredMgt.SetPrincipalId(PrincipalIdValue);
                     end;
-                }
-            }
-            group(Status)
-            {
-                Caption = 'Status';
-
-                field("Setup Complete"; Rec."Setup Complete")
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Specifies whether the platform setup pipeline completed successfully.';
-                }
-                field("Export Enabled"; Rec."Export Enabled")
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Specifies whether continuous export is currently enabled.';
                 }
             }
         }
