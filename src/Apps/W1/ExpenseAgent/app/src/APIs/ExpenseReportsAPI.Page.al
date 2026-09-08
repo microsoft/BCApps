@@ -163,6 +163,11 @@ page 6928 "Expense Reports API"
                     Caption = 'Approver Comment';
                     Editable = false;
                 }
+                field(submitterComment; Rec.GetSubmitterComment())
+                {
+                    Caption = 'Submitter Comment';
+                    Editable = false;
+                }
                 field(finalApproverNo; Rec."Final Approver No.")
                 {
                     Caption = 'Final Approver No.';
@@ -423,10 +428,24 @@ page 6928 "Expense Reports API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
+#if not CLEAN30
+    [Obsolete('Use ReleaseAndMarkPendingApprovalExpenseReportWithComment instead.', '30.0')]
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReport(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     begin
-        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo);
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+#endif
+    [ServiceEnabled]
+    procedure ReleaseAndMarkPendingApprovalExpenseReportWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    begin
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, SubmissionComment);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
