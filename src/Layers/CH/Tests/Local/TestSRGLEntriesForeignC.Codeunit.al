@@ -16,6 +16,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
         LibraryERM: Codeunit "Library - ERM";
         LibraryCostAccounting: Codeunit "Library - Cost Accounting";
         Assert: Codeunit Assert;
+        IncorrectSourceCurrencyAmountErr: Label 'Source Currency Amount on G/L entry for account %1 is incorrect.', Comment = '%1 = G/L Account No.';
 
     [Test]
     [HandlerFunctions('ReportRequestPageHandler,GLAccountCreationMessageHandler')]
@@ -172,7 +173,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
         GLEntry.FindFirst();
         Assert.AreEqual(
             ExpectedSrcCurrAmount, GLEntry."Source Currency Amount",
-            StrSubstNo('Source Currency Amount on G/L entry for account %1 is incorrect.', GLAccountNo));
+            StrSubstNo(IncorrectSourceCurrencyAmountErr, GLAccountNo));
     end;
 
     [Normal]
