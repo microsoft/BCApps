@@ -120,25 +120,30 @@ foreach ($result in @($state.successful_issues)) {
     [void]$sections.AppendLine()
 }
 
-$disclaimer = @'
-> [!IMPORTANT]
-> AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.
-'@
+$templatePath = Join-Path $PSScriptRoot 'batch-pr-template.md'
+if (-not (Test-Path $templatePath)) {
+    throw "Batch pull request template '$templatePath' was not found."
+}
 
+$template = Get-Content -Raw $templatePath
+$sectionMarker = '<!-- EXT_REQ_BATCH_END -->'
+if (-not $template.Contains('{{TEAM}}') -or
+    -not $template.Contains('{{ISSUE_SECTIONS}}') -or
+    -not $template.Contains($sectionMarker)) {
+    throw "Batch pull request template '$templatePath' is missing a required placeholder or marker."
+}
+
+$newSections = $sections.ToString().Trim()
 if ($existingPr) {
     $existingBody = [string]$existingPr.body
-    $existingBody = $existingBody.Replace($disclaimer, '').TrimEnd()
-    $prBody = "$existingBody`n`n$($sections.ToString().Trim())`n`n$disclaimer"
+    if (-not $existingBody.Contains($sectionMarker)) {
+        throw "Existing pull request #$($existingPr.number) does not contain the batch section marker."
+    }
+    $prBody = $existingBody.Replace($sectionMarker, "$newSections`n`n$sectionMarker")
 } else {
-    $prBody = @"
-## Summary
-
-Daily extensibility implementation batch for Team: $($state.team).
-
-$($sections.ToString().Trim())
-
-$disclaimer
-"@
+    $prBody = $template.
+        Replace('{{TEAM}}', [string]$state.team).
+        Replace('{{ISSUE_SECTIONS}}', $newSections)
 }
 
 $prBodyPath = Join-Path ([IO.Path]::GetDirectoryName($StatePath)) 'pull-request-body.md'

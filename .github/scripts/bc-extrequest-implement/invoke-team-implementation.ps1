@@ -36,6 +36,8 @@ $batchId = "$TeamSlug-$BatchDate"
 $branch = "bc-extrequest-implement/team-$batchId"
 $runId = "$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
 $teamLabels = @('Team: Finance', 'Team: SCM', 'Team: Integrations', 'Team: Other')
+$requestLabels = @('event-request', 'request-for-external', 'enum-request', 'extensibility-enhancement')
+$batchRequestLabels = @('event-request', 'request-for-external')
 $workerRoot = Join-Path $env:RUNNER_TEMP "bc-extrequest-$batchId"
 $failedIssues = [System.Collections.Generic.List[object]]::new()
 $successfulIssues = [System.Collections.Generic.List[object]]::new()
@@ -165,6 +167,11 @@ function Test-IssueEligible {
     $assignedTeamLabels = @($labels | Where-Object { $_ -in $teamLabels })
     if ($assignedTeamLabels.Count -ne 1) {
         Write-Warning "Skipping issue #$($Issue.number): expected exactly one supported team label."
+        return $false
+    }
+
+    $assignedRequestLabels = @($labels | Where-Object { $_ -in $requestLabels })
+    if ($assignedRequestLabels.Count -ne 1 -or $assignedRequestLabels[0] -notin $batchRequestLabels) {
         return $false
     }
 

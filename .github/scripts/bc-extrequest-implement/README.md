@@ -5,7 +5,8 @@ The implementation automation supports two repository-configured modes through t
 
 - `per-issue` implements an eligible issue when it receives the `ext-ready-to-implement` label.
   This is also the default when the variable is not defined.
-- `per-team` disables label-triggered implementation and runs the scheduled team workflow.
+- `per-team` batches `event-request` and `request-for-external` issues in the scheduled team
+  workflow. Every other request type continues through the standalone label-triggered workflow.
 - `disabled` disables both automatic implementation modes.
 
 The team workflow runs at 18:10 Europe/Copenhagen time on weekdays. It processes at most ten
@@ -16,12 +17,18 @@ eligible issues for each of these teams, oldest first:
 - `Team: Integrations`
 
 An issue must be open, have type `Task`, carry `ext-ready-to-implement`, have exactly one team
-label, and have no open pull request that closes it. A team with no eligible issues completes
-successfully without creating a branch or pull request.
+label, have exactly one of `event-request` or `request-for-external`, and have no open pull request
+that closes it. Other request types are always implemented in standalone PRs. A team with no
+eligible issues completes successfully without creating a branch or pull request.
 
 Each issue is implemented sequentially in an isolated worktree and produces one commit. The
 workflow creates one draft pull request per team and local calendar date. Re-running the same team
 on the same date updates that branch and pull request.
+
+The batch pull request description template is
+[`batch-pr-template.md`](./batch-pr-template.md). `{{TEAM}}` and `{{ISSUE_SECTIONS}}` are populated
+when the PR is created. The `EXT_REQ_BATCH_END` marker is retained so same-day reruns can append
+new issue sections without replacing existing ones.
 
 ## Telemetry
 
