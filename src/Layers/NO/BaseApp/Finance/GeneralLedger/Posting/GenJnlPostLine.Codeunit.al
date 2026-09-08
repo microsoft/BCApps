@@ -1058,14 +1058,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
-        FullVATAmountSrcCurr: Decimal;
+        FullVATAmountSrcCurr, FullVATAmountWithPropDeductionSrcCurr : Decimal;
         LastNextEntryNo: Integer;
     begin
         if not NonDeductibleVAT.IsNonDeductibleVATEnabled() then begin
-            if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then
-                FullVATAmountSrcCurr := GenJnlLine."Source Curr. VAT Amount"
-            else
+            if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then begin
+                FullVATAmountSrcCurr := GenJnlLine."Source Curr. VAT Amount";
+                FullVATAmountWithPropDeductionSrcCurr := GenJnlLine."Source Curr. VAT Amount";
+            end else begin
                 FullVATAmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount");
+                FullVATAmountWithPropDeductionSrcCurr := CalcAmountSrcCurr(GenJnlLine, GetReverseChargeVATAmount(VATPostingParameters."Full VAT Amount", PropDeductionVAT, VATPostingParameters."Unrealized VAT"));
+            end;
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToPurchAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
@@ -1077,8 +1080,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GenJnlLine, VATPostingSetup.GetRevChargeAccount(VATPostingParameters."Unrealized VAT"),
                 GetReverseChargeVATAmount(VATPostingParameters."Full VAT Amount", PropDeductionVAT, VATPostingParameters."Unrealized VAT"),
                 GetReverseChargeVATAmountACY(VATPostingParameters."Full VAT Amount ACY", PropDedVATACY, VATPostingParameters."Unrealized VAT"), true,
-                CalcAmountSrcCurr(GenJnlLine,
-                    GetReverseChargeVATAmount(VATPostingParameters."Full VAT Amount", PropDeductionVAT, VATPostingParameters."Unrealized VAT")));
+                FullVATAmountWithPropDeductionSrcCurr);
             exit;
         end;
         if VATPostingParameters."Unrealized VAT" then begin
