@@ -9,6 +9,7 @@ codeunit 139700 "APIV1 - Items E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item]
     end;
 
@@ -33,6 +34,8 @@ codeunit 139700 "APIV1 - Items E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IF IsInitialized THEN
             EXIT;
 
