@@ -33,4 +33,18 @@ codeunit 30408 "Shpfy Copy Sales Document"
         Clear(ToSalesLine."Shpfy Order No.");
         ToSalesLine.Modify();
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopySalesDocument', '', false, false)]
+    local procedure LinkExchangeInvoiceToShopifyOrder(FromDocumentType: Option; FromDocumentNo: Code[20]; var ToSalesHeader: Record "Sales Header"; FromDocOccurenceNo: Integer; FromDocVersionNo: Integer; IncludeHeader: Boolean; RecalculateLines: Boolean; MoveNegLines: Boolean)
+    var
+        DocumentLinkMgt: Codeunit "Shpfy Document Link Mgt.";
+        DocumentConvert: Codeunit "Shpfy BC Document Type Convert";
+    begin
+        if not MoveNegLines then
+            exit;
+        if (ToSalesHeader."Shpfy Order Id" = 0) or (ToSalesHeader."Shpfy Refund Id" = 0) then
+            exit;
+
+        DocumentLinkMgt.CreateNewDocumentLink("Shpfy Shop Document Type"::"Shopify Shop Order", ToSalesHeader."Shpfy Order Id", DocumentConvert.Convert(ToSalesHeader."Document Type"), ToSalesHeader."No.");
+    end;
 }

@@ -715,7 +715,7 @@ page 4410 "SOA Multi Items Availability"
         IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
 
         if IsAgentSession then
-            if SOASetup.FindLast() then begin
+            if SOASetup.GetForCurrentAgentSession() then begin
                 ItemAvailabilityEnabled := SOASetup."Search Only Available Items";
                 OptionsVisible := true;
                 IncludeCapableToPromiseItems := SOASetup."Incl. Capable to Promise";

@@ -68,7 +68,7 @@ codeunit 4306 "SOA Session Filter"
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         ContactFilter, CustomerFilter : Text;
     begin
-        if SOASetup.FindFirst() then
+        if SOASetup.GetForCurrentAgentSession() then
             CalculateEarliestShipmentDate := SOASetup."Incl. Capable to Promise";
 
         ContactFilter := SOAFiltersImpl.GetSecurityFiltersForContacts(AgentTaskID);

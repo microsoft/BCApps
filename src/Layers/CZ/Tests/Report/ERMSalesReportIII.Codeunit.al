@@ -1456,6 +1456,7 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('LineAmount', FormatDecimal(5000.56, 2));
         LibraryReportDataset.AssertCurrentRowValueEquals('VATAmount', FormatDecimal(600.07, 2));
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), Rep1302DatasetErr);
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), Rep1302DatasetErr);
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalValue', FormatDecimal(5000.56, 2));
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalVATAmount', FormatDecimal(600.07, 2));
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalAmountInclVAT', FormatDecimal(5600.63, 2));
@@ -1492,6 +1493,7 @@ codeunit 134984 "ERM Sales Report III"
         LibraryReportDataset.AssertCurrentRowValueEquals('Price', FormatDecimal(1000.11111, 5));
         LibraryReportDataset.AssertCurrentRowValueEquals('LineAmount', FormatDecimal(5000.55555, 5));
         LibraryReportDataset.AssertCurrentRowValueEquals('VATAmount', FormatDecimal(600.06667, 5));
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), Rep1302DatasetErr);
         Assert.IsTrue(LibraryReportDataset.GetNextRow(), Rep1302DatasetErr);
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalValue', FormatDecimal(5000.55555, 5));
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalVATAmount', FormatDecimal(600.06667, 5));
@@ -3701,6 +3703,7 @@ codeunit 134984 "ERM Sales Report III"
         VerifyProformaInvoiceZeroQtyLineValues(SalesLine);
 
         // Totals
+        LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalWeight', TotalWeight);
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalValue', FormatDecimal(TotalAmount, 2));
         LibraryReportDataset.AssertCurrentRowValueEquals('TotalVATAmount', FormatDecimal(TotalVATAmount, 2));

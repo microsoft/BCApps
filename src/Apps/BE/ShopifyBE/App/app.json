@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Belgium localization for the Shopify Connector.",
   "description": "Adds Belgium-specific tax identifier mapping to the Shopify Connector so that Belgian B2B companies and customers can be synchronized using the Enterprise No., as required by the Belgian localization.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2179727",
@@ -17,7 +17,7 @@
       "id": "ec255f57-31d0-4ca2-b751-f2fa7c745abb",
       "name": "Shopify Connector",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
@@ -33,7 +33,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "target": "OnPrem",
   "features": [
     "NoImplicitWith",

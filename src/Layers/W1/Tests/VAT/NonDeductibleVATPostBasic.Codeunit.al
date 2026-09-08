@@ -11,6 +11,7 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
     var
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
@@ -24,6 +25,8 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         NDVATBaseMustBeZeroErr: Label 'Non-Deductible VAT Base must be 0 after changing to Full VAT';
         NDVATAmountMustBeZeroErr: Label 'Non-Deductible VAT Amount must be 0 after changing to Full VAT';
         PurchaseInvoiceMustBePostedErr: Label 'Purchase Invoice must be posted successfully';
+        SalesInvoiceMustBePostedErr: Label 'Sales Invoice must be posted successfully';
+        GLEntriesNotBalancedErr: Label 'G/L Entries must be balanced for the posted document';
         NDVATBaseMustBeNonZeroErr: Label 'Non-Deductible VAT Base must be non-zero before changing group';
 
     [Test]
@@ -214,6 +217,92 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         Assert.AreNotEqual('', PostedDocNo, PurchaseInvoiceMustBePostedErr);
     end;
 
+    [Test]
+    procedure PurchInvMixedNormalAndFullVATLinesPostBalanced()
+    var
+        NormalVATPostingSetup: Record "VAT Posting Setup";
+        FullVATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        FullVATGLAccountNo: Code[20];
+        FullVATLineAmount: Decimal;
+        FullVATLineNDVATPct: Decimal;
+        PostedDocNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647126] Purchase invoice with a Normal VAT line and a Full VAT line, both with Non-Deductible VAT, posts with balanced G/L entries and correct VAT Entry values
+        Initialize();
+
+        // [GIVEN] Normal VAT posting setup "S1" with Non-Deductible VAT allowed
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(NormalVATPostingSetup);
+        // [GIVEN] Full VAT posting setup "S2" on the same VAT Bus. Posting Group with Non-Deductible VAT allowed
+        FullVATGLAccountNo := CreateNDFullVATPurchPostingSetup(FullVATPostingSetup, NormalVATPostingSetup."VAT Bus. Posting Group", LibraryRandom.RandIntInRange(10, 40));
+
+        // [GIVEN] Purchase invoice with one line using "S1" and one line using "S2"
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice, CreateVendor(NormalVATPostingSetup."VAT Bus. Posting Group"));
+        CreatePurchaseLine(
+            PurchaseHeader, PurchaseLine, PurchaseLine.Type::"G/L Account", CreateGLAccount(NormalVATPostingSetup),
+            LibraryRandom.RandInt(10), LibraryRandom.RandDecInDecimalRange(100, 200, 2));
+        CreatePurchaseLine(
+            PurchaseHeader, PurchaseLine, PurchaseLine.Type::"G/L Account", FullVATGLAccountNo,
+            LibraryRandom.RandInt(10), LibraryRandom.RandDecInDecimalRange(100, 200, 2));
+        // Full VAT line: entire amount is VAT, so the Non-Deductible VAT amount is a percentage of it
+        FullVATLineAmount := PurchaseLine."Amount Including VAT";
+        FullVATLineNDVATPct := PurchaseLine."Non-Deductible VAT %";
+
+        // [WHEN] Post the purchase invoice
+        PostedDocNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Purchase Invoice posts without G/L Entry inconsistency error and the G/L Entries balance out
+        Assert.AreNotEqual('', PostedDocNo, PurchaseInvoiceMustBePostedErr);
+        VerifyGLEntriesBalanced(PostedDocNo);
+
+        // [THEN] The Full VAT line VAT Entry has Base = 0, Non-Deductible VAT Base = 0, the expected Non-Deductible VAT Amount, and the remaining deductible VAT Amount
+        VerifyFullVATPurchaseVATEntry(
+            PostedDocNo, FullVATPostingSetup."VAT Prod. Posting Group", FullVATLineAmount, FullVATLineNDVATPct);
+    end;
+
+    [Test]
+    procedure SalesInvFullVATNonDeductibleVATIsZeroInVATEntry()
+    var
+        FullVATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATEntry: Record "VAT Entry";
+        SalesVATGLAccountNo: Code[20];
+        PostedDocNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647126] Sales invoice with a Full VAT line and Non-Deductible VAT setup posts with zero Non-Deductible VAT in the VAT Entry and balanced G/L
+        Initialize();
+
+        // [GIVEN] Full VAT posting setup with Non-Deductible VAT allowed
+        SalesVATGLAccountNo := CreateNDFullVATSalesPostingSetup(FullVATPostingSetup, LibraryRandom.RandIntInRange(10, 40));
+
+        // [GIVEN] Sales invoice with a line for the Sales VAT Account
+        LibrarySales.CreateSalesHeader(
+            SalesHeader, SalesHeader."Document Type"::Invoice, CreateCustomer(FullVATPostingSetup."VAT Bus. Posting Group"));
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", SalesVATGLAccountNo, LibraryRandom.RandInt(10));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInDecimalRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the sales invoice
+        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Sales Invoice posts and the G/L Entries balance out
+        Assert.AreNotEqual('', PostedDocNo, SalesInvoiceMustBePostedErr);
+        VerifyGLEntriesBalanced(PostedDocNo);
+
+        // [THEN] The VAT Entry has zero Non-Deductible VAT Base and Non-Deductible VAT Amount
+        VATEntry.SetRange("Document No.", PostedDocNo);
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.FindFirst();
+        VATEntry.TestField("Non-Deductible VAT Base", 0);
+        VATEntry.TestField("Non-Deductible VAT Amount", 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -326,6 +415,8 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
         VATPostingSetup.Validate("VAT %", LibraryRandom.RandInt(10));
+        if VATPostingSetup."VAT Identifier" = '' then
+            VATPostingSetup.Validate("VAT Identifier", VATPostingSetup."VAT Prod. Posting Group");
         AssignDeductibleVATPct(VATPostingSetup, 0);
         VATPostingSetup.Validate("Purchase VAT Account", CreateSimpleGLAccount());
         VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", CreateSimpleGLAccount());
@@ -447,5 +538,73 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
           VATEntry."Non-Deductible VAT Base" <> 0, StrSubstNo(WrongValueErr, VATEntry.TableCaption(), VATEntry.FieldCaption("Non-Deductible VAT Base")));
         Assert.IsTrue(
           VATEntry."Non-Deductible VAT Amount" <> 0, StrSubstNo(WrongValueErr, VATEntry.TableCaption(), VATEntry.FieldCaption("Non-Deductible VAT Amount")));
+    end;
+
+    local procedure CreateNDFullVATPurchPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroupCode: Code[20]; NonDeductibleVATPct: Decimal) PurchaseVATAccountNo: Code[20]
+    var
+        GLAccount: Record "G/L Account";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroupCode, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Full VAT");
+        VATPostingSetup.Validate("VAT %", 100);
+        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
+        VATPostingSetup.Modify(true);
+        PurchaseVATAccountNo := CreateGLAccount(VATPostingSetup, GLAccount."Gen. Posting Type"::Purchase);
+        VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateNDFullVATSalesPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; NonDeductibleVATPct: Decimal) SalesVATAccountNo: Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        LibraryNonDeductibleVAT.CreatVATPostingSetupAllowedForNonDeductibleVAT(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Full VAT", 100);
+        SalesVATAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+        VATPostingSetup.Validate("Sales VAT Account", SalesVATAccountNo);
+        VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateCustomer(VATBusPostingGroup: Code[20]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure VerifyGLEntriesBalanced(DocumentNo: Code[20])
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, GLEntriesNotBalancedErr);
+    end;
+
+    local procedure VerifyFullVATPurchaseVATEntry(DocumentNo: Code[20]; VATProdPostingGroup: Code[20]; FullVATAmount: Decimal; NonDeductibleVATPct: Decimal)
+    var
+        VATEntry: Record "VAT Entry";
+        ExpectedNonDedVATAmount: Decimal;
+    begin
+        ExpectedNonDedVATAmount := Round(FullVATAmount * NonDeductibleVATPct / 100, LibraryERM.GetAmountRoundingPrecision());
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.SetRange(Type, VATEntry.Type::Purchase);
+        VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
+        VATEntry.FindFirst();
+        VATEntry.TestField(Base, 0);
+        VATEntry.TestField("Non-Deductible VAT Base", 0);
+        Assert.AreNearlyEqual(
+          ExpectedNonDedVATAmount, VATEntry."Non-Deductible VAT Amount", LibraryERM.GetAmountRoundingPrecision(),
+          StrSubstNo(AmountErr, VATEntry.FieldCaption("Non-Deductible VAT Amount"), ExpectedNonDedVATAmount, VATEntry.TableCaption()));
+        Assert.AreNearlyEqual(
+          FullVATAmount - ExpectedNonDedVATAmount, VATEntry.Amount, LibraryERM.GetAmountRoundingPrecision(),
+          StrSubstNo(AmountErr, VATEntry.FieldCaption(Amount), FullVATAmount - ExpectedNonDedVATAmount, VATEntry.TableCaption()));
     end;
 }
