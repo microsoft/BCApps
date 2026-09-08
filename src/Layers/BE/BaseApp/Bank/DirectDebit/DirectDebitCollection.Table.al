@@ -111,7 +111,9 @@ table 1207 "Direct Debit Collection"
             Caption = 'Partner Type';
             Editable = false;
         }
+#pragma warning disable AS0099 // Accepted: Renumbering this existing published ID would be a breaking change.
         field(20000022; "Domiciliation Batch Name"; Code[20])
+#pragma warning restore AS0099
         {
             Caption = 'Domiciliation Batch Name';
         }
