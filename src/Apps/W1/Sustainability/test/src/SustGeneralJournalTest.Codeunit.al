@@ -3,8 +3,10 @@ namespace Microsoft.Test.Sustainability;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sustainability.Account;
@@ -1027,6 +1029,144 @@ codeunit 148188 "Sust. General Journal Test"
         Assert.RecordIsEmpty(SustainabilityLedgerEntry);
     end;
 
+    [Test]
+    procedure VerifySustainabilityLedgerEntryIsReversedWhenGLTransactionIsReversed()
+    var
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        ReversalSustLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityAccount: Record "Sustainability Account";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        ReversalEntry: Record "Reversal Entry";
+        OriginalEntryNo: Integer;
+        OriginalCO2e: Decimal;
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640775] The sustainability part is reversed when the related G/L transaction is reversed.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A Sustainability Account and emissions.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        EmissionCO2 := LibraryRandom.RandIntInRange(10, 20);
+        EmissionCH4 := LibraryRandom.RandIntInRange(1, 5);
+        EmissionN2O := LibraryRandom.RandIntInRange(1, 5);
+
+        // [GIVEN] Two G/L Accounts and a Gen. Journal Batch.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateGLAccount(BalGLAccount);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+
+        // [GIVEN] A posted General Journal Line with a Sustainability Account, creating a Sustainability Ledger Entry linked to the G/L transaction.
+        CreateGLGenJournalLineWithEmission(
+            GenJournalLine, GenJournalBatch, GLAccount."No.", BalGLAccount."No.", SustainabilityAccount."No.",
+            EmissionCO2, EmissionCH4, EmissionN2O);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        SustainabilityLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        SustainabilityLedgerEntry.FindFirst();
+        OriginalEntryNo := SustainabilityLedgerEntry."Entry No.";
+        OriginalCO2e := SustainabilityLedgerEntry."CO2e Emission";
+
+        // [WHEN] The G/L transaction is reversed.
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        ReversalEntry.SetHideDialog(true);
+        ReversalEntry.SetHideWarningDialogs();
+        ReversalEntry.ReverseTransaction(GLEntry."Transaction No.");
+
+        // [THEN] The original Sustainability Ledger Entry is marked as reversed.
+        SustainabilityLedgerEntry.Get(OriginalEntryNo);
+        Assert.IsTrue(SustainabilityLedgerEntry."Reversed", 'Original sustainability entry should be marked as Reversed.');
+        Assert.AreNotEqual(0, SustainabilityLedgerEntry."Reversed by Entry No.", 'Reversed by Entry No. should be populated.');
+
+        // [THEN] A reversal Sustainability Ledger Entry exists with negated CO2e referencing the original entry.
+        ReversalSustLedgerEntry.Get(SustainabilityLedgerEntry."Reversed by Entry No.");
+        Assert.AreEqual(
+            -OriginalCO2e,
+            ReversalSustLedgerEntry."CO2e Emission",
+            StrSubstNo(ValueMustBeEqualErr, ReversalSustLedgerEntry.FieldCaption("CO2e Emission"), -OriginalCO2e, ReversalSustLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            OriginalEntryNo,
+            ReversalSustLedgerEntry."Reversed Entry No.",
+            StrSubstNo(ValueMustBeEqualErr, ReversalSustLedgerEntry.FieldCaption("Reversed Entry No."), OriginalEntryNo, ReversalSustLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure VerifySustainabilityLedgerEntryIsNotReversedTwiceWhenAlreadyReversedBeforeGLReversal()
+    var
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityAccount: Record "Sustainability Account";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        ReversalEntry: Record "Reversal Entry";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640775] Reversing the G/L transaction does not reverse the sustainability part again when it was already reversed manually.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A Sustainability Account and emissions.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        EmissionCO2 := LibraryRandom.RandIntInRange(10, 20);
+        EmissionCH4 := LibraryRandom.RandIntInRange(1, 5);
+        EmissionN2O := LibraryRandom.RandIntInRange(1, 5);
+
+        // [GIVEN] Two G/L Accounts and a Gen. Journal Batch.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateGLAccount(BalGLAccount);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+
+        // [GIVEN] A posted General Journal Line with a Sustainability Account.
+        CreateGLGenJournalLineWithEmission(
+            GenJournalLine, GenJournalBatch, GLAccount."No.", BalGLAccount."No.", SustainabilityAccount."No.",
+            EmissionCO2, EmissionCH4, EmissionN2O);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] The sustainability part is already reversed manually.
+        SustainabilityLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        SustainabilityLedgerEntry.FindFirst();
+        SustEntryReverseMgt.ReverseEntry(SustainabilityLedgerEntry);
+
+        // [WHEN] The G/L transaction is reversed.
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        ReversalEntry.SetHideDialog(true);
+        ReversalEntry.SetHideWarningDialogs();
+        ReversalEntry.ReverseTransaction(GLEntry."Transaction No.");
+
+        // [THEN] Only the original entry and its single manual reversal exist (the G/L reversal did not reverse the sustainability part again).
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.AreEqual(
+            2,
+            SustainabilityLedgerEntry.Count(),
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Entry No."), 2, SustainabilityLedgerEntry.TableCaption()));
+    end;
+
     local procedure CreateGenJournalLineWithEmission(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; VendorNo: Code[20]; BankAccountNo: Code[20]; SustAccountNo: Code[20]; EmissionCO2: Decimal; EmissionCH4: Decimal; EmissionN2O: Decimal)
     begin
         LibraryERM.CreateGeneralJnlLine(
@@ -1040,6 +1180,27 @@ codeunit 148188 "Sust. General Journal Test"
 
         GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"Bank Account");
         GenJournalLine.Validate("Bal. Account No.", BankAccountNo);
+        GenJournalLine.Validate("Sust. Account No.", SustAccountNo);
+        GenJournalLine.Validate("Total Emission CH4", EmissionCH4);
+        GenJournalLine.Validate("Total Emission N2O", EmissionN2O);
+        GenJournalLine.Validate("Total Emission CO2", EmissionCO2);
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure CreateGLGenJournalLineWithEmission(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; GLAccountNo: Code[20]; BalGLAccountNo: Code[20]; SustAccountNo: Code[20]; EmissionCO2: Decimal; EmissionCH4: Decimal; EmissionN2O: Decimal)
+    begin
+        // Use a blank document type G/L-to-G/L line so the transaction is reversible in all localizations (e.g. IT blocks reversing invoice documents).
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccountNo,
+            LibraryRandom.RandIntInRange(100, 200));
+
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
         GenJournalLine.Validate("Sust. Account No.", SustAccountNo);
         GenJournalLine.Validate("Total Emission CH4", EmissionCH4);
         GenJournalLine.Validate("Total Emission N2O", EmissionN2O);
