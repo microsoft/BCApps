@@ -1602,6 +1602,64 @@ codeunit 134897 "ERM Source Currency"
         SetSalesDiscountPosting(OldDiscountPosting);
     end;
 
+    [Test]
+    procedure GenJournalPurchaseReverseChargeVATFCYPreservesSourceCurrencyAmounts()
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        GLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: array[2] of Record "G/L Entry";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        PostedPurchaseInvoiceNo: Code[20];
+        VendorNo: Code[20];
+        WithForeignCurrency: Boolean;
+        ExpectedVATAmount: Decimal;
+    begin
+        // [SCENARIO 647818] Reverse charge VAT G/L entries preserve source currency amounts from a non-system-created journal line.
+        Initialize();
+
+        // [GIVEN] A foreign currency with an exchange rate of 1:0.81709.
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Modify(true);
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, WorkDate());
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 0.81709);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 0.81709);
+        CurrencyExchangeRate.Modify(true);
+
+        // [GIVEN] A vendor with reverse charge VAT setup.
+        VendorNo := CreateVendorWithNewPostingGroups(VendorPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] A Purchase Invoice for a G/L Account.
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
+        CreatePurchaseInvoice(PurchaseHeader, VendorNo, GLAccount."No.", WithForeignCurrency);
+        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Both reverse charge entries preserve the original source VAT amount.
+        GLEntry[1].SetRange("Document No.", PostedPurchaseInvoiceNo);
+        GLEntry[1].SetRange("G/L Account No.", VATPostingSetup."Purchase VAT Account");
+        GLEntry[1].FindFirst();
+
+        GLEntry[2].SetRange("Document No.", PostedPurchaseInvoiceNo);
+        GLEntry[2].SetRange("G/L Account No.", VATPostingSetup.GetRevChargeAccount(false));
+        GLEntry[2].FindFirst();
+        Assert.AreEqual(
+            -GLEntry[1]."Source Currency Amount",
+            GLEntry[2]."Source Currency Amount",
+            StrSubstNo(
+                VATAmountIncorrectErr,
+                GenJournalLine.Amount,
+                VATPostingSetup."VAT %"));
+    end;
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
