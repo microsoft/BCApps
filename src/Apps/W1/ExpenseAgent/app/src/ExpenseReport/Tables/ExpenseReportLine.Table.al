@@ -838,6 +838,19 @@ table 6907 "Expense Report Line"
                 ApplyRule();
             end;
         }
+        field(68; "Vehicle Type"; Code[20])
+        {
+            Caption = 'Vehicle Type';
+            TableRelation = "Expense Vehicle Type";
+            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+
+                ApplyRule();
+            end;
+        }
         field(51; "Credit Card Feed No."; Integer)
         {
             Caption = 'Credit Card Feed No.';
@@ -1040,9 +1053,9 @@ table 6907 "Expense Report Line"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report line. The travel request must be approved and released before it can be selected.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
@@ -1066,8 +1079,8 @@ table 6907 "Expense Report Line"
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
         field(102; "Policies Evaluated At"; DateTime)
@@ -1182,7 +1195,7 @@ table 6907 "Expense Report Line"
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
@@ -1571,14 +1584,44 @@ table 6907 "Expense Report Line"
     end;
 
     procedure UpdatePostingDescription(): Text[100]
+    begin
+        exit(UpdatePostingDescription("Expense Category", "Expense Subcategory Code"));
+    end;
+
+    internal procedure UpdatePostingDescription(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]): Text[100]
     var
         ExpenseSubcategory: Record "Expense Subcategory";
+        BaseDescription: Text[100];
+        PostingDescriptionSuffix: Text;
+        StoredSuffixLength: Integer;
     begin
-        if "Expense Subcategory Code" <> '' then begin
-            ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code");
-            exit(CopyStr(Description + ' - ' + ExpenseSubcategory."Posting Description", 1, 100));
+        BaseDescription := Description;
+        if ("Expense Subcategory Code" <> '') and
+           ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code") and
+           (ExpenseSubcategory."Posting Description" <> '')
+        then begin
+            PostingDescriptionSuffix := ' / ' + ExpenseSubcategory."Posting Description";
+            StoredSuffixLength := StrLen(PostingDescriptionSuffix);
+            if StoredSuffixLength > MaxStrLen(BaseDescription) then
+                StoredSuffixLength := MaxStrLen(BaseDescription);
+            while (StoredSuffixLength >= StrLen(' / ')) and
+                  (not BaseDescription.EndsWith(CopyStr(PostingDescriptionSuffix, 1, StoredSuffixLength)))
+            do
+                StoredSuffixLength -= 1;
+            if (StoredSuffixLength = StrLen(PostingDescriptionSuffix)) or
+               ((StrLen(BaseDescription) = MaxStrLen(BaseDescription)) and (StoredSuffixLength >= StrLen(' / ')))
+            then
+                BaseDescription := CopyStr(
+                    DelStr(BaseDescription, StrLen(BaseDescription) - StoredSuffixLength + 1), 1, MaxStrLen(BaseDescription));
         end;
-        exit(CopyStr(Description, 1, 100));
+
+        if (ExpenseSubcategoryCode = '') or
+           (not ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode)) or
+           (ExpenseSubcategory."Posting Description" = '')
+        then
+            exit(BaseDescription);
+
+        exit(CopyStr(BaseDescription + ' / ' + ExpenseSubcategory."Posting Description", 1, 100));
     end;
 
     local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)

@@ -276,6 +276,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         ShipmentPostingDates: Dictionary of [Code[20], Date];
+        InvoiceLineNodes: Dictionary of [Text, XmlNode];
         CustomizationIdNode: XmlNode;
         NewCustomizationIdNode: XmlNode;
     begin
@@ -291,12 +292,30 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             CustomizationIdNode.ReplaceWith(NewCustomizationIdNode);
         end;
 
+        IndexInvoiceLineNodes(XmlDoc, NamespaceMgr, InvoiceLineNodes);
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetLoadFields("Line No.", "Order No.", "Order Line No.", "Shipment No.");
         if SalesInvoiceLine.FindSet() then
             repeat
-                InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine, ShipmentPostingDates);
+                InjectExtendedLineReferences(InvoiceLineNodes, NamespaceMgr, SalesInvoiceLine, ShipmentPostingDates);
             until SalesInvoiceLine.Next() = 0;
+    end;
+
+    local procedure IndexInvoiceLineNodes(XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; var InvoiceLineNodes: Dictionary of [Text, XmlNode])
+    var
+        InvoiceLineNodeList: XmlNodeList;
+        InvoiceLineNode: XmlNode;
+        LineIDNode: XmlNode;
+        LineID: Text;
+    begin
+        if not XmlDoc.SelectNodes('/*/cac:InvoiceLine', NamespaceMgr, InvoiceLineNodeList) then
+            exit;
+        foreach InvoiceLineNode in InvoiceLineNodeList do
+            if InvoiceLineNode.SelectSingleNode('cbc:ID', NamespaceMgr, LineIDNode) then begin
+                LineID := LineIDNode.AsXmlElement().InnerText();
+                if not InvoiceLineNodes.ContainsKey(LineID) then
+                    InvoiceLineNodes.Add(LineID, InvoiceLineNode);
+            end;
     end;
 
     local procedure RequiresExtendedCTCFrance(DocumentNo: Code[20]; var ShipmentPostingDates: Dictionary of [Code[20], Date]): Boolean
@@ -359,18 +378,18 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             Values.Add(Value, true);
     end;
 
-    local procedure InjectExtendedLineReferences(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentPostingDates: Dictionary of [Code[20], Date])
+    local procedure InjectExtendedLineReferences(InvoiceLineNodes: Dictionary of [Text, XmlNode]; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentPostingDates: Dictionary of [Code[20], Date])
     var
         InvoiceLineNode: XmlNode;
         LineContentAnchorNode: XmlNode;
         OrderLineReferenceElement: XmlElement;
         OrderReferenceElement: XmlElement;
         DeliveryElement: XmlElement;
-        LineXPath: Text;
+        LineID: Text;
         ShipmentPostingDate: Date;
     begin
-        LineXPath := StrSubstNo(InvoiceLineXPathTok, Format(SalesInvoiceLine."Line No.", 0, 9));
-        if not XmlDoc.SelectSingleNode(LineXPath, NamespaceMgr, InvoiceLineNode) then
+        LineID := Format(SalesInvoiceLine."Line No.", 0, 9);
+        if not InvoiceLineNodes.Get(LineID, InvoiceLineNode) then
             exit;
         if not InvoiceLineNode.SelectSingleNode('cac:AllowanceCharge | cac:TaxTotal | cac:WithholdingTaxTotal | cac:Item', NamespaceMgr, LineContentAnchorNode) then
             exit;
@@ -786,5 +805,4 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         BillingModeB1Tok: Label 'B1', Locked = true;
         BillingModeS1Tok: Label 'S1', Locked = true;
         BillingModeM1Tok: Label 'M1', Locked = true;
-        InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
 }

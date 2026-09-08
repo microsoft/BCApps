@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -34,7 +35,6 @@ codeunit 148148 "Factur-X CII XML Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [Factur-X FR E-document]
     end;
 
     var
@@ -47,7 +47,6 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         CIIXMLBuilder: Codeunit "CII XML Builder";
-        EDocHelpers: Codeunit "EDoc. Helpers";
         FacturXFormat: Codeunit "Factur-X Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
@@ -185,6 +184,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller name from Company Information
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -203,6 +203,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller VAT registration number with scheme VA
         Initialize();
 
+        // [GIVEN] Posted sales invoice / Company information with VAT Registration No.
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -366,8 +367,8 @@ codeunit 148148 "Factur-X CII XML Tests"
         Initialize();
 
         // [GIVEN] Sales invoice with a foreign Currency Code
-        LibraryERM.CreateCurrency(Currency);
-        LibraryERM.CreateRandomExchangeRate(Currency.Code);
+        EnsureCurrency(Currency, 'USD');
+        EnsureExchangeRate(Currency.Code);
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, '', Currency.Code));
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
@@ -481,6 +482,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller electronic address (BT-34) as SIRET with schemeID 0009
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -739,6 +741,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has SpecifiedTradeSettlementPaymentMeans with TypeCode 58 (SEPA credit transfer)
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -855,7 +858,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Customer.Modify(true);
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, Customer."No.");
+        CreateSalesDocument(SalesHeader, Customer."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);
@@ -1000,6 +1003,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML line BilledQuantity has unitCode attribute (BT-130)
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -1018,6 +1022,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML line-level ApplicableTradeTax has TypeCode = 'VAT'
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -1204,8 +1209,8 @@ codeunit 148148 "Factur-X CII XML Tests"
         Initialize();
 
         // [GIVEN] Sales credit memo with a foreign Currency Code
-        LibraryERM.CreateCurrency(Currency);
-        LibraryERM.CreateRandomExchangeRate(Currency.Code);
+        EnsureCurrency(Currency, 'USD');
+        EnsureExchangeRate(Currency.Code);
         SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", '', Currency.Code));
         SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
@@ -1295,6 +1300,9 @@ codeunit 148148 "Factur-X CII XML Tests"
         EnsureCountryRegionExists('DE');
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", 'DE');
+        Customer.Address := 'Test Address';
+        Customer."Post Code" := '10115';
+        Customer.City := 'Berlin';
         Customer."VAT Registration No." := '533435789';
         Customer."Registration Number" := '';
         Customer."FR Electronic Address" := '123456789_FOREIGN';
@@ -1318,6 +1326,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [GIVEN] Posted sales credit memo "CM" with a single financial line
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
@@ -1450,52 +1460,44 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXBillingModeB1ForItemOnlyInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
-        SourceDocumentLines: RecordRef;
-        OriginalView: Text;
+        TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] GetFrenchBillingMode returns B1 for an invoice with only Item lines
+        // [SCENARIO] Factur-X CII XML uses billing mode B1 for an invoice with only Item lines
         Initialize();
 
         // [GIVEN] Posted sales invoice containing only an Item line
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(false));
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SourceDocumentLines.GetTable(SalesInvoiceLine);
-        OriginalView := SourceDocumentLines.GetView(false);
 
-        // [WHEN] GetFrenchBillingMode is called
-        // [THEN] Result = 'B1' and the source lines view is unchanged
-        Assert.AreEqual('B1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Billing mode = 'B1'
+        Assert.AreEqual('B1',
+            GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
             StrSubstNo(IncorrectValueErr, 'BillingMode B1'));
-        Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
 
     [Test]
     procedure FacturXBillingModeM1ForMixedItemAndNonItemInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
-        SourceDocumentLines: RecordRef;
-        OriginalView: Text;
+        TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] GetFrenchBillingMode returns M1 for an invoice with both Item and G/L Account lines
+        // [SCENARIO] Factur-X CII XML uses billing mode M1 for an invoice with both Item and G/L Account lines
         Initialize();
 
         // [GIVEN] Posted sales invoice containing Item and G/L Account lines
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(true));
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SourceDocumentLines.GetTable(SalesInvoiceLine);
-        OriginalView := SourceDocumentLines.GetView(false);
 
-        // [WHEN] GetFrenchBillingMode is called
-        // [THEN] Result = 'M1' and the source lines view is unchanged
-        Assert.AreEqual('M1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Billing mode = 'M1'
+        Assert.AreEqual('M1',
+            GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
-        Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
     #endregion
 
@@ -1504,6 +1506,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXCheckRaisesErrorWhenBuyerElectronicAddressIsMissing()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocHelpers: Codeunit "EDoc. Helpers";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
@@ -1528,6 +1531,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
+        EDocHelpers: Codeunit "EDoc. Helpers";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
@@ -1601,6 +1605,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
+        EDocHelpers: Codeunit "EDoc. Helpers";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
@@ -1662,7 +1667,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", FirstVATPostingSetup."VAT Bus. Posting Group");
         Customer.Modify(true);
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        CreateSalesDocument(SalesHeader, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 200);
         SalesLine.Validate("Allow Invoice Disc.", true);
@@ -1898,6 +1903,13 @@ codeunit 148148 "Factur-X CII XML Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20])
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
+    end;
+
     local procedure CreateAndPostSalesInvoiceForCustomer(CustomerNo: Code[20]): Code[20]
     var
         Customer: Record Customer;
@@ -1915,7 +1927,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        CreateSalesDocument(SalesHeader, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);
@@ -1953,7 +1965,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Item.Get(LibraryInventory.CreateItemNoWithPostingSetup(
             GLAccount."Gen. Prod. Posting Group", GLAccount."VAT Prod. Posting Group"));
         LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        CreateSalesDocument(SalesHeader, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);
@@ -2016,6 +2028,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", Customer."No.");
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
         SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
         SalesHeader.Validate("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesHeader.Modify(true);
@@ -2052,12 +2065,31 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        if Customer.Address = '' then
+            Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
+        if Customer."Post Code" = '' then
+            Customer.Validate("Post Code", '75001');
         Customer.Modify(true);
-        LibrarySales.CreateSalesHeader(SalesHeader, DocType, CustomerNo);
-        if CurrencyCode <> '' then begin
-            SalesHeader.Validate("Currency Code", CurrencyCode);
+        if DocType = "Sales Document Type"::Invoice then
+            CreateSalesDocument(SalesHeader, CustomerNo)
+        else begin
+            LibrarySales.CreateSalesHeader(SalesHeader, DocType, CustomerNo);
+            SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
             SalesHeader.Modify(true);
         end;
+        if SalesHeader."Bill-to City" = '' then
+            SalesHeader.Validate("Bill-to City", 'Paris');
+        if SalesHeader."Bill-to Post Code" = '' then
+            SalesHeader.Validate("Bill-to Post Code", '75001');
+        if SalesHeader."Ship-to City" = '' then
+            SalesHeader.Validate("Ship-to City", SalesHeader."Bill-to City");
+        if SalesHeader."Ship-to Post Code" = '' then
+            SalesHeader.Validate("Ship-to Post Code", '75001');
+        if SalesHeader."Ship-to Country/Region Code" = '' then
+            SalesHeader.Validate("Ship-to Country/Region Code", CompanyInformation."Country/Region Code");
+        if CurrencyCode <> '' then
+            SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
@@ -2092,12 +2124,13 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Modify(true);
 
         if ApplyInvoiceDiscount then begin
+            EnsureSalesInvoiceDiscountAccount(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
             LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, CustomerNo, '', 0);
             CustInvoiceDisc.Validate("Discount %", 10);
             CustInvoiceDisc.Modify(true);
         end;
 
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        CreateSalesDocument(SalesHeader, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 200);
         SalesLine.Validate("Allow Invoice Disc.", true);
@@ -2149,7 +2182,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CustInvoiceDisc.Validate("Discount %", 10);
         CustInvoiceDisc.Modify(true);
 
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        CreateSalesDocument(SalesHeader, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 500);
         SalesLine.Validate("Allow Invoice Disc.", true);
@@ -2194,6 +2227,9 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
+        Customer.Validate("Post Code", '75001');
+        Customer.City := 'Paris';
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer."Registration Number" := '123456789';
         Customer.Validate("FR Electronic Address", FRElecAddress);
@@ -2201,14 +2237,47 @@ codeunit 148148 "Factur-X CII XML Tests"
         exit(Customer."No.");
     end;
 
+    local procedure EnsureCurrency(var Currency: Record Currency; CurrencyCode: Code[10])
+    begin
+        if Currency.Get(CurrencyCode) then
+            exit;
+
+        Currency.Init();
+        Currency.Code := CurrencyCode;
+        Currency.Insert(true);
+    end;
+
+    local procedure EnsureExchangeRate(CurrencyCode: Code[10])
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.SetFilter("Starting Date", '..%1', WorkDate());
+        if not CurrencyExchangeRate.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateRandomExchangeRate(CurrencyCode);
+    end;
+
     local procedure CreateCustomerWithoutIdentifiers(): Code[20]
     var
         Customer: Record Customer;
+        DocumentSendingProfile: Record "Document Sending Profile";
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
+        Customer.Validate("Post Code", '75001');
+        Customer.City := 'Paris';
+        if not DocumentSendingProfile.Get('NON-EDOC') then begin
+            DocumentSendingProfile.Init();
+            DocumentSendingProfile.Code := 'NON-EDOC';
+            DocumentSendingProfile."Electronic Document" := DocumentSendingProfile."Electronic Document"::No;
+            DocumentSendingProfile.Insert(true);
+        end;
+        Customer.Validate("Document Sending Profile", DocumentSendingProfile.Code);
         Customer."FR Electronic Address" := '';
-        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::" ";
+        Clear(Customer."FR Elec. Address Scheme");
         Customer."VAT Registration No." := '';
         Customer."Registration Number" := '';
         Customer.Modify(true);
@@ -2455,6 +2524,10 @@ codeunit 148148 "Factur-X CII XML Tests"
             UnitOfMeasure.Code := 'EA';
             UnitOfMeasure.Description := 'Each';
             UnitOfMeasure.Insert(true);
+        end;
+        if UnitOfMeasure."International Standard Code" <> 'C62' then begin
+            UnitOfMeasure.Validate("International Standard Code", 'C62');
+            UnitOfMeasure.Modify(true);
         end;
         exit(UnitOfMeasure.Code);
     end;

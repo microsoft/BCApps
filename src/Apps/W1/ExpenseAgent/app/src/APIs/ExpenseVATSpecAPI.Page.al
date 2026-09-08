@@ -18,6 +18,8 @@ page 7085 "Expense VAT Spec. API"
     ODataKeyFields = SystemId;
     SourceTable = "Expense VAT Specification";
     AboutText = 'Provides access to data from the Expense VAT Specification table';
+    ModifyAllowed = false;
+    DeleteAllowed = false;
     AutoSplitKey = true;
 
     layout
@@ -90,6 +92,7 @@ page 7085 "Expense VAT Spec. API"
                 field(source; Rec.Source)
                 {
                     Caption = 'Source';
+                    Editable = false;
                 }
                 field(confidence; Rec.Confidence)
                 {
@@ -104,5 +107,17 @@ page 7085 "Expense VAT Spec. API"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        InsertVATSpecification(Rec);
+        exit(false);
+    end;
+
+    internal procedure InsertVATSpecification(var ExpenseVATSpecification: Record "Expense VAT Specification")
+    begin
+        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+        ExpenseVATSpecification.Insert(true);
     end;
 }

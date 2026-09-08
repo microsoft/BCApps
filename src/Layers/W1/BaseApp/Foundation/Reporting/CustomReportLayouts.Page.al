@@ -21,7 +21,6 @@ page 9650 "Custom Report Layouts"
     PageType = List;
     SourceTable = "Custom Report Layout";
     SourceTableView = sorting("Report ID", "Company Name", Type);
-    UsageCategory = Administration;
     AboutTitle = 'About Custom Report Layouts';
     AboutText = '**This page has been deprecated and will be removed in a later release**. Please migrate your layouts to the new system page _Report Layouts_ using the _Migrate to System Layouts_ action.';
     ObsoleteState = Pending;
