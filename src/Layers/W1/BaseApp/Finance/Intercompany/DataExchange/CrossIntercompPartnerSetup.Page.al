@@ -120,7 +120,8 @@ page 561 "CrossIntercomp. Partner Setup"
 
                         trigger OnValidate()
                         begin
-                            NotifyIfUntrustedConnectionUrl();
+                            if (PartnerSaaSConnectionUrl <> '') and not ValidateDynamicsUrl(PartnerSaaSConnectionUrl) then
+                                Error(UntrustedConnectionUrlErr);
                             NextEnabled := CheckIfSaaSConnectionDetailsAreFilled();
                         end;
                     }
@@ -341,7 +342,6 @@ page 561 "CrossIntercomp. Partner Setup"
         CurrentCompanyConnectionUrl, CurrentCompanyCompanyId, CurrentCompanyIntercompanyId, CurrentCompanyName : Text;
         PartnerSaaSCompanyName: Text[100];
         ConsentState: Boolean;
-        UntrustedUrlNotificationActive: Boolean;
 
         [NonDebuggable]
         PartnerSaaSCompanyId, OAuth2ClientID : Guid;
@@ -351,8 +351,7 @@ page 561 "CrossIntercomp. Partner Setup"
         NotSetUpQst: Label 'The setup for the connection to the intercompany partner''s environment isn''t complete. If you leave this guide, your settings will be deleted.\\Are you sure you want to exit?';
         LearnMoreTok: Label 'Privacy and Cookies';
         PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839';
-        UntrustedConnectionUrlMsg: Label 'The connection URL must be a trusted Business Central API URL. You cannot continue until it is corrected.';
-        UntrustedUrlNotificationIdTok: Label '8f4b2c1e-9a3d-4e7f-b6c8-1d2e3f4a5b6c', Locked = true;
+        UntrustedConnectionUrlErr: Label 'The connection URL must be a trusted Business Central API URL.';
 
 
     local procedure LoadSaaSDataForCurrentCompany()
@@ -495,39 +494,6 @@ page 561 "CrossIntercomp. Partner Setup"
             exit(true);
 
         exit(CrossIntercompanyConnector.IsDestinationUrlTrusted(Url));
-    end;
-
-    local procedure NotifyIfUntrustedConnectionUrl()
-    var
-        UntrustedUrlNotification: Notification;
-    begin
-        if (PartnerSaaSConnectionUrl = '') or ValidateDynamicsUrl(PartnerSaaSConnectionUrl) then begin
-            RecallUntrustedUrlNotification();
-            exit;
-        end;
-
-        UntrustedUrlNotification.Id := GetUntrustedUrlNotificationId();
-        UntrustedUrlNotification.Message(UntrustedConnectionUrlMsg);
-        UntrustedUrlNotification.Scope(NotificationScope::LocalScope);
-        UntrustedUrlNotification.Send();
-        UntrustedUrlNotificationActive := true;
-    end;
-
-    local procedure RecallUntrustedUrlNotification()
-    var
-        UntrustedUrlNotification: Notification;
-    begin
-        if not UntrustedUrlNotificationActive then
-            exit;
-
-        UntrustedUrlNotification.Id := GetUntrustedUrlNotificationId();
-        UntrustedUrlNotification.Recall();
-        UntrustedUrlNotificationActive := false;
-    end;
-
-    local procedure GetUntrustedUrlNotificationId() NotificationId: Guid
-    begin
-        Evaluate(NotificationId, UntrustedUrlNotificationIdTok);
     end;
     #endregion
 }
