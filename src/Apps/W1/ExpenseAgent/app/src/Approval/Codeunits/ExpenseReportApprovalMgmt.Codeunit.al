@@ -359,6 +359,9 @@ codeunit 6901 "Expense Report Approval Mgmt"
             Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
 
         ApproverExpenseUser.Get(NextApproverNo);
+        if not ApproverExpenseUser."Can Approve" then
+            Error(ApproverMustBeEnabledInExpenseUserErr, ApproverExpenseUser.FieldCaption("Can Approve"), ApproverExpenseUser.TableCaption());
+
         if not ApproverExpenseUser."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit") then
             Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
 
@@ -576,6 +579,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseUser: Record "Expense User";
     begin
         ExpenseUser.SetRange("User Id For Approvals", UserId());
+        ExpenseUser.SetRange("Can Approve", true);
         ExpenseUser.SetRange("Unlimited Approval", true);
         exit(not ExpenseUser.IsEmpty());
     end;
