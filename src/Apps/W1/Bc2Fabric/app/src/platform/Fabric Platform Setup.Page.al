@@ -230,28 +230,62 @@ page 50104 "Fabric Platform Setup"
     {
         area(Processing)
         {
-            action(EnableExport)
+            group(Fabric)
             {
-                Caption = 'Enable';
-                ApplicationArea = All;
-                Enabled = EnableActionEnabled;
-                Image = Setup;
-                ToolTip = 'Runs the platform setup pipeline using Microsoft first-party authentication. This is asynchronous; follow progress on Export Summary.';
+                Caption = 'Fabric';
 
-                trigger OnAction()
-                var
-                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-                begin
-                    FabricPlatformMgt.EnableExport();
-                    CurrPage.Update(false);
-                end;
+                action(EnableExport)
+                {
+                    Caption = 'Connect to Fabric';
+                    ApplicationArea = All;
+                    Enabled = EnableActionEnabled;
+                    Image = Setup;
+                    ToolTip = 'Connects to Microsoft Fabric using the configured credentials and runs the platform setup pipeline. This is asynchronous; follow progress on Synchronization Overview.';
+
+                    trigger OnAction()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.EnableExport();
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(DisableExport)
+                {
+                    Caption = 'Disconnect from Fabric';
+                    ApplicationArea = All;
+                    Image = Delete;
+                    ToolTip = 'Cancels in-flight runs and removes the platform export resources for this tenant.';
+
+                    trigger OnAction()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.DisableExport();
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(TestConnection)
+                {
+                    Caption = 'Test Connection';
+                    ApplicationArea = All;
+                    Image = Process;
+                    ToolTip = 'Tests the connection to Microsoft Fabric using the configured credentials.';
+
+                    trigger OnAction()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.TestConnection();
+                    end;
+                }
             }
             action(StartExport)
             {
-                Caption = 'Start';
+                Caption = 'Start synchronization';
                 ApplicationArea = All;
                 Image = Start;
-                ToolTip = 'Starts continuous export. This is asynchronous; follow progress on Export Summary.';
+                ToolTip = 'Starts continuous export. This is asynchronous; follow progress on Synchronization Overview.';
 
                 trigger OnAction()
                 var
@@ -263,7 +297,7 @@ page 50104 "Fabric Platform Setup"
             }
             action(StopExport)
             {
-                Caption = 'Stop';
+                Caption = 'Stop synchronization';
                 ApplicationArea = All;
                 Image = Stop;
                 ToolTip = 'Cancels any in-flight export run and disables continuous export.';
@@ -273,21 +307,6 @@ page 50104 "Fabric Platform Setup"
                     FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
                 begin
                     FabricPlatformMgt.StopExport();
-                    CurrPage.Update(false);
-                end;
-            }
-            action(DisableExport)
-            {
-                Caption = 'Disable';
-                ApplicationArea = All;
-                Image = Delete;
-                ToolTip = 'Cancels in-flight runs and removes the platform export resources for this tenant.';
-
-                trigger OnAction()
-                var
-                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-                begin
-                    FabricPlatformMgt.DisableExport();
                     CurrPage.Update(false);
                 end;
             }
@@ -325,21 +344,26 @@ page 50104 "Fabric Platform Setup"
         }
         area(Navigation)
         {
-            action(Tables)
+            group(Configuration)
             {
-                Caption = 'Tables';
-                ApplicationArea = All;
-                Image = Table;
-                RunObject = page "Fabric Platform Tables";
-                ToolTip = 'Selects the Business Central tables to export.';
-            }
-            action(Companies)
-            {
-                Caption = 'Companies';
-                ApplicationArea = All;
-                Image = Company;
-                RunObject = page "Fabric Platform Companies";
-                ToolTip = 'Selects the companies to export.';
+                Caption = 'Configuration';
+
+                action(Tables)
+                {
+                    Caption = 'Tables';
+                    ApplicationArea = All;
+                    Image = Table;
+                    RunObject = page "Fabric Platform Tables";
+                    ToolTip = 'Selects the Business Central tables to export.';
+                }
+                action(Companies)
+                {
+                    Caption = 'Companies';
+                    ApplicationArea = All;
+                    Image = Company;
+                    RunObject = page "Fabric Platform Companies";
+                    ToolTip = 'Selects the companies to export.';
+                }
             }
             action(ConfigPackages)
             {
@@ -349,34 +373,59 @@ page 50104 "Fabric Platform Setup"
                 RunObject = page "Fabric Config Packages";
                 ToolTip = 'Activates a curated set of tables from a shipped configuration package.';
             }
-            action(ExportSummary)
+            group(Monitoring)
             {
-                Caption = 'Export Summary';
-                ApplicationArea = All;
-                Image = History;
-                RunObject = page "Fabric Platform Export Summary";
-                ToolTip = 'Shows one row per export run with its state and any error.';
-            }
-            action(ExportDetails)
-            {
-                Caption = 'Export Details';
-                ApplicationArea = All;
-                Image = ViewDetails;
-                RunObject = page "Fabric Platform Export Details";
-                ToolTip = 'Shows per-company, per-table export status and watermarks.';
+                Caption = 'Monitoring';
+
+                action(ExportSummary)
+                {
+                    Caption = 'Synchronization Overview';
+                    ApplicationArea = All;
+                    Image = History;
+                    RunObject = page "Fabric Platform Export Summary";
+                    ToolTip = 'Shows one row per export run with its state and any error.';
+                }
+                action(ExportDetails)
+                {
+                    Caption = 'Synchronization Details';
+                    ApplicationArea = All;
+                    Image = ViewDetails;
+                    RunObject = page "Fabric Platform Export Details";
+                    ToolTip = 'Shows per-company, per-table export status and watermarks.';
+                }
             }
         }
         area(Promoted)
         {
+            group(Category_Fabric)
+            {
+                Caption = 'Fabric';
+
+                actionref(EnableExport_Promoted; EnableExport) { }
+                actionref(DisableExport_Promoted; DisableExport) { }
+                actionref(TestConnection_Promoted; TestConnection) { }
+            }
             group(Category_Process)
             {
                 Caption = 'Process';
 
-                actionref(EnableExport_Promoted; EnableExport) { }
                 actionref(StartExport_Promoted; StartExport) { }
                 actionref(StopExport_Promoted; StopExport) { }
-                actionref(DisableExport_Promoted; DisableExport) { }
                 actionref(Refresh_Promoted; Refresh) { }
+            }
+            group(Category_Configuration)
+            {
+                Caption = 'Configuration';
+
+                actionref(Tables_Promoted; Tables) { }
+                actionref(Companies_Promoted; Companies) { }
+            }
+            group(Category_Monitoring)
+            {
+                Caption = 'Monitoring';
+
+                actionref(ExportSummary_Promoted; ExportSummary) { }
+                actionref(ExportDetails_Promoted; ExportDetails) { }
             }
         }
     }

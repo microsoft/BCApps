@@ -1,5 +1,6 @@
 namespace Microsoft.Bc2Fabric;
 
+using Microsoft.Utilities;
 using System.Environment;
 using System.Fabric;
 using System.Reflection;
@@ -22,6 +23,7 @@ codeunit 50101 "Fabric Platform Mgt"
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         DisableRequestedMsg: Label 'Disable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling export.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling export.';
@@ -232,6 +234,21 @@ codeunit 50101 "Fabric Platform Mgt"
             Message(DisableRequestedMsg);
     end;
 
+    procedure TestConnection()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        IsHandled: Boolean;
+    begin
+        OnBeforeTestConnection(IsHandled);
+        if not IsHandled then
+            AdminClient.GetWorkspaces(TempBuffer);
+        Telemetry.LogEvent('FAB-104', 'Fabric connection test succeeded.');
+        if GuiAllowed() then
+            Message(TestConnectionSuccessMsg);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEnableExport(var IsHandled: Boolean)
     begin
@@ -249,6 +266,11 @@ codeunit 50101 "Fabric Platform Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDisableExport(var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestConnection(var IsHandled: Boolean)
     begin
     end;
 }
