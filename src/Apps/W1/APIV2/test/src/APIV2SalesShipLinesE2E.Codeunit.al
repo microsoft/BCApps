@@ -3,11 +3,13 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Shipment]
     end;
 
@@ -29,6 +31,8 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         LineNo: Integer;
         SequenceValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Line of a sales shipment
 
         // [GIVEN] A shipment with a line.
@@ -63,6 +67,8 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of Sales Shipment
 
         // [GIVEN] An sales shipment with lines.
@@ -105,6 +111,8 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         LineNo1: Text;
         LineNo2: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Lines of a sales shipment
 
         // [GIVEN] An sales shipment with lines.
@@ -139,6 +147,8 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         LineIdTxt: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on the Line of a sales shipment and expand the dimension set lines
 
         // [GIVEN] A shipment with a line.
@@ -255,4 +265,10 @@ codeunit 139848 "APIV2 - Sales Ship. Lines E2E"
         exit(TargetURL);
     end;
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }

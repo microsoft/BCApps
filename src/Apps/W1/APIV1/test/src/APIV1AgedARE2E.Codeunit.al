@@ -3,10 +3,12 @@ codeunit 139720 "APIV1 - Aged AR E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Aged Report]
     end;
 
@@ -60,6 +62,8 @@ codeunit 139720 "APIV1 - Aged AR E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IF IsInitialized THEN
             EXIT;
 
