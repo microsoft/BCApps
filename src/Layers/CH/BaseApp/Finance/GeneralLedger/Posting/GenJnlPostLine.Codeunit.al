@@ -2315,10 +2315,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if not (GLAcc."Source Currency Code" in ['', GLSetup."LCY Code"]) and
             not (GenJnlLine."Currency Code" in ['', GLSetup."LCY Code"]) and
             not (GenJnlLine."Additional-Currency Posting" = GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only") and
-            not SystemCreatedEntry and
-            not IsVendorPayableAccount(GLAcc."No.")
+            not SystemCreatedEntry
         then
-            GLEntry."Source Currency Amount" := GenJnlLine.Amount / (1 + GenJnlLine."VAT %" / 100);
+            if not IsVendorPayableAccount(GLAcc."No.") then
+                GLEntry."Source Currency Amount" := GenJnlLine.Amount / (1 + GenJnlLine."VAT %" / 100);
 
         OnAfterInitGLEntry(GLEntry, GenJnlLine, Amount, AmountAddCurr, UseAmountAddCurr, CurrencyFactor, GLReg);
     end;

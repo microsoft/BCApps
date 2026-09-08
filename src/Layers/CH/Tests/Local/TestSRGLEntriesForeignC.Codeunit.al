@@ -89,6 +89,7 @@ codeunit 144026 "Test SR G/L Entries Foreign C."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Scope('OnPrem')]
     procedure VerifySourceCurrencyVATAmountOnForeignPurchaseVATEntry()
     var
