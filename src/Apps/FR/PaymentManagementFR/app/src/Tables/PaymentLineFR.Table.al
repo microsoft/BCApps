@@ -671,14 +671,10 @@ table 10837 "Payment Line FR"
     begin
         Clear(SharedInvoiceLine);
         CreditMemoAmount := 0;
-        if Rec."Applies-to ID" = '' then
-            exit(false);
 
-        CustomerLine.SetLoadFields("Applies-to Doc. Type", "Applies-to ID", "Credit Amount", "Debit Amount");
         CustomerLine.SetRange("No.", Rec."No.");
         CustomerLine.SetRange("Account Type", CustomerLine."Account Type"::Customer);
         CustomerLine.SetRange("Account No.", Rec."Account No.");
-        CustomerLine.SetRange("Applies-to ID", Rec."Applies-to ID");
         if not CustomerLine.FindSet() then
             exit(false);
         repeat

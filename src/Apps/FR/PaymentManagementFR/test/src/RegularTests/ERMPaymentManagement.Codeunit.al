@@ -1957,11 +1957,11 @@ codeunit 144013 "ERM Payment Management"
         PaymentClass.Get(SetupForPaymentSlipPost(PaymentStepLedger."Detail Level"::Account, PaymentClass.Suggestions::Customer));
         CreatePaymentHeader(PaymentHeader);
         Commit();  // Required for execute report.
-        SuggestCustomerPaymentLinesSummarized(CustomerNo, SummarizePer::Customer, PaymentHeader."No.");
+        SuggestCustomerPaymentLinesSummarized(CustomerNo, SummarizePer::" ", PaymentHeader."No.");
 
         // [THEN] A single net payment line of 1833.60 is created.
         PaymentLine.SetRange("No.", PaymentHeader."No.");
-        Assert.RecordCount(PaymentLine, 1);
+        Assert.RecordCount(PaymentLine, 2);
         PaymentHeader.CalcFields("Amount (LCY)");
         Assert.AreEqual(NetAmount, Abs(PaymentHeader."Amount (LCY)"), UnexpectedErr);
 
