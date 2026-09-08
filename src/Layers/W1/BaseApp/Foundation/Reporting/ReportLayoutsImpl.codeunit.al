@@ -45,6 +45,9 @@ codeunit 9660 "Report Layouts Impl."
         CannotUpdateLayoutTxt: Label 'The Layout could not be updated for export. The exported file will contain the original layout.';
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
         MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
+        EmptyLayoutFileErr: Label 'The file "%1" is empty. Choose a file that contains a layout and try again.', Comment = '%1 = File Name';
+        CannotChangeStatusOfDefaultErr: Label 'You cannot set "%1" to %2 while it is the default layout for report "%3". Select another default layout first.', Comment = '%1 = Layout Name, %2 = New Status, %3 = Report Name';
+        DefaultRequiresApprovedErr: Label 'Only an approved layout can be set as the default. Set the status of "%1" to Approved and try again.', Comment = '%1 = Layout Name';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -70,6 +73,8 @@ codeunit 9660 "Report Layouts Impl."
     var
         TenantReportLayout: Record "Tenant Report Layout";
     begin
+        ErrorIfLayoutIsDefault(ReportLayoutList, NewStatus);
+
         if not ReportLayoutList."User Defined" then begin
             UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
             exit(true);
@@ -81,6 +86,30 @@ codeunit 9660 "Report Layouts Impl."
             exit(true);
         end;
         exit(false);
+    end;
+
+    local procedure ErrorIfLayoutIsDefault(ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status")
+    var
+        DefaultReportLayoutList: Record "Report Layout List";
+    begin
+        if NewStatus = Enum::"Report Layout Status"::Approved then
+            exit;
+
+        if not GetDefaultReportLayoutSelection(ReportLayoutList."Report ID", DefaultReportLayoutList) then
+            exit;
+
+        if DefaultReportLayoutList.Name <> ReportLayoutList.Name then
+            exit;
+        if DefaultReportLayoutList."Application ID" <> ReportLayoutList."Application ID" then
+            exit;
+
+        Error(CannotChangeStatusOfDefaultErr, ReportLayoutList.Caption, Format(NewStatus), ReportLayoutList."Report Name");
+    end;
+
+    internal procedure ValidateLayoutCanBeDefault(SelectedReportLayoutList: Record "Report Layout List")
+    begin
+        if SelectedReportLayoutList."Layout Status" <> Enum::"Report Layout Status"::Approved then
+            Error(DefaultRequiresApprovedErr, SelectedReportLayoutList.Caption);
     end;
 
     local procedure LayoutStatusIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
@@ -282,6 +311,8 @@ codeunit 9660 "Report Layouts Impl."
         ReportLayoutSelection: Record "Report Layout Selection";
         CustomDimensions: Dictionary of [Text, Text];
     begin
+        ValidateLayoutCanBeDefault(SelectedReportLayoutList);
+
         // Add to TenantReportLayoutSelection table with an Empty Guid.
         AddLayoutSelection(SelectedReportLayoutList, EmptyGuid);
 
@@ -381,11 +412,17 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: Enum "Excel Sheet Configuration"; LayoutSubtype: Enum "Report Layout Subtype"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
+    begin
+        InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, LayoutIsGlobal, CreateEmptyLayout, ExcelSheetConfiguration, LayoutSubtype, false, ReturnReportID, ReturnLayoutName);
+    end;
+
+    internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: Enum "Excel Sheet Configuration"; LayoutSubtype: Enum "Report Layout Subtype"; ReplaceExisting: Boolean; var ReturnReportID: Integer; var ReturnLayoutName: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
         FileManagement: Codeunit "File Management";
         DocumentReportManagement: Codeunit "Document Report Mgt.";
         TempBlob: Codeunit "Temp Blob";
+        UploadedBlob: Codeunit "Temp Blob";
         FileFilterTxt: Text;
         DialogCaption: Text;
         NVInStream: InStream;
@@ -403,6 +440,10 @@ codeunit 9660 "Report Layouts Impl."
             Message(EmptyLayoutNameTxt);
             exit;
         end;
+
+        if not ReplaceExisting then
+            if TenantReportLayout.Get(ReportID, LayoutName, EmptyGuid) then
+                Error(LayoutAlreadyExistsErr, LayoutName);
 
         TenantReportLayout.Init();
         TenantReportLayout."Report ID" := ReportID;
@@ -510,11 +551,16 @@ codeunit 9660 "Report Layouts Impl."
             // Custom layouts files are treated as unknown streams and don't need validation.
             if TenantReportLayout."Layout Format" <> TenantReportLayout."Layout Format"::Custom then
                 FileManagement.ValidateFileExtension(UploadFileName, FileFilterTxt);
+
+            CopyStream(UploadedBlob.CreateOutStream(), NVInStream);
+            if UploadedBlob.Length() = 0 then
+                Error(EmptyLayoutFileErr, UploadFileName);
+            NVInStream := UploadedBlob.CreateInStream();
         end;
 
-        // If the current layout is being replaced using the ReplaceLayout action
-        if TenantReportLayout.Get(TenantReportLayout."Report ID", TenantReportLayout."Name", TenantReportLayout."App ID") then
-            TenantReportLayout.Delete(true);
+        if ReplaceExisting then
+            if TenantReportLayout.Get(TenantReportLayout."Report ID", TenantReportLayout."Name", TenantReportLayout."App ID") then
+                TenantReportLayout.Delete(true);
 
         TenantReportLayout."Layout".ImportStream(NVInStream, TenantReportLayout."Description");
         TenantReportLayout."MIME Type" := CreateLayoutMime(UploadFileName);
@@ -564,7 +610,7 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayout."Name" := LayoutName;
 
         if TenantReportLayout.Get(ReportID, LayoutName, TenantReportLayout."App ID") then begin
-            InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, TenantReportLayout."Company Name" = '', false, TenantReportLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout."Layout Subtype", ReturnReportID, ReturnLayoutName);
+            InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, TenantReportLayout."Company Name" = '', false, TenantReportLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout."Layout Subtype", true, ReturnReportID, ReturnLayoutName);
 
             InitReportLayoutDimensions(TenantReportLayout, CustomDimensions);
             AddReportLayoutDimensionsDescription(LayoutDescription, CustomDimensions);

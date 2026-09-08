@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
+using Microsoft.Shared.Report;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
@@ -544,8 +545,11 @@ page 9652 "Report Layout Selection"
     local procedure UpdateTenantLayoutSelection(ReportLayoutList: Record "Report Layout List")
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
         EmptyGuid: Guid;
     begin
+        ReportLayoutsImpl.ValidateLayoutCanBeDefault(ReportLayoutList);
+
         TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
         TenantReportLayoutSelection."Company Name" := SelectedCompany;
         TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;

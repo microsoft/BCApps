@@ -291,7 +291,7 @@ page 9666 "Report Theme and Header/Footer"
             NewPartDialog.GetPartDescription(),
             Rec."Layout Format"::Word,
             true,
-            false,
+            NewPartDialog.GetCreateEmptyLayout(),
             ExcelSheetConfiguration,
             Subtype,
             ReturnReportID,
