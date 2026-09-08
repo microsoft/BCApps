@@ -307,6 +307,7 @@ table 273 "Bank Acc. Reconciliation"
         field(24; "Import Posted Transactions"; Option)
         {
             Caption = 'Import Posted Transactions';
+            ToolTip = 'Specifies whether to import bank transactions that are already applied but whose related bank account ledger entries are not yet closed.';
             OptionCaption = ' ,Yes,No';
             OptionMembers = " ",Yes,No;
         }

@@ -88,6 +88,12 @@ page 379 "Bank Acc. Reconciliation"
                     Caption = 'Import Duplicated Transactions';
                     Visible = false;
                 }
+                field(ImportPostedTransactions; Rec."Import Posted Transactions")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Import Posted Transactions';
+                    Visible = false;
+                }
             }
             group(Control8)
             {
