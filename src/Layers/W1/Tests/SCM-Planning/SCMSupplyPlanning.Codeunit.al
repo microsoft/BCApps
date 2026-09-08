@@ -38,16 +38,16 @@ codeunit 137054 "SCM Supply Planning"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
-        NumberOfLineEqualError: Label 'Number of Lines must be same.';
-        NumberOfLineNotEqualError: Label 'Number of Lines must not be same.';
+        NumberOfLineEqualErr: Label 'Number of Lines must be same.';
+        NumberOfLineNotEqualErr: Label 'Number of Lines must not be same.';
         GlobalItemNo: Code[20];
-        MaximumOrderQuantityErr: Label 'Quantity(%1) on RequisitionLine is more than Maximum Order Quantity(%2) of the Item.';
-        SafetyStockQuantityErr: Label 'After calculating supply and demand of the Item, its inventory(%1) does not meet Safety Stock Quantity(%2). Supply should meet both demand and Safety Stock Quantity.';
+        MaximumOrderQuantityErr: Label 'Quantity(%1) on RequisitionLine is more than Maximum Order Quantity(%2) of the Item.', Comment = '%1 = Quantity, %2 = Maximum Order Quantity';
+        SafetyStockQuantityErr: Label 'After calculating supply and demand of the Item, its inventory(%1) does not meet Safety Stock Quantity(%2). Supply should meet both demand and Safety Stock Quantity.', Comment = '%1 = Inventory, %2 = Safety Stock Quantity';
         RequisitionLineNotEmptyErr: Label 'There should be no Requisition Line.';
-        OrderDateErr: Label 'Order Date (%1) on Requisition Line is not equal to Order Date (%2) on Purchase Line.';
-        ExceptionMsg: Label 'Exception: The projected available inventory is below Safety Stock Quantity %1 on %2.';
+        OrderDateErr: Label 'Order Date (%1) on Requisition Line is not equal to Order Date (%2) on Purchase Line.', Comment = '%1 = Requisition Line Order Date, %2 = Purchase Line Order Date';
+        ExceptionMsg: Label 'Exception: The projected available inventory is below Safety Stock Quantity %1 on %2.', Comment = '%1 = Safety Stock Quantity, %2 = Date';
         RequisitionWorksheetErr: Label 'Requisition Worksheet cannot be used to create Prod. Order replenishment.';
-        ReqLineStartingDateErr: Label 'Starting Date (%1) on Requisition Line is not equal to Expected Receipt Date (%2).';
+        ReqLineStartingDateErr: Label 'Starting Date (%1) on Requisition Line is not equal to Expected Receipt Date (%2).', Comment = '%1 = Requisition Line Starting Date, %2 = Expected Receipt Date';
         ExpectedReceiptDateErr: Label 'Expected Receipt Date in Reservation Entry is not correct.';
         DemandTypeOption: Option "Sales Order","Transfer Order","Released Prod. Order",Assembly,"Purchase Return";
         SupplyTypeOption: array[5] of Option "None",Released,FirmPlanned,Purchase,"Sales Return",Transfer,Assembly,Planning;
@@ -1224,7 +1224,7 @@ codeunit 137054 "SCM Supply Planning"
             VerifyRequisitionLineCount(1);  // Expected no of lines in Planning Worksheet. Value important.
         end else begin
             RequisitionLine2.SetRange("No.", Item."No.");
-            Assert.AreEqual(0, RequisitionLine2.Count, NumberOfLineEqualError);
+            Assert.AreEqual(0, RequisitionLine2.Count, NumberOfLineEqualErr);
         end;
     end;
 
@@ -1768,7 +1768,7 @@ codeunit 137054 "SCM Supply Planning"
 
         // Verify: Verify planning worksheet.
         PlanningComponent.SetRange("Item No.", Item2."No.");
-        Assert.AreEqual(0, PlanningComponent.Count, NumberOfLineEqualError);  // Zero for empty line.
+        Assert.AreEqual(0, PlanningComponent.Count, NumberOfLineEqualErr);  // Zero for empty line.
     end;
 
     [Test]
@@ -2246,7 +2246,7 @@ codeunit 137054 "SCM Supply Planning"
 
         // Verify: Verify Empty planning worksheet.
         RequisitionLine2.SetRange("No.", Item."No.");
-        Assert.AreEqual(0, RequisitionLine2.Count, NumberOfLineEqualError);
+        Assert.AreEqual(0, RequisitionLine2.Count, NumberOfLineEqualErr);
     end;
 
     [Test]
@@ -7083,8 +7083,8 @@ codeunit 137054 "SCM Supply Planning"
         RequisitionLine2: Record "Requisition Line";
     begin
         RequisitionLine2.SetRange("No.", ItemNo);
-        Assert.AreNotEqual(PlanningLinesCountBeforeCarryOut, RequisitionLine2.Count, NumberOfLineNotEqualError);
-        Assert.AreEqual(0, RequisitionLine2.Count, NumberOfLineEqualError);
+        Assert.AreNotEqual(PlanningLinesCountBeforeCarryOut, RequisitionLine2.Count, NumberOfLineNotEqualErr);
+        Assert.AreEqual(0, RequisitionLine2.Count, NumberOfLineEqualErr);
     end;
 
     local procedure VerifyPlanningWorksheet(var PlanningWorksheet: TestPage "Planning Worksheet"; ActionMessage: Enum "Action Message Type"; No: Code[20]; DueDate: Date; OriginalQuantity: Decimal; Quantity: Decimal; OriginalDueDate: Date)
@@ -7140,7 +7140,7 @@ codeunit 137054 "SCM Supply Planning"
         RequisitionLine2: Record "Requisition Line";
     begin
         RequisitionLine2.SetFilter("No.", '<>''''');
-        Assert.AreEqual(ExpectedReqLinesCount, RequisitionLine2.Count, NumberOfLineEqualError);
+        Assert.AreEqual(ExpectedReqLinesCount, RequisitionLine2.Count, NumberOfLineEqualErr);
     end;
 
     local procedure VerifyPurchaseOrderQuantity(ItemNo: Code[20]; Quantity: Decimal)
