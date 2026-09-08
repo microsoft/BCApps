@@ -8,7 +8,7 @@ page 150017 "Fabric Tables FactBox"
 page 50117 "Fabric Tables FactBox"
 #endif
 {
-    Caption = 'Tables to Sync';
+    Caption = 'Tables to Synchronize';
     PageType = ListPart;
     SourceTable = "Tenant Fabric Tables";
     Editable = false;

@@ -8,7 +8,7 @@ page 150016 "Fabric Companies FactBox"
 page 50116 "Fabric Companies FactBox"
 #endif
 {
-    Caption = 'Enabled Companies';
+    Caption = 'Companies to Synchronize';
     PageType = ListPart;
     SourceTable = "Tenant Fabric Companies";
     SourceTableView = where(Enabled = const(true));
