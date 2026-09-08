@@ -598,7 +598,7 @@ codeunit 6501 "Item Tracking Data Collection"
         TempWhseActivLine.SetRange("Source Subtype", WhseActivLine."Source Subtype");
         TempWhseActivLine.SetRange("Source No.", WhseActivLine."Source No.");
         TempWhseActivLine.SetRange("Source Line No.", WhseActivLine."Source Line No.");
-        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then
+        if WhseActivLine."Source Type" = 5407 then
             TempWhseActivLine.SetRange("Source Subline No.", WhseActivLine."Source Subline No.");
         TempWhseActivLine.SetRange("Item No.", WhseActivLine."Item No.");
         TempWhseActivLine.SetRange("Variant Code", WhseActivLine."Variant Code");
@@ -640,7 +640,7 @@ codeunit 6501 "Item Tracking Data Collection"
         TempGlobalReservEntry."Source Type" := Database::"Warehouse Activity Line";
         TempGlobalReservEntry."Source Subtype" := WhseActivLine."Activity Type".AsInteger();
         TempGlobalReservEntry."Source ID" := WhseActivLine."No.";
-        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then begin
+        if WhseActivLine."Source Type" = 5407 then begin
             TempGlobalReservEntry."Source Prod. Order Line" := WhseActivLine."Source Line No.";
             TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Source Subline No.";
         end else
@@ -660,7 +660,7 @@ codeunit 6501 "Item Tracking Data Collection"
         TempGlobalReservEntry.SetRange("Source Type", WhseActivLine."Source Type");
         TempGlobalReservEntry.SetRange("Source Subtype", WhseActivLine."Source Subtype");
         TempGlobalReservEntry.SetRange("Source ID", WhseActivLine."Source No.");
-        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then begin
+        if WhseActivLine."Source Type" = 5407 then begin
             TempGlobalReservEntry.SetRange("Source Prod. Order Line", WhseActivLine."Source Line No.");
             TempGlobalReservEntry.SetRange("Source Ref. No.", WhseActivLine."Source Subline No.");
         end else
@@ -685,9 +685,9 @@ codeunit 6501 "Item Tracking Data Collection"
         (WhseActivLine."Source No." <> TrackingSpecification."Source ID") then
         exit(false);
  
-        if WhseActivLine."Source Type" = Database::"Prod. Order Component" then
-        exit((WhseActivLine."Source Line No." = TrackingSpecification."Source Prod. Order Line") and
-            (WhseActivLine."Source Subline No." = TrackingSpecification."Source Ref. No."));
+        if WhseActivLine."Source Type" = 5407 then
+            exit((WhseActivLine."Source Line No." = TrackingSpecification."Source Prod. Order Line") and
+                (WhseActivLine."Source Subline No." = TrackingSpecification."Source Ref. No."));
  
         exit(WhseActivLine."Source Line No." = TrackingSpecification."Source Ref. No.");
     end;
