@@ -522,6 +522,7 @@ table 79 "Company Information"
         field(7611; "Power BI Workspace Name"; Text[200])
         {
             Caption = 'Power BI Workspace Name';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
 #if not CLEANSCHEMA32
