@@ -51,6 +51,11 @@ page 137 "Posted Purchase Rcpt. Subform"
                     ApplicationArea = Planning;
                     Visible = false;
                 }
+                field("EUDR Relevant"; Rec."EUDR Relevant")
+                {
+                    ApplicationArea = ItemTracking;
+                    Visible = false;
+                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
