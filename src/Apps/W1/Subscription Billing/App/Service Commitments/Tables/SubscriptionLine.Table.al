@@ -1158,15 +1158,15 @@ table 8059 "Subscription Line"
         ServiceObject: Record "Subscription Header";
     begin
         if Rec."Invoicing Item No." <> '' then
-            DimMgt.AddDimSource(DefaultDimSource, Database::Item, Rec."Invoicing Item No.");
+            DimMgt.AddDimSource(DefaultDimSource, Database::Item, Rec."Invoicing Item No.", CurrFieldNo = FieldNo("Invoicing Item No."));
 
         if UseSource then
             if ServiceObject.Get("Subscription Header No.") then
                 case ServiceObject.Type of
                     ServiceObject.Type::Item:
-                        DimMgt.AddDimSource(DefaultDimSource, Database::Item, ServiceObject."Source No.");
+                        DimMgt.AddDimSource(DefaultDimSource, Database::Item, ServiceObject."Source No.", false);
                     ServiceObject.Type::"G/L Account":
-                        DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.");
+                        DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.", false);
                 end;
 
         OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, UseSource);
