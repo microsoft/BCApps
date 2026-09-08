@@ -1858,8 +1858,24 @@ codeunit 1605 "PEPPOL Management"
             exit;
         if VATProductPostingGroupCategory.Get(TaxCategoryID) then
             TaxExemptionReasonTxt := VATProductPostingGroupCategory.Description;
-        if (TaxExemptionReasonTxt = '') and (TaxCategoryID = GetTaxCategoryE()) then
+    end;
+
+    /// <summary>
+    /// Retrieves the tax exemption reason for a specific VAT breakdown. Unlike the overload without the VAT amount line,
+    /// this tells apart breakdowns that share the same tax category, such as the payment discount compensation.
+    /// </summary>
+    /// <param name="VATAmtLine">Specifies the VAT amount line the tax subtotal is written from.</param>
+    /// <param name="VATProductPostingGroupCategory">Specifies the VAT product posting group category buffer.</param>
+    /// <param name="TaxExemptionReasonTxt">Returns the tax exemption reason description.</param>
+    /// <param name="TaxCategoryID">Specifies the tax category identifier to look up.</param>
+    procedure GetTaxExemptionReason(VATAmtLine: Record "VAT Amount Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
+    begin
+        if IsPmtDiscCompensationLine(VATAmtLine) then begin
             TaxExemptionReasonTxt := PmtDiscCompExemptionReasonTxt;
+            exit;
+        end;
+
+        GetTaxExemptionReason(VATProductPostingGroupCategory, TaxExemptionReasonTxt, TaxCategoryID);
     end;
 
     /// <summary>
