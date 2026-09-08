@@ -16,6 +16,8 @@ page 50104 "Fabric Platform Setup"
     ApplicationArea = All;
     InsertAllowed = false;
     DeleteAllowed = false;
+    AboutTitle = 'Connect to Microsoft Fabric';
+    AboutText = 'Use this page to connect your environment to Microsoft Fabric, choose which companies and tables to synchronize, and monitor the synchronization.';
 
     layout
     {

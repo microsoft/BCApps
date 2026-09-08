@@ -17,6 +17,8 @@ page 50103 "Fabric Platform Export Summary"
     ModifyAllowed = false;
     DeleteAllowed = false;
     SourceTableView = sorting("Start Time") order(descending);
+    AboutTitle = 'Track synchronization runs';
+    AboutText = 'See the history of synchronization runs, including their status and any errors, so you can confirm your data reached Microsoft Fabric.';
 
     layout
     {

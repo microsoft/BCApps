@@ -14,6 +14,8 @@ page 50105 "Fabric Platform Tables"
     SourceTable = "Tenant Fabric Tables";
     ApplicationArea = All;
     InsertAllowed = false;
+    AboutTitle = 'Choose tables to synchronize';
+    AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 500 tables.';
 
     layout
     {

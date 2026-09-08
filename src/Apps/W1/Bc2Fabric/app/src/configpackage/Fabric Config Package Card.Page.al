@@ -15,6 +15,8 @@ page 50106 "Fabric Config Package Card"
     InsertAllowed = true;
     ModifyAllowed = true;
     DeleteAllowed = true;
+    AboutTitle = 'Review a configuration package';
+    AboutText = 'See which tables this configuration package adds, and activate, deactivate, or reapply it to keep your synchronized tables in sync with the latest version.';
 
     layout
     {

@@ -15,6 +15,8 @@ page 50101 "Fabric Platform Companies"
     SourceTable = "Tenant Fabric Companies";
     ApplicationArea = All;
     InsertAllowed = false;
+    AboutTitle = 'Choose companies to synchronize';
+    AboutText = 'Add the companies whose data you want to send to Microsoft Fabric, and turn synchronization on or off for each one.';
 
     layout
     {

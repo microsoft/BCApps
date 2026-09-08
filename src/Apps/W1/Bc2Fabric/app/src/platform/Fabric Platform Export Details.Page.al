@@ -17,6 +17,8 @@ page 50102 "Fabric Platform Export Details"
     ModifyAllowed = false;
     DeleteAllowed = false;
     SourceTableView = sorting("Start Time") order(descending);
+    AboutTitle = 'Track table-level synchronization';
+    AboutText = 'See exactly which companies and tables were synchronized in each run, how many records changed, and any errors that occurred.';
 
     layout
     {

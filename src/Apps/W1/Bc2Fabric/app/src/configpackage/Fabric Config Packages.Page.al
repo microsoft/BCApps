@@ -17,6 +17,8 @@ page 50108 "Fabric Config Packages"
     ModifyAllowed = false;
     DeleteAllowed = true;
     CardPageId = "Fabric Config Package Card";
+    AboutTitle = 'Activate curated table sets';
+    AboutText = 'Import or select a configuration package to quickly add a curated set of tables to your Fabric synchronization, instead of selecting tables one by one.';
 
     layout
     {
