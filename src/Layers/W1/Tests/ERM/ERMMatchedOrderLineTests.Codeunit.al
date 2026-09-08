@@ -13,6 +13,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryDimension: Codeunit "Library - Dimension";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -4680,6 +4681,60 @@ codeunit 134468 "ERM Matched Order Line Tests"
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
         MatchedOrderLine.FindFirst();
         Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'Match should use the order line receipt-on-invoice setting');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('PurchaseOrderLinesLookupHandler')]
+    procedure GetOrderLinesCopiesDimensionsToInvoiceLine()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        DimensionValue: Record "Dimension Value";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        Quantity: Decimal;
+        DimSetID: Integer;
+    begin
+        // [FEATURE] [Dimension]
+        // [SCENARIO 643374] "Get Order Lines" on a purchase invoice copies the order line dimensions to the created invoice line.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] A received purchase order whose line has a specific dimension set
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        DimSetID := LibraryDimension.CreateDimSet(PurchaseLineOrder."Dimension Set ID", DimensionValue."Dimension Code", DimensionValue.Code);
+        PurchaseLineOrder.Validate("Dimension Set ID", DimSetID);
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [GIVEN] A purchase invoice for the same vendor with no lines
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+
+        // [WHEN] Running "Get Order Lines" and selecting the order line
+        LibraryVariableStorage.Enqueue(PurchaseHeaderOrder."No.");
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoicePage.PurchLines.GetOrderLines.Invoke();
+        PurchaseInvoicePage.Close();
+
+        // [THEN] The created invoice line inherits the order line dimension set
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetRange(Type, PurchaseLineInvoice.Type::Item);
+        PurchaseLineInvoice.FindFirst();
+        Assert.AreNotEqual(0, DimSetID, 'Order line should have a non-default dimension set');
+        Assert.AreEqual(DimSetID, PurchaseLineInvoice."Dimension Set ID", 'Invoice line should inherit the order line dimension set');
+
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     // ============================================================================
