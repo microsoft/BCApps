@@ -218,9 +218,18 @@ codeunit 9660 "Report Layouts Impl."
             Log('0000RTN', 'Report layout status changed by user', CustomDimensions);
 
             if FallbackLayoutCaption <> '' then
-                Message(DefaultFallbackTxt, FallbackLayoutCaption, FallbackReportName);
+                NotifyDefaultFallback(FallbackLayoutCaption, FallbackReportName);
         end;
         exit(UpdateCount);
+    end;
+
+    local procedure NotifyDefaultFallback(LayoutCaption: Text; ReportName: Text)
+    var
+        FallbackNotification: Notification;
+    begin
+        FallbackNotification.Message(StrSubstNo(DefaultFallbackTxt, LayoutCaption, ReportName));
+        FallbackNotification.Scope(NotificationScope::LocalScope);
+        FallbackNotification.Send();
     end;
 
     local procedure IsMetadataDefaultLayout(ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Boolean
