@@ -19,6 +19,7 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ExternalStorageTok: Label 'External Storage - Document Attachments', Locked = true;
         ExternalStorageCategoryLbl: Label 'External Storage', Locked = true;
+        FileDownloadFailedTelemetryErr: Label 'The file could not be retrieved from external storage.', Locked = true;
 
     internal procedure LogFeatureEnabled()
     begin
@@ -49,6 +50,14 @@ codeunit 8754 "DA Feature Telemetry"
     begin
         GetTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
         FeatureTelemetry.LogUsage('0000RNS', ExternalStorageTok, 'File Downloaded', Dimensions);
+    end;
+
+    internal procedure LogFileDownloadFailed(DocumentAttachment: Record "Document Attachment")
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
+        FeatureTelemetry.LogError('0000RNY', ExternalStorageTok, 'File Download Failed', FileDownloadFailedTelemetryErr, '', Dimensions);
     end;
 
     internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")

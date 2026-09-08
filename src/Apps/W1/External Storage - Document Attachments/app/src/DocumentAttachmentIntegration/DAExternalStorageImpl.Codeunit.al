@@ -852,14 +852,17 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeExportToStream, '', false, false)]
     local procedure DocumentAttachment_OnBeforeExportToStream(var DocumentAttachment: Record "Document Attachment"; var AttachmentOutStream: OutStream; var IsHandled: Boolean)
     var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         // Only handle if file is uploaded externally and not available internally
         if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
             exit;
 
-        if not ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream) then
+        if not ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream) then begin
+            DAFeatureTelemetry.LogFileDownloadFailed(DocumentAttachment);
             Error(CannotRetrieveExternalFileErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension");
+        end;
         IsHandled := true;
     end;
 
@@ -872,14 +875,17 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetAsTempBlob, '', false, false)]
     local procedure DocumentAttachment_OnBeforeGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
     var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         // Only handle if file is uploaded externally and not available internally
         if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
             exit;
 
-        if not ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob) then
+        if not ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob) then begin
+            DAFeatureTelemetry.LogFileDownloadFailed(DocumentAttachment);
             Error(CannotRetrieveExternalFileErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension");
+        end;
         IsHandled := true;
     end;
 
