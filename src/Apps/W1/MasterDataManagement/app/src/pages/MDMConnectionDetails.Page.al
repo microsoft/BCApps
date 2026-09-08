@@ -112,7 +112,7 @@ page 7232 "MDM Connection Details"
                 group(AllDone)
                 {
                     Caption = 'All done';
-                    InstructionalText = 'You''re all set. Choose Finish to save your connection settings.';
+                    InstructionalText = 'You''re all set. Choose Finish to save your connection settings. You can enable data synchronization right away.';
                 }
             }
         }
@@ -176,6 +176,7 @@ page 7232 "MDM Connection Details"
                 trigger OnAction()
                 begin
                     SaveConfiguration();
+                    EnableSynchronizationOnFinish();
                     CurrPage.Close();
                 end;
             }
@@ -201,6 +202,7 @@ page 7232 "MDM Connection Details"
         OAuth2ClientSecret: Text;
         ConnectionOkMsg: Label 'Successfully connected to the source environment (contract version %1).', Comment = '%1 = wire contract version';
         ConnectionFailedErr: Label 'Could not connect to the source environment. Check the source environment, company, and credentials, then try again.';
+        EnableNowQst: Label 'Your cross-environment connection is saved. Do you want to enable data synchronization now?';
 
     local procedure LoadConfiguration()
     var
@@ -235,6 +237,21 @@ page 7232 "MDM Connection Details"
             Clear(OAuth2ClientSecret);
             SecretAlreadyStored := true;
         end;
+        MasterDataManagementSetup.Modify(true);
+    end;
+
+    // Enabling here starts synchronization straight from Finish so the admin doesn't have to flip the setup toggle afterward.
+    local procedure EnableSynchronizationOnFinish()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        if MasterDataManagementSetup."Is Enabled" then
+            exit;
+        if not Confirm(EnableNowQst) then
+            exit;
+        MasterDataManagementSetup.Validate("Is Enabled", true);
         MasterDataManagementSetup.Modify(true);
     end;
 

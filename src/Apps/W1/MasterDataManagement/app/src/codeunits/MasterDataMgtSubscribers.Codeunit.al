@@ -808,13 +808,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if not MasterDataManagementSetup.Get() then
             exit;
 
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-
-        if not Company.Get(SourceCompanyName) then
-            exit;
-
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange("Table ID", Database::Customer);
         IntegrationTableMapping.SetRange("Integration Table ID", Database::Customer);
@@ -823,8 +816,17 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
-        if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
-            exit;
+        // Same-environment reads the source company's relations directly; cross-environment reads the locally
+        // replicated relations (they sync before customers/vendors), since the source isn't a local company.
+        if not MasterDataManagementSetup.IsCrossEnvironment() then begin
+            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+            if SourceCompanyName = '' then
+                SourceCompanyName := MasterDataManagementSetup."Company Name";
+            if not Company.Get(SourceCompanyName) then
+                exit;
+            if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
+                exit;
+        end;
 
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
         ContactBusinessRelation.SetRange("No.", Customer."No.");
@@ -853,13 +855,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if not MasterDataManagementSetup.Get() then
             exit;
 
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-
-        if not Company.Get(SourceCompanyName) then
-            exit;
-
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange("Table ID", Database::Vendor);
         IntegrationTableMapping.SetRange("Integration Table ID", Database::Vendor);
@@ -868,8 +863,17 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
-        if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
-            exit;
+        // Same-environment reads the source company's relations directly; cross-environment reads the locally
+        // replicated relations (they sync before customers/vendors), since the source isn't a local company.
+        if not MasterDataManagementSetup.IsCrossEnvironment() then begin
+            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+            if SourceCompanyName = '' then
+                SourceCompanyName := MasterDataManagementSetup."Company Name";
+            if not Company.Get(SourceCompanyName) then
+                exit;
+            if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
+                exit;
+        end;
 
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
         ContactBusinessRelation.SetRange("No.", Vendor."No.");
@@ -898,13 +902,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if not MasterDataManagementSetup.Get() then
             exit;
 
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-
-        if not Company.Get(SourceCompanyName) then
-            exit;
-
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange("Table ID", Database::"Bank Account");
         IntegrationTableMapping.SetRange("Integration Table ID", Database::"Bank Account");
@@ -913,8 +910,17 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
-        if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
-            exit;
+        // Same-environment reads the source company's relations directly; cross-environment reads the locally
+        // replicated relations (they sync before customers/vendors), since the source isn't a local company.
+        if not MasterDataManagementSetup.IsCrossEnvironment() then begin
+            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+            if SourceCompanyName = '' then
+                SourceCompanyName := MasterDataManagementSetup."Company Name";
+            if not Company.Get(SourceCompanyName) then
+                exit;
+            if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
+                exit;
+        end;
 
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::"Bank Account");
         ContactBusinessRelation.SetRange("No.", BankAccount."No.");
@@ -1171,70 +1177,93 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagement: Codeunit "Master Data Management";
         RecRef: RecordRef;
         RecordModifiedAfterLastSync: Boolean;
+        CrossEnvironment: Boolean;
         LinkType: Enum "Contact Business Relation Link To Table";
     begin
         if not MasterDataManagement.IsEnabled() then
             exit(false);
 
         MasterDataManagementSetup.Get();
-        // Cross-environment: related contact/customer resolution reads the source company directly; deferred for now.
-        if MasterDataManagementSetup."Source Environment Name" <> '' then
-            exit(false);
+        // Cross-environment: the source's contact business relations are replicated locally, so resolve the related
+        // customer/vendor from the local relation (by No.) instead of reading the source company directly.
+        CrossEnvironment := MasterDataManagementSetup.IsCrossEnvironment();
         DestinationRecordRef.SetTable(Contact);
-        IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");
+        if not CrossEnvironment then
+            IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");
         SourceRecordRef.SetTable(IntegrationContact);
-        IntegrationContactBusinessRelation.ChangeCompany(MasterDataManagementSetup."Company Name");
+        if not CrossEnvironment then
+            IntegrationContactBusinessRelation.ChangeCompany(MasterDataManagementSetup."Company Name");
 
         case IntegrationContact."Contact Business Relation" of
             IntegrationContact."Contact Business Relation"::Customer:
                 begin
-                    IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
+                    if not CrossEnvironment then
+                        IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
                     if IntegrationContactBusinessRelation.FindByContact(LinkType::Customer, IntegrationContact."No.") then
-                        if IntegrationCustomer.Get(IntegrationContactBusinessRelation."No.") then
-                            if FindCustomerByIntegrationSystemId(IntegrationCustomer.SystemId, Customer) then
-                                if Customer."Primary Contact No." = '' then
-                                    if IntegrationTableMapping.FindMapping(Database::Customer, Database::Customer) then
-                                        if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
-                                            RecRef.GetTable(Customer);
-                                            RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
-                                            Customer.Validate("Primary Contact No.", Contact."No.");
-                                            Customer.Modify();
-                                            if not RecordModifiedAfterLastSync then begin
-                                                MasterDataMgtCoupling.SetRange("Local System ID", Customer.SystemId);
-                                                if MasterDataMgtCoupling.FindFirst() then begin
-                                                    MasterDataMgtCoupling."Last Synch. Modified On" := Customer.SystemModifiedAt;
-                                                    MasterDataMgtCoupling.Modify();
-                                                end;
+                        if ResolvePrimaryContactCustomer(CrossEnvironment, IntegrationContactBusinessRelation."No.", IntegrationCustomer, Customer) then
+                            if Customer."Primary Contact No." = '' then
+                                if IntegrationTableMapping.FindMapping(Database::Customer, Database::Customer) then
+                                    if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
+                                        RecRef.GetTable(Customer);
+                                        RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
+                                        Customer.Validate("Primary Contact No.", Contact."No.");
+                                        Customer.Modify();
+                                        if not RecordModifiedAfterLastSync then begin
+                                            MasterDataMgtCoupling.SetRange("Local System ID", Customer.SystemId);
+                                            if MasterDataMgtCoupling.FindFirst() then begin
+                                                MasterDataMgtCoupling."Last Synch. Modified On" := Customer.SystemModifiedAt;
+                                                MasterDataMgtCoupling.Modify();
                                             end;
-                                            exit(true);
                                         end;
+                                        exit(true);
+                                    end;
                 end;
             IntegrationContact."Contact Business Relation"::Vendor:
                 begin
-                    IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
+                    if not CrossEnvironment then
+                        IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
                     if IntegrationContactBusinessRelation.FindByContact(LinkType::Vendor, IntegrationContact."No.") then
-                        if IntegrationVendor.Get(IntegrationContactBusinessRelation."No.") then
-                            if FindVendorByIntegrationSystemId(IntegrationVendor.SystemId, Vendor) then
-                                if Vendor."Primary Contact No." = '' then
-                                    if IntegrationTableMapping.FindMapping(Database::Vendor, Database::Vendor) then
-                                        if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
-                                            RecRef.GetTable(Vendor);
-                                            RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
-                                            Vendor.Validate("Primary Contact No.", Contact."No.");
-                                            Vendor.Modify();
-                                            if not RecordModifiedAfterLastSync then begin
-                                                MasterDataMgtCoupling.SetRange("Local System ID", Vendor.SystemId);
-                                                if MasterDataMgtCoupling.FindFirst() then begin
-                                                    MasterDataMgtCoupling."Last Synch. Modified On" := Vendor.SystemModifiedAt;
-                                                    MasterDataMgtCoupling.Modify();
-                                                end;
+                        if ResolvePrimaryContactVendor(CrossEnvironment, IntegrationContactBusinessRelation."No.", IntegrationVendor, Vendor) then
+                            if Vendor."Primary Contact No." = '' then
+                                if IntegrationTableMapping.FindMapping(Database::Vendor, Database::Vendor) then
+                                    if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
+                                        RecRef.GetTable(Vendor);
+                                        RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
+                                        Vendor.Validate("Primary Contact No.", Contact."No.");
+                                        Vendor.Modify();
+                                        if not RecordModifiedAfterLastSync then begin
+                                            MasterDataMgtCoupling.SetRange("Local System ID", Vendor.SystemId);
+                                            if MasterDataMgtCoupling.FindFirst() then begin
+                                                MasterDataMgtCoupling."Last Synch. Modified On" := Vendor.SystemModifiedAt;
+                                                MasterDataMgtCoupling.Modify();
                                             end;
-                                            exit(true);
                                         end;
+                                        exit(true);
+                                    end;
                 end;
             else
                 exit(false)
         end;
+    end;
+
+    // Same-environment maps the source customer to the destination via its source SystemId coupling; cross-environment
+    // resolves the destination customer directly by No. (numbers are aligned by synchronization).
+    local procedure ResolvePrimaryContactCustomer(CrossEnvironment: Boolean; CustomerNo: Code[20]; var IntegrationCustomer: Record Customer; var Customer: Record Customer): Boolean
+    begin
+        if CrossEnvironment then
+            exit(Customer.Get(CustomerNo));
+        if not IntegrationCustomer.Get(CustomerNo) then
+            exit(false);
+        exit(FindCustomerByIntegrationSystemId(IntegrationCustomer.SystemId, Customer));
+    end;
+
+    local procedure ResolvePrimaryContactVendor(CrossEnvironment: Boolean; VendorNo: Code[20]; var IntegrationVendor: Record Vendor; var Vendor: Record Vendor): Boolean
+    begin
+        if CrossEnvironment then
+            exit(Vendor.Get(VendorNo));
+        if not IntegrationVendor.Get(VendorNo) then
+            exit(false);
+        exit(FindVendorByIntegrationSystemId(IntegrationVendor.SystemId, Vendor));
     end;
 
     local procedure FindCustomerByIntegrationSystemId(IntegrationSystemId: Guid; var Customer: Record Customer): Boolean

@@ -340,6 +340,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
     procedure ConnectionDetailsWizardSavesConfiguration()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -828,6 +829,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     procedure ConfirmHandlerYes(Question: Text; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     local procedure CleanUp()

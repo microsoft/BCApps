@@ -28,19 +28,17 @@ codeunit 7238 "Master Data Mgt. Upgrade"
     end;
 
     // Guaranteed provisioning path: install codeunits are skipped when BC is pre-baked into a package and mounted per tenant.
+    // NOT gated by an upgrade tag: SetAllUpgradeTags on a fresh install can set the tag without the service ever being
+    // created, which would permanently skip registration and 404 the source API. Ensure the record exists instead -
+    // idempotent and self-healing on every install and upgrade. Access stays gated by the "Cross Env" permission set, not by publishing.
     internal procedure RegisterCrossEnvSourceWebService()
     var
         TenantWebService: Record "Tenant Web Service";
         WebServiceManagement: Codeunit "Web Service Management";
-        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag()) then
+        if TenantWebService.Get(TenantWebService."Object Type"::Codeunit, CrossEnvSourceWebServiceName()) then
             exit;
-
-        // Idempotent: creates or updates the service. Access stays gated by the dedicated "Cross Env" permission set, not by publishing.
         WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Codeunit, Codeunit::"MDM Cross-Env Source API", CrossEnvSourceWebServiceName(), true);
-
-        UpgradeTag.SetDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag());
     end;
 
     internal procedure CrossEnvSourceWebServiceName(): Text[240]
@@ -129,21 +127,10 @@ codeunit 7238 "Master Data Mgt. Upgrade"
         exit('MS-543635-MDMJobQueueFrequency-20240830');
     end;
 
-    local procedure GetCrossEnvWebServiceUpgradeTag(): Code[250]
-    begin
-        exit('MS-647660-MDMCrossEnvWebService-20260826');
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetSynchTableCaptionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetJobQueueFrequencyUpgradeTag());
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
-    local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
-    begin
-        PerDatabaseUpgradeTags.Add(GetCrossEnvWebServiceUpgradeTag());
     end;
 }
