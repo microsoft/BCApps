@@ -1190,6 +1190,11 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint := 'https://login.microsoftonline.com.example.com/' + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
         asserterror CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.microsoftonline.com/');
         Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
+
+        // An empty tenant segment must be rejected (verifies the tenant identifier extraction boundary).
+        TokenEndpoint := 'https://login.microsoftonline.com//oauth2/v2.0/token';
+        asserterror CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.microsoftonline.com/');
+        Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
     end;
 
     [Test]
