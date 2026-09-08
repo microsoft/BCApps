@@ -8,8 +8,6 @@ codeunit 139820 "APIV2 - Aged AR E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Aged Report]
     end;
@@ -64,6 +62,9 @@ codeunit 139820 "APIV2 - Aged AR E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -78,7 +79,6 @@ codeunit 139820 "APIV2 - Aged AR E2E"
         AgedReportEntityJSON := LibraryGraphMgt.AddPropertytoJSON('', 'vendorNumber', AgedReportEntity."No.");
     end;
 }
-
 
 
 

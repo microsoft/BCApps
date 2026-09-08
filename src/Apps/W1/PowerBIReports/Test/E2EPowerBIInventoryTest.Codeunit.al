@@ -47,12 +47,6 @@ codeunit 139877 "E2E PowerBI Inventory Test"
     TestType = Uncategorized;
     Access = Internal;
 
-    trigger OnRun()
-    begin
-        LibGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibGraphMgt: Codeunit "Library - Graph Mgt";
@@ -73,6 +67,12 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         PowerBIAPIEndpoints: Enum "PowerBI API Endpoints";
         ResponseEmptyErr: Label 'Response should not be empty.';
 
+    local procedure Initialize()
+    begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     [Test]
     procedure TestGetZones()
     var
@@ -82,6 +82,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A location with multiple zones is created
         LibWhse.CreateFullWMSLocation(Location, 1);
         Zone.SetRange("Location Code", Location.Code);
@@ -122,6 +124,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A bin is created
         LibWhse.CreateLocation(Location);
         LibWhse.CreateBin(Bin, Location.Code, '', '', '');
@@ -166,6 +170,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A sales order is created with multiple types of sales lines
         LibSales.CreateSalesOrder(SalesHeader);
         LibInv.CreateItemWithUnitPriceAndUnitCost(
@@ -222,6 +228,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Sales lines exists outside of the query filter
         SalesLine.Init();
         SalesLine."Type" := SalesLine.Type::Item;
@@ -262,6 +270,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A purchase order is created with multiple types of purchase lines
         LibPurch.CreatePurchaseOrder(PurchHeader);
         LibInv.CreateItemWithUnitPriceAndUnitCost(
@@ -318,6 +328,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Purchase lines exists outside of the query filter
         PurchLine.Init();
         PurchLine."Type" := PurchLine.Type::Item;
@@ -362,6 +374,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         UpdateSalesReceivablesSetup();
 
         // [GIVEN] Multiple items which require replenishment, and requisition lines are created
@@ -470,6 +484,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A transfer order is posted
         LibInv.CreateTransferHeader(TransferHeader);
         LibInv.CreateItem(Item);
@@ -520,6 +536,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Transfer lines exists outside of the query filter
         TransferLine.Init();
         TransferLine."Document No." := LibUtility.GenerateRandomCode20(TransferLine.FieldNo("Document No."), Database::"Transfer Line");
@@ -551,6 +569,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A service order is created with service lines
         LibService.CreateServiceDocumentWithItemServiceLine(ServiceHeader, ServiceHeader."Document Type"::Order);
         LibService.CreateServiceItem(ServiceItem, ServiceHeader."Bill-to Customer No.");
@@ -601,6 +621,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Service lines exists outside of the query filter
         ServiceLine.Init();
         ServiceLine."Document No." := LibUtility.GenerateRandomCode20(ServiceLine.FieldNo("Document No."), Database::"Service Line");
@@ -642,6 +664,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Sales and purchase documents are created and posted with item ledgers
         LibSales.CreateSalesOrder(SalesHeader);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
@@ -720,6 +744,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Wrehouse activity lines are created
         LibInv.CreateItem(Item);
         PostWarehouseActivity(Item."No.");
@@ -777,6 +803,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Warehouse entries are created;
         LibInv.CreateItem(Item);
         PostWarehouseActivity(Item."No.");
@@ -860,6 +888,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Warehouse journal lines are created
         LibInv.CreateItem(Item1);
         LibInv.CreateItem(Item2);
@@ -909,6 +939,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Warehouse journal lines are created
         LibInv.CreateItem(Item1);
         LibInv.CreateItem(Item2);
@@ -989,6 +1021,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Value entry are posted
         LibInv.CreateItem(Item);
         LibPurch.CreatePurchHeader(PurchHeader, PurchHeader."Document Type"::Order, LibPurch.CreateVendorNo());
@@ -1046,6 +1080,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Value entry exists outside of the query filter
         PermissionsMock.Assign('SUPER');
         if ValueEntry.FindLast() then;
@@ -1077,6 +1113,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Assembly headers are created
         LibAssembly.CreateAssemblyOrder(AssemblyHeader, CalcDate('<+1M>', WorkDate()), '', 1);
         LibAssembly.CreateAssemblyOrder(AssemblyHeader2, CalcDate('<+1M>', WorkDate()), '', 1);
@@ -1125,6 +1163,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Assembly header exists outside of the query filter
         AssemblyHeader.Init();
         AssemblyHeader."Document Type" := AssemblyHeader."Document Type"::Quote;
@@ -1153,6 +1193,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Assembly lines are created
         LibAssembly.CreateAssemblyOrder(AssemblyHeader, CalcDate('<+1M>', WorkDate()), '', LibRandom.RandIntInRange(2, 5));
         AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type"::Order);
@@ -1198,6 +1240,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Assembly lines exist outside of the query filter
         AssemblyHeader.Init();
         AssemblyHeader."Document Type" := AssemblyHeader."Document Type"::Order;
@@ -1235,6 +1279,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Job planning lines are created
         LibInv.CreateItem(Item1);
         LibInv.CreateItem(Item2);
@@ -1287,6 +1333,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Job planning line exists outside of the query filter
         JobPlanningLine.Init();
 
@@ -1331,6 +1379,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Production order lines are created
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -1394,6 +1444,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Production order line exists outside of the query filter
         ProdOrderLine.Init();
         ProdOrderLine.Status := ProdOrderLine.Status::Finished;
@@ -1426,6 +1478,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Production order component lines are created
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -1492,6 +1546,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Production order component line exists outside of the query filter
         ProdOrderComp.Init();
         ProdOrderComp.Status := ProdOrderComp.Status::Finished;
@@ -1525,6 +1581,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Planning component lines are created
 #pragma warning disable AA0210
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"Req.");
@@ -1579,6 +1637,8 @@ codeunit 139877 "E2E PowerBI Inventory Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Planning component line exists outside of the query filter
         PlanningComponent.Init();
         PlanningComponent."Worksheet Template Name" := LibUtility.GenerateRandomCode(PlanningComponent.FieldNo("Worksheet Template Name"), Database::"Planning Component");

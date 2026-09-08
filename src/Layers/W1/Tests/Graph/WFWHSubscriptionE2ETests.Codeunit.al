@@ -5,8 +5,6 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Workflow] [Webhook] [Subscription]
     end;
 
@@ -41,6 +39,8 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"WFWH Subscription E2E Tests");
 
         LibraryApplicationArea.EnableFoundationSetup();
@@ -1456,4 +1456,3 @@ codeunit 135528 "WFWH Subscription E2E Tests"
         exit(String);
     end;
 }
-

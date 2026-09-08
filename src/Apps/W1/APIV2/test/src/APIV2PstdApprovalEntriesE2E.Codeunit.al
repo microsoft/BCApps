@@ -4,12 +4,6 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibrarySales: Codeunit "Library - Sales";
@@ -27,6 +21,8 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Check that posted approval entries can be retrieved via API
 
         // [GIVEN] a Sales order exists
@@ -66,4 +62,10 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
         PostedApprovalEntry.Insert();
     end;
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }

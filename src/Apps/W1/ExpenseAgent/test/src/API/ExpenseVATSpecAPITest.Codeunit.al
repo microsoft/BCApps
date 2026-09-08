@@ -13,12 +13,6 @@ codeunit 148348 "Expense VAT Spec. API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
@@ -90,6 +84,8 @@ codeunit 148348 "Expense VAT Spec. API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense VAT Spec. API Test");
         if IsInitialized then
             exit;

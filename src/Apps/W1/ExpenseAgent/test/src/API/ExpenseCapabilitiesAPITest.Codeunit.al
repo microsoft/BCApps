@@ -13,12 +13,6 @@ codeunit 148318 "Expense Capabilities API Test"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
@@ -225,6 +219,8 @@ codeunit 148318 "Expense Capabilities API Test"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Capabilities API Test");

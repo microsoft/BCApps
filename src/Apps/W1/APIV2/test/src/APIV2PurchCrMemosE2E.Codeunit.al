@@ -9,8 +9,6 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Credit Memo]
     end;
@@ -43,6 +41,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted purchase credit memos and use a GET method to retrieve them
         // [GIVEN] 2 credit memos, one posted and one unposted
         CreatePurchaseCreditMemos(CreditMemoNo1, CreditMemoNo2);
@@ -75,6 +75,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         TargetURL: Text;
         CreditMemo: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted Purchase credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
         LibraryGraphMgt.SetLicenseSafeWorkDate();
@@ -120,6 +122,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         CreditMemoJSON: Text;
         CurrencyCode: Code[10];
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted with specific currency set and use HTTP POST to create them
 
         // [GIVEN] an CreditMemo with a non-LCY currencyCode set
@@ -161,6 +165,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         CreditMemoJSON: Text;
         VendorCreditMemoNumber: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create posted and unposted with specific vendor credit memo number set and use HTTP POST to create them
 
         // [GIVEN] A credit memo with vendor credit memo number set
@@ -191,18 +197,24 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     [Test]
     procedure TestModifyCreditMemos()
     begin
+        Initialize();
+
         TestMultipleModifyCreditMemos(false, false);
     end;
 
     [Test]
     procedure TestEmptyModifyCreditMemos()
     begin
+        Initialize();
+
         TestMultipleModifyCreditMemos(true, false);
     end;
 
     [Test]
     procedure TestPartialModifyCreditMemos()
     begin
+        Initialize();
+
         TestMultipleModifyCreditMemos(false, true);
     end;
 
@@ -279,6 +291,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         CreditMemoNo: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create unposted purchase credit memo and use HTTP DELETE to delete it
         // [GIVEN] An unposted credit memo
         CreateDraftPurchaseCreditMemo(PurchaseHeader);
@@ -310,6 +324,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         CreditMemoPostingDate: Date;
         CreditMemoJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
@@ -349,6 +365,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         ResponseText: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Create Credit Memo, use a PATCH method to change it and then verify the changes
         LibraryPurchase.CreateVendorWithAddress(Vendor);
 
@@ -395,6 +413,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         ResponseText: Text;
         CreditMemoID: Text;
     begin
+        Initialize();
+
         // [SCENARIO 184721] Clearing manually set discount
 
         // [GIVEN] an item with unit price and unit cost
@@ -445,6 +465,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can post a purchase credit memo through the API.
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
         // [GIVEN] Draft purchase credit memo exists
@@ -478,6 +500,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted purchase credit memo through API.
 
         // [GIVEN] Non-corrective purchase credit memo exists
@@ -506,6 +530,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can cancel a posted purchase credit memo through API.
 
         // [GIVEN] Corrective purchase credit memo exists
@@ -675,8 +701,6 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
 
         PurchaseHeader1RecordRef.GetTable(PurchaseHeader1);
         PurchaseHeader2RecordRef.GetTable(PurchaseHeader2);
-        LibraryGraphMgt.AddFieldToIgnoreIfExists(
-            TempIgnoredFieldsForComparison, Database::"Purchase Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           PurchaseHeader1RecordRef, PurchaseHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
@@ -721,5 +745,11 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         PurchCrMemoEntityBuffer.SetRange(Id, DocumentId);
         Assert.IsTrue(PurchCrMemoEntityBuffer.FindFirst(), CannotFindPostedCreditMemoErr);
         Assert.AreEqual(Status, PurchCrMemoEntityBuffer.Status, CreditMemoStatusErr);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

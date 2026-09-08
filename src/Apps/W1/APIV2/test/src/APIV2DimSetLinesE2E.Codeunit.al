@@ -9,8 +9,6 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Dimension Line]
     end;
@@ -32,6 +30,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
     procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 
     [Test]
@@ -246,6 +246,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Creating a dimension line through a POST method without specifying a parent Id fails
         LibraryGraphJournalLines.Initialize();
 
@@ -277,6 +279,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Try to create a dimension line with an already existing code
         LibraryGraphJournalLines.Initialize();
 
@@ -495,6 +499,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a G/L Entry with dimenions after Posting Sales Invoice and use a GET method to retreive them
 
         // [GIVEN] Create Customer, Items and Sales Invoice for different Items.
@@ -526,6 +532,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Using a GET request to retrieve dimension lines without a filter fails
         LibraryGraphJournalLines.Initialize();
 
@@ -855,6 +863,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         DimensionSetID: Integer;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimension json texts
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode := Dimension.Code;
@@ -932,6 +942,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Try to change the code of an existing dimension line
         LibraryGraphJournalLines.Initialize();
 
@@ -1183,6 +1195,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension line in the journal line
         LibraryDimension.CreateDimension(Dimension);
         DimensionValue.Reset();
@@ -1244,6 +1258,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension line in the journal line
         LibraryDimension.CreateDimension(Dimension);
         DimensionValue.Reset();
@@ -1300,6 +1316,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension with a value
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
@@ -1361,6 +1379,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension with a value
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
@@ -1410,6 +1430,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimensions with dimension values
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode[2] := Dimension.Code;
@@ -1454,6 +1476,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimensions with dimension values
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode[2] := Dimension.Code;
@@ -1505,6 +1529,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         DimensionSetID: Integer;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimension json texts
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode := Dimension.Code;

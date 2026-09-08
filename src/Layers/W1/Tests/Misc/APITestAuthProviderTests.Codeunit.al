@@ -21,18 +21,18 @@ codeunit 139494 "API Test Auth Provider Tests"
         APITestAuthRecorder: Codeunit "API Test Auth Recorder";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         APITestAuthProviderTests: Codeunit "API Test Auth Provider Tests";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        SecondLibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         IsInitialized: Boolean;
         TargetURLTok: Label 'http://127.0.0.1/', Locked = true;
-        RewrittenTargetURLTok: Label 'http://127.0.0.2/', Locked = true;
-        ProviderCallTok: Label 'Provider|%1|%2', Locked = true;
-        EventCallTok: Label 'Event|%1', Locked = true;
+        ProviderCallTok: Label 'Provider|%1', Locked = true;
+        EventCallTok: Label 'Event', Locked = true;
         UnexpectedCallErr: Label 'Unexpected authentication call.';
 
     [Test]
     procedure DefaultAuthenticationDoesNotConfigureRequest()
-    var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] The default API test authentication does not configure the request
@@ -44,15 +44,12 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
 
         // [THEN] Only the final request event is raised
-        VerifyNextCall(StrSubstNo(EventCallTok, RewrittenTargetURLTok));
+        VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
 
     [Test]
-    procedure ExtendedAuthenticationProviderReceivesRewrittenURL()
-    var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+    procedure ExtendedAuthenticationProviderRunsBeforeFinalEvent()
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] An enum extension can provide API test authentication
@@ -61,23 +58,19 @@ codeunit 139494 "API Test Auth Provider Tests"
         // [GIVEN] A Graph library instance using the mock authentication provider
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
-        // [WHEN] A web request is initialized and its URL is rewritten
+        // [WHEN] A web request is initialized
         LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
 
-        // [THEN] The provider receives the rewritten URL
-        VerifyNextCall(StrSubstNo(ProviderCallTok, 1, RewrittenTargetURLTok));
+        // [THEN] The selected provider configures authentication
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
 
         // [THEN] The final request event runs after the provider
-        VerifyNextCall(StrSubstNo(EventCallTok, RewrittenTargetURLTok));
+        VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
 
     [Test]
     procedure AuthenticationProviderInstanceIsReused()
-    var
-        FirstHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] A selected authentication provider instance is reused across requests
@@ -87,45 +80,89 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Two web requests are initialized through the same Graph library instance
-        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
         LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
 
         // [THEN] The same provider instance handles both requests
-        VerifyNextCall(StrSubstNo(ProviderCallTok, 1, RewrittenTargetURLTok));
-        VerifyNextCall(StrSubstNo(EventCallTok, RewrittenTargetURLTok));
-        VerifyNextCall(StrSubstNo(ProviderCallTok, 2, RewrittenTargetURLTok));
-        VerifyNextCall(StrSubstNo(EventCallTok, RewrittenTargetURLTok));
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
+        VerifyNextCall(EventCallTok);
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 2));
+        VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
 
     [Test]
     procedure AuthenticationProviderSelectionIsInstanceScoped()
-    var
-        FirstHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        FirstLibraryGraphMgt: Codeunit "Library - Graph Mgt";
-        SecondLibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Authentication provider selection is scoped to a Graph library instance
         Initialize();
 
         // [GIVEN] Two Graph library instances where only the first uses the mock provider
-        FirstLibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Each Graph library instance initializes a web request
-        FirstLibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
         SecondLibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
 
         // [THEN] Only the first request uses the mock provider
-        VerifyNextCall(StrSubstNo(ProviderCallTok, 1, RewrittenTargetURLTok));
-        VerifyNextCall(StrSubstNo(EventCallTok, RewrittenTargetURLTok));
-        VerifyNextCall(StrSubstNo(EventCallTok, RewrittenTargetURLTok));
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
+        VerifyNextCall(EventCallTok);
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    procedure RepeatedProviderSelectionPreservesInstance()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Repeated initialization with the same provider preserves its state
+        Initialize();
+
+        // [GIVEN] A request has used the selected provider
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
+        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+
+        // [WHEN] Initialization selects the same provider before another request
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
+        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
+
+        // [THEN] The provider instance retains its invocation count
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
+        VerifyNextCall(EventCallTok);
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 2));
+        VerifyNextCall(EventCallTok);
+        VerifyNoRemainingCalls();
+    end;
+
+    [Test]
+    procedure SelectingNoneStopsConfiguringRequests()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Selecting None replaces the previously selected provider
+        Initialize();
+
+        // [GIVEN] A request has used the mock provider
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
+        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+
+        // [WHEN] Authentication is deselected before another request
+        LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
+        LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
+
+        // [THEN] Only the first request invokes the mock provider
+        VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
+        VerifyNextCall(EventCallTok);
+        VerifyNextCall(EventCallTok);
         VerifyNoRemainingCalls();
     end;
 
     local procedure Initialize()
     begin
+        Clear(LibraryGraphMgt);
+        Clear(SecondLibraryGraphMgt);
+        Clear(HttpWebRequestMgt);
+        Clear(SecondHttpWebRequestMgt);
         APITestAuthRecorder.Reset();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         if IsInitialized then
@@ -145,15 +182,9 @@ codeunit 139494 "API Test Auth Provider Tests"
         Assert.AreEqual(0, APITestAuthRecorder.Count(), UnexpectedCallErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Http Web Request Mgt.", OnOverrideUrl, '', false, false)]
-    local procedure RewriteTargetURL(var URL: Text)
-    begin
-        URL := RewrittenTargetURLTok;
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", OnAfterInitializeWebRequestWithURL, '', false, false)]
     local procedure RecordFinalRequestEvent(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
     begin
-        APITestAuthRecorder.RecordCall(StrSubstNo(EventCallTok, HttpWebRequestMgt.GetUrl()));
+        APITestAuthRecorder.RecordCall(EventCallTok);
     end;
 }

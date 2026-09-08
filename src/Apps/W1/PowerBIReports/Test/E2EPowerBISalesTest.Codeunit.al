@@ -31,12 +31,6 @@ codeunit 139881 "E2E PowerBI Sales Test"
     Access = Internal;
     EventSubscriberInstance = Manual;
 
-    trigger OnRun()
-    begin
-        LibGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibGraphMgt: Codeunit "Library - Graph Mgt";
@@ -56,6 +50,8 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure Initialize()
     begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         if IsInitialized then
             exit;
 

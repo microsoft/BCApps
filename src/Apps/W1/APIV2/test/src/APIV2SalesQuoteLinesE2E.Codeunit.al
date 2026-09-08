@@ -9,8 +9,6 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Quote]
     end;
@@ -32,6 +30,9 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -933,7 +934,6 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

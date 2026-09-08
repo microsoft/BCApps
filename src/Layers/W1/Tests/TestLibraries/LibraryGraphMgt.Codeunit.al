@@ -18,10 +18,14 @@ codeunit 130618 "Library - Graph Mgt"
 
     /// <summary>
     /// Sets the authentication provider used by this library instance.
+    /// Selecting the same provider preserves its cached state.
     /// </summary>
     /// <param name="NewAuthentication">The authentication provider to use for subsequent API test requests.</param>
     procedure SetAuthenticationProvider(NewAuthentication: Enum "API Test Authentication")
     begin
+        if AuthenticationProviderResolved and (Authentication = NewAuthentication) then
+            exit;
+
         Authentication := NewAuthentication;
         AuthenticationProvider := Authentication;
         AuthenticationProviderResolved := true;
@@ -31,21 +35,6 @@ codeunit 130618 "Library - Graph Mgt"
     procedure SetLicenseSafeWorkDate()
     begin
         WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
-    end;
-
-    /// <summary>Adds a field to the ignored-field buffer when the field exists in the source table.</summary>
-    /// <param name="TempIgnoredFields">Temporary ignored-field buffer.</param>
-    /// <param name="SourceTableNo">Source table number.</param>
-    /// <param name="SourceFieldName">Source field name.</param>
-    procedure AddFieldToIgnoreIfExists(var TempIgnoredFields: Record 2000000041 temporary; SourceTableNo: Integer; SourceFieldName: Text)
-    var
-        RecordField: Record Field;
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        RecordField.SetRange(TableNo, SourceTableNo);
-        RecordField.SetRange(FieldName, SourceFieldName);
-        if RecordField.FindFirst() then
-            LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
@@ -180,7 +169,7 @@ codeunit 130618 "Library - Graph Mgt"
         CurrentAuthenticationProvider: Interface "API Test Auth Provider";
     begin
         CurrentAuthenticationProvider := GetAuthenticationProvider();
-        CurrentAuthenticationProvider.ConfigureAuthentication(HttpWebRequestMgt.GetUrl(), AuthenticationContext);
+        CurrentAuthenticationProvider.ConfigureAuthentication(AuthenticationContext);
         AuthenticationContext.Apply(HttpWebRequestMgt);
     end;
 

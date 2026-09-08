@@ -7,8 +7,6 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Customer Payments]
     end;
@@ -773,6 +771,9 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Customer Payments E2E");
 
@@ -811,4 +812,3 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
         exit(ServiceSubpageNameTxt + '(' + LibraryGraphMgt.StripBrackets(CustomerPaymentId) + ')');
     end;
 }
-

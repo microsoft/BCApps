@@ -9,8 +9,6 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Contact]
     end;
@@ -34,6 +32,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get all contact information for a customer
 
@@ -64,6 +64,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Customer]
         // [SCENARIO] Get all contact information for a customer
 
@@ -96,6 +98,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get all contact information for a vendor
 
@@ -126,6 +130,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [FEATURE] [Vendor]
         // [SCENARIO] Get all contact information for a Vendor
 
@@ -180,5 +186,11 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
         LibraryMarketing.CreatePersonContact(Contact);
         Contact.Validate("Company No.", CompanyNo);
         Contact.Modify(true);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

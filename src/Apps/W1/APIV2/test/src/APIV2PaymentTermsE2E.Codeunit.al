@@ -8,8 +8,6 @@ codeunit 139804 "APIV2 - Payment Terms E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Payment Terms]
     end;
@@ -23,6 +21,9 @@ codeunit 139804 "APIV2 - Payment Terms E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -95,7 +96,6 @@ codeunit 139804 "APIV2 - Payment Terms E2E"
         LibraryGraphMgt.VerifyIDInJson(PaymentTermJSON);
     end;
 }
-
 
 
 

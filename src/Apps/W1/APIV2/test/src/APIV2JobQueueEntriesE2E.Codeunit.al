@@ -6,8 +6,6 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [JobQueue] [JobQueueEntry]
         // This API only supports GET request and it is not editable.
@@ -28,6 +26,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry and use a GET method to retrieve it·
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry
         JobQueueEntry.DeleteAll();
@@ -54,6 +54,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         ResponseText: Text;
         JobQueueEntryJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry and use a GET method to retrieve it.
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry and one corresponding JobQueueLogEntry
         JobQueueEntry.DeleteAll();
@@ -82,6 +84,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         ResponseText: Text;
         JobQueueLogEntryJSON: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry with 2 corresponding JobQueueLogEntries and use a GET method to retrieve it.
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry and 3 corresponding JobQueueLogEntries
         JobQueueEntry.DeleteAll();
@@ -108,6 +112,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 1 JobQueueEntry with status error. Use an action to reschedule the JobQueueEntry
         // [GIVEN] Clean Job Queue Entries and create a new JobQueueEntry with status error
         JobQueueEntry.DeleteAll();
@@ -203,5 +209,11 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
             Index := Index + 1;
         until (Index = LibraryGraphMgt.GetCollectionCountFromJSON(JobQueueLogEntryJSON));
         Assert.AreEqual(Count, Index, 'The number of Job Queue Log Entries is wrong.');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

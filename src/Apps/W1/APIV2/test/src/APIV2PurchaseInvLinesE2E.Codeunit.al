@@ -9,8 +9,6 @@ codeunit 139838 "APIV2 - Purchase Inv Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
@@ -34,6 +32,9 @@ codeunit 139838 "APIV2 - Purchase Inv Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -1070,7 +1071,6 @@ codeunit 139838 "APIV2 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

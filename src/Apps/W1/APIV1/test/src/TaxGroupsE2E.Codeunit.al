@@ -8,8 +8,6 @@ codeunit 139708 "Tax Groups E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Tax Group]
     end;
@@ -26,6 +24,8 @@ codeunit 139708 "Tax Groups E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IF IsInitialized THEN
             EXIT;
 

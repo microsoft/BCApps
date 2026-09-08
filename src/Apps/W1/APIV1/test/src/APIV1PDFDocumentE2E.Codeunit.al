@@ -7,8 +7,6 @@ codeunit 139744 "APIV1 - PDF Document E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [PDF]
     end;
@@ -28,6 +26,8 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     var
         CompanyInformation: Record "Company Information";
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         CompanyInformation.Get();

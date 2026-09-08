@@ -16,12 +16,6 @@ codeunit 148331 "Expense Projects API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
@@ -724,6 +718,8 @@ codeunit 148331 "Expense Projects API Test"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Projects API Test");
         if IsInitialized then
             exit;

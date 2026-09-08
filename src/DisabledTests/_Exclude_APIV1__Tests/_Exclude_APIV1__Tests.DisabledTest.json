@@ -1,0 +1,82 @@
+[
+  {
+    "codeunitId": 139709,
+    "codeunitName": "Sales Invoices E2E",
+    "method": "TestActionCancelAndSendInvoice"
+  },
+  {
+    "codeunitId": 139709,
+    "codeunitName": "Sales Invoices E2E",
+    "method": "TestActionCancelInvoice"
+  },
+  {
+    "codeunitId": 139709,
+    "codeunitName": "Sales Invoices E2E",
+    "method": "TestActionSendCancelledInvoice"
+  },
+  {
+    "codeunitId": 139709,
+    "codeunitName": "Sales Invoices E2E",
+    "method": "TestCreateInvoiceThroughPageAndAPI"
+  },
+  {
+    "codeunitId": 139711,
+    "codeunitName": "APIV1 - Sales Orders E2E",
+    "method": "TestCreateOrderThroughPageAndAPI"
+  },
+  {
+    "codeunitId": 139723,
+    "codeunitName": "APIV1 - Sales Quotes E2E",
+    "method": "TestActionMakeOrderFromQuote"
+  },
+  {
+    "codeunitId": 139723,
+    "codeunitName": "APIV1 - Sales Quotes E2E",
+    "method": "TestCreateQuoteThroughPageAndAPI"
+  },
+  {
+    "codeunitId": 139728,
+    "codeunitName": "APIV1 - Sales Credit Memos E2E",
+    "method": "TestActionCancelAndSendCorrectiveCreditMemo"
+  },
+  {
+    "codeunitId": 139728,
+    "codeunitName": "APIV1 - Sales Credit Memos E2E",
+    "method": "TestActionCancelCorrectiveCreditMemo"
+  },
+  {
+    "codeunitId": 139728,
+    "codeunitName": "APIV1 - Sales Credit Memos E2E",
+    "method": "TestCreateCreditMemoThroughPageAndAPI"
+  },
+  {
+    "codeunitId": 139729,
+    "codeunitName": "APIV1 - Purchase Invoices E2E",
+    "method": "TestPurchaseInvoiceWithPaymentDiscount"
+  },
+  {
+    "codeunitId": 139734,
+    "codeunitName": "APIV1 - Sales Inv. Lines E2E",
+    "method": "TestGettingLinesWithDifferentTypes"
+  },
+  {
+    "codeunitId": 139734,
+    "codeunitName": "APIV1 - Sales Inv. Lines E2E",
+    "method": "TestPatchingTheIdToItemChangesLineType"
+  },
+  {
+    "codeunitId": 139735,
+    "codeunitName": "APIV1 - Sales Order Lines E2E",
+    "method": "TestGettingLinesWithDifferentTypes"
+  },
+  {
+    "codeunitId": 139735,
+    "codeunitName": "APIV1 - Sales Order Lines E2E",
+    "method": "TestPatchingTheIdToItemChangesLineType"
+  },
+  {
+    "codeunitId": 139739,
+    "codeunitName": "APIV1 - Item Variants E2E",
+    "method": "TestDeleteInUse"
+  }
+]

@@ -9,8 +9,6 @@ codeunit 139800 "APIV2 - Items E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item]
     end;
@@ -34,6 +32,9 @@ codeunit 139800 "APIV2 - Items E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -884,7 +885,6 @@ codeunit 139800 "APIV2 - Items E2E"
         Assert.IsFalse(Item.IsEmpty(), 'Item does not exist');
     end;
 }
-
 
 
 

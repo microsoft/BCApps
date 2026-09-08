@@ -9,8 +9,6 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Order]
     end;
@@ -35,6 +33,8 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IF IsInitialized THEN
             EXIT;
 
@@ -852,8 +852,6 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
         Assert.AreNotEqual('', OrderId, 'ID should not be empty');
         LibraryInventory.CreateItem(Item);
-        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
-            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         OrderLineJSON := STRSUBSTNO('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Format(Item.SystemId)));
         COMMIT();

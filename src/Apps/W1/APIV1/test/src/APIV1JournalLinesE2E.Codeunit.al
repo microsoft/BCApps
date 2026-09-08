@@ -7,8 +7,6 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [JournalLines]
     end;
@@ -18,6 +16,8 @@ codeunit 139745 "APIV1 - Journal Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         if IsInitialized then
             exit;
         IsInitialized := true;

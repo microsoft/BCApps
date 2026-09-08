@@ -415,7 +415,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
     }
 
     Describe "API test isolation metadata" {
-        It "matches every NAV API execution path and its isolation mode" {
+        It "preserves the scoped API codeunit isolation metadata" {
             $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
             $typedIntegrationCodeunits = @(139917, 139918, 139919, 139920, 139921)
             foreach ($apiVersion in @('APIV1', 'APIV2')) {
@@ -462,7 +462,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
                 $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 75 }
                 $enabledCodeunitCount | Should -Be $expectedEnabledCodeunits `
-                    -Because "$apiVersion must match the union of NAV's web-service and typed test tasks"
+                    -Because "$apiVersion must preserve the reviewed codeunit scope independently of method exclusions"
             }
         }
     }
@@ -480,7 +480,8 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
         It "exposes an extensible provider contract with a no-auth default" {
             $script:authenticationInterface | Should -Match 'interface\s+"API Test Auth Provider"'
-            $script:authenticationInterface | Should -Match 'ConfigureAuthentication\(TargetURL:\s*Text;\s*var\s+Authentication:\s*Codeunit\s+"API Test Auth Context"\)'
+            $script:authenticationInterface | Should -Match 'ConfigureAuthentication\(var\s+Authentication:\s*Codeunit\s+"API Test Auth Context"\)'
+            $script:authenticationInterface | Should -Not -Match 'TargetURL'
             $script:authenticationEnum | Should -Match 'Extensible\s*=\s*true\s*;'
             $script:authenticationEnum | Should -Match 'DefaultImplementation\s*=\s*"API Test Auth Provider"\s*=\s*"No API Test Auth Provider"\s*;'
             $script:authenticationEnum | Should -Match 'value\(1;\s*"Microsoft Test Environment"\)'
@@ -491,16 +492,31 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $script:authenticationContext | Should -Match 'procedure\s+SetBasicAuthentication\(UserName:\s*Text;\s*Password:\s*SecretText\)'
             $script:authenticationContext | Should -Match 'HttpWebRequestMgt\.AddBasicAuthentication\(BasicUserName,\s*BasicPassword\)'
             $script:microsoftProvider | Should -Not -Match 'HttpWebRequestMgt'
-            $script:microsoftProvider | Should -Match 'Authentication\.SetBasicAuthentication\(UserId\(\),\s*Password\)'
-            $script:microsoftProvider | Should -Match 'TargetUri\.GetScheme\(\).*CurrentServiceUri\.GetScheme\(\)'
-            $script:microsoftProvider | Should -Match 'TargetUri\.GetAuthority\(\).*CurrentServiceUri\.GetAuthority\(\)'
+            $script:microsoftProvider | Should -Match 'Authentication\.SetBasicAuthentication\(UserId\(\),\s*GetAuthenticationPassword\(\)\)'
+            $script:microsoftProvider | Should -Not -Match 'TargetURL|IsCurrentTestServiceURL'
         }
 
         It "applies the selected provider after URL rewriting and before the final request event" {
             $script:graphManagement | Should -Match 'AuthenticationProviderResolved:\s*Boolean\s*;'
             $script:graphManagement | Should -Match 'HttpWebRequestMgt\.Initialize\(TargetURL\);\s*ApplyAuthentication\(HttpWebRequestMgt\);\s*OnAfterInitializeWebRequestWithURL\(HttpWebRequestMgt\);'
-            $script:graphManagement | Should -Match 'ConfigureAuthentication\(HttpWebRequestMgt\.GetUrl\(\),\s*AuthenticationContext\)'
+            $script:graphManagement | Should -Match 'ConfigureAuthentication\(AuthenticationContext\)'
             $script:graphManagement | Should -Not -Match 'Microsoft Test Auth Provider'
+        }
+
+        It "preserves the provider instance when initialization selects the same provider again" {
+            $script:graphManagement | Should -Match 'if AuthenticationProviderResolved and \(Authentication = NewAuthentication\) then\s*exit;\s*Authentication := NewAuthentication;'
+        }
+
+        It "checks platform authentication before reading credentials without querying the User table" {
+            $script:microsoftProvider | Should -Match 'SecurityGroup:\s*Codeunit "Security Group";'
+            $script:microsoftProvider | Should -Match 'if EnvironmentInfo\.IsSaaSInfrastructure\(\) then\s*exit;\s*if SecurityGroup\.IsWindowsAuthentication\(\) then\s*exit;\s*Authentication\.SetBasicAuthentication'
+            $script:microsoftProvider | Should -Not -Match 'Record User|Windows Security ID|User\.Get\('
+        }
+
+        It "caches only a successfully resolved password and keeps container precedence over Key Vault" {
+            $script:microsoftProvider | Should -Match 'if not CachedAuthenticationPassword\.IsEmpty\(\) then\s*exit\(CachedAuthenticationPassword\);'
+            $script:microsoftProvider | Should -Match 'if ContainerPasswordFileExists\(\) then begin\s*if not TryGetContainerPassword\(Password\) then\s*Error\(ContainerPasswordReadErr, ApiTestPasswordFileTok\);\s*end else\s*if not TryGetNavEnlistmentPassword\(Password\) then\s*Error\(KeyVaultPasswordReadErr, NavServerUserPasswordKeyTok\);\s*CachedAuthenticationPassword := Password;'
+            $script:microsoftProvider | Should -Not -Match 'AuthenticationRequired|AuthenticationResolved|CacheAuthenticationResult'
         }
 
         It "selects Microsoft test authentication in every test codeunit that issues Graph requests" {
@@ -514,7 +530,33 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     ($candidateFile -notlike '*APITestAuthProviderTests.Codeunit.al')) {
                     $content | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);' `
                         -Because "$candidateFile issues API requests"
+                    $onRun = [regex]::Match($content, '(?is)trigger\s+OnRun\s*\(\)\s*begin\b.*?\bend\s*;')
+                    $onRun.Value | Should -Not -Match 'SetAuthenticationProvider' `
+                        -Because "$candidateFile must select authentication during initialization, not OnRun"
+                    $initializer = [regex]::Match(
+                        $content,
+                        '(?ims)^[ \t]*(?:local[ \t]+)?procedure[ \t]+Initialize\s*\([^)]*\)[^\r\n]*\r?\n(?<body>.*?)(?=^[ \t]*(?:(?:local|internal|protected)[ \t]+)?procedure\b|^[ \t]*\[[A-Za-z]|^\})')
+                    $initializer.Success | Should -BeTrue -Because "$candidateFile needs an initialization entry point"
+                    $initializer.Value | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);'
+                    $guard = [regex]::Match($initializer.Value, '(?i)if\s+\w*Initialized\s+then')
+                    if ($guard.Success) {
+                        $initializer.Value.IndexOf('SetAuthenticationProvider') | Should -BeLessThan $guard.Index `
+                            -Because "$candidateFile must configure authentication before its initialized guard"
+                    }
                 }
+
+            }
+        }
+
+        It "initializes Dimension Lines authentication separately from journal fixtures" {
+            $source = Get-Content (Join-Path $repoRoot 'src\Apps\W1\APIV1\test\src\APIV1DimensionLinesE2E.Codeunit.al') -Raw
+            $tests = [regex]::Matches($source, '(?ms)^    \[Test\].*?^    procedure\s+\w+\([^)]*\).*?^    begin(?<body>.*?)(?=^    \[Test\]|^    (?:local )?procedure|^\})')
+            $tests.Count | Should -Be 9
+            foreach ($test in $tests) {
+                $body = $test.Groups['body'].Value
+                $localInitialize = [regex]::Match($body, '(?<![\w.])Initialize\(\);')
+                $localInitialize.Success | Should -BeTrue
+                $localInitialize.Index | Should -BeLessThan $body.IndexOf('LibraryGraphJournalLines.Initialize();')
             }
         }
     }
