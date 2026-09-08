@@ -2647,8 +2647,8 @@ codeunit 137055 "SCM Warehouse Pick"
         LotQty := LibraryRandom.RandIntInRange(10, 20);
         LotNo[1] := LibraryUtility.GenerateGUID();
         LotNo[2] := LibraryUtility.GenerateGUID();
-        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[1], 20250606D);
-        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[2], 20250616D);
+        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[1], CalcDate('<+5D>', WorkDate()));
+        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[2], CalcDate('<+15D>', WorkDate()));
 
         // [GIVEN] The first lot is picked and posted as a partial warehouse shipment.
         CreateSalesOrder(SalesHeader, Location.Code, Item."No.", 2 * LotQty);
