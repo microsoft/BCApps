@@ -3,11 +3,13 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Shipment]
     end;
 
@@ -26,6 +28,8 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create 2 sales shipments (post sales order) and use a GET method to retrieve them
 
         // [GIVEN] 2 posted sales shipments
@@ -57,6 +61,8 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
         ShipmentIdTxt: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Call GET on a sales shipment and expand the dimension set lines
 
         // [GIVEN] A sales shipment.
@@ -108,4 +114,10 @@ codeunit 139847 "APIV2 - Sales Shipments E2E"
         exit(TargetURL);
     end;
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }

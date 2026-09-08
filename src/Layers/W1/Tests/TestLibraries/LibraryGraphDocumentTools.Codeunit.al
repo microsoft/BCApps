@@ -913,4 +913,3 @@ codeunit 130619 "Library - Graph Document Tools"
         Assert.AreEqual(ExpectedDiscountAmount, ActualInvoiceDiscountAmount, 'Invoice discount amount was not set');
     end;
 }
-

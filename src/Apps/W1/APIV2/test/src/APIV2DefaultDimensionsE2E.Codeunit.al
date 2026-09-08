@@ -9,6 +9,7 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Default Dimension]
     end;
 
@@ -561,6 +562,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionValueId: Text;
         ParentIdAsText: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         ParentIdAsText := LowerCase(Format(ParentId));
@@ -592,6 +595,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         ParentIdAsText := LowerCase(Format(ParentId));
@@ -624,6 +629,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValue2Id: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDimension(Dimension2);
@@ -653,6 +660,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         Dimension.Validate(Blocked, true);
@@ -682,6 +691,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         DimensionValue.Validate(Blocked, true);
@@ -711,6 +722,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         ParentIdAsText: Text;
         DimensionId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         DefaultDimension.Validate("Table ID", TableNo);
@@ -748,6 +761,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValueId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         DefaultDimension.Validate("Table ID", TableNo);
@@ -785,6 +800,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValue2Id: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDimensionValue(DimensionValue2, Dimension.Code);
@@ -826,6 +843,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         DimensionId: Text;
         DimensionValue2Id: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
         LibraryDimension.CreateDimensionValue(DimensionValue2, Dimension.Code);
@@ -866,6 +885,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
         ParentIdAsText: Text;
         DimensionId: Text;
     begin
+        Initialize();
+
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimension(Dimension2);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
@@ -974,5 +995,11 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
                 exit(DefaultDimensionParentType::Employee);
         end;
         exit(DefaultDimensionParentType::" ");
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

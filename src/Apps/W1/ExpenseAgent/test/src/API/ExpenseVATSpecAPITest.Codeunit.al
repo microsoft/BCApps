@@ -17,7 +17,6 @@ codeunit 148348 "Expense VAT Spec. API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseVATSpecifications', Locked = true;
 
@@ -78,11 +77,12 @@ codeunit 148348 "Expense VAT Spec. API Test"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense VAT Spec. API Test");
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         IsInitialized := true;
