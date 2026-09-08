@@ -199,12 +199,11 @@ codeunit 6442 "SignUp Authentication"
     /// <returns>The validated Service URL.</returns>
     internal procedure GetServiceUrl(): Text
     var
-        SignUpConnectionSetup: Record "SignUp Connection Setup";
         URI: Codeunit Uri;
     begin
-        if not SignUpConnectionSetup.Get() then
+        if not this.SignUpConnectionSetup.Get() then
             exit('');
-        exit(URI.ValidateIntegrationURL(SignUpConnectionSetup."Service URL", this.GetServiceApi()));
+        exit(URI.ValidateIntegrationURL(this.SignUpConnectionSetup."Service URL", this.GetServiceApi()));
     end;
 
     #endregion
