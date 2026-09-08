@@ -14,7 +14,11 @@ report 714 "Inventory - Vendor Purchases"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Vendor Purchases';
     ToolTip = 'View a list of the vendors that your company has purchased items from within a selected period. It shows invoiced quantity, amount and discount. The report can be used to analyze a company''s item purchases.';
+#if CLEAN30
+    DefaultRenderingLayout = Excel;
+#else
     DefaultRenderingLayout = Word;
+#endif
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -214,6 +218,7 @@ report 714 "Inventory - Vendor Purchases"
             LayoutFile = './Inventory/Reports/InventoryVendorPurchases.xlsx';
             Summary = 'Built in layout for the Inventory - Vendor Purchases Excel report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory - Vendor Purchases Word';
@@ -224,6 +229,7 @@ report 714 "Inventory - Vendor Purchases"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
 #if not CLEAN28
         layout(RDLC)
         {

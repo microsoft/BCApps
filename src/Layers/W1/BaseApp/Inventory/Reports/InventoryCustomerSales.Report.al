@@ -304,6 +304,7 @@ report 713 "Inventory - Customer Sales"
             Type = Excel;
             Summary = 'Built in layout for the Inventory Customer Sales Excel report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory Customer Sales Word';
@@ -314,6 +315,7 @@ report 713 "Inventory - Customer Sales"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {

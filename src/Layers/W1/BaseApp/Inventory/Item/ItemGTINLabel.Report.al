@@ -12,7 +12,11 @@ report 6625 "Item GTIN Label"
     ApplicationArea = All;
     Caption = 'Item GTIN Label';
     WordMergeDataItem = Items;
+#if CLEAN30
+    DefaultRenderingLayout = WordBody;
+#else
     DefaultRenderingLayout = Word;
+#endif
 
     dataset
     {
@@ -69,6 +73,7 @@ report 6625 "Item GTIN Label"
 
     rendering
     {
+#if not CLEAN30
         layout(Word)
         {
             Type = Word;
@@ -78,6 +83,7 @@ report 6625 "Item GTIN Label"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
         layout(WordBody)
         {
             Type = Word;
