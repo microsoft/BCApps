@@ -23,7 +23,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         APITestAuthProviderTests: Codeunit "API Test Auth Provider Tests";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         SecondLibraryGraphMgt: Codeunit "Library - Graph Mgt";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        FirstHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         IsInitialized: Boolean;
         TargetURLTok: Label 'http://127.0.0.1/', Locked = true;
@@ -41,7 +41,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         // [GIVEN] A Graph library instance without an explicitly selected provider
 
         // [WHEN] A web request is initialized
-        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
 
         // [THEN] Only the final request event is raised
         VerifyNextCall(EventCallTok);
@@ -59,7 +59,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] A web request is initialized
-        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
 
         // [THEN] The selected provider configures authentication
         VerifyNextCall(StrSubstNo(ProviderCallTok, 1));
@@ -80,7 +80,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Two web requests are initialized through the same Graph library instance
-        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
         LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
 
         // [THEN] The same provider instance handles both requests
@@ -102,7 +102,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
 
         // [WHEN] Each Graph library instance initializes a web request
-        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
         SecondLibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURLTok);
 
         // [THEN] Only the first request uses the mock provider
@@ -121,7 +121,7 @@ codeunit 139494 "API Test Auth Provider Tests"
 
         // [GIVEN] A request has used the selected provider
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
-        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
 
         // [WHEN] Initialization selects the same provider before another request
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
@@ -144,7 +144,7 @@ codeunit 139494 "API Test Auth Provider Tests"
 
         // [GIVEN] A request has used the mock provider
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::Mock);
-        LibraryGraphMgt.InitializeWebRequestWithURL(HttpWebRequestMgt, TargetURLTok);
+        LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURLTok);
 
         // [WHEN] Authentication is deselected before another request
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
@@ -161,7 +161,7 @@ codeunit 139494 "API Test Auth Provider Tests"
     begin
         Clear(LibraryGraphMgt);
         Clear(SecondLibraryGraphMgt);
-        Clear(HttpWebRequestMgt);
+        Clear(FirstHttpWebRequestMgt);
         Clear(SecondHttpWebRequestMgt);
         APITestAuthRecorder.Reset();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
