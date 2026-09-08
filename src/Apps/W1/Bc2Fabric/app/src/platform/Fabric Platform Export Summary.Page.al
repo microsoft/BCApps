@@ -66,7 +66,7 @@ page 50103 "Fabric Platform Export Summary"
         {
             action(Refresh)
             {
-                Caption = 'Refresh';
+                Caption = 'Refresh page';
                 ApplicationArea = All;
                 Image = Refresh;
                 ToolTip = 'Refreshes the page with the latest data.';

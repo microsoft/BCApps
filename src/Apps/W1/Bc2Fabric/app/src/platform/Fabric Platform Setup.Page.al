@@ -336,7 +336,7 @@ page 50104 "Fabric Platform Setup"
             }
             action(Refresh)
             {
-                Caption = 'Refresh';
+                Caption = 'Refresh page';
                 ApplicationArea = All;
                 Image = Refresh;
                 ToolTip = 'Refreshes the page with the latest data.';

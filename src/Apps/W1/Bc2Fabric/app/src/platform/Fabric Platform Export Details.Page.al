@@ -101,7 +101,7 @@ page 50102 "Fabric Platform Export Details"
         {
             action(Refresh)
             {
-                Caption = 'Refresh';
+                Caption = 'Refresh page';
                 ApplicationArea = All;
                 Image = Refresh;
                 ToolTip = 'Refreshes the page with the latest data.';
