@@ -16,6 +16,9 @@ using System.Utilities;
 codeunit 9667 "Composite Report Parts Mgt."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "Tenant Report Layout" = rim;
 
     internal procedure SeedDefaultParts()
     begin
@@ -54,7 +57,14 @@ codeunit 9667 "Composite Report Parts Mgt."
         if not TryGetPartLayout(ResourceFile, PartLayout) then
             Error(PartResourceError(PartName, ResourceFile, StrSubstNo(ResourceNotReadableDetailTxt, ResourceFile, GetLastErrorText(true))));
 
-        RemovePart(PartName, GetShippedPartAppId());
+        if TenantReportLayout.Get(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), PartName, GetShippedPartAppId()) then begin
+            // Tenant Report Layout does not support changing the content or type of an existing layout in place.
+            // Retain it (including its identity and assignments) and only refresh mutable metadata.
+            TenantReportLayout.Description := CopyStr(Description, 1, MaxStrLen(TenantReportLayout.Description));
+            TenantReportLayout."Layout Status" := TenantReportLayout."Layout Status"::Approved;
+            TenantReportLayout.Modify(true);
+            exit;
+        end;
 
         TenantReportLayout.Init();
         TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();

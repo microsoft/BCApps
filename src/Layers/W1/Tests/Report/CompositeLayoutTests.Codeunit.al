@@ -31,6 +31,7 @@ codeunit 134619 "Composite Layout Tests"
         RetiredPartTok: Label 'Test Retired Part', Locked = true;
         RetiredPartDescTok: Label 'A part a test seeds under a name this version of the app does not ship.', Locked = true;
         ShippedThemeResourceTok: Label 'ReportParts/ReportTheme/Default.dotx', Locked = true;
+        ShippedHeaderFooterResourceTok: Label 'ReportParts/HeaderFooterDesign/InternalDefault.docx', Locked = true;
         ThemeMimeTypeTok: Label 'reportlayout/dotx', Locked = true;
         TestReportID: Integer;
         BodyReportID: Integer;
@@ -453,7 +454,7 @@ codeunit 134619 "Composite Layout Tests"
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        // [SCENARIO] Re-seeding replaces a part rather than adding a second copy, so repeated upgrades do not duplicate.
+        // [SCENARIO] Re-seeding retains a part rather than adding a second copy, so repeated upgrades do not duplicate.
         Initialize();
 
         // [GIVEN] The part is not in the pool, so the first pass below is the one that creates it. The suite shares a
@@ -471,7 +472,38 @@ codeunit 134619 "Composite Layout Tests"
         // [THEN] The part is still there exactly once.
         Assert.AreEqual(
             1, ShippedPartCount('Internal Default'),
-            'Re-seeding should replace the shipped part, not add another copy of it.');
+            'Re-seeding should retain the shipped part without adding another copy of it.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReseedingShippedPartPreservesTheExistingRow()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        OriginalLayoutMediaId: Guid;
+        OriginalSystemId: Guid;
+        PartName: Text[250];
+    begin
+        // [SCENARIO] An existing shipped part has immutable content, so reseeding retains its row and updates only
+        // mutable metadata instead of deleting it.
+        Initialize();
+        PartName := CopyStr('Reseed In Place', 1, MaxStrLen(PartName));
+
+        // [GIVEN] A shipped part has already been seeded.
+        CompositeReportPartsMgt.SeedPart(PartName, ShippedHeaderFooterResourceTok, Enum::"Report Layout Subtype"::HeaderFooter, 'Original description');
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId());
+        OriginalLayoutMediaId := TenantReportLayout.Layout.MediaId;
+        OriginalSystemId := TenantReportLayout.SystemId;
+
+        // [WHEN] The part is seeded again.
+        CompositeReportPartsMgt.SeedPart(PartName, ShippedHeaderFooterResourceTok, Enum::"Report Layout Subtype"::HeaderFooter, 'Replacement description');
+
+        // [THEN] The original row and its identity remain, with the mutable metadata refreshed.
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId());
+        Assert.AreEqual(OriginalSystemId, TenantReportLayout.SystemId, 'Reseeding must retain the existing Tenant Report Layout row.');
+        Assert.AreEqual(OriginalLayoutMediaId, TenantReportLayout.Layout.MediaId, 'Reseeding must not delete and recreate the layout content.');
+        Assert.AreEqual('Replacement description', TenantReportLayout.Description, 'Reseeding should refresh mutable metadata.');
     end;
 
     [Test]
