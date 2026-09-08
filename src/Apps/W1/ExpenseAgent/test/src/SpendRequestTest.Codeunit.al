@@ -1009,39 +1009,23 @@ codeunit 148339 "Spend Request Test"
 
     [Test]
     procedure ApproverFilterReturnsDefaultApproverTravelRequests()
-    var
-        DefaultTravelRequest: Record "Spend Request";
-        OtherTravelRequest: Record "Spend Request";
-        FilteredTravelRequest: Record "Spend Request";
-        DefaultExpenseUser: Record "Expense User";
-        OtherExpenseUser: Record "Expense User";
-        DefaultApprover: Record "Expense User";
-        OtherApprover: Record "Expense User";
-        TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         // [SCENARIO] The default approver sees requests without an explicit approval assignment.
-        Initialize();
+        VerifyDefaultApproverFilter('', '');
+    end;
 
-        // [GIVEN] A default approver, an unassigned request, and a request assigned to another approver.
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
-        CreateApprover(DefaultApprover);
-        SetDefaultApprover(DefaultApprover."No.");
-        CreateReleasableSpendRequest(DefaultTravelRequest, DefaultExpenseUser);
-        LibraryExpense.SetSpendRequestStatus(DefaultTravelRequest, DefaultTravelRequest.Status::Released);
-        CreateReleasableSpendRequest(OtherTravelRequest, OtherExpenseUser);
-        CreateApproverForExpenseUser(OtherApprover, OtherExpenseUser);
-        LibraryExpense.SetSpendRequestStatus(OtherTravelRequest, OtherTravelRequest.Status::Released);
+    [Test]
+    procedure DefaultApproverFilterQuotesWildcardUserNo()
+    begin
+        // [SCENARIO] A literal wildcard user number must not expose another approver's requests.
+        VerifyDefaultApproverFilter('*', 'TR-OTHER');
+    end;
 
-        // [WHEN] The default approver's filter is applied to pending travel requests.
-        FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
-        FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
-        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, DefaultApprover.SystemId);
-
-        // [THEN] The unassigned request is visible but the other approver's request is not.
-        FilteredTravelRequest.SetRange("No.", DefaultTravelRequest."No.");
-        Assert.IsFalse(FilteredTravelRequest.IsEmpty(), DefaultTravelRequestVisibleMsg);
-        FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
-        Assert.IsTrue(FilteredTravelRequest.IsEmpty(), UnassignedTravelRequestHiddenMsg);
+    [Test]
+    procedure DefaultApproverFilterQuotesPipeUserNo()
+    begin
+        // [SCENARIO] A pipe in a user number must not become an OR filter for other users.
+        VerifyDefaultApproverFilter('TR-A|TR-B', 'TR-A');
     end;
 
     [Test]
@@ -1738,6 +1722,51 @@ codeunit 148339 "Spend Request Test"
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Default Approver No.", ApproverExpenseUserNo);
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure VerifyDefaultApproverFilter(DefaultExpenseUserNo: Code[20]; OtherExpenseUserNo: Code[20])
+    var
+        DefaultTravelRequest: Record "Spend Request";
+        OtherTravelRequest: Record "Spend Request";
+        FilteredTravelRequest: Record "Spend Request";
+        DefaultExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        OtherApprover: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        Initialize();
+
+        // [GIVEN] A default approver, an unassigned request, and a request assigned to another approver.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateApprover(DefaultApprover);
+        SetDefaultApprover(DefaultApprover."No.");
+        CreateReleasableSpendRequest(DefaultTravelRequest, DefaultExpenseUser);
+        if DefaultExpenseUserNo <> '' then begin
+            DefaultExpenseUser.Rename(DefaultExpenseUserNo);
+            DefaultTravelRequest.Get(DefaultTravelRequest."No.");
+            DefaultTravelRequest.TestField("Requested For", DefaultExpenseUserNo);
+        end;
+        LibraryExpense.SetSpendRequestStatus(DefaultTravelRequest, DefaultTravelRequest.Status::Released);
+        CreateReleasableSpendRequest(OtherTravelRequest, OtherExpenseUser);
+        if OtherExpenseUserNo <> '' then begin
+            OtherExpenseUser.Rename(OtherExpenseUserNo);
+            OtherTravelRequest.Get(OtherTravelRequest."No.");
+            OtherTravelRequest.TestField("Requested For", OtherExpenseUserNo);
+        end;
+        CreateApproverForExpenseUser(OtherApprover, OtherExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(OtherTravelRequest, OtherTravelRequest.Status::Released);
+
+        // [WHEN] The default approver's filter is applied to pending travel requests.
+        FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
+        FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
+        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, DefaultApprover.SystemId);
+
+        // [THEN] Only the literal unassigned user's request is visible, not the other approver's request.
+        FilteredTravelRequest.SetRange("No.", DefaultTravelRequest."No.");
+        Assert.IsFalse(FilteredTravelRequest.IsEmpty(), DefaultTravelRequestVisibleMsg);
+        FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
+        Assert.IsTrue(FilteredTravelRequest.IsEmpty(), UnassignedTravelRequestHiddenMsg);
     end;
 
     local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)

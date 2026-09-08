@@ -195,6 +195,7 @@ codeunit 7133 "Travel Request Approval"
     local procedure AppendDefaultSubmitters(var RequestedForFilter: Text)
     var
         ExpenseUser: Record "Expense User";
+        SelectionFilterManagement: Codeunit SelectionFilterManagement;
         DefaultFilter: TextBuilder;
     begin
         if RequestedForFilter <> '' then
@@ -207,7 +208,7 @@ codeunit 7133 "Travel Request Approval"
             repeat
                 if DefaultFilter.Length > 0 then
                     DefaultFilter.Append('|');
-                DefaultFilter.Append(ExpenseUser."No.");
+                DefaultFilter.Append(SelectionFilterManagement.AddQuotes(ExpenseUser."No."));
             until ExpenseUser.Next() = 0;
 
         RequestedForFilter := DefaultFilter.ToText();
