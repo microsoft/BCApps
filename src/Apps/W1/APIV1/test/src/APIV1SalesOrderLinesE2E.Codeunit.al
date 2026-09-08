@@ -844,6 +844,8 @@ codeunit 139735 "APIV1 - Sales Order Lines E2E"
 
         Assert.AreNotEqual('', OrderId, 'ID should not be empty');
         LibraryInventory.CreateItem(Item);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         OrderLineJSON := STRSUBSTNO('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Format(Item.SystemId)));
         COMMIT();
