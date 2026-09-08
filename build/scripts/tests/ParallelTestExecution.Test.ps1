@@ -545,17 +545,18 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     }
                 }
 
-                It "initializes Dimension Lines authentication separately from journal fixtures" {
-                    $source = Get-Content (Join-Path $repoRoot 'src\Apps\W1\APIV1\test\src\APIV1DimensionLinesE2E.Codeunit.al') -Raw
-                    $tests = [regex]::Matches($source, '(?ms)^    \[Test\].*?^    procedure\s+\w+\([^)]*\).*?^    begin(?<body>.*?)(?=^    \[Test\]|^    (?:local )?procedure|^\})')
-                    $tests.Count | Should -Be 9
-                    foreach ($test in $tests) {
-                        $body = $test.Groups['body'].Value
-                        $localInitialize = [regex]::Match($body, '(?<![\w.])Initialize\(\);')
-                        $localInitialize.Success | Should -BeTrue
-                        $localInitialize.Index | Should -BeLessThan $body.IndexOf('LibraryGraphJournalLines.Initialize();')
-                    }
-                }
+            }
+        }
+
+        It "initializes Dimension Lines authentication separately from journal fixtures" {
+            $source = Get-Content (Join-Path $repoRoot 'src\Apps\W1\APIV1\test\src\APIV1DimensionLinesE2E.Codeunit.al') -Raw
+            $tests = [regex]::Matches($source, '(?ms)^    \[Test\].*?^    procedure\s+\w+\([^)]*\).*?^    begin(?<body>.*?)(?=^    \[Test\]|^    (?:local )?procedure|^\})')
+            $tests.Count | Should -Be 9
+            foreach ($test in $tests) {
+                $body = $test.Groups['body'].Value
+                $localInitialize = [regex]::Match($body, '(?<![\w.])Initialize\(\);')
+                $localInitialize.Success | Should -BeTrue
+                $localInitialize.Index | Should -BeLessThan $body.IndexOf('LibraryGraphJournalLines.Initialize();')
             }
         }
     }
