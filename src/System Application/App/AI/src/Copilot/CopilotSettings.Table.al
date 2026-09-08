@@ -101,6 +101,7 @@ table 7775 "Copilot Settings"
     var
         CopilotCapability: Codeunit "Copilot Capability";
         PrivacyNotice: Codeunit "Privacy Notice";
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         RequiredPrivacyNotices: List of [Code[50]];
         RequiredPrivacyNotice: Code[50];
     begin
@@ -109,9 +110,14 @@ table 7775 "Copilot Settings"
         if RequiredPrivacyNotices.Count() <= 0 then
             exit(true);
 
-        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
-            if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, false) then
-                exit(false);
+        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do begin
+            if RequiredPrivacyNotice = SystemPrivacyNoticeReg.GetMicrosoftCopilotID() then begin
+                if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, false) then
+                    exit(false);
+            end else
+                if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice) then
+                    exit(false);
+        end;
 
         exit(true);
     end;

@@ -217,6 +217,7 @@ codeunit 7774 "Copilot Capability Impl"
     var
         CopilotCapabilityCU: Codeunit "Copilot Capability";
         PrivacyNotice: Codeunit "Privacy Notice";
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
         RequiredPrivacyNotices: List of [Code[50]];
         RequiredPrivacyNotice: Code[50];
     begin
@@ -231,9 +232,14 @@ codeunit 7774 "Copilot Capability Impl"
             exit(CopilotSettings.Status = Enum::"Copilot Status"::Active);
 
         // check privacy notices
-        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
-            if (PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, false) <> Enum::"Privacy Notice Approval State"::Agreed) then
-                exit(false);
+        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do begin
+            if RequiredPrivacyNotice = SystemPrivacyNoticeReg.GetMicrosoftCopilotID() then begin
+                if PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, false) <> Enum::"Privacy Notice Approval State"::Agreed then
+                    exit(false);
+            end else
+                if PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice) <> Enum::"Privacy Notice Approval State"::Agreed then
+                    exit(false);
+        end;
 
         exit(true);
     end;
