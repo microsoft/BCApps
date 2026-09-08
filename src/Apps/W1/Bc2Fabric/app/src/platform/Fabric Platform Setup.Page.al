@@ -9,7 +9,7 @@ page 150004 "Fabric Platform Setup"
 page 50104 "Fabric Platform Setup"
 #endif
 {
-    Caption = 'Microsoft Fabric Setup';
+    Caption = 'Microsoft Fabric Export Setup';
     PageType = Card;
     SourceTable = "Tenant Fabric Setup";
     UsageCategory = Administration;
