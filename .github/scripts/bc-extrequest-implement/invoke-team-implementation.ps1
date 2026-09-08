@@ -127,7 +127,11 @@ function Get-IssueType {
         '-f', "repo=$($parts[1])",
         '-F', "number=$IssueNumber"
     )
-    return (ConvertFrom-Json $response.Text).data.repository.issue.issueType.name
+    $issueType = (ConvertFrom-Json $response.Text).data.repository.issue.issueType
+    if ($null -eq $issueType) {
+        return $null
+    }
+    return $issueType.name
 }
 
 function Test-HasOpenPullRequest {

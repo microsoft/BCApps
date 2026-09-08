@@ -67,6 +67,33 @@ jobs:
           $matrix = @{ include = $teams } | ConvertTo-Json -Compress
           "value=$matrix" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+  discover-standalone:
+    needs: prepare
+    runs-on: ubuntu-latest
+    outputs:
+      has-issues: ${{ steps.issues.outputs.has-issues }}
+      matrix: ${{ steps.issues.outputs.matrix }}
+    steps:
+      - name: Checkout trusted workflow code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Find standalone requests
+        id: issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_TEAM: ${{ inputs.team || 'all' }}
+        run: |
+          $matrixPath = Join-Path $env:RUNNER_TEMP 'standalone-issue-matrix.json'
+          ./.github/scripts/bc-extrequest-implement/find-standalone-team-issues.ps1 `
+            -Repository $env:GITHUB_REPOSITORY `
+            -Team $env:SELECTED_TEAM `
+            -OutputPath $matrixPath
+          $matrix = Get-Content -Raw $matrixPath
+          $issueCount = @((ConvertFrom-Json $matrix).include).Count
+          "has-issues=$(($issueCount -gt 0).ToString().ToLowerInvariant())" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "matrix=$matrix" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
   implement-team:
     needs: prepare
     permissions:
@@ -187,4 +214,106 @@ jobs:
           $statePath = Join-Path $env:RUNNER_TEMP "bc-extrequest-$($env:TEAM_SLUG)-state.json"
           ./.github/scripts/bc-extrequest-implement/finalize-team-implementation.ps1 `
             -StatePath $statePath `
+            -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')
+
+  implement-standalone:
+    needs: discover-standalone
+    if: needs.discover-standalone.outputs.has-issues == 'true'
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+      id-token: write
+      copilot-requests: write
+    environment: extensibility-agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix: ${{ fromJSON(needs.discover-standalone.outputs.matrix) }}
+
+    steps:
+      - name: Check telemetry configuration
+        id: telemetry-config
+        env:
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+        run: |
+          $values = @(
+            $env:EXT_REQ_AZURE_CLIENT_ID,
+            $env:EXT_REQ_AZURE_TENANT_ID,
+            $env:EXT_REQ_AZURE_SUBSCRIPTION_ID,
+            $env:EXT_REQ_KUSTO_CLUSTER_URI,
+            $env:EXT_REQ_KUSTO_DATABASE,
+            $env:EXT_REQ_KUSTO_IMPLEMENT_TABLE
+          )
+          $enabled = -not ($values | Where-Object { [string]::IsNullOrWhiteSpace($_) })
+          "enabled=$($enabled.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if (-not $enabled) {
+            Write-Warning 'Telemetry configuration is incomplete. The implementation will continue without telemetry.'
+          }
+
+      - name: Azure login for telemetry
+        id: azure-login
+        if: steps.telemetry-config.outputs.enabled == 'true'
+        continue-on-error: true
+        uses: azure/login@7ddb5af1ef8758cf1353cf3b42f940aee27ba21c # v3.0.2
+        with:
+          client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Report telemetry login failure
+        if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'failure'
+        run: Write-Warning 'Azure login failed. The implementation will continue without telemetry.'
+
+      - name: Mint token for BCApps
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
+          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate skill
+        run: |
+          if (-not (Test-Path '.github/skills/bc-extrequest-implement/SKILL.md')) {
+            throw 'Skill .github/skills/bc-extrequest-implement/SKILL.md was not found.'
+          }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Install Copilot CLI
+        run: npm install --global @github/copilot
+
+      - name: Implement standalone request
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ matrix.issue_number }}
+          ISSUE_URL: ${{ matrix.issue_url }}
+          TEAM_LABEL: ${{ matrix.team_label }}
+          REQUEST_TYPE: ${{ matrix.request_type }}
+          TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+        run: |
+          ./.github/scripts/bc-extrequest-implement/invoke-implementation.ps1 `
+            -IssueNumber ([long]$env:ISSUE_NUMBER) `
+            -IssueUrl $env:ISSUE_URL `
+            -Repository $env:GITHUB_REPOSITORY `
+            -ExpectedTeamLabel $env:TEAM_LABEL `
+            -ExpectedRequestType $env:REQUEST_TYPE `
+            -RejectOpenPullRequest `
+            -Model 'gpt-5.6-sol' `
             -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')

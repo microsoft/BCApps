@@ -31,12 +31,7 @@ jobs:
   implement:
     if: >
       github.event_name == 'issues' &&
-      vars.EXT_REQ_IMPLEMENTATION_MODE != 'disabled' &&
-      (vars.EXT_REQ_IMPLEMENTATION_MODE != 'per-team' ||
-       (!contains(github.event.issue.labels.*.name, 'event-request') &&
-        !contains(github.event.issue.labels.*.name, 'request-for-external')) ||
-       contains(github.event.issue.labels.*.name, 'enum-request') ||
-       contains(github.event.issue.labels.*.name, 'extensibility-enhancement')) &&
+      (vars.EXT_REQ_IMPLEMENTATION_MODE == '' || vars.EXT_REQ_IMPLEMENTATION_MODE == 'per-issue') &&
       github.event.label.name == 'ext-ready-to-implement' &&
       github.event.issue.state == 'open' &&
       github.event.issue.type.name == 'Task'

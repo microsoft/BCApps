@@ -5,8 +5,9 @@ The implementation automation supports two repository-configured modes through t
 
 - `per-issue` implements an eligible issue when it receives the `ext-ready-to-implement` label.
   This is also the default when the variable is not defined.
-- `per-team` batches `event-request` and `request-for-external` issues in the scheduled team
-  workflow. Every other request type continues through the standalone label-triggered workflow.
+- `per-team` defers implementation to the scheduled team workflow. It combines `event-request`
+  and `request-for-external` issues in team PRs, while every other request type gets its own branch
+  and draft PR during the same scheduled run.
 - `disabled` disables both automatic implementation modes.
 
 The team workflow runs at 18:10 Europe/Copenhagen time on weekdays. It processes at most ten
@@ -17,9 +18,13 @@ eligible issues for each of these teams, oldest first:
 - `Team: Integrations`
 
 An issue must be open, have type `Task`, carry `ext-ready-to-implement`, have exactly one team
-label, have exactly one of `event-request` or `request-for-external`, and have no open pull request
-that closes it. Other request types are always implemented in standalone PRs. A team with no
-eligible issues completes successfully without creating a branch or pull request.
+label, have exactly one request-type label, and have no open pull request that closes it.
+`event-request` and `request-for-external` issues are eligible for the combined team PR, with a
+limit of ten combined issues per team. Other request types are not counted against that limit and
+are each implemented in a standalone PR. The standalone job matrix is capped at 250 issues per
+workflow run to remain below GitHub's 256-job matrix limit; any remainder is picked up by the next
+scheduled run. A team with no eligible issues completes successfully without creating a branch or
+pull request.
 
 Each issue is implemented sequentially in an isolated worktree and produces one commit. The
 workflow creates one draft pull request per team and local calendar date. Re-running the same team
