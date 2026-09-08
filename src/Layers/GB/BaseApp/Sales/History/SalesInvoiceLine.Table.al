@@ -939,6 +939,12 @@ table 113 "Sales Invoice Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(8010; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR Relevant';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
 #if not CLEANSCHEMA30
         field(10500; "Reverse Charge Item"; Boolean)
         {

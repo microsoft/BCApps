@@ -157,6 +157,11 @@ page 54 "Purchase Order Subform"
                             VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
                     end;
                 }
+                field("EUDR Relevant"; Rec."EUDR Relevant")
+                {
+                    ApplicationArea = ItemTracking;
+                    Visible = false;
+                }
                 field(Nonstock; Rec.Nonstock)
                 {
                     ApplicationArea = Suite;
