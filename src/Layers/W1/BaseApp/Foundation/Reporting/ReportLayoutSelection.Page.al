@@ -561,9 +561,8 @@ page 9652 "Report Layout Selection"
 
     local procedure ShowResolvedLayoutParts()
     var
-        ReportLayoutList: Record "Report Layout List";
-        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        EmptyGuid: Guid;
+        DefaultReportLayoutList: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
         LayoutKey: Text;
         HeaderDisplay: Text;
         HeaderSource: Text;
@@ -573,13 +572,9 @@ page 9652 "Report Layout Selection"
         if Rec."Report ID" = 0 then
             Error(SelectReportFirstErr);
 
-        if TenantReportLayoutSelection.Get(Rec."Report ID", SelectedCompany, EmptyGuid) then begin
-            ReportLayoutList.SetRange("Report ID", TenantReportLayoutSelection."Report ID");
-            ReportLayoutList.SetRange("Name", TenantReportLayoutSelection."Layout Name");
-            ReportLayoutList.SetRange("Application ID", TenantReportLayoutSelection."App ID");
-            if ReportLayoutList.FindFirst() then
-                LayoutKey := LookupHelper.CompositeLayoutKey(ReportLayoutList);
-        end;
+        ReportLayoutsImpl.SetSelectedCompany(SelectedCompany);
+        if ReportLayoutsImpl.GetDefaultReportLayoutSelection(Rec."Report ID", DefaultReportLayoutList) then
+            LayoutKey := LookupHelper.CompositeLayoutKey(DefaultReportLayoutList);
 
         if LayoutKey <> '' then
             LookupHelper.GetResolvedPartDisplays(Rec."Report ID", LayoutKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource)
