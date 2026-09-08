@@ -8,7 +8,7 @@ page 150008 "Fabric Config Packages"
 page 50108 "Fabric Config Packages"
 #endif
 {
-    Caption = 'Fabric Config Packages';
+    Caption = 'Fabric Configuration Packages';
     PageType = List;
     SourceTable = "Fabric Config Package";
     ApplicationArea = All;
@@ -124,44 +124,49 @@ page 50108 "Fabric Config Packages"
                     CurrPage.Update(false);
                 end;
             }
-            action(ImportPackage)
+            group(ImportExport)
             {
-                Caption = 'Import package';
-                ApplicationArea = All;
-                Image = Import;
-                ToolTip = 'Imports a configuration package definition from a JSON file.';
-                trigger OnAction()
-                var
-                    FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
-                    InStream: InStream;
-                    FileName: Text;
-                begin
-                    if not UploadIntoStream('', '', '', FileName, InStream) then
-                        exit;
-                    FabricConfigPkgMgt.ImportPackageFromStream(InStream);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(ExportPackage)
-            {
-                Caption = 'Export package';
-                ApplicationArea = All;
-                Image = Export;
-                ToolTip = 'Exports the selected configuration package definition to a JSON file.';
-                trigger OnAction()
-                var
-                    FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
-                    TempBlob: Codeunit "Temp Blob";
-                    OutStream: OutStream;
-                    InStream: InStream;
-                    FileName: Text;
-                begin
-                    TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
-                    FabricConfigPkgMgt.ExportPackageToStream(Rec, OutStream);
-                    TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
-                    FileName := Rec."Code" + '.json';
-                    DownloadFromStream(InStream, '', '', '', FileName);
-                end;
+                Caption = 'Import/Export';
+
+                action(ImportPackage)
+                {
+                    Caption = 'Import package';
+                    ApplicationArea = All;
+                    Image = Import;
+                    ToolTip = 'Imports a configuration package definition from a JSON file.';
+                    trigger OnAction()
+                    var
+                        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+                        InStream: InStream;
+                        FileName: Text;
+                    begin
+                        if not UploadIntoStream('', '', '', FileName, InStream) then
+                            exit;
+                        FabricConfigPkgMgt.ImportPackageFromStream(InStream);
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(ExportPackage)
+                {
+                    Caption = 'Export package';
+                    ApplicationArea = All;
+                    Image = Export;
+                    ToolTip = 'Exports the selected configuration package definition to a JSON file.';
+                    trigger OnAction()
+                    var
+                        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+                        TempBlob: Codeunit "Temp Blob";
+                        OutStream: OutStream;
+                        InStream: InStream;
+                        FileName: Text;
+                    begin
+                        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+                        FabricConfigPkgMgt.ExportPackageToStream(Rec, OutStream);
+                        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+                        FileName := Rec."Code" + '.json';
+                        DownloadFromStream(InStream, '', '', '', FileName);
+                    end;
+                }
             }
         }
         area(Promoted)
