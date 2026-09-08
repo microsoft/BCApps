@@ -413,6 +413,7 @@ page 50104 "Fabric Platform Setup"
                 Caption = 'Fabric';
 
                 actionref(EnableExport_Promoted; EnableExport) { }
+                actionref(AddToWorkspace_Promoted; AddToWorkspace) { }
                 actionref(DisableExport_Promoted; DisableExport) { }
                 actionref(TestConnection_Promoted; TestConnection) { }
             }
