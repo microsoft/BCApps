@@ -8,7 +8,7 @@ page 150002 "Fabric Platform Export Details"
 page 50102 "Fabric Platform Export Details"
 #endif
 {
-    Caption = 'Fabric Platform Export Details';
+    Caption = 'Synchronization Details';
     PageType = List;
     SourceTable = "Tenant Fabric Export Details";
     ApplicationArea = All;
@@ -153,6 +153,15 @@ page 50102 "Fabric Platform Export Details"
                 actionref(ShowZeroChangeRows_Promoted; ShowZeroChangeRows) { }
                 actionref(HideZeroChangeRows_Promoted; HideZeroChangeRows) { }
             }
+        }
+    }
+
+    views
+    {
+        view(Errors)
+        {
+            Caption = 'Errors';
+            Filters = where("Error Message" = filter(<> ''));
         }
     }
 
