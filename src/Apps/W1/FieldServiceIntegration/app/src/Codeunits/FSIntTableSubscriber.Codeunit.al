@@ -284,7 +284,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnAfterTransferRecordFields', '', true, false)]
-    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean)
+    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean; DestinationIsInserted: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";
         FSWorkOrderProduct: Record "FS Work Order Product";
@@ -302,6 +302,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         case SourceDestCode of
             'Item-CRM Product':
                 begin
+                    if not DestinationIsInserted then
+                        DestinationRecordRef.LoadFields(CRMProduct.FieldNo(ConvertToCustomerAsset));
                     DestinationRecordRef.SetTable(CRMProduct);
                     DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
                     DestinationRecordRef.GetTable(CRMProduct);
@@ -366,19 +368,11 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     internal procedure DisableCustomerAssetConversion(var CRMProduct: Record "CRM Product"; var AdditionalFieldsWereModified: Boolean)
-    var
-        ExistingCRMProduct: Record "CRM Product";
     begin
         if CRMProduct.ConvertToCustomerAsset then begin
             CRMProduct.ConvertToCustomerAsset := false;
             AdditionalFieldsWereModified := true;
-            exit;
         end;
-
-        ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
-        if ExistingCRMProduct.Get(CRMProduct.ProductId) then
-            if ExistingCRMProduct.ConvertToCustomerAsset then
-                AdditionalFieldsWereModified := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnTransferFieldData', '', true, false)]
