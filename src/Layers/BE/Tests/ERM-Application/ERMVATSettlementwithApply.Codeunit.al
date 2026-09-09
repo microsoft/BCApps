@@ -1157,7 +1157,7 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         CurrencyExchangeRate.Modify(true);
     end;
 
-     local procedure VerifyVATSettlementSourceCurrencyAmounts(DocumentNo: Code[20])
+    local procedure VerifyVATSettlementSourceCurrencyAmounts(DocumentNo: Code[20])
     var
         GLEntry: Record "G/L Entry";
     begin
