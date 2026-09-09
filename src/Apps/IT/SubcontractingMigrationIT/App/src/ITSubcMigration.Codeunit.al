@@ -613,7 +613,8 @@ codeunit 149951 "IT Subc. Migration"
             "Require Pick",
             "Require Put-away",
             "Require Receive",
-            "Require Shipment");
+            "Require Shipment",
+            "Use As In-Transit");
         foreach LocationCode in LegacySubcontractingLocations.Keys() do
             if not Location.Get(LocationCode) then
                 Error(ErrorInfo.Create(StrSubstNo(MissingSubcontractingLocationErr, LocationCode), true))
@@ -650,6 +651,7 @@ codeunit 149951 "IT Subc. Migration"
         AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Put-away", Location.FieldCaption("Require Put-away"));
         AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Receive", Location.FieldCaption("Require Receive"));
         AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Shipment", Location.FieldCaption("Require Shipment"));
+        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Use As In-Transit", Location.FieldCaption("Use As In-Transit"));
         exit(UnsupportedWarehouseSettings);
     end;
 

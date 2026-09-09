@@ -938,7 +938,7 @@ codeunit 149956 "IT Subc. Migration Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure StartDisableLegacySubcontracting_BlocksUnsupportedLocationBeforeMigration()
+    procedure StartDisableLegacySubcontracting_BlocksInTransitLocationBeforeMigration()
     var
         Vendor: Record Vendor;
         Location: Record Location;
@@ -946,7 +946,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         PurchaseLine: Record "Purchase Line";
         ITSubcMigration: Codeunit "IT Subc. Migration";
     begin
-        // [SCENARIO] Disabling legacy subcontracting stops before migration when a location has unsupported warehouse settings
+        // [SCENARIO] Disabling legacy subcontracting stops before migration when a location is used as in-transit
         Initialize();
 
         // [GIVEN] No open WIP transfers or purchase orders
@@ -960,9 +960,9 @@ codeunit 149956 "IT Subc. Migration Tests"
         if not PurchaseLine.IsEmpty() then
             PurchaseLine.DeleteAll();
 
-        // [GIVEN] A vendor with an unmigrated legacy subcontracting location that requires bins
+        // [GIVEN] A vendor with an unmigrated legacy subcontracting location used as in-transit
         LibraryWarehouse.CreateLocation(Location);
-        Location."Bin Mandatory" := true;
+        Location."Use As In-Transit" := true;
         Location.Modify(false);
         LibraryPurchase.CreateVendor(Vendor);
         Vendor."Subcontracting Location Code" := Location.Code;
@@ -978,7 +978,7 @@ codeunit 149956 "IT Subc. Migration Tests"
             StrSubstNo(
                 UnsupportedSubcontractingLocationErr,
                 Location.Code,
-                Location.FieldCaption("Bin Mandatory")));
+                Location.FieldCaption("Use As In-Transit")));
 
         // [THEN] Migration has not changed the vendor
         Vendor.Get(Vendor."No.");
