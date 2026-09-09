@@ -7,7 +7,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Journal;
 
-codeunit 148000 "Contoso Item Journal Test"
+codeunit 148451 "Contoso Item Journal Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
