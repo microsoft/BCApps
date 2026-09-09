@@ -81,12 +81,28 @@ codeunit 139028 "Test Workdate"
     begin
         // [SCENARIO] The work date setting is hidden for a regular company.
         SetCompanyWorkDateSettings(CompanyInformation, false, false);
+
+        CompanyInformationPage.OpenEdit();
+
+        Assert.IsFalse(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be hidden for a regular company.');
+        CompanyInformationPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UseTodayAsWorkDateIsVisibleForDemoCompany()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyInformationPage: TestPage "Company Information";
+    begin
+        // [SCENARIO] The work date setting remains visible for a legacy demo company.
+        SetCompanyWorkDateSettings(CompanyInformation, false, false);
         CompanyInformation."Demo Company" := true;
         CompanyInformation.Modify();
 
         CompanyInformationPage.OpenEdit();
 
-        Assert.IsFalse(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be hidden for a regular company.');
+        Assert.IsTrue(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be visible for a demo company.');
         CompanyInformationPage.Close();
     end;
 

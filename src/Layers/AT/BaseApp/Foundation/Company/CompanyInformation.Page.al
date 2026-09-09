@@ -530,10 +530,14 @@ page 1 "Company Information"
                         ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
                     end;
                 }
-                field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                group(WorkDate)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Visible = Rec.IsEvaluationCompany();
+                    ShowCaption = false;
+                    Visible = WorkDateSelectionVisible;
+                    field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                    {
+                        ApplicationArea = Basic, Suite;
+                    }
                 }
             }
             group(Reporting)
@@ -835,6 +839,7 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        WorkDateSelectionVisible := Rec.IsEvaluationCompany() or CompanyInformationMgt.IsDemoCompany(Rec);
     end;
 
     trigger OnClosePage()
@@ -889,6 +894,7 @@ page 1 "Company Information"
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
+        WorkDateSelectionVisible: Boolean;
         BankBranchNoOrAccountNoMissing: Boolean;
         BankAcctPostingGroup: Code[20];
         CountyVisible: Boolean;

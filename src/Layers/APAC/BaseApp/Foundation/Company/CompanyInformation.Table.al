@@ -15,6 +15,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Utilities;
 using System.Email;
+using System.Environment;
 using System.Globalization;
 using System.Utilities;
 
@@ -761,6 +762,8 @@ table 79 "Company Information"
     begin
         if Company.Get(CompanyName()) then
             exit(Company."Evaluation Company");
+
+        exit(false);
     end;
 
     procedure VerifyAndSetPaymentInfo()
