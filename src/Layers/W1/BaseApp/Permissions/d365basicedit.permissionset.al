@@ -420,7 +420,6 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Item Statistics Buffer" = IMD,
                   tabledata "Item Substitution" = IMD,
                   tabledata "Item Templ." = IMD,
-                  tabledata "Item Tracking Code Change Log" = I,
                   tabledata "Item Tracking Comment" = IMD,
                   tabledata "Item Translation" = im,
                   tabledata "Item Turnover Buffer" = IMD,

@@ -12,6 +12,7 @@ entitlement "Delegated Helpdesk agent - Partner BaseApp"
     ObjectEntitlements = "BaseApp Objects - Exec",
                          "D365 BASIC",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 FULL ACCESS",
                          "D365 MONITOR FIELDS",
                          "D365 RAPIDSTART",

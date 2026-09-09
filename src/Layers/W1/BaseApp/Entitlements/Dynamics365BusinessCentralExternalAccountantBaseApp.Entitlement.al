@@ -12,6 +12,7 @@ entitlement "Dynamics 365 Business Central External Accountant BaseApp"
                          "D365 BASIC",
                          "D365 BUS PREMIUM",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 MONITOR FIELDS",
                          "D365 READ",
                          "LOCAL",
