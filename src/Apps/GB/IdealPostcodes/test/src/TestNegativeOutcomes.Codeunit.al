@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.Address.IdealPostcodes.Test;
 
 using Microsoft.Foundation.Address;
+using Microsoft.Utilities;
 using Microsoft.Foundation.Address.IdealPostcodes;
 using System.TestLibraries.Utilities;
 
@@ -123,6 +124,43 @@ codeunit 148119 "Test Negative Outcomes"
         IPCConfig.OK().INVOKE();
 
         // [THEN] Message dialog should appear.
+    end;
+
+    [Test]
+    procedure TestIsConfiguredWithKeySavedByConfigurationPage()
+    var
+        IPCConfig: Record "IPC Config";
+        PostcodeServiceConfig: Record "Postcode Service Config";
+        TempServiceListNameValueBuffer: Record "Name/Value Buffer" temporary;
+        ApiKeyGuid: Guid;
+    begin
+        // [SCENARIO] Page 9143 "Postcode Configuration Page W1" stores the selected row's Name as the
+        // service key. The provider must accept that key too; otherwise IsConfigured() is false and the
+        // page resets the stored selection to Disabled every time it opens.
+
+        // [GIVEN] An enabled configuration with an API key
+        LibraryLowerPermissions.SetO365BusFull();
+        Initialize();
+        IPCConfig.FindFirst();
+        IPCConfig.Enabled := true;
+        ApiKeyGuid := CreateGuid();
+        IPCConfig.SaveAPIKeyAsSecret(ApiKeyGuid, SecretStrSubstNo('apikey'));
+        IPCConfig."API Key" := ApiKeyGuid;
+        IPCConfig.Modify();
+
+        // [GIVEN] The service key stored the way the configuration page stores it: the discovered row's Name
+        PostcodeServiceManager.DiscoverPostcodeServices(TempServiceListNameValueBuffer);
+        TempServiceListNameValueBuffer.SetRange(Value, MyServiceKeyTok);
+        TempServiceListNameValueBuffer.FindFirst();
+        PostcodeServiceConfig.FindFirst();
+        PostcodeServiceConfig.SaveServiceKey(TempServiceListNameValueBuffer.Name);
+
+        // [WHEN] [THEN] The framework reports the stored selection as configured
+        Assert.IsTrue(PostcodeServiceManager.IsConfigured(), 'Provider must accept the service key saved by the configuration page (the discovered row''s Name).');
+
+        // Cleanup
+        Clear(IPCConfig."API Key");
+        IPCConfig.Modify();
     end;
 
     local procedure Initialize()
