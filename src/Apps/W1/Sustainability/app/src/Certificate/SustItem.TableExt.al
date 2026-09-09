@@ -5,7 +5,9 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Codes;
 using Microsoft.Sustainability.EPR;
+using Microsoft.Sustainability.EUDR;
 using Microsoft.Sustainability.Setup;
+using System.Utilities;
 
 tableextension 6220 "Sust. Item" extends Item
 {
@@ -264,6 +266,24 @@ tableextension 6220 "Sust. Item" extends Item
             CalcFormula = lookup("Product Classification Code".Name where("Code" = field("Product Classification Code"),
                                                                           "Type" = field("Product Classification Type")));
         }
+        field(6238; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR Relevant';
+            ToolTip = 'Specifies that the item is subject to the EU Deforestation Regulation and that certification details must be tracked per lot.';
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if Rec."EUDR Relevant" then
+                    CheckAndAssignEUDRItemTrackingCode();
+            end;
+        }
+        field(6239; "EUDR Commodity"; Enum "EUDR Commodity")
+        {
+            Caption = 'EUDR Commodity';
+            ToolTip = 'Specifies the regulated EUDR commodity category for the item, such as cattle, cocoa, coffee, oil palm, rubber, soya, or wood.';
+            DataClassification = CustomerContent;
+        }
 #pragma warning restore PTE0002
         field(6250; "Carbon Tracking Method"; Enum "Sust. Carbon Tracking Method")
         {
@@ -283,6 +303,10 @@ tableextension 6220 "Sust. Item" extends Item
             begin
                 if Rec."Carbon Tracking Method" = Rec."Carbon Tracking Method"::Specific then
                     ErrorIfSpecificCarbonTrackingLacksItemTracking();
+
+                if Rec."EUDR Relevant" then
+                    if not IsEUDRItemTrackingCode() then
+                        Rec.TestField("EUDR Relevant", false);
             end;
         }
     }
@@ -291,6 +315,8 @@ tableextension 6220 "Sust. Item" extends Item
         SustainabilitySetup: Record "Sustainability Setup";
         AtLeastOneNonZeroEmissionValueErr: Label '%1, %2, %3 cannot all be zero. Please provide at least one non-zero value.', Comment = '%1, %2 , %3 = Field Caption';
         SpecificCarbonTrackingRequiresTrackingErr: Label 'The %1 is set to %2, which requires serial or lot-specific tracking to calculate per-unit emissions. Set up an %3 with serial or lot-specific tracking for this item.', Comment = '%1 = Carbon Tracking Method field caption, %2 = Carbon Tracking Method value (Specific), %3 = Item Tracking Code field caption';
+        EUDRAssignItemTrackingCodeQst: Label 'You cannot enable %1 because the current value in %3 is not valid for this %2.\\Choose a value where %4, %5, and %6 are enabled.\\ Do you want to update %3?', Comment = '%1 = EUDR Relevant field caption, %2 = Item table caption, %3 = Item Tracking Code field caption, %4 = Lot Specific Tracking field caption, %5 = Lot Info. Inbound Must Exist field caption, %6 = Lot Info. Outbound Must Exist field caption';
+        EUDRItemTrackingCodeErr: Label 'You cannot enable %1 because the current value in %3 is not valid for this %2.\\Choose a value where %4, %5, and %6 are enabled.', Comment = '%1 = EUDR Relevant field caption, %2 = Item table caption, %3 = Item Tracking Code field caption, %4 = Lot Specific Tracking field caption, %5 = Lot Info. Inbound Must Exist field caption, %6 = Lot Info. Outbound Must Exist field caption';
 
     local procedure UpdateCertificateInformation()
     var
@@ -338,5 +364,65 @@ tableextension 6220 "Sust. Item" extends Item
         Item.Validate("Default N2O Emission", 0);
         Item.Validate("Default CH4 Emission", 0);
         Item.Validate("Default CO2 Emission", 0);
+    end;
+
+    local procedure CheckAndAssignEUDRItemTrackingCode()
+    var
+        ConfirmManagement: Codeunit "Confirm Management";
+    begin
+        Rec.TestField(Type, Type::Inventory);
+
+        if IsEUDRItemTrackingCode() then
+            exit;
+
+        if not ConfirmManagement.GetResponseOrDefault(
+            StrSubstNo(
+                EUDRAssignItemTrackingCodeQst,
+                Rec.FieldCaption("EUDR Relevant"),
+                Rec.TableCaption(),
+                Rec.FieldCaption("Item Tracking Code"),
+                ItemTrackingCode.FieldCaption("Lot Specific Tracking"),
+                ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"),
+                ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist")),
+            false)
+        then
+            Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
+
+        AssignEUDRItemTrackingCode();
+
+        if not IsEUDRItemTrackingCode() then
+            Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
+    end;
+
+    local procedure IsEUDRItemTrackingCode(): Boolean
+    begin
+        if Rec."Item Tracking Code" = '' then
+            exit(false);
+
+        if not ItemTrackingCode.Get(Rec."Item Tracking Code") then
+            exit(false);
+
+        exit(
+            ItemTrackingCode."Lot Specific Tracking" and
+            ItemTrackingCode."Lot Info. Inbound Must Exist" and
+            ItemTrackingCode."Lot Info. Outbound Must Exist");
+    end;
+
+    local procedure AssignEUDRItemTrackingCode()
+    var
+        EUDRItemTrackingCode: Record "Item Tracking Code";
+        ItemTrackingCodes: Page "Item Tracking Codes";
+    begin
+        EUDRItemTrackingCode.SetRange("Lot Specific Tracking", true);
+        EUDRItemTrackingCode.SetRange("Lot Info. Inbound Must Exist", true);
+        EUDRItemTrackingCode.SetRange("Lot Info. Outbound Must Exist", true);
+        ItemTrackingCodes.SetTableView(EUDRItemTrackingCode);
+        ItemTrackingCodes.LookupMode(true);
+
+        if ItemTrackingCodes.RunModal() <> Action::LookupOK then
+            Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
+
+        ItemTrackingCodes.GetRecord(EUDRItemTrackingCode);
+        Rec.Validate("Item Tracking Code", EUDRItemTrackingCode.Code);
     end;
 }
