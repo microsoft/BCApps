@@ -1,4 +1,4 @@
- // ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,7 +18,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Activity;
-using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
@@ -1703,6 +1702,39 @@ codeunit 137298 "SCM Prod. Whse. Handling"
 
         Assert.ExpectedMessage(PickActivitiesCreatedMsg, LibraryVariableStorage.DequeueText());
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure DeleteReleasedProdOrderBlockedWhenComponentHasPickedQty()
+    var
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647854] Deleting a released production order is blocked when a component has picked quantity not yet consumed.
+        Initialize();
+
+        // [GIVEN] Released production order "PO" with a fully registered warehouse pick and no consumption.
+        CreateProductionOrderWithRegisteredWarehousePick(ProductionOrder, Location);
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetFilter("Qty. Picked (Base)", '>0');
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.CalcFields("Act. Consumption (Qty)");
+        Assert.IsTrue(ProdOrderComponent."Qty. Picked (Base)" > 0, QtyPickedBaseShouldBePositiveErr);
+        Assert.AreEqual(0, ProdOrderComponent."Act. Consumption (Qty)", ActConsumptionQtyShouldBeZeroErr);
+        Commit();
+
+        // [WHEN] Delete the production order.
+        asserterror ProductionOrder.Delete(true);
+
+        // [THEN] Deletion is blocked and the production order still exists.
+        Assert.ExpectedError(CannotDeleteWithPickedQtyErr);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.IsTrue(
+            ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No."),
+            ProdOrderShouldExistErr);
     end;
 
     [Test]
