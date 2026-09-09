@@ -1901,10 +1901,6 @@ table 27 Item
                 if "Expiration Calculation" <> EmptyDateFormula then
                     if not ItemTrackingCodeUseExpirationDates() then
                         Error(ItemTrackingCodeIgnoresExpirationDateErr, "No.");
-
-                if Rec."EUDR Relevant" then
-                    if not IsEUDRItemTrackingCode() then
-                        Rec.TestField("EUDR Relevant", false);
             end;
         }
         field(6501; "Lot Nos."; Code[20])
@@ -1946,22 +1942,6 @@ table 27 Item
             Caption = 'Package No. Filter';
             CaptionClass = '6,3';
             FieldClass = FlowFilter;
-        }
-        field(6530; "EUDR Relevant"; Boolean)
-        {
-            Caption = 'EUDR Relevant';
-            ToolTip = 'Specifies that the item is subject to the EU Deforestation Regulation and that certification details must be tracked per lot.';
-
-            trigger OnValidate()
-            begin
-                if Rec."EUDR Relevant" then
-                    CheckAndAssignEUDRItemTrackingCode();
-            end;
-        }
-        field(6531; "EUDR Commodity"; Enum "EUDR Commodity")
-        {
-            Caption = 'EUDR Commodity';
-            ToolTip = 'Specifies the regulated EUDR commodity category for the item, such as cattle, cocoa, coffee, oil palm, rubber, soya, or wood.';
         }
         field(6650; "Qty. on Purch. Return"; Decimal)
         {
@@ -2777,8 +2757,6 @@ table 27 Item
         ReplenishmentSystemTransferErr: Label 'The Replenishment System Transfer cannot be used for item.';
         WhseEntriesExistErr: Label 'You cannot change %1 because there are one or more warehouse entries for this item.', Comment = '%1: Changed field name';
         CostAdjustmentRequiredQst: Label 'You must complete the cost adjustment for the item before you can modify %1.\Do you want to run the cost adjustment now?', Comment = '%1: Field Caption';
-        EUDRAssignItemTrackingCodeQst: Label 'You cannot enable %1 because the current value in %3 is not valid for this %2.\\Choose a value where %4, %5, and %6 are enabled.\\ Do you want to update %3?', Comment = '%1 = EUDR Relevant field caption, %2 = Item table caption, %3 = Item Tracking Code field caption, %4 = Lot Specific Tracking field caption, %5 = Lot Info. Inbound Must Exist field caption, %6 = Lot Info. Outbound Must Exist field caption';
-        EUDRItemTrackingCodeErr: Label 'You cannot enable %1 because the current value in %3 is not valid for this %2.\\Choose a value where %4, %5, and %6 are enabled.', Comment = '%1 = EUDR Relevant field caption, %2 = Item table caption, %3 = Item Tracking Code field caption, %4 = Lot Specific Tracking field caption, %5 = Lot Info. Inbound Must Exist field caption, %6 = Lot Info. Outbound Must Exist field caption';
 
     protected var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -4050,66 +4028,6 @@ table 27 Item
                 ItemUOM.CalcWeight(ItemUOM."Qty. per Unit of Measure", "Net Weight");
                 ItemUOM.Modify();
             until ItemUOM.Next() = 0;
-    end;
-
-    local procedure CheckAndAssignEUDRItemTrackingCode()
-    var
-        ConfirmManagement: Codeunit "Confirm Management";
-    begin
-        Rec.TestField(Type, Type::Inventory);
-
-        if IsEUDRItemTrackingCode() then
-            exit;
-
-        if not ConfirmManagement.GetResponseOrDefault(
-            StrSubstNo(
-                EUDRAssignItemTrackingCodeQst,
-                Rec.FieldCaption("EUDR Relevant"),
-                Rec.TableCaption(),
-                Rec.FieldCaption("Item Tracking Code"),
-                ItemTrackingCode.FieldCaption("Lot Specific Tracking"),
-                ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"),
-                ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist")),
-            false)
-        then
-            Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
-
-        AssignEUDRItemTrackingCode();
-
-        if not IsEUDRItemTrackingCode() then
-            Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
-    end;
-
-    local procedure IsEUDRItemTrackingCode(): Boolean
-    begin
-        if "Item Tracking Code" = '' then
-            exit(false);
-
-        if not ItemTrackingCode.Get("Item Tracking Code") then
-            exit(false);
-
-        exit(
-            ItemTrackingCode."Lot Specific Tracking" and
-            ItemTrackingCode."Lot Info. Inbound Must Exist" and
-            ItemTrackingCode."Lot Info. Outbound Must Exist");
-    end;
-
-    local procedure AssignEUDRItemTrackingCode()
-    var
-        EUDRItemTrackingCode: Record "Item Tracking Code";
-        ItemTrackingCodes: Page "Item Tracking Codes";
-    begin
-        EUDRItemTrackingCode.SetRange("Lot Specific Tracking", true);
-        EUDRItemTrackingCode.SetRange("Lot Info. Inbound Must Exist", true);
-        EUDRItemTrackingCode.SetRange("Lot Info. Outbound Must Exist", true);
-        ItemTrackingCodes.SetTableView(EUDRItemTrackingCode);
-        ItemTrackingCodes.LookupMode(true);
-
-        if ItemTrackingCodes.RunModal() <> Action::LookupOK then
-            Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
-
-        ItemTrackingCodes.GetRecord(EUDRItemTrackingCode);
-        Rec.Validate("Item Tracking Code", EUDRItemTrackingCode.Code);
     end;
 
     [IntegrationEvent(false, false)]

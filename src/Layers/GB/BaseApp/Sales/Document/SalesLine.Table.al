@@ -4139,12 +4139,6 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(8010; "EUDR Relevant"; Boolean)
-        {
-            Caption = 'EUDR Relevant';
-            Editable = false;
-            DataClassification = CustomerContent;
-        }
 #if not CLEANSCHEMA30
         field(10500; "Reverse Charge Item"; Boolean)
         {
@@ -4903,7 +4897,6 @@ table 37 "Sales Line"
         "Reverse Charge Item" := Item."Reverse Charge Applies";
 #endif
         "Allow Item Charge Assignment" := true;
-        "EUDR Relevant" := Item."EUDR Relevant";
         PrepaymentMgt.SetSalesPrepaymentPct(Rec, SalesHeader."Posting Date");
         if IsInventoriableItem() then
             PostingSetupMgt.CheckInvtPostingSetupInventoryAccount("Location Code", "Posting Group");
