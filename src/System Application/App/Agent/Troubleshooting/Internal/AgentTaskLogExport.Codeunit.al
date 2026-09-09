@@ -31,13 +31,15 @@ codeunit 4313 "Agent Task Log Export"
 
     local procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry"; AgentTaskID: BigInteger; IncludeMemoryEntries: Boolean; var ExportOutStream: OutStream)
     var
+        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
+        FeatureAccessManagement: Codeunit "Feature Access Management";
         ExportRoot: JsonObject;
         IncludeSerializedPage: Boolean;
         CurrentGlobalLanguage: Integer;
         ErrorText: Text;
     begin
-        CheckExportAccess();
-        IncludeSerializedPage := CanIncludeSerializedPage();
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        IncludeSerializedPage := AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents();
         CurrentGlobalLanguage := GlobalLanguage();
         GlobalLanguage(1033); // ENU
 
@@ -552,20 +554,6 @@ codeunit 4313 "Agent Task Log Export"
     begin
         if SelectedAgentTaskLogEntry.FindFirst() then
             exit(SelectedAgentTaskLogEntry."Task ID");
-    end;
-
-    local procedure CheckExportAccess()
-    var
-        FeatureAccessManagement: Codeunit "Feature Access Management";
-    begin
-        FeatureAccessManagement.AgentManagementAllowed(true);
-    end;
-
-    local procedure CanIncludeSerializedPage(): Boolean
-    var
-        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
-    begin
-        exit(AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents());
     end;
 
     local procedure DownloadExport(var TempBlob: Codeunit "Temp Blob"; AgentName: Text)

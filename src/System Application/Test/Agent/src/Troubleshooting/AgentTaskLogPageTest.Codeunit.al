@@ -201,7 +201,7 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
-    procedure TestBuildContextJson_IncludesCalculatedDetails()
+    procedure TestBuildRedactedContextJson_IncludesNonSensitiveDetails()
     var
         AgentTaskLogExport: Codeunit "Agent Task Log Export";
         ContextJson: JsonObject;
@@ -209,7 +209,7 @@ codeunit 133964 "Agent Task Log Page Test"
         PageStackEntry: JsonObject;
         ContextTxt: Text;
     begin
-        // [GIVEN] Troubleshooting context containing all calculated detail-page sections
+        // [GIVEN] Troubleshooting context containing the non-sensitive calculated detail-page sections
         ContextTxt := '{"isDecisionPoint":true,"pageStack":["Customer List","Customer Card"],"availableTools":["Edit record"],"memorizedData":{"customerNo":"10000"},"taskPageContext":{"currencyCode":"USD","currencySymbol":"$","outgoingCommunicationCulture":{"language":"en-US","dateFormat":"M/d/yyyy","timeFormat":"h:mm tt","formattedNumberExample":"1,234.56"}}}';
 
         // [WHEN] The non-sensitive context is projected
@@ -230,13 +230,13 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
-    procedure TestBuildContextJson_RedactsSerializedPage()
+    procedure TestBuildRedactedContextJson_RedactsSerializedPage()
     var
         AgentTaskLogExport: Codeunit "Agent Task Log Export";
         ContextJson: JsonObject;
     begin
         // [GIVEN] Troubleshooting context containing a sensitive page snapshot
-        // [WHEN] The context is projected without the troubleshooting permission
+        // [WHEN] The context is projected through the explicitly redacted helper
         AgentTaskLogExport.BuildRedactedContextJson('{"serializedPage":"{\"secret\":\"value\"}"}', ContextJson);
 
         // [THEN] The snapshot is not present and the redaction is explicit
