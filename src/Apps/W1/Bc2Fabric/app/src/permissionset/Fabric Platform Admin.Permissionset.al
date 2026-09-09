@@ -3,9 +3,9 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 
 #if not PTE
-permissionset 150001 "Fabric Plat Admin"
+permissionset 150001 "Fabric Exp Admin"
 #else
-permissionset 50101 "Fabric Plat Admin"
+permissionset 50101 "Fabric Exp Admin"
 #endif
 {
     Caption = 'Microsoft Fabric Export - Platform Admin';

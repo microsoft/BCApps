@@ -3,9 +3,9 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 
 #if not PTE
-permissionset 150003 "Fabric Plat Activate"
+permissionset 150003 "Fabric Exp Activate"
 #else
-permissionset 50103 "Fabric Plat Activate"
+permissionset 50103 "Fabric Exp Activate"
 #endif
 {
     Caption = 'Microsoft Fabric Export - Platform Activate';

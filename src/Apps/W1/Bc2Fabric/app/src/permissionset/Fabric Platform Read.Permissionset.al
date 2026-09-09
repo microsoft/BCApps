@@ -3,9 +3,9 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 
 #if not PTE
-permissionset 150002 "Fabric Plat Read"
+permissionset 150002 "Fabric Exp Read"
 #else
-permissionset 50102 "Fabric Plat Read"
+permissionset 50102 "Fabric Exp Read"
 #endif
 {
     Caption = 'Microsoft Fabric Export - Platform Read';
