@@ -3,7 +3,7 @@ name: bc-extrequest-implement
 description: >
   Fix a single GitHub extensibility issue end to end. Reads the issue and produces a
   guideline-aligned code fix. In standalone mode it opens a draft pull request; in batch-worker
-  mode it creates one issue commit and returns a machine-readable result to the calling workflow.
+  mode it returns a machine-readable outcome and creates one issue commit only when implemented.
   The issue MUST carry the `ext-ready-to-implement` label, which acts as a guard.
   The issue, source code, and pull request live in the current GitHub repository.
   No tests, no build, and no BC container are involved - this skill only edits source and either
@@ -418,8 +418,12 @@ git commit -m "Ext fix issue <issue_number>: <short description of the fix>"
 
 - Use explicit file paths. Never `git add -A` or `git add .`.
 
-If there is nothing to commit (no file changes were produced), STOP and report that the issue did
-not lead to any code change, explaining why - do not open an empty PR.
+If there is nothing to commit (no file changes were produced):
+
+- In standalone or coding-agent mode, STOP and report that the issue did not lead to any code
+  change, explaining why. Do not open an empty PR.
+- In batch-worker mode, continue to Step 7.5 and return an explicit non-implemented outcome. Do not
+  create an empty commit.
 
 ---
 
@@ -428,16 +432,30 @@ not lead to any code change, explaining why - do not open an empty PR.
 Run this step only when `agent_mode == batch-worker`. Standalone and coding-agent executions skip
 it and continue to Step 8.
 
-After the issue commit succeeds:
+Always write a result file before batch-worker mode stops, including when no code change is
+appropriate or implementation cannot be completed. A missing result file is a contract failure.
 
-1. Resolve the commit SHA with `git rev-parse HEAD`.
+Use exactly one of these outcomes:
+
+- `implemented` - the requested change was made and committed.
+- `already_implemented` - the current code already provides the requested behavior.
+- `blocked` - a safe implementation requires clarification or violates a skill constraint.
+- `failed` - an unexpected implementation error prevented completion.
+
+After issue handling completes:
+
+1. For `implemented`, resolve the commit SHA with `git rev-parse HEAD`. For every other outcome,
+   set `commit_sha` to JSON `null`.
 2. Build the same issue-focused summary and `Changes Made` entries that would have been used in the
-   standalone PR body.
+   standalone PR body. For non-implemented outcomes, use a short summary and an empty
+   `changes_made` array.
 3. Write one UTF-8 JSON object to the absolute path in `EXT_REQ_BATCH_RESULT_PATH`:
 
    ```json
    {
      "issue_number": 12345,
+     "outcome": "implemented",
+     "reason": "",
      "issue_title": "Issue title",
      "issue_url": "https://github.com/owner/repository/issues/12345",
      "summary": "Two to four sentences describing the request and implementation.",
@@ -452,12 +470,35 @@ After the issue commit succeeds:
    }
    ```
 
+   Example when no implementation is required:
+
+   ```json
+   {
+     "issue_number": 12345,
+     "outcome": "already_implemented",
+     "reason": "The requested procedure is already public.",
+     "issue_title": "Make the procedure public",
+     "issue_url": "https://github.com/owner/repository/issues/12345",
+     "summary": "No implementation is required because the requested API is already available.",
+     "changes_made": [],
+     "labels": [
+       "Team: Finance",
+       "request-for-external"
+     ],
+     "commit_sha": null
+   }
+   ```
+
    `labels` must contain the issue labels prepared in Step 3.6, excluding
-   `ext-ready-to-implement`. `changes_made` must contain at least one entry. Do not include Markdown
-   bullet prefixes in the array values.
+   `ext-ready-to-implement`. For `implemented`, `changes_made` must contain at least one entry,
+   `reason` must be empty, and `commit_sha` must be the issue commit. For every other outcome,
+   `reason` must explain the outcome, `changes_made` must be empty, and `commit_sha` must be null.
+   Do not include Markdown bullet prefixes in array values.
 4. Do not write this result anywhere inside the repository.
 5. Do not push, create or edit a pull request, or modify the issue.
-6. Print a short completion message and STOP successfully. Do not continue to Step 8.
+6. If an unexpected error occurs in batch-worker mode, write a `failed` result when possible before
+   stopping. Do not disguise a missing or malformed result as success.
+7. Print a short completion message and STOP. Do not continue to Step 8.
 
 ---
 

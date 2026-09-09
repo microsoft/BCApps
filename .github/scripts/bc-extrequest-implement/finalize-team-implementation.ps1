@@ -103,7 +103,9 @@ $existingPrResponse = Invoke-NativeText -Command 'gh' -Arguments @(
     '--limit', '1',
     '--json', 'number,body'
 )
-$existingPr = @($existingPrResponse.Text | ConvertFrom-Json)[0]
+$existingPr = @(
+    $existingPrResponse.Text | ConvertFrom-Json
+) | Select-Object -First 1
 
 $sections = [System.Text.StringBuilder]::new()
 foreach ($result in @($state.successful_issues)) {
@@ -212,6 +214,10 @@ $summary = @(
 if (@($state.failed_issues).Count -gt 0) {
     $summary += ''
     $summary += "Failed issues: $(@($state.failed_issues | ForEach-Object { "#$($_.issue_number)" }) -join ', ')"
+}
+if (@($state.no_change_issues).Count -gt 0) {
+    $summary += ''
+    $summary += "Already implemented: $(@($state.no_change_issues | ForEach-Object { "#$($_.issue_number)" }) -join ', ')"
 }
 Add-JobSummary ($summary -join "`n")
 

@@ -30,6 +30,11 @@ Each issue is implemented sequentially in an isolated worktree and produces one 
 workflow creates one draft pull request per team and local calendar date. Re-running the same team
 on the same date updates that branch and pull request.
 
+Batch workers always return an explicit outcome. `implemented` issues require exactly one commit
+and are included in the team PR. `already_implemented` issues complete without a commit or PR
+section. `blocked` and `failed` issues are reported as failures with their reason. A missing worker
+result remains an agent-contract failure.
+
 Both pull request description templates are skill assets:
 
 - [`standalone-pr-template.md`](../../skills/bc-extrequest-implement/standalone-pr-template.md)
