@@ -79,8 +79,6 @@ codeunit 6975 "Create Expense VAT Rates"
                 CreateVATRatesBG();
             'CY':
                 CreateVATRatesCY();
-            'CZ':
-                CreateVATRatesCZ();
             'EE':
                 CreateVATRatesEE();
             'GR':
@@ -99,10 +97,6 @@ codeunit 6975 "Create Expense VAT Rates"
                 CreateVATRatesSI();
             'SK':
                 CreateVATRatesSK();
-            'AU':
-                CreateVATRatesAU();
-            'NZ':
-                CreateVATRatesNZ();
             'MX':
                 CreateVATRatesMX();
             'IS':
@@ -123,13 +117,7 @@ codeunit 6975 "Create Expense VAT Rates"
     end;
 
     internal procedure GetExpenseVATAccountName(VATPercent: Decimal): Text[100]
-    var
-        CompanyInfo: Record "Company Information";
     begin
-        CompanyInfo.Get();
-        if CompanyInfo."Country/Region Code" in ['AU', 'NZ'] then
-            exit(StrSubstNo(ExpenseGSTAccountNameLbl, Format(VATPercent)));
-
         exit(StrSubstNo(ExpenseVATAccountNameLbl, Format(VATPercent)));
     end;
 
@@ -207,7 +195,6 @@ codeunit 6975 "Create Expense VAT Rates"
         CreateExpenseCategories: Codeunit "Create Expense Categories";
 
         ExpenseVATAccountNameLbl: Label 'Expense VAT %1 %', MaxLength = 100, Comment = '%1 = VAT percentage';
-        ExpenseGSTAccountNameLbl: Label 'Expense GST %1 %', MaxLength = 100, Comment = '%1 = GST percentage';
 
     local procedure CreateVATRatesAT()
     begin
@@ -750,33 +737,6 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'VAT-STD-19', 19, 'Entertainment - standard rate (CY)');
     end;
 
-    local procedure CreateVATRatesCZ()
-    begin
-        // ── Czech Republic (CZ) ────────────────────────────────────────────────────
-        // Standard 21 %, reduced 12 % (accommodation, food, transport)
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMTxt(), 'VAT-RED-12', 12, 'Hotel room - accommodation rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetDEPOSITTxt(), 'VAT-RED-12', 12, 'Hotel deposit - accommodation rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetBREAKFASTTxt(), 'VAT-RED-12', 12, 'Hotel breakfast - food rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMSERVICETxt(), 'VAT-RED-12', 12, 'Hotel room service - food rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTRANSPORTTxt(), 'VAT-RED-12', 12, 'Hotel transport - reduced rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetFEETxt(), 'VAT-STD-21', 21, 'Hotel fees - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPHONETxt(), 'VAT-STD-21', 21, 'Hotel phone - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'VAT-STD-21', 21, 'Hotel internet - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'VAT-STD-21', 21, 'Hotel incidents - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'VAT-STD-21', 21, 'Hotel laundry - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'VAT-STD-21', 21, 'Hotel parking - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'VAT-STD-21', 21, 'Hotel other - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'VAT-RED-12', 12, 'Restaurant / meals - reduced rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetAIRLINETxt(), '', 'VAT-ZERO', 0, 'Flights - exempt/zero rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetGROUNDTRANSTxt(), '', 'VAT-RED-12', 12, 'Ground transport - reduced rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetRENTALCARSTxt(), '', 'VAT-STD-21', 21, 'Car rental - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'VAT-STD-21', 21, 'Fuel / car expenses - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'VAT-STD-21', 21, 'Conferences / events - standard rate (CZ)');
-        InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'VAT-STD-21', 21, 'Entertainment - standard rate (CZ)');
-    end;
-
     local procedure CreateVATRatesEE()
     begin
         // ── Estonia (EE) ──────────────────────────────────────────────────────────────
@@ -1018,60 +978,6 @@ codeunit 6975 "Create Expense VAT Rates"
         InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'VAT-STD-23', 23, 'Fuel / car expenses - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'VAT-STD-23', 23, 'Conferences / events - standard rate (SK)');
         InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'VAT-STD-23', 23, 'Entertainment - standard rate (SK)');
-    end;
-
-    local procedure CreateVATRatesAU()
-    begin
-        // ── Australia (AU) ──────────────────────────────────────────────────────────
-        // GST flat 10 % on all taxable supplies; international flights GST-free
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMTxt(), 'GST-10', 10, 'Hotel room - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetDEPOSITTxt(), 'GST-10', 10, 'Hotel deposit - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetBREAKFASTTxt(), 'GST-10', 10, 'Hotel breakfast - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMSERVICETxt(), 'GST-10', 10, 'Hotel room service - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTRANSPORTTxt(), 'GST-10', 10, 'Hotel transport - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetFEETxt(), 'GST-10', 10, 'Hotel fees - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPHONETxt(), 'GST-10', 10, 'Hotel phone - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'GST-10', 10, 'Hotel internet - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'GST-10', 10, 'Hotel incidents - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'GST-10', 10, 'Hotel laundry - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'GST-10', 10, 'Hotel parking - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'GST-10', 10, 'Hotel other - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (AU)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (AU)');
-        InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'GST-10', 10, 'Restaurant / meals - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetAIRLINETxt(), '', 'VAT-ZERO', 0, 'International flights - GST-free (AU)');
-        InsertRate(CreateExpenseCategories.GetGROUNDTRANSTxt(), '', 'GST-10', 10, 'Ground transport - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetRENTALCARSTxt(), '', 'GST-10', 10, 'Car rental - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'GST-10', 10, 'Fuel / car expenses - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'GST-10', 10, 'Conferences / events - GST (AU)');
-        InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'GST-10', 10, 'Entertainment - GST (AU)');
-    end;
-
-    local procedure CreateVATRatesNZ()
-    begin
-        // ── New Zealand (NZ) ───────────────────────────────────────────────────────
-        // GST flat 15 % on all taxable supplies; international flights zero-rated
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMTxt(), 'GST-15', 15, 'Hotel room - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetDEPOSITTxt(), 'GST-15', 15, 'Hotel deposit - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetBREAKFASTTxt(), 'GST-15', 15, 'Hotel breakfast - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetROOMSERVICETxt(), 'GST-15', 15, 'Hotel room service - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTRANSPORTTxt(), 'GST-15', 15, 'Hotel transport - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetFEETxt(), 'GST-15', 15, 'Hotel fees - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetPHONETxt(), 'GST-15', 15, 'Hotel phone - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINTERNETTxt(), 'GST-15', 15, 'Hotel internet - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetINCIDENTSTxt(), 'GST-15', 15, 'Hotel incidents - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetLAUNDRYTxt(), 'GST-15', 15, 'Hotel laundry - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELPARKTxt(), 'GST-15', 15, 'Hotel parking - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetHOTELOTHERTxt(), 'GST-15', 15, 'Hotel other - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTAXTxt(), 'VAT-ZERO', 0, 'City/tourist tax - levy, zero rate (NZ)');
-        InsertRate(CreateExpenseCategories.GetHOTELSTxt(), CreateExpenseCategories.GetTIPSTxt(), 'VAT-ZERO', 0, 'Hotel tips - zero rate (NZ)');
-        InsertRate(CreateExpenseCategories.GetMEALSTxt(), '', 'GST-15', 15, 'Restaurant / meals - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetAIRLINETxt(), '', 'VAT-ZERO', 0, 'International flights - zero-rated (NZ)');
-        InsertRate(CreateExpenseCategories.GetGROUNDTRANSTxt(), '', 'GST-15', 15, 'Ground transport - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetRENTALCARSTxt(), '', 'GST-15', 15, 'Car rental - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetCARTxt(), '', 'GST-15', 15, 'Fuel / car expenses - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetEVENTSTxt(), '', 'GST-15', 15, 'Conferences / events - GST (NZ)');
-        InsertRate(CreateExpenseCategories.GetENTERTAINTxt(), '', 'GST-15', 15, 'Entertainment - GST (NZ)');
     end;
 
     local procedure CreateVATRatesMX()
