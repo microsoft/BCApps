@@ -797,6 +797,7 @@ codeunit 148193 IntegrationTests
     var
         SignUpConnectionSetup: Record "SignUp Connection Setup";
     begin
+        this.LibraryLowerPermissions.SetOutsideO365Scope();
         if SignUpConnectionSetup.Get() then
             SignUpConnectionSetup.Delete();
         SignUpConnectionSetup.Init();
