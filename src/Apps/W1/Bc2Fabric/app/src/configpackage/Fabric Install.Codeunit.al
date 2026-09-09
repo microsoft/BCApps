@@ -1,5 +1,8 @@
 namespace Microsoft.Bc2Fabric;
 
+using System.Environment.Configuration;
+using System.Media;
+
 #if not PTE
 codeunit 150003 "Fabric Install"
 #else
@@ -11,6 +14,17 @@ codeunit 50103 "Fabric Install"
     trigger OnInstallAppPerCompany()
     begin
         EnsureMsStdPackage();
+        RegisterGuidedSetup();
+    end;
+
+    local procedure RegisterGuidedSetup()
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+        AssistedSetupGroup: Enum "Assisted Setup Group";
+        VideoCategory: Enum "Video Category";
+    begin
+        GuidedExperience.InsertAssistedSetup(GuidedSetupTitleLbl, GuidedSetupShortTitleLbl, GuidedSetupDescriptionLbl, 10,
+            ObjectType::Page, Page::"Fabric Platform Setup Wizard", AssistedSetupGroup::Uncategorized, '', VideoCategory::Uncategorized, '');
     end;
 
     local procedure EnsureMsStdPackage()
@@ -265,4 +279,9 @@ codeunit 50103 "Fabric Install"
         TableIds.Add(99000829); // Planning Component
         FabricConfigPackageMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIds);
     end;
+
+    var
+        GuidedSetupTitleLbl: Label 'Connect to Microsoft Fabric';
+        GuidedSetupShortTitleLbl: Label 'Fabric Export';
+        GuidedSetupDescriptionLbl: Label 'Connect your environment to Microsoft Fabric, grant access, and choose the companies and tables to synchronize.';
 }
