@@ -37,6 +37,9 @@ codeunit 148193 IntegrationTests
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Wrong value', Locked = true;
+        SameHostMsg: Label 'A same-host URL should be returned unchanged.';
+        FallbackMsg: Label 'A different-host URL should fall back to the hardcoded value.';
+        DowngradeMsg: Label 'An http downgrade should fall back to the hardcoded https URL.';
         GetAccessTokenFileTok: Label 'GetAccessToken.txt', Locked = true;
         DocumentStatus: Option Processing,Error;
 
@@ -749,6 +752,56 @@ codeunit 148193 IntegrationTests
             this.DocumentStatus::Error:
                 LoadResourceIntoHttpResponse(GetSentDocumentStatusErrorFileTok, Response);
         end;
+    end;
+    #endregion
+
+    #region URL validation tests
+
+    [Test]
+    procedure ServiceUrlSameHostIsKept()
+    var
+        SignUpAuthentication: Codeunit "SignUp Authentication";
+    begin
+        // [GIVEN] A stored Service URL on the expected service host
+        InitServiceUrlSetup('https://edoc.exflow.io/api/v2/Peppol');
+
+        // [THEN] The same-host value is returned unchanged
+        this.Assert.AreEqual('https://edoc.exflow.io/api/v2/Peppol', SignUpAuthentication.GetServiceUrl(), this.SameHostMsg);
+    end;
+
+    [Test]
+    procedure ServiceUrlForeignHostFallsBack()
+    var
+        SignUpAuthentication: Codeunit "SignUp Authentication";
+    begin
+        // [GIVEN] A tampered Service URL on a foreign host
+        InitServiceUrlSetup('https://malicious.example.com');
+
+        // [THEN] Validation falls back to the hardcoded service URL
+        this.Assert.AreEqual('https://edoc.exflow.io', SignUpAuthentication.GetServiceUrl(), this.FallbackMsg);
+    end;
+
+    [Test]
+    procedure ServiceUrlSchemeDowngradeFallsBack()
+    var
+        SignUpAuthentication: Codeunit "SignUp Authentication";
+    begin
+        // [GIVEN] A Service URL downgraded to http on the correct host
+        InitServiceUrlSetup('http://edoc.exflow.io');
+
+        // [THEN] Validation falls back to the hardcoded https service URL instead of allowing cleartext
+        this.Assert.AreEqual('https://edoc.exflow.io', SignUpAuthentication.GetServiceUrl(), this.DowngradeMsg);
+    end;
+
+    local procedure InitServiceUrlSetup(ServiceUrl: Text)
+    var
+        SignUpConnectionSetup: Record "SignUp Connection Setup";
+    begin
+        if SignUpConnectionSetup.Get() then
+            SignUpConnectionSetup.Delete();
+        SignUpConnectionSetup.Init();
+        SignUpConnectionSetup."Service URL" := CopyStr(ServiceUrl, 1, MaxStrLen(SignUpConnectionSetup."Service URL"));
+        SignUpConnectionSetup.Insert();
     end;
     #endregion
 }
