@@ -3966,7 +3966,7 @@ codeunit 137055 "SCM Warehouse Pick"
         LotNo: Code[50];
         Quantity: Decimal;
     begin
-        LotNo := LibraryVariableStorage.DequeueText();
+        LotNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(LotNo));
         Quantity := LibraryVariableStorage.DequeueDecimal();
 
         if ItemTrackingSummary.First() then
