@@ -302,7 +302,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         case SourceDestCode of
             'Item-CRM Product':
                 begin
-                    if not DestinationIsInserted then
+                    if DestinationIsInserted then
                         DestinationRecordRef.LoadFields(CRMProduct.FieldNo(ConvertToCustomerAsset));
                     DestinationRecordRef.SetTable(CRMProduct);
                     DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
