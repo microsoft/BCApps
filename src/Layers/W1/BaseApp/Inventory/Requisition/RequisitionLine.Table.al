@@ -2224,44 +2224,40 @@ table 246 "Requisition Line"
     begin
         IsHandled := false;
         OnBeforeValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo, IsHandled);
-        if not IsHandled then
-            ValidateQuantityStandard();
+        if not IsHandled then begin
+            Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
+
+            "Quantity (Base)" :=
+                UOMMgt.CalcBaseQty(
+                    "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
+                    "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
+                    FieldCaption("Quantity (Base)"));
+
+            if Type = Type::Item then begin
+                OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
+                GetDirectCost(FieldNo(Quantity));
+                SetRemaningQuantity();
+
+                if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
+                    SetActionMessage();
+
+                "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
+
+                OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
+                Validate("Unit Cost");
+                if ValidateFields() then
+                    if "Ending Date" <> 0D then
+                        Validate("Ending Time")
+                    else begin
+                        if "Starting Date" = 0D then
+                            "Starting Date" := WorkDate();
+                        Validate("Starting Time");
+                    end;
+                ReqLineReserve.VerifyQuantity(Rec, xRec);
+            end;
+        end;
 
         OnAfterValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo);
-    end;
-
-    local procedure ValidateQuantityStandard()
-    begin
-        Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
-
-        "Quantity (Base)" :=
-            UOMMgt.CalcBaseQty(
-                "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
-                "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
-                FieldCaption("Quantity (Base)"));
-
-        if Type = Type::Item then begin
-            OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
-            GetDirectCost(FieldNo(Quantity));
-            SetRemaningQuantity();
-
-            if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
-                SetActionMessage();
-
-            "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
-
-            OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
-            Validate("Unit Cost");
-            if ValidateFields() then
-                if "Ending Date" <> 0D then
-                    Validate("Ending Time")
-                else begin
-                    if "Starting Date" = 0D then
-                        "Starting Date" := WorkDate();
-                    Validate("Starting Time");
-                end;
-            ReqLineReserve.VerifyQuantity(Rec, xRec);
-        end;
     end;
 
     /// <summary>
