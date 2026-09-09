@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -21,7 +22,7 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
     end;
 
     var
-        CancelPostedInvoiceFromOrderQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the original sales order will be restored, provided the sales order still exists.\ \Do you want to continue?';
+        CancelPostedInvoiceFromOrderQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the  will be restored, provided the sales order still exists.\ \Do you want to continue?';
         CancelPostedInvoiceQst: Label 'The posted sales invoice will be canceled, and a sales credit memo will be created and posted.\ \Do you want to continue?';
         OpenPostedCreditMemoQst: Label 'A credit memo was successfully created. Do you want to open the posted credit memo?';
 
@@ -61,9 +62,15 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
     end;
 
     local procedure GetCancelPostedInvoiceQst(SalesInvoiceHeader: Record "Sales Invoice Header"): Text
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
-        if SalesInvoiceHeader."Order No." <> '' then
-            exit(CancelPostedInvoiceFromOrderQst);
+        if SalesInvoiceHeader."Order No." <> '' then begin
+            SalesReceivablesSetup.GetRecordOnce();
+            if SalesReceivablesSetup."Update Order Qty. on CM/Return" then
+                exit(CancelPostedInvoiceFromOrderQst);
+        end;
+
         exit(CancelPostedInvoiceQst);
     end;
 
