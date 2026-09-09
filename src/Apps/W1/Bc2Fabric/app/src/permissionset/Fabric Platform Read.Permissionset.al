@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
@@ -8,7 +8,7 @@ permissionset 150002 "Fabric Plat Read"
 permissionset 50102 "Fabric Plat Read"
 #endif
 {
-    Caption = 'BC2Fabric - Platform Read';
+    Caption = 'Microsoft Fabric Export - Platform Read';
     Assignable = true;
 
     Permissions =

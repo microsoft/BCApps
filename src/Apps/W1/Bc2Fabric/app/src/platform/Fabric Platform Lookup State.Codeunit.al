@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 #if not PTE
 codeunit 150004 "Fabric Platform Lookup State"

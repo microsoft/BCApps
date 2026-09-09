@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 using System.Environment.Configuration;
 using System.Media;

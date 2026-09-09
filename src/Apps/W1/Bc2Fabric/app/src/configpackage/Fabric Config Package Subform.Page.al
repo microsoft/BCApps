@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 #if not PTE
 page 150007 "Fabric Config Package Subform"

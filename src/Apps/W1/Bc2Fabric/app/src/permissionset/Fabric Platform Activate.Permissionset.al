@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
@@ -8,7 +8,7 @@ permissionset 150003 "Fabric Plat Activate"
 permissionset 50103 "Fabric Plat Activate"
 #endif
 {
-    Caption = 'BC2Fabric - Platform Activate';
+    Caption = 'Microsoft Fabric Export - Platform Activate';
     Assignable = true;
 
     Permissions =

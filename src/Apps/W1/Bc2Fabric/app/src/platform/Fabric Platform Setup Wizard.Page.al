@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 using Microsoft.Utilities;
 using System.Environment.Configuration;

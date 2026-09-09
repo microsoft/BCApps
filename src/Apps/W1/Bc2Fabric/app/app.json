@@ -1,10 +1,10 @@
 {
     "id": "cafecafe-1111-4111-8111-cafecafe1111",
-    "name": "BC2Fabric",
+    "name": "Microsoft Fabric Export",
     "publisher": "4PS-Navida",
     "brief": "Export data from Business Central to Microsoft Fabric using Open Mirroring.",
     "description": "Export data from Business Central to Microsoft Fabric using Open Mirroring technology. Supports table selection, category-based export ordering, multi-company sync.",
-    "version": "1.0.0.0",
+    "version": "1.0.0.1",
     "privacyStatement": "",
     "EULA": "",
     "help": "",
