@@ -398,7 +398,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     var
         MasterDataManagement: Codeunit "Master Data Management";
     begin
-        Session.LogMessage('', StrSubstNo(SourceConsentTelemetryTxt, IntegrationTableId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('0000VDI', StrSubstNo(SourceConsentTelemetryTxt, IntegrationTableId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)
