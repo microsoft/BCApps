@@ -30,6 +30,17 @@ if ($parameters.auth -in @('UserPassword', 'NavUserPassword')) {
     }
 
     $apiTestPasswordFile = 'C:\Run\my\ApiTestPassword'
+    if ($env:GITHUB_ENV) {
+        # Record the backing file before copying the credential so workflow cleanup also
+        # works after setup failure or cancellation, without needing a running container.
+        $myFolders = @((Get-BcContainerSharedFolders -containerName $parameters.ContainerName).GetEnumerator() |
+            Where-Object { $_.Value.TrimEnd('\') -eq 'C:\Run\my' })
+        if ($myFolders.Count -ne 1) {
+            throw "Cannot resolve the API test credential's container mount for workflow cleanup."
+        }
+        $apiTestPasswordHostPath = Join-Path $myFolders[0].Key 'ApiTestPassword'
+        Add-Content -LiteralPath $env:GITHUB_ENV -Encoding UTF8 -Value "BCAppsApiTestPasswordPath=$apiTestPasswordHostPath" -ErrorAction Stop
+    }
     $apiTestPassword = $parameters.credential.GetNetworkCredential().Password
     $hostPasswordFile = Join-Path ([System.IO.Path]::GetTempPath()) "BCAppsApiTestPassword-$([Guid]::NewGuid().ToString('N'))"
     try {

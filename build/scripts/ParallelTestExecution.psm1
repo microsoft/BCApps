@@ -108,6 +108,14 @@ function Get-RequiredDisabledWorkItems {
         [Hashtable]$AppIdByName
     )
 
+    # Without a test type, the test-tool extension selector ignores required isolation.
+    # Keep Legacy buckets on their existing execution path rather than treating every
+    # codeunit as requiring a clean tenant.
+    if ($TestType -eq 'Legacy') {
+        Write-Host 'Legacy buckets use ordinary execution; clean isolation discovery requires a typed lane.'
+        return @()
+    }
+
     $workItems = @()
     foreach ($appName in $AppNamesToTest) {
         $appId = $AppIdByName[$appName]
@@ -119,11 +127,7 @@ function Get-RequiredDisabledWorkItems {
         $discoveryParameters["extensionId"] = $appId
         $discoveryParameters["requiredTestIsolation"] = "Disabled"
         $discoveryParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $appName)
-        if ($TestType -eq "Legacy") {
-            $discoveryParameters.Remove("testType") | Out-Null
-        } else {
-            $discoveryParameters["testType"] = $TestType
-        }
+        $discoveryParameters["testType"] = $TestType
 
         Write-Host "Discovering RequiredTestIsolation=Disabled codeunits in '$appName'..."
         $discoveredTests = @(Get-TestsFromBcContainer @discoveryParameters)
@@ -195,7 +199,7 @@ function Get-CachedTestRunResult {
         [string]$ContainerName
     )
 
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { $env:TEMP }
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$ContainerName.json"
     if (-not (Test-Path $stateFile)) { return $null }
 
@@ -1349,8 +1353,8 @@ function Invoke-ParallelTestExecution {
 
     # GitHub Actions provides a per-job temp directory ($RUNNER_TEMP) that is cleaned up between
     # jobs, so a stale state file from a previous run cannot corrupt the current run. Fall back
-    # to $env:TEMP for local execution outside of CI.
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } else { $env:TEMP }
+    # to the local temp directory outside of CI.
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
     $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
 
     # Short-circuit ONLY when a previous call ran to completion (wait+merge done). The
