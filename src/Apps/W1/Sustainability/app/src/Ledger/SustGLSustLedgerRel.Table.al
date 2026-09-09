@@ -55,7 +55,7 @@ table 6261 "Sust. G/L - Sust. Ledger Rel."
         key(SustLedgerEntryNo; "Sust. Ledger Entry No.")
         {
         }
-        key(AccountCategory; "Account Category", "G/L Entry No.")
+        key(AccountCategory; "Account Category", "Posting Date", "G/L Entry No.")
         {
         }
     }
