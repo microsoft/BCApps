@@ -46,6 +46,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;
 using System.Environment.Configuration;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Encryption;
 using System.Security.User;
@@ -141,7 +142,9 @@ codeunit 31017 "Upgrade Application CZL"
                   tabledata "Gen. Journal Template" = m,
                   tabledata "VAT Entry" = m,
                   tabledata "Report Selections" = m,
-                  tabledata "G/L Entry" = m;
+                  tabledata "G/L Entry" = m,
+                  tabledata "Report Layout Selection" = im,
+                  tabledata "Tenant Report Layout Selection" = im;
 
     var
         DataUpgradeMgt: Codeunit "Data Upgrade Mgt.";
@@ -149,6 +152,8 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeTagDefinitionsCZL: Codeunit "Upgrade Tag Definitions CZL";
         InstallApplicationsMgtCZL: Codeunit "Install Applications Mgt. CZL";
         AppInfo: ModuleInfo;
+        DraftInvoiceReportLayoutNameTok: Label 'StdSalesDraftInvoice.rdl CZL', Locked = true;
+        ProformaReportLayoutNameTok: Label 'StdSalesProFormaInv.rdl CZL', Locked = true;
 
     trigger OnUpgradePerDatabase()
     begin
@@ -187,6 +192,7 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeUseVATReturnPeriodInsteadOfVATPeriod();
 #endif
         UpgradeOriginalVATAmountsACYInVATEntries();
+        UpgradeDraftInvoiceAndProformaReportLayouts();
     end;
 
     local procedure UpgradeReplaceVATDateCZL()
@@ -845,6 +851,127 @@ codeunit 31017 "Upgrade Application CZL"
         exit(CalcDate('<+25D>', EndDate));
     end;
 #endif
+
+    local procedure UpgradeDraftInvoiceAndProformaReportLayouts()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        DefaultMetadataReportLayoutName: Text[100];
+        DefaultSelectionReportLayoutName: Text[250];
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag()) then
+            exit;
+
+        if GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then begin
+            DefaultMetadataReportLayoutName := GetDefaultMetadataReportLayoutName(Report::"Standard Sales - Draft Invoice");
+            DefaultSelectionReportLayoutName := GetDefaultSelectionReportLayoutName(Report::"Standard Sales - Draft Invoice");
+
+            if (DefaultSelectionReportLayoutName = '') or
+               ((DefaultSelectionReportLayoutName <> '') and (DefaultSelectionReportLayoutName = DefaultMetadataReportLayoutName))
+            then
+                SetDefaultReportLayout(ReportLayoutList);
+        end;
+
+        if GetProformaReportLayoutCZ(ReportLayoutList) then begin
+            DefaultMetadataReportLayoutName := GetDefaultMetadataReportLayoutName(Report::"Standard Sales - Pro Forma Inv");
+            DefaultSelectionReportLayoutName := GetDefaultSelectionReportLayoutName(Report::"Standard Sales - Pro Forma Inv");
+
+            if (DefaultSelectionReportLayoutName = '') or
+               ((DefaultSelectionReportLayoutName <> '') and (DefaultSelectionReportLayoutName = DefaultMetadataReportLayoutName))
+            then
+                SetDefaultReportLayout(ReportLayoutList);
+        end;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
+    end;
+
+    local procedure GetDefaultMetadataReportLayoutName(ReportId: Integer): Text[100]
+    var
+        ReportMetadata: Record "Report Metadata";
+    begin
+        if ReportMetadata.Get(ReportId) then
+            exit(ReportMetadata."DefaultLayoutName");
+        exit('');
+    end;
+
+    local procedure GetDefaultSelectionReportLayoutName(ReportId: Integer): Text[250]
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        if TenantReportLayoutSelection.Get(ReportId, CompanyName(), EmptyGuid) then
+            exit(TenantReportLayoutSelection."Layout Name");
+        exit('');
+    end;
+
+    local procedure GetDraftInvoiceReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
+    begin
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Draft Invoice");
+        ReportLayoutList.SetRange("Name", DraftInvoiceReportLayoutNameTok);
+        ReportLayoutList.SetRange("Application ID", AppInfo.Id);
+        exit(ReportLayoutList.FindFirst());
+    end;
+
+    local procedure GetProformaReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
+    begin
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Pro Forma Inv");
+        ReportLayoutList.SetRange("Name", ProformaReportLayoutNameTok);
+        ReportLayoutList.SetRange("Application ID", AppInfo.Id);
+        exit(ReportLayoutList.FindFirst());
+    end;
+
+    local procedure SetDefaultReportLayout(ReportLayoutList: Record "Report Layout List")
+    var
+        ReportLayoutSelection: Record "Report Layout Selection";
+    begin
+        // Add to TenantReportLayoutSelection table with an Empty Guid.
+        AddLayoutSelection(ReportLayoutList);
+
+        // Add to the report layout selection table
+        if ReportLayoutSelection.Get(ReportLayoutList."Report ID", CompanyName()) then begin
+            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(ReportLayoutList);
+            ReportLayoutSelection.Modify(false);
+        end else begin
+            ReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
+            ReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ReportLayoutSelection."Company Name"));
+            ReportLayoutSelection."Custom Report Layout Code" := '';
+            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(ReportLayoutList);
+            ReportLayoutSelection.Insert(false);
+        end;
+    end;
+
+    local procedure AddLayoutSelection(ReportLayoutList: Record "Report Layout List"): Boolean
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        EmptyGuid: Guid;
+    begin
+        TenantReportLayoutSelection.Init();
+        TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
+        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
+        TenantReportLayoutSelection."Layout Name" := ReportLayoutList."Name";
+        TenantReportLayoutSelection."Report ID" := ReportLayoutList."Report ID";
+        TenantReportLayoutSelection."User ID" := EmptyGuid;
+
+        if not TenantReportLayoutSelection.Insert(false) then
+            TenantReportLayoutSelection.Modify(false);
+    end;
+
+    local procedure GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList: Record "Report Layout List"): Integer
+    begin
+        case SelectedReportLayoutList."Layout Format" of
+            SelectedReportLayoutList."Layout Format"::RDLC:
+                exit(0);
+            SelectedReportLayoutList."Layout Format"::Word:
+                exit(1);
+            SelectedReportLayoutList."Layout Format"::Excel:
+                exit(3);
+            SelectedReportLayoutList."Layout Format"::Custom:
+                exit(4);
+        end
+    end;
 
     local procedure InsertRepSelection(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10];
                                                         ReportID: Integer)

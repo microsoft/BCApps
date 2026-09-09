@@ -13,6 +13,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Security.User;
@@ -85,6 +86,9 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
             {
             }
             column(VATBaseLbl_CZL; VATBaseLbl)
+            {
+            }
+            column(TotalLbl_CZL; TotalLbl)
             {
             }
             column(PmntSymbol1_CZL; PaymentSymbolLabelCZL[1])
@@ -235,6 +239,7 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
             {
                 DataItemTableView = sorting("VAT Identifier", "VAT Calculation Type", "Tax Group Code", "Use Tax", Positive);
                 UseTemporary = true;
+
                 column(VATIdentifier_VatAmountLine_CZL; "VAT Identifier")
                 {
                 }
@@ -339,6 +344,7 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
         PaymentMethodLbl: Label 'Payment Method';
         DocumentNoLbl: Label 'No.';
         VATBaseLbl: Label 'VAT Base';
+        TotalLbl: Label 'Total';
 
     local procedure FormatDocumentFieldsCZL(SalesHeader: Record "Sales Header")
     var
@@ -369,12 +375,16 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
 
     local procedure CalcVATAmountLinesCZL(SalesHeader: Record "Sales Header")
     var
-        SalesLine: Record "Sales Line";
+        TempSalesLine: Record "Sales Line" temporary;
+        SalesPost: Codeunit "Sales-Post";
     begin
         VATAmountLineCZL.DeleteAll();
-        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-        SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.CalcVATAmountLines(0, SalesHeader, SalesLine, VATAmountLineCZL);
+        TempSalesLine.DeleteAll();
+        SalesPost.GetSalesLines(SalesHeader, TempSalesLine, 0, false);
+        TempSalesLine.SetFilter(Type, '<>%1', TempSalesLine.Type::Item);
+        TempSalesLine.DeleteAll(false);
+        TempSalesLine.CalcVATAmountLines(0, SalesHeader, TempSalesLine, VATAmountLineCZL);
+        TempSalesLine.UpdateVATOnLines(0, SalesHeader, TempSalesLine, VATAmountLineCZL);
     end;
 
     local procedure FormatShipToAddressCZL(SalesHeader: Record "Sales Header")
