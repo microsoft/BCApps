@@ -164,6 +164,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Report Manual Reopen" = X,
                   codeunit "Expense Rule Validation" = X,
                   codeunit "Expense Total Caption Class" = X,
+                  codeunit "Travel Request Approval" = X,
                   codeunit "Expense Vendor Matching" = X,
                   codeunit "Exp. Attach. Buffer Handler" = X,
                   codeunit "Exp. Preview Post. Subscriber" = X,

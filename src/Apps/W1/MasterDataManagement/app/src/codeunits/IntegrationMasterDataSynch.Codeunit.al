@@ -566,15 +566,13 @@ codeunit 7231 "Integration Master Data Synch."
         if AllowRemoval then
             exit;
 
-        with MasterDataMgtCoupling do begin
-            SetRange(Skipped, true);
-            SetRange("Last Synch. Job ID", IntegrationSynchJob.ID);
-            if IsEmpty() then begin
-                SetRange("Last Synch. Job ID");
-                SetRange("Last Synch. Int. Job ID", IntegrationSynchJob.ID);
-                if IsEmpty() then
-                    AllowRemoval := true;
-            end;
+        MasterDataMgtCoupling.SetRange(Skipped, true);
+        MasterDataMgtCoupling.SetRange("Last Synch. Job ID", IntegrationSynchJob.ID);
+        if MasterDataMgtCoupling.IsEmpty() then begin
+            MasterDataMgtCoupling.SetRange("Last Synch. Job ID");
+            MasterDataMgtCoupling.SetRange("Last Synch. Int. Job ID", IntegrationSynchJob.ID);
+            if MasterDataMgtCoupling.IsEmpty() then
+                AllowRemoval := true;
         end;
     end;
 
