@@ -5,17 +5,6 @@ codeunit 101084 "Create Acc. Schedule Name"
     begin
         exit; // RU
 
-        UpdateEvaluationDate();
-        InsertData(XCAMPAIGN, XCampaignAnalysis, XBUDGANALYS, XCAMPAIGN);
-        InsertData(XCASTAFF, XCostAcctPersonnelCosts, '', '');
-        InsertData(XCATRANSFER, XCostAcctTransfer, '', '');
-        InsertData(XCAPROF, XCostAcctSummaryRecordDB, '', '');
-        InsertData(XDEGREE, XCalculationOfCashFlowRatio, XDEGREE, '');
-
-        InsertData(XCASHFLOW, XCalculationOfCashFlow, XCASHFLOW, '');
-
-        InsertData(XANALYSIS, XCapitalStructure, '', '');
-        InsertData(XREVENUE, XRevenues, XBUDGANALYS, '');
     end;
 
     procedure InsertEvaluationData();

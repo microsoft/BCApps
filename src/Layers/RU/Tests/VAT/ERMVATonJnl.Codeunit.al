@@ -655,9 +655,6 @@ codeunit 134044 "ERM VAT on Jnl"
 
         // Verify: Verify that correct GL Entry VAT Entry Link exists for posted entry.
         exit; // Known issue
-        FindGLEntry(GLEntry, GenJournalLine."Document Type", GenJournalLine."Document No.");
-        FindVATEntry(VATEntry, GenJournalLine."Document Type", GenJournalLine."Document No.");
-        GLEntryVATEntryLink.Get(GLEntry."Entry No.", VATEntry."Entry No.");
     end;
 
     local procedure Initialize()

@@ -5,17 +5,6 @@ codeunit 101084 "Create Acc. Schedule Name"
     begin
         Error('This Object 101084 is subsituted with CU 96010');
 
-        UpdateEvaluationDate();
-        InsertData(XCAMPAIGN, XCampaignAnalysis, XBUDGANALYS, XCAMPAIGN);
-        InsertData(XCASTAFF, XCostAcctPersonnelCosts, '', '');
-        InsertData(XCATRANSFER, XCostAcctTransfer, '', '');
-        InsertData(XCAPROF, XCostAcctSummaryRecordDB, '', '');
-        InsertData(XDEGREE, XCalculationOfCashFlowRatio, XDEGREE, '');
-
-        InsertData(XCASHFLOW, XCalculationOfCashFlow, XCASHFLOW, '');
-
-        InsertData(XANALYSIS, XCapitalStructure, '', '');
-        InsertData(XREVENUE, XRevenues, XBUDGANALYS, '');
     end;
 
     procedure InsertEvaluationData();

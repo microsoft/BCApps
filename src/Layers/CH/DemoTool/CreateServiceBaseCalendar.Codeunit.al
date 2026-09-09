@@ -110,37 +110,6 @@ codeunit 117507 "Create Service Base Calendar"
         //----------------------------------------------------------------
         //My Bank Holiday, First and Last Monday of each May is a holiday
         //----------------------------------------------------------------
-        StartDate := MakeAdjustments.AdjustDate(19040501D);
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('>'), XMayDayBankHoliday);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = MakeAdjustments.AdjustDate(19100501D);
-
-        StartDate := CalcDate('<-1D>', MakeAdjustments.AdjustDate(19040601D));
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('<'), XBankHoliday);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = CalcDate('<-1D>', MakeAdjustments.AdjustDate(19100601D));
-
-        // -------------------------------------------------------------------
-        // My Bank Holiday, First and Last Monday of each Augest is a holiday
-        // -------------------------------------------------------------------
-        StartDate := MakeAdjustments.AdjustDate(19040801D);
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('>'),
-              XSummerBankHolidayScotland);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = MakeAdjustments.AdjustDate(19100801D);
-
-        StartDate := CalcDate('<-1D>', MakeAdjustments.AdjustDate(19040901D));
-        repeat
-            InsertBaseCalChange(
-              XGB, BaseCalChange."Recurring System"::" ", BaseCalChange.Day::Monday, true, GetPeriodNoOneDate('<'), XSummerBankHoliday);
-            StartDate := CalcDate('<1Y>', StartDate);
-        until StartDate = CalcDate('<-1D>', MakeAdjustments.AdjustDate(19100901D))
     end;
 
     procedure GetPeriodNoOneDate(SkipDirection: Text[1]): Date

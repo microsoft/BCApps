@@ -83,13 +83,6 @@ codeunit 163408 "Interface Tax Accounting"
     begin
         exit;
 
-        TaxRegSection.FindFirst();
-        TaxRegSection.SetRange(Code, TaxRegSection.Code);
-        CreateTaxRegisters.UseRequestPage(false);
-        CreateTaxRegisters.SetTableView(TaxRegSection);
-        CreateTaxRegisters.Run();
-        Clear(CreateTaxRegisters);
-        Commit();
     end;
 }
 

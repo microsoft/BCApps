@@ -5,9 +5,6 @@ codeunit 101909 "Adjust Inventory Value"
     begin
         exit; // RU
 
-        InsertOtherEntry(
-          0, '992180', CA.AdjustDate(19021231D), XSTART, XAdjustingInventoryvalue, -GetAmount(CA.Convert('992180')),
-          0, '995310', '');
     end;
 
     var

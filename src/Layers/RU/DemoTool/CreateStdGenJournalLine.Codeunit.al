@@ -5,14 +5,6 @@ codeunit 101761 "Create Std. Gen. Journal Line"
     begin
         exit; // RU
 
-        LineNo := 0;
-        InsertData(XGENERAL, XPAYROLL, 0, '998710', 100000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998720', 30000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998730', 1000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998750', 8000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '995830', -8000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 0, '998740', 25000, XPayrollJournal, XADM);
-        InsertData(XGENERAL, XPAYROLL, 3, XWWBOPERATING, -156000, XPayrollJournal, XADM);
     end;
 
     var

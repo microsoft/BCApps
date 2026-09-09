@@ -422,7 +422,6 @@ codeunit 147305 "Cartera Posting"
     procedure SalesUnrealVATPayToSeveralBillsAndApplyPostedEntries()
     begin
         exit; // VSTF 54637
-        SalesUnrealVATPayToSeveralBills(false);
     end;
 
     [Test]
@@ -430,7 +429,6 @@ codeunit 147305 "Cartera Posting"
     procedure SalesUnrealVATApplyFromJournalPayToSeveralBills()
     begin
         exit; // VSTF 54637
-        SalesUnrealVATPayToSeveralBills(true);
     end;
 
     [Test]

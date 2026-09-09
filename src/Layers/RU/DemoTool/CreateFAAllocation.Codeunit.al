@@ -5,15 +5,6 @@ codeunit 101810 "Create FA Allocation"
     begin
         exit; // Not used in RU
 
-        InsertData(XTELEPHONE, "FA Allocation Type"::Depreciation, '998820', XADM, 30);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Depreciation, '998820', XPROD, 20);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Depreciation, '998820', XSALES, 50);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Gain, '998840', XADM, 30);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Gain, '998840', XPROD, 20);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Gain, '998840', XSALES, 50);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Loss, '998840', XADM, 30);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Loss, '998840', XPROD, 20);
-        InsertData(XTELEPHONE, "FA Allocation Type"::Loss, '998840', XSALES, 50);
     end;
 
     var

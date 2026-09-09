@@ -556,7 +556,6 @@ report 14030 "Official journal ledger Summ."
                     AccPeriod.SetRange("New Fiscal Year", true);
                     if AccPeriod.FindFirst() then begin
                         Error(Text000);
-                        CurrReport.Break();
                     end;
                 end;
             5:

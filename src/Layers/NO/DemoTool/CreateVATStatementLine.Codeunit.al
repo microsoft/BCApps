@@ -5,62 +5,6 @@ codeunit 101256 "Create VAT Statement Line"
     begin
         exit;
 
-        "Demonstration Data Setup".Get();
-        case "Demonstration Data Setup"."Company Type" of
-            "Demonstration Data Setup"."Company Type"::VAT:
-                begin
-                    InsertData('1010', XSalesVAT25PERCENToutgoing, 1, '', 2, XNATIONAL, XVAT25, '', 1, 0, false, 1, false);
-                    InsertData('1019', XSalesVAT25PERCENToutgoing, 2, '', 0, '', '', '1010..1018', 0, 0, true, 1, false);
-                    InsertData('1020', XSalesVAT10PERCENToutgoing, 1, '', 2, XNATIONAL, XVAT10, '', 1, 0, false, 1, false);
-                    InsertData('1029', XSalesVAT10PERCENToutgoing, 2, '', 0, '', '', '1020..1028', 0, 0, true, 1, false);
-                    InsertData('1030', XVAT25PERCENTonEUPurchasesetc, 1, '', 1, XEU, XVAT25, '', 1, 1, false, 1, false);
-                    InsertData('1039', XVAT25PERCENTonEUPurchasesetc, 2, '', 0, '', '', '1030..1038', 0, 0, true, 1, false);
-                    InsertData('1040', XVAT10PERCENTonEUPurchasesetc, 1, '', 1, XEU, XVAT10, '', 1, 1, false, 1, false);
-                    InsertData('1049', XVAT10PERCENTonEUPurchasesetc, 2, '', 0, '', '', '1040..1048', 0, 0, true, 1, false);
-                    InsertData('', '--------------------------------------------------', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1099', XTotal, 2, '', 0, '', '', '1019|1029|1039|1049', 0, 0, true, 1, false);
-                    InsertData('', '', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1110', XPurchaseVAT25PERCENTDomestic, 1, '', 1, XNATIONAL, XVAT25, '', 1, 0, false, 0, false);
-                    InsertData('1119', XPurchaseVAT25PERCENTDomestic, 2, '', 0, '', '', '1110..1118', 0, 0, true, 1, false);
-                    InsertData('1120', XPurchaseVAT10PERCENTDomestic, 1, '', 1, XNATIONAL, XVAT10, '', 1, 0, false, 0, false);
-                    InsertData('1129', XPurchaseVAT10PERCENTDomestic, 2, '', 0, '', '', '1120..1128', 0, 0, true, 1, false);
-                    InsertData('1130', XPurchaseVAT25PERCENTEU, 1, '', 1, XEU, XVAT25, '', 1, 0, false, 0, false);
-                    InsertData('1139', XPurchaseVAT25PERCENTEU, 2, '', 0, '', '', '1130..1138', 0, 0, true, 1, false);
-                    InsertData('1140', XPurchaseVAT10PERCENTEU, 1, '', 1, XEU, XVAT10, '', 1, 0, false, 0, false);
-                    InsertData('1149', XPurchaseVAT10PERCENTEU, 2, '', 0, '', '', '1140..1148', 0, 0, true, 1, false);
-                    InsertData('1159', XPurchaseVATingoing, 2, '', 0, '', '', '1119|1129|1139|1149', 0, 0, true, 1, false);
-                    InsertData('', '', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1180', XFuelTax, 0, CA.Convert('995710'), 0, '', '', '', 0, 0, true, 1, false);
-                    InsertData('1181', XElectricityTax, 0, CA.Convert('995720'), 0, '', '', '', 0, 0, true, 1, false);
-                    InsertData('1182', XNaturalGasTax, 0, CA.Convert('995730'), 0, '', '', '', 0, 0, true, 1, false);
-                    InsertData('1183', XCoalTax, 0, CA.Convert('995740'), 0, '', '', '', 0, 0, true, 1, false);
-                    InsertData('1184', XCO2Tax, 0, CA.Convert('995750'), 0, '', '', '', 0, 0, true, 1, false);
-                    InsertData('1185', XWaterTax, 0, CA.Convert('995760'), 0, '', '', '', 0, 0, true, 1, false);
-                    InsertData('1189', XTotalTaxes, 2, '', 0, '', '', '1180..1188', 0, 0, true, 1, false);
-                    InsertData('', '--------------------------------------------------', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1199', XTotalDeductions, 2, '', 0, '', '', '1159|1189', 0, 0, true, 1, false);
-                    InsertData('', '--------------------------------------------------', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('', '', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('', XVATPayable, 2, '', 0, '', '', '1099|1199', 0, 0, true, 1, false);
-                    InsertData('', '--------------------------------------------------', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('', '', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1210', XValueofEUPurchases25PERCENT, 1, '', 1, XEU, XVAT25, '', 2, 0, false, 0, false);
-                    InsertData('', XValueofEUPurchases25PERCENT, 2, '', 0, '', '', '1210..1218', 0, 0, true, 0, false);
-                    InsertData('1220', XValueofEUPurchases10PERCENT, 1, '', 1, XEU, XVAT10, '', 2, 0, false, 0, false);
-                    InsertData('', XValueofEUPurchases10PERCENT, 2, '', 0, '', '', '1220..1228', 0, 0, true, 0, false);
-                    InsertData('', '', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1230', XValueofEUSales, 1, '', 2, XEU, XVAT25, '', 2, 0, false, 1, false);
-                    InsertData('', XValueofEUSales25PERCENT, 2, '', 0, '', '', '1230..1238', 0, 0, true, 1, false);
-                    InsertData('1240', XValueofEUSales, 1, '', 2, XEU, XVAT10, '', 2, 0, false, 1, false);
-                    InsertData('', XValueofEUSales10PERCENT, 2, '', 0, '', '', '1240..1248', 0, 0, true, 1, false);
-                    InsertData('', '', 3, '', 0, '', '', '', 0, 0, true, 0, false);
-                    InsertData('1310', XNonVATliablesalesOverseas, 1, '', 2, XEXPORT, XVAT25, '', 2, 0, false, 0, false);
-                    InsertData('1312', XNonVATliablesalesOverseas, 1, '', 2, XEXPORT, XVAT10, '', 2, 0, false, 0, false);
-                    InsertData('', XNonVATliablesalesOverseas, 2, '', 0, '', '', '1310..1318', 0, 0, true, 1, false);
-                    InsertData('1320', XNonVATliablesalesDomestic, 1, '', 2, XNATIONAL, XNOVAT, '', 2, 0, false, 0, false);
-                    InsertData('', XNonVATliablesalesDomestic, 2, '', 0, '', '', '1320..1328', 0, 0, true, 1, false);
-                end;
-        end;
     end;
 
     var

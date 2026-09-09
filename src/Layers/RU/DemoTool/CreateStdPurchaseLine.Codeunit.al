@@ -5,18 +5,6 @@ codeunit 101047 "Create Std. Purchase Line"
     begin
         exit; // RU
 
-        LineNo := 0;
-        InsertData(XCLEANING, 1, '998110', 125, Xforadministration, XADM);
-        InsertData(XCLEANING, 1, '998110', 100, Xforproduction, XPROD);
-        LineNo := 0;
-        InsertData(XPAINT, 2, '70103', 0, '', '');
-        InsertData(XPAINT, 2, '70100', 0, '', '');
-        InsertData(XPAINT, 2, '70102', 0, '', '');
-        InsertData(XPAINT, 5, XJBFREIGHT, 0, '', '');
-        LineNo := 0;
-        InsertData(XPAPER, 2, '80100', 0, '', '');
-        LineNo := 0;
-        InsertData(XPOSTAGE, 1, '998240', 0, '', '');
     end;
 
     var

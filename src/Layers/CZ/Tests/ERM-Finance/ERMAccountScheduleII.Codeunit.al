@@ -1437,28 +1437,6 @@
         exit; // NAVCZ Czech Localization has Account Schedule Formula Drill-Down Page
         // [FEATURE] [UI]
         // [SCENARIO 316821] Variance drill down shows column layout formula when both account schedule and column layout contains formula.
-        Initialize();
-
-        // [GIVEN] Account schedule with formula totaling type and column layout with formula column type.
-        LibraryERM.CreateAccScheduleName(AccScheduleName);
-        CreateAccScheduleLine(
-          AccScheduleLine,
-          AccScheduleName.Name,
-          AccScheduleLine."Totaling Type"::Formula,
-          Format(LibraryRandom.RandInt(1000)));
-        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
-        CreateColumnLayoutLine(
-          ColumnLayout,
-          ColumnLayoutName.Name,
-          ColumnLayout."Column Type"::Formula,
-          Format(LibraryRandom.RandInt(1000)));
-        LibraryVariableStorage.Enqueue(ColumnLayout.Formula);
-
-        // [WHEN] Invoke drill down on Acc. Schedule Line from Acc. Schedule Overview page (AccScheduleLineRowFormulaMessageHandler handler).
-        AccSchedManagement.DrillDownFromOverviewPage(ColumnLayout, AccScheduleLine, PeriodType::Year);
-
-        // [THEN] The message prints formula from column layout.
-        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
