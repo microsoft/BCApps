@@ -887,8 +887,10 @@ codeunit 11748 "Install Application CZL"
         UpgradeApplicationCZL: Codeunit "Upgrade Application CZL";
     begin
         if UpgradeApplicationCZL.GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then
-            UpgradeApplicationCZL.SetDefaultReportLayout(ReportLayoutList);
+            if not UpgradeApplicationCZL.IsReportLayoutSelectionCustomized(Report::"Standard Sales - Draft Invoice") then
+                UpgradeApplicationCZL.SetDefaultReportLayout(ReportLayoutList);
         if UpgradeApplicationCZL.GetProformaReportLayoutCZ(ReportLayoutList) then
-            UpgradeApplicationCZL.SetDefaultReportLayout(ReportLayoutList);
+            if not UpgradeApplicationCZL.IsReportLayoutSelectionCustomized(Report::"Standard Sales - Pro Forma Inv") then
+                UpgradeApplicationCZL.SetDefaultReportLayout(ReportLayoutList);
     end;
 }
