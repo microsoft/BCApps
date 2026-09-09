@@ -17,6 +17,7 @@ table 160800 "GL Accounts Conversion"
                 OpprettMidlertidigKontonr();
             end;
         }
+
         field(4; "Account Type"; Option)
         {
             Caption = 'Account Type';
@@ -28,7 +29,7 @@ table 160800 "GL Accounts Conversion"
             begin
                 if ("Original Account No." <> '') and (xRec."Account Type" = xRec."Account Type"::Posting) then
                     Error('Nei! Du kan ikke endre %1 fra %2 til %3.\Poster på kontoen kan da ikke flyttes på fornuftig måte.',
-                      FieldName("Account Type"), xRec."Account Type", "Account Type");
+                      FieldCaption("Account Type"), xRec."Account Type", "Account Type");
 
                 Totaling := '';
                 if "Account Type" = "Account Type"::Posting then begin
