@@ -14,49 +14,6 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    local procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
-    var
-        AccessControl: Record "Access Control";
-    begin
-        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
-        AccessControl.SetRange("Company Name", CompanyName());
-        exit(not AccessControl.IsEmpty());
-    end;
-
-    local procedure HasAnyExpenseAgentPermission(AadApplication: Record "AAD Application"): Boolean
-    var
-        AccessControl: Record "Access Control";
-    begin
-        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
-        exit(not AccessControl.IsEmpty());
-    end;
-
-    local procedure AddPermissionForCurrentCompany(AadApplication: Record "AAD Application")
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-    begin
-        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        if not AggregatePermissionSet.FindFirst() then
-            exit;
-
-        AccessControl.Init();
-        AccessControl.Validate("User Security ID", AadApplication."User ID");
-        AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
-        AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
-        AccessControl.Validate("Company Name", CompanyName());
-        AccessControl.Insert(true);
-    end;
-
-    local procedure RemovePermissionForCurrentCompany(AadApplication: Record "AAD Application")
-    var
-        AccessControl: Record "Access Control";
-    begin
-        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
-        AccessControl.SetRange("Company Name", CompanyName());
-        AccessControl.DeleteAll(true);
-    end;
-
     internal procedure EnableAadApplicationForCurrentCompany()
     var
         AadApplication: Record "AAD Application";
@@ -126,6 +83,49 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     internal procedure GetAadAppId(): Text
     begin
         exit(ExpenseAgentAadAppIdTxt);
+    end;
+
+    local procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
+    var
+        AccessControl: Record "Access Control";
+    begin
+        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
+        AccessControl.SetRange("Company Name", CompanyName());
+        exit(not AccessControl.IsEmpty());
+    end;
+
+    local procedure HasAnyExpenseAgentPermission(AadApplication: Record "AAD Application"): Boolean
+    var
+        AccessControl: Record "Access Control";
+    begin
+        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
+        exit(not AccessControl.IsEmpty());
+    end;
+
+    local procedure AddPermissionForCurrentCompany(AadApplication: Record "AAD Application")
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+    begin
+        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
+        if not AggregatePermissionSet.FindFirst() then
+            exit;
+
+        AccessControl.Init();
+        AccessControl.Validate("User Security ID", AadApplication."User ID");
+        AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
+        AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
+        AccessControl.Validate("Company Name", CompanyName());
+        AccessControl.Insert(true);
+    end;
+
+    local procedure RemovePermissionForCurrentCompany(AadApplication: Record "AAD Application")
+    var
+        AccessControl: Record "Access Control";
+    begin
+        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
+        AccessControl.SetRange("Company Name", CompanyName());
+        AccessControl.DeleteAll(true);
     end;
 
     local procedure GetAadApplication(var AadApplication: Record "AAD Application"): Boolean
