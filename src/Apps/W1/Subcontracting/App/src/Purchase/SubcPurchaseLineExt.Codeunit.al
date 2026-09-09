@@ -100,10 +100,14 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if GetExecutionContext() = ExecutionContext::Upgrade then
             exit;
 
-        if Rec."Planned Receipt Date" = xRec."Planned Receipt Date" then
+        // Gate on the resulting Order Date rather than Planned Receipt Date so lead-time-only
+        // reschedules (for example changing Lead Time Calculation on an open line with nonblank
+        // Requested and Planned Receipt Dates) still trigger date-effective repricing when the
+        // planned-date validation reassigns Order Date without changing Planned Receipt Date.
+        if Rec."Order Date" = xRec."Order Date" then
             exit;
 
-        GetSubcontractingPrice(Rec);
+        RepriceSubcPurchLineOnScheduleChange(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Order Date", false, false)]
@@ -124,7 +128,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if Rec."Order Date" = xRec."Order Date" then
             exit;
 
-        GetSubcontractingPrice(Rec);
+        RepriceSubcPurchLineOnScheduleChange(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]
@@ -352,6 +356,30 @@ codeunit 20534 "Subc. Purchase Line Ext"
     begin
         if (PurchaseLine.Type = PurchaseLine.Type::Item) and (PurchaseLine."No." <> '') and (PurchaseLine."Prod. Order No." <> '') and (PurchaseLine."Operation No." <> '') then
             SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+    end;
+
+    local procedure RepriceSubcPurchLineOnScheduleChange(var PurchaseLine: Record "Purchase Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        if PurchaseLine."Prod. Order No." = '' then
+            exit;
+
+        // Preserve released-order scheduling: repricing a subcontracting line after release
+        // would call Validate("Line Discount %") through GetSubcPriceForPurchLine, which in
+        // turn calls TestStatusOpen on the released header and fails the date edit. The base
+        // test suite explicitly permits Planned Receipt Date and Order Date edits on released
+        // purchase order lines (see ERMSalesPurchStatusError CanChangeOrderDateOnReleasedPurchOrderLine
+        // and CanChangePlannedReceiptDateOnReleasedPurchOrderLine). Bypass repricing entirely
+        // once the header is no longer Open so scheduling still works without silently
+        // changing released financial terms.
+        PurchaseHeader.SetLoadFields(Status);
+        if not PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+            exit;
+        if PurchaseHeader.Status <> PurchaseHeader.Status::Open then
+            exit;
+
+        GetSubcontractingPrice(PurchaseLine);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeOpenItemTrackingLines, '', false, false)]

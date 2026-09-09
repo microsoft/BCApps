@@ -506,10 +506,8 @@ codeunit 20508 "Subc. Price Management"
     procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        SubcontractorPrice: Record "Subcontractor Price";
-        PriceListUOM: Code[10];
         OrderDate: Date;
-        DirectCost, PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
+        DirectCost: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -521,36 +519,85 @@ codeunit 20508 "Subc. Price Management"
         if OrderDate = 0D then
             OrderDate := WorkDate();
 
+        if not TryGetSubcPriceListCostForPurchLine(PurchaseLine, OrderDate, DirectCost) then begin
+            GetProdOrderRtngLine(
+                PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.",
+                PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine);
+            ProdOrderRoutingLine.TestField(Type, "Capacity Type"::"Work Center");
+            DirectCost := GetNonPriceListDirectCost(ProdOrderRoutingLine);
+        end;
+
+        PurchaseLine."Direct Unit Cost" := DirectCost;
+        PurchaseLine.Validate("Line Discount %");
+    end;
+
+    internal procedure TryGetSubcPriceListCostForPurchLine(PurchaseLine: Record "Purchase Line"; OrderDate: Date; var DirectCost: Decimal): Boolean
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        PriceListUOM: Code[10];
+        PriceListCost, PriceListQty, PriceListQtyPerUOM : Decimal;
+    begin
+        DirectCost := 0;
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(false);
+#endif
+        if OrderDate = 0D then
+            OrderDate := WorkDate();
+
+        if not TryFindProdOrderRtngLine(
+                PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.",
+                PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine)
+        then
+            exit(false);
+
         SubcontractorPrice.SetRange("Vendor No.", PurchaseLine."Buy-from Vendor No.");
         SubcontractorPrice.SetRange("Work Center No.", PurchaseLine."Work Center No.");
         SubcontractorPrice.SetRange("Item No.", PurchaseLine."No.");
         SubcontractorPrice.SetFilter("Variant Code", '%1|%2', PurchaseLine."Variant Code", '');
         SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchaseLine."Unit of Measure Code", '');
-
-        GetProdOrderRtngLine(PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine);
-
         SubcontractorPrice.SetFilter("Standard Task Code", '%1|%2', ProdOrderRoutingLine."Standard Task Code", '');
         SubcontractorPrice.SetFilter("Currency Code", '%1|%2', PurchaseLine."Currency Code", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
         SubcontractorPrice.SetFilter("Ending Date", '>=%1|%2', OrderDate, 0D);
 
-        if SubcontractorPrice.FindLast() then begin
-            if SubcontractorPrice."Unit of Measure Code" = PurchaseLine."Unit of Measure Code" then
-                PriceListUOM := SubcontractorPrice."Unit of Measure Code";
-            GetUOMPrice(PurchaseLine."No.", GetQuantityBase(PurchaseLine), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
-            GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
-            if PriceListCost <> 0 then begin
-                ConvertPriceToUOM(PurchaseLine."Unit of Measure Code", PurchaseLine.GetQuantityPerUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
-                ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost)
-            end;
-        end else begin
-            GetUOMPrice(PurchaseLine."No.", PurchaseLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
-            ProdOrderRoutingLine.TestField(Type, "Capacity Type"::"Work Center");
-            DirectCost := ProdOrderRoutingLine."Direct Unit Cost";
-        end;
+        if not SubcontractorPrice.FindLast() then
+            exit(false);
 
-        PurchaseLine."Direct Unit Cost" := DirectCost;
-        PurchaseLine.Validate("Line Discount %");
+        if SubcontractorPrice."Unit of Measure Code" = PurchaseLine."Unit of Measure Code" then
+            PriceListUOM := SubcontractorPrice."Unit of Measure Code";
+        GetUOMPrice(PurchaseLine."No.", GetQuantityBase(PurchaseLine), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
+        GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
+        if PriceListCost = 0 then
+            exit(true);
+
+        ConvertPriceToUOM(PurchaseLine."Unit of Measure Code", PurchaseLine.GetQuantityPerUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
+        ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
+        exit(true);
+    end;
+
+    local procedure GetNonPriceListDirectCost(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        GetLine(ProdOrderLine, ProdOrderRoutingLine);
+        GeneralLedgerSetup.Get();
+        if ProdOrderRoutingLine."Unit Cost Calculation" = ProdOrderRoutingLine."Unit Cost Calculation"::Units then
+            exit(
+                Round(
+                    ProdOrderRoutingLine."Direct Unit Cost" * ProdOrderLine."Qty. per Unit of Measure",
+                    GeneralLedgerSetup."Unit-Amount Rounding Precision"));
+
+        ProdOrderLine.CalcFields("Total Exp. Oper. Output (Qty.)");
+        exit(
+            Round(
+                (ProdOrderRoutingLine."Expected Operation Cost Amt." - ProdOrderRoutingLine."Expected Capacity Ovhd. Cost") /
+                ProdOrderLine."Total Exp. Oper. Output (Qty.)",
+                GeneralLedgerSetup."Unit-Amount Rounding Precision"));
     end;
 
     local procedure GetProdOrderRtngLine(ProdOrderNo: Code[20]; RtngRefNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10]; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
@@ -562,6 +609,16 @@ codeunit 20508 "Subc. Price Management"
         ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
 
         ProdOrderRoutingLine.FindFirst();
+    end;
+
+    local procedure TryFindProdOrderRtngLine(ProdOrderNo: Code[20]; RtngRefNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10]; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Boolean
+    begin
+        ProdOrderRoutingLine.SetFilter(Status, '%1|%2', ProdOrderRoutingLine.Status::Released, ProdOrderRoutingLine.Status::Finished);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", RtngRefNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        exit(ProdOrderRoutingLine.FindFirst());
     end;
 
     local procedure SetSubcontractorPriceForPriceCalculation(var SubcontractorPrice: Record "Subcontractor Price"; VendorNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; StandardTaskCode: Code[10]; WorkCenterNo: Code[20]; UoM: Code[10]; StartingDate: Date)
