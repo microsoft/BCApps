@@ -1419,20 +1419,19 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     var
         URI: Codeunit Uri;
         ExpectedUrl: Text;
-        IsHandled: Boolean;
     begin
         if StoredUrl = '' then
-            exit(StoredUrl);
-
-        // Allow partners that override the endpoint (OnBeforeSetURLsToDefault) to opt out of host pinning.
-        OnBeforeValidateIntegrationUrl(DocExchServiceSetup, StoredUrl, IsHandled);
-        if IsHandled then
             exit(StoredUrl);
 
         if IsSandbox(DocExchServiceSetup) then
             ExpectedUrl := DefaultSandboxUrl
         else
             ExpectedUrl := DefaultProdUrl;
+
+        // Partners that override the endpoint (OnBeforeSetURLsToDefault) can supply their own trusted URL; validation still runs against it.
+        OnBeforeValidateIntegrationUrl(DocExchServiceSetup, StoredUrl, ExpectedUrl);
+        if ExpectedUrl = '' then
+            exit(StoredUrl);
 
         exit(URI.ValidateIntegrationURL(StoredUrl, ExpectedUrl));
     end;
@@ -1763,7 +1762,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateIntegrationUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; var IsHandled: Boolean)
+    local procedure OnBeforeValidateIntegrationUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; var ExpectedUrl: Text)
     begin
     end;
 

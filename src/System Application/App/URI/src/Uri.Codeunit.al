@@ -193,17 +193,33 @@ codeunit 3060 Uri
     end;
 
     /// <summary>
-    /// Validates integration URI host from setup table field is the same as the hardcoded integration URI host, returns the hardcoded integration URI if validation fails.
+    /// Validates that the integration URI from a setup table field has the same host and scheme as the hardcoded integration URI, returns the hardcoded integration URI if validation fails.
     /// </summary>
     /// <param name="FieldValueURL">The integration URL from the setup table field.</param>
     /// <param name="HardcodedIntegrationURL">The hardcoded integration URL to validate.</param>
-    /// <returns>The integration URL from the setup table if it has the same host; otherwise, the provided integration URL.</returns>
+    /// <returns>The integration URL from the setup table if it has the same host and scheme; otherwise, the provided integration URL.</returns>
     procedure ValidateIntegrationURL(FieldValueURL: Text; HardcodedIntegrationURL: Text): Text
     begin
-        if AreURIsHaveSameHost(FieldValueURL, HardcodedIntegrationURL) then
+        if AreURIsHaveSameHost(FieldValueURL, HardcodedIntegrationURL) and AreURIsHaveSameScheme(FieldValueURL, HardcodedIntegrationURL) then
             exit(FieldValueURL)
         else
             exit(HardcodedIntegrationURL);
+    end;
+
+    /// <summary>
+    /// Verifies whether two URIs have the same scheme (e.g., both https://example.com and https://other.com use the https scheme). Used to reject a transport downgrade (for example from https to http) on an otherwise trusted host.
+    /// </summary>
+    /// <param name="UriString1">The first URI string.</param>
+    /// <param name="UriString2">The second URI string.</param>
+    /// <returns>True if both URIs have the same scheme; otherwise, false.</returns>
+    procedure AreURIsHaveSameScheme(UriString1: Text; UriString2: Text): Boolean
+    var
+        Uri1, Uri2 : DotNet Uri;
+    begin
+        Uri1 := Uri1.Uri(UriString1.ToLower());
+        Uri2 := Uri2.Uri(UriString2.ToLower());
+
+        exit(Uri1.Scheme = Uri2.Scheme);
     end;
 
     /// <summary>

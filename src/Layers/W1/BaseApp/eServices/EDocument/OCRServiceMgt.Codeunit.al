@@ -99,21 +99,22 @@ codeunit 1294 "OCR Service Mgt."
     local procedure GetValidatedServiceUrl(): Text
     var
         URI: Codeunit Uri;
-        IsHandled: Boolean;
+        ExpectedServiceUrl: Text;
     begin
         if OCRServiceSetup."Service URL" = '' then
             exit(OCRServiceSetup."Service URL");
 
-        // Allow partners with an alternative OCR endpoint to opt out of host pinning.
-        OnBeforeValidateServiceUrl(OCRServiceSetup, IsHandled);
-        if IsHandled then
+        // Partners with an alternative OCR endpoint can supply their own trusted host; validation still runs against it.
+        ExpectedServiceUrl := DefaultServiceUrlRSOTok;
+        OnBeforeValidateServiceUrl(OCRServiceSetup, ExpectedServiceUrl);
+        if ExpectedServiceUrl = '' then
             exit(OCRServiceSetup."Service URL");
 
-        exit(URI.ValidateIntegrationURL(OCRServiceSetup."Service URL", DefaultServiceUrlRSOTok));
+        exit(URI.ValidateIntegrationURL(OCRServiceSetup."Service URL", ExpectedServiceUrl));
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateServiceUrl(var OCRServiceSetup: Record "OCR Service Setup"; var IsHandled: Boolean)
+    local procedure OnBeforeValidateServiceUrl(var OCRServiceSetup: Record "OCR Service Setup"; var ExpectedServiceUrl: Text)
     begin
     end;
 

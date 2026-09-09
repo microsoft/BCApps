@@ -287,6 +287,27 @@ codeunit 135070 "Uri Test"
 
         // [Given] Invalid Integration URLs with different hosts or schemes
         LibraryAssert.AreNotEqual(Uri.ValidateIntegrationURL('https://subdomain1.example.com/api', 'https://subdomain2.example.com/api'), 'https://subdomain1.example.com/api', 'Invalid integration URL should return false');
+
+        // [Given] A same-host URL that downgrades the scheme from https to http
+        // [Then] Validation should fall back to the hardcoded https URL instead of allowing cleartext
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('http://valid-integration.com/api', 'https://valid-integration.com/api'), 'https://valid-integration.com/api', 'A same-host http downgrade should fall back to the hardcoded https URL');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AreURIsHaveSameSchemeTest()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] Two URIs with the same scheme
+        // [Then] AreURIsHaveSameScheme should return true
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameScheme('https://microsoft.com/path1', 'https://contoso.com/path2'), 'URIs with the same scheme should return true');
+        LibraryAssert.IsTrue(Uri.AreURIsHaveSameScheme('https://microsoft.com', 'https://MICROSOFT.COM'), 'URIs with case differences in scheme should return true');
+
+        // [Given] URIs with different schemes
+        // [Then] AreURIsHaveSameScheme should return false
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('http://microsoft.com/path1', 'https://microsoft.com/path2'), 'URIs with different schemes should return false');
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('ftp://files.example.com', 'https://files.example.com'), 'URIs with different schemes should return false');
     end;
 
     local procedure TestUriWellformed(UriString: Text; UriKind: Enum UriKind; ExpectedResult: Boolean)
