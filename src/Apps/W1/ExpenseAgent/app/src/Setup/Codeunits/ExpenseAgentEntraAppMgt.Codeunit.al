@@ -14,7 +14,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
+    local procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
     var
         AccessControl: Record "Access Control";
     begin
@@ -23,7 +23,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         exit(not AccessControl.IsEmpty());
     end;
 
-    internal procedure HasAnyPermission(AadApplication: Record "AAD Application"): Boolean
+    local procedure HasAnyExpenseAgentPermission(AadApplication: Record "AAD Application"): Boolean
     var
         AccessControl: Record "Access Control";
     begin
@@ -31,7 +31,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         exit(not AccessControl.IsEmpty());
     end;
 
-    internal procedure AddPermissionForCurrentCompany(AadApplication: Record "AAD Application")
+    local procedure AddPermissionForCurrentCompany(AadApplication: Record "AAD Application")
     var
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
@@ -48,7 +48,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl.Insert(true);
     end;
 
-    internal procedure RemovePermissionForCurrentCompany(AadApplication: Record "AAD Application")
+    local procedure RemovePermissionForCurrentCompany(AadApplication: Record "AAD Application")
     var
         AccessControl: Record "Access Control";
     begin
@@ -90,7 +90,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
             exit;
 
         RemovePermissionForCurrentCompany(AadApplication);
-        if HasAnyPermission(AadApplication) then
+        if HasAnyExpenseAgentPermission(AadApplication) then
             exit;
         if AadApplication.State = AadApplication.State::Disabled then
             exit;
