@@ -940,12 +940,6 @@ table 113 "Sales Invoice Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(8010; "EUDR Relevant"; Boolean)
-        {
-            Caption = 'EUDR Relevant';
-            Editable = false;
-            DataClassification = CustomerContent;
-        }
         field(17110; "S/T Exempt"; Boolean)
         {
             Caption = 'S/T Exempt';

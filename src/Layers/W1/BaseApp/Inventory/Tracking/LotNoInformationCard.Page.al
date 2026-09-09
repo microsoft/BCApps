@@ -5,7 +5,6 @@
 namespace Microsoft.Inventory.Tracking;
 
 using Microsoft.Foundation.Navigate;
-using Microsoft.Inventory.Item;
 using Microsoft.Warehouse.Tracking;
 
 page 6505 "Lot No. Information Card"
@@ -60,40 +59,6 @@ page 6505 "Lot No. Information Card"
                     ApplicationArea = ItemTracking;
                 }
                 field("Expired Inventory"; Rec."Expired Inventory")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-            }
-            group(EUDR)
-            {
-                Caption = 'EUDR';
-                Visible = EUDRVisible;
-
-                field("EUDR Certificate No."; Rec."EUDR Certificate No.")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-                field("Certification Scheme"; Rec."Certification Scheme")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-                field("EUDR Valid From"; Rec."EUDR Valid From")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-                field("EUDR Valid To"; Rec."EUDR Valid To")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-                field("Country/Region of Production Code"; Rec."Country/Region of Prod. Code")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-                field("DDS Reference Number"; Rec."DDS Reference Number")
-                {
-                    ApplicationArea = ItemTracking;
-                }
-                field("DDS Verification No."; Rec."DDS Verification No.")
                 {
                     ApplicationArea = ItemTracking;
                 }
@@ -293,60 +258,14 @@ page 6505 "Lot No. Information Card"
         Rec.SetFilter("Date Filter", '>%1&<=%2', 0D, WorkDate());
         if ShowButtonFunctions then
             ButtonFunctionsVisible := true;
-
-        SetControlVisibility();
-        EUDRLotInformationMgmt.SetCountryRegionCode(TrackingSpecification);
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        SetControlVisibility();
-    end;
-
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        SetCountryOfProductionFromSource();
-    end;
-
-    trigger OnClosePage()
-    begin
-        EUDRLotInformationMgmt.ClearCountryRegionCode();
     end;
 
     var
-        EUDRLotInformationMgmt: Codeunit "EUDR Lot Info. Tracking Mgmt";
         ShowButtonFunctions: Boolean;
         ButtonFunctionsVisible: Boolean;
-        EUDRVisible: Boolean;
 
     protected var
         TrackingSpecification: Record "Tracking Specification";
-
-    local procedure SetControlVisibility()
-    var
-        Item: Record Item;
-    begin
-        EUDRVisible := false;
-        if Item.Get(Rec."Item No.") then
-            EUDRVisible := Item."EUDR Relevant";
-    end;
-
-    local procedure SetCountryOfProductionFromSource()
-    var
-        Item: Record Item;
-    begin
-        if Rec."Country/Region of Prod. Code" <> '' then
-            exit;
-
-        if not Item.Get(Rec."Item No.") then
-            exit;
-
-        if not Item."EUDR Relevant" then
-            exit;
-
-        if EUDRLotInformationMgmt.GetCurrentCountryRegionCode() <> '' then
-            Rec.Validate("Country/Region of Prod. Code", EUDRLotInformationMgmt.GetCurrentCountryRegionCode());
-    end;
 
     procedure Init(CurrentTrackingSpecification: Record "Tracking Specification")
     begin

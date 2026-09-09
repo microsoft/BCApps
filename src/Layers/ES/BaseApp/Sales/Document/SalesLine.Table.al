@@ -4124,12 +4124,6 @@ table 37 "Sales Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(8010; "EUDR Relevant"; Boolean)
-        {
-            Caption = 'EUDR Relevant';
-            Editable = false;
-            DataClassification = CustomerContent;
-        }
         field(10701; "EC %"; Decimal)
         {
             AutoFormatType = 0;
@@ -4864,7 +4858,6 @@ table 37 "Sales Line"
         Nonstock := Item."Created From Nonstock Item";
         "Profit %" := Item."Profit %";
         "Allow Item Charge Assignment" := true;
-        "EUDR Relevant" := Item."EUDR Relevant";
         PrepaymentMgt.SetSalesPrepaymentPct(Rec, SalesHeader."Posting Date");
         if IsInventoriableItem() then
             PostingSetupMgt.CheckInvtPostingSetupInventoryAccount("Location Code", "Posting Group");

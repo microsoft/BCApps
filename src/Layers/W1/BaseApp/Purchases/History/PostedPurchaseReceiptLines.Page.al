@@ -44,11 +44,6 @@ page 528 "Posted Purchase Receipt Lines"
                     ApplicationArea = Planning;
                     Visible = false;
                 }
-                field("EUDR Relevant"; Rec."EUDR Relevant")
-                {
-                    ApplicationArea = ItemTracking;
-                    Visible = false;
-                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;

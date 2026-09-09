@@ -730,12 +730,6 @@ table 121 "Purch. Rcpt. Line"
                 UpdateDocumentNo();
             end;
         }
-        field(8010; "EUDR Relevant"; Boolean)
-        {
-            Caption = 'EUDR';
-            Editable = false;
-            ToolTip = 'Indicates that the item on the posted purchase receipt line is subject to the EU Deforestation Regulation.';
-        }
         field(8509; "Over-Receipt Quantity"; Decimal)
         {
             AutoFormatType = 0;

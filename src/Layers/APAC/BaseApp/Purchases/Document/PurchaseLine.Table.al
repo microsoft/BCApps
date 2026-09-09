@@ -3819,12 +3819,6 @@ table 39 "Purchase Line"
             FieldClass = FlowField;
             BlankZero = true;
         }
-        field(8010; "EUDR Relevant"; Boolean)
-        {
-            Caption = 'EUDR';
-            Editable = false;
-            ToolTip = 'Indicates that the item on the purchase line is subject to the EU Deforestation Regulation, so lot-level certification details may be required.';
-        }
         field(8509; "Over-Receipt Quantity"; Decimal)
         {
             AutoFormatType = 0;
@@ -4931,7 +4925,6 @@ table 39 "Purchase Line"
         "Tax Group Code" := Item."Tax Group Code";
         Nonstock := Item."Created From Nonstock Item";
         "Item Category Code" := Item."Item Category Code";
-        "EUDR Relevant" := Item."EUDR Relevant";
         "Allow Item Charge Assignment" := true;
         PrepaymentMgt.SetPurchPrepaymentPct(Rec, PurchHeader."Posting Date");
         if IsInventoriableItem() then

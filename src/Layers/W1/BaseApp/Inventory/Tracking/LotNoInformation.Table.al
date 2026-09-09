@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
-using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -123,56 +122,6 @@ table 6505 "Lot No. Information"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(8000; "EUDR Certificate No."; Code[50])
-        {
-            Caption = 'EUDR Certificate No.';
-            ToolTip = 'Specifies the certificate number that documents EUDR compliance for this lot.';
-        }
-        field(8001; "Certification Scheme"; Text[100])
-        {
-            Caption = 'Certification Scheme';
-            ToolTip = 'Specifies the certification scheme that applies to this lot, such as FSC, PEFC, RSPO, Rainforest Alliance, or Fairtrade.';
-        }
-        field(8002; "EUDR Valid From"; Date)
-        {
-            Caption = 'Valid From';
-            ToolTip = 'Specifies the first date that the EUDR certificate is valid for this lot.';
-
-            trigger OnValidate()
-            begin
-                if ("EUDR Valid From" <> 0D) and ("EUDR Valid To" <> 0D) then
-                    if "EUDR Valid From" > "EUDR Valid To" then
-                        Error(EUDRValidFromAfterValidToErr, FieldCaption("EUDR Valid From"), FieldCaption("EUDR Valid To"));
-            end;
-        }
-        field(8003; "EUDR Valid To"; Date)
-        {
-            Caption = 'Valid To';
-            ToolTip = 'Specifies the last date that the EUDR certificate is valid for this lot.';
-
-            trigger OnValidate()
-            begin
-                if ("EUDR Valid From" <> 0D) and ("EUDR Valid To" <> 0D) then
-                    if "EUDR Valid To" < "EUDR Valid From" then
-                        Error(EUDRValidFromAfterValidToErr, FieldCaption("EUDR Valid From"), FieldCaption("EUDR Valid To"));
-            end;
-        }
-        field(8004; "Country/Region of Prod. Code"; Code[10])
-        {
-            Caption = 'Country/Region of Production Code';
-            TableRelation = "Country/Region";
-            ToolTip = 'Specifies the country or region where the goods in this lot were produced. You can change the value if the distributor provides different origin information.';
-        }
-        field(8005; "DDS Reference Number"; Code[50])
-        {
-            Caption = 'DDS Reference Number';
-            ToolTip = 'Specifies the reference number issued when the due diligence statement is registered in the EU Information System, TRACES.';
-        }
-        field(8006; "DDS Verification No."; Code[50])
-        {
-            Caption = 'DDS Verification No.';
-            ToolTip = 'Specifies the verification number for the EUDR due diligence statement.';
-        }
     }
 
     keys
@@ -205,7 +154,6 @@ table 6505 "Lot No. Information"
 
     var
         ItemTrackingComment: Record "Item Tracking Comment";
-        EUDRValidFromAfterValidToErr: Label '%1 must not be after %2.', Comment = '%1 = Valid From field caption, %2 = Valid To field caption';
 
     procedure ShowCard(LotNo: Code[50]; TrackingSpecification: Record "Tracking Specification")
     var
