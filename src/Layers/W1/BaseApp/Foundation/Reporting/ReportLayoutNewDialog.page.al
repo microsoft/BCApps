@@ -5,7 +5,6 @@
 
 namespace Microsoft.Shared.Report;
 
-using Microsoft.Foundation.Reporting;
 using System.Environment.Configuration;
 using System.Reflection;
 
