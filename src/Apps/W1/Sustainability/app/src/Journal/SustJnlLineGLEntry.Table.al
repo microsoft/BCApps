@@ -61,7 +61,7 @@ table 6260 "Sust. Jnl. Line G/L Entry"
         {
             Clustered = true;
         }
-        key(AccountCategory; "Account Category", "G/L Entry No.")
+        key(AccountCategory; "Account Category", "Posting Date", "G/L Entry No.")
         {
         }
     }
