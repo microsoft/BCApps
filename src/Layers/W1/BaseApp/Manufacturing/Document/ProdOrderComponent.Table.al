@@ -1022,7 +1022,9 @@ table 5407 "Prod. Order Component"
             if not ItemLedgEntry.IsEmpty() then
                 Error(Text99000000, "Item No.", "Line No.");
 
-            ConfirmDeletion();
+
+            if not CalledFromHeader then
+                CheckPickedQtyBeforeDeletion();
         end;
 
         ProdOrderWarehouseMgt.ProdComponentDelete(Rec);
@@ -1121,7 +1123,7 @@ table 5407 "Prod. Order Component"
 #pragma warning restore AA0470
         Text99000009: Label 'Automatic reservation is not possible.\Do you want to reserve items manually?';
 #pragma warning restore AA0074
-        ConfirmDeleteQst: Label '%1 = %2 is greater than %3 = %4. If you delete the %5, the items will remain in the operation area until you put them away.\Any related item tracking information defined during the pick process will be deleted.\Do you still want to delete the %5?', Comment = '%1 = FieldCaption("Qty. Picked"), %2 = "Qty. Picked", %3 = Qty. Posted, %4 = ("Expected Quantity" - "Remaining Quantity"), %5 = TableCaption';
+        CannotDeleteWithPickedQtyErr: Label 'You cannot delete the production order because one or more components have a picked quantity that has not been consumed. Consume or return the picked quantity before deleting the production order.';
         CannotAutoReserveErr: Label 'Quantity %1 in line %2 cannot be reserved automatically.', Comment = '%1 - quantity, %2 - line number';
 #pragma warning disable AA0470
         ProgressMsg: Label 'Reserving inventory...\#1##############\@2@@@@@';
@@ -2205,30 +2207,10 @@ table 5407 "Prod. Order Component"
         end;
     end;
 
-    local procedure ConfirmDeletion()
+    internal procedure CheckPickedQtyBeforeDeletion()
     begin
-        if CalledFromHeader then
-            exit;
-
-        if ("Expected Quantity" - "Remaining Quantity") < "Qty. Picked" then begin
-            if "Location Code" <> '' then begin
-                GetLocation("Location Code");
-                if Location."Prod. Output Whse. Handling" = Location."Prod. Consump. Whse. Handling"::"No Warehouse Handling" then
-                    exit;
-            end;
-
-            if not Confirm(
-                StrSubstNo(
-                    ConfirmDeleteQst,
-                    FieldCaption("Qty. Picked"),
-                    "Qty. Picked",
-                    'Qty. Posted',
-                    ("Expected Qty. (Base)" - "Remaining Qty. (Base)"),
-                    TableCaption),
-                false)
-            then
-                Error('');
-        end;
+        if ("Expected Qty. (Base)" - "Remaining Qty. (Base)") < "Qty. Picked (Base)" then
+            Error(CannotDeleteWithPickedQtyErr);
     end;
 
     procedure SuspendDeletionCheck(Suspend: Boolean)
