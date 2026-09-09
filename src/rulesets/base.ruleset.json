@@ -11,7 +11,7 @@
   "rules": [
     {
       "id": "PTE0020",
-      "action": "None",
+      "action": "Warning",
       "justification": "The application app shouldn't point at itself."
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "id": "AL0432",
-      "action": "None",
+      "action": "Warning",
       "justification": "Use pragma to remove obsolete warning."
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "id": "AL0605",
-      "action": "None",
+      "action": "Warning",
       "justification": "Use of implicit 'with' will be removed in the future. Qualify with 'Rec'."
     },
     {
@@ -40,7 +40,7 @@
     },
     {
       "id": "AL0684",
-      "action": "None",
+      "action": "Warning",
       "justification": "The permissionset contains permissionsets or permission for objects from other module. Permissions on objects from other modules will be ignored."
     },
     {
@@ -59,7 +59,7 @@
     },
     {
       "id": "AS0112",
-      "action": "None",
+      "action": "Warning",
       "justification": "Permission set extensions that include permission sets covering objects from another application. Needs a permission set redesign to fix."
     },
     {
@@ -198,7 +198,7 @@
     },
     {
       "id": "AA0219",
-      "action": "Hidden",
+      "action": "Warning",
       "justification": "TBD Bug: fails for actions. The Tooltip property of Fields must start with 'Specifies'. Set to None because setting it to warning will fail RunCodeCopBaseApplication_XX"
     },
     {
@@ -257,7 +257,7 @@
     },
     {
       "id": "AA0473",
-      "action": "None",
+      "action": "Warning",
       "justification": "AutoformatType should be defined for decimal fields in Table objects to ensure proper formatting behavior."
     },
     {
@@ -277,7 +277,7 @@
     },
     {
       "id": "PTE0002",
-      "action": "None",
+      "action": "Warning",
       "justification": "Field ID must be within the range '[50000..99999]'."
     },
     {
@@ -338,7 +338,7 @@
     },
     {
       "id": "AA0241",
-      "action": "None"
+      "action": "Warning"
     }
   ]
 }
