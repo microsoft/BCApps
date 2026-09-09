@@ -654,8 +654,6 @@ codeunit 139098 "Power BI Synchronizer Tests"
     local procedure SetupBase()
     var
         AzureADMgtSetup: Record "Azure AD Mgt. Setup";
-        PowerBIBlob: Record "Power BI Blob";
-        PowerBIDefaultSelection: Record "Power BI Default Selection";
         PowerBIReportUploads: Record "Power BI Report Uploads";
         PowerBIDeployment: Record "Power BI Deployment";
         PowerBIDeploymentState: Record "Power BI Deployment State";
@@ -679,8 +677,6 @@ codeunit 139098 "Power BI Synchronizer Tests"
         PowerBIReportUploads.DeleteAll();
         PowerBIContextSettings.DeleteAll();
         PowerBIDisplayedElement.DeleteAll();
-        PowerBIBlob.DeleteAll();
-        PowerBIDefaultSelection.DeleteAll();
         PowerBICustomerReports.DeleteAll();
         PowerBIDeploymentState.DeleteAll();
         PowerBIDeployment.DeleteAll();
@@ -702,6 +698,8 @@ codeunit 139098 "Power BI Synchronizer Tests"
         PowerBIDefaultSelection: Record "Power BI Default Selection";
         OutStream: OutStream;
     begin
+        CleanupSystemBlob();
+
         PowerBIBlob.Init();
         PowerBIBlob.Id := PowerBIBlobIdTxt;
         PowerBIBlob.Name := 'Test system blob';
@@ -714,6 +712,15 @@ codeunit 139098 "Power BI Synchronizer Tests"
         PowerBIDefaultSelection.Context := 'TestContext';
         PowerBIDefaultSelection.Selected := true;
         PowerBIDefaultSelection.Insert();
+    end;
+
+    local procedure CleanupSystemBlob()
+    var
+        PowerBIBlob: Record "Power BI Blob";
+        PowerBIDefaultSelection: Record "Power BI Default Selection";
+    begin
+        PowerBIBlob.DeleteAll();
+        PowerBIDefaultSelection.DeleteAll();
     end;
 
     local procedure SetupDeployableReport()
