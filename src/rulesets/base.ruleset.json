@@ -34,10 +34,6 @@
       "justification": "Use of implicit 'with' will be removed in the future. Qualify with 'Rec'."
     },
     {
-      "id": "AL0606",
-      "action": "Warning"
-    },
-    {
       "id": "AL0667",
       "action": "Warning",
       "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future release."
@@ -139,11 +135,6 @@
     {
       "id": "AA0150",
       "action": "Warning"
-    },
-    {
-      "id": "AA0161",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
     },
     {
       "id": "AA0175",
@@ -254,11 +245,6 @@
       "id": "AA0245",
       "action": "Warning",
       "justification": "The name of the parameter is identical to a field, method, or action in the same scope."
-    },
-    {
-      "id": "AA0448",
-      "action": "Warning",
-      "justification": "Use FieldCaption instead of FieldName and TableCaption instead of TableName in methods that display messages."
     },
     {
       "id": "AA0462",
