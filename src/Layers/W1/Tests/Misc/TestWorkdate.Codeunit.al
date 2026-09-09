@@ -63,6 +63,8 @@ codeunit 139028 "Test Workdate"
     begin
         // [SCENARIO] The work date setting is visible for an evaluation company.
         SetCompanyWorkDateSettings(CompanyInformation, true, false);
+        CompanyInformation."Demo Company" := false;
+        CompanyInformation.Modify();
 
         CompanyInformationPage.OpenEdit();
 
@@ -79,6 +81,8 @@ codeunit 139028 "Test Workdate"
     begin
         // [SCENARIO] The work date setting is hidden for a regular company.
         SetCompanyWorkDateSettings(CompanyInformation, false, false);
+        CompanyInformation."Demo Company" := true;
+        CompanyInformation.Modify();
 
         CompanyInformationPage.OpenEdit();
 
@@ -87,7 +91,13 @@ codeunit 139028 "Test Workdate"
     end;
 
     local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; UseTodayAsWorkDate: Boolean)
+    var
+        Company: Record Company;
     begin
+        Company.Get(CompanyName());
+        Company."Evaluation Company" := IsEvaluationCompany;
+        Company.Modify();
+
         CompanyInformation.Get();
         CompanyInformation."Demo Company" := IsEvaluationCompany;
         if UseTodayAsWorkDate then
