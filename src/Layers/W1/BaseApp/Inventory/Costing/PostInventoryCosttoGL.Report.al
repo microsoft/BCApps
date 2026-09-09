@@ -856,15 +856,16 @@ report 1002 "Post Inventory Cost to G/L"
         if DimSetEntry.FindSet() then
             repeat
                 if DimText = '' then
-                    OldDimText :=
-                        StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
+                    OldDimText := StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
                 else
-                    OldDimText :=
-                        StrSubstNo('%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
+                    if StrLen(StrSubstNo(
+                            '%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")) > MaxStrLen(DimText) then
+                        exit;
+
+                OldDimText := StrSubstNo(
+                    '%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
                 DimText := CopyStr(OldDimText, 1, MaxStrLen(DimText));
 
-                if StrLen(OldDimText) > MaxStrLen(DimText) then
-                    exit;
             until DimSetEntry.Next() = 0;
     end;
 
