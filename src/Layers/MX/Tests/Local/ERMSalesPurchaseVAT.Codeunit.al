@@ -407,7 +407,7 @@ codeunit 144051 "ERM Sales/Purchase VAT"
         AmountACY := GetACYAmount(SalesLine."Amount Including VAT" - SalesLine."Line Amount", CurrencyCode);
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
         VerifyVATEntries(SalesHeader."Document Type", DocumentNo, -AmountACY, SalesLine."VAT Prod. Posting Group");
-        VerifyGLEntries(SalesHeader."Document Type", DocumentNo, VATPostingSetup."Sales VAT Account", -AmountACY);
+        VerifyRealizedVATGLEntriesDoNotExist(DocumentNo, VATPostingSetup);
     end;
 
     [Test]
@@ -463,7 +463,7 @@ codeunit 144051 "ERM Sales/Purchase VAT"
         AmountACY := GetACYAmount(SalesLine."Amount Including VAT" - SalesLine."Line Amount", CurrencyCode);
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
         VerifyVATEntries(SalesHeader."Document Type", DocumentNo, -AmountACY, SalesLine."VAT Prod. Posting Group");
-        VerifyGLEntries(SalesHeader."Document Type", DocumentNo, VATPostingSetup."Sales VAT Account", -AmountACY);
+        VerifyRealizedVATGLEntriesDoNotExist(DocumentNo, VATPostingSetup);
     end;
 
     [Test]

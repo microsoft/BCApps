@@ -483,7 +483,6 @@
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmPostingAfterWorkingDateHandler')]
     procedure RealizedPercentageVATAdjustExchPaymentFCYtoSalesInvoiceFCY()
     var
         Currency: Record Currency;
@@ -1183,7 +1182,8 @@
         ApplyAndPostCustomerEntry(CustLedgerEntry."Document Type"::Invoice, InvoiceNo);
 
         // [VERIFY] Verify VAT Realized Amount for customer.
-        VerifyVATEntryForPostApplication(VATAmount);
+        VerifyVATEntryForPostApplication(
+          VATAmount, VATPostingSetup."VAT Prod. Posting Group", VATPostingSetup2."VAT Prod. Posting Group");
     end;
 
     local procedure Initialize()
@@ -1534,13 +1534,18 @@
         LibraryERM.SetAppliestoIdCustomer(CustLedgerEntry)
     end;
 
-    local procedure VerifyVATEntryForPostApplication(VATAmount: Decimal)
+    local procedure VerifyVATEntryForPostApplication(VATAmount: Decimal; AffectedVATProdPostingGroup: Code[20]; UnaffectedVATProdPostingGroup: Code[20])
     var
         VATEntry: Record "VAT Entry";
         GLRegister: Record "G/L Register";
     begin
         GLRegister.FindLast();
         VATEntry.SetRange("Entry No.", GLRegister."From VAT Entry No.", GLRegister."To VAT Entry No.");
+        Assert.AreEqual(2, VATEntry.Count, 'The application must create exactly two VAT entries');
+        VATEntry.SetRange("VAT Prod. Posting Group", UnaffectedVATProdPostingGroup);
+        Assert.IsTrue(VATEntry.IsEmpty(), 'The application must not create VAT entries for the unaffected VAT posting group');
+        VATEntry.SetRange("VAT Prod. Posting Group", AffectedVATProdPostingGroup);
+        Assert.AreEqual(2, VATEntry.Count, 'Both application VAT entries must use the affected VAT posting group');
         VATEntry.FindSet();
         Assert.AreNearlyEqual(
           VATEntry.Amount, VATAmount, LibraryERM.GetAmountRoundingPrecision(),
