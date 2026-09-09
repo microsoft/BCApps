@@ -877,7 +877,6 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         CustomerInFilter: Record Customer;
         CustomerOutsideFilter: Record Customer;
         MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
-        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         CustomerRecRef: RecordRef;
     begin
         // [SCENARIO] FindMappingByIntegrationRecordId matches a mapping only when the source record is within the

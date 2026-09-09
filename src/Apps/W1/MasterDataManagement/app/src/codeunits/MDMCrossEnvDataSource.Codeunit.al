@@ -309,6 +309,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         if not TryParseCleanResponse(Transport.GetRecords(TableId, BuildFieldIdsForTable(TableId), '{}', PageSize(), RowFilter), Response, NotIndexed) then
             exit(false);
+        // A multi-page filtered result can't be fully materialized in one bulk call; degrade to per-record reads
+        // rather than caching a partial (silently incomplete) snapshot.
+        if SourceResponse.HasMore(Response) then
+            exit(false);
         SourceResponse.InsertRecords(Response, SourceRecordRef);
         exit(true);
     end;
@@ -420,7 +424,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         end;
         if not SourceResponse.Indexed(Response) then begin
             LogParseFailure(IntegrationTableId, NotIndexedReasonTok);
-            Error(NotIndexedErr, TableCaption(IntegrationTableId));
+            Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(NotIndexedErr, TableCaption(IntegrationTableId))));
         end;
         if SourceResponse.GetUnavailableFields(Response, UnavailableFields) then begin
             LogParseFailure(IntegrationTableId, FieldsUnavailableReasonTok);

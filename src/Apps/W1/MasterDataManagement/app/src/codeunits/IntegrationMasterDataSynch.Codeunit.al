@@ -20,20 +20,21 @@ codeunit 7231 "Integration Master Data Synch."
         MappingName: Code[20];
     begin
         OnBeforeRun(Rec, IsHandled);
-        if IsHandled then
-            exit;
 
-        Rec.SetOriginalJobQueueEntryOnHold(OriginalJobQueueEntry, PrevStatus);
-        if Rec.Direction in [Rec.Direction::ToIntegrationTable, Rec.Direction::Bidirectional] then
-            LatestModifiedOn[DateType::Local] := PerformScheduledSynchToIntegrationTable(Rec);
-        if Rec.Direction in [Rec.Direction::FromIntegrationTable, Rec.Direction::Bidirectional] then
-            LatestModifiedOn[DateType::Integration] := PerformScheduledSynchFromIntegrationTable(Rec);
-        MappingName := Rec.Name;
-        if not Rec.Find() then
-            Session.LogMessage('0000J8M', StrSubstNo(UnableToFindMappingErr, MappingName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory())
-        else begin
-            Rec.UpdateTableMappingModifiedOn(LatestModifiedOn);
-            Rec.SetOriginalJobQueueEntryStatus(OriginalJobQueueEntry, PrevStatus);
+        // Run OnAfterRun even when a subscriber handled the run, so run-scoped subscriber state is always released.
+        if not IsHandled then begin
+            Rec.SetOriginalJobQueueEntryOnHold(OriginalJobQueueEntry, PrevStatus);
+            if Rec.Direction in [Rec.Direction::ToIntegrationTable, Rec.Direction::Bidirectional] then
+                LatestModifiedOn[DateType::Local] := PerformScheduledSynchToIntegrationTable(Rec);
+            if Rec.Direction in [Rec.Direction::FromIntegrationTable, Rec.Direction::Bidirectional] then
+                LatestModifiedOn[DateType::Integration] := PerformScheduledSynchFromIntegrationTable(Rec);
+            MappingName := Rec.Name;
+            if not Rec.Find() then
+                Session.LogMessage('0000J8M', StrSubstNo(UnableToFindMappingErr, MappingName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory())
+            else begin
+                Rec.UpdateTableMappingModifiedOn(LatestModifiedOn);
+                Rec.SetOriginalJobQueueEntryStatus(OriginalJobQueueEntry, PrevStatus);
+            end;
         end;
 
         OnAfterRun(Rec);
