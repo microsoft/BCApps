@@ -307,10 +307,14 @@ codeunit 6610 "FS Int. Table Subscriber"
                     if DestinationIsInserted then begin
                         ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
                         ExistingCRMProduct.Get(CRMProduct.ProductId);
-                        CRMProduct.ConvertToCustomerAsset := ExistingCRMProduct.ConvertToCustomerAsset;
+                        if ExistingCRMProduct.ConvertToCustomerAsset then begin
+                            DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset)).Value(false);
+                            AdditionalFieldsWereModified := true;
+                        end;
+                    end else begin
+                        DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+                        DestinationRecordRef.GetTable(CRMProduct);
                     end;
-                    DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
-                    DestinationRecordRef.GetTable(CRMProduct);
                 end;
             'FS Work Order Product-Service Line':
                 begin
