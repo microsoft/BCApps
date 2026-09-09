@@ -195,7 +195,6 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Qty. Rounding Precision (Base)" := ProdOrderLine."Qty. Rounding Precision (Base)";
         ReqLine."Prod. Order No." := ProdOrderLine."Prod. Order No.";
         ReqLine."Prod. Order Line No." := ProdOrderLine."Line No.";
-        ReqLine."Due Date" := ProdOrderRoutingLine."Ending Date";
         ReqLine."Requester ID" := CopyStr(UserId(), 1, 50);
         ReqLine."Location Code" := ProdOrderLine."Location Code";
         ReqLine."Bin Code" := ProdOrderLine."Bin Code";
@@ -208,6 +207,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();
         OnAfterTransferProdOrderRoutingLine(ReqLine, ProdOrderRoutingLine);
+        ReqLine.Validate("Due Date", ProdOrderRoutingLine."Ending Date");
         // If purchase order already exist we will change this if possible
         PurchLine.Reset();
         PurchLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");

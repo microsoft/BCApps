@@ -701,7 +701,6 @@ codeunit 20557 "Subc. Purchase Order Creator"
         RequisitionLine."Qty. Rounding Precision (Base)" := ProdOrderLine."Qty. Rounding Precision (Base)";
         RequisitionLine."Prod. Order No." := ProdOrderLine."Prod. Order No.";
         RequisitionLine."Prod. Order Line No." := ProdOrderLine."Line No.";
-        RequisitionLine."Due Date" := ProdOrderRoutingLine."Ending Date";
         RequisitionLine."Requester ID" := CopyStr(UserId(), 1, MaxStrLen(RequisitionLine."Requester ID"));
 
         RequisitionLine."Location Code" := ProdOrderLine."Location Code";
@@ -718,6 +717,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
         RequisitionLine.Validate("Subc. Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
+        RequisitionLine.Validate("Due Date", ProdOrderRoutingLine."Ending Date");
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin

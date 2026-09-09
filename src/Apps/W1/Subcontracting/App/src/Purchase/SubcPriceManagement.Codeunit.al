@@ -504,6 +504,16 @@ codeunit 20508 "Subc. Price Management"
     end;
 
     procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line")
+    begin
+        ApplySubcPriceForPurchLine(PurchaseLine, true);
+    end;
+
+    internal procedure RepriceSubcPurchLineForDateChange(var PurchaseLine: Record "Purchase Line")
+    begin
+        ApplySubcPriceForPurchLine(PurchaseLine, false);
+    end;
+
+    local procedure ApplySubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line"; UseRoutingCostFallback: Boolean)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcontractorPrice: Record "Subcontractor Price";
@@ -544,6 +554,8 @@ codeunit 20508 "Subc. Price Management"
                 ConvertPriceToCurrency(PurchaseLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost)
             end;
         end else begin
+            if not UseRoutingCostFallback then
+                exit;
             GetUOMPrice(PurchaseLine."No.", PurchaseLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
             ProdOrderRoutingLine.TestField(Type, "Capacity Type"::"Work Center");
             DirectCost := ProdOrderRoutingLine."Direct Unit Cost";

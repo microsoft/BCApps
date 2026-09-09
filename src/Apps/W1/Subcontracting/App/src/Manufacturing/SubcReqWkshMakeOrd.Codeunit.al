@@ -29,10 +29,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine, '', false, false)]
-    local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
-    var
-        SubcPriceManagement: Codeunit "Subc. Price Management";
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnBeforeCopyOrderDateFromPurchHeader, '', false, false)]
+    local procedure OnBeforeCopyOrderDateFromPurchHeader(var RequisitionLine: Record "Requisition Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -40,10 +38,14 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
 #pragma warning restore AL0432
             exit;
 #endif
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+        if PurchaseLine.Type <> PurchaseLine.Type::Item then
+            exit;
         if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
             exit;
 
-        SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine);
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader, '', false, false)]

@@ -126,6 +126,8 @@ codeunit 139982 "Subc. Pricing Test"
         CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
         SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        Assert.IsTrue(RequisitionLine."Order Date" < WorkDate(), 'The worksheet line order date must be scheduled before WorkDate.');
+        Assert.AreEqual(EarlierPrice, RequisitionLine."Direct Unit Cost", 'The worksheet line must use the price valid on its scheduled order date.');
 
         // [WHEN] The worksheet action is carried out for the subcontracting operation
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
@@ -134,6 +136,39 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
         Assert.IsTrue(PurchaseLine."Order Date" < WorkDate(), 'The purchase line order date must be backward-scheduled before WorkDate.');
         Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its order date.');
+    end;
+
+    [Test]
+    procedure ReqWkshCreatedSubcPurchLinePreservesManualCost()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+        ManualCost: Decimal;
+    begin
+        // [SCENARIO 648535] Carrying out a subcontracting worksheet preserves a manually entered cost
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting worksheet line with a manually changed cost
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        ManualCost := EarlierPrice + LibraryRandom.RandDecInRange(10, 100, 2);
+        RequisitionLine.Validate("Direct Unit Cost", ManualCost);
+        RequisitionLine.Modify(true);
+
+        // [WHEN] The worksheet action is carried out
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The purchase line keeps the manually entered worksheet cost
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.AreEqual(ManualCost, PurchaseLine."Direct Unit Cost", 'The purchase line must preserve the manually entered worksheet cost.');
     end;
 
     [Test]
@@ -221,6 +256,99 @@ codeunit 139982 "Subc. Pricing Test"
 
         // [THEN] The purchase line uses the later price valid from WorkDate
         Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its changed order date.');
+    end;
+
+    [Test]
+    procedure LeadTimeChangeRepricesSubcPurchLineWhenOrderDateChanges()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        NewLeadTimeCalculation: DateFormula;
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] Lead-time-only rescheduling reapplies the price when the resulting order date changes
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line with a requested receipt date
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        PurchaseLine.TestField("Requested Receipt Date");
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must initially use the earlier subcontractor price.');
+
+        // [WHEN] Lead Time Calculation is cleared without changing Planned Receipt Date
+        Clear(NewLeadTimeCalculation);
+        PurchaseLine.Validate("Lead Time Calculation", NewLeadTimeCalculation);
+
+        // [THEN] The changed Order Date selects the later date-effective price
+        Assert.IsTrue(PurchaseLine."Order Date" >= WorkDate(), 'The recalculated purchase line order date must be on or after WorkDate.');
+        Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the price valid on the recalculated order date.');
+    end;
+
+    [Test]
+    procedure DateChangeWithoutMatchingPricePreservesSubcPurchLineCost()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+        OriginalDirectUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] Rescheduling without a matching subcontractor price preserves the calculated purchase-line cost
+        Initialize();
+
+        // [GIVEN] A subcontracting purchase line whose subcontractor prices are no longer applicable
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        OriginalDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        SubcontractorPrice.SetRange("Item No.", Item."No.");
+        SubcontractorPrice.DeleteAll(true);
+
+        // [WHEN] Planned Receipt Date is changed
+        PurchaseLine.Validate("Planned Receipt Date", CalcDate('<20D>', WorkDate()));
+
+        // [THEN] The existing calculated cost is preserved
+        Assert.AreEqual(OriginalDirectUnitCost, PurchaseLine."Direct Unit Cost", 'Rescheduling without a matching price must preserve the existing cost.');
+    end;
+
+    [Test]
+    procedure ReleasedSubcPurchLineDateChangesDoNotReprice()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        NewOrderDate: Date;
+        NewPlannedReceiptDate: Date;
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+        ReleasedDirectUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] Scheduling dates remain editable on a released subcontracting order without changing financial terms
+        Initialize();
+
+        // [GIVEN] A released subcontracting purchase order using the earlier date-effective price
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        ReleasedDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        NewPlannedReceiptDate := CalcDate('<20D>', WorkDate());
+        NewOrderDate := CalcDate('<10D>', WorkDate());
+
+        // [WHEN] Planned Receipt Date and Order Date are changed
+        PurchaseLine.Validate("Planned Receipt Date", NewPlannedReceiptDate);
+        PurchaseLine.Validate("Order Date", NewOrderDate);
+
+        // [THEN] The dates change without repricing the released line
+        Assert.AreEqual(NewOrderDate, PurchaseLine."Order Date", 'The released purchase line order date must remain editable.');
+        Assert.AreEqual(ReleasedDirectUnitCost, PurchaseLine."Direct Unit Cost", 'Scheduling a released purchase line must not change its direct unit cost.');
     end;
 
     [Test]

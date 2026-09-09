@@ -100,10 +100,10 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if GetExecutionContext() = ExecutionContext::Upgrade then
             exit;
 
-        if Rec."Planned Receipt Date" = xRec."Planned Receipt Date" then
+        if Rec."Order Date" = xRec."Order Date" then
             exit;
 
-        GetSubcontractingPrice(Rec);
+        RepriceSubcontractingLineAfterDateChange(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Order Date", false, false)]
@@ -124,7 +124,7 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if Rec."Order Date" = xRec."Order Date" then
             exit;
 
-        GetSubcontractingPrice(Rec);
+        RepriceSubcontractingLineAfterDateChange(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]
@@ -350,8 +350,32 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-        if (PurchaseLine.Type = PurchaseLine.Type::Item) and (PurchaseLine."No." <> '') and (PurchaseLine."Prod. Order No." <> '') and (PurchaseLine."Operation No." <> '') then
+        if IsSubcontractingPurchaseLine(PurchaseLine) then
             SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+    end;
+
+    local procedure RepriceSubcontractingLineAfterDateChange(var PurchaseLine: Record "Purchase Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+        if not IsSubcontractingPurchaseLine(PurchaseLine) then
+            exit;
+
+        PurchaseHeader := PurchaseLine.GetPurchHeader();
+        if PurchaseHeader.Status <> PurchaseHeader.Status::Open then
+            exit;
+
+        SubcPriceManagement.RepriceSubcPurchLineForDateChange(PurchaseLine);
+    end;
+
+    local procedure IsSubcontractingPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean
+    begin
+        exit(
+            (PurchaseLine.Type = PurchaseLine.Type::Item) and
+            (PurchaseLine."No." <> '') and
+            (PurchaseLine."Prod. Order No." <> '') and
+            (PurchaseLine."Operation No." <> ''));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeOpenItemTrackingLines, '', false, false)]
