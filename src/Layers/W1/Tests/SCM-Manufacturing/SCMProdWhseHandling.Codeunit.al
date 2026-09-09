@@ -1719,7 +1719,9 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         CreateProductionOrderWithRegisteredWarehousePick(ProductionOrder, Location);
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210 // Filtering on non-key field is acceptable in this test over a small, already narrowed set.
         ProdOrderComponent.SetFilter("Qty. Picked (Base)", '>0');
+#pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
         ProdOrderComponent.CalcFields("Act. Consumption (Qty)");
         Assert.IsTrue(ProdOrderComponent."Qty. Picked (Base)" > 0, QtyPickedBaseShouldBePositiveErr);
@@ -1752,7 +1754,9 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         CreateProductionOrderWithRegisteredWarehousePick(ProductionOrder, Location);
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210 // Filtering on non-key field is acceptable in this test over a small, already narrowed set.
         ProdOrderComponent.SetFilter("Qty. Picked (Base)", '>0');
+#pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
         Commit();
 
@@ -1785,7 +1789,9 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         CreateProductionOrderWithRegisteredWarehousePick(ProductionOrder, Location);
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210 // Filtering on non-key field is acceptable in this test over a small, already narrowed set.
         ProdOrderComponent.SetFilter("Qty. Picked (Base)", '>0');
+#pragma warning restore AA0210
         ProdOrderComponent.FindFirst();
         ProdOrderLine.Get(
             ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
