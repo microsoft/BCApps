@@ -1,5 +1,7 @@
 #pragma warning disable AA0247
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 permissionsetextension 46049 "D365 BASICQuickBooks Data Migration" extends "D365 BASIC"
+#pragma warning restore AS0011
 {
     Permissions = tabledata "MigrationQB Account" = RIMD,
                   tabledata "MigrationQB Account Setup" = RIMD,

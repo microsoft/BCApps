@@ -1,5 +1,7 @@
 #pragma warning disable AA0247
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 139757 "Library - Master Data Mgt."
+#pragma warning restore AS0011
 {
     Access = Public;
 
