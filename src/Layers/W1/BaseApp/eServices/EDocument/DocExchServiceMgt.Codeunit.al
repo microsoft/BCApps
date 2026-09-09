@@ -1419,19 +1419,21 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     var
         URI: Codeunit Uri;
         ExpectedUrl: Text;
+        DefaultUrl: Text;
     begin
         if StoredUrl = '' then
             exit(StoredUrl);
 
         if IsSandbox(DocExchServiceSetup) then
-            ExpectedUrl := DefaultSandboxUrl
+            DefaultUrl := DefaultSandboxUrl
         else
-            ExpectedUrl := DefaultProdUrl;
+            DefaultUrl := DefaultProdUrl;
 
-        // Partners that override the endpoint (OnBeforeSetURLsToDefault) can supply their own trusted URL; validation still runs against it.
-        OnBeforeValidateIntegrationUrl(DocExchServiceSetup, StoredUrl, ExpectedUrl);
+        // Partners that override the endpoint (OnBeforeSetURLsToDefault) can point validation at their own trusted host; they cannot disable it.
+        ExpectedUrl := DefaultUrl;
+        OnGetValidatedIntegrationUrlOnBeforeValidate(DocExchServiceSetup, StoredUrl, ExpectedUrl);
         if ExpectedUrl = '' then
-            exit(StoredUrl);
+            ExpectedUrl := DefaultUrl;
 
         exit(URI.ValidateIntegrationURL(StoredUrl, ExpectedUrl));
     end;
@@ -1762,7 +1764,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateIntegrationUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; var ExpectedUrl: Text)
+    local procedure OnGetValidatedIntegrationUrlOnBeforeValidate(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; var ExpectedUrl: Text)
     begin
     end;
 

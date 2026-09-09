@@ -104,17 +104,17 @@ codeunit 1294 "OCR Service Mgt."
         if OCRServiceSetup."Service URL" = '' then
             exit(OCRServiceSetup."Service URL");
 
-        // Partners with an alternative OCR endpoint can supply their own trusted host; validation still runs against it.
+        // Partners with an alternative OCR endpoint can point validation at their own trusted host; they cannot disable it.
         ExpectedServiceUrl := DefaultServiceUrlRSOTok;
-        OnBeforeValidateServiceUrl(OCRServiceSetup, ExpectedServiceUrl);
+        OnGetValidatedServiceUrlOnBeforeValidate(OCRServiceSetup, ExpectedServiceUrl);
         if ExpectedServiceUrl = '' then
-            exit(OCRServiceSetup."Service URL");
+            ExpectedServiceUrl := DefaultServiceUrlRSOTok;
 
         exit(URI.ValidateIntegrationURL(OCRServiceSetup."Service URL", ExpectedServiceUrl));
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateServiceUrl(var OCRServiceSetup: Record "OCR Service Setup"; var ExpectedServiceUrl: Text)
+    local procedure OnGetValidatedServiceUrlOnBeforeValidate(var OCRServiceSetup: Record "OCR Service Setup"; var ExpectedServiceUrl: Text)
     begin
     end;
 

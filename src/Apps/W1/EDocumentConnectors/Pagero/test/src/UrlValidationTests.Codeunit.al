@@ -28,7 +28,7 @@ codeunit 148223 "Url Validation Tests"
         ConnectionSetup."Authentication URL" := 'https://sso.pageroonline.com/oauth/v2/tenant';
         ConnectionSetup.Modify();
 
-        Assert.AreEqual('https://sso.pageroonline.com/oauth/v2/tenant', PageroAuth.GetAuthenticationURL(), StoredUrlErr);
+        Assert.AreEqual('https://sso.pageroonline.com/oauth/v2/tenant', PageroAuth.GetAuthenticationURL(), StoredUrlMsg);
     end;
 
     [Test]
@@ -41,7 +41,7 @@ codeunit 148223 "Url Validation Tests"
         ConnectionSetup."Authentication URL" := 'https://malicious.example.com/oauth/v2';
         ConnectionSetup.Modify();
 
-        Assert.AreEqual('https://sso.pageroonline.com/oauth/v2', PageroAuth.GetAuthenticationURL(), FallbackUrlErr);
+        Assert.AreEqual('https://sso.pageroonline.com/oauth/v2', PageroAuth.GetAuthenticationURL(), FallbackUrlMsg);
     end;
 
     [Test]
@@ -53,7 +53,7 @@ codeunit 148223 "Url Validation Tests"
         ConnectionSetup."FileAPI URL" := 'https://api.pageroonline.com/file/v2/files';
         ConnectionSetup.Modify();
 
-        Assert.AreEqual('https://api.pageroonline.com/file/v2/files', PageroAuth.GetFileAPIURL(), StoredUrlErr);
+        Assert.AreEqual('https://api.pageroonline.com/file/v2/files', PageroAuth.GetFileAPIURL(), StoredUrlMsg);
     end;
 
     [Test]
@@ -65,7 +65,7 @@ codeunit 148223 "Url Validation Tests"
         ConnectionSetup."FileAPI URL" := 'https://malicious.example.com/file/v1/files';
         ConnectionSetup.Modify();
 
-        Assert.AreEqual('https://api.pageroonline.com/file/v1/files', PageroAuth.GetFileAPIURL(), FallbackUrlErr);
+        Assert.AreEqual('https://api.pageroonline.com/file/v1/files', PageroAuth.GetFileAPIURL(), FallbackUrlMsg);
     end;
 
     [Test]
@@ -77,7 +77,7 @@ codeunit 148223 "Url Validation Tests"
         ConnectionSetup."DocumentAPI URL" := 'https://malicious.example.com/document/v1/documents';
         ConnectionSetup.Modify();
 
-        Assert.AreEqual('https://api.pageroonline.com/document/v1/documents', PageroAuth.GetDocumentAPIURL(), FallbackUrlErr);
+        Assert.AreEqual('https://api.pageroonline.com/document/v1/documents', PageroAuth.GetDocumentAPIURL(), FallbackUrlMsg);
     end;
 
     [Test]
@@ -89,7 +89,7 @@ codeunit 148223 "Url Validation Tests"
         ConnectionSetup."Fileparts URL" := 'https://malicious.example.com/file/v1/fileparts';
         ConnectionSetup.Modify();
 
-        Assert.AreEqual('https://api.pageroonline.com/file/v1/fileparts', PageroAuth.GetFilepartsURL(), FallbackUrlErr);
+        Assert.AreEqual('https://api.pageroonline.com/file/v1/fileparts', PageroAuth.GetFilepartsURL(), FallbackUrlMsg);
     end;
 
     local procedure InitSetup(var ConnectionSetup: Record "E-Doc. Ext. Connection Setup")
@@ -103,6 +103,6 @@ codeunit 148223 "Url Validation Tests"
     var
         Assert: Codeunit Assert;
         PageroAuth: Codeunit "Pagero Auth.";
-        StoredUrlErr: Label 'A same-host URL should be returned unchanged.';
-        FallbackUrlErr: Label 'A different-host URL should fall back to the hardcoded value.';
+        StoredUrlMsg: Label 'A same-host URL should be returned unchanged.';
+        FallbackUrlMsg: Label 'A different-host URL should fall back to the hardcoded value.';
 }
