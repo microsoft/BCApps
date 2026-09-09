@@ -7,7 +7,6 @@ namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -527,7 +526,6 @@ codeunit 139695 "Shpfy Invoices Test"
     #region Local Procedures
     local procedure Initialize()
     var
-        Location: Record Location;
         ShpfyCustomer: Record "Shpfy Customer";
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
@@ -544,7 +542,7 @@ codeunit 139695 "Shpfy Invoices Test"
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryInventory.CreateItem(Item);
-        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
+        LibraryInventory.SetAutomaticCostAdjmtNever();
         LibrarySales.CreateCustomer(Customer);
         InitializeTest.CreateVATPostingSetup(
             Customer."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group",
