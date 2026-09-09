@@ -1591,7 +1591,7 @@ page 8901 "Finance Manager Role Center"
                     {
                         ApplicationArea = BasicMX;
                         Caption = 'Reminder Terms';
-                        RunObject = page "Reminder Terms";
+                        RunObject = page "Reminder Terms List";
                         Tooltip = 'Open the Reminder Terms page.';
                     }
                     action("Finance Charge Terms")

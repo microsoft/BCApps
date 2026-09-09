@@ -1,12 +1,10 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/992ee305e2c6d86d85d53e18c4fc88a5171a8cd4/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps GB",
     "country":  "GB",
     "appFolders":  [
                        "../../../src/Apps/GB/ContosoCoffeeDemoDatasetGB/app",
                        "../../../src/Apps/GB/EDocument_GB/demo data",
-                       "../../../src/Apps/GB/ExpenseAgent_GB/app",
-                       "../../../src/Apps/GB/ExpenseAgent_GB/demo data",
                        "../../../src/Apps/GB/GovTalk/app",
                        "../../../src/Apps/GB/GovTalk/demo data",
                        "../../../src/Apps/GB/IdealPostcodes/app",

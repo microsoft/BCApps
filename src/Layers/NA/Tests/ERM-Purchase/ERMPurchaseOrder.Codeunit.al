@@ -9402,6 +9402,165 @@ codeunit 134327 "ERM Purchase Order"
         Assert.RecordIsNotEmpty(GLEntry);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PurchOrderQuantitiesRetainedAfterPostingCopyDocumentCreditMemoForInventoryItem()
+    var
+        Item: Record Item;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchaseHeaderCreditMemo: Record "Purchase Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseCreditMemoPage: TestPage "Purchase Credit Memo";
+        VendorNo: Code[20];
+        OrderNo: Code[20];
+        OrderLineNo: Integer;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Copy Document] [Credit Memo]
+        // [SCENARIO 647007] Posting a Purchase Credit Memo created via Copy Document from a posted Purchase Invoice must not revert the received and invoiced quantities on the originating Purchase Order for inventory items.
+        Initialize();
+
+        // [GIVEN] "Exact Cost Reversing Mandatory" is disabled in Purchases & Payables Setup.
+        LibraryPurchase.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Purchase Order for an inventory item with Quantity = 10, fully received.
+        Qty := LibraryRandom.RandIntInRange(10, 20);
+        LibraryInventory.CreateItem(Item);
+        VendorNo := CreateVendor();
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeaderOrder, PurchaseLineOrder, PurchaseHeaderOrder."Document Type"::Order, VendorNo, Item."No.", Qty, '', WorkDate());
+        OrderNo := PurchaseHeaderOrder."No.";
+        OrderLineNo := PurchaseLineOrder."Line No.";
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [GIVEN] Purchase Invoice created from the receipt line and posted, so the Purchase Order line is fully received and invoiced.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, VendorNo);
+        PurchRcptLine.SetRange("Order No.", OrderNo);
+        PurchRcptLine.SetRange("Order Line No.", OrderLineNo);
+        PurchRcptLine.FindFirst();
+        PurchaseLineInvoice.Init();
+        PurchaseLineInvoice.Validate("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.Validate("Document No.", PurchaseHeaderInvoice."No.");
+        PurchRcptLine.InsertInvLineFromRcptLine(PurchaseLineInvoice);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true));
+
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type"::Order, OrderNo, OrderLineNo);
+        PurchaseLineOrder.TestField("Quantity Received", Qty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", Qty);
+
+        // [GIVEN] Purchase Credit Memo with lines copied from the posted Purchase Invoice using Copy Document.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderCreditMemo, PurchaseHeaderCreditMemo."Document Type"::"Credit Memo", VendorNo);
+        Commit();
+        PurchaseCopyDocument(PurchaseHeaderCreditMemo, PurchInvHeader."No.", "Purchase Document Type From"::"Posted Invoice");
+        PurchaseHeaderCreditMemo.Get(PurchaseHeaderCreditMemo."Document Type"::"Credit Memo", PurchaseHeaderCreditMemo."No.");
+        PurchaseHeaderCreditMemo.Validate("Vendor Cr. Memo No.", PurchaseHeaderCreditMemo."No.");
+        PurchaseHeaderCreditMemo.Modify(true);
+
+        // [WHEN] Post the Purchase Credit Memo.
+        PurchaseCreditMemoPage.OpenView();
+        PurchaseCreditMemoPage.GotoRecord(PurchaseHeaderCreditMemo);
+        PurchaseCreditMemoPage.Post.Invoke();
+
+        // [THEN] The originating Purchase Order line keeps Quantity Received and Quantity Invoiced, with nothing left to receive or invoice.
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type"::Order, OrderNo, OrderLineNo);
+        PurchaseLineOrder.TestField("Quantity Received", Qty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", Qty);
+        PurchaseLineOrder.TestField("Qty. to Receive", 0);
+        PurchaseLineOrder.TestField("Qty. to Invoice", 0);
+    end;
+
+    [Test]
+    procedure OrderNoIsPopulatedOnPurchaseInvoiceWithInvoiceRoundingLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        InvoicePurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvLine: Record "Purch. Inv. Line";
+        Vendor: Record Vendor;
+        VendorPostingGroup: Record "Vendor Posting Group";
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice Rounding] [Get Receipt Lines] [AI]
+        // [SCENARIO 647878] A generated invoice rounding line does not prevent copying the source order number to the posted invoice.
+        Initialize();
+        LibraryERM.SetInvRoundingPrecisionLCY(1);
+        LibraryPurchase.SetInvoiceRounding(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateAndReceivePurchaseOrder(PurchaseHeader, Vendor."No.", 100.4);
+        InvoicePostedPurchaseOrder(InvoicePurchaseHeader, PurchaseHeader);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoicePurchaseHeader, false, true);
+
+        PurchInvHeader.Get(InvoiceNo);
+        PurchInvHeader.TestField("Order No.", PurchaseHeader."No.");
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        PurchInvLine.SetRange("Document No.", InvoiceNo);
+        PurchInvLine.SetRange(Type, PurchInvLine.Type::"G/L Account");
+        PurchInvLine.SetRange("No.", VendorPostingGroup."Invoice Rounding Account");
+        PurchInvLine.FindFirst();
+        PurchInvLine.TestField("System-Created Entry", true);
+        PurchInvLine.TestField("Order No.", '');
+    end;
+
+    [Test]
+    procedure OrderNoIsBlankOnPurchaseInvoiceFromTwoOrdersWithInvoiceRoundingLine()
+    var
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        InvoicePurchaseHeader: Record "Purchase Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice Rounding] [Get Receipt Lines] [AI]
+        // [SCENARIO 647878] A rounding line does not hide that a purchase invoice contains receipts from two orders.
+        Initialize();
+        LibraryERM.SetInvRoundingPrecisionLCY(1);
+        LibraryPurchase.SetInvoiceRounding(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateAndReceivePurchaseOrder(PurchaseHeader[1], Vendor."No.", 100.2);
+        CreateAndReceivePurchaseOrder(PurchaseHeader[2], Vendor."No.", 100.2);
+        InvoicePostedPurchaseOrder(InvoicePurchaseHeader, PurchaseHeader[1]);
+        AddPostedPurchaseOrderToInvoice(InvoicePurchaseHeader, PurchaseHeader[2]);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoicePurchaseHeader, false, true);
+
+        PurchInvHeader.Get(InvoiceNo);
+        PurchInvHeader.TestField("Order No.", '');
+    end;
+
+    [Test]
+    procedure OrderNoIsBlankOnPurchaseInvoiceWithManualBlankOrderLineAndInvoiceRoundingLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        InvoicePurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        Vendor: Record Vendor;
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Invoice Rounding] [Get Receipt Lines] [AI]
+        // [SCENARIO 647878] A manual blank-order line is not mistaken for a generated invoice rounding line.
+        Initialize();
+        LibraryERM.SetInvRoundingPrecisionLCY(1);
+        LibraryPurchase.SetInvoiceRounding(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateAndReceivePurchaseOrder(PurchaseHeader, Vendor."No.", 100.4);
+        InvoicePostedPurchaseOrder(InvoicePurchaseHeader, PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, InvoicePurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1);
+        PurchaseLine.Modify(true);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoicePurchaseHeader, false, true);
+
+        PurchInvHeader.Get(InvoiceNo);
+        PurchInvHeader.TestField("Order No.", '');
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -9544,6 +9703,31 @@ codeunit 134327 "ERM Purchase Order"
             PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
             PurchGetReceipt.CreateInvLines(PurchRcptLine);
         until PurchRcptHeader.Next() = 0;
+    end;
+
+    local procedure AddPostedPurchaseOrderToInvoice(var InvoicePurchaseHeader: Record "Purchase Header"; PostedPurchaseHeader: Record "Purchase Header")
+    var
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+    begin
+        PurchGetReceipt.SetPurchHeader(InvoicePurchaseHeader);
+        PurchRcptHeader.SetRange("Order No.", PostedPurchaseHeader."No.");
+        PurchRcptHeader.FindFirst();
+        PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+    end;
+
+    local procedure CreateAndReceivePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; DirectUnitCost: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), 1);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
     end;
 
     local procedure CrMemoPostedPurchaseReturnOrder(var CrMemoPurchaseHeader: Record "Purchase Header"; PostedPurchaseHeader: Record "Purchase Header")

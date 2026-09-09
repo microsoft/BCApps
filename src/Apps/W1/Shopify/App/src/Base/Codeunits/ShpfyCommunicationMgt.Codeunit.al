@@ -119,7 +119,7 @@ codeunit 30103 "Shpfy Communication Mgt."
     /// <returns>Return value of type JsonToken.</returns>
     internal procedure ExecuteGraphQL(GraphQLQuery: Text): JsonToken
     begin
-        exit(ExecuteGraphQL(GraphQLQuery, 0));
+        exit(ExecuteGraphQL(GraphQLQuery, 10));
     end;
 
     /// <summary> 

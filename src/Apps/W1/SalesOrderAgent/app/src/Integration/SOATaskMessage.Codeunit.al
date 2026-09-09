@@ -7,7 +7,6 @@ namespace Microsoft.Agent.SalesOrderAgent;
 
 using Microsoft.CRM.Contact;
 using System.Agents;
-using System.Email;
 
 codeunit 4398 "SOA Task Message"
 {
@@ -122,7 +121,7 @@ codeunit 4398 "SOA Task Message"
         exit(true);
     end;
 
-    internal procedure MessageRequiresReview(SOASetup: Record "SOA Setup"; EmailInbox: Record "Email Inbox"; IsFirstMessageInTask: Boolean): Boolean
+    internal procedure MessageRequiresReview(SOASetup: Record "SOA Setup"; SenderAddress: Text; IsFirstMessageInTask: Boolean): Boolean
     var
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         SOAInputMessageReview: Enum "SOA Input Message Review";
@@ -133,7 +132,7 @@ codeunit 4398 "SOA Task Message"
             SOAInputMessageReview := SOASetup."Known Sender In. Msg. Review"
         else
             // Check if the sender is a registered contact
-            if not SOAFiltersImpl.ContactExistsByEmail(EmailInbox."Sender Address") then
+            if not SOAFiltersImpl.ContactExistsByEmail(SenderAddress) then
                 SOAInputMessageReview := SOASetup."Unknown Sender In. Msg. Review"
             else
                 SOAInputMessageReview := SOASetup."Known Sender In. Msg. Review";
