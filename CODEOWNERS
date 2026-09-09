@@ -196,9 +196,6 @@
 Upgrade/ @microsoft/d365-bc-app-upgrade
 /src/GDL/ @microsoft/d365-bc-integrations
 
-# App Rulesets
-/src/rulesets/ @microsoft/d365-bc-app-rulesets
-
 # Developer Experience
 /src/System\ Application/App/AI @microsoft/d365-bc-copilot-toolkit @microsoft/dynamics-smb-developertools
 /src/System\ Application/Test/AI @microsoft/dynamics-smb-developertools
@@ -219,13 +216,13 @@ dotnet*.al @microsoft/d365-bc-app-security
 # app.json files are owned by the BC app team to control the metadata
 app.json @microsoft/d365-bc-app-required
 
-# AL-Go files and build scripts are owned by Engineering Systems
-.AL-Go/ @microsoft/d365-bc-engineering-systems
-*.ps1 @microsoft/d365-bc-engineering-systems
-/.azuredevops @microsoft/d365-bc-engineering-systems
-/.github @microsoft/d365-bc-engineering-systems
-/build @microsoft/d365-bc-engineering-systems
-/CODEOWNERS @microsoft/d365-bc-engineering-systems
-
-# Code Review Tools
-/tools/Code\ Review @microsoft/d365-bc-code-review-agent
+# Special paths are governed by required-reviewer repository rules. These
+# ownerless entries keep the repository fallback from requesting a second team.
+/src/rulesets/
+/tools/Code\ Review
+.AL-Go/
+*.ps1
+/.azuredevops
+/.github
+/build
+/CODEOWNERS
