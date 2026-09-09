@@ -658,6 +658,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// Creates inspection lines and result conditions from the header's template and evaluates the new lines.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection for which to create lines.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     local procedure CreateQualityInspectionResultLinesFromTemplate(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
