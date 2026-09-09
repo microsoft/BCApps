@@ -197,9 +197,12 @@ codeunit 40 LogInManagement
         CompanyInformation: Record "Company Information";
         GLEntry: Record "G/L Entry";
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
+        ChangeWorkDate: Boolean;
     begin
         CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date");
-        if CompanyInformationMgt.IsDemoCompany(CompanyInformation) then begin
+        ChangeWorkDate := CompanyInformationMgt.IsDemoCompany(CompanyInformation);
+        ChangeWorkDate := ChangeWorkDate or CompanyInformation.IsEvaluationCompany();
+        if ChangeWorkDate then begin
             if CompanyInformation."Evaluation Work Date" = CompanyInformation."Evaluation Work Date"::Today then
                 exit(Today);
 
