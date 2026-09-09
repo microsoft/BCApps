@@ -168,10 +168,7 @@ codeunit 134277 "Country/Region UT"
     var
         CountryRegion: Record "Country/Region";
         CountryRegionTranslation: Record "Country/Region Translation";
-        FormatAddress: Codeunit "Format Address";
-        CountryLineNo: Integer;
         AddrArray: array[8] of Text[100];
-        WrongValueInAddressArrayErr: Label 'Address Array at position %1', Comment = '%1 = Country/Region Position';
     begin
         exit;
         // [FEATURE] [Country/Region Translation]

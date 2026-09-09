@@ -10,15 +10,6 @@ codeunit 101047 "Create Std. Purchase Line"
     var
         StdPurchLine: Record "Standard Purchase Line";
         LineNo: Integer;
-        XCLEANING: Label 'CLEANING';
-        XADM: Label 'ADM';
-        Xforadministration: Label 'for administration';
-        Xforproduction: Label 'for production';
-        XPROD: Label 'PROD';
-        XPAINT: Label 'PAINT';
-        XPAPER: Label 'PAPER';
-        XPOSTAGE: Label 'POSTAGE';
-        XJBFREIGHT: Label 'JB-FREIGHT';
         CA: Codeunit "Make Adjustments";
 
     procedure InsertData(StdPurchCode: Code[10]; Type: Integer; No: Code[20]; Amount: Decimal; Description2: Text[30]; Department: Code[20])

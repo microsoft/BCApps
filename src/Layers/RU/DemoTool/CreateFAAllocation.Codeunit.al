@@ -10,10 +10,6 @@ codeunit 101810 "Create FA Allocation"
     var
         CA: Codeunit "Make Adjustments";
         "Line No.": Integer;
-        XTELEPHONE: Label 'TELEPHONE';
-        XADM: Label 'ADM';
-        XPROD: Label 'PROD';
-        XSALES: Label 'SALES';
 
     procedure InsertData("Code": Code[10]; "Allocation Type": Enum "FA Allocation Type"; "Account No.": Code[20]; "Global Dimension 1 Code": Code[20]; "Allocation %": Decimal)
     var

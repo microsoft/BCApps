@@ -135,12 +135,6 @@ codeunit 117507 "Create Service Base Calendar"
         // NAVCZ
         XGB: Label 'GB';
         XWeekend: Label 'Weekend';
-        XNewYearsEve: Label 'New Years Eve';
-        XBankHolidayScotlandOnly: Label 'Bank Holiday, Scotland Only';
-        XStPatricksDay: Label 'St Patricks Day';
-        XBattleoftheBoyneDay: Label 'Battle of the Boyne Day';
-        XChristmasDay: Label 'Christmas Day';
-        XBoxingDay: Label 'Boxing Day';
         XMayDayBankHoliday: Label 'May Day Bank Holiday';
         XBankHoliday: Label 'Bank Holiday';
         XSummerBankHolidayScotland: Label 'Summer Bank Holiday, Scotland';

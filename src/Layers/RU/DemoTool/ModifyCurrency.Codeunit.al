@@ -9,6 +9,5 @@ codeunit 101904 "Modify Currency"
 
     var
         Currency: Record Currency;
-        CA: Codeunit "Make Adjustments";
 }
 

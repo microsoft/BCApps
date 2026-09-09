@@ -3048,42 +3048,6 @@ codeunit 147305 "Cartera Posting"
           VATPostingSetup."Purch. VAT Unreal. Account", VATPostingSetup."Sales VAT Unreal. Account");
     end;
 
-    local procedure SalesUnrealVATPayToSeveralBills(ApplyFromGenJnlLine: Boolean)
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        PaymentTerms: Record "Payment Terms";
-        GenJnlLine: Record "Gen. Journal Line";
-        CustNo: Code[20];
-        InvoiceNo: Code[20];
-        BillNo: array[2] of Code[20];
-        PayNo: Code[20];
-        InvAmount: Decimal;
-        BillAmount: array[2] of Decimal;
-        PayAmount: Decimal;
-    begin
-        Initialize();
-        UpdateGenLedgVATSetup(true);
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        UpdateUnrealVATPostingSetup(
-          VATPostingSetup, VATPostingSetup."Unrealized VAT Type"::Percentage, LibraryERM.CreateGLAccountNo(), LibraryERM.CreateGLAccountNo());
-
-        CustNo :=
-          CreateCustWithPaymentTermsAndVATGroup(PaymentTerms."VAT distribution"::Proportional, VATPostingSetup."VAT Bus. Posting Group");
-        InvoiceNo :=
-          CreatePostSalesInvoiceWithVATGroup(InvAmount, CustNo, VATPostingSetup."VAT Prod. Posting Group");
-        CreateApplyPostSeveralBillsToInvoice(
-          BillNo, BillAmount, GenJnlLine."Account Type"::Customer, CustNo, InvoiceNo, InvAmount);
-        PayAmount := -InvAmount;
-        PayNo :=
-          CreatePostPaymentToSeveralBills(
-            GenJnlLine."Account Type"::Customer, CustNo, InvoiceNo, BillNo, PayAmount, ApplyFromGenJnlLine);
-
-        CalcAmtAndVerifyMultipleEntries(VATPostingSetup, CustNo, PayNo, InvAmount, BillAmount);
-
-        UpdateUnrealVATPostingSetup(VATPostingSetup, VATPostingSetup."Unrealized VAT Type",
-          VATPostingSetup."Purch. VAT Unreal. Account", VATPostingSetup."Sales VAT Unreal. Account");
-    end;
-
     local procedure PurchUnrealVATPayToSeveralBills(ApplyFromGenJnlLine: Boolean)
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -3701,4 +3665,3 @@ codeunit 147305 "Cartera Posting"
         ApplyVendEntries.OK().Invoke();
     end;
 }
-

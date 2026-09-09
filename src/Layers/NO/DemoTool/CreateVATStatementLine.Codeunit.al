@@ -8,41 +8,7 @@ codeunit 101256 "Create VAT Statement Line"
     end;
 
     var
-        "Demonstration Data Setup": Record "Demo Data Setup";
-        CA: Codeunit "Make Adjustments";
         NextLineNo: Integer;
-        XSalesVAT25PERCENToutgoing: Label 'Sales VAT 25 % (outgoing)';
-        XNATIONAL: Label 'NATIONAL';
-        XVAT25: Label 'VAT25';
-        XSalesVAT10PERCENToutgoing: Label 'Sales VAT 10 % (outgoing)';
-        XVAT10: Label 'VAT10';
-        XVAT25PERCENTonEUPurchasesetc: Label 'VAT 25 % on EU Purchases etc.';
-        XVAT10PERCENTonEUPurchasesetc: Label 'VAT 10 % on EU Purchases etc.';
-        XEU: Label 'EU';
-        XTotal: Label 'Total';
-        XPurchaseVAT25PERCENTDomestic: Label 'Purchase VAT 25 % Domestic';
-        XPurchaseVAT10PERCENTDomestic: Label 'Purchase VAT 10 % Domestic';
-        XPurchaseVAT25PERCENTEU: Label 'Purchase VAT 25 % EU';
-        XPurchaseVAT10PERCENTEU: Label 'Purchase VAT 10 % EU';
-        XPurchaseVATingoing: Label 'Purchase VAT (ingoing)';
-        XFuelTax: Label 'Fuel Tax';
-        XElectricityTax: Label 'Electricity Tax';
-        XNaturalGasTax: Label 'Natural Gas Tax';
-        XCoalTax: Label 'Coal Tax';
-        XCO2Tax: Label 'CO2 Tax';
-        XWaterTax: Label 'Water Tax';
-        XTotalTaxes: Label 'Total Taxes';
-        XTotalDeductions: Label 'Total Deductions';
-        XVATPayable: Label 'VAT Payable';
-        XValueofEUPurchases25PERCENT: Label 'Value of EU Purchases 25 %';
-        XValueofEUPurchases10PERCENT: Label 'Value of EU Purchases 10 %';
-        XValueofEUSales: Label 'Value of EU Sales';
-        XValueofEUSales25PERCENT: Label 'Value of EU Sales25 %';
-        XValueofEUSales10PERCENT: Label 'Value of EU Sales 10 %';
-        XNonVATliablesalesOverseas: Label 'Non-VAT liable sales, Overseas';
-        XNonVATliablesalesDomestic: Label 'Non-VAT liable sales, Domestic';
-        XNOVAT: Label 'NO VAT';
-        XEXPORT: Label 'EXPORT';
         XVAT: Label 'VAT';
         XDEFAULT: Label 'DEFAULT';
 

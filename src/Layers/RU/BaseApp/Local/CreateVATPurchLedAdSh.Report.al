@@ -222,15 +222,6 @@ report 14962 "Create VAT Purch. Led. Ad. Sh."
                 DataItemTableView = sorting("Posting Date", Type, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Tax Invoice Amount Type", Prepayment, Positive) where(Type = const(Purchase), "Tax Invoice Amount Type" = const(VAT), "Additional VAT Ledger Sheet" = const(false), "Include In Other VAT Ledger" = const(false), "VAT Allocation Type" = const(VAT));
 
                 trigger OnAfterGetRecord()
-                var
-                    VATEntry1: Record "VAT Entry";
-                    Vend: Record Vendor;
-                    VendLedgEntry: Record "Vendor Ledger Entry";
-                    DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
-                    FA: Record "Fixed Asset";
-                    VATEntry: Record "VAT Entry";
-                    TransactionNo: Integer;
-                    VATEntryNo: Integer;
                 begin
                     exit;
                 end;
@@ -1140,4 +1131,3 @@ report 14962 "Create VAT Purch. Led. Ad. Sh."
         VATLedgerConnBuffer.Insert();
     end;
 }
-

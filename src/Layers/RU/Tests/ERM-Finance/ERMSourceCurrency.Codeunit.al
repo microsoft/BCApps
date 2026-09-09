@@ -19,7 +19,6 @@ codeunit 134897 "ERM Source Currency"
         UnexpectedAccountNoErr: Label 'Unexpected G/L Account No. %1', Locked = true;
         TotalSCYAmountNotZeroErr: Label 'The sum of Source Currency Amount should be 0', Locked = true;
         SourceCurrencyCodeErr: Label 'The Source Currency Code should be equal to the Currency Code on the General Journal Line', Locked = true;
-        SourceCurrencyCodeFXGainLossErr: Label 'The Source Currency Code should be empty on the G/L Entry for FX Gain/Loss', Locked = true;
         SourceCurrencyAmountShouldBeZeroErr: Label 'The Source Currency Amount should be 0', Locked = true;
         SourceCurrencyAmountShouldMatchEnteredAmountErr: Label 'Source Currency Amount should match manually entered amount', Locked = true;
         SourceCurrencyVATAmountNotZeroErr: Label 'Source Currency VAT Amount should not be zero', Locked = true;
@@ -904,8 +903,6 @@ codeunit 134897 "ERM Source Currency"
         Factor: Integer;
         SCYBalance: Decimal;
         AmountLCY: Decimal;
-        AmountLCYUnrealisedLoss: Decimal;
-        AmountLCYRealisedLoss: Decimal;
     begin
         exit;
     end;
@@ -929,8 +926,6 @@ codeunit 134897 "ERM Source Currency"
         Factor: Integer;
         SCYBalance: Decimal;
         AmountLCY: Decimal;
-        AmountLCYUnrealisedGain: Decimal;
-        AmountLCYRealisedGain: Decimal;
     begin
         exit;
     end;

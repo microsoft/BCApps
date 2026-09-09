@@ -554,9 +554,8 @@ report 14030 "Official journal ledger Summ."
                 if FromDate <> ToDate then begin
                     AccPeriod.SetRange("Starting Date", FromDate + 1, ToDate);
                     AccPeriod.SetRange("New Fiscal Year", true);
-                    if AccPeriod.FindFirst() then begin
+                    if AccPeriod.FindFirst() then
                         Error(Text000);
-                    end;
                 end;
             5:
                 begin
@@ -584,4 +583,3 @@ report 14030 "Official journal ledger Summ."
         end;
     end;
 }
-

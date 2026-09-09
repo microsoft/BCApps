@@ -11,7 +11,6 @@ codeunit 101909 "Adjust Inventory Value"
         "Create Gen. Journal Line": Codeunit "Create Gen. Journal Line";
         CA: Codeunit "Make Adjustments";
         XSTART: Label 'START';
-        XAdjustingInventoryvalue: Label 'Adjusting Inventory value';
         XDEFAULT: Label 'DEFAULT';
 
     procedure InsertOtherEntry("Account Type": Option; "Account No.": Code[20]; Date: Date; "Document No.": Code[20]; Description: Text[50]; Amount: Decimal; "Bal. Account Type": Option; "Bal. Account No.": Code[20]; "Shortcut Dimension 1 Code": Code[20])

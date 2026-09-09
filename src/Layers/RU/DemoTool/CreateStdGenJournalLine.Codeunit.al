@@ -11,11 +11,6 @@ codeunit 101761 "Create Std. Gen. Journal Line"
         StdGenJnlLine: Record "Standard General Journal Line";
         CA: Codeunit "Make Adjustments";
         LineNo: Integer;
-        XGENERAL: Label 'GENERAL';
-        XPAYROLL: Label 'PAYROLL';
-        XPayrollJournal: Label 'Payroll Journal';
-        XADM: Label 'ADM';
-        XWWBOPERATING: Label 'WWB-OPERATING';
 
     procedure InsertData(JournalTemplateName: Code[10]; StdGenJnlCode: Code[10]; AccountType: Integer; No: Code[20]; Amount: Decimal; Description: Text[50]; Department: Code[20])
     var

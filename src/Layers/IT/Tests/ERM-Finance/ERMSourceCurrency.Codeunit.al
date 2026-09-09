@@ -103,23 +103,16 @@ codeunit 134897 "ERM Source Currency"
     [Test]
     procedure GenJournalPurchaseReverseChargeVATLCY()
     begin
-        GenJournalPurchaseReverseChargeVAT(false);
+        GenJournalPurchaseReverseChargeVAT();
     end;
 
     [Test]
     procedure GenJournalPurchaseReverseChargeVATFCY()
     begin
-        GenJournalPurchaseReverseChargeVAT(true);
+        GenJournalPurchaseReverseChargeVAT();
     end;
 
-    local procedure GenJournalPurchaseReverseChargeVAT(ForeignCurrency: Boolean)
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        GenJournalLine: Record "Gen. Journal Line";
-        GLEntry: Record "G/L Entry";
-        Factor: Integer;
-        SCYBalance: Decimal;
-        VATAmount: Decimal;
+    local procedure GenJournalPurchaseReverseChargeVAT()
     begin
         exit; // Disable for IT
     end;
@@ -485,28 +478,16 @@ codeunit 134897 "ERM Source Currency"
     [Test]
     procedure PurchaseInvoiceReverseChargeVATLCY()
     begin
-        PurchaseInvoiceReverseChargeVAT(false);
+        PurchaseInvoiceReverseChargeVAT();
     end;
 
     [Test]
     procedure PurchaseInvoiceReverseChargeVATFCY()
     begin
-        PurchaseInvoiceReverseChargeVAT(true);
+        PurchaseInvoiceReverseChargeVAT();
     end;
 
-    local procedure PurchaseInvoiceReverseChargeVAT(WithForeignCurrency: Boolean)
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchaseHeader: Record "Purchase Header";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        VendorNo: Code[20];
-        PostedPurchaseInvoiceNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
-        VATAmount: Decimal;
+    local procedure PurchaseInvoiceReverseChargeVAT()
     begin
         exit; // Disabled for IT
     end;

@@ -19,8 +19,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         MustBeBankAccErr: Label 'The balancing account must be a bank account.';
-        MustBeVendorEmployeeOrCustomerErr: Label 'The account must be a vendor, customer or employee account.';
-        MustBeVendEmplPmtOrCustRefundErr: Label 'Only vendor and employee payments and customer refunds are allowed.';
         MustBePositiveErr: Label 'The amount must be positive.';
         TransferDateErr: Label 'The earliest possible transfer date is today.';
         EuroCurrErr: Label 'Only transactions in euro (EUR) are allowed, because the %1 bank account is set up to use the %2 export format.';
