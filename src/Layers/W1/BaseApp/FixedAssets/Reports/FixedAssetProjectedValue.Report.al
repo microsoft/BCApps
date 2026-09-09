@@ -1066,7 +1066,7 @@ report 5607 "Fixed Asset - Projected Value"
     local procedure CalculateGainLoss()
     var
         CalculateDisposal: Codeunit "Calculate Disposal";
-        EntryAmounts: array[14] of Decimal;
+        EntryAmounts: array[15] of Decimal;
         PrevAmount: array[2] of Decimal;
     begin
         PrevAmount[1] := AssetAmounts[3];
