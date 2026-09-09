@@ -1,5 +1,3 @@
-using System.DataAdministration;
-
 codeunit 139018 "Job Queue Entry Tests"
 {
     Subtype = Test;
@@ -848,6 +846,7 @@ codeunit 139018 "Job Queue Entry Tests"
     begin
         Clear(JobQueueEntry);
         CreateJobQueueEntry(JobQueueEntry, InitialStatus);
+        JobQueueEntry."No. of Attempts to Run" := 3;
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
         JobQueueEntry."Object ID to Run" := Codeunit::"Retention Policy JQ";
         JobQueueEntry."Job Queue Category Code" := 'RETENTION';

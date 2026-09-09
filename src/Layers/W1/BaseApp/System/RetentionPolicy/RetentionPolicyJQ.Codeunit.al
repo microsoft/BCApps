@@ -68,16 +68,26 @@ codeunit 3997 "Retention Policy JQ"
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
-        JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
+        JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetFilter(Status, '%1|%2|%3', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Waiting);
-        if not JobQueueEntry.FindFirst() then
-            JobQueueEntry.ScheduleJobQueueEntryForLater(Codeunit::"Retention Policy JQ", CurrentDateTime(), JobQueueCategoryTok, '')
-        else
+        if JobQueueEntry.FindFirst() then begin
             // The dispatcher activates Waiting entries when their category is available.
-            if JobQueueEntry.Status <> JobQueueEntry.Status::Waiting then
-                JobQueueEntry.Restart();
+            if JobQueueEntry.Status = JobQueueEntry.Status::Waiting then
+                exit;
+
+            JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
+            if JobQueueEntry.FindFirst() then begin
+                if JobQueueEntry.Status <> JobQueueEntry.Status::Waiting then
+                    JobQueueEntry.Restart();
+                exit;
+            end;
+        end;
+
+        // Clear any primary key retained from a match that disappeared before the locked re-read.
+        Clear(JobQueueEntry);
+        JobQueueEntry.ScheduleJobQueueEntryForLater(Codeunit::"Retention Policy JQ", CurrentDateTime(), JobQueueCategoryTok, '');
     end;
 
     internal procedure SetSessionId(SessionId: Integer)
