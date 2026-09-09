@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
-using System.Security.User;
 
 codeunit 6901 "Expense Report Approval Mgmt"
 {
@@ -30,6 +29,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         InterimApproverActorErr: Label 'Only the expense report owner %1 can assign an interim approver.', Comment = '%1 = Expense User No. of the report owner';
         InterimApproverAssignedCommentTxt: Label 'Interim approver set to %1 (%2).', Comment = '%1 = Interim Approver No., %2 = Interim Approver Name';
+        ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
+        ApproverRequiredErr: Label 'Expense report %1 exceeds the %2 for approver %3. Configure the approver in Expense Approval Setup.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
 
     procedure ProcessAction(var ExpenseReportHeader: Record "Expense Report Header"; ActionType: Enum "Expense Approval Action")
     begin
@@ -101,7 +102,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseUser.Get(SubmitterExpenseUserNo);
         ExpenseReportHeader.TestApprovalStatus();
         ExpenseReportHeader.UpdateApproverID();
-        ExpenseReportHeader."Final Approver No." := ExpenseReportHeader."Approver Expense User No.";
+        SetApproverBasedOnApprovalLimit(ExpenseReportHeader);
         RouteToInterimIfAssigned(ExpenseReportHeader);
 
         UpdateSubmitterComment(ExpenseReportHeader, SubmissionComment);
@@ -151,7 +152,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     )
     begin
         ExpenseReportHeader.UpdateApproverID();
-        ExpenseReportHeader."Final Approver No." := ExpenseReportHeader."Approver Expense User No.";
+        SetApproverBasedOnApprovalLimit(ExpenseReportHeader);
         RouteToInterimIfAssigned(ExpenseReportHeader);
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
         ExpenseReportHeader.Modify(true);
@@ -209,6 +210,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverExpenseUserNo := GetExpenseUserNo();
         CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
         CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckApproverApprovalLimit(ExpenseReportHeader, ApproverExpenseUserNo);
 
         if ShouldRouteToFinalApprover(ExpenseReportHeader) then begin
             RouteToFinalApprover(ExpenseReportHeader, ApproverExpenseUserNo);
@@ -230,6 +232,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         CheckApproverPermissions(ExpenseUser);
         CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
         CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckApproverApprovalLimit(ExpenseReportHeader, ApproverExpenseUserNo);
 
         if ShouldRouteToFinalApprover(ExpenseReportHeader) then begin
             RouteToFinalApprover(ExpenseReportHeader, ApproverExpenseUserNo);
@@ -266,6 +269,9 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         InterimApprover.Get(NewApproverExpenseUserNo);
         CheckApproverPermissions(InterimApprover);
+        ExpenseReportHeader.CalcFields("Amount (LCY)");
+        if not InterimApprover."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > InterimApprover."Approval Limit") then
+            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit"), InterimApprover."No.");
 
         SetInterimApproverInExpenseReport(ExpenseReportHeader, InterimApprover);
         LogInterimApproverAssigned(ExpenseReportHeader, InterimApprover, ActorExpenseUserNo);
@@ -333,6 +339,51 @@ codeunit 6901 "Expense Report Approval Mgmt"
             (ExpenseReportHeader."Final Approver No." <> ExpenseReportHeader."Interim Approver No."));
     end;
 
+    local procedure SetApproverBasedOnApprovalLimit(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ApproverExpenseUser: Record "Expense User";
+        NextApproverNo: Code[20];
+    begin
+        ApproverExpenseUser.Get(ExpenseReportHeader."Approver Expense User No.");
+        ExpenseReportHeader."Final Approver No." := ApproverExpenseUser."No.";
+
+        if ApproverExpenseUser."Unlimited Approval" then
+            exit;
+
+        ExpenseReportHeader.CalcFields("Amount (LCY)");
+        if ExpenseReportHeader."Amount (LCY)" <= ApproverExpenseUser."Approval Limit" then
+            exit;
+
+        NextApproverNo := GetNextApproverNo(ApproverExpenseUser."No.");
+        if (NextApproverNo = '') or (NextApproverNo = ApproverExpenseUser."No.") then
+            Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
+
+        ApproverExpenseUser.Get(NextApproverNo);
+        if not ApproverExpenseUser."Can Approve" then
+            Error(ApproverMustBeEnabledInExpenseUserErr, ApproverExpenseUser.FieldCaption("Can Approve"), ApproverExpenseUser.TableCaption());
+
+        if not ApproverExpenseUser."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit") then
+            Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
+
+        ApproverExpenseUser.TestField("User Id For Approvals");
+
+        ExpenseReportHeader."Final Approver No." := ApproverExpenseUser."No.";
+        ExpenseReportHeader."Approver Expense User No." := ApproverExpenseUser."No.";
+        ExpenseReportHeader."Approver Expense User ID" := ApproverExpenseUser."User Id For Approvals";
+    end;
+
+    local procedure GetNextApproverNo(CurrentApproverNo: Code[20]): Code[20]
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if ExpenseApprovalSetup.Get(CurrentApproverNo) and (ExpenseApprovalSetup."Approver No." <> '') then
+            exit(ExpenseApprovalSetup."Approver No.");
+
+        ExpenseAgentSetup.GetRecordOnce();
+        exit(ExpenseAgentSetup."Default Approver No.");
+    end;
+
     local procedure RouteToFinalApprover(var ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])
     var
         FinalApprover: Record "Expense User";
@@ -378,6 +429,19 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         if ActingApproverExpenseUserNo <> ExpenseReportHeader."Approver Expense User No." then
             Error(ActorNotActiveApproverErr, ExpenseReportHeader."Approver Expense User No.");
+    end;
+
+    local procedure CheckApproverApprovalLimit(ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
+    var
+        ApproverExpenseUser: Record "Expense User";
+    begin
+        ApproverExpenseUser.Get(ApproverExpenseUserNo);
+        if ApproverExpenseUser."Unlimited Approval" then
+            exit;
+
+        ExpenseReportHeader.CalcFields("Amount (LCY)");
+        if ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit" then
+            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
     end;
 
     local procedure SetApprovalStatusInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportStatus: Enum "Expense Report Status"; ApproverExpenseUserNo: Code[20]; ApproverUserId: Code[50])
@@ -500,17 +564,24 @@ codeunit 6901 "Expense Report Approval Mgmt"
     end;
 
     local procedure GetRecallActorRole(ExpenseReportHeader: Record "Expense Report Header"): Enum "Expense Activity Actor Role"
-    var
-        UserSetup: Record "User Setup";
     begin
         if ExpenseReportHeader."Submitter Expense User Id" = UserId() then
             exit(Enum::"Expense Activity Actor Role"::Submitter);
 
-        UserSetup.SetLoadFields("Unlimited Expense Approval");
-        if UserSetup.Get(UserId()) and UserSetup."Unlimited Expense Approval" then
+        if IsApprovalAdministrator() then
             exit(Enum::"Expense Activity Actor Role"::Administrator);
 
-        Error(NotAuthorizedToRecallExpReportErr, UserSetup.FieldCaption("Unlimited Expense Approval"));
+        Error(NotAuthorizedToRecallExpReportErr, 'Unlimited Approval');
+    end;
+
+    internal procedure IsApprovalAdministrator(): Boolean
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        ExpenseUser.SetRange("User Id For Approvals", UserId());
+        ExpenseUser.SetRange("Can Approve", true);
+        ExpenseUser.SetRange("Unlimited Approval", true);
+        exit(not ExpenseUser.IsEmpty());
     end;
 
     internal procedure NoExpenseLinesToProcess(ExpenseApprovalAction: Enum "Expense Approval Action")

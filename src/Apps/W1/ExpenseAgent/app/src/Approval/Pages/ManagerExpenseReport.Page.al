@@ -8,7 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6980 "Manager Expense Report"
 {
@@ -497,20 +496,17 @@ page 6980 "Manager Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
-        if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
-            if not UserSetup."Unlimited Expense Approval" then begin
+        if ExpenseAgentSetup."Enable Approval Workflow" then
+            if not ExpenseReportApprovalMgmt.IsApprovalAdministrator() then begin
                 CheckSetDefaultOwnerFilter();
                 ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
                 ExpenseUser.Get(ExpenseUserNo);
             end else
                 ManagerExpense := true;
-        end;
 
         SetDocNoVisible();
         UpdateControls();

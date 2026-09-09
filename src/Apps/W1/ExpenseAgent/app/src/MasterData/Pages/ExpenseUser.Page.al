@@ -145,6 +145,20 @@ page 6949 "Expense User"
                     ToolTip = 'Specifies whether a welcome email has been queued, sent, or failed for the expense user.';
                 }
             }
+            group("Approval Information")
+            {
+                Caption = 'Approval Information';
+                Visible = Rec."Can Approve";
+
+                field("Approval Limit"; Rec."Approval Limit")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Unlimited Approval"; Rec."Unlimited Approval")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+            }
             part(ExpenseApprovalSetup; "Expense Approval Setups Part")
             {
                 ApplicationArea = Basic, Suite;
