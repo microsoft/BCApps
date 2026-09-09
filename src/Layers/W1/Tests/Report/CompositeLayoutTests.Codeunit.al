@@ -24,6 +24,8 @@ codeunit 134619 "Composite Layout Tests"
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
         ExtensionLayoutTok: Label 'MYLAYOUT', Locked = true;
+        ActingCompanyTok: Label 'Layout Status Test Co', Locked = true;
+        MissingCompanyTok: Label 'Removed Test Company', Locked = true;
         InternalDefaultTok: Label 'Internal Default', Locked = true;
         BaseAppIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
         UnseedablePartTok: Label 'Test Unseedable Part', Locked = true;
@@ -1364,11 +1366,35 @@ codeunit 134619 "Composite Layout Tests"
         SetDefaultLayout(BodyReportID, 'CurrentDefaultBody');
 
         // [WHEN] Setting its status to Draft.
-        asserterror SetLayoutStatusBatchOn(BodyReportID, 'CurrentDefaultBody', Enum::"Report Layout Status"::Draft);
+        asserterror SetLayoutStatusBatchAs(ThisCompany(), BodyReportID, 'CurrentDefaultBody', Enum::"Report Layout Status"::Draft);
 
         // [THEN] The status change is refused and the message names the layout.
         Assert.ExpectedError('while it is the default layout');
         Assert.ExpectedError('CurrentDefaultBody');
+
+        ClearDefaultLayoutSelections();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StatusChangeIgnoresADefaultLeftBehindByADeletedCompany()
+    var
+        UpdateCount: Integer;
+    begin
+        // [SCENARIO 649379] A selection row can outlive the company it names. Treating one as a blocker would
+        // strand the layout, with an error telling the user to choose another default in a company they cannot open.
+        Initialize();
+
+        // [GIVEN] An approved global layout recorded as the default for a company that does not exist.
+        CreateLayoutOnReport(BodyReportID, 'StaleDefaultBody', Enum::"Report Layout Subtype"::Body);
+        SetLayoutStatusTo(BodyReportID, 'StaleDefaultBody', Enum::"Report Layout Status"::Approved);
+        SelectDefaultLayoutInCompany(BodyReportID, 'StaleDefaultBody', MissingCompanyTok);
+
+        // [WHEN] Setting its status to Draft.
+        UpdateCount := SetLayoutStatusBatchAs(ThisCompany(), BodyReportID, 'StaleDefaultBody', Enum::"Report Layout Status"::Draft);
+
+        // [THEN] The stale row is ignored and the status change goes through.
+        Assert.AreEqual(1, UpdateCount, 'A default left behind by a deleted company should not block the change.');
 
         ClearDefaultLayoutSelections();
     end;
@@ -1389,7 +1415,7 @@ codeunit 134619 "Composite Layout Tests"
         SetDefaultLayout(BodyReportID, 'DraftDefaultBody');
 
         // [WHEN] Moving it on to Pending Approval.
-        UpdateCount := SetLayoutStatusBatchOn(BodyReportID, 'DraftDefaultBody', Enum::"Report Layout Status"::"Pending Approval");
+        UpdateCount := SetLayoutStatusBatchAs(ThisCompany(), BodyReportID, 'DraftDefaultBody', Enum::"Report Layout Status"::"Pending Approval");
 
         // [THEN] The status change goes through.
         Assert.AreEqual(1, UpdateCount, 'An already unapproved default should still be able to change status.');
@@ -1406,17 +1432,20 @@ codeunit 134619 "Composite Layout Tests"
         // default this guard exists to prevent.
         Initialize();
 
-        // [GIVEN] An approved global layout that is not the default here, but is the default in another company.
+        // [GIVEN] An approved global layout that is the default in this company.
         CreateLayoutOnReport(BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Subtype"::Body);
         SetLayoutStatusTo(BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Status"::Approved);
-        SelectDefaultLayoutInCompany(BodyReportID, 'OtherCompanyDefaultBody', OtherCompanyName());
+        SelectDefaultLayoutInCompany(BodyReportID, 'OtherCompanyDefaultBody', ThisCompany());
 
-        // [WHEN] Setting its status to Draft from this company.
-        asserterror SetLayoutStatusBatchOn(BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Status"::Draft);
+        // [WHEN] Setting its status to Draft while the action runs as a different company.
+        // The roles are the way round they are so the test does not depend on how many companies the test database
+        // has: the action runs as a company that holds no default, which leaves this company - a real one, which is
+        // what the guard requires before it treats a company as affected - playing the other company.
+        asserterror SetLayoutStatusBatchAs(ActingCompanyTok, BodyReportID, 'OtherCompanyDefaultBody', Enum::"Report Layout Status"::Draft);
 
-        // [THEN] The status change is refused and the message names the other company.
+        // [THEN] The status change is refused and the message names the company that would lose its default.
         Assert.ExpectedError('the status applies to all companies');
-        Assert.ExpectedError(OtherCompanyName());
+        Assert.ExpectedError(CompanyName());
 
         ClearDefaultLayoutSelections();
     end;
@@ -1432,13 +1461,13 @@ codeunit 134619 "Composite Layout Tests"
         // default selected in another company is untouched by it and must not block the change.
         Initialize();
 
-        // [GIVEN] An extension-installed layout whose status is overridden for this company, and which is selected
-        // as the default in another company.
-        SeedCompanyScopedStatusOverride(BodyReportID, ExtensionLayoutTok, CopyStr(CompanyName(), 1, 30));
-        SelectDefaultLayoutInCompany(BodyReportID, ExtensionLayoutTok, OtherCompanyName());
+        // [GIVEN] An extension-installed layout whose status is overridden for the company the action runs as,
+        // and which is the default in another company.
+        SeedCompanyScopedStatusOverride(BodyReportID, ExtensionLayoutTok, ActingCompanyTok);
+        SelectDefaultLayoutInCompany(BodyReportID, ExtensionLayoutTok, ThisCompany());
 
-        // [WHEN] Setting its status to Draft from this company.
-        UpdateCount := SetLayoutStatusBatchOn(BodyReportID, ExtensionLayoutTok, Enum::"Report Layout Status"::Draft);
+        // [WHEN] Setting its status to Draft.
+        UpdateCount := SetLayoutStatusBatchAs(ActingCompanyTok, BodyReportID, ExtensionLayoutTok, Enum::"Report Layout Status"::Draft);
 
         // [THEN] The change goes through, because it only applies to this company.
         Assert.AreEqual(1, UpdateCount, 'The company-scoped status change should be applied.');
@@ -1462,11 +1491,12 @@ codeunit 134619 "Composite Layout Tests"
         Initialize();
 
         // [GIVEN] An extension-installed layout that another company has as its default and overrides the status of.
-        SeedCompanyScopedStatusOverride(BodyReportID, ExtensionLayoutTok, OtherCompanyName());
-        SelectDefaultLayoutInCompany(BodyReportID, ExtensionLayoutTok, OtherCompanyName());
+        SeedCompanyScopedStatusOverride(BodyReportID, ExtensionLayoutTok, ThisCompany());
+        SelectDefaultLayoutInCompany(BodyReportID, ExtensionLayoutTok, ThisCompany());
 
-        // [WHEN] Setting its status to Draft from this company, where the change applies to all companies.
-        UpdateCount := SetLayoutStatusBatchOn(BodyReportID, ExtensionLayoutTok, Enum::"Report Layout Status"::Draft);
+        // [WHEN] Setting its status to Draft, acting as a company that keeps no status of its own, so the change
+        // applies to all companies.
+        UpdateCount := SetLayoutStatusBatchAs(ActingCompanyTok, BodyReportID, ExtensionLayoutTok, Enum::"Report Layout Status"::Draft);
 
         // [THEN] The change goes through, and this company is told about the fallback.
         Assert.AreEqual(1, UpdateCount, 'The global status change should be applied.');
@@ -1904,15 +1934,21 @@ codeunit 134619 "Composite Layout Tests"
         ReportLayoutsImpl.SetLayoutStatus(ReportLayoutList, NewStatus);
     end;
 
-    local procedure SetLayoutStatusBatchOn(ReportID: Integer; LayoutName: Text; NewStatus: Enum "Report Layout Status"): Integer
+    local procedure SetLayoutStatusBatchAs(ActingCompany: Text[30]; ReportID: Integer; LayoutName: Text; NewStatus: Enum "Report Layout Status"): Integer
     var
         ReportLayoutList: Record "Report Layout List";
         ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
     begin
+        // SetSelectedCompany is what decides the company the status change runs in, the same way the pages set it.
         ReportLayoutList.SetRange("Report ID", ReportID);
         ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, 250));
-        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.SetSelectedCompany(ActingCompany);
         exit(ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, NewStatus));
+    end;
+
+    local procedure ThisCompany(): Text[30]
+    begin
+        exit(CopyStr(CompanyName(), 1, 30));
     end;
 
     local procedure SetDefaultLayout(ReportID: Integer; LayoutName: Text)
@@ -1965,17 +2001,6 @@ codeunit 134619 "Composite Layout Tests"
         TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Approved;
         TenantReportLayoutOverride."Override Layout Status" := true;
         TenantReportLayoutOverride.Modify(true);
-    end;
-
-    local procedure OtherCompanyName(): Text[30]
-    var
-        Company: Record Company;
-    begin
-        // The guard only treats a company as affected when it actually exists, so these tests need a real second
-        // company rather than a synthetic name.
-        Company.SetFilter(Name, '<>%1', CompanyName());
-        Assert.IsTrue(Company.FindFirst(), 'The cross-company tests need a second company in the test database.');
-        exit(Company.Name);
     end;
 
     local procedure ClearDefaultLayoutSelections()
