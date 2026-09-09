@@ -556,6 +556,7 @@ table 6906 "Expense Report Header"
             begin
                 if Rec."Spend Request No." <> '' then begin
                     CheckTraveler();
+                    SpendRequest.SetSkipSpendRequestClose(GetHideValidationDialog());
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -576,6 +577,14 @@ table 6906 "Expense Report Header"
             ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
+        field(102; "Travel Request SystemId"; Guid)
+        {
+            Caption = 'Travel Request SystemId';
+            ToolTip = 'Specifies the immutable SystemId of the travel request that is associated with this expense report.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Spend Request".SystemId where("No." = field("Spend Request No.")));
+        }
     }
 
     keys
@@ -583,6 +592,9 @@ table 6906 "Expense Report Header"
         key(PK; "No.")
         {
             Clustered = true;
+        }
+        key(SpendRequestNo; "Spend Request No.")
+        {
         }
     }
 
@@ -644,6 +656,7 @@ table 6906 "Expense Report Header"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         CurrencyDate: Date;
         HideValidationDialog: Boolean;
+        SkipExpenseUserApprovalCheck: Boolean;
         CalledFromExpenseAgent: Boolean;
         EmptyGuid: Guid;
         DimChangeQst: Label 'You may have changed a dimension.\\Do you want to update the lines?';
@@ -1308,6 +1321,9 @@ table 6906 "Expense Report Header"
         UserSetup: Record "User Setup";
         ExpenseUser: Record "Expense User";
     begin
+        if SkipExpenseUserApprovalCheck then
+            exit;
+
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Approval Workflow" then
             exit;
@@ -1325,6 +1341,35 @@ table 6906 "Expense Report Header"
     internal procedure SetCalledFromExpenseAgent(NewCalledFromExpenseAgent: Boolean)
     begin
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
+    end;
+
+    internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request")
+    var
+        ExistingExpenseReportHeader: Record "Expense Report Header";
+        NewExpenseReportHeader: Record "Expense Report Header";
+    begin
+        SpendRequest.TestField("Document Type", SpendRequest."Document Type"::"Travel Request");
+        SpendRequest.TestStatus(SpendRequest.Status::Approved);
+        SpendRequest.TestField("Requested For");
+
+        ExistingExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        if not ExistingExpenseReportHeader.IsEmpty() then
+            exit;
+
+        NewExpenseReportHeader.Init();
+        NewExpenseReportHeader.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(NewExpenseReportHeader.Description)));
+        NewExpenseReportHeader.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
+        NewExpenseReportHeader.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
+        NewExpenseReportHeader.SetHideValidationDialog(true);
+        NewExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
+        NewExpenseReportHeader.Insert(true);
+    end;
+
+    internal procedure ValidateExpenseUserFromApprovedTravelRequest(ExpenseUserNo: Code[20])
+    begin
+        SkipExpenseUserApprovalCheck := true;
+        Rec.Validate("Expense User No.", ExpenseUserNo);
+        SkipExpenseUserApprovalCheck := false;
     end;
 
     local procedure CheckTraveler()
