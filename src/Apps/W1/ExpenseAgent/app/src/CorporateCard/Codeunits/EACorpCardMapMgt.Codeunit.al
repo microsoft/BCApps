@@ -57,9 +57,6 @@ codeunit 7227 "EA Corp Card Map Mgt"
         if Handled then
             exit;
 
-        if CorpCardProvider."Feed Type" = CorpCardProvider."Feed Type"::API then
-            exit;
-
         if not ProviderRefreshed.Get(CorpCardProvider.Code) then
             exit;
 

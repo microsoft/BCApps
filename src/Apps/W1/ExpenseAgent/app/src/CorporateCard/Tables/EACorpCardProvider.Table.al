@@ -51,11 +51,6 @@ table 7216 "EA Corp Card Provider"
             Caption = 'Feed Type';
             ToolTip = 'Specifies the feed type for the corporate card provider.';
         }
-        field(5; "Auth Type"; Enum "EA Corp Card Auth Type")
-        {
-            Caption = 'Authentication Type';
-            ToolTip = 'Specifies the authentication type for the corporate card provider.';
-        }
         field(6; "Data Exch Def Code"; Code[20])
         {
             Caption = 'Data Exchange Definition Code';
@@ -66,16 +61,6 @@ table 7216 "EA Corp Card Provider"
         {
             Caption = 'Data Exchange Mapping Code';
             ToolTip = 'Specifies the data exchange mapping code for the corporate card provider.';
-        }
-        field(8; "API Endpoint"; Text[250])
-        {
-            Caption = 'API Endpoint';
-            ToolTip = 'Specifies the API endpoint for the corporate card provider.';
-        }
-        field(9; "Secret Ref"; Text[250])
-        {
-            Caption = 'Secret Reference';
-            ToolTip = 'Specifies the secret reference for the corporate card provider.';
         }
         field(10; "Import Frequency (Min)"; Integer)
         {

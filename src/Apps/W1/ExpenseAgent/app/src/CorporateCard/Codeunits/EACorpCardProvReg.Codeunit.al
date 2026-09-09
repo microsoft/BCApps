@@ -17,7 +17,6 @@ codeunit 7221 "EA Corp Card Prov Reg"
     begin
         case CorpCardProvider."Feed Type" of
             CorpCardProvider."Feed Type"::DataExch,
-            CorpCardProvider."Feed Type"::API,
             CorpCardProvider."Feed Type"::CAMT053,
             CorpCardProvider."Feed Type"::CAMT054,
             CorpCardProvider."Feed Type"::ISO20022,

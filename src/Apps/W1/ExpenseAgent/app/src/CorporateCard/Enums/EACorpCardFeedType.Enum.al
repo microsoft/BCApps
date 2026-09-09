@@ -13,10 +13,6 @@ enum 7220 "EA Corp Card Feed Type"
     {
         Caption = 'Data Exchange';
     }
-    value(1; API)
-    {
-        Caption = 'API';
-    }
     value(2; CSV)
     {
         Caption = 'CSV';

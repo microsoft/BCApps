@@ -6,7 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 
-codeunit 148346 EACorpCardPhase3Tests
+codeunit 148353 EACorpCardPhase3Tests
 {
     Subtype = Test;
     TestType = IntegrationTest;
