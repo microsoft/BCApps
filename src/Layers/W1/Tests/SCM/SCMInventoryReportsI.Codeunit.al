@@ -1561,7 +1561,7 @@ codeunit 137301 "SCM Inventory Reports - I"
         PostValueEntryToGL: Record "Post Value Entry to G/L";
         PostMethod: Option "per Posting Group","per Entry";
         DimensionSetID: Integer;
-        ExpectedDimText: Text[250];
+        ExpectedDimText: Text;
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO 649269] Post Inventory Cost to G/L does not fail when dimension text exceeds 250 characters.
@@ -1977,7 +1977,7 @@ codeunit 137301 "SCM Inventory Reports - I"
         NoSeriesLine.Modify(true);
     end;
 
-    local procedure CreateMaxLengthDimensionSet(var DimensionSetID: Integer; var ExpectedDimText: Text[250])
+    local procedure CreateMaxLengthDimensionSet(var DimensionSetID: Integer; var ExpectedDimText: Text)
     var
         Dimension: Record Dimension;
         DimensionValue: Record "Dimension Value";
