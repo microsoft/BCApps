@@ -3078,6 +3078,121 @@ codeunit 137271 "SCM Reservation IV"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
+    [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    [Scope('OnPrem')]
+    procedure SalesOrderWithDropShipmentReservedFromReqLineCreatedByOrderPlanning()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Reservation] [Drop Shipment] [Order Planning]
+        // [SCENARIO 208] Reservation Entry is created for a Drop Shipment sales line whose Reserve is Never when Order Planning is carried out via Copy to Requisition Worksheet.
+        Initialize();
+
+        // [GIVEN] An item with Reserve = Always and a Vendor No. so Order Planning can plan it
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Reserve, Item.Reserve::Always);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+
+        // [GIVEN] A sales order line for the item that inherits Reserve = Always from the item
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(),
+            Item."No.", Quantity, '', WorkDate());
+
+        // [GIVEN] Order Planning is calculated for the sales demand so the resulting demand requisition line has Reserve = true
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [GIVEN] The sales line is then flagged as Drop Shipment, which forces Sales Line Reserve to Never
+        SalesLine.Find();
+        SalesLine.Validate("Drop Shipment", true);
+        SalesLine.Modify(true);
+
+        // [WHEN] Make Supply Orders for the active demand line copies the supply into the requisition worksheet
+        MakeSupplyOrdersActiveLineWithCopyToReqWksh(Item."No.");
+
+        // [THEN] A Reservation Entry pegs the Drop Shipment sales line demand to the created requisition supply line
+        VerifyReservationEntry(Item."No.", -Quantity, Database::"Sales Line", false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    [Scope('OnPrem')]
+    procedure DropShipmentFromOrderPlanningPostsWithSingleReservationEntry()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Reservation] [Drop Shipment] [Order Planning]
+        // [SCENARIO 208] A Drop Shipment sales line planned via Order Planning is pegged by exactly one Reservation Entry, and carrying the requisition supply through to the reserved purchase order and posting the receipt keeps the demand pegged by exactly one binding (no duplicate binding and no posting conflict).
+        Initialize();
+
+        // [GIVEN] An item with Reserve = Always and a Vendor No. so Order Planning can plan it
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Reserve, Item.Reserve::Always);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+
+        // [GIVEN] A sales order line for the item that inherits Reserve = Always from the item
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(),
+            Item."No.", Quantity, '', WorkDate());
+
+        // [GIVEN] Order Planning is calculated for the sales demand
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+
+        // [GIVEN] The sales line is flagged as Drop Shipment, which forces Sales Line Reserve to Never
+        SalesLine.Find();
+        SalesLine.Validate("Drop Shipment", true);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Make Supply Orders copies the supply into the requisition worksheet, creating the order-to-order Reservation Entry
+        MakeSupplyOrdersActiveLineWithCopyToReqWksh(Item."No.");
+
+        // [THEN] Exactly one Reservation Entry pegs the Drop Shipment sales line demand (no duplicate order-to-order binding)
+        Assert.AreEqual(
+            1, ReservationEntryCount(Item."No.", Database::"Sales Line"),
+            'Drop Shipment sales line demand must be pegged by exactly one Reservation Entry.');
+        SalesLine.Find();
+        SalesLine.CalcFields("Reserved Quantity");
+        SalesLine.TestField("Reserved Quantity", Quantity);
+
+        // [WHEN] The requisition worksheet supply is carried out into a purchase order reserved to the sales line
+        CarryOutRequisitionLineByItemNo(Item."No.");
+
+        // [THEN] The supply purchase line is bound to the sales demand by exactly one reservation binding (no duplicate)
+        FindPurchaseLineByItemNo(PurchaseLine, Item."No.");
+        Assert.AreEqual(
+            1, ReservationEntryCount(Item."No.", Database::"Purchase Line"),
+            'The supply purchase line must carry exactly one reservation binding.');
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [WHEN] The purchase receipt is posted
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] The item is received exactly once and the sales demand remains pegged by exactly one reservation binding (no duplicate, no posting conflict)
+        Assert.AreEqual(
+            1, ItemLedgerEntryCount(Item."No.", "Item Ledger Entry Type"::Purchase, Quantity),
+            'Exactly one purchase receipt entry must be posted for the full quantity.');
+        Assert.AreEqual(
+            1, ReservationEntryCount(Item."No.", Database::"Sales Line"),
+            'The sales demand must remain pegged by exactly one reservation binding after posting.');
+        SalesLine.Find();
+        SalesLine.CalcFields("Reserved Quantity");
+        SalesLine.TestField("Reserved Quantity", Quantity);
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
@@ -4171,6 +4286,73 @@ codeunit 137271 "SCM Reservation IV"
         if Confirm(ConfirmTxt) then;
     end;
 
+    local procedure MakeSupplyOrdersActiveLineWithCopyToReqWksh(ItemNo: Code[20])
+    var
+        ManufacturingUserTemplate: Record "Manufacturing User Template";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"Req.");
+        ReqWkshTemplate.SetRange(Recurring, false);
+        ReqWkshTemplate.FindFirst();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
+
+        if not ManufacturingUserTemplate.Get(UserId()) then
+            LibraryPlanning.CreateManufUserTemplate(
+                ManufacturingUserTemplate, UserId(),
+                ManufacturingUserTemplate."Make Orders"::"The Active Line",
+                ManufacturingUserTemplate."Create Purchase Order"::"Copy to Req. Wksh",
+                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
+                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
+        ManufacturingUserTemplate.Validate("Make Orders", ManufacturingUserTemplate."Make Orders"::"The Active Line");
+        ManufacturingUserTemplate.Validate("Create Purchase Order", ManufacturingUserTemplate."Create Purchase Order"::"Copy to Req. Wksh");
+        ManufacturingUserTemplate.Validate("Purchase Req. Wksh. Template", ReqWkshTemplate.Name);
+        ManufacturingUserTemplate.Validate("Purchase Wksh. Name", RequisitionWkshName.Name);
+        ManufacturingUserTemplate.Modify(true);
+
+        RequisitionLine.SetRange("No.", ItemNo);
+        RequisitionLine.FindFirst();
+        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+    end;
+
+    local procedure CarryOutRequisitionLineByItemNo(ItemNo: Code[20])
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", ItemNo);
+        RequisitionLine.FindFirst();
+        LibraryPlanning.CarryOutReqWksh(RequisitionLine, 0D, WorkDate(), WorkDate(), WorkDate(), '');
+    end;
+
+    local procedure FindPurchaseLineByItemNo(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", ItemNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    local procedure ReservationEntryCount(ItemNo: Code[20]; SourceType: Integer): Integer
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        ReservationEntry.SetRange("Source Type", SourceType);
+        exit(ReservationEntry.Count);
+    end;
+
+    local procedure ItemLedgerEntryCount(ItemNo: Code[20]; EntryType: Enum "Item Ledger Entry Type"; Quantity: Decimal): Integer
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", EntryType);
+        ItemLedgerEntry.SetRange(Quantity, Quantity);
+        exit(ItemLedgerEntry.Count);
+    end;
+
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure ConfirmHandler(ConfirmMessage: Text[1024]; var Reply: Boolean)
@@ -4386,6 +4568,13 @@ codeunit 137271 "SCM Reservation IV"
     begin
         LibraryVariableStorage.Dequeue(ExpectedMessage);  // Dequeue variable.
         Assert.IsTrue(StrPos(Message, ExpectedMessage) > 0, Message);
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
+    begin
+        Response := Action::LookupOK;
     end;
 }
 
