@@ -540,7 +540,7 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         GLAccount.Modify(true);
 
         // [WHEN] Calculate and Post VAT Settlement is run.
-        RunCalcAndPostVATSettlement(GenJournalLine);
+        RunCalcAndPostVATSettlement(GenJournalLine, DocNo);
 
         // [THEN] Source Currency Amounts equal the entry amounts and a VAT entry contains a matching Source Currency VAT Amount.
         VerifyVATSettlementSourceCurrencyAmounts(GenJournalLine."Document No.");
