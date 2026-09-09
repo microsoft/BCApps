@@ -315,6 +315,12 @@ codeunit 148300 "Library - Expense"
     internal procedure CreateSpendRequestDetail(SpendRequestNo: Code[20]; ExpectedAmount: Decimal)
     var
         SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        CreateSpendRequestDetail(SpendRequestDetail, SpendRequestNo, ExpectedAmount);
+    end;
+
+    internal procedure CreateSpendRequestDetail(var SpendRequestDetail: Record "Spend Request Detail"; SpendRequestNo: Code[20]; ExpectedAmount: Decimal)
+    var
         RecordRef: RecordRef;
     begin
         SpendRequestDetail.Init();
