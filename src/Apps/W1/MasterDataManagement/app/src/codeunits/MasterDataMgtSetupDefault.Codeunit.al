@@ -1527,37 +1527,33 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         "Field": Record "Field";
         IntegrationTableMapping: Record "Integration Table Mapping";
     begin
-        with IntegrationTableMapping do begin
-            Reset();
-            SetRange("Delete After Synchronization", false);
-            if TableID > 0 then
-                SetRange("Table ID", TableID);
-            if IntegrationTableID > 0 then
-                SetRange("Integration Table ID", IntegrationTableID);
-            SetRange("Int. Table UID Field Type", Field.Type::GUID);
-            if FindSet() then
-                repeat
-                    AddPrioritizedMappingToList(NameValueBuffer, Priority, Name);
-                until Next() = 0;
-        end;
+        IntegrationTableMapping.Reset();
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        if TableID > 0 then
+            IntegrationTableMapping.SetRange("Table ID", TableID);
+        if IntegrationTableID > 0 then
+            IntegrationTableMapping.SetRange("Integration Table ID", IntegrationTableID);
+        IntegrationTableMapping.SetRange("Int. Table UID Field Type", Field.Type::GUID);
+        if IntegrationTableMapping.FindSet() then
+            repeat
+                AddPrioritizedMappingToList(NameValueBuffer, Priority, IntegrationTableMapping.Name);
+            until IntegrationTableMapping.Next() = 0;
     end;
 
     local procedure AddPrioritizedMappingToList(var NameValueBuffer: Record "Name/Value Buffer"; var Priority: Integer; MappingName: Code[20])
     begin
-        with NameValueBuffer do begin
-            SetRange(Value, MappingName);
+        NameValueBuffer.SetRange(Value, MappingName);
 
-            if not FindFirst() then begin
-                Init();
-                ID := Priority;
-                Name := Format(Priority);
-                Value := MappingName;
-                Insert();
-                Priority := Priority + 1;
-            end;
-
-            Reset();
+        if not NameValueBuffer.FindFirst() then begin
+            NameValueBuffer.Init();
+            NameValueBuffer.ID := Priority;
+            NameValueBuffer.Name := Format(Priority);
+            NameValueBuffer.Value := MappingName;
+            NameValueBuffer.Insert();
+            Priority := Priority + 1;
         end;
+
+        NameValueBuffer.Reset();
     end;
 
     local procedure ResetBCAccountConfigTemplate(TableNo: Integer): Code[10]
