@@ -968,7 +968,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2 : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         MatchingAmount, OtherAmount : Decimal;
@@ -990,13 +990,13 @@ codeunit 139544 "Trial Balance Excel Reports"
         ApplyCurrentYearFilter(GLAccount, PostingAccount);
         GLAccount.SetFilter("Global Dimension 1 Filter", DimensionValue1.Code);
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the combination matching the Global Dimension 1 Filter is returned
-        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the filtered Global Dimension 1 combination should be in the buffer');
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'The filtered dimension value should be the one returned');
-        Assert.AreEqual(MatchingAmount, TempTrialBalanceData.Balance, 'Balance should match only the filtered dimension entry');
+        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the filtered Global Dimension 1 combination should be in the buffer');
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TrialBalanceData."Dimension 1 Code", 'The filtered dimension value should be the one returned');
+        Assert.AreEqual(MatchingAmount, TrialBalanceData.Balance, 'Balance should match only the filtered dimension entry');
     end;
 
     [Test]
@@ -1006,7 +1006,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2 : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         MatchingAmount, OtherAmount : Decimal;
@@ -1028,13 +1028,13 @@ codeunit 139544 "Trial Balance Excel Reports"
         ApplyCurrentYearFilter(GLAccount, PostingAccount);
         GLAccount.SetFilter("Global Dimension 2 Filter", DimensionValue1.Code);
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the combination matching the Global Dimension 2 Filter is returned
-        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the filtered Global Dimension 2 combination should be in the buffer');
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 2 Code", 'The filtered dimension value should be the one returned');
-        Assert.AreEqual(MatchingAmount, TempTrialBalanceData.Balance, 'Balance should match only the filtered dimension entry');
+        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the filtered Global Dimension 2 combination should be in the buffer');
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TrialBalanceData."Dimension 2 Code", 'The filtered dimension value should be the one returned');
+        Assert.AreEqual(MatchingAmount, TrialBalanceData.Balance, 'Balance should match only the filtered dimension entry');
     end;
 
     [Test]
@@ -1044,7 +1044,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension1, Dimension2 : Record Dimension;
         Dim1ValueA, Dim1ValueB, Dim2ValueA, Dim2ValueB : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         MatchingAmount, OtherAmount1, OtherAmount2 : Decimal;
@@ -1071,14 +1071,14 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetFilter("Global Dimension 1 Filter", Dim1ValueA.Code);
         GLAccount.SetFilter("Global Dimension 2 Filter", Dim2ValueA.Code);
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the single intersecting combination is returned
-        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the combination matching both dimension filters should be in the buffer');
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(Dim1ValueA.Code, TempTrialBalanceData."Dimension 1 Code", 'Dimension 1 should be the filtered value');
-        Assert.AreEqual(Dim2ValueA.Code, TempTrialBalanceData."Dimension 2 Code", 'Dimension 2 should be the filtered value');
-        Assert.AreEqual(MatchingAmount, TempTrialBalanceData.Balance, 'Balance should match only the intersecting combination');
+        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the combination matching both dimension filters should be in the buffer');
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(Dim1ValueA.Code, TrialBalanceData."Dimension 1 Code", 'Dimension 1 should be the filtered value');
+        Assert.AreEqual(Dim2ValueA.Code, TrialBalanceData."Dimension 2 Code", 'Dimension 2 should be the filtered value');
+        Assert.AreEqual(MatchingAmount, TrialBalanceData.Balance, 'Balance should match only the intersecting combination');
     end;
 
     [Test]
@@ -1088,7 +1088,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2 : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         OpeningAmount, InPeriodAmount, OtherDimOpening : Decimal;
@@ -1114,15 +1114,15 @@ codeunit 139544 "Trial Balance Excel Reports"
         ApplyCurrentYearFilter(GLAccount, PostingAccount);
         GLAccount.SetFilter("Global Dimension 1 Filter", DimensionValue1.Code);
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the filtered dimension is present, and its Starting Balance excludes the other dimension's opening
-        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the filtered dimension combination should be in the buffer');
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'The filtered dimension value should be the one returned');
-        Assert.AreEqual(OpeningAmount, TempTrialBalanceData."Starting Balance", 'Starting Balance should only include the filtered dimension opening');
-        Assert.AreEqual(InPeriodAmount, TempTrialBalanceData."Net Change", 'Net Change should only include the filtered dimension activity');
-        Assert.AreEqual(OpeningAmount + InPeriodAmount, TempTrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change for the filtered dimension');
+        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the filtered dimension combination should be in the buffer');
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TrialBalanceData."Dimension 1 Code", 'The filtered dimension value should be the one returned');
+        Assert.AreEqual(OpeningAmount, TrialBalanceData."Starting Balance", 'Starting Balance should only include the filtered dimension opening');
+        Assert.AreEqual(InPeriodAmount, TrialBalanceData."Net Change", 'Net Change should only include the filtered dimension activity');
+        Assert.AreEqual(OpeningAmount + InPeriodAmount, TrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change for the filtered dimension');
     end;
 
     [Test]
@@ -1132,7 +1132,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2, DimensionValue3 : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         ListedAmount1, ListedAmount2, UnlistedAmount : Decimal;
@@ -1157,18 +1157,18 @@ codeunit 139544 "Trial Balance Excel Reports"
         ApplyCurrentYearFilter(GLAccount, PostingAccount);
         GLAccount.SetFilter("Global Dimension 1 Filter", '%1|%2', DimensionValue1.Code, DimensionValue2.Code);
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the two listed dimension combinations are returned, the third is excluded
-        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Only the two listed dimension combinations should be in the buffer');
-        TempTrialBalanceData.SetRange("Dimension 1 Code", DimensionValue1.Code);
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(ListedAmount1, TempTrialBalanceData.Balance, 'First listed dimension balance should match');
-        TempTrialBalanceData.SetRange("Dimension 1 Code", DimensionValue2.Code);
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(ListedAmount2, TempTrialBalanceData.Balance, 'Second listed dimension balance should match');
-        TempTrialBalanceData.SetRange("Dimension 1 Code", DimensionValue3.Code);
-        Assert.IsTrue(TempTrialBalanceData.IsEmpty(), 'The unlisted dimension should be excluded');
+        Assert.AreEqual(2, TrialBalanceData.Count(), 'Only the two listed dimension combinations should be in the buffer');
+        TrialBalanceData.SetRange("Dimension 1 Code", DimensionValue1.Code);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(ListedAmount1, TrialBalanceData.Balance, 'First listed dimension balance should match');
+        TrialBalanceData.SetRange("Dimension 1 Code", DimensionValue2.Code);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(ListedAmount2, TrialBalanceData.Balance, 'Second listed dimension balance should match');
+        TrialBalanceData.SetRange("Dimension 1 Code", DimensionValue3.Code);
+        Assert.IsTrue(TrialBalanceData.IsEmpty(), 'The unlisted dimension should be excluded');
     end;
 
     [Test]
@@ -1179,7 +1179,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2 : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         AmountBU1, AmountBU2, OtherDimAmount : Decimal;
@@ -1205,21 +1205,21 @@ codeunit 139544 "Trial Balance Excel Reports"
         ApplyCurrentYearFilter(GLAccount, PostingAccount);
         GLAccount.SetFilter("Global Dimension 1 Filter", DimensionValue1.Code);
         TrialBalance.ConfigureTrialBalance(true, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] Only the filtered dimension is returned, split per Business Unit
-        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Only the filtered dimension should remain, one row per Business Unit');
+        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.AreEqual(2, TrialBalanceData.Count(), 'Only the filtered dimension should remain, one row per Business Unit');
 
-        TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnit1.Code);
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'BU1 row should be the filtered dimension');
-        Assert.AreEqual(AmountBU1, TempTrialBalanceData.Balance, 'BU1 balance should match only the filtered dimension entry');
+        TrialBalanceData.SetRange("Business Unit Code", BusinessUnit1.Code);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TrialBalanceData."Dimension 1 Code", 'BU1 row should be the filtered dimension');
+        Assert.AreEqual(AmountBU1, TrialBalanceData.Balance, 'BU1 balance should match only the filtered dimension entry');
 
-        TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnit2.Code);
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(DimensionValue1.Code, TempTrialBalanceData."Dimension 1 Code", 'BU2 row should be the filtered dimension');
-        Assert.AreEqual(AmountBU2, TempTrialBalanceData.Balance, 'BU2 balance should match only the filtered dimension entry');
+        TrialBalanceData.SetRange("Business Unit Code", BusinessUnit2.Code);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(DimensionValue1.Code, TrialBalanceData."Dimension 1 Code", 'BU2 row should be the filtered dimension');
+        Assert.AreEqual(AmountBU2, TrialBalanceData.Balance, 'BU2 balance should match only the filtered dimension entry');
     end;
 
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
