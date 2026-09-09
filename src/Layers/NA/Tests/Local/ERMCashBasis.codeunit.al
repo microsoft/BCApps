@@ -1461,14 +1461,14 @@
     begin
         VATEntry.SetCurrentKey("Document No.", "Posting Date");
         VATEntry.SetRange("Document No.", DocumentNo);
-        VATEntry.FindSet();
-        repeat
-            if (VATEntry.Type = VATType) and
-               (VATEntry."Document Type" = DocumentType) and
-               (VATEntry."VAT Prod. Posting Group" = VATProdPostingGroup)
-            then
-                exit;
-        until VATEntry.Next() = 0;
+        if VATEntry.FindSet() then
+            repeat
+                if (VATEntry.Type = VATType) and
+                   (VATEntry."Document Type" = DocumentType) and
+                   (VATEntry."VAT Prod. Posting Group" = VATProdPostingGroup)
+                then
+                    exit;
+            until VATEntry.Next() = 0;
         VATEntry.FieldError("VAT Prod. Posting Group", StrSubstNo(VATPostingGroupMustBeErr, VATProdPostingGroup));
     end;
 
