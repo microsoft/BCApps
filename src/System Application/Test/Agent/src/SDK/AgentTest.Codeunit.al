@@ -23,6 +23,7 @@ codeunit 133961 "Agent Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.', Locked = true;
         AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.', Locked = true;
+        ArchivingNotSupportedErr: Label 'Archiving agents of type ''%1'' is not supported.', Locked = true;
 
     local procedure Initialize()
     begin
@@ -993,6 +994,7 @@ codeunit 133961 "Agent Test"
 
         Agent.Deactivate(AgentId);
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived initially');
+        Assert.IsTrue(Agent.IsArchivingSupported(AgentId), 'Archiving should be supported for a type that does not opt out');
 
         // [WHEN] Archiving the agent
         Agent.Archive(AgentId);
@@ -1003,6 +1005,37 @@ codeunit 133961 "Agent Test"
         // [THEN] The agent record substate should be Archived
         AgentRecord.Get(AgentId);
         Assert.AreEqual(AgentRecord.Substate::Archived, AgentRecord.Substate, 'Agent substate should be Archived');
+    end;
+
+    [Test]
+    procedure ArchiveAgentOfUnsupportedTypeErrors()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        AgentUserName: Code[50];
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an agent whose type opts out of archiving is rejected
+
+        // [GIVEN] An agent of a type that reports archiving as unsupported
+        AgentUserName := CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name"));
+        AgentId := Agent.Create(
+            "Agent Metadata Provider"::"SDK Mock Agent No Archiving",
+            AgentUserName,
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            TempAgentAccessControl);
+
+        // [THEN] Archiving is reported as unsupported for that agent
+        Assert.IsFalse(Agent.IsArchivingSupported(AgentId), 'Archiving should not be supported for this agent type');
+
+        // [WHEN] Archiving the agent
+        // [THEN] An error is raised and the agent is not archived
+        asserterror Agent.Archive(AgentId);
+        Assert.ExpectedError(StrSubstNo(ArchivingNotSupportedErr, "Agent Metadata Provider"::"SDK Mock Agent No Archiving"));
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived');
     end;
 
     [Test]
