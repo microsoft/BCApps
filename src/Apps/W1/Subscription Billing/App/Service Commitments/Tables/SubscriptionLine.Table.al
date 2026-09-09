@@ -1169,7 +1169,7 @@ table 8059 "Subscription Line"
                         DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.", false);
                 end;
 
-        OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, UseSource);
+        OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, UseSource, CurrFieldNo);
     end;
 
     internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
@@ -2138,7 +2138,7 @@ table 8059 "Subscription Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitDefaultDimensionSources(var SubscriptionLine: Record "Subscription Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
+    local procedure OnAfterInitDefaultDimensionSources(var SubscriptionLine: Record "Subscription Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean; CurrFieldNo: Integer)
     begin
     end;
 
