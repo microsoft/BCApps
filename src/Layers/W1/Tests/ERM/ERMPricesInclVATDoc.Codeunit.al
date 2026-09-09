@@ -997,14 +997,12 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
         GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
         PurchaseHeader.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        PurchaseHeader.Validate("Prices Including VAT", true);
         PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
         PurchaseLine.Validate("Direct Unit Cost", 1000);
         PurchaseLine.Modify(true);
 
-        // [GIVEN] Prices Including VAT is enabled without updating Direct Unit Cost
-        PurchaseHeader."Prices Including VAT" := true;
-        PurchaseHeader.Modify(true);
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         DirectUnitCost := PurchaseLine."Direct Unit Cost";
         LineAmount := PurchaseLine."Line Amount";
