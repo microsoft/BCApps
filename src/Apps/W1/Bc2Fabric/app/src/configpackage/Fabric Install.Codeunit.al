@@ -24,7 +24,7 @@ codeunit 50103 "Fabric Install"
         VideoCategory: Enum "Video Category";
     begin
         GuidedExperience.InsertAssistedSetup(GuidedSetupTitleLbl, GuidedSetupShortTitleLbl, GuidedSetupDescriptionLbl, 10,
-            ObjectType::Page, Page::"Fabric Platform Setup Wizard", AssistedSetupGroup::Uncategorized, '', VideoCategory::Uncategorized, '');
+            ObjectType::Page, Page::"Fabric Platform Setup Wizard", AssistedSetupGroup::Connect, '', VideoCategory::Connect, '');
     end;
 
     local procedure EnsureMsStdPackage()
