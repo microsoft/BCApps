@@ -105,7 +105,7 @@ Describe 'API test credential cleanup' {
     }
 
     It 'rejects a path that does not name the credential file' {
-        { . $script:cleanupScript -ContainerName 'test-container' -FilePath 'C:\other-file' } |
+        { . $script:cleanupScript -ContainerName 'test-container' -FilePath (Join-Path $TestDrive 'other-file') } |
             Should -Throw '*exact ApiTestPassword file*'
         Should -Invoke docker -Times 0
         Should -Invoke Remove-Item -Times 0
@@ -118,6 +118,7 @@ Describe 'API test credential workflow lifetime' {
         $script:setup = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\NewBcContainer.ps1') -Raw
         $script:previousGitHubEnv = $env:GITHUB_ENV
         $script:environmentFile = Join-Path $PSScriptRoot 'unused-github-env'
+        $script:hostMountPath = Join-Path $TestDrive 'container-mount'
         $tokens = $null
         $parseErrors = $null
         $ast = [System.Management.Automation.Language.Parser]::ParseInput($script:setup, [ref]$tokens, [ref]$parseErrors)
@@ -140,7 +141,7 @@ Describe 'API test credential workflow lifetime' {
 
     BeforeEach {
         $env:GITHUB_ENV = $script:environmentFile
-        Mock Get-BcContainerSharedFolders { @{ 'C:\container-mount' = 'c:\run\my' } }
+        Mock Get-BcContainerSharedFolders { @{ $script:hostMountPath = 'c:\run\my' } }
         Mock Add-Content {}
     }
 
@@ -150,7 +151,7 @@ Describe 'API test credential workflow lifetime' {
 
         Should -Invoke Add-Content -Times 1 -Exactly -ParameterFilter {
             $LiteralPath -eq $script:environmentFile -and
-            $Value -eq 'BCAppsApiTestPasswordPath=C:\container-mount\ApiTestPassword'
+            $Value -eq "BCAppsApiTestPasswordPath=$(Join-Path $script:hostMountPath 'ApiTestPassword')"
         }
         $script:setup.IndexOf('BCAppsApiTestPasswordPath=') |
             Should -BeLessThan $script:setup.IndexOf('Copy-FileToBcContainer')
