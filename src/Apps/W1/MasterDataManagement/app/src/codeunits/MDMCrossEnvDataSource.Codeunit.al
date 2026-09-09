@@ -266,6 +266,71 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceResponse.InsertRecords(Response, SourceRecordRef);
     end;
 
+    // Reads a RELATED source table (not one of the synchronized mappings) narrowed by a row filter, materializing
+    // matches into a temporary record. Used to resolve the source's contact business relations cross-environment,
+    // mirroring the same-env ChangeCompany read. Access is gated by the source's cross-environment read permission set.
+    internal procedure GetSourceRecordsByFilter(TableId: Integer; RowFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    var
+        Transport: Interface "IMDM Source Transport";
+        Response: JsonObject;
+    begin
+        SourceRecordRef.Close();
+        SourceRecordRef.Open(TableId, true);
+        InlineMedia.Reset();
+        SourceWatermark.Reset();
+        Transport := GetTransport();
+        SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
+        // Full read from the start (selector '{}' = no watermark), narrowed to the related rows by the row filter.
+        ParseOrError(TableId, Transport.GetRecords(TableId, BuildFieldIdsForTable(TableId), '{}', PageSize(), RowFilter), Response);
+        SourceResponse.InsertRecords(Response, SourceRecordRef);
+        exit(SourceRecordRef.FindSet());
+    end;
+
+    // Bulk variant of GetSourceRecordsByFilter that never errors: it returns false (with NotIndexed set when the
+    // source reports the filtered set is too large to serve without an index) so the caller can fall back to
+    // per-record reads. Used to prefetch all of a link type's contact business relations in one call, turning the
+    // per-contact O(N) lookups during a sync run into O(1) calls.
+    internal procedure TryBulkGetSourceRecordsByFilter(TableId: Integer; RowFilter: Text; var SourceRecordRef: RecordRef; var NotIndexed: Boolean): Boolean
+    var
+        Transport: Interface "IMDM Source Transport";
+        Response: JsonObject;
+    begin
+        NotIndexed := false;
+        SourceRecordRef.Close();
+        SourceRecordRef.Open(TableId, true);
+        InlineMedia.Reset();
+        SourceWatermark.Reset();
+        Transport := GetTransport();
+        SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
+        if not TryParseCleanResponse(Transport.GetRecords(TableId, BuildFieldIdsForTable(TableId), '{}', PageSize(), RowFilter), Response, NotIndexed) then
+            exit(false);
+        SourceResponse.InsertRecords(Response, SourceRecordRef);
+        exit(true);
+    end;
+
+    // Like ParseOrError but non-fatal: returns false instead of erroring, so a failed bulk prefetch degrades to
+    // per-record reads (which then surface any genuine consent/availability error one record at a time).
+    local procedure TryParseCleanResponse(ResponseText: Text; var Response: JsonObject; var NotIndexed: Boolean): Boolean
+    var
+        UnavailableFields: JsonArray;
+    begin
+        Clear(Response);
+        NotIndexed := false;
+        if not SourceResponse.TryParse(ResponseText, Response) then
+            exit(false);
+        if SourceResponse.ConsentRequired(Response) then
+            exit(false);
+        if not SourceResponse.TableAvailable(Response) then
+            exit(false);
+        if not SourceResponse.Indexed(Response) then begin
+            NotIndexed := true;
+            exit(false);
+        end;
+        if SourceResponse.GetUnavailableFields(Response, UnavailableFields) then
+            exit(false);
+        exit(true);
+    end;
+
     // A malformed wire response is an internal integration defect, not something the user can act on.
     local procedure InternalError(MessageText: Text): ErrorInfo
     var

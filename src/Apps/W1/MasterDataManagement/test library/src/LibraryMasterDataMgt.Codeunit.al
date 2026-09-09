@@ -199,6 +199,18 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(CrossEnvDataSource.GetModifiedBatch(IntegrationTableMapping, TableFilter, StartCursor, MaxPages, SourceRecordRef, EndCursor, HasMore));
     end;
 
+    /// <summary>Reads a related source table narrowed by a row filter from the cross-environment data source.</summary>
+    /// <param name="TableId">The source table ID to read.</param>
+    /// <param name="RowFilter">The source row filter (view) restricting which records are returned.</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the materialized set.</param>
+    /// <returns>True if any matching records were found; otherwise false.</returns>
+    procedure DataSourceGetRecordsByFilter(TableId: Integer; RowFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    var
+        CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
+    begin
+        exit(CrossEnvDataSource.GetSourceRecordsByFilter(TableId, RowFilter, SourceRecordRef));
+    end;
+
     // Setting a Source Environment Name routes GetDataSource() to the cross-environment implementation.
     /// <summary>Sets the source environment name, routing the data source to the cross-environment implementation.</summary>
     /// <param name="EnvironmentName">The source environment name to set.</param>

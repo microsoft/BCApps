@@ -201,6 +201,60 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvGetRecordsByFilterMaterializesContactBusinessRelation()
+    var
+        ContactBusinessRelation: Record "Contact Business Relation";
+        FilterContactBusinessRelation: Record "Contact Business Relation";
+        SourceContact: Record Contact;
+        OtherContact: Record Contact;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        RelationNo: Code[20];
+        OtherRelationNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The over-the-wire filtered read resolves a source Contact Business Relation (used to align
+        //            auto-created contact numbers), which is not replicated locally cross-environment, and the row
+        //            filter narrows the result to the requested link server-side.
+        Initialize();
+
+        // [GIVEN] two source contact business relations under distinct customer numbers, each linked to its own source
+        //         contact; synthetic numbers keep a customer's own auto-created relation from matching the filter
+        RelationNo := UniqueCode();
+        OtherRelationNo := UniqueCode();
+        SourceContact := SeedContactRelation(RelationNo);
+        OtherContact := SeedContactRelation(OtherRelationNo);
+
+        // [GIVEN] a subsidiary configured for cross-env with the in-process (pass-through) transport
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        // [WHEN] the relation is read over the wire by a row filter on (Link to Table, No.) of the first relation
+        FilterContactBusinessRelation.SetRange("Link to Table", FilterContactBusinessRelation."Link to Table"::Customer);
+        FilterContactBusinessRelation.SetRange("No.", RelationNo);
+
+        // [THEN] exactly the matching relation materializes with the source contact number preserved (the other is filtered out)
+        Assert.IsTrue(
+            LibraryMasterDataMgt.DataSourceGetRecordsByFilter(Database::"Contact Business Relation", FilterContactBusinessRelation.GetView(), SourceRecordRef),
+            'The filtered read should return the source contact business relation');
+        Assert.AreEqual(1, SourceRecordRef.Count(), 'The row filter should narrow the result to the one requested relation');
+        Assert.IsTrue(SourceRecordRef.FindFirst(), 'The materialized relation should be positioned');
+        Assert.AreEqual(
+            SourceContact."No.",
+            Format(SourceRecordRef.Field(ContactBusinessRelation.FieldNo("Contact No.")).Value()),
+            'The source Contact No. should round-trip through the wire');
+
+        // seeded contacts/relations live outside the MDMXENV artifact set, so remove them explicitly
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
+        ContactBusinessRelation.SetFilter("No.", '%1|%2', RelationNo, OtherRelationNo);
+        ContactBusinessRelation.DeleteAll();
+        SourceContact.Delete();
+        OtherContact.Delete();
+        CleanUp();
+    end;
+
+    [Test]
     procedure HttpTransportUnwrapsODataValueEnvelope()
     var
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
@@ -802,6 +856,26 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         TempBlob.CreateInStream(MediaInStream, TextEncoding::UTF8);
         TestTableA."Test Image".ImportStream(MediaInStream, 'pic.bin', 'application/octet-stream');
         TestTableA.Modify();
+    end;
+
+    local procedure SeedContactRelation(RelationNo: Code[20]) SourceContact: Record Contact
+    var
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        SourceContact.Init();
+        SourceContact."No." := UniqueCode();
+        SourceContact.Insert();
+        ContactBusinessRelation.Init();
+        ContactBusinessRelation."Contact No." := SourceContact."No.";
+        ContactBusinessRelation."Business Relation Code" := 'MDMTEST';
+        ContactBusinessRelation."Link to Table" := ContactBusinessRelation."Link to Table"::Customer;
+        ContactBusinessRelation."No." := RelationNo;
+        ContactBusinessRelation.Insert();
+    end;
+
+    local procedure UniqueCode(): Code[20]
+    begin
+        exit(CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, 20));
     end;
 
     local procedure Initialize()

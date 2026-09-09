@@ -40,6 +40,7 @@ permissionset 7242 "MDM Cross-Env Read"
                   tabledata Vendor = R,
                   tabledata Contact = R,
                   tabledata "Business Relation" = R,
+                  tabledata "Contact Business Relation" = R,
                   tabledata "Country/Region" = R,
                   tabledata "Post Code" = R,
                   tabledata Currency = R,

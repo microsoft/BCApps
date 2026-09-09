@@ -800,7 +800,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         LocalContact: Record Contact;
         IntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
         SourceCompanyName: Text[30];
+        SourceContactNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
@@ -816,17 +818,26 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
-        // Same-environment reads the source company's relations directly; cross-environment reads the locally
-        // replicated relations (they sync before customers/vendors), since the source isn't a local company.
-        if not MasterDataManagementSetup.IsCrossEnvironment() then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            if not Company.Get(SourceCompanyName) then
-                exit;
-            if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
-                exit;
+        if MasterDataManagementSetup.IsCrossEnvironment() then begin
+            // Contact business relations are not replicated locally; resolve the source contact number cross-env
+            // (bulk-prefetched for the whole run, or read per-record outside a run).
+            if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::Customer, Customer."No.", SourceContactNo) then
+                if not LocalContact.Get(SourceContactNo) then begin
+                    Contact."No." := SourceContactNo;
+                    Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption(), Customer.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    IsHandled := true;
+                end;
+            exit;
         end;
+
+        // Same-environment reads the source company's relations directly via ChangeCompany.
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+        if SourceCompanyName = '' then
+            SourceCompanyName := MasterDataManagementSetup."Company Name";
+        if not Company.Get(SourceCompanyName) then
+            exit;
+        if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
+            exit;
 
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
         ContactBusinessRelation.SetRange("No.", Customer."No.");
@@ -847,7 +858,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         LocalContact: Record Contact;
         IntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
         SourceCompanyName: Text[30];
+        SourceContactNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
@@ -863,17 +876,26 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
-        // Same-environment reads the source company's relations directly; cross-environment reads the locally
-        // replicated relations (they sync before customers/vendors), since the source isn't a local company.
-        if not MasterDataManagementSetup.IsCrossEnvironment() then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            if not Company.Get(SourceCompanyName) then
-                exit;
-            if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
-                exit;
+        if MasterDataManagementSetup.IsCrossEnvironment() then begin
+            // Contact business relations are not replicated locally; resolve the source contact number cross-env
+            // (bulk-prefetched for the whole run, or read per-record outside a run).
+            if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::Vendor, Vendor."No.", SourceContactNo) then
+                if not LocalContact.Get(SourceContactNo) then begin
+                    Contact."No." := SourceContactNo;
+                    Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption(), Vendor.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    IsHandled := true;
+                end;
+            exit;
         end;
+
+        // Same-environment reads the source company's relations directly via ChangeCompany.
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+        if SourceCompanyName = '' then
+            SourceCompanyName := MasterDataManagementSetup."Company Name";
+        if not Company.Get(SourceCompanyName) then
+            exit;
+        if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
+            exit;
 
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
         ContactBusinessRelation.SetRange("No.", Vendor."No.");
@@ -894,7 +916,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         LocalContact: Record Contact;
         IntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
         SourceCompanyName: Text[30];
+        SourceContactNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
@@ -910,17 +934,26 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
-        // Same-environment reads the source company's relations directly; cross-environment reads the locally
-        // replicated relations (they sync before customers/vendors), since the source isn't a local company.
-        if not MasterDataManagementSetup.IsCrossEnvironment() then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            if not Company.Get(SourceCompanyName) then
-                exit;
-            if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
-                exit;
+        if MasterDataManagementSetup.IsCrossEnvironment() then begin
+            // Contact business relations are not replicated locally; resolve the source contact number cross-env
+            // (bulk-prefetched for the whole run, or read per-record outside a run).
+            if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::"Bank Account", BankAccount."No.", SourceContactNo) then
+                if not LocalContact.Get(SourceContactNo) then begin
+                    Contact."No." := SourceContactNo;
+                    Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption(), BankAccount.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    IsHandled := true;
+                end;
+            exit;
         end;
+
+        // Same-environment reads the source company's relations directly via ChangeCompany.
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+        if SourceCompanyName = '' then
+            SourceCompanyName := MasterDataManagementSetup."Company Name";
+        if not Company.Get(SourceCompanyName) then
+            exit;
+        if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
+            exit;
 
         ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::"Bank Account");
         ContactBusinessRelation.SetRange("No.", BankAccount."No.");
@@ -1179,13 +1212,14 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         RecordModifiedAfterLastSync: Boolean;
         CrossEnvironment: Boolean;
         LinkType: Enum "Contact Business Relation Link To Table";
+        RelationNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit(false);
 
         MasterDataManagementSetup.Get();
-        // Cross-environment: the source's contact business relations are replicated locally, so resolve the related
-        // customer/vendor from the local relation (by No.) instead of reading the source company directly.
+        // Cross-environment: the source's contact business relations are NOT replicated locally, so read the matching
+        // source relation over the wire to resolve the related customer/vendor (numbers are aligned by synchronization).
         CrossEnvironment := MasterDataManagementSetup.IsCrossEnvironment();
         DestinationRecordRef.SetTable(Contact);
         if not CrossEnvironment then
@@ -1199,8 +1233,8 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                 begin
                     if not CrossEnvironment then
                         IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
-                    if IntegrationContactBusinessRelation.FindByContact(LinkType::Customer, IntegrationContact."No.") then
-                        if ResolvePrimaryContactCustomer(CrossEnvironment, IntegrationContactBusinessRelation."No.", IntegrationCustomer, Customer) then
+                    if ResolveSourceRelationNo(CrossEnvironment, IntegrationContactBusinessRelation, LinkType::Customer, IntegrationContact."No.", RelationNo) then
+                        if ResolvePrimaryContactCustomer(CrossEnvironment, RelationNo, IntegrationCustomer, Customer) then
                             if Customer."Primary Contact No." = '' then
                                 if IntegrationTableMapping.FindMapping(Database::Customer, Database::Customer) then
                                     if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
@@ -1222,8 +1256,8 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                 begin
                     if not CrossEnvironment then
                         IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
-                    if IntegrationContactBusinessRelation.FindByContact(LinkType::Vendor, IntegrationContact."No.") then
-                        if ResolvePrimaryContactVendor(CrossEnvironment, IntegrationContactBusinessRelation."No.", IntegrationVendor, Vendor) then
+                    if ResolveSourceRelationNo(CrossEnvironment, IntegrationContactBusinessRelation, LinkType::Vendor, IntegrationContact."No.", RelationNo) then
+                        if ResolvePrimaryContactVendor(CrossEnvironment, RelationNo, IntegrationVendor, Vendor) then
                             if Vendor."Primary Contact No." = '' then
                                 if IntegrationTableMapping.FindMapping(Database::Vendor, Database::Vendor) then
                                     if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
@@ -1264,6 +1298,21 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if not IntegrationVendor.Get(VendorNo) then
             exit(false);
         exit(FindVendorByIntegrationSystemId(IntegrationVendor.SystemId, Vendor));
+    end;
+
+    // Resolves the source contact business relation's "No." (the related customer/vendor number) for a given source
+    // contact. Same-environment reads the source company's relation via ChangeCompany; cross-environment reads the
+    // matching relation over the wire, since contact business relations are not replicated locally.
+    local procedure ResolveSourceRelationNo(CrossEnvironment: Boolean; var IntegrationContactBusinessRelation: Record "Contact Business Relation"; LinkToTable: Enum "Contact Business Relation Link To Table"; SourceContactNo: Code[20]; var RelationNo: Code[20]): Boolean
+    var
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
+    begin
+        if CrossEnvironment then
+            exit(ContactRelationCache.TryGetSourceRelationNo(LinkToTable, SourceContactNo, RelationNo));
+        if not IntegrationContactBusinessRelation.FindByContact(LinkToTable, SourceContactNo) then
+            exit(false);
+        RelationNo := IntegrationContactBusinessRelation."No.";
+        exit(true);
     end;
 
     local procedure FindCustomerByIntegrationSystemId(IntegrationSystemId: Guid; var Customer: Record Customer): Boolean
