@@ -773,7 +773,7 @@ codeunit 136400 "Resource Employee"
         EmployeeRelatives.OpenEdit();
         EmployeeRelatives.FILTER.SetFilter("Employee No.", Employee."No.");
         EmployeeRelatives.GotoRecord(EmployeeRelative);
-        EmployeeRelatives."Last Name".SetValue(LastName);
+        EmployeeRelatives."First Family Name".SetValue(LastName);
         EmployeeRelatives.Close();
 
         // [THEN] The relative's last name is saved.
