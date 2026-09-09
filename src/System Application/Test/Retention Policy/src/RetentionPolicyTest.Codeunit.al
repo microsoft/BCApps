@@ -1456,6 +1456,53 @@ codeunit 138702 "Retention Policy Test"
     end;
 
     [Test]
+    procedure TestApplyRetentionPolicyStopsAtLimitAcrossTables()
+    begin
+        VerifyApplyRetentionPolicyRecordLimit(RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete(), 0, true);
+    end;
+
+    [Test]
+    procedure TestApplyRetentionPolicyStopsWithRecordsRemainingAcrossTables()
+    var
+        RemainingRecords: Integer;
+    begin
+        RemainingRecords := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() + 1;
+        VerifyApplyRetentionPolicyRecordLimit(RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete() + RemainingRecords, RemainingRecords, true);
+    end;
+
+    [Test]
+    procedure TestApplyRetentionPolicyContinuesBelowLimitAcrossTables()
+    begin
+        VerifyApplyRetentionPolicyRecordLimit(RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete() - 2, 0, false);
+    end;
+
+    [Test]
+    procedure TestApplyRetentionPolicyContinuesAfterPolicyError()
+    var
+        RetentionPeriod: Record "Retention Period";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicyTestData: Record "Retention Policy Test Data";
+        RetentionPolicyTestData3: Record "Retention Policy Test Data 3";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // Setup
+        ClearTestData();
+        InsertOneMonthRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, 0);
+        InsertRetentionPolicySetupTable3(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData3.FieldNo("Datetime Field"));
+        InsertRetentionPolicyTestData('<-2M>');
+        InsertRetentionPolicyTestData3('<-2M>');
+
+        // Exercise
+        ApplyRetentionPolicy.ApplyRetentionPolicy(false);
+
+        // Verify
+        Assert.AreEqual(1, RetentionPolicyTestData.Count(), 'Records for the invalid policy must not be deleted.');
+        Assert.RecordIsEmpty(RetentionPolicyTestData3);
+    end;
+
+    [Test]
     procedure TestApplyRetentionPolicyTooManyLinesToDeleteOneTableAndReschedule()
     var
         RetentionPeriod: Record "Retention Period";
@@ -1622,6 +1669,50 @@ codeunit 138702 "Retention Policy Test"
         RetentionPolicySetup.DeleteAll(true);
         RetentionPolicySetupLine.DeleteAll(true);
         RetentionPeriod.DeleteAll(true);
+    end;
+
+    local procedure VerifyApplyRetentionPolicyRecordLimit(RecordsTableOne: Integer; RemainingRecordsTableOne: Integer; LimitReached: Boolean)
+    var
+        RetentionPeriod: Record "Retention Period";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicyTestData: Record "Retention Policy Test Data";
+        RetentionPolicyTestData3: Record "Retention Policy Test Data 3";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        RetentionPolicyTestLibrarySubs: Codeunit "Retention Policy Test Library";
+        i: Integer;
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // Setup
+        ClearTestData();
+        InsertOneMonthRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
+        InsertRetentionPolicySetupTable3(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData3.FieldNo("Datetime Field"));
+        for i := 1 to RecordsTableOne do
+            InsertRetentionPolicyTestData('<-2M>');
+        InsertRetentionPolicyTestData3('<-2M>');
+
+        Assert.AreEqual(RecordsTableOne, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy.');
+        Assert.AreEqual(1, RetentionPolicyTestData3.Count(), 'Incorrect number of records before applying retention policy.');
+
+        // Exercise
+        BindSubscription(RetentionPolicyTestLibrarySubs);
+        ApplyRetentionPolicy.ApplyRetentionPolicy(false);
+        UnbindSubscription(RetentionPolicyTestLibrarySubs);
+
+        // Verify
+        Assert.AreEqual(RemainingRecordsTableOne, RetentionPolicyTestData.Count(), 'Incorrect number of records after applying retention policy.');
+        if LimitReached then begin
+            Assert.AreEqual(1, RetentionPolicyTestData3.Count(), 'Later policies must not be processed after the record limit is reached.');
+            Assert.AreEqual(1, RetentionPolicyTestLibrarySubs.GetRecordLimitExceededSubscriberCount(), 'The record limit event must be raised only once per run.');
+        end else begin
+            Assert.RecordIsEmpty(RetentionPolicyTestData3);
+            Assert.AreEqual(0, RetentionPolicyTestLibrarySubs.GetRecordLimitExceededSubscriberCount(), 'The record limit event must not be raised below the limit.');
+        end;
+
+        // A new background run must process the remaining records.
+        ApplyRetentionPolicy.Run();
+        Assert.RecordIsEmpty(RetentionPolicyTestData);
+        Assert.RecordIsEmpty(RetentionPolicyTestData3);
     end;
 
     local procedure InsertOneWeekRetentionPeriod(var RetentionPeriod: Record "Retention Period")
