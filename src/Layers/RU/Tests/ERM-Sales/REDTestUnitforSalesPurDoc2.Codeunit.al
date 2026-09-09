@@ -32,6 +32,7 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         FieldErrorErr: Label 'Calc. Method must not be 4 in Deferral Template Deferral Code';
         AmountLCYNotFilledErr: Label 'Amount (LCY) should be filled before posting.';
         AmountLCYSumErr: Label 'The sum of the deferral line Amount (LCY) values must equal the header Amount to Defer (LCY).';
+        DeferralCodeChangedErr: Label 'Deferral Code cannot be changed on a line with a deferral schedule.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1192,7 +1193,6 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchaseLine2: Record "Purchase Line";
-        GLAccount: Record "G/L Account";
         DeferralTemplateCode: Code[10];
     begin
         // [FEATURE] [Deferral Code]
@@ -1200,10 +1200,9 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         Initialize();
 
         // [GIVEN] A Purchase Invoice with a deferral code on a G/L Account line
-        CreateGLAccount(GLAccount);
         CreatePurchDocWithLine(
           PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
-          PurchaseLine.Type::"G/L Account", GLAccount."No.", WorkDate());
+          PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), WorkDate());
         DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
         PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
         PurchaseLine.Modify(true);
@@ -1216,7 +1215,7 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         PurchaseLine2.Validate("Deferral Code", PurchaseLine2."Deferral Code");
 
         // [THEN] No Error is thrown and the Deferral Code remains the same
-        Assert.AreEqual(PurchaseLine2."Deferral Code", PurchaseLine2."Deferral Code");
+        Assert.AreEqual(PurchaseLine2."Deferral Code", PurchaseLine2."Deferral Code", DeferralCodeChangedErr);
     end;
 
     local procedure Initialize()
@@ -1318,6 +1317,23 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         GLAccount.Modify(true);
 
         exit(GLAccount."No.");
+    end;
+
+    local procedure CreateDeferralCode(CalcMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date"; NumOfPeriods: Integer): Code[10]
+    var
+        DeferralTemplate: Record "Deferral Template";
+    begin
+        DeferralTemplate.Init();
+        DeferralTemplate."Deferral Code" :=
+          LibraryUtility.GenerateRandomCode(DeferralTemplate.FieldNo("Deferral Code"), DATABASE::"Deferral Template");
+        DeferralTemplate."Deferral Account" := LibraryERM.CreateGLAccountNo();
+        DeferralTemplate."Calc. Method" := CalcMethod;
+        DeferralTemplate."Start Date" := StartDate;
+        DeferralTemplate."No. of Periods" := NumOfPeriods;
+        DeferralTemplate."Period Description" := 'Deferral Revenue for %4';
+
+        DeferralTemplate.Insert();
+        exit(DeferralTemplate."Deferral Code");
     end;
 
     local procedure CreateGLAccountWithVATPostSetup(var GLAccount: Record "G/L Account"; VATBusPostGrCode: Code[20]; VATPct: Decimal)
