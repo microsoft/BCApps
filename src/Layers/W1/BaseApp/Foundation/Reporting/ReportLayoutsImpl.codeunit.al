@@ -7,6 +7,7 @@ namespace Microsoft.Shared.Report;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.Reporting;
 using System;
+using System.Environment;
 using System.Environment.Configuration;
 using System.IO;
 using System.Reflection;
@@ -22,7 +23,8 @@ codeunit 9660 "Report Layouts Impl."
     Access = Internal;
     Permissions = tabledata "Tenant Report Layout" = rimd,
                   tabledata "Tenant Report Layout Selection" = rimd,
-                  tabledata "Tenant Report Layout Override" = rimd;
+                  tabledata "Tenant Report Layout Override" = rimd,
+                  tabledata Company = r;
 
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
@@ -46,8 +48,9 @@ codeunit 9660 "Report Layouts Impl."
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
         MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
         EmptyLayoutFileErr: Label 'The file "%1" is empty. Choose a file that contains a layout and try again.', Comment = '%1 = File Name';
+        EmptyGeneratedLayoutErr: Label 'A blank layout could not be generated for this report. Clear the blank layout option and choose a layout file instead.';
         CannotChangeStatusOfDefaultErr: Label 'You cannot set "%1" to %2 while it is the default layout for report "%3". Select another default layout first.', Comment = '%1 = Layout Name, %2 = New Status, %3 = Report Name';
-        DefaultRequiresApprovedErr: Label 'Only an approved layout can be set as the default. Set the status of "%1" to Approved and try again.', Comment = '%1 = Layout Name';
+        CannotChangeStatusOfDefaultInCompanyErr: Label 'You cannot set "%1" to %2 because it is the default layout for report "%3" in company "%4", and the status applies to all companies. Select another default layout in that company first.', Comment = '%1 = Layout Name, %2 = New Status, %3 = Report Name, %4 = Company Name';
         DefaultFallbackTxt: Label '"%1" is the layout that report "%2" falls back to, and it is no longer approved. The report keeps using it until you select another default layout.', Comment = '%1 = Layout Name, %2 = Report Name';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
@@ -94,21 +97,76 @@ codeunit 9660 "Report Layouts Impl."
         if NewStatus = Enum::"Report Layout Status"::Approved then
             exit;
 
-        if not TenantReportLayoutSelectionLocal.Get(ReportLayoutList."Report ID", OverrideCompany(), EmptyGuid) then
+        // A default that is already unapproved loses nothing by moving between the other statuses, and blocking
+        // that would strand it outside the approval flow with Approved as its only reachable status.
+        if ReportLayoutList."Layout Status" <> Enum::"Report Layout Status"::Approved then
             exit;
 
-        if TenantReportLayoutSelectionLocal."Layout Name" <> ReportLayoutList."Name" then
-            exit;
-        if TenantReportLayoutSelectionLocal."App ID" <> ReportLayoutList."Application ID" then
+        // One read covers the common case, where the layout is nobody's explicit default.
+        TenantReportLayoutSelectionLocal.SetRange("Report ID", ReportLayoutList."Report ID");
+        TenantReportLayoutSelectionLocal.SetRange("User ID", EmptyGuid);
+        TenantReportLayoutSelectionLocal.SetRange("Layout Name", ReportLayoutList."Name");
+        TenantReportLayoutSelectionLocal.SetRange("App ID", ReportLayoutList."Application ID");
+        if not TenantReportLayoutSelectionLocal.FindSet() then
             exit;
 
-        Error(CannotChangeStatusOfDefaultErr, ReportLayoutList.Caption, Format(NewStatus), ReportLayoutList."Report Name");
+        repeat
+            if TenantReportLayoutSelectionLocal."Company Name" = OverrideCompany() then
+                Error(CannotChangeStatusOfDefaultErr, ReportLayoutList.Caption, Format(NewStatus), ReportLayoutList."Report Name");
+        until TenantReportLayoutSelectionLocal.Next() = 0;
+
+        // A company-scoped override moves the status in this company only, so no other company can be left behind.
+        if not StatusChangeIsGlobalScope(ReportLayoutList) then
+            exit;
+
+        TenantReportLayoutSelectionLocal.FindSet();
+        repeat
+            if OtherCompanyLosesItsDefault(ReportLayoutList, TenantReportLayoutSelectionLocal."Company Name") then
+                Error(CannotChangeStatusOfDefaultInCompanyErr, ReportLayoutList.Caption, Format(NewStatus), ReportLayoutList."Report Name", TenantReportLayoutSelectionLocal."Company Name");
+        until TenantReportLayoutSelectionLocal.Next() = 0;
     end;
 
-    internal procedure ValidateLayoutCanBeDefault(SelectedReportLayoutList: Record "Report Layout List")
+    /// <summary>
+    /// Tells whether a global status change would leave the given company with an unapproved default layout.
+    /// </summary>
+    local procedure OtherCompanyLosesItsDefault(ReportLayoutList: Record "Report Layout List"; SelectionCompanyName: Text[30]): Boolean
+    var
+        Company: Record Company;
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
     begin
-        if SelectedReportLayoutList."Layout Status" <> Enum::"Report Layout Status"::Approved then
-            Error(DefaultRequiresApprovedErr, SelectedReportLayoutList.Caption);
+        if SelectionCompanyName = OverrideCompany() then
+            exit(false);
+
+        // A selection row can outlive the company it names. Naming a company the user cannot open would block the
+        // status change with no way to act on the message.
+        if not Company.Get(SelectionCompanyName) then
+            exit(false);
+
+        // That company keeps its own status for this layout, so the global write never reaches it.
+        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", SelectionCompanyName) then
+            if TenantReportLayoutOverride."Override Layout Status" then
+                exit(false);
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Tells whether a status change on this layout applies to every company. An extension-installed layout is
+    /// company-scoped only while an "Override Layout Status" row exists for the current company; a user-defined
+    /// layout is company-scoped only when the layout itself belongs to a single company.
+    /// </summary>
+    local procedure StatusChangeIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        if not ReportLayoutList."User Defined" then
+            exit(LayoutStatusIsGlobalScope(ReportLayoutList));
+
+        // No layout row means SetLayoutStatus will not change anything, so nothing can be left behind either.
+        if not TenantReportLayout.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", EmptyGuid) then
+            exit(false);
+
+        exit(TenantReportLayout."Company Name" = '');
     end;
 
     local procedure LayoutStatusIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
@@ -180,8 +238,7 @@ codeunit 9660 "Report Layouts Impl."
         UpdateCount: Integer;
         HasGlobalScope: Boolean;
         HasCompanyScope: Boolean;
-        FallbackLayoutCaption: Text;
-        FallbackReportName: Text;
+        FallbackMessages: List of [Text];
     begin
         if not ReportLayoutList.FindSet() then
             exit(0);
@@ -190,11 +247,8 @@ codeunit 9660 "Report Layouts Impl."
         repeat
             ErrorIfLayoutIsDefault(ReportLayoutList, NewStatus);
 
-            if FallbackLayoutCaption = '' then
-                if IsMetadataDefaultLayout(ReportLayoutList, NewStatus) then begin
-                    FallbackLayoutCaption := ReportLayoutList.Caption;
-                    FallbackReportName := ReportLayoutList."Report Name";
-                end;
+            if IsMetadataDefaultLayout(ReportLayoutList, NewStatus) then
+                FallbackMessages.Add(StrSubstNo(DefaultFallbackTxt, ReportLayoutList.Caption, ReportLayoutList."Report Name"));
 
             if not ReportLayoutList."User Defined" then
                 if LayoutStatusIsGlobalScope(ReportLayoutList) then
@@ -217,19 +271,22 @@ codeunit 9660 "Report Layouts Impl."
             CustomDimensions.Add('UpdateCount', Format(UpdateCount));
             Log('0000RTN', 'Report layout status changed by user', CustomDimensions);
 
-            if FallbackLayoutCaption <> '' then
-                NotifyDefaultFallback(FallbackLayoutCaption, FallbackReportName);
+            NotifyDefaultFallback(FallbackMessages);
         end;
         exit(UpdateCount);
     end;
 
-    local procedure NotifyDefaultFallback(LayoutCaption: Text; ReportName: Text)
+    local procedure NotifyDefaultFallback(FallbackMessages: List of [Text])
     var
         FallbackNotification: Notification;
+        FallbackMessage: Text;
     begin
-        FallbackNotification.Message(StrSubstNo(DefaultFallbackTxt, LayoutCaption, ReportName));
-        FallbackNotification.Scope(NotificationScope::LocalScope);
-        FallbackNotification.Send();
+        foreach FallbackMessage in FallbackMessages do begin
+            Clear(FallbackNotification);
+            FallbackNotification.Message(FallbackMessage);
+            FallbackNotification.Scope(NotificationScope::LocalScope);
+            FallbackNotification.Send();
+        end;
     end;
 
     local procedure IsMetadataDefaultLayout(ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Boolean
@@ -351,8 +408,6 @@ codeunit 9660 "Report Layouts Impl."
         ReportLayoutSelection: Record "Report Layout Selection";
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        ValidateLayoutCanBeDefault(SelectedReportLayoutList);
-
         // Add to TenantReportLayoutSelection table with an Empty Guid.
         AddLayoutSelection(SelectedReportLayoutList, EmptyGuid);
 
@@ -536,7 +591,7 @@ codeunit 9660 "Report Layouts Impl."
 
             if EmptyLayoutCreated then
                 if TempBlob.Length() = 0 then
-                    Error(EmptyLayoutFileErr, UploadFileName);
+                    Error(EmptyGeneratedLayoutErr);
         end;
 
         if (not EmptyLayoutCreated) then begin
@@ -648,21 +703,12 @@ codeunit 9660 "Report Layouts Impl."
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CustomDimensions: Dictionary of [Text, Text];
-        PreviousStatus: Enum "Report Layout Status";
     begin
         TenantReportLayout."Report ID" := ReportID;
         TenantReportLayout."Name" := LayoutName;
 
         if TenantReportLayout.Get(ReportID, LayoutName, TenantReportLayout."App ID") then begin
-            PreviousStatus := TenantReportLayout."Layout Status";
-
             InsertNewLayout(ReportID, LayoutName, LayoutDescription, LayoutFormat, TenantReportLayout."Company Name" = '', false, TenantReportLayout.ExcelLayoutMultipleDataSheets, TenantReportLayout."Layout Subtype", true, ReturnReportID, ReturnLayoutName);
-
-            if TenantReportLayout.Get(ReportID, LayoutName, EmptyGuid) then
-                if TenantReportLayout."Layout Status" <> PreviousStatus then begin
-                    TenantReportLayout."Layout Status" := PreviousStatus;
-                    TenantReportLayout.Modify(true);
-                end;
 
             InitReportLayoutDimensions(TenantReportLayout, CustomDimensions);
             AddReportLayoutDimensionsDescription(LayoutDescription, CustomDimensions);

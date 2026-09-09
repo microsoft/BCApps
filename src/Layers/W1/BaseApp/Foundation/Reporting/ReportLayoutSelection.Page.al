@@ -545,11 +545,8 @@ page 9652 "Report Layout Selection"
     local procedure UpdateTenantLayoutSelection(ReportLayoutList: Record "Report Layout List")
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
-        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
         EmptyGuid: Guid;
     begin
-        ReportLayoutsImpl.ValidateLayoutCanBeDefault(ReportLayoutList);
-
         TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
         TenantReportLayoutSelection."Company Name" := SelectedCompany;
         TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
