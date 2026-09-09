@@ -324,19 +324,18 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
         }
     }
 
-    It "does not apply a test type filter to Legacy buckets" {
+    It "does not use unfiltered discovery for Legacy buckets" {
         InModuleScope ParallelTestExecution {
             Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default'; testType = 'stale' } }
             Mock Get-DisabledTestsForApp { @() }
             Mock Get-TestsFromBcContainer { @() }
 
-            $null = Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c' } `
+            $result = @(Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c' } `
                 -TestType 'Legacy' -AppNamesToTest @('Legacy Tests') `
-                -AppIdByName @{ 'Legacy Tests' = 'legacy-id' }
+                -AppIdByName @{ 'Legacy Tests' = 'legacy-id' })
 
-            Should -Invoke Get-TestsFromBcContainer -Times 1 -ParameterFilter {
-                -not $PSBoundParameters.ContainsKey('testType')
-            }
+            $result.Count | Should -Be 0
+            Should -Invoke Get-TestsFromBcContainer -Times 0
         }
     }
 }
@@ -344,6 +343,46 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
 Describe "ParallelTestExecution clean tenant scheduling" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "writes and reads cached state without temp environment variables" {
+        InModuleScope ParallelTestExecution {
+            $previousRunnerTemp = $env:RUNNER_TEMP
+            $previousTemp = $env:TEMP
+            $containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+            $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) "parallelTests_$containerName.json"
+            Mock Get-AvailableBcTenantInfo {
+                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+            }
+            Mock Get-BcContainerAppInfo {
+                @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+            }
+            Mock Get-RequiredDisabledWorkItems { @() }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+            try {
+                $env:RUNNER_TEMP = $null
+                $env:TEMP = $null
+                $stateFile = Join-Path ([System.IO.Path]::GetTempPath()) "parallelTests_$containerName.json"
+
+                Invoke-ParallelTestExecution -parameters @{
+                    containerName = $containerName
+                    tenant = 'default'
+                } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests') |
+                    Should -BeTrue
+
+                Test-Path $stateFile | Should -BeTrue
+                Get-CachedTestRunResult -ContainerName $containerName | Should -BeTrue
+            } finally {
+                $env:RUNNER_TEMP = $previousRunnerTemp
+                $env:TEMP = $previousTemp
+                if (Test-Path $stateFile) {
+                    Remove-Item $stateFile -Force
+                }
+            }
+        }
     }
 
     It "does not create a database template when no Disabled-isolation codeunits are enabled" {
