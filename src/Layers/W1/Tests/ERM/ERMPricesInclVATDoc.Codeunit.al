@@ -973,7 +973,6 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerNo')]
     procedure DirectUnitCostInclVATDoesNotUpdateWhenVATProdPostGrpChangedForGLAccount()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -1004,7 +1003,7 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
         PurchaseLine.Modify(true);
 
         // [GIVEN] Prices Including VAT is enabled without updating Direct Unit Cost
-        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader."Prices Including VAT" := true;
         PurchaseHeader.Modify(true);
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         DirectUnitCost := PurchaseLine."Direct Unit Cost";
@@ -1597,12 +1596,6 @@ codeunit 134046 "ERM Prices Incl VAT Doc"
     begin
         LibraryVariableStorage.Dequeue(Balance);
         ApplyVendorEntries.ControlBalance.AssertEquals(Balance);
-    end;
-
-    [ConfirmHandler]
-    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
     end;
 
     [IntegrationEvent(false, false)]
