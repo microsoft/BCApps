@@ -749,7 +749,6 @@ codeunit 136400 "Resource Employee"
 
 
     [Test]
-    [Scope('OnPrem')]
     procedure EditEmployeeRelativeLastName()
     var
         Employee: Record Employee;
@@ -771,7 +770,7 @@ codeunit 136400 "Resource Employee"
 
         // [WHEN] The relative's last name is edited on the Employee Relatives page.
         EmployeeRelatives.OpenEdit();
-        EmployeeRelatives.FILTER.SetFilter("Employee No.", Employee."No.");
+        EmployeeRelatives.Filter.SetFilter("Employee No.", Employee."No.");
         EmployeeRelatives.GotoRecord(EmployeeRelative);
         EmployeeRelatives."First Family Name".SetValue(LastName);
         EmployeeRelatives.Close();

@@ -31,19 +31,13 @@ page 5209 "Employee Relatives"
                 }
                 field("First Family Name"; Rec."First Family Name")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = BasicHR;
                     ToolTip = 'Specifies the first part of the family name.';
                 }
                 field("Second Family Name"; Rec."Second Family Name")
                 {
                     ApplicationArea = BasicHR;
                     ToolTip = 'Specifies the middle name of the employee''s relative.';
-                }
-                field("Last Name"; Rec."First Family Name")
-                {
-                    ApplicationArea = BasicHR;
-                    ToolTip = 'Specifies the last name of the employee''s relative.';
-                    Visible = false;
                 }
                 field("Birth Date"; Rec."Birth Date")
                 {
