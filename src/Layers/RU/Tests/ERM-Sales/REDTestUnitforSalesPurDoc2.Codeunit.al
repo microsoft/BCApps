@@ -1184,6 +1184,41 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         Assert.AreEqual(DeferralHeader."Amount to Defer (LCY)", TotalLineAmountLCY, AmountLCYSumErr);
     end;
 
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReleasedPurchLineDeferralCodeSameValueDoesNotRecalculateRU()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
+        GLAccount: Record "G/L Account";
+        DeferralTemplateCode: Code[10];
+    begin
+        // [FEATURE] [Deferral Code]
+        // [SCENARIO 649204] Unchanged Deferral Code remains the same on a released Purchase Invoice
+        Initialize();
+
+        // [GIVEN] A Purchase Invoice with a deferral code on a G/L Account line
+        CreateGLAccount(GLAccount);
+        CreatePurchDocWithLine(
+          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
+          PurchaseLine.Type::"G/L Account", GLAccount."No.", WorkDate());
+        DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
+        PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] The Purchase Invoice is released
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [WHEN] Changing the Deferral Code on the Purchase Line
+        PurchaseLine2.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine2.Validate("Deferral Code", PurchaseLine2."Deferral Code");
+
+        // [THEN] No Error is thrown and the Deferral Code remains the same
+        Assert.AreEqual(PurchaseLine2."Deferral Code", PurchaseLine2."Deferral Code");
+    end;
+
     local procedure Initialize()
     var
         AccountingPeriod: Record "Accounting Period";
