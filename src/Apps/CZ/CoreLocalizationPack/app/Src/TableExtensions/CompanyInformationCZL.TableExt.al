@@ -57,7 +57,7 @@ tableextension 11747 "Company Information CZL" extends "Company Information"
             Caption = 'Tax Registration No.';
             DataClassification = CustomerContent;
         }
-        field(11785; "Report Address Source"; Enum "Report Address Source CZL")
+        field(11785; "Report Address Source CZL"; Enum "Report Address Source CZL")
         {
             Caption = 'Report Address Source';
             DataClassification = CustomerContent;

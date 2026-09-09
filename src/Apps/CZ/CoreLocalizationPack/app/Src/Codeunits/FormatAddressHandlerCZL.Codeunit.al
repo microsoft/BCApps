@@ -15,7 +15,7 @@ codeunit 31144 "Format Address Handler CZL"
     var
         FormatAddress: Codeunit "Format Address";
     begin
-        if CompanyInfo."Report Address Source" = CompanyInfo."Report Address Source"::"Company Information" then begin
+        if CompanyInfo."Report Address Source CZL" = CompanyInfo."Report Address Source CZL"::"Company Information" then begin
             FormatAddress.Company(CompanyAddr, CompanyInfo);
             IsHandled := true;
         end;
