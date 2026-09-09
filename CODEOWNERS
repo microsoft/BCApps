@@ -5,21 +5,20 @@
 # ---------------------------------------------------------------------------
 # Application team ownership (GENERATED - do not hand-edit)
 #
-# One line per thing a team owns: each app, each Base Application area, the
-# System Application and Business Foundation. Nothing else.
+# One fallback for AL files, followed by one line per thing a team owns: each
+# app, each Base Application area, the System Application and Business
+# Foundation. Nothing else.
 #
-# There is deliberately no `* @microsoft/dynamics-365-business-central` default.
-# A catch-all default makes the 123-member org team a reviewer on every pull
-# request that touches any unclaimed file, which is the noise this file exists
-# to remove. A path no team claims simply has no code owner.
+# There is deliberately no repository-wide `*` default. Instead, unmatched AL
+# files fall back to the full Business Central team. This keeps AL changes
+# covered without requesting the 123-member team for unrelated files. The
+# specific application ownership rules below take precedence over the fallback.
 #
-# Tests, demo data, the demo tool and the localization layers are deliberately
-# unclaimed. Every team writes tests and ships demo data, so naming one team
-# there requests a review nobody needs. The triage agent still labels those
-# issues and pull requests with a team, so the work stays visible on that team's
-# backlog - it just does not pull in a specific reviewer. In short: CODEOWNERS
-# decides who is asked to review, triage decides whose backlog it lands on.
-# Those two answers are allowed to differ.
+# Tests, demo data, the demo tool and localization layers use a specific
+# application owner where one exists, and otherwise use the AL fallback. Non-AL
+# files in explicitly released folders remain unclaimed. The triage agent still
+# labels issues and pull requests with a team so the work stays visible on that
+# team's backlog.
 #
 # The rules are generated from the routing data the BCApps triage agent uses to
 # classify issues and pull requests:
@@ -38,6 +37,10 @@
 # App Permissions, app.json, AL-Go and build files, Developer Experience, Code
 # Review Tools) still take precedence over everything here.
 # ---------------------------------------------------------------------------
+
+# AL fallback. Keep this before every more specific ownership rule because
+# CODEOWNERS uses the last matching pattern.
+*.al @microsoft/dynamics-365-business-central
 
 # Platform. Integration owns these end to end; the sub-sections other
 # teams own are listed further down, after this block.
@@ -91,8 +94,9 @@
 # default. Exceptions are listed at the end of this block.
 /src/Apps/*/ @microsoft/d365-bc-finance-1
 # W1 is a layer name, not a country code, so release it from that wildcard.
-# Its apps are listed individually below and override this line.
+# Restore the AL fallback before the individual app rules override it.
 /src/Apps/W1/
+/src/Apps/W1/**/*.al @microsoft/dynamics-365-business-central
 
 # W1 apps - one line each (100). These also override the wildcard
 # above, since W1 is a layer name rather than a country code.
@@ -209,12 +213,14 @@
 /src/Apps/BE/ShopifyBE/ @microsoft/d365-bc-integrations
 /src/Apps/IT/SubcontractingMigrationIT/ @microsoft/d365-bc-scm
 
-# Demo data. Every team contributes demo data for its own area, so it has no
-# single owner. This line has no owner on purpose: it releases demo data
-# from the localization wildcard above without naming anyone.
+# Demo data. Every team contributes demo data for its own area, so these lines
+# release non-AL content from broader ownership rules. AL files use the fallback.
 /src/Apps/*/*ContosoCoffeeDemoDataset*/
+/src/Apps/*/*ContosoCoffeeDemoDataset*/**/*.al @microsoft/dynamics-365-business-central
 /src/DemoTool/*/
+/src/DemoTool/**/*.al @microsoft/dynamics-365-business-central
 /src/Layers/*/DemoTool/*/
+/src/Layers/*/DemoTool/**/*.al @microsoft/dynamics-365-business-central
 
 
 # Expense Agent application family. These review routes intentionally differ
