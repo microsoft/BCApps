@@ -54,8 +54,10 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Reports;
 using Microsoft.Service.Setup;
+using Microsoft.Upgrade;
 using Microsoft.Utilities;
 using System.IO;
+using System.Reflection;
 using System.Security.Encryption;
 using System.Security.User;
 using System.Upgrade;
@@ -598,6 +600,7 @@ codeunit 11748 "Install Application CZL"
         InitEETServiceSetup();
         CreateSourceCodeSetup();
         ModifyReportSelections();
+        InitDefaultReportLayouts();
 
         DataClassEvalHandlerCZL.ApplyEvaluationClassificationsForPrivacy();
         UpgradeTag.SetAllUpgradeTags();
@@ -876,5 +879,16 @@ codeunit 11748 "Install Application CZL"
                 if (ItemJournalTemplate."Posting Report ID" <> PrevItemJournalTemplate."Posting Report ID") then
                     ItemJournalTemplate.Modify();
             until ItemJournalTemplate.Next() = 0;
+    end;
+
+    local procedure InitDefaultReportLayouts()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        UpgradeApplicationCZL: Codeunit "Upgrade Application CZL";
+    begin
+        if UpgradeApplicationCZL.GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then
+            UpgradeApplicationCZL.SetDefaultReportLayout(ReportLayoutList);
+        if UpgradeApplicationCZL.GetProformaReportLayoutCZ(ReportLayoutList) then
+            UpgradeApplicationCZL.SetDefaultReportLayout(ReportLayoutList);
     end;
 }

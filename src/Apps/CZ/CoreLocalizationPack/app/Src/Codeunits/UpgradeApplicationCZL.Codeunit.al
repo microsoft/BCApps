@@ -903,7 +903,7 @@ codeunit 31017 "Upgrade Application CZL"
         exit('');
     end;
 
-    local procedure GetDraftInvoiceReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
+    internal procedure GetDraftInvoiceReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
     begin
         NavApp.GetCurrentModuleInfo(AppInfo);
         ReportLayoutList.Reset();
@@ -913,7 +913,7 @@ codeunit 31017 "Upgrade Application CZL"
         exit(ReportLayoutList.FindFirst());
     end;
 
-    local procedure GetProformaReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
+    internal procedure GetProformaReportLayoutCZ(var ReportLayoutList: Record "Report Layout List"): Boolean
     begin
         NavApp.GetCurrentModuleInfo(AppInfo);
         ReportLayoutList.Reset();
@@ -923,7 +923,7 @@ codeunit 31017 "Upgrade Application CZL"
         exit(ReportLayoutList.FindFirst());
     end;
 
-    local procedure SetDefaultReportLayout(ReportLayoutList: Record "Report Layout List")
+    internal procedure SetDefaultReportLayout(ReportLayoutList: Record "Report Layout List")
     var
         ReportLayoutSelection: Record "Report Layout Selection";
     begin
