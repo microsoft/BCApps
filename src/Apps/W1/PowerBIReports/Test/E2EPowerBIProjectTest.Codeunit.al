@@ -25,6 +25,12 @@ codeunit 139879 "E2E PowerBI Project Test"
     TestType = Uncategorized;
     Access = Internal;
 
+    trigger OnRun()
+    begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     var
         Assert: Codeunit Assert;
         LibGraphMgt: Codeunit "Library - Graph Mgt";

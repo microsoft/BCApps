@@ -3,11 +3,15 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item] [Variant]
     end;
 
@@ -342,6 +346,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
 
     var
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphDocumentTools: Codeunit "Library - Graph Document Tools";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -425,6 +430,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesOrder(SalesHeader);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
         SalesLine."Variant Code" := ItemVariant.Code;
         SalesLine.Modify();

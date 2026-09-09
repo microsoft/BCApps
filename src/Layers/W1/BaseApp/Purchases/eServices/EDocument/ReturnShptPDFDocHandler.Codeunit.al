@@ -36,7 +36,7 @@ codeunit 4999 "Return Shpt. PDF Doc.Handler" implements IPdfDocumentHandler
             exit(false);
 
         ReturnShipment.SetRange("No.", ReturnShipment."No.");
-        ReportUsage := "Report Selection Usage"::"P.Return";
+        ReportUsage := "Report Selection Usage"::"P.Ret.Shpt.";
         ReportSelections.GetPdfReportForVend(TempBlob, ReportUsage, ReturnShipment, ReturnShipment."Buy-from Vendor No.");
         DocumentMailing.GetAttachmentFileName(Name, ReturnShipment."No.", ReturnShipmentLbl, ReportUsage.AsInteger());
         exit(PDFDocumentManagement.AddToTempAttachmentEntityBuffer(DocumentId, DocumentType, TempBlob, Name, TempAttachmentEntityBuffer));

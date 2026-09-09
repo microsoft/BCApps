@@ -8,6 +8,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Purchase] [Return Order]
     end;
 

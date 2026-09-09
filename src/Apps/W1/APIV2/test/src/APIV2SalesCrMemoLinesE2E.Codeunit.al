@@ -3,11 +3,15 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -20,6 +24,7 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         LibraryGraphDocumentTools: Codeunit "Library - Graph Document Tools";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryERM: Codeunit "Library - ERM";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         IsInitialized: Boolean;
@@ -29,6 +34,8 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
 
@@ -1267,7 +1274,6 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         Resource: Record "Resource";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         FixedAsset: Record "Fixed Asset";
-        LibraryERM: Codeunit "Library - ERM";
         LibraryResource: Codeunit "Library - Resource";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
     begin
@@ -1291,7 +1297,6 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

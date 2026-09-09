@@ -16,12 +16,20 @@ codeunit 135575 "E-Doc. API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
+    var
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+
     [Test]
     procedure GetEDocument()
     var
         PurchaseHeader: Record "Purchase Header";
         EDocument: Record "E-Document";
-        LibrarygraphMgt: Codeunit "Library - Graph Mgt";
         TargetURL: Text;
         Response: Text;
         EDocsApiServiceNameTok: Label 'eDocuments', Locked = true;
@@ -49,7 +57,6 @@ codeunit 135575 "E-Doc. API Test"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         Any: Codeunit Any;
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         JSONRequest: Text;
         TargetURL: Text;
         Response: Text;
@@ -75,7 +82,6 @@ codeunit 135575 "E-Doc. API Test"
     local procedure VerifyEDocumentResponse(EDocument: Record "E-Document"; Response: Text)
     var
         Assert: Codeunit Assert;
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         AmtInclVatTxt: Text;
         AmtExclVatTxt: Text;
         AmtInclVat: Decimal;
@@ -152,8 +158,6 @@ codeunit 135575 "E-Doc. API Test"
     end;
 
     local procedure GetEDocumentCreateRequest(EDocumentServiceCode: Code[20]; var JSONRequest: Text)
-    var
-        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
     begin
         JSONRequest := LibraryGraphMgt.AddPropertytoJSON(JSONRequest, 'eDocumentService', EDocumentServiceCode);
         JSONRequest := LibraryGraphMgt.AddPropertytoJSON(JSONRequest, 'base64file', NavApp.GetResourceAsText('API/base64file.txt', TextEncoding::UTF8));

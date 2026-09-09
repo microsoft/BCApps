@@ -8,6 +8,9 @@ codeunit 139906 "APIV2 - FA Locations E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Api] [Location]
     end;
 

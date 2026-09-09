@@ -1,6 +1,14 @@
 codeunit 139860 "APIV2 - G/L Setup E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
+
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+    end;
 
     var
         Assert: Codeunit "Assert";

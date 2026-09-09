@@ -6,6 +6,8 @@ codeunit 134920 "ERM General Journal UT"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [General Journal] [UT]
     end;
 
@@ -7573,4 +7575,3 @@ codeunit 134920 "ERM General Journal UT"
         IsHandled := true;
     end;
 }
-

@@ -3,11 +3,15 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -91,6 +95,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create posted and unposted Sales credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
 
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
         LibrarySales.CreateCustomerWithAddress(BillToCustomer);
         CustomerNo := SellToCustomer."No.";
@@ -286,6 +291,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);
@@ -754,17 +760,32 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     local procedure CreateCorrectiveSalesCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
+        ReasonCode: Record "Reason Code";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesHeader: Record "Sales Header";
         InvoiceCode: Code[20];
     begin
         LibrarySales.CreateSalesInvoice(SalesHeader);
+        EnsureReasonCode();
+        ReasonCode.FindFirst();
+        SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesHeader.Modify(true);
         InvoiceCode := LibrarySales.PostSalesDocument(SalesHeader, false, true);
         SalesInvoiceHeader.Get(InvoiceCode);
         Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
         SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesCrMemoHeader.FindFirst();
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")
@@ -925,6 +946,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
         SalesHeader1RecordRef.GetTable(SalesHeader1);
         SalesHeader2RecordRef.GetTable(SalesHeader2);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           SalesHeader1RecordRef, SalesHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
@@ -1044,4 +1067,3 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
             JobQueueEntry.Cancel();
     end;
 }
-
