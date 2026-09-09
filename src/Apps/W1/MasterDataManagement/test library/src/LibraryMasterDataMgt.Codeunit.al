@@ -81,6 +81,15 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataManagementSetup.Modify(false);
     end;
 
+    /// <summary>Finds the enabled Master Data Management mapping whose source table holds the coupling's integration record, respecting the mapping's integration table filter.</summary>
+    /// <param name="IntegrationTableMapping">Returns the matched mapping.</param>
+    /// <param name="MasterDataMgtCoupling">The coupling whose integration record is resolved.</param>
+    /// <returns>True if an enabled mapping holds the record within its integration table filter; otherwise false.</returns>
+    procedure FindMappingByIntegrationRecordId(var IntegrationTableMapping: Record "Integration Table Mapping"; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling"): Boolean
+    begin
+        exit(MasterDataManagement.FindMappingByIntegrationRecordId(IntegrationTableMapping, MasterDataMgtCoupling));
+    end;
+
     /// <summary>Gets the integration record reference for a coupling.</summary>
     /// <param name="IntegrationTableID">The integration table ID to resolve.</param>
     /// <param name="MasterDataMgtCoupling">The coupling whose integration record is requested.</param>

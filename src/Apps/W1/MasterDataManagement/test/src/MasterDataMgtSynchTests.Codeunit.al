@@ -869,6 +869,44 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         Assert.ExpectedError('The cross-environment connection to the source is not configured yet');
     end;
 
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure FindMappingByIntegrationRecordIdRespectsIntegrationTableFilter()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CustomerInFilter: Record Customer;
+        CustomerOutsideFilter: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        CustomerRecRef: RecordRef;
+    begin
+        // [SCENARIO] FindMappingByIntegrationRecordId matches a mapping only when the source record is within the
+        //            mapping's integration table filter - GetBySystemId is a key lookup that ignores the filter.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] two source customers, and the Customer mapping's integration table filter includes only the first
+        LibrarySales.CreateCustomer(CustomerInFilter);
+        LibrarySales.CreateCustomer(CustomerOutsideFilter);
+        GetCustomerMapping(IntegrationTableMapping);
+        CustomerRecRef.Open(Database::Customer);
+        CustomerRecRef.Field(CustomerInFilter.FieldNo("No.")).SetRange(CustomerInFilter."No.");
+        IntegrationTableMapping.SetIntegrationTableFilter(CustomerRecRef.GetView());
+        CustomerRecRef.Close();
+        IntegrationTableMapping.Modify();
+
+        // [WHEN] resolving the mapping for the in-filter record [THEN] it matches
+        Clear(MasterDataMgtCoupling);
+        MasterDataMgtCoupling."Integration System ID" := CustomerInFilter.SystemId;
+        Assert.IsTrue(LibraryMasterDataMgt.FindMappingByIntegrationRecordId(IntegrationTableMapping, MasterDataMgtCoupling), 'A source record within the integration table filter should match its mapping.');
+
+        // [WHEN] resolving the mapping for the out-of-filter record [THEN] it does not match (the filter is enforced)
+        Clear(IntegrationTableMapping);
+        Clear(MasterDataMgtCoupling);
+        MasterDataMgtCoupling."Integration System ID" := CustomerOutsideFilter.SystemId;
+        Assert.IsFalse(LibraryMasterDataMgt.FindMappingByIntegrationRecordId(IntegrationTableMapping, MasterDataMgtCoupling), 'A source record outside the integration table filter must not match the mapping.');
+    end;
+
     local procedure GetCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
     begin
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");

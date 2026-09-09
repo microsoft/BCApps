@@ -2309,11 +2309,27 @@ codeunit 7233 "Master Data Management"
         IntegrationTableMapping.SetFilter("Integration Table ID", '<>0');
         if IntegrationTableMapping.FindSet() then
             repeat
-                // Route through the data source: find which enabled mapping's source table holds this record.
+                // Route through the data source: find which enabled mapping's source table holds this record, then
+                // confirm it is within that mapping's integration table filter (GetBySystemId is a key lookup and ignores it).
                 if MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableMapping."Integration Table ID", MasterDataMgtCoupling."Integration System ID", IntegrationRecordRef) then
-                    exit(true);
+                    if MasterDataManagementSetup.IsCrossEnvironment() or IntegrationRecordMatchesMappingFilter(IntegrationTableMapping, IntegrationRecordRef, MasterDataMgtCoupling."Integration System ID") then
+                        exit(true);
             until IntegrationTableMapping.Next() = 0;
         exit(false);
+    end;
+
+    // GetBySystemId retrieves by key and ignores filters; same-environment must re-check the mapping's integration
+    // table filter here (the previous SetView-based lookup enforced it). Cross-environment applies the filter source-side.
+    local procedure IntegrationRecordMatchesMappingFilter(IntegrationTableMapping: Record "Integration Table Mapping"; var IntegrationRecordRef: RecordRef; IntegrationSystemId: Guid): Boolean
+    var
+        IntegrationTableFilter: Text;
+    begin
+        IntegrationTableFilter := IntegrationTableMapping.GetIntegrationTableFilter();
+        if IntegrationTableFilter = '' then
+            exit(true);
+        IntegrationRecordRef.SetView(IntegrationTableFilter);
+        IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").SetRange(IntegrationSystemId);
+        exit(not IntegrationRecordRef.IsEmpty());
     end;
 
     internal procedure CheckSetupPermissions()
