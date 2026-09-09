@@ -63,7 +63,7 @@ pageextension 11700 "Company Information CZL" extends "Company Information"
         }
         addlast(Communication)
         {
-            field("Report Address Source"; Rec."Report Address Source")
+            field("Report Address Source CZL"; Rec."Report Address Source CZL")
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
