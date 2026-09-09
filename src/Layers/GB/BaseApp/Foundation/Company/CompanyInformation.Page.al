@@ -190,11 +190,7 @@ page 1 "Company Information"
                 }
 #endif
 #pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
-                field("Evaluation Work Date"; Rec."Evaluation Work Date")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = Rec."Demo Company";
-                }                field(Picture; Rec.Picture)
+                field(Picture; Rec.Picture)
 #pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
@@ -563,6 +559,11 @@ page 1 "Company Information"
                     begin
                         ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
                     end;
+                }
+                field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = Rec.IsEvaluationCompany();
                 }
             }
             group(Reporting)
@@ -1058,4 +1059,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-

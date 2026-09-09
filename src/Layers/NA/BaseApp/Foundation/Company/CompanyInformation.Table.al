@@ -25,6 +25,7 @@ table 79 "Company Information"
     Caption = 'Company Information';
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata Company = r;
     DataClassification = CustomerContent;
 
     fields
@@ -802,6 +803,14 @@ table 79 "Company Information"
             exit;
         Get();
         RecordHasBeenRead := true;
+    end;
+
+    procedure IsEvaluationCompany(): Boolean
+    var
+        Company: Record Company;
+    begin
+        if Company.Get(CompanyName()) then
+            exit(Company."Evaluation Company");
     end;
 
     procedure VerifyAndSetPaymentInfo()
