@@ -1,45 +1,16 @@
-# Each line is a file pattern followed by one or more owners.
-# Order is important; the last matching pattern takes the most precedence.
-# CODEOWNERS paths are case sensitive, because GitHub uses a case sensitive file system
-
-# ---------------------------------------------------------------------------
-# Application team ownership (GENERATED - do not hand-edit)
+# CODEOWNERS is case sensitive and uses the last matching rule.
+# There is no repository-wide default: unmatched AL files fall back to the full
+# Business Central team, while later application and specialist rules override
+# that fallback. Ownerless rules release non-AL content from broader mappings.
 #
-# One fallback for AL files, followed by one line per thing a team owns: each
-# app, each Base Application area, the System Application and Business
-# Foundation. Nothing else.
-#
-# There is deliberately no repository-wide `*` default. Instead, unmatched AL
-# files fall back to the full Business Central team. This keeps AL changes
-# covered without requesting the 123-member team for unrelated files. The
-# specific application ownership rules below take precedence over the fallback.
-#
-# Tests, demo data, the demo tool and localization layers use a specific
-# application owner where one exists, and otherwise use the AL fallback. Non-AL
-# files in explicitly released folders remain unclaimed. The triage agent still
-# labels issues and pull requests with a team so the work stays visible on that
-# team's backlog.
-#
-# The rules are generated from the routing data the BCApps triage agent uses to
-# classify issues and pull requests:
+# The application map is generated from the BCApps triage routing data:
 #   microsoft/BCAppsTriage
 #     plugins/triage/skills/triage/scripts/ownership/ownership-rules.js
 #     plugins/triage/skills/triage/scripts/ownership/ownership-resolver.js
-# which are themselves seeded from the Business Central Ownership Matrix.
-#
-# To change ownership, edit ownership-rules.js in BCAppsTriage and regenerate.
-# Do not hand-edit the block below; hand edits will be lost and will silently
-# diverge from issue and pull request triage.
-# Apps with dedicated reviewer teams are intentionally omitted from this block
-# and listed once in the dedicated application reviewers section below.
-#
-# The specialized cross-cutting rules at the bottom of this file (App Security,
-# App Permissions, app.json, AL-Go and build files, Developer Experience, Code
-# Review Tools) still take precedence over everything here.
-# ---------------------------------------------------------------------------
+# Change generated ownership in BCAppsTriage, then regenerate this file.
+# Dedicated and cross-cutting ownership rules are listed after the generated map.
 
-# AL fallback. Keep this before every more specific ownership rule because
-# CODEOWNERS uses the last matching pattern.
+# AL fallback
 *.al @microsoft/dynamics-365-business-central
 
 # Platform. Integration owns these end to end; the sub-sections other
@@ -198,16 +169,10 @@
 /src/Apps/W1/VATGroupManagement/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/WithholdingTax/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/WorldPayPaymentsStandard/ @microsoft/d365-bc-finance-1
-# PowerBIReports hosts per-area report folders, which split across teams.
-/src/Apps/W1/PowerBIReports/App/.resources/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/PowerBIReports/App/Core/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/PowerBIReports/App/Finance/ @microsoft/d365-bc-finance-1
+# PowerBIReports defaults to Finance; SCM owns these area-specific folders.
 /src/Apps/W1/PowerBIReports/App/Inventory/ @microsoft/d365-bc-scm
 /src/Apps/W1/PowerBIReports/App/Manufacturing/ @microsoft/d365-bc-scm
-/src/Apps/W1/PowerBIReports/App/Projects/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/PowerBIReports/App/Purchasing/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PowerBIReports/App/Sales/ @microsoft/d365-bc-scm
-/src/Apps/W1/PowerBIReports/App/_Obsolete/ @microsoft/d365-bc-finance-1
 
 # Localization apps that are not Finance.
 /src/Apps/BE/ShopifyBE/ @microsoft/d365-bc-integrations
