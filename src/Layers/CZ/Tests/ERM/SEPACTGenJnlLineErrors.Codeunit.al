@@ -69,8 +69,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineRecipientBankAccError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
     end;
@@ -78,8 +76,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineAccTypeError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
     end;
@@ -87,8 +83,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineVendorRefundError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
     end;
@@ -96,8 +90,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineCustomerPaymentError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
     end;
@@ -195,8 +187,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineAccNoError()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
     end;
@@ -298,8 +288,6 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
     [Test]
     [Scope('OnPrem')]
     procedure GenJnlLineMultipleErrors()
-    var
-        GenJnlLine: Record "Gen. Journal Line";
     begin
         exit; // NAVCZ - SEPACZ Allow Empty Type on the Payment Order Line
     end;
@@ -403,4 +391,3 @@ codeunit 134407 "SEPA CT Gen. Jnl Line Errors"
         Vendor.Modify(true);
     end;
 }
-

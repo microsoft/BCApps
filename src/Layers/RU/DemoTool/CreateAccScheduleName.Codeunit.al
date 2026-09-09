@@ -20,16 +20,6 @@ codeunit 101084 "Create Acc. Schedule Name"
         InsertData(XTBTxt, XTrialBalanceTxt, CreateColumnLayoutName.GetBBDRCREBColumnLayoutName(), '');
     end;
 
-    local procedure UpdateEvaluationDate();
-    var
-        AccScheduleName: Record "Acc. Schedule Name";
-    begin
-        if AccScheduleName.get(XREVENUE) then begin
-            AccScheduleName.Validate("Analysis View Name", XREVENUE);
-            AccScheduleName.Modify()
-        end;
-    end;
-
     var
         CreateColumnLayoutName: Codeunit "Create Column Layout Name";
         XANALYSIS: Label 'ANALYSIS';
@@ -98,4 +88,3 @@ codeunit 101084 "Create Acc. Schedule Name"
     end;
 
 }
-

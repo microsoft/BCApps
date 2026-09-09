@@ -165,10 +165,6 @@ codeunit 134277 "Country/Region UT"
     [Test]
     [Scope('OnPrem')]
     procedure FormatAddressWithCountryRegionTranslationTest()
-    var
-        CountryRegion: Record "Country/Region";
-        CountryRegionTranslation: Record "Country/Region Translation";
-        AddrArray: array[8] of Text[100];
     begin
         exit;
         // [FEATURE] [Country/Region Translation]
@@ -184,4 +180,3 @@ codeunit 134277 "Country/Region UT"
         CountryRegion.Modify(true);
     end;
 }
-

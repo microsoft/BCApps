@@ -63,7 +63,6 @@ codeunit 117507 "Create Service Base Calendar"
         BaseCalChange: Record "Base Calendar Change";
         BaseCalendar: Record "Base Calendar";
         Date: Record Date;
-        StartDate: Date;
         XSERVICE: Label 'SERVICE';
         XServiceCalendar: Label 'Service Calendar';
         XWeekend: Label 'Weekend';
@@ -106,16 +105,6 @@ codeunit 117507 "Create Service Base Calendar"
         //----------------------------------------------------------------
     end;
 
-    procedure GetPeriodNoOneDate(SkipDirection: Text[1]): Date
-    begin
-        Date.Get(Date."Period Type"::Date, StartDate);
-        if Date."Period No." <> 1 then
-            repeat
-                Date.Find(SkipDirection);
-            until Date."Period No." = 1;
-        exit(Date."Period Start");
-    end;
-
     procedure CheckHolidayDate(OriginalDate: Date; OriginalDescription: Text[30])
     begin
         Date.Get(Date."Period Type"::Date, OriginalDate);
@@ -139,4 +128,3 @@ codeunit 117507 "Create Service Base Calendar"
         exit(DMY2Date(MonthDay, Month, (Date2DMY(HolidayDate, 3) + DemoDataSetup."Starting Year" - 2)));
     end;
 }
-

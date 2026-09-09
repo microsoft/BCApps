@@ -6,8 +6,4 @@ codeunit 101904 "Modify Currency"
         exit; // RU
 
     end;
-
-    var
-        Currency: Record Currency;
 }
-

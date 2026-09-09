@@ -1426,13 +1426,6 @@
     [Test]
     [Scope('OnPrem')]
     procedure AccountScheduleVarianceDrillDownPrintsColumnLayoutFormula()
-    var
-        AccScheduleName: Record "Acc. Schedule Name";
-        AccScheduleLine: Record "Acc. Schedule Line";
-        ColumnLayoutName: Record "Column Layout Name";
-        ColumnLayout: Record "Column Layout";
-        AccSchedManagement: Codeunit AccSchedManagement;
-        PeriodType: Option Day,Week,Month,Quarter,Year,"Accounting Period";
     begin
         exit; // NAVCZ Czech Localization has Account Schedule Formula Drill-Down Page
         // [FEATURE] [UI]
