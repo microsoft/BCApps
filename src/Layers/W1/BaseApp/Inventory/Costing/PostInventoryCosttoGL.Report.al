@@ -849,7 +849,7 @@ report 1002 "Post Inventory Cost to G/L"
 
     local procedure GetDimText(var DimSetEntry: Record "Dimension Set Entry")
     var
-        OldDimText: Text[250];
+        OldDimText: Text;
     begin
         DimText := '';
 
