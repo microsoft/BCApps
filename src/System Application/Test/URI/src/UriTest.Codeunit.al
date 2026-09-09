@@ -291,6 +291,10 @@ codeunit 135070 "Uri Test"
         // [Given] A same-host URL that downgrades the scheme from https to http
         // [Then] Validation should fall back to the hardcoded https URL instead of allowing cleartext
         LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('http://valid-integration.com/api', 'https://valid-integration.com/api'), 'https://valid-integration.com/api', 'A same-host http downgrade should fall back to the hardcoded https URL');
+
+        // [Given] A malformed stored URL
+        // [Then] Validation should fall back to the hardcoded URL without throwing
+        LibraryAssert.AreEqual(Uri.ValidateIntegrationURL('not a valid url', 'https://valid-integration.com/api'), 'https://valid-integration.com/api', 'A malformed stored URL should fall back to the hardcoded URL');
     end;
 
     [Test]
@@ -308,6 +312,10 @@ codeunit 135070 "Uri Test"
         // [Then] AreURIsHaveSameScheme should return false
         LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('http://microsoft.com/path1', 'https://microsoft.com/path2'), 'URIs with different schemes should return false');
         LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('ftp://files.example.com', 'https://files.example.com'), 'URIs with different schemes should return false');
+
+        // [Given] A malformed URI string
+        // [Then] AreURIsHaveSameScheme should return false instead of throwing
+        LibraryAssert.IsFalse(Uri.AreURIsHaveSameScheme('not a valid url', 'https://microsoft.com'), 'A malformed URI should return false');
     end;
 
     local procedure TestUriWellformed(UriString: Text; UriKind: Enum UriKind; ExpectedResult: Boolean)

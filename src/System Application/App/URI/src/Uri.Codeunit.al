@@ -214,10 +214,13 @@ codeunit 3060 Uri
     /// <returns>True if both URIs have the same scheme; otherwise, false.</returns>
     procedure AreURIsHaveSameScheme(UriString1: Text; UriString2: Text): Boolean
     var
-        Uri1, Uri2 : DotNet Uri;
+        Uri1, Uri2, UriFactory : DotNet Uri;
+        UriKindHelper: DotNet UriKind;
     begin
-        Uri1 := Uri1.Uri(UriString1.ToLower());
-        Uri2 := Uri2.Uri(UriString2.ToLower());
+        if not UriFactory.TryCreate(UriString1.ToLower(), UriKindHelper.Absolute, Uri1) then
+            exit(false);
+        if not UriFactory.TryCreate(UriString2.ToLower(), UriKindHelper.Absolute, Uri2) then
+            exit(false);
 
         exit(Uri1.Scheme = Uri2.Scheme);
     end;
@@ -230,10 +233,13 @@ codeunit 3060 Uri
     /// <returns>True if both URIs have the same host; otherwise, false.</returns>
     procedure AreURIsHaveSameHost(UriString1: Text; UriString2: Text): Boolean
     var
-        Uri1, Uri2 : DotNet Uri;
+        Uri1, Uri2, UriFactory : DotNet Uri;
+        UriKindHelper: DotNet UriKind;
     begin
-        Uri1 := Uri1.Uri(UriString1.ToLower());
-        Uri2 := Uri2.Uri(UriString2.ToLower());
+        if not UriFactory.TryCreate(UriString1.ToLower(), UriKindHelper.Absolute, Uri1) then
+            exit(false);
+        if not UriFactory.TryCreate(UriString2.ToLower(), UriKindHelper.Absolute, Uri2) then
+            exit(false);
 
         exit(Uri1.Host = Uri2.Host);
     end;
