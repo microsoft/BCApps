@@ -135,6 +135,8 @@ codeunit 7234 "MDM Contact Relation Cache"
         Clear(Degraded);
     end;
 
+    // The bulk path is used only within a synchronization run; the snapshot is dropped at both boundaries so it is
+    // fresh per run. MDM sync runs in a background job-queue session, so this state stays isolated to that session.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Master Data Synch.", 'OnBeforeRun', '', false, false)]
     local procedure MarkSyncRunStart(IntegrationTableMapping: Record "Integration Table Mapping"; var IsHandled: Boolean)
     begin

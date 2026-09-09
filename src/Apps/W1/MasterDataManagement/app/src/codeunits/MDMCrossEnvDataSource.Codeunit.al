@@ -27,6 +27,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         RecordsFeatureTok: Label 'records', Locked = true;
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
         SourceProbeTelemetryTxt: Label 'The cross-environment source-record probe failed for table %1.', Locked = true, Comment = '%1 = table id';
+        SourceConsentTelemetryTxt: Label 'The source environment has not approved cross-environment master data sharing (table %1).', Locked = true, Comment = '%1 = table id';
         ParseFailureTelemetryTxt: Label 'The cross-environment sync received an unusable response for table %1 (reason: %2).', Locked = true, Comment = '%1 = table id, %2 = reason';
         InvalidResponseReasonTok: Label 'InvalidResponse', Locked = true;
         TableUnavailableReasonTok: Label 'TableUnavailable', Locked = true;
@@ -131,8 +132,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
-        if SourceResponse.ConsentRequired(Response) then
+        if SourceResponse.ConsentRequired(Response) then begin
+            LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
+        end;
         if (not Response.Get('tables', Token)) or (not Token.IsArray()) then begin
             LogProbeFailure(IntegrationTableId);
             Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
@@ -192,8 +195,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
-        if SourceResponse.ConsentRequired(Response) then
+        if SourceResponse.ConsentRequired(Response) then begin
+            LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
+        end;
         // An unavailable table yields no records array; treat as no matching records for the review.
         if not SourceResponse.TableAvailable(Response) then
             exit(false);
@@ -389,6 +394,13 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         Session.LogMessage('0000VAS', StrSubstNo(SourceProbeTelemetryTxt, IntegrationTableId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
+    local procedure LogConsentRequired(IntegrationTableId: Integer)
+    var
+        MasterDataManagement: Codeunit "Master Data Management";
+    begin
+        Session.LogMessage('', StrSubstNo(SourceConsentTelemetryTxt, IntegrationTableId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+    end;
+
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)
     var
         UnavailableFields: JsonArray;
@@ -398,8 +410,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogParseFailure(IntegrationTableId, InvalidResponseReasonTok);
             Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
         end;
-        if SourceResponse.ConsentRequired(Response) then
+        if SourceResponse.ConsentRequired(Response) then begin
+            LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
+        end;
         if not SourceResponse.TableAvailable(Response) then begin
             LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
             Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));
