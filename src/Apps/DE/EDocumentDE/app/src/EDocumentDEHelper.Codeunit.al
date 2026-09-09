@@ -288,6 +288,27 @@ codeunit 11038 "E-Document DE Helper"
         end;
     end;
 
+    /// <summary>
+    /// Tells whether a signed amount is reported as a charge or as an allowance.
+    /// </summary>
+    /// <param name="SignedAmount">The signed amount of the allowance/charge.</param>
+    /// <returns>True for a charge, false for an allowance.</returns>
+    internal procedure IsCharge(SignedAmount: Decimal): Boolean
+    begin
+        exit(SignedAmount >= 0);
+    end;
+
+    /// <summary>
+    /// Gets the amount to report for a signed allowance/charge amount. The e-document formats report allowances with a
+    /// positive amount and distinguish them from charges through the charge indicator.
+    /// </summary>
+    /// <param name="SignedAmount">The signed amount of the allowance/charge.</param>
+    /// <returns>The absolute amount.</returns>
+    internal procedure GetReportedAmount(SignedAmount: Decimal): Decimal
+    begin
+        exit(Abs(SignedAmount));
+    end;
+
     [TryFunction]
     local procedure TryValidateRoutingNo(RoutingNo: Text[50])
     begin
