@@ -296,7 +296,7 @@ codeunit 6218 "Sustainability Calc. Mgt."
     var
         SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
     begin
-        SustGLSustLedgerRel.SetCurrentKey("Account Category", "G/L Entry No.");
+        SustGLSustLedgerRel.SetCurrentKey("Account Category", "Posting Date", "G/L Entry No.");
         SustGLSustLedgerRel.SetRange("Account Category", AccountCategoryCode);
         if (FromDate <> 0D) or (ToDate <> 0D) then
             SustGLSustLedgerRel.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
@@ -312,7 +312,7 @@ codeunit 6218 "Sustainability Calc. Mgt."
     var
         SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
     begin
-        SustJnlLineGLEntry.SetCurrentKey("Account Category", "G/L Entry No.");
+        SustJnlLineGLEntry.SetCurrentKey("Account Category", "Posting Date", "G/L Entry No.");
         SustJnlLineGLEntry.SetRange("Account Category", AccountCategoryCode);
         if (FromDate <> 0D) or (ToDate <> 0D) then
             SustJnlLineGLEntry.SetFilter("Posting Date", StrSubstNo(FromToFilterLbl, FromDate, ToDate));
