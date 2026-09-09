@@ -162,15 +162,8 @@ table 246 "Requisition Line"
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
-            var
-                IsHandled: Boolean;
             begin
-                IsHandled := false;
-                OnBeforeValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo, IsHandled);
-                if not IsHandled then
-                    ValidateQuantity();
-
-                OnAfterValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo);
+                ValidateQuantity();
             end;
         }
         field(9; "Vendor No."; Code[20])
@@ -2226,6 +2219,18 @@ table 246 "Requisition Line"
     end;
 
     local procedure ValidateQuantity()
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo, IsHandled);
+        if not IsHandled then
+            ValidateQuantityStandard();
+
+        OnAfterValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo);
+    end;
+
+    local procedure ValidateQuantityStandard()
     begin
         Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
 
