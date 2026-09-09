@@ -64,8 +64,7 @@ table 5406 "Prod. Order Line"
                 IsHandled := false;
                 OnValidateItemNoOnBeforeCheckReservations(Rec, xRec, CurrFieldNo, IsHandled);
                 if not IsHandled then begin
-                    if not IsTemporary() then
-                        ProdOrderLineReserve.VerifyChange(Rec, xRec);
+                    ProdOrderLineReserve.VerifyChange(Rec, xRec);
                     TestField("Finished Quantity", 0);
                     CalcFields("Reserved Quantity");
                     TestField("Reserved Quantity", 0);
@@ -78,9 +77,7 @@ table 5406 "Prod. Order Line"
                 if "Item No." = '' then
                     Init()
                 else begin
-                    OnBeforeGetProdOrder(Rec, ProdOrder);
-                    if not Rec.IsTemporary() then
-                        ProdOrder.Get(Status, "Prod. Order No.");
+                    ProdOrder.Get(Status, "Prod. Order No.");
                     "Starting Date" := ProdOrder."Starting Date";
                     "Starting Time" := ProdOrder."Starting Time";
                     "Ending Date" := ProdOrder."Ending Date";
@@ -145,8 +142,7 @@ table 5406 "Prod. Order Line"
             var
                 ItemVariant: Record "Item Variant";
             begin
-                if not IsTemporary() then
-                    ProdOrderLineReserve.VerifyChange(Rec, xRec);
+                ProdOrderLineReserve.VerifyChange(Rec, xRec);
                 TestField("Finished Quantity", 0);
                 CalcFields("Reserved Quantity");
                 TestField("Reserved Quantity", 0);
@@ -188,14 +184,10 @@ table 5406 "Prod. Order Line"
                 ProductionOrder: Record "Production Order";
             begin
                 ProductionOrder.SetLoadFields(Status, "No.", "Location Code");
-                if not Rec.IsTemporary() then begin
-                    ProductionOrder.Get(Rec.Status, Rec."Prod. Order No.");
-                    ProdOrderLineReserve.VerifyChange(Rec, xRec);
-
-                    ProdOrderWarehouseMgt.ProdOrderLineVerifyChange(Rec, xRec);
-
-                    ProdOrderWarehouseMgt.CompareProdOrderWithProdOrderLinesForLocation(ProductionOrder, Rec);
-                end;
+                ProductionOrder.Get(Rec.Status, Rec."Prod. Order No.");
+                ProdOrderLineReserve.VerifyChange(Rec, xRec);
+                ProdOrderWarehouseMgt.ProdOrderLineVerifyChange(Rec, xRec);
+                ProdOrderWarehouseMgt.CompareProdOrderWithProdOrderLinesForLocation(ProductionOrder, Rec);
                 ProdOrderWarehouseMgt.ValidateWarehousePutAwayLocation(Rec);
                 GetUpdateFromSKU();
                 GetDefaultBin();
@@ -310,8 +302,7 @@ table 5406 "Prod. Order Line"
                 if "Remaining Quantity" < 0 then
                     "Remaining Quantity" := 0;
                 "Remaining Qty. (Base)" := CalcBaseQty("Remaining Quantity", FieldCaption("Remaining Quantity"), FieldCaption("Remaining Qty. (Base)"));
-                if not IsTemporary() then
-                    ProdOrderLineReserve.VerifyQuantity(Rec, xRec);
+                ProdOrderLineReserve.VerifyQuantity(Rec, xRec);
                 ProdOrderWarehouseMgt.ProdOrderLineVerifyChange(Rec, xRec);
 
                 UpdateProdOrderComp(xRec."Qty. per Unit of Measure");
@@ -498,11 +489,9 @@ table 5406 "Prod. Order Line"
                 ModifyRecord: Boolean;
                 IsHandled: Boolean;
             begin
+                IsHandled := false;
                 OnBeforeValidateRoutingNo(Rec, xRec, CurrFieldNo, IsHandled);
                 if IsHandled then
-                    exit;
-
-                if IsTemporary() then
                     exit;
 
                 "Routing Version Code" := '';
@@ -1172,9 +1161,6 @@ table 5406 "Prod. Order Line"
     begin
         OnBeforeDeleteRelations(Rec);
 
-        if IsTemporary() then
-            exit;
-
         ProdOrderLine.SetRange(Status, Status);
         ProdOrderLine.SetRange("Prod. Order No.", "Prod. Order No.");
         ProdOrderLine.SetRange("Routing No.", "Routing No.");
@@ -1811,9 +1797,6 @@ table 5406 "Prod. Order Line"
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
-        if Rec.IsTemporary() then
-            exit;
-
         InitDefaultDimensionSources(DefaultDimSource);
         CreateDim(DefaultDimSource);
     end;
@@ -2143,11 +2126,6 @@ table 5406 "Prod. Order Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnValidateUnitCost(var ProdOrderLine: Record "Prod. Order Line"; var SkipInventoryValueZeroCheck: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetProdOrder(var ProdOrderLine: Record "Prod. Order Line"; var ProdOrder: Record "Production Order")
     begin
     end;
 }
