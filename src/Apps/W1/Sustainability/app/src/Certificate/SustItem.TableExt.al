@@ -368,6 +368,7 @@ tableextension 6220 "Sust. Item" extends Item
 
     local procedure CheckAndAssignEUDRItemTrackingCode()
     var
+        ItemTrackingCode: Record "Item Tracking Code";
         ConfirmManagement: Codeunit "Confirm Management";
     begin
         Rec.TestField(Type, Type::Inventory);
@@ -395,6 +396,8 @@ tableextension 6220 "Sust. Item" extends Item
     end;
 
     local procedure IsEUDRItemTrackingCode(): Boolean
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
     begin
         if Rec."Item Tracking Code" = '' then
             exit(false);
