@@ -119,8 +119,8 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         // The response body can echo source-environment record content, so it is never emitted to telemetry; only
         // the action and HTTP status (non-content diagnostics) are logged.
         Dimensions.Add('Category', TelemetryCategoryTok);
-        Dimensions.Add('action', ActionName);
-        Dimensions.Add('httpStatusCode', Format(ResponseMessage.HttpStatusCode()));
+        Dimensions.Add('Action', ActionName);
+        Dimensions.Add('HttpStatusCode', Format(ResponseMessage.HttpStatusCode()));
         Session.LogMessage('0000VAT', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         // Security audit: an authorization failure crossing the environment boundary.
         if ResponseMessage.HttpStatusCode() in [401, 403] then
@@ -134,7 +134,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         // GetLastErrorText() can contain record keys or file names, so the raw error is never emitted to telemetry;
         // only the action is logged.
         Dimensions.Add('Category', TelemetryCategoryTok);
-        Dimensions.Add('action', ActionName);
+        Dimensions.Add('Action', ActionName);
         Session.LogMessage('0000VAU', StrSubstNo(TransportFailedTelemetryTxt, ActionName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 

@@ -26,9 +26,9 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         SynchActionType: Option "None",Insert,Modify,ForceModify,IgnoreUnchanged,Fail,Skip,Delete,Uncouple,Couple;
         NoMatchingCriteriaDefinedErr: Label 'You must specify which fields on the table %1 should be used for match-based coupling.', Comment = '%1 - integration table mapping name';
         NoMatchFoundErr: Label 'Failed to couple %2 record(s), because no unique uncoupled matching entity was found in %1 with the specified matching criteria.', Comment = '%1 - comma-separated list of field names, %2 - A URL, %3 - an integer, number of records';
-        NoMatchFoundTelemetryErr: Label 'No matching entity was found for %1 in %3 by matching on following fields: %2.', Locked = true;
-        SingleMatchAlreadyCoupledTelemetryErr: Label 'Single matching entity was found for %1 in %3 by matching on following fields: %2, but it is already coupled.', Locked = true;
-        MultipleMatchesFoundTelemetryErr: Label 'Multiple matching entities found for %1 in %3 by matching on following fields: %2.', Locked = true;
+        NoMatchFoundTelemetryErr: Label 'No matching entity was found by matching on the following fields: %1.', Locked = true;
+        SingleMatchAlreadyCoupledTelemetryErr: Label 'A single matching entity was found by matching on the following fields: %1, but it is already coupled.', Locked = true;
+        MultipleMatchesFoundTelemetryErr: Label 'Multiple matching entities were found by matching on the following fields: %1.', Locked = true;
         NoMatchingCriteriaDefinedTelemetryErr: Label 'User is trying to schedule match based coupling for integration table mapping %1 without having specified the matchin criteria.', Locked = true;
         NoConflictResolutionStrategyDefinedTelemetryErr: Label 'User is trying to schedule match based coupling for integration table mapping %1 without having specified the conflict resolution strategy.', Locked = true;
         SkippingPostCouplingSynchTelemetryUserChoiceMsg: Label 'Skipping post-coupling synchronization for integration table mapping %1, because the user chose not to run it.', Locked = true;
@@ -288,7 +288,8 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         MatchingFieldNameList: Text;
     begin
         MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
-        exit(StrSubstNo(NoMatchFoundTelemetryErr, Format(LocalRecordRef.Field(LocalRecordRef.SystemIdNo).Value()), MatchingFieldNameList, GetIntegrationOrgCompanyName()));
+        // Record SystemId and source company name are kept out of the telemetry message; only the matching field names.
+        exit(StrSubstNo(NoMatchFoundTelemetryErr, MatchingFieldNameList));
     end;
 
     local procedure GetMultipleMatchesFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
@@ -296,7 +297,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         MatchingFieldNameList: Text;
     begin
         MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
-        exit(StrSubstNo(MultipleMatchesFoundTelemetryErr, Format(LocalRecordRef.Field(LocalRecordRef.SystemIdNo).Value()), MatchingFieldNameList, GetIntegrationOrgCompanyName()));
+        exit(StrSubstNo(MultipleMatchesFoundTelemetryErr, MatchingFieldNameList));
     end;
 
     local procedure GetSingleMatchAlreadyCoupledTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
@@ -304,7 +305,7 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         MatchingFieldNameList: Text;
     begin
         MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
-        exit(StrSubstNo(SingleMatchAlreadyCoupledTelemetryErr, Format(LocalRecordRef.Field(LocalRecordRef.SystemIdNo).Value()), MatchingFieldNameList, GetIntegrationOrgCompanyName()));
+        exit(StrSubstNo(SingleMatchAlreadyCoupledTelemetryErr, MatchingFieldNameList));
     end;
 
     local procedure GetMappingNameWithParent(var IntegrationTableMapping: Record "Integration Table Mapping"): Text

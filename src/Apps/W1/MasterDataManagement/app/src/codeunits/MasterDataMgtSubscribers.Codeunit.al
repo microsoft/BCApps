@@ -37,7 +37,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         UnsupportedKeyLengthErr: label 'Table %1 has a primary key that consists of %2 fields. Off-the page, synchronization engine doesn''t support renaming with primary key length of more than 10 fields.\\Subscribe to event OnRenameDestination in codeunit "Master Data Management" to implement the rename.', Comment = '%1 - a table caption, %2 - an integer';
         MappingDoesNotAllowDirectionErr: label 'The only supported direction for the data synchronization is %1.', Comment = '%1 - a text: From Integration Table';
         RunningFullSynchTelemetryTxt: Label 'Running full synch job for table mapping %1', Locked = true;
-        SetContactNoFromSourceCompanyTxt: Label 'For %1 %2, initialized company contact No. to be equal the No. of the company contact from the source company %3.', Locked = true;
+        SetContactNoFromSourceCompanyTxt: Label 'Initialized the %1 company contact number to match the source company contact.', Locked = true;
 
     [EventSubscriber(ObjectType::Table, Database::"Integration Table Mapping", 'OnAfterDeleteEvent', '', false, false)]
     local procedure HandleOnAfterDeleteIntegrationTableMapping(var Rec: Record "Integration Table Mapping"; RunTrigger: Boolean)
@@ -824,7 +824,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::Customer, Customer."No.", SourceContactNo) then
                 if not LocalContact.Get(SourceContactNo) then begin
                     Contact."No." := SourceContactNo;
-                    Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption(), Customer.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                     IsHandled := true;
                 end;
             exit;
@@ -844,7 +844,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if ContactBusinessRelation.FindFirst() then
             if not LocalContact.Get(ContactBusinessRelation."Contact No.") then begin
                 Contact."No." := ContactBusinessRelation."Contact No.";
-                Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption(), Customer.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 IsHandled := true;
             end;
     end;
@@ -882,7 +882,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::Vendor, Vendor."No.", SourceContactNo) then
                 if not LocalContact.Get(SourceContactNo) then begin
                     Contact."No." := SourceContactNo;
-                    Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption(), Vendor.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                     IsHandled := true;
                 end;
             exit;
@@ -902,7 +902,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if ContactBusinessRelation.FindFirst() then
             if not LocalContact.Get(ContactBusinessRelation."Contact No.") then begin
                 Contact."No." := ContactBusinessRelation."Contact No.";
-                Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption(), Vendor.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 IsHandled := true;
             end;
     end;
@@ -940,7 +940,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::"Bank Account", BankAccount."No.", SourceContactNo) then
                 if not LocalContact.Get(SourceContactNo) then begin
                     Contact."No." := SourceContactNo;
-                    Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption(), BankAccount.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                     IsHandled := true;
                 end;
             exit;
@@ -960,7 +960,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if ContactBusinessRelation.FindFirst() then
             if not LocalContact.Get(ContactBusinessRelation."Contact No.") then begin
                 Contact."No." := ContactBusinessRelation."Contact No.";
-                Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption(), BankAccount.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 IsHandled := true;
             end;
     end;

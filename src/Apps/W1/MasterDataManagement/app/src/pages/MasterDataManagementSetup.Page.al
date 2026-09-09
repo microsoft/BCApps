@@ -292,7 +292,7 @@ page 7230 "Master Data Management Setup"
     begin
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
-        Session.LogMessage('0000JIW', CompanyName(), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('0000JIW', SetupExportedTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
         Xmlport.Run(Xmlport::ExportMDMSetup, false, false, IntegrationTableMapping);
     end;
 
@@ -301,11 +301,13 @@ page 7230 "Master Data Management Setup"
     var
         MasterDataManagement: Codeunit "Master Data Management";
     begin
-        Session.LogMessage('0000JIX', CompanyName(), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('0000JIX', SetupImportedTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
         Xmlport.Run(XmlPort::ImportMDMSetup, false, true);
     end;
 
     var
+        SetupExportedTelemetryTxt: Label 'Master data synchronization setup was exported.', Locked = true;
+        SetupImportedTelemetryTxt: Label 'Master data synchronization setup was imported.', Locked = true;
         ResetIntegrationTableMappingConfirmQst: Label 'This will restore the default synchronization table setup and synchronization jobs. \\All existing customizations to synchronization table setup and jobs will be overwritten.\\Do you want to continue?';
         ImportIntegrationTableMappingConfirmQst: Label 'This will import the synchronization table setup from a chosen file. \\Existing synchronization tables and fields will be overwritten with the version from the file.\\Existing synchronization job queue entries will not be overwritten. Do you want to continue?';
         EnableServiceQst: Label 'The %1 is not enabled. Are you sure you want to exit?', Comment = '%1 = This Page Caption (Business Central Connection Setup)';

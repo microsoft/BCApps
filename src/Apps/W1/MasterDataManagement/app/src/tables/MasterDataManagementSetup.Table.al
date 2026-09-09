@@ -282,8 +282,9 @@ table 7230 "Master Data Management Setup"
         CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
         MasterDataManagement.AddSubsidiarySubscriptionToMasterCompany(Rec."Company Name", CurrentCompanyName);
         Message(SynchronizationEnabledMsg, Rec."Company Name");
-        Session.LogMessage('0000JIM', Rec."Company Name", Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
-        Session.LogMessage('0000JIN', CurrentCompanyName, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+        // Company names are tenant data: keep them out of the free-text telemetry message.
+        Session.LogMessage('0000JIM', SynchronizationEnabledSourceTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('0000JIN', SynchronizationEnabledSubscriberTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
     // Env name is organization-identifiable: keep it out of the free-text message and in a structured dimension.
@@ -407,5 +408,7 @@ table 7230 "Master Data Management Setup"
         CannotChangeSourceWhileEnabledErr: label 'You cannot change the source environment while synchronization is enabled. Disable synchronization first, then change the source.';
         EncryptionRequiredErr: label 'Enable data encryption before saving the source connection secret. Cross-environment credentials are never stored unencrypted.';
         CrossEnvEnabledTelemetryTxt: label 'Cross-environment master data synchronization was enabled.', Locked = true;
+        SynchronizationEnabledSourceTelemetryTxt: label 'Master data synchronization was enabled for the source company.', Locked = true;
+        SynchronizationEnabledSubscriberTelemetryTxt: label 'Master data synchronization was enabled for the subscriber company.', Locked = true;
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';
 }

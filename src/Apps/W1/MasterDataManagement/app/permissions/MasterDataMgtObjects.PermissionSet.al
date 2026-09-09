@@ -27,6 +27,7 @@ permissionset 7230 "Master Data Mgt. - Objects"
                   codeunit "MDM Source Capabilities" = X,
                   codeunit "MDM Inline Media" = X,
                   codeunit "MDM Source Watermark" = X,
+                  codeunit "MDM Contact Relation Cache" = X,
                   codeunit "MDM Privacy Notice" = X,
                   page * = X,
                   table * = X,
