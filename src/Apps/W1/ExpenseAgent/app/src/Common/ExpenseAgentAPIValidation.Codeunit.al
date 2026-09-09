@@ -6,7 +6,6 @@ namespace Microsoft.ExpenseAgent;
 
 using System.AI;
 using System.Environment;
-using System.Environment.Configuration;
 
 codeunit 6993 "Expense Agent API Validation"
 {
@@ -17,7 +16,6 @@ codeunit 6993 "Expense Agent API Validation"
     var
         AgentNotEnabledErr: Label 'Expense Agent is not enabled. Please contact your administrator.';
         CapabilityNotEnabledErr: Label 'The "%1" capability is not enabled. Please contact your administrator to enable the capability.', Comment = '%1 = a capability name, such as Expense Agent';
-        ExpenseAgentAadAppIdTxt: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
 
     procedure VerifyAgentAccess()
     begin
@@ -45,33 +43,18 @@ codeunit 6993 "Expense Agent API Validation"
             Error(CapabilityNotEnabledErr, Enum::"Copilot Capability"::"Expense Agent");
     end;
 
-    procedure GetAadAppId(): Text
-    begin
-        exit(ExpenseAgentAadAppIdTxt);
-    end;
-
     procedure IsCurrentUserExpenseAgent(): Boolean
     var
-        AADApplication: Record "AAD Application";
-        EnvironmentInfo: Codeunit "Environment Information";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        if not EnvironmentInfo.IsSaaSInfrastructure() then
-            exit(true);
-
-        if not AADApplication.Get(ExpenseAgentAadAppIdTxt) then
-            exit(false);
-
-        exit(AADApplication."User ID" = UserSecurityId());
+        exit(ExpenseAgentEntraApp.IsCurrentUserExpenseAgent());
     end;
 
     [TryFunction]
     internal procedure TryGetExpenseAgentUserId(var ExpenseAgentUserId: Guid)
     var
-        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        AadApplication.Get(ExpenseAgentAadAppIdTxt);
-        AadApplication.TestField(State, AadApplication.State::Enabled);
-
-        ExpenseAgentUserId := AadApplication."User ID";
+        ExpenseAgentUserId := ExpenseAgentEntraApp.GetEnabledExpenseAgentUserId();
     end;
 }

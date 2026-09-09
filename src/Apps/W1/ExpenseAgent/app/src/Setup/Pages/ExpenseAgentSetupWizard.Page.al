@@ -11,7 +11,6 @@ using System.AI;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Security.AccessControl;
 using System.Telemetry;
 using System.Utilities;
 #pragma warning disable AS0031
@@ -998,7 +997,6 @@ page 6991 "Expense Agent Setup Wizard"
         IncludeCategoriesForRulesQst: Label 'Default management rules require default expense categories. Do you want to add them to the configuration?';
         IncludeCategoriesAndPostingGroupsForRulesQst: Label 'Default management rules require default expense categories and posting groups. Do you want to add them to the configuration?';
         PrivacyNoticeNotAcceptedMsg: Label 'To use the Expense Agent, you must first accept the privacy notice. Please accept the privacy notice and try again.';
-        ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
         NoExpenseUsersErr: Label 'You must first specify who can access.';
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
@@ -1422,6 +1420,8 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure ActivateAgent(): Boolean
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
         ValidatePrivacyNoticeApproval();
         ValidateCapabilityIsEnabled();
@@ -1430,7 +1430,7 @@ page 6991 "Expense Agent Setup Wizard"
             Error(ApprovalWorkflowConflictErr, Rec.FieldCaption("Enable Approval Workflow"));
 
         EnsureCurrentUserHasAccess();
-        EnableAadApplication();
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
         Commit();
         if not RegisterErpConfiguration() then
             exit(false);
@@ -1439,11 +1439,14 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure DeactivateAgent(): Boolean
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
         if not Rec.ShowDeactivationAccessWarning() then
             exit(false);
         if not UnregisterErpConfiguration() then
             exit(false);
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
         Rec.LogAgentDisabledTelemetry();
         exit(true);
     end;
@@ -1503,60 +1506,6 @@ page 6991 "Expense Agent Setup Wizard"
 
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
-    end;
-
-    local procedure EnableAadApplication()
-    var
-        AadApplication: Record "AAD Application";
-        ExpenseAgentApiValidation: Codeunit "Expense Agent API Validation";
-    begin
-        AadApplication.SetRange("Client Id", ExpenseAgentApiValidation.GetAadAppId());
-        if not AadApplication.FindFirst() then
-            exit;
-
-        // We need to enable the AAD application first because enabling creates the user record.
-        // Once the user exists, we disable it, add the permission set, and re-enable it.
-        if AadApplication.State <> AadApplication.State::Enabled then begin
-            AadApplication.Validate(State, AadApplication.State::Enabled);
-            AadApplication.Modify(true);
-        end;
-
-        if HasExpenseAgentPermissionSet(AadApplication) then
-            exit;
-
-        AadApplication.Validate(State, AadApplication.State::Disabled);
-        AadApplication.Modify(true);
-
-        AddExpenseAgentPermissionSet(AadApplication);
-
-        AadApplication.Validate(State, AadApplication.State::Enabled);
-        AadApplication.Modify(true);
-    end;
-
-    local procedure HasExpenseAgentPermissionSet(AadApplication: Record "AAD Application"): Boolean
-    var
-        AccessControl: Record "Access Control";
-    begin
-        AccessControl.SetRange("User Security ID", AadApplication."User ID");
-        AccessControl.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        exit(not AccessControl.IsEmpty());
-    end;
-
-    local procedure AddExpenseAgentPermissionSet(AadApplication: Record "AAD Application")
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-    begin
-        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        if not AggregatePermissionSet.FindFirst() then
-            exit;
-
-        AccessControl.Init();
-        AccessControl.Validate("User Security ID", AadApplication."User ID");
-        AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
-        AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
-        AccessControl.Validate("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name")));
-        AccessControl.Insert(true);
     end;
 
     local procedure OnAssistEditMailbox()

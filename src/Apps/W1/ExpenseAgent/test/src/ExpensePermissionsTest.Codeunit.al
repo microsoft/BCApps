@@ -8,6 +8,8 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
+using System.Environment.Configuration;
+using System.TestLibraries.Security.AccessControl;
 
 codeunit 148338 "Expense Permissions Test"
 {
@@ -21,6 +23,7 @@ codeunit 148338 "Expense Permissions Test"
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        UserPermissionsLibrary: Codeunit "User Permissions Library";
         IsInitialized: Boolean;
         EmployeeOnlyPermissionSetTok: Label 'Exp. Emp. Only Test', Locked = true;
         HREditPermissionSetTok: Label 'Exp. HR Edit Test', Locked = true;
@@ -150,6 +153,116 @@ codeunit 148338 "Expense Permissions Test"
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'A denied approval must preserve the request status.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         Assert.RecordIsEmpty(ExpenseReportHeader);
+    procedure EntraAppPermissionFromOtherCompanyDoesNotApplyToCurrentCompany()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        OtherCompanyName: Text[30];
+        PermissionExists: Boolean;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 640454] An Entra app permission for another company does not satisfy the current company
+        Initialize();
+
+        // [GIVEN] Entra app user "EA" has the Expense Agent permission only for company "B"
+        AadApplication."User ID" := CreateGuid();
+        OtherCompanyName := CopyStr('Other ' + CompanyName(), 1, MaxStrLen(OtherCompanyName));
+        UserPermissionsLibrary.AssignPermissionSetToUser(AadApplication."User ID", ExpenseAgentPermissionSetTok, OtherCompanyName);
+
+        // [WHEN] Checking whether "EA" has the permission for the current company
+        PermissionExists := ExpenseAgentEntraApp.HasPermissionForCurrentCompany(AadApplication);
+
+        // [THEN] The permission is not considered assigned for the current company
+        Assert.IsFalse(PermissionExists, 'A permission assigned to another company must not satisfy the current company.');
+    end;
+
+    [Test]
+    procedure EntraAppPermissionFromCurrentCompanyAppliesToCurrentCompany()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        PermissionExists: Boolean;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 640454] An Entra app permission for the current company satisfies the current company
+        Initialize();
+
+        // [GIVEN] Entra app user "EA" has the Expense Agent permission for the current company
+        AadApplication."User ID" := CreateGuid();
+        UserPermissionsLibrary.AssignPermissionSetToUser(AadApplication."User ID", ExpenseAgentPermissionSetTok, CompanyName());
+
+        // [WHEN] Checking whether "EA" has the permission for the current company
+        PermissionExists := ExpenseAgentEntraApp.HasPermissionForCurrentCompany(AadApplication);
+
+        // [THEN] The permission is considered assigned for the current company
+        Assert.IsTrue(PermissionExists, 'A permission assigned to the current company must satisfy the current company.');
+    end;
+
+    [Test]
+    procedure AddingEntraAppPermissionCreatesCurrentCompanyPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 640454] Adding the Entra app permission creates it for the current company
+        Initialize();
+
+        // [GIVEN] Entra app user "EA" has no Expense Agent permission for the current company
+        AadApplication."User ID" := UserSecurityId();
+        ExpenseAgentEntraApp.RemovePermissionForCurrentCompany(AadApplication);
+
+        // [WHEN] Adding the permission for the current company
+        ExpenseAgentEntraApp.AddPermissionForCurrentCompany(AadApplication);
+
+        // [THEN] The current company permission exists
+        Assert.IsTrue(ExpenseAgentEntraApp.HasPermissionForCurrentCompany(AadApplication), 'The current company permission must be added.');
+    end;
+
+    [Test]
+    procedure RemovingCurrentCompanyPermissionKeepsOtherCompanyPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        OtherCompanyName: Text[30];
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 640454] Removing the current company permission preserves another company's permission
+        Initialize();
+
+        // [GIVEN] Entra app user "EA" has the Expense Agent permission for the current company and company "B"
+        AadApplication."User ID" := CreateGuid();
+        OtherCompanyName := CopyStr('Other ' + CompanyName(), 1, MaxStrLen(OtherCompanyName));
+        UserPermissionsLibrary.AssignPermissionSetToUser(AadApplication."User ID", ExpenseAgentPermissionSetTok, CompanyName());
+        UserPermissionsLibrary.AssignPermissionSetToUser(AadApplication."User ID", ExpenseAgentPermissionSetTok, OtherCompanyName);
+
+        // [WHEN] Removing the permission for the current company
+        ExpenseAgentEntraApp.RemovePermissionForCurrentCompany(AadApplication);
+
+        // [THEN] The current company permission is removed and another company permission remains
+        Assert.IsFalse(ExpenseAgentEntraApp.HasPermissionForCurrentCompany(AadApplication), 'The current company permission must be removed.');
+        Assert.IsTrue(ExpenseAgentEntraApp.HasAnyPermission(AadApplication), 'Another company permission must be preserved.');
+    end;
+
+    [Test]
+    procedure RemovingLastCompanyPermissionLeavesNoPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 640454] Removing the last company permission leaves no Expense Agent permission
+        Initialize();
+
+        // [GIVEN] Entra app user "EA" has the Expense Agent permission only for the current company
+        AadApplication."User ID" := CreateGuid();
+        UserPermissionsLibrary.AssignPermissionSetToUser(AadApplication."User ID", ExpenseAgentPermissionSetTok, CompanyName());
+
+        // [WHEN] Removing the permission for the current company
+        ExpenseAgentEntraApp.RemovePermissionForCurrentCompany(AadApplication);
+
+        // [THEN] No Expense Agent permission remains
+        Assert.IsFalse(ExpenseAgentEntraApp.HasAnyPermission(AadApplication), 'No Expense Agent permission must remain.');
     end;
 
     [Test]
