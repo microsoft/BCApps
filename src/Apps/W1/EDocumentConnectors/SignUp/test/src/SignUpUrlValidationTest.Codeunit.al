@@ -9,7 +9,7 @@ namespace Microsoft.EServices.EDocumentConnector.SignUp;
 /// host and scheme match the hardcoded service endpoint; otherwise it falls back to the hardcoded
 /// value so credentials/traffic cannot be redirected to a malicious endpoint.
 /// </summary>
-codeunit 148195 "SignUp Url Validation Test"
+codeunit 148206 "SignUp Url Validation Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
