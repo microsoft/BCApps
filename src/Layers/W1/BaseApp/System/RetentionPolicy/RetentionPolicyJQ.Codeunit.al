@@ -36,7 +36,6 @@ codeunit 3997 "Retention Policy JQ"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Apply Retention Policy", 'OnApplyRetentionPolicyRecordLimitExceeded', '', true, true)]
     local procedure ScheduleJobQueueEntryOnApplyRetentionPolicyRecordLimitExceeded(ApplyAllRetentionPolicies: Boolean; UserInvokedRun: Boolean; var Handled: Boolean)
     var
-        JobQueueEntry: Record "Job Queue Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
     begin
         if Handled then begin
@@ -61,18 +60,27 @@ codeunit 3997 "Retention Policy JQ"
 
         RetentionPolicyLog.LogInfo(RetentionPolicyLogCategory::"Retention Policy - Schedule", RescheduleOnLimitExceededLbl);
 
+        ScheduleContinuation();
+        Handled := true;
+    end;
+
+    internal procedure ScheduleContinuation()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
         JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold");
+        JobQueueEntry.SetFilter(Status, '%1|%2|%3', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Waiting);
         if JobQueueEntry.IsEmpty() then
             JobQueueEntry.ScheduleJobQueueEntryForLater(Codeunit::"Retention Policy JQ", CurrentDateTime(), JobQueueCategoryTok, '')
         else begin
             JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
             JobQueueEntry.FindFirst();
-            JobQueueEntry.Restart();
+            // The dispatcher activates Waiting entries when their category is available.
+            if JobQueueEntry.Status <> JobQueueEntry.Status::Waiting then
+                JobQueueEntry.Restart();
         end;
-        Handled := true;
     end;
 
     internal procedure SetSessionId(SessionId: Integer)
