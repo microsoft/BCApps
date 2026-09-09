@@ -47,7 +47,7 @@ codeunit 4768 "Create Mfg Posting Setup"
         ContosoPostingSetup.InsertGeneralPostingSetup(CommonPostingGroup.Domestic(), MfgPostingGroup.Manufacturing(), CommonGLAccount.SalesDomestic(), CommonGLAccount.PurchaseDomestic(), CommonGLAccount.InventoryAdjRawMat(), CommonGLAccount.DirectCostAppliedRawMat(), CommonGLAccount.OverheadAppliedRawMat(), CommonGLAccount.PurchaseVarianceRawMat());
     end;
 
-    local procedure CreateManufacturingSetup()
+    internal procedure CreateManufacturingSetup()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
         MfgNoSeries: Codeunit "Create Mfg No Series";

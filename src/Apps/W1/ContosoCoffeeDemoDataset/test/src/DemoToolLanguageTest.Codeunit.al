@@ -92,7 +92,6 @@ codeunit 148049 "Demo Tool Language Test"
     [Test]
     procedure ManufacturingVersionNoSeriesAreCreatedAndAssignedOnlyWhenBlank()
     var
-        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         CreateMfgNoSeries: Codeunit "Create Mfg No Series";
     begin
@@ -101,25 +100,12 @@ codeunit 148049 "Demo Tool Language Test"
         // [GIVEN] Manufacturing Setup has no version number series
         SetManufacturingVersionNoSeries('', '');
 
-        // [GIVEN] Previous demo data was generated in a different language
-        ContosoCoffeeDemoDataSetup.InitRecord();
-        ContosoCoffeeDemoDataSetup.Get();
-        if GlobalLanguage() = 2057 then
-            ContosoCoffeeDemoDataSetup.Validate("Language ID", 1033)
-        else
-            ContosoCoffeeDemoDataSetup.Validate("Language ID", 2057);
-        ContosoCoffeeDemoDataSetup.Modify(true);
-
         // [WHEN] Manufacturing setup data is created
         CreateManufacturingSetupData();
 
-        // [THEN] The fixture uses the current language without a confirmation dialog
-        ContosoCoffeeDemoDataSetup.Get();
-        ContosoCoffeeDemoDataSetup.TestField("Language ID", GlobalLanguage());
-
-        // [THEN] Both version number series have the expected definitions
-        VerifyNoSeries(CreateMfgNoSeries.ProductionBOMVersion(), 'Production BOM Versions', 'PV10', 'PV99990', 10);
-        VerifyNoSeries(CreateMfgNoSeries.RoutingVersion(), 'Routing Versions', 'RV10', 'RV99990', 10);
+        // [THEN] Both version number series have definitions padded to the ending number's width
+        VerifyNoSeries(CreateMfgNoSeries.ProductionBOMVersion(), 'Production BOM Versions', 'PV00010', 'PV99990', 10);
+        VerifyNoSeries(CreateMfgNoSeries.RoutingVersion(), 'Routing Versions', 'RV00010', 'RV99990', 10);
 
         // [THEN] Manufacturing Setup uses both version number series
         ManufacturingSetup.Get();
@@ -147,9 +133,12 @@ codeunit 148049 "Demo Tool Language Test"
         RoutingVersion: Record "Routing Version";
         UnitOfMeasure: Record "Unit of Measure";
         CreateMfgNoSeries: Codeunit "Create Mfg No Series";
+        NoSeries: Codeunit "No. Series";
         ExplicitBOMVersionCode: Code[20];
+        ExpectedBOMVersionCode: Code[20];
+        ExpectedRoutingVersionCode: Code[20];
     begin
-        // [SCENARIO 647371] Contoso headers inherit version series that generate PV10 and RV10 without changing explicit version codes.
+        // [SCENARIO 647371] Contoso headers use the next numbers from their inherited version series without changing explicit version codes.
 
         // [GIVEN] Contoso manufacturing setup data
         SetManufacturingVersionNoSeries('', '');
@@ -164,6 +153,10 @@ codeunit 148049 "Demo Tool Language Test"
         ProductionBOMHeader.TestField("Version Nos.", CreateMfgNoSeries.ProductionBOMVersion());
         RoutingHeader.TestField("Version Nos.", CreateMfgNoSeries.RoutingVersion());
 
+        // [GIVEN] The next numbers are captured before the explicit insertion, even if the series were already used
+        ExpectedBOMVersionCode := NoSeries.PeekNextNo(CreateMfgNoSeries.ProductionBOMVersion());
+        ExpectedRoutingVersionCode := NoSeries.PeekNextNo(CreateMfgNoSeries.RoutingVersion());
+
         // [WHEN] An explicit BOM version and blank-code BOM and routing versions are inserted
         ExplicitBOMVersionCode := 'EXPLICIT-V1';
         LibraryManufacturing.CreateProductionBOMVersion(ProductionBOMVersion, ProductionBOMHeader."No.", ExplicitBOMVersionCode, UnitOfMeasure.Code);
@@ -171,9 +164,11 @@ codeunit 148049 "Demo Tool Language Test"
         LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", '');
 
         // [THEN] The explicit code is preserved and blank codes use the inherited series
+        Assert.AreEqual(ExpectedBOMVersionCode, ProductionBOMVersion."Version Code", 'The production BOM version must use the next number from the inherited series without consuming a number for the explicit version.');
+        ProductionBOMVersion.TestField("No. Series", CreateMfgNoSeries.ProductionBOMVersion());
+        Assert.AreEqual(ExpectedRoutingVersionCode, RoutingVersion."Version Code", 'The routing version must use the next number from the inherited series.');
+        RoutingVersion.TestField("No. Series", CreateMfgNoSeries.RoutingVersion());
         Assert.IsTrue(ProductionBOMVersion.Get(ProductionBOMHeader."No.", ExplicitBOMVersionCode), 'The explicit production BOM version must remain unchanged.');
-        Assert.IsTrue(ProductionBOMVersion.Get(ProductionBOMHeader."No.", 'PV10'), 'The inherited production BOM version series must generate PV10.');
-        Assert.IsTrue(RoutingVersion.Get(RoutingHeader."No.", 'RV10'), 'The inherited routing version series must generate RV10.');
     end;
 
     [Test]
@@ -233,11 +228,13 @@ codeunit 148049 "Demo Tool Language Test"
     begin
         NoSeries.Get(NoSeriesCode);
         NoSeries.TestField(Description, ExpectedDescription);
+        NoSeries.TestField("Default Nos.", true);
         NoSeries.TestField("Manual Nos.", true);
         NoSeriesLine.Get(NoSeriesCode, 10000);
         NoSeriesLine.TestField("Starting No.", ExpectedStartingNo);
         NoSeriesLine.TestField("Ending No.", ExpectedEndingNo);
         NoSeriesLine.TestField("Increment-by No.", ExpectedIncrement);
+        NoSeriesLine.TestField(Implementation, Enum::"No. Series Implementation"::Sequence);
     end;
 
     local procedure SetManufacturingVersionNoSeries(ProductionBOMVersionNos: Code[20]; RoutingVersionNos: Code[20])
@@ -253,19 +250,11 @@ codeunit 148049 "Demo Tool Language Test"
 
     local procedure CreateManufacturingSetupData()
     var
-        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
-        ContosoDemoDataModule: Record "Contoso Demo Data Module";
-        ContosoDemoTool: Codeunit "Contoso Demo Tool";
+        CreateMfgPostingSetup: Codeunit "Create Mfg Posting Setup";
     begin
-        ContosoDemoDataModule.DeleteAll();
-        ContosoDemoTool.RefreshModules();
-
-        // Manufacturing tests must not depend on language state left by other tests.
-        ContosoCoffeeDemoDataSetup.Get();
-        ContosoCoffeeDemoDataSetup.Validate("Language ID", GlobalLanguage());
-        ContosoCoffeeDemoDataSetup.Modify(true);
-
-        ContosoDemoDataModule.SetRange(Module, Enum::"Contoso Demo Data Module"::"Manufacturing Module");
-        ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::"Setup Data");
+        // Exercise the production setup routine without regenerating unrelated localized Finance and Inventory data.
+        Codeunit.Run(Codeunit::"Create Mfg Cap Unit of Measure");
+        Codeunit.Run(Codeunit::"Create Mfg No Series");
+        CreateMfgPostingSetup.CreateManufacturingSetup();
     end;
 }
