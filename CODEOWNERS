@@ -1,7 +1,6 @@
 # CODEOWNERS is case sensitive and uses the last matching rule.
-# There is no repository-wide default: unmatched AL files fall back to the full
-# Business Central team, while later application and specialist rules override
-# that fallback. Ownerless rules release non-AL content from broader mappings.
+# Unmatched files fall back to the full Business Central team, while later
+# application and specialist rules override that fallback.
 #
 # The application map is generated from the BCApps triage routing data:
 #   microsoft/BCAppsTriage
@@ -10,8 +9,8 @@
 # Change generated ownership in BCAppsTriage, then regenerate this file.
 # Dedicated and cross-cutting ownership rules are listed after the generated map.
 
-# AL fallback
-*.al @microsoft/dynamics-365-business-central
+# Repository fallback
+* @microsoft/dynamics-365-business-central
 
 # Platform. Integration owns these end to end; the sub-sections other
 # teams own are listed further down, after this block.
@@ -64,10 +63,9 @@
 # (GST, TDS, Intrastat, IRS forms, e-invoicing), so Finance owns them by
 # default. Exceptions are listed at the end of this block.
 /src/Apps/*/ @microsoft/d365-bc-finance-1
-# W1 is a layer name, not a country code, so release it from that wildcard.
-# Restore the AL fallback before the individual app rules override it.
-/src/Apps/W1/
-/src/Apps/W1/**/*.al @microsoft/dynamics-365-business-central
+# W1 is a layer name, not a country code, so restore the repository fallback
+# before the individual app rules override it.
+/src/Apps/W1/ @microsoft/dynamics-365-business-central
 
 # W1 apps - one line each (100). These also override the wildcard
 # above, since W1 is a layer name rather than a country code.
@@ -178,14 +176,13 @@
 /src/Apps/BE/ShopifyBE/ @microsoft/d365-bc-integrations
 /src/Apps/IT/SubcontractingMigrationIT/ @microsoft/d365-bc-scm
 
-# Demo data. Every team contributes demo data for its own area, so these lines
-# release non-AL content from broader ownership rules. Integrations owns the AL
-# files that were previously covered by the Official Branches ruleset.
-/src/Apps/*/*ContosoCoffeeDemoDataset*/
+# Demo data. Every team contributes demo data for its own area, so non-AL
+# content uses the repository fallback. Integrations owns the AL files that
+# were previously covered by the Official Branches ruleset.
+/src/Apps/*/*ContosoCoffeeDemoDataset*/ @microsoft/dynamics-365-business-central
 /src/Apps/*/*ContosoCoffeeDemoDataset*/**/*.al @microsoft/d365-bc-integrations
-/src/DemoTool/*/
-/src/DemoTool/**/*.al @microsoft/dynamics-365-business-central
-/src/Layers/*/DemoTool/*/
+/src/DemoTool/*/ @microsoft/dynamics-365-business-central
+/src/Layers/*/DemoTool/*/ @microsoft/dynamics-365-business-central
 /src/Layers/*/DemoTool/**/*.al @microsoft/d365-bc-integrations
 
 
