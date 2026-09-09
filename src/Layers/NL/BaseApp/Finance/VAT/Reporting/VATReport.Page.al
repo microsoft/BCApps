@@ -517,8 +517,8 @@ page 740 "VAT Report"
         TempErrorMessage: Record "Error Message" temporary;
     begin
         TempErrorMessage.CopyFromContext(Rec);
-        CurrPage.ErrorMessagesPart.PAGE.SetRecords(TempErrorMessage);
-        CurrPage.ErrorMessagesPart.PAGE.Update();
+        CurrPage.ErrorMessagesPart.Page.SetRecords(TempErrorMessage);
+        CurrPage.ErrorMessagesPart.Page.Update();
         ErrorsExist := not TempErrorMessage.IsEmpty();
 
         exit(ErrorsExist);

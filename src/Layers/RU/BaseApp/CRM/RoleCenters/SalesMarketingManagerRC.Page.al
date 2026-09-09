@@ -274,12 +274,14 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Suite;
                             Caption = 'Customer Labels';
                             RunObject = report "Customer - Labels";
+                            Tooltip = 'Run the Customer Labels report.';
                         }
                         action("Customer - Balance to Date")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer - Balance to Date';
                             RunObject = report "Customer - Balance to Date";
+                            Tooltip = 'Run the Customer - Balance to Date report.';
                         }
                         action("Customer - Order Summary")
                         {
@@ -300,6 +302,7 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Register';
                             RunObject = report "Customer Register";
+                            Tooltip = 'Run the Customer Register report.';
                         }
                         action("Customer - Order Detail")
                         {
@@ -325,6 +328,7 @@ page 8907 "Sales & Marketing Manager RC"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Trial Balance';
                             RunObject = report "Customer - Trial Balance";
+                            Tooltip = 'Run the Customer Trial Balance report.';
                         }
 #if not CLEAN28
                         action("Customer - Sales List")
