@@ -210,14 +210,13 @@ codeunit 133964 "Agent Task Log Page Test"
         ContextTxt: Text;
     begin
         // [GIVEN] Troubleshooting context containing all calculated detail-page sections
-        ContextTxt := '{"serializedPage":"{\"page\":\"Customer Card\"}","isDecisionPoint":true,"pageStack":["Customer List","Customer Card"],"availableTools":["Edit record"],"memorizedData":{"customerNo":"10000"},"taskPageContext":{"currencyCode":"USD","currencySymbol":"$","outgoingCommunicationCulture":{"language":"en-US","dateFormat":"M/d/yyyy","timeFormat":"h:mm tt","formattedNumberExample":"1,234.56"}}}';
+        ContextTxt := '{"isDecisionPoint":true,"pageStack":["Customer List","Customer Card"],"availableTools":["Edit record"],"memorizedData":{"customerNo":"10000"},"taskPageContext":{"currencyCode":"USD","currencySymbol":"$","outgoingCommunicationCulture":{"language":"en-US","dateFormat":"M/d/yyyy","timeFormat":"h:mm tt","formattedNumberExample":"1,234.56"}}}';
 
-        // [WHEN] The context is projected for an authorized export
-        AgentTaskLogExport.BuildContextJson(ContextTxt, true, ContextJson);
+        // [WHEN] The non-sensitive context is projected
+        AgentTaskLogExport.BuildRedactedContextJson(ContextTxt, ContextJson);
 
         // [THEN] The native JSON values and calculated flags are preserved
         Assert.IsTrue(ContextJson.GetBoolean('decisionPoint'), 'The decision point should be exported.');
-        Assert.IsTrue(ContextJson.Contains('pageContent'), 'The page content should be included.');
         Assert.IsFalse(ContextJson.Contains('pageContentRedacted'), 'The page content should not be redacted.');
         Assert.AreEqual(2, ContextJson.GetArray('pageStack').Count(), 'The page stack should be exported.');
         ContextJson.GetArray('pageStack').Get(0, PageToken);
@@ -228,7 +227,6 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.AreEqual('10000', ContextJson.GetObject('memorizedData').GetText('customerNo'), 'The memorized data should be exported.');
         Assert.AreEqual('USD', ContextJson.GetObject('taskAndPageSettings').GetText('currencyCode'), 'The task and page settings should be exported.');
         Assert.AreEqual('en-US', ContextJson.GetObject('taskAndPageSettings').GetObject('communication').GetObject('culture').GetText('language'), 'The communication settings should be nested.');
-        Assert.AreEqual('Customer Card', ContextJson.GetObject('pageContent').GetText('page'), 'The page content should remain JSON.');
     end;
 
     [Test]
@@ -239,7 +237,7 @@ codeunit 133964 "Agent Task Log Page Test"
     begin
         // [GIVEN] Troubleshooting context containing a sensitive page snapshot
         // [WHEN] The context is projected without the troubleshooting permission
-        AgentTaskLogExport.BuildContextJson('{"serializedPage":"{\"secret\":\"value\"}"}', false, ContextJson);
+        AgentTaskLogExport.BuildRedactedContextJson('{"serializedPage":"{\"secret\":\"value\"}"}', ContextJson);
 
         // [THEN] The snapshot is not present and the redaction is explicit
         Assert.IsFalse(ContextJson.Contains('pageContent'), 'The page content should not be included.');

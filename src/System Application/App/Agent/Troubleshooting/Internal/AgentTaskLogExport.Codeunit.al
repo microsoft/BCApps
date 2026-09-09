@@ -36,14 +36,15 @@ codeunit 4313 "Agent Task Log Export"
         CurrentGlobalLanguage: Integer;
         ErrorText: Text;
     begin
-        IncludeSerializedPage := GetIncludeSerializedPage();
+        CheckExportAccess();
+        IncludeSerializedPage := CanIncludeSerializedPage();
         CurrentGlobalLanguage := GlobalLanguage();
         GlobalLanguage(1033); // ENU
 
         if not TryBuildExportJson(SelectedAgentTaskLogEntry, SelectedAgentTaskMemoryEntry, AgentTaskID, IncludeMemoryEntries, IncludeSerializedPage, ExportRoot) then begin
             ErrorText := GetLastErrorText();
             GlobalLanguage(CurrentGlobalLanguage);
-            Error(ErrorText);
+            Error(ExportFailedErr, ErrorText);
         end;
 
         GlobalLanguage(CurrentGlobalLanguage);
@@ -142,8 +143,9 @@ codeunit 4313 "Agent Task Log Export"
             AgentName := GetAgentName(AgentTaskLogEntryRecord."Task ID");
             if AgentName <> '' then
                 EntryJson.Add(AgentNameLbl, AgentName);
-            if AgentTaskMemoryEntry.Get(AgentTaskLogEntryRecord."Task ID", AgentTaskLogEntryRecord."Memory Entry ID") then
-                MemoryDetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
+            if not AgentTaskLogEntryRecord.IsTemporary() then
+                if AgentTaskMemoryEntry.Get(AgentTaskLogEntryRecord."Task ID", AgentTaskLogEntryRecord."Memory Entry ID") then
+                    MemoryDetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
         end;
 
         if AgentTaskLogEntry.GetSuccess(MemoryDetailsTxt, Success) then
@@ -156,12 +158,14 @@ codeunit 4313 "Agent Task Log Export"
         if IsAgentAction and not EntryJson.Contains(DecisionPointLbl) then
             EntryJson.Add(DecisionPointLbl, false);
 
-        MessagesJson := BuildMessagesJson(AgentTaskLogEntryRecord);
-        AddMessageCollections(EntryJson, MessagesJson);
+        if not AgentTaskLogEntryRecord.IsTemporary() then begin
+            MessagesJson := BuildMessagesJson(AgentTaskLogEntryRecord);
+            AddMessageCollections(EntryJson, MessagesJson);
 
-        RelatedLogEntries := BuildRelatedLogEntriesJson(AgentTaskLogEntryRecord);
-        if RelatedLogEntries.Count() > 0 then
-            EntryJson.Add(RelatedLogEntriesLbl, RelatedLogEntries);
+            RelatedLogEntries := BuildRelatedLogEntriesJson(AgentTaskLogEntryRecord);
+            if RelatedLogEntries.Count() > 0 then
+                EntryJson.Add(RelatedLogEntriesLbl, RelatedLogEntries);
+        end;
 
         exit(EntryJson);
     end;
@@ -206,7 +210,12 @@ codeunit 4313 "Agent Task Log Export"
         ContentInStream.Read(MemoryDetailsTxt);
     end;
 
-    procedure BuildContextJson(ContextTxt: Text; IncludeSerializedPage: Boolean; var ContextJson: JsonObject)
+    procedure BuildRedactedContextJson(ContextTxt: Text; var ContextJson: JsonObject)
+    begin
+        BuildContextJson(ContextTxt, false, ContextJson);
+    end;
+
+    local procedure BuildContextJson(ContextTxt: Text; IncludeSerializedPage: Boolean; var ContextJson: JsonObject)
     var
         ContextRoot: JsonObject;
         SerializedPageToken: JsonToken;
@@ -477,6 +486,7 @@ codeunit 4313 "Agent Task Log Export"
         AgentTaskMessage.SetFilter("Memory Entry ID", MemoryEntryFilter, AgentTaskLogEntry."Memory Entry ID");
 
         AgentTaskMessage.SetCurrentKey("Memory Entry ID");
+        AgentTaskMessage.SetAutoCalcFields("Created By Full Name");
         AgentTaskMessage.Ascending(true);
         if AgentTaskMessage.FindSet() then
             repeat
@@ -544,12 +554,17 @@ codeunit 4313 "Agent Task Log Export"
             exit(SelectedAgentTaskLogEntry."Task ID");
     end;
 
-    local procedure GetIncludeSerializedPage(): Boolean
+    local procedure CheckExportAccess()
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
-        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
+    end;
+
+    local procedure CanIncludeSerializedPage(): Boolean
+    var
+        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
+    begin
         exit(AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents());
     end;
 
@@ -576,6 +591,7 @@ codeunit 4313 "Agent Task Log Export"
 
     var
         AgentTroubleshooterMissingPermissionTxt: Label 'Only users who are assigned the ''Troubleshoot All Agents'' permission can view page snapshot data.';
+        ExportFailedErr: Label 'The agent task log could not be exported. Details: %1', Comment = '%1 contains the underlying error.';
         LogEntriesLbl: Label 'logEntries', Locked = true;
         MemoryEntriesLbl: Label 'memoryEntries', Locked = true;
         IdLbl: Label 'id', Locked = true;
