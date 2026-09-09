@@ -1203,7 +1203,7 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         CreatePurchDocWithLine(
           PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
           PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), WorkDate());
-        DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
+        DeferralTemplateCode := LibraryERM.CreateDeferralTemplateCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
         PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
         PurchaseLine.Modify(true);
 
@@ -1317,23 +1317,6 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         GLAccount.Modify(true);
 
         exit(GLAccount."No.");
-    end;
-
-    local procedure CreateDeferralCode(CalcMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date"; NumOfPeriods: Integer): Code[10]
-    var
-        DeferralTemplate: Record "Deferral Template";
-    begin
-        DeferralTemplate.Init();
-        DeferralTemplate."Deferral Code" :=
-          LibraryUtility.GenerateRandomCode(DeferralTemplate.FieldNo("Deferral Code"), DATABASE::"Deferral Template");
-        DeferralTemplate."Deferral Account" := LibraryERM.CreateGLAccountNo();
-        DeferralTemplate."Calc. Method" := CalcMethod;
-        DeferralTemplate."Start Date" := StartDate;
-        DeferralTemplate."No. of Periods" := NumOfPeriods;
-        DeferralTemplate."Period Description" := 'Deferral Revenue for %4';
-
-        DeferralTemplate.Insert();
-        exit(DeferralTemplate."Deferral Code");
     end;
 
     local procedure CreateGLAccountWithVATPostSetup(var GLAccount: Record "G/L Account"; VATBusPostGrCode: Code[20]; VATPct: Decimal)
