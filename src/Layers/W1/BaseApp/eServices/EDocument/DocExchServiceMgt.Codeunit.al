@@ -1419,7 +1419,6 @@ codeunit 1410 "Doc. Exch. Service Mgt."
     var
         URI: Codeunit Uri;
         ExpectedUrl: Text;
-        DefaultUrl: Text;
     begin
         if StoredUrl = '' then
             exit(StoredUrl);
@@ -1431,15 +1430,9 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             exit(StoredUrl);
 
         if IsSandbox(DocExchServiceSetup) then
-            DefaultUrl := DefaultSandboxUrl
+            ExpectedUrl := DefaultSandboxUrl
         else
-            DefaultUrl := DefaultProdUrl;
-
-        // Partners that override the endpoint (OnBeforeSetURLsToDefault) can point validation at their own trusted host; they cannot disable it.
-        ExpectedUrl := DefaultUrl;
-        OnGetValidatedIntegrationUrlOnBeforeValidate(DocExchServiceSetup, StoredUrl, ExpectedUrl);
-        if ExpectedUrl = '' then
-            ExpectedUrl := DefaultUrl;
+            ExpectedUrl := DefaultProdUrl;
 
         exit(URI.ValidateIntegrationURL(StoredUrl, ExpectedUrl));
     end;
@@ -1766,22 +1759,6 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendActivateAppNotification(var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Raised (online/SaaS only) before the stored Service/Auth/Token URL is validated against the trusted
-    /// host, so an extension that hosts Doc Exchange on a non-default endpoint can supply its own trusted URL
-    /// in ExpectedUrl. The stored URL is always validated against the resolved ExpectedUrl and cannot be
-    /// disabled; clearing ExpectedUrl reverts to the hardcoded default. Upgrade impact: on-premises deployments
-    /// are not affected (validation is skipped), but a SaaS extension that previously pointed Doc Exchange at a
-    /// non-Microsoft host via OnBeforeSetURLsToDefault must also subscribe here to keep that host trusted.
-    /// </summary>
-    /// <param name="DocExchServiceSetup">The Doc Exchange service setup being validated.</param>
-    /// <param name="StoredUrl">The stored URL under validation (Service, Auth, or Token URL).</param>
-    /// <param name="ExpectedUrl">The trusted URL the stored value is validated against; defaults to the Microsoft (Tradeshift) endpoint.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnGetValidatedIntegrationUrlOnBeforeValidate(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; var ExpectedUrl: Text)
     begin
     end;
 
