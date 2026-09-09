@@ -855,33 +855,29 @@ codeunit 31017 "Upgrade Application CZL"
     local procedure UpgradeDraftInvoiceAndProformaReportLayouts()
     var
         ReportLayoutList: Record "Report Layout List";
-        DefaultMetadataReportLayoutName: Text[100];
-        DefaultSelectionReportLayoutName: Text[250];
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag()) then
             exit;
 
-        if GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then begin
-            DefaultMetadataReportLayoutName := GetDefaultMetadataReportLayoutName(Report::"Standard Sales - Draft Invoice");
-            DefaultSelectionReportLayoutName := GetDefaultSelectionReportLayoutName(Report::"Standard Sales - Draft Invoice");
-
-            if (DefaultSelectionReportLayoutName = '') or
-               ((DefaultSelectionReportLayoutName <> '') and (DefaultSelectionReportLayoutName = DefaultMetadataReportLayoutName))
-            then
+        if GetDraftInvoiceReportLayoutCZ(ReportLayoutList) then
+            if not IsReportLayoutSelectionCustomized(Report::"Standard Sales - Draft Invoice") then
                 SetDefaultReportLayout(ReportLayoutList);
-        end;
 
-        if GetProformaReportLayoutCZ(ReportLayoutList) then begin
-            DefaultMetadataReportLayoutName := GetDefaultMetadataReportLayoutName(Report::"Standard Sales - Pro Forma Inv");
-            DefaultSelectionReportLayoutName := GetDefaultSelectionReportLayoutName(Report::"Standard Sales - Pro Forma Inv");
-
-            if (DefaultSelectionReportLayoutName = '') or
-               ((DefaultSelectionReportLayoutName <> '') and (DefaultSelectionReportLayoutName = DefaultMetadataReportLayoutName))
-            then
+        if GetProformaReportLayoutCZ(ReportLayoutList) then
+            if not IsReportLayoutSelectionCustomized(Report::"Standard Sales - Pro Forma Inv") then
                 SetDefaultReportLayout(ReportLayoutList);
-        end;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetChangeDefaultDraftInvoiceAndProformaReportLayoutsUpgradeTag());
+    end;
+
+    internal procedure IsReportLayoutSelectionCustomized(ReportId: Integer): Boolean
+    var
+        DefaultMetadataReportLayoutName: Text[100];
+        DefaultSelectionReportLayoutName: Text[250];
+    begin
+        DefaultMetadataReportLayoutName := GetDefaultMetadataReportLayoutName(ReportId);
+        DefaultSelectionReportLayoutName := GetDefaultSelectionReportLayoutName(ReportId);
+        exit((DefaultSelectionReportLayoutName <> '') and (DefaultSelectionReportLayoutName <> DefaultMetadataReportLayoutName));
     end;
 
     local procedure GetDefaultMetadataReportLayoutName(ReportId: Integer): Text[100]
