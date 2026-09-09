@@ -207,6 +207,7 @@
 
 # Localization apps that are not Finance.
 /src/Apps/BE/ShopifyBE/ @microsoft/d365-bc-integrations
+/src/Apps/IT/SubcontractingMigrationIT/ @microsoft/d365-bc-scm
 
 # Demo data. Every team contributes demo data for its own area, so it has no
 # single owner. This line has no owner on purpose: it releases demo data
