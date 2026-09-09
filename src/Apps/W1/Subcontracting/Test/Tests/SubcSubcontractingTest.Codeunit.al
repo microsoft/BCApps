@@ -208,7 +208,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, TransferHeader."Subcontr. Purch. Order No.");
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.ModifyAll(Quantity, 0);
+        Assert.IsTrue(PurchaseLine.FindSet(true), 'Expected subcontracting purchase lines.');
+        repeat
+            PurchaseLine.Validate(Quantity, 0);
+            PurchaseLine.UpdateAmounts();
+            PurchaseLine.Modify(true);
+        until PurchaseLine.Next() = 0;
         PurchaseOrder.OpenView();
         PurchaseOrder.GoToRecord(PurchaseHeader);
 
