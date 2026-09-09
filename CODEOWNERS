@@ -193,6 +193,7 @@
 
 # AL ownership migrated from the Official Branches ruleset
 /src/DisabledTests/ @microsoft/d365-bc-app-tests
+# Unanchored intentionally to preserve ownership of every Upgrade folder.
 Upgrade/ @microsoft/d365-bc-app-upgrade
 /src/GDL/ @microsoft/d365-bc-integrations
 
