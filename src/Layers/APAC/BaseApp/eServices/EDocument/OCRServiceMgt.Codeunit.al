@@ -87,35 +87,12 @@ codeunit 1294 "OCR Service Mgt."
         FailedRequestResultTxt: Label 'Request to OCR service failed. Status code: %1. Message: %2. Details: %3.', Locked = true;
         FailedRequestBodyTxt: Label 'Request to OCR service failed. Method: %1. URL: %2. Body: %3', Locked = true;
         TelemetryCategoryTok: Label 'AL OCR Service', Locked = true;
-        DefaultServiceUrlRSOTok: Label 'https://services.readsoftonline.com', Locked = true;
 
     procedure SetURLsToDefaultRSO(var OCRServiceSetup: Record "OCR Service Setup")
     begin
         OCRServiceSetup."Sign-up URL" := 'https://store.readsoftonline.com/nav';
-        OCRServiceSetup."Service URL" := DefaultServiceUrlRSOTok;
+        OCRServiceSetup."Service URL" := 'https://services.readsoftonline.com';
         OCRServiceSetup."Sign-in URL" := 'https://nav.readsoftonline.com';
-    end;
-
-    local procedure GetValidatedServiceUrl(): Text
-    var
-        URI: Codeunit Uri;
-        ExpectedServiceUrl: Text;
-    begin
-        if OCRServiceSetup."Service URL" = '' then
-            exit(OCRServiceSetup."Service URL");
-
-        // Partners with an alternative OCR endpoint can point validation at their own trusted host; they cannot disable it.
-        ExpectedServiceUrl := DefaultServiceUrlRSOTok;
-        OnGetValidatedServiceUrlOnBeforeValidate(OCRServiceSetup, ExpectedServiceUrl);
-        if ExpectedServiceUrl = '' then
-            ExpectedServiceUrl := DefaultServiceUrlRSOTok;
-
-        exit(URI.ValidateIntegrationURL(OCRServiceSetup."Service URL", ExpectedServiceUrl));
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnGetValidatedServiceUrlOnBeforeValidate(var OCRServiceSetup: Record "OCR Service Setup"; var ExpectedServiceUrl: Text)
-    begin
     end;
 
     procedure CheckCredentials()
@@ -409,7 +386,6 @@ codeunit 1294 "OCR Service Mgt."
     local procedure GetOcrServiceSetup(VerifyEnable: Boolean)
     begin
         GetOcrServiceSetupExtended(OCRServiceSetup, VerifyEnable);
-        OCRServiceSetup."Service URL" := CopyStr(GetValidatedServiceUrl(), 1, MaxStrLen(OCRServiceSetup."Service URL"));
     end;
 
     procedure GetOcrServiceSetupExtended(var OCRServiceSetup: Record "OCR Service Setup"; VerifyEnable: Boolean)
