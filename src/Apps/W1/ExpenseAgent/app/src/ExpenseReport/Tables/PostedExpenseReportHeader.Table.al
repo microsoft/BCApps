@@ -304,6 +304,9 @@ table 6915 "Posted Expense Report Header"
         {
             Clustered = true;
         }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
         key(ExpenseUser; "Expense User No.", "No.")
         {
         }

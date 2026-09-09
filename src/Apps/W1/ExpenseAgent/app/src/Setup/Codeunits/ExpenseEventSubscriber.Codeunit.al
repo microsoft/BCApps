@@ -316,6 +316,7 @@ codeunit 6908 "Expense Event Subscriber"
     local procedure AutoApproveSpendRequestWhenAgentDisabled(var SpendRequest: Record "Spend Request")
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
             exit;
@@ -328,10 +329,6 @@ codeunit 6908 "Expense Event Subscriber"
         if ExpenseAgentSetup."Enable Agent" then
             exit;
 
-        SpendRequest.Status := SpendRequest.Status::Approved;
-        SpendRequest."Approved/Rejected At" := CurrentDateTime();
-        SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
-        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
-        SpendRequest.Modify();
+        TravelRequestApproval.ApproveAutomatically(SpendRequest);
     end;
 }
