@@ -798,8 +798,8 @@ codeunit 148223 "EUDR Certificate Capture Test"
         LotNoInformationCard.GoToRecord(LotNoInformation);
         LotNoInformationCard."EUDR Certificate No.".SetValue(CertificateNo);
         LotNoInformationCard."Certification Scheme".SetValue(CertificationScheme);
-        LotNoInformationCard."EUDR Valid From".SetValue(WorkDate());
-        LotNoInformationCard."EUDR Valid To".SetValue(WorkDate() + 1);
+        LotNoInformationCard."EUDR Valid From".SetValue(DMY2Date(1, 11, Date2DMY(WorkDate(), 3)));
+        LotNoInformationCard."EUDR Valid To".SetValue(DMY2Date(1, 11, Date2DMY(WorkDate(), 3)));
         LotNoInformationCard."Country/Region of Production Code".SetValue(CountryRegion.Code);
         LotNoInformationCard."DDS Reference Number".SetValue(DDSReferenceNo);
         LotNoInformationCard."DDS Verification No.".SetValue(DDSVerificationNo);
