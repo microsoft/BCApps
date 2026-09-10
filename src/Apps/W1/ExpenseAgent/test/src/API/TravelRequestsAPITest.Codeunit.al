@@ -44,6 +44,7 @@ codeunit 148347 "Travel Requests API Test"
         BadRequestResponseErr: Label 'Response code is 400 (BadRequest).', Locked = true;
         RequestedByCannotBeChangedErr: Label 'cannot be changed', Locked = true;
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
+        ApproveTravelRequestBodyLbl: Label '{"approverExpenseUserNo":"%1"}', Comment = '%1 = Approver Expense User No.', Locked = true;
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
@@ -185,7 +186,7 @@ codeunit 148347 "Travel Requests API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(TravelRequest.SystemId), Page::"Travel Requests API",
             TravelRequestsServiceNameTok, ApproveTravelRequestActionTok);
-        RequestBody := StrSubstNo('{"approverExpenseUserNo":"%1"}', ApproverExpenseUser."No.");
+        RequestBody := StrSubstNo(ApproveTravelRequestBodyLbl, ApproverExpenseUser."No.");
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
 
         // [THEN] The request is approved and a report is created for Requested For.
