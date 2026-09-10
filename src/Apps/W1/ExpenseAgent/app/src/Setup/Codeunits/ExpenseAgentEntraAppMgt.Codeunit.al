@@ -20,9 +20,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AadApplication: Record "AAD Application";
     begin
         EnsureCurrentUserCanManageExpenseAgent();
-
-        if not GetAadApplication(AadApplication) then
-            exit;
+        GetAadApplication(AadApplication);
 
         // Enabling creates the application user. Disable it again before changing permissions.
         if AadApplication.State <> AadApplication.State::Enabled then begin
@@ -48,9 +46,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         HasOtherCompanyPermission: Boolean;
     begin
         EnsureCurrentUserCanManageExpenseAgent();
-
-        if not GetAadApplication(AadApplication) then
-            exit;
+        GetAadApplication(AadApplication);
 
         HasOtherCompanyPermission := HasExpenseAgentPermissionForOtherCompany(AadApplication);
         RemovePermissionForCurrentCompany(AadApplication);
@@ -97,8 +93,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
-            exit(false);
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
 
         SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
         AccessControl.SetFilter("Company Name", '%1|''''', GetCurrentCompanyName());
@@ -110,8 +105,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
-            exit(false);
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
 
         SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
         AccessControl.SetFilter("Company Name", '<>%1', GetCurrentCompanyName());
@@ -123,8 +117,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
-            exit;
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
 
         AccessControl.Init();
         AccessControl.Validate("User Security ID", AadApplication."User ID");
@@ -140,17 +133,17 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
-            exit;
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
 
         SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
         AccessControl.SetRange("Company Name", GetCurrentCompanyName());
         AccessControl.DeleteAll(true);
     end;
 
-    local procedure GetAadApplication(var AadApplication: Record "AAD Application"): Boolean
+    local procedure GetAadApplication(var AadApplication: Record "AAD Application")
     begin
-        exit(AadApplication.Get(GetAadAppId()));
+        if not AadApplication.Get(GetAadAppId()) then
+            Error(AadApplicationMissingErr);
     end;
 
     local procedure GetCurrentCompanyName(): Text[30]
@@ -166,14 +159,15 @@ codeunit 6913 "Expense Agent Entra App Mgt."
             Error(NotAuthorizedToManageExpenseAgentErr);
     end;
 
-    local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set"): Boolean
+    local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set")
     var
         ExpenseAgentAppId: Guid;
     begin
         Evaluate(ExpenseAgentAppId, ExpenseAgentAppIdTxt);
         AggregatePermissionSet.SetRange("App ID", ExpenseAgentAppId);
         AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        exit(AggregatePermissionSet.FindFirst());
+        if not AggregatePermissionSet.FindFirst() then
+            Error(ExpenseAgentPermissionSetMissingErr);
     end;
 
     local procedure SetExpenseAgentPermissionFilters(var AccessControl: Record "Access Control"; AadApplication: Record "AAD Application"; AggregatePermissionSet: Record "Aggregate Permission Set")
@@ -188,5 +182,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         ExpenseAgentAadAppIdTxt: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
         ExpenseAgentAppIdTxt: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
+        AadApplicationMissingErr: Label 'The Expense Agent Microsoft Entra application is not configured.';
+        ExpenseAgentPermissionSetMissingErr: Label 'The Expense Agent permission set is not available.';
         NotAuthorizedToManageExpenseAgentErr: Label 'You do not have permission to manage the Expense Agent.';
 }
