@@ -25,6 +25,8 @@ page 6917 "Employees API"
     DataAccessIntent = ReadOnly;
     SourceTable = Employee;
     AboutText = 'Lists details about employees that can use the expense functionalities.';
+    Permissions = tabledata Traveler = r,
+                  tabledata "Expense User" = r;
 
     layout
     {
@@ -83,31 +85,29 @@ page 6917 "Employees API"
 
     local procedure ApplyTravelRequestFilter()
     var
-        ExpenseUser: Record "Expense User";
         EmployeeFilterRecord: Record Employee;
-        Traveler: Record Traveler;
+        TravelRequestEmployees: Query "Travel Request Employees";
         EmployeeFilter: TextBuilder;
-        TravelRequestNo: Code[20];
+        TravelRequestSystemId: Guid;
         OriginalFilterGroup: Integer;
     begin
         OriginalFilterGroup := Rec.FilterGroup(4);
-        TravelRequestNo := CopyStr(Rec.GetFilter("Travel Request No. Filter"), 1, MaxStrLen(TravelRequestNo));
+        if Rec.GetFilter("Travel Request SystemId Filter") <> '' then
+            TravelRequestSystemId := Rec.GetRangeMin("Travel Request SystemId Filter");
         Rec.FilterGroup(OriginalFilterGroup);
-        if TravelRequestNo = '' then
+        if IsNullGuid(TravelRequestSystemId) then
             exit;
 
-        Traveler.SetRange("Spend Request No.", TravelRequestNo);
-        Traveler.SetLoadFields("Expense User No.");
-        ExpenseUser.SetLoadFields("Employee No.");
-        if Traveler.FindSet() then
-            repeat
-                ExpenseUser.Get(Traveler."Expense User No.");
-                ExpenseUser.TestField("Employee No.");
+        TravelRequestEmployees.SetRange(travelRequestSystemId, TravelRequestSystemId);
+        TravelRequestEmployees.Open();
+        while TravelRequestEmployees.Read() do
+            if TravelRequestEmployees.employeeNo <> '' then begin
                 if EmployeeFilter.Length > 0 then
                     EmployeeFilter.Append('|');
-                EmployeeFilterRecord.SetRange("No.", ExpenseUser."Employee No.");
+                EmployeeFilterRecord.SetRange("No.", TravelRequestEmployees.employeeNo);
                 EmployeeFilter.Append(EmployeeFilterRecord.GetFilter("No."));
-            until Traveler.Next() = 0;
+            end;
+        TravelRequestEmployees.Close();
 
         OriginalFilterGroup := Rec.FilterGroup(2);
         if EmployeeFilter.Length = 0 then

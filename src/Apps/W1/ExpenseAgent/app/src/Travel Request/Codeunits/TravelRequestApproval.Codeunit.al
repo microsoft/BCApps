@@ -77,7 +77,7 @@ codeunit 7133 "Travel Request Approval"
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
         if ExpenseReportHeader.IsEmpty() then
-            Error(ExpenseReportWasNotCreatedErr, SpendRequest."No.", SpendRequest."Requested For");
+            Error(GetExpenseReportWasNotCreatedError(SpendRequest));
     end;
 
     internal procedure Reject(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
@@ -102,6 +102,17 @@ codeunit 7133 "Travel Request Approval"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUsage(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName);
+    end;
+
+    local procedure GetExpenseReportWasNotCreatedError(SpendRequest: Record "Spend Request"): ErrorInfo
+    var
+        ExpenseReportWasNotCreatedError: ErrorInfo;
+    begin
+        ExpenseReportWasNotCreatedError.Message := StrSubstNo(
+            ExpenseReportWasNotCreatedErr, SpendRequest."No.", SpendRequest."Requested For");
+        ExpenseReportWasNotCreatedError.DataClassification := DataClassification::CustomerContent;
+        ExpenseReportWasNotCreatedError.ErrorType := ErrorType::Internal;
+        exit(ExpenseReportWasNotCreatedError);
     end;
 
     internal procedure ApplyOwnerFilter(var SpendRequest: Record "Spend Request"; OwnerSystemId: Guid): Code[20]

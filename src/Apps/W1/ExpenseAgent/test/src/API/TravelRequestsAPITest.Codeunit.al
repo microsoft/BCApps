@@ -143,10 +143,12 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseReportHeader.Delete(true);
         Commit();
 
-        // [WHEN] The create expense report action is invoked through OData.
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            Format(TravelRequest.SystemId), Page::"Travel Requests API",
-            TravelRequestsServiceNameTok, CreateExpenseReportActionTok);
+        // [WHEN] The create expense report action is invoked through the owner's OData route.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(
+            TargetURL, '/' + TravelRequestsServiceNameTok + '(' +
+            LibraryGraphMgt.StripBrackets(Format(TravelRequest.SystemId)) + ')/' + CreateExpenseReportActionTok);
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, '{}', ResponseText, 201);
 
         // [THEN] A new report is linked to the request and its Expense User.

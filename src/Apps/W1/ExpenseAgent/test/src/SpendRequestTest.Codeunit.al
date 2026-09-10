@@ -70,6 +70,7 @@ codeunit 148339 "Spend Request Test"
         NotTravelRequestOwnerErr: Label 'did not create it', Locked = true;
         TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.', Locked = true;
         ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.', Locked = true;
+        OwnerScopeRequiredErr: Label 'The create expense report action must be invoked through the owning expense user.', Locked = true;
         NotTravelRequestApproverErr: Label 'is not authorized', Locked = true;
         LinkedExpenseReportExistsErr: Label 'because it is linked to an expense report.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
@@ -790,7 +791,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.FindFirst();
         ExpenseReportHeader.Delete(true);
-        TravelRequestsAPI.SetRecord(SpendRequest);
+        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
 
         // [WHEN] The create expense report action is invoked.
         TravelRequestsAPI.CreateExpenseReport(ActionContext);
@@ -815,7 +816,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An open travel request with a requested Expense User.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
-        TravelRequestsAPI.SetRecord(SpendRequest);
+        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
 
         // [WHEN] The create expense report action is invoked.
         asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
@@ -842,7 +843,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.FindFirst();
-        TravelRequestsAPI.SetRecord(SpendRequest);
+        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
 
         // [WHEN] The create expense report action is invoked.
         asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
@@ -850,6 +851,29 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The action identifies the Expense User, existing report, and travel request.
         Assert.ExpectedError(
             StrSubstNo(ExpenseReportAlreadyLinkedErr, ExpenseUser."No.", ExpenseReportHeader."No.", SpendRequest."No."));
+    end;
+
+    [Test]
+    procedure CreateExpenseReportPageActionRequiresOwnerScope()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] Report recreation cannot be invoked through an unscoped travel request route.
+        Initialize();
+
+        // [GIVEN] An approved travel request without an owner-scoped API filter.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        TravelRequestsAPI.SetRecord(SpendRequest);
+
+        // [WHEN] The create expense report action is invoked.
+        asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] The action requires the owning Expense User route.
+        Assert.ExpectedError(OwnerScopeRequiredErr);
     end;
 
     [Test]
@@ -1994,6 +2018,17 @@ codeunit 148339 "Spend Request Test"
     begin
         Traveler.SetRange("Spend Request No.", SpendRequestNo);
         Traveler.DeleteAll();
+    end;
+
+    local procedure SetOwnerScopedTravelRequest(var TravelRequestsAPI: Page "Travel Requests API"; var SpendRequest: Record "Spend Request"; ExpenseUserSystemId: Guid)
+    var
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := SpendRequest.FilterGroup(4);
+        SpendRequest.SetRange("Requested By User Id Filter", ExpenseUserSystemId);
+        SpendRequest.FilterGroup(OriginalFilterGroup);
+        TravelRequestsAPI.SetTableView(SpendRequest);
+        TravelRequestsAPI.SetRecord(SpendRequest);
     end;
 
     [PageHandler]

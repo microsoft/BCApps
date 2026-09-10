@@ -16,9 +16,9 @@ tableextension 7110 "Expense Employee" extends Employee
             FieldClass = FlowField;
             CalcFormula = exist("Expense User" where("Employee No." = field("No.")));
         }
-        field(7101; "Travel Request No. Filter"; Code[20])
+        field(7101; "Travel Request SystemId Filter"; Guid)
         {
-            Caption = 'Travel Request No. Filter';
+            Caption = 'Travel Request SystemId Filter';
             FieldClass = FlowFilter;
         }
     }

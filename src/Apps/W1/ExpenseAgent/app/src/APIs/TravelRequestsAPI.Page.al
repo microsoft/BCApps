@@ -209,7 +209,7 @@ page 7134 "Travel Requests API"
                     Caption = 'Employees';
                     EntityName = 'employee';
                     EntitySetName = 'employees';
-                    SubPageLink = "Travel Request No. Filter" = field("No.");
+                    SubPageLink = "Travel Request SystemId Filter" = field(SystemId);
                 }
             }
         }
@@ -282,6 +282,7 @@ page 7134 "Travel Requests API"
     var
         ExpenseReportHeader: Record "Expense Report Header";
     begin
+        CheckOwnerScopeRequired();
         Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
         if Rec.Status <> Rec.Status::Approved then
             Error(TravelRequestMustBeApprovedErr, Rec."No.");
@@ -365,6 +366,16 @@ page 7134 "Travel Requests API"
             Rec.TestField("Requested By", OwnerEmployeeNo);
     end;
 
+    local procedure CheckOwnerScopeRequired()
+    var
+        OwnerEmployeeNo: Code[20];
+    begin
+        OwnerEmployeeNo := ProcessOwnerFilter();
+        if OwnerEmployeeNo = '' then
+            Error(OwnerScopeRequiredErr);
+        Rec.TestField("Requested By", OwnerEmployeeNo);
+    end;
+
     local procedure ProcessApproverFilter()
     var
         TravelRequestApproval: Codeunit "Travel Request Approval";
@@ -403,4 +414,5 @@ page 7134 "Travel Requests API"
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
         TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
         ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.';
+        OwnerScopeRequiredErr: Label 'The create expense report action must be invoked through the owning expense user.';
 }

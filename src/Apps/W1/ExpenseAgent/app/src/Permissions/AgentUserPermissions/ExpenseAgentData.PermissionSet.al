@@ -53,7 +53,6 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense Agent Setup" = R,
                   tabledata "Expense Team" = R,
                   tabledata "Expense Approval Setup" = R,
-                  tabledata Traveler = RIMD,
                   tabledata "EA Scheduler Task" = R,
                   tabledata "EA Email" = R,
                   tabledata "EA Email Attachment" = R,

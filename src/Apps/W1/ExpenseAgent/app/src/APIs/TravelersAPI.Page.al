@@ -21,7 +21,8 @@ page 7103 "Travelers API"
     SourceTable = Traveler;
     AboutText = 'Provides access to data from the Traveler table';
     AutoSplitKey = true;
-    Permissions = tabledata "Spend Request" = r;
+    Permissions = tabledata "Spend Request" = r,
+                  tabledata Traveler = rimd;
 
     layout
     {
@@ -51,6 +52,7 @@ page 7103 "Travelers API"
                     var
                         ExpenseUser: Record "Expense User";
                     begin
+                        ExpenseUser.SetLoadFields("No.");
                         ExpenseUser.SetRange("Employee No.", EmployeeNumber);
                         if not ExpenseUser.FindFirst() then
                             Error(ExpenseUserNotFoundErr, EmployeeNumber);
@@ -74,6 +76,7 @@ page 7103 "Travelers API"
         ExpenseUser: Record "Expense User";
     begin
         Clear(EmployeeNumber);
+        ExpenseUser.SetLoadFields("Employee No.");
         if ExpenseUser.Get(Rec."Expense User No.") then
             EmployeeNumber := ExpenseUser."Employee No.";
     end;
