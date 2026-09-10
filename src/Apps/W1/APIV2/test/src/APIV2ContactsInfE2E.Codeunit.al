@@ -9,7 +9,6 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Contact]
     end;
 
@@ -190,6 +189,7 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

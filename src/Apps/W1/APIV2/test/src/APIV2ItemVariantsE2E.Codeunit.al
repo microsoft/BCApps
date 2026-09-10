@@ -9,7 +9,6 @@ codeunit 139839 "APIV2 - Item Variants E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item] [Variant]
     end;
 
@@ -474,6 +473,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

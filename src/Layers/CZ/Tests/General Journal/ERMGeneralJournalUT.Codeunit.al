@@ -6473,8 +6473,6 @@ codeunit 134920 "ERM General Journal UT"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
 
@@ -6484,6 +6482,9 @@ codeunit 134920 "ERM General Journal UT"
 
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryERMCountryData.UpdateLocalData();
         LibraryERMCountryData.CreateVATData();
