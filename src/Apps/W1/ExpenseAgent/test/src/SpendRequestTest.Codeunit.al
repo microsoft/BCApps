@@ -759,7 +759,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.ApproveTravelRequest(ActionContext, ApproverExpenseUser."No.");
 
         // [THEN] The request is approved with its audit fields and a linked report.
-        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
+        Assert.IsTrue(ActionContext.GetResultCode() = WebServiceActionResultCode::Updated, TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, 'The travel request should be approved through the page action.');
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", 'The approving user should be recorded.');
@@ -789,7 +789,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.SubmitTravelRequest(ActionContext, ExpenseUser."No.");
 
         // [THEN] The request is released with its submission audit fields.
-        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
+        Assert.IsTrue(ActionContext.GetResultCode() = WebServiceActionResultCode::Updated, TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The travel request should be released through the page action.');
         Assert.AreEqual(ExpenseUser."No.", SpendRequest."Submitted By Expense User No.", 'The submitting expense user should be recorded.');
@@ -898,7 +898,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.RejectTravelRequest(ActionContext, ApproverExpenseUser."No.", RejectReason);
 
         // [THEN] The action returns Updated and the request records the rejection details.
-        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
+        Assert.IsTrue(ActionContext.GetResultCode() = WebServiceActionResultCode::Updated, TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, TravelRequestRejectedMsg);
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", TravelRequestRejectionUserMsg);
