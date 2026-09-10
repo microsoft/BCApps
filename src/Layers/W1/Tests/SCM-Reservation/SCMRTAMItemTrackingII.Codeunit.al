@@ -4471,6 +4471,80 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         VerifyUndoneSalesShipmentLine(SalesHeader."No.", Item."No.", Quantity);
     end;
 
+    [Test]
+    [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
+    procedure UndoDropShipmentWithBlankBinAtBinMandatoryLocation()
+    var
+        // Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4] [Undo Shipment]
+        // [SCENARIO 649618] A drop shipment with a blank bin can be undone at a bin-mandatory location.
+        Initialize();
+
+        // [GIVEN] A bin-mandatory location with a bin but no default bin for the item.
+        CreateLocationWithBinMandatory(Location);
+
+        // [GIVEN] A drop-shipment sales order and linked purchase order have blank bin codes.
+        Quantity := LibraryRandom.RandInt(50);
+        CreateItemWithVendorNo(Item);
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Validate("Drop Shipment", true);
+        SalesLine.Modify(true);
+        SalesLine.TestField("Bin Code", '');
+
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        FindPurchaseLine(PurchaseLine, Item."No.");
+        PurchaseLine.TestField("Location Code", Location.Code);
+        PurchaseLine.TestField("Bin Code", '');
+
+        // [GIVEN] The purchase order is received, creating linked receipt and shipment lines with blank bins.
+        PostPurchaseDocument(PurchaseHeader."Document Type", PurchaseHeader."No.", true, false);
+        FindSalesShipmentHeader(SalesShipmentHeader, SalesHeader."No.");
+        SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.FindFirst();
+        SalesShipmentLine.TestField("Bin Code", '');
+        PurchRcptHeader.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptHeader.FindFirst();
+        PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.FindFirst();
+        PurchRcptLine.TestField("Bin Code", '');
+
+        // [WHEN] The sales shipment is undone.
+        UndoSalesShipment(SalesHeader."No.");
+
+        // [THEN] Both orders are restored and all corrective item entries retain drop-shipment semantics.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", 0, Quantity);
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", 0, Quantity);
+        VerifyUndoneSalesShipmentLine(SalesHeader."No.", Item."No.", Quantity);
+        VerifyUndonePurchRcptLine(PurchaseHeader."No.", Item."No.", Quantity);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Drop Shipment", true);
+        Assert.RecordCount(ItemLedgerEntry, 4);
+
+        // [THEN] No physical warehouse-bin movement is created.
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        Assert.RecordIsEmpty(WarehouseEntry);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4699,6 +4773,14 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
 
     local procedure CreateItemWithVendorNo(var Item: Record Item)
     begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+    end;
+
+    local procedure CreateItemWithVendorNoAndPurchasingCode(var Item: Record Item)
+    begin
+
         LibraryInventory.CreateItem(Item);
         Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
         Item.Modify(true);
@@ -6347,6 +6429,18 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         PurchRcptLine.SetRange(Correction, true);
         PurchRcptLine.SetRange(Quantity, -ExpectedQuantity);
         Assert.RecordIsNotEmpty(PurchRcptLine);
+    end;
+
+    local procedure CreateLocationWithBinMandatory(var Location: Record Location)
+    var
+        Bin: Record Bin;
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Default Bin Selection", Location."Default Bin Selection"::"Fixed Bin");
+        Location.Modify(true);
+        LibraryWarehouse.CreateBin(
+            Bin, Location.Code, LibraryUtility.GenerateRandomCode(Bin.FieldNo(Code), Database::Bin), '', '');
     end;
 
     [ModalPageHandler]
