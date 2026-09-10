@@ -9,6 +9,7 @@ table 130060 "Reference data - field list"
         {
             NotBlank = true;
         }
+
         field(2; "Table ID"; Integer)
         {
             TableRelation = AllObj."Object ID" where("Object Type" = const(Table));
@@ -61,9 +62,9 @@ table 130060 "Reference data - field list"
     local procedure CheckForZeroValues()
     begin
         if "Table ID" = 0 then
-            Error(Text001, FieldName("Table ID"));
+            Error(Text001, FieldCaption("Table ID"));
         if "Field ID" = 0 then
-            Error(Text001, FieldName("Field ID"));
+            Error(Text001, FieldCaption("Field ID"));
     end;
 }
 
