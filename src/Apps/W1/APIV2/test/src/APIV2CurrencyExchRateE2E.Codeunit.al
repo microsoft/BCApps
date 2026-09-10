@@ -5,7 +5,6 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var
@@ -113,6 +112,7 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
 

@@ -241,13 +241,14 @@ codeunit 148318 "Expense Capabilities API Test"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Capabilities API Test");
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
         IsInitialized := true;

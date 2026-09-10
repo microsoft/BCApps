@@ -113,10 +113,11 @@ codeunit 148345 "Policies To Evaluate API Test"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Policies To Evaluate API Test");
         LibraryExpense.CleanUpBeforeTesting();
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Policies To Evaluate API Test");
         LibraryERMCountryData.CreateVATData();

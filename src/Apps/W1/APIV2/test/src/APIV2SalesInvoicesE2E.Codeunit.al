@@ -9,7 +9,6 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 
@@ -1443,6 +1442,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

@@ -6,7 +6,6 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var
@@ -48,6 +47,7 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

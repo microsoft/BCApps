@@ -9,7 +9,6 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Credit Memo]
     end;
 
@@ -995,6 +994,7 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
