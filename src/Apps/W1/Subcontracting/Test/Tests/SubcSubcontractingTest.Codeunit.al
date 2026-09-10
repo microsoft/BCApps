@@ -101,6 +101,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             'There are no new subcontracting transfer lines to create', TransferOrderErrorInfo.Title,
             'Covered demand must have the explanatory title.');
+        Assert.AreEqual(
+            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
+            TransferOrderErrorInfo.Message, 'Covered demand must have the approved explanatory message.');
         Assert.AreEqual(PurchaseHeader.RecordId(), TransferOrderErrorInfo.RecordId, 'Navigation must identify the purchase order.');
         OpenedTransferOrderNo := '';
         SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(TransferOrderErrorInfo);
