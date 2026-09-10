@@ -799,7 +799,7 @@ codeunit 148223 "EUDR Certificate Capture Test"
         LotNoInformationCard."EUDR Certificate No.".SetValue(CertificateNo);
         LotNoInformationCard."Certification Scheme".SetValue(CertificationScheme);
         LotNoInformationCard."EUDR Valid From".SetValue(WorkDate());
-        LotNoInformationCard."EUDR Valid To".SetValue(CalcDate('<+1Y>', WorkDate()));
+        LotNoInformationCard."EUDR Valid To".SetValue(WorkDate() + 1);
         LotNoInformationCard."Country/Region of Production Code".SetValue(CountryRegion.Code);
         LotNoInformationCard."DDS Reference Number".SetValue(DDSReferenceNo);
         LotNoInformationCard."DDS Verification No.".SetValue(DDSVerificationNo);
@@ -873,6 +873,8 @@ codeunit 148223 "EUDR Certificate Capture Test"
     end;
 
     local procedure Initialize()
+    var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"EUDR Certificate Capture Test");
         LibraryVariableStorage.Clear();
@@ -880,7 +882,18 @@ codeunit 148223 "EUDR Certificate Capture Test"
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"EUDR Certificate Capture Test");
+
+        LibrarySales.SetCreditWarningsToNoWarnings();
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryERMCountryData.UpdateSalesReceivablesSetup();
+        LibraryERMCountryData.CreateGeneralPostingSetupData();
+        LibraryERMCountryData.UpdateVATPostingSetup();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdateLocalData();
+        LibrarySales.SetExtDocNo(false);
         IsInitialized := true;
+
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"EUDR Certificate Capture Test");
     end;
 
