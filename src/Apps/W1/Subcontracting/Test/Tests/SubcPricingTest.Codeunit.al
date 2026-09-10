@@ -982,6 +982,64 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure NoApplicableMinimumQuantityPriceUsesCalculatedFallback()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        CalculatedFallbackCost: Decimal;
+    begin
+        // [SCENARIO 648535] A date-compatible price with a minimum quantity above the purchase
+        // quantity is not an applicable price and must not replace the calculated fallback with zero.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        CalculatedFallbackCost := PurchaseLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, CalculatedFallbackCost, 'Test setup expects a nonzero calculated fallback cost.');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, PurchaseLine."Work Center No.", PurchaseLine."Buy-from Vendor No.",
+            PurchaseLine."No.", '', PurchaseLine."Variant Code", PurchaseLine."Order Date",
+            PurchaseLine."Unit of Measure Code", PurchaseLine.Quantity + 1, PurchaseLine."Currency Code");
+        SubcontractorPrice.Validate("Direct Unit Cost", CalculatedFallbackCost * 2);
+        SubcontractorPrice.Modify(true);
+        PurchaseLine."Direct Unit Cost" := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            CalculatedFallbackCost, PurchaseLine."Direct Unit Cost",
+            'A price above the purchase quantity threshold must not suppress the calculated fallback.');
+    end;
+
+    [Test]
+    procedure ApplicableZeroPriceIsNotReplacedByCalculatedFallback()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+        // [SCENARIO 648535] A matched price tier can intentionally have a zero direct unit cost.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        Assert.AreNotEqual(0, PurchaseLine."Direct Unit Cost", 'Test setup expects a nonzero calculated fallback cost.');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, PurchaseLine."Work Center No.", PurchaseLine."Buy-from Vendor No.",
+            PurchaseLine."No.", '', PurchaseLine."Variant Code", PurchaseLine."Order Date",
+            PurchaseLine."Unit of Measure Code", 0, PurchaseLine."Currency Code");
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            0, PurchaseLine."Direct Unit Cost",
+            'An applicable zero price must not be replaced by the calculated fallback.');
+    end;
+
+    [Test]
     procedure NoMatchPriceListFallbackHandlesZeroExpectedOutputQuantity()
     var
         ProdOrderLine: Record "Prod. Order Line";
