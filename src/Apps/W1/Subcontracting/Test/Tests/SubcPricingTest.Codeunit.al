@@ -248,6 +248,8 @@ codeunit 139982 "Subc. Pricing Test"
 
         // [GIVEN] A subcontracting item whose routing operation has a multi-minute Run Time
         CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        WorkCenter.Modify(true);
         RoutingHeader.Get(Item."Routing No.");
         RoutingHeader.Validate(Status, RoutingHeader.Status::New);
         RoutingHeader.Modify(true);
@@ -330,6 +332,98 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure FinalPurchaseLineDateAppliesPriceWhenReqLineDateHasNoPrice()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        FinalDatePrice: Decimal;
+    begin
+        // [SCENARIO 648535] An automatically calculated worksheet fallback is repriced when
+        // the final purchase-line date has an applicable subcontractor price.
+        Initialize();
+
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        WorkCenter.Modify(true);
+        Evaluate(Item."Lead Time Calculation", '<5D>');
+        Item.Modify(true);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.Validate("Order Date", WorkDate());
+        RequisitionLine.Modify(true);
+        FinalDatePrice := LibraryRandom.RandDecInRange(100, 200, 2);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            CalcDate('<-1M>', WorkDate()), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Ending Date", CalcDate('<-1D>', WorkDate()));
+        SubcontractorPrice.Validate("Direct Unit Cost", FinalDatePrice);
+        SubcontractorPrice.Modify(true);
+
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(
+            PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.IsTrue(
+            PurchaseLine."Order Date" < WorkDate(),
+            'The final purchase-line Order Date must be in the price validity period.');
+        Assert.AreEqual(
+            FinalDatePrice, PurchaseLine."Direct Unit Cost",
+            'The price valid on the final purchase-line date must replace the automatic worksheet fallback.');
+    end;
+
+    [Test]
+    procedure ReqLinePriceAboveMinimumQuantityPreservesCalculatedFallback()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        CalculatedFallbackCost: Decimal;
+    begin
+        // [SCENARIO 648535] A requisition-line price whose minimum quantity is too high does
+        // not replace the standard calculated subcontracting cost with zero.
+        Initialize();
+
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        WorkCenter.Modify(true);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        CalculatedFallbackCost := RequisitionLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, CalculatedFallbackCost, 'Test setup expects a nonzero calculated fallback cost.');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '',
+            RequisitionLine."Order Date", RequisitionLine."Unit of Measure Code",
+            RequisitionLine.Quantity + 1, RequisitionLine."Currency Code");
+        SubcontractorPrice.Validate("Direct Unit Cost", CalculatedFallbackCost * 2);
+        SubcontractorPrice.Modify(true);
+
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        Assert.AreEqual(
+            CalculatedFallbackCost, RequisitionLine."Direct Unit Cost",
+            'A requisition-line price above the quantity threshold must preserve the calculated fallback.');
+    end;
+
+    [Test]
     procedure NoApplicableMinimumQuantityPriceUsesCalculatedFallback()
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -400,8 +494,8 @@ codeunit 139982 "Subc. Pricing Test"
 
         CreateNoPriceSubcontractingPurchaseLine(
             PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
-        ProdOrderLine.Quantity := 0;
-        ProdOrderLine.Modify();
+        ProdOrderLine.Validate(Quantity, 0);
+        ProdOrderLine.Modify(true);
 
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
 
@@ -476,7 +570,7 @@ codeunit 139982 "Subc. Pricing Test"
         OriginalLineDiscount := PurchaseLine."Line Discount %";
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-        PurchaseLine.Find();
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
 
         // [WHEN] Planned Receipt Date is edited on the released line to move Order Date into
         // the later price period
