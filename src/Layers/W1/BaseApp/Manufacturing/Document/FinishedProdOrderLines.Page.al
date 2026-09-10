@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -148,16 +148,6 @@ page 99000868 "Finished Prod. Order Lines"
                     ApplicationArea = Dimensions;
                     Visible = false;
                 }
-#if not CLEAN27
-                field("Standard Task Code"; Rec."Standard Task Code")
-                {
-                    ApplicationArea = Manufacturing;
-                    Visible = false;
-                    ObsoleteReason = 'Discontinued functionality';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
         }
     }

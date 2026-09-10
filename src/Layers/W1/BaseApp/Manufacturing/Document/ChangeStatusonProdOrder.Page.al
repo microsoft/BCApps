@@ -126,15 +126,6 @@ page 99000882 "Change Status on Prod. Order"
         OnAfterSet(ProdOrder, PostingDate, ReqUpdUnitCost, ProdOrderStatus, FirmPlannedStatusEditable, ReleasedStatusEditable, FinishedStatusEditable);
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced with namesake procedure with additional parameter.', '27.0')]
-    procedure ReturnPostingInfo(var Status: Enum "Production Order Status"; var PostingDate2: Date; var UpdUnitCost: Boolean)
-    var
-        DummyFinishOrderWithoutOutput: Boolean;
-    begin
-        ReturnPostingInfo(Status, PostingDate2, UpdUnitCost, DummyFinishOrderWithoutOutput);
-    end;
-#endif
 
     procedure ReturnPostingInfo(var Status: Enum "Production Order Status"; var PostingDate2: Date; var UpdUnitCost: Boolean; var NewFinishOrderWithoutOutput: Boolean)
     var

@@ -301,46 +301,6 @@ codeunit 144021 "UT REP ACCPER - Fixed Asset"
         LibraryReportDataset.AssertElementWithValueExists('TotalBookValue_1_', Amount);
     end;
 
-#if not CLEAN27
-    [Obsolete('Not used anymore', '28.0')]
-    [Test]
-    [HandlerFunctions('FAProjectedValWithProjectedDisposalReqPageHandler')]
-
-    procedure OnAfterGetRecFATrueProjectedDisposalFAProjectedVal()
-    begin
-        // Purpose of the test is to validate Fixed Asset - OnAfterGetRecord Trigger of Report 10560 (FA - Projected Value) with Projected Disposal as True.
-        Initialize();
-        RunFAProjectedValAfterPostFAGLJnlWithProjectedDisposal(true);  // Projected Disposal as True.
-    end;
-
-    [Obsolete('Not used anymore', '28.0')]
-    [Test]
-    [HandlerFunctions('FAProjectedValWithProjectedDisposalReqPageHandler')]
-
-    procedure OnAfterGetRecFAFalseProjectedDisposalFAProjectedVal()
-    begin
-        // Purpose of the test is to validate Fixed Asset - OnAfterGetRecord Trigger of Report 10560 (FA - Projected Value) with Projected Disposal as False.
-        Initialize();
-        RunFAProjectedValAfterPostFAGLJnlWithProjectedDisposal(false);  // Projected Disposal as False.
-    end;
-
-    local procedure RunFAProjectedValAfterPostFAGLJnlWithProjectedDisposal(ProjectedDisposal: Boolean)
-    var
-        FixedAsset: Record "Fixed Asset";
-        GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
-    begin
-        // Setup: Post FA G/L Journals With FA Depreciation Book. Transaction Model is Autocommit because explicit commit used in Code unit ID: 13, Gen. Jnl.-Post Batch.
-        PostFAGLJournalsWithFADepreciationBook(FixedAsset, GroupTotals, LibraryRandom.RandDec(10, 2));  // Take Random Amount.
-        LibraryVariableStorage.Enqueue(ProjectedDisposal);  // Enqueue for FAProjectedValWithProjectedDisposalReqPageHandler.
-
-        // Exercise.
-        REPORT.Run(REPORT::"FA - Projected Value GB");
-
-        // Verify.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('DoProjectedDisposal', ProjectedDisposal);
-    end;
-#endif    
 
     local procedure Initialize()
     begin

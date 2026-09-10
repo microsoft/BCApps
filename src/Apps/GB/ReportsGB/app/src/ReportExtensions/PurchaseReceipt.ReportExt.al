@@ -6,9 +6,7 @@ namespace Microsoft.Purchases.History;
 
 reportextension 10588 "Purchase - Receipt" extends "Purchase - Receipt"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/PurchaseReceipt.rdlc';
-#endif
     dataset
     {
         add(CopyLoop)
@@ -58,20 +56,6 @@ reportextension 10588 "Purchase - Receipt" extends "Purchase - Receipt"
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Purchase Receipt GB localization';
-            LayoutFile = './src/ReportExtensions/PurchaseReceipt.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         BankBranchNoCaptionLbl: Label 'Bank Branch No.';

@@ -443,19 +443,11 @@ codeunit 148087 "MTDTestReturns"
         VATReportArchive: Record "VAT Report Archive";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
-#if not CLEAN27        
-        DummyGUID: Guid;
-#endif        
     begin
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         Outstream.Write(MessageText);
-#if not CLEAN27
-#pragma warning disable AL0432
-        VATReportArchive.ArchiveSubmissionMessage(VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.", TempBlob, DummyGUID);
-#else
         VATReportArchive.ArchiveSubmissionMessage(VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.", TempBlob);
 #pragma warning restore AL0432
-#endif
     end;
 
     local procedure MockVATReportWithStatementSetup(var VATReportHeader: Record "VAT Report Header")

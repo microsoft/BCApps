@@ -736,13 +736,7 @@ report 10583 "Sales - Invoice"
 
                 trigger OnPreDataItem()
                 begin
-#if not CLEAN27
-#pragma warning disable AL0432
-                    NoOfLoops := Abs(NumberOfCopies) + Cust."Invoice Copies" + 1;
-#pragma warning restore AL0432
-#else
                     NoOfLoops := Abs(NumberOfCopies) + 1;
-#endif
                     if NoOfLoops <= 0 then
                         NoOfLoops := 1;
                     CopyText := '';

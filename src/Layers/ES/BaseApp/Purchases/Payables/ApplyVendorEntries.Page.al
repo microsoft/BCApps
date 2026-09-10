@@ -1306,7 +1306,7 @@ page 233 "Apply Vendor Entries"
         if IsHandled then
             exit;
 
-        if not AppliedVendLedgEntry.FindSet(false, false) then
+        if not AppliedVendLedgEntry.FindSet() then
             exit;
 
         repeat

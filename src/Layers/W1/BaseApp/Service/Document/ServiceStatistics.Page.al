@@ -738,13 +738,7 @@ page 6030 "Service Statistics"
     var
         ServiceCalcDiscount: Codeunit "Service-Calc. Discount";
     begin
-#if not CLEAN27
-        if not Rec.SkipStatisticsPreparation() then
-#endif
             ServiceCalcDiscount.CalculateIncDiscForHeader(Rec);
-#if not CLEAN27
-        Rec.ResetSkipStatisticsPreparationFlag();
-#endif
         SalesSetup.Get();
         AllowInvDisc := not (SalesSetup."Calc. Inv. Discount" and CustInvDiscRecExists(Rec."Invoice Disc. Code"));
         AllowVATDifference := SalesSetup."Allow VAT Difference" and (Rec."Document Type" <> Rec."Document Type"::Quote);

@@ -608,9 +608,6 @@ report 7391 "Whse. Get Bin Content"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The GetItemTracking method has been refactored to use a query-based approach for improved performance. While this event publisher remains available, please verify that your subscriber logic continues to function as expected with the updated implementation.', '27.0')]
-#endif
     [IntegrationEvent(true, false)]
     local procedure OnBeforeGetItemTracking(var BinContent: Record "Bin Content"; var IsHandled: Boolean; QtyToEmptyBase: Decimal; DestinationType2: Enum "Warehouse Destination Type 2"; var ItemJournalLine: Record "Item Journal Line"; var TransferLine: Record "Transfer Line")
     begin
@@ -636,17 +633,11 @@ report 7391 "Whse. Get Bin Content"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The GetItemTracking method has been refactored to use a query-based approach for improved performance. While this event publisher remains available, please verify that your subscriber logic continues to function as expected with the updated implementation.', '27.0')]
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnGetItemTrackingOnDestinationTypeCaseElse(DestinationType2: Enum "Warehouse Destination Type 2"; BinContent: Record "Bin Content"; WarehouseEntry: Record "Warehouse Entry"; TrackedQtyToEmptyBase: Decimal)
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The GetItemTracking method has been refactored to use a query-based approach for improved performance. While this event publisher remains available, please verify that your subscriber logic continues to function as expected with the updated implementation.', '27.0')]
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnGetItemTrackingOnAfterWarehouseEntrySetFilters(var WarehouseEntry: Record "Warehouse Entry"; var BinContent: Record "Bin Content")
     begin

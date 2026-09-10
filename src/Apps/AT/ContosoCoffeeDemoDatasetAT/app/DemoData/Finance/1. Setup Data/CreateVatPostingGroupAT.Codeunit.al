@@ -97,24 +97,6 @@ codeunit 11186 "Create VAT Posting Group AT"
         FinanceModuleSetup.Modify(true);
     end;
 
-#if not CLEAN27
-    [Obsolete('This procedure is not used in the current version.', '27.0')]
-    procedure UpdateGeneralProdPostingGroup()
-    begin
-
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('This procedure is moved to codeunit 5473 "Create VAT Posting Groups".', '27.0')]
-    procedure NOVAT(): Code[20]
-    var
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        exit(CreateVATPostingGroups.NOVAT());
-    end;
-#endif
-
     procedure VAT10(): Code[20]
     begin
         exit(VAT10Tok);

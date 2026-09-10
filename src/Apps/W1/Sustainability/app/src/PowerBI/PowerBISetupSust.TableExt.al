@@ -1,4 +1,3 @@
-#if CLEAN27
 namespace Microsoft.Sustainability.PowerBIReports;
 
 using Microsoft.PowerBIReports;
@@ -47,4 +46,3 @@ tableextension 6262 "Power BI Setup - Sust." extends "PowerBI Reports Setup"
         }
     }
 }
-#endif

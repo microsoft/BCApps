@@ -572,7 +572,7 @@ codeunit 17206 "Create Tax Register Item Entry"
         TaxRegItemEntry2.SetRange("Ending Date", TaxRegItemEntry."Ending Date");
         TaxRegItemEntry2.SetRange("Appl. Entry No.", TaxRegItemEntry."Appl. Entry No.");
         TaxRegItemEntry2.SetRange("Ledger Entry No.", TaxRegItemEntry."Ledger Entry No.");
-        if TaxRegItemEntry2.FindSet(true, false) then
+        if TaxRegItemEntry2.FindSet(true) then
             repeat
                 TaxRegItemEntry2."Amount (Document)" := DocAmount;
                 TaxRegItemEntry2.Modify();

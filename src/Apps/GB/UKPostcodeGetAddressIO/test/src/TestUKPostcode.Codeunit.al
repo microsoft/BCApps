@@ -1,4 +1,3 @@
-#if CLEAN27
 codeunit 139500 "Test UK Postcode"
 {
     Subtype = Test;
@@ -272,4 +271,3 @@ codeunit 139500 "Test UK Postcode"
     end;
 
 }
-#endif

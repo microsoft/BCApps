@@ -118,17 +118,6 @@ codeunit 10753 "SII Job Upload Pending Docs."
         SIIJobManagement.RenewJobQueueEntry(JobType::HandlePending);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. SII Management', '27.0')]
-    [Scope('OnPrem')]
-    procedure OnAfterPostServiceDoc(var ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    var
-        ServSIIManagement: Codeunit Microsoft.EServices.EDocument."Serv. SII Management";
-    begin
-        ServSIIManagement.OnAfterPostServiceDoc(ServiceHeader);
-    end;
-#endif
-
     [Scope('OnPrem')]
     procedure OnAfterGLLinePost(GenJnlLine: Record "Gen. Journal Line")
     var
@@ -359,19 +348,6 @@ codeunit 10753 "SII Job Upload Pending Docs."
     local procedure OnBeforeOnAfterPostPurchDoc(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnBeforeOnAfterPostServiceDoc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-        OnBeforeOnAfterPostServiceDoc(ServiceHeader, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. SII Management', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOnAfterPostServiceDoc(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnAfterGLLinesPost(var GenJnlLine: Record "Gen. Journal Line")

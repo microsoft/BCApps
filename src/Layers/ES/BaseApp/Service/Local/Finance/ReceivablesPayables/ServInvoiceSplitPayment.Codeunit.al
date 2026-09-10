@@ -25,9 +25,6 @@ codeunit 7000035 "Serv. Invoice-Split Payment"
     var
         GLSetup: Record "General Ledger Setup";
         SalesSetup: Record "Sales & Receivables Setup";
-#if not CLEAN27
-        InvoiceSplitPayment: Codeunit "Invoice-Split Payment";
-#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text003: Label 'Service %1 no. %2 cannot be posted, because the due date field for one or more installments is more than the legal limit of %3 days after the document date %4 for the original document.';
@@ -137,9 +134,6 @@ codeunit 7000035 "Serv. Invoice-Split Payment"
             end;
 
             OnBeforeSplitServInvCloseEntry(GenJnlLine, ServiceHeader);
-#if not CLEAN27
-            InvoiceSplitPayment.RunOnBeforeSplitServInvCloseEntry(GenJnlLine, ServiceHeader);
-#endif
             if GLSetup."Unrealized VAT" and ExistsVATNoReal then
                 GenJnlLine2.Copy(GenJnlLine)
             else
@@ -254,9 +248,6 @@ codeunit 7000035 "Serv. Invoice-Split Payment"
             end;
 
             OnBeforeSplitServInvCreateBills(GenJnlLine, ServiceHeader);
-#if not CLEAN27
-            InvoiceSplitPayment.RunOnBeforeSplitServInvCreateBills(GenJnlLine, ServiceHeader);
-#endif
 
             if PaymentMethod."Create Bills" and ((GenJnlLine.Amount <> 0) or (GenJnlLine."Amount (LCY)" <> 0)) then begin
                 BillNo += 1;

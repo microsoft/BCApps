@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,24 +41,6 @@ table 6753 "Reminder Action Group Log"
         field(11; "Last Step ID"; Integer)
         {
         }
-#if not CLEAN27
-#pragma warning disable AA0232
-        /// <summary>
-        /// Contains the total number of errors encountered during this automation run.
-        /// </summary>
-        field(15; "Number of Errors"; Integer)
-#pragma warning restore AA0232
-        {
-            ObsoleteReason = 'Field is removed do not use';
-            ObsoleteState = Pending;
-#pragma warning disable AS0074
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-            FieldClass = FlowField;
-            CalcFormula = sum("Reminder Action Log"."Total Errors" where("Reminder Action Group ID" = field("Reminder Action Group ID"), "Run Id" = field("Run Id")));
-            Editable = false;
-        }
-#endif
         /// <summary>
         /// Specifies the date and time when the automation run started.
         /// </summary>

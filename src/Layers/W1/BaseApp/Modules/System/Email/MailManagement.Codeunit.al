@@ -1,4 +1,4 @@
-﻿namespace System.Email;
+namespace System.Email;
 
 using System;
 using System.Environment;
@@ -507,21 +507,6 @@ codeunit 9520 "Mail Management"
     begin
     end;
 
-#if not CLEAN27
-#pragma warning disable AA0228
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSendMailOnWinClient(var TempEmailItem: Record "Email Item" temporary)
-    begin
-    end;
-
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterDeleteTempAttachments(var EmailItem: Record "Email Item")
-    begin
-    end;
-#pragma warning restore AA0228
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetSenderEmailAddress(var EmailItem: Record "Email Item")
     begin

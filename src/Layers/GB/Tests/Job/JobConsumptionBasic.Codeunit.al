@@ -35,9 +35,6 @@ codeunit 136300 "Job Consumption Basic"
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-#if not CLEAN27
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-#endif
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         RollingBackChangesErr: Label 'Rolling back changes...';
         FieldValueIncorrectErr: Label 'Field %1 value is incorrect.';
@@ -251,165 +248,6 @@ codeunit 136300 "Job Consumption Basic"
         TearDown();
     end;
 
-#if not CLEAN27
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobGLAccBlank()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeBlank())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobGLAccSchedule()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeSchedule())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobGLAccContract()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeContract())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobGLAccBoth()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeBoth())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobItemBlank()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.ItemType(), LibraryJob.UsageLineTypeBlank())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobItemSchedule()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.ItemType(), LibraryJob.UsageLineTypeSchedule())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobItemContract()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.ItemType(), LibraryJob.UsageLineTypeContract())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchOrderJobItemBoth()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Order, LibraryJob.ItemType(), LibraryJob.UsageLineTypeBoth())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobGLAccBlank()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeBlank())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobGLAccSchedule()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeSchedule())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobGLAccContract()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeContract())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobGLAccBoth()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.GLAccountType(), LibraryJob.UsageLineTypeBoth())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobItemBlank()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.ItemType(), LibraryJob.UsageLineTypeBlank())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobItemSchedule()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.ItemType(), LibraryJob.UsageLineTypeSchedule())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobItemContract()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.ItemType(), LibraryJob.UsageLineTypeContract())
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure TestPurchInvJobItemBoth()
-    begin
-        JobPurchaseConsumption("Purchase Document Type"::Invoice, LibraryJob.ItemType(), LibraryJob.UsageLineTypeBoth())
-    end;
-
-    local procedure JobPurchaseConsumption(PurchaseDocumentType: Enum "Purchase Document Type"; ConsumableType: Enum "Job Planning Line Type"; JobLineType: Enum "Job Line Type")
-    var
-        Job: Record Job;
-        JobTask: Record "Job Task";
-        PurchaseLine: Record "Purchase Line";
-        TempPurchaseLine: Record "Purchase Line" temporary;
-        JobLedgerEntry: Record "Job Ledger Entry";
-        PurchaseHeader: Record "Purchase Header";
-        PurchInvHeader: Record "Purch. Inv. Header";
-    begin
-        // Parameterized test
-
-        // PurchaseDocumentType IN [Order,Invoice]
-        // PurchaseLineType IN [Item,G/L Account]
-        // JobLineType IN ["",Budget,Billable,Both Budget and Billable]
-
-        // Setup
-        Initialize();
-        LibraryJob.CreateJob(Job);
-        LibraryJob.CreateJobTask(Job, JobTask);
-
-        // Exercise
-        CreateSingleLinePurchaseDoc(PurchaseDocumentType, PurchaseHeader);
-
-        // Attach requested account type to the created purchase line
-        GetPurchaseLines(PurchaseHeader, PurchaseLine);
-
-        UpdatePurchLine(PurchaseLine, LibraryJob.Job2PurchaseConsumableType(ConsumableType));
-        LibraryJob.AttachJobTask2PurchaseLine(JobTask, PurchaseLine);
-        PurchaseLine.Validate("Job Line Type", JobLineType);
-        PurchaseLine.Description := LibraryUtility.GenerateGUID();
-        PurchaseLine.Modify(true);
-        LibraryJob.CopyPurchaseLines(PurchaseLine, TempPurchaseLine);
-        PostPurchaseDocument(PurchaseHeader, PurchInvHeader);
-
-        // Verify (planning lines, job ledger)
-        LibraryJob.VerifyPurchaseDocPostingForJob(TempPurchaseLine);
-        JobLedgerEntry.SetRange(Description, TempPurchaseLine.Description);
-        Assert.AreEqual(1, JobLedgerEntry.Count, '# job ledger entries');
-        JobLedgerEntry.FindFirst();
-
-        LibraryJob.VerifyGLEntries(JobLedgerEntry);
-
-        TearDown();
-    end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -469,59 +307,6 @@ codeunit 136300 "Job Consumption Basic"
           StrSubstNo(FieldValueIncorrectErr, JobGenJournalLine."Job Total Cost"));
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('GetReceiptLinesPageHandler')]
-    [Scope('OnPrem')]
-    procedure PurchInvoiceWIthNegativeAmountAssignsActualCostToJobUsageEntry()
-    var
-        Job: Record Job;
-        JobTask: Record "Job Task";
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        VendorNo: Code[20];
-        Qty: Integer;
-    begin
-        // [FEATURE] [Purchase] [Receipt] [Invoice]
-        // [SCENARIO] Purchase invoice for a receipt with job and negative quantity should assign actual cost amount to both item ledger entries - purchase receipt and job usage
-
-        Initialize();
-
-        LibraryJob.CreateJob(Job);
-        LibraryJob.CreateJobTask(Job, JobTask);
-
-        // Item "I" with unit cost 100
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Costing Method", Item."Costing Method"::Standard);
-        Item.Validate("Unit Cost", LibraryRandom.RandDec(200, 2));
-        Item.Modify(true);
-
-        VendorNo := LibraryPurchase.CreateVendorNo();
-        Qty := LibraryRandom.RandInt(100);
-
-        // [GIVEN] Post purchase receipt for 5 psc of item "I" with job "J"
-        PostPurchaseReceiptWithJob(VendorNo, Item."No.", Qty, JobTask);
-        // [GIVEN] Post purchase receipt for -5 psc of item "I" with job "J"
-        PostPurchaseReceiptWithJob(VendorNo, Item."No.", -Qty, JobTask);
-
-        // [GIVEN] Create purchase invoice and get receipt lines
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
-        GetPurchaseReceiptLines(VendorNo, PurchaseHeader."Document Type", PurchaseHeader."No.");
-
-        // [WHEN] Post the invoice
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // [THEN] All inbound item ledger entries have "Cost Amount (Actual)" = 500, outbound entries - "Cost Amount (Actual)" = -500, "Cost Amount (Expected)" = 0 for all entries
-        ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.FindSet();
-        repeat
-            ItemLedgerEntry.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
-            ItemLedgerEntry.TestField("Cost Amount (Actual)", Item."Unit Cost" * ItemLedgerEntry.Quantity);
-            ItemLedgerEntry.TestField("Cost Amount (Expected)", 0);
-        until ItemLedgerEntry.Next() = 0;
-    end;
-#endif
 
     local procedure JobGLJournalConsumption(JobLineType: Enum "Job Line Type")
     var
@@ -725,32 +510,6 @@ codeunit 136300 "Job Consumption Basic"
                 JobLedgerEntry.TableCaption()));
     end;
 
-#if not CLEAN27
-    local procedure CreateSingleLinePurchaseDoc(PurchaseDocumentType: Enum "Purchase Document Type"; var PurchaseHeader: Record "Purchase Header")
-    var
-        PurchaseLine: Record "Purchase Line";
-    begin
-        // Create a purchase document with a single line.
-        CreateSingleLinePurchDocWithVendorAndItem(
-          PurchaseHeader, PurchaseLine, PurchaseDocumentType, LibraryPurchase.CreateVendorNo(), LibraryInventory.CreateItemNo(),
-          LibraryRandom.RandInt(100));
-    end;
-
-    local procedure CreateSingleLinePurchDocWithVendorAndItem(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchaseDocumentType: Enum "Purchase Document Type"; VendorNo: Code[20]; ItemNo: Code[20]; Qty: Decimal)
-    var
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
-    begin
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-
-        PurchasesPayablesSetup.Get();
-        PurchasesPayablesSetup.Validate("Reverse Charge VAT Posting Gr.", VATBusinessPostingGroup.Code);
-        PurchasesPayablesSetup.Modify();
-
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseDocumentType, VendorNo);
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Qty);
-    end;
-#endif
 
     local procedure CreateJobGLJournalLineGLAcc(var GenJournalLine: Record "Gen. Journal Line"; JobTask: Record "Job Task"; JobLineType: Enum "Job Line Type")
     var
@@ -780,21 +539,6 @@ codeunit 136300 "Job Consumption Basic"
         GenJournalLine.Modify(true);
     end;
 
-#if not CLEAN27
-    local procedure CreateVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroupCode: Code[20])
-    var
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-    begin
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroupCode, VATProductPostingGroup.Code);
-        if VATPostingSetup."VAT Identifier" = '' then
-            VATPostingSetup.Validate("VAT Identifier", VATPostingSetup."VAT Prod. Posting Group");
-        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(5, 25));
-        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
-        VATPostingSetup.Modify(true);
-    end;
-#endif
 
     local procedure MockJobPlanningLine(var JobPlanningLine: Record "Job Planning Line")
     var
@@ -815,79 +559,6 @@ codeunit 136300 "Job Consumption Basic"
         Item.Insert();
     end;
 
-#if not CLEAN27
-    local procedure PostPurchaseDocument(PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header")
-    begin
-        // Receive and invoice the purchase document
-        // Returns the purchase invoice.
-
-        case PurchaseHeader."Document Type" of
-            PurchaseHeader."Document Type"::Order:
-                begin
-                    LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
-                    PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true))
-                end;
-            PurchaseHeader."Document Type"::Invoice:
-                PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true))
-            else
-                Assert.Fail(StrSubstNo('Unsupported document type %1', PurchaseHeader."Document Type"));
-        end
-    end;
-
-    local procedure GetPurchaseLines(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
-    begin
-        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.FindSet();
-    end;
-
-    local procedure GetPurchaseReceiptLines(VendorNo: Code[20]; DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20])
-    var
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        PurchaseLine: Record "Purchase Line";
-    begin
-        PurchRcptLine.SetRange("Buy-from Vendor No.", VendorNo);
-        PurchRcptLine.FindSet();
-        repeat
-            PurchaseLine."Document Type" := DocumentType;
-            PurchaseLine."Document No." := DocumentNo;
-            LibraryVariableStorage.Enqueue(PurchRcptLine."Document No.");
-            LibraryVariableStorage.Enqueue(PurchRcptLine."Line No.");
-            LibraryPurchase.GetPurchaseReceiptLine(PurchaseLine);
-        until PurchRcptLine.Next() = 0;
-    end;
-
-    local procedure PostPurchaseReceiptWithJob(VendorNo: Code[20]; ItemNo: Code[20]; Qty: Decimal; JobTask: Record "Job Task")
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-    begin
-        CreateSingleLinePurchDocWithVendorAndItem(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, VendorNo, ItemNo, Qty);
-        PurchaseLine.Validate("Job No.", JobTask."Job No.");
-        PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
-        PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
-    end;
-
-    local procedure UpdatePurchLine(var PurchLine: Record "Purchase Line"; ConsumableType: Enum "Purchase Document Type")
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        Item: Record Item;
-    begin
-        if ConsumableType <> PurchLine.Type::Item then
-            LibraryJob.Attach2PurchaseLine(ConsumableType, PurchLine)
-        else begin
-            CreateVATPostingSetup(VATPostingSetup, PurchLine."VAT Bus. Posting Group");
-            PurchLine.Validate(Type, ConsumableType);
-            LibraryInventory.CreateItem(Item);
-            Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-            Item.Modify(true);
-            PurchLine.Validate("No.", Item."No.");
-            PurchLine.Validate(Quantity, LibraryRandom.RandInt(100));
-            PurchLine.Modify(true)
-        end;
-    end;
-#endif
 
     local procedure SelectJobGLJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     begin
@@ -1007,13 +678,4 @@ codeunit 136300 "Job Consumption Basic"
           StrSubstNo('Unexpected Message: %1', Msg))
     end;
 
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure GetReceiptLinesPageHandler(var GetReceiptLines: TestPage "Get Receipt Lines")
-    begin
-        GetReceiptLines.GotoKey(LibraryVariableStorage.DequeueText(), LibraryVariableStorage.DequeueInteger());
-        GetReceiptLines.OK().Invoke();
-    end;
-#endif
 }

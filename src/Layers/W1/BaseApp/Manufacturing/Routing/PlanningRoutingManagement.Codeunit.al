@@ -474,9 +474,6 @@ codeunit 99000808 PlanningRoutingManagement
     procedure CalculateRouting(var ReqLine: Record "Requisition Line"; Direction: Option Forward,Backward)
     var
         PlanningRtngLine: Record "Planning Routing Line";
-#if not CLEAN27
-        PlanningLineManagement: Codeunit "Planning Line Management";
-#endif
     begin
         if NeedsCalculation(
              ReqLine."Worksheet Template Name",
@@ -508,9 +505,6 @@ codeunit 99000808 PlanningRoutingManagement
                 ReqLine.CalcStartingDate('');
             ReqLine.UpdateDatetime();
             OnCalculateRoutingOnAfterUpdateReqLine(ReqLine, Direction);
-#if not CLEAN27
-            PlanningLineManagement.RunOnCalculateRoutingOnAfterUpdateReqLine(ReqLine, Direction);
-#endif
             exit;
         end;
 

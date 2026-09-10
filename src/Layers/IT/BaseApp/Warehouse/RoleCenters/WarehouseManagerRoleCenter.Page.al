@@ -23,9 +23,6 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN27
-using Microsoft.Manufacturing.Document;
-#endif
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -108,26 +105,6 @@ page 8909 "Warehouse Manager Role Center"
                     Caption = 'Assembly Orders';
                     RunObject = page "Assembly Orders";
                 }
-#if not CLEAN27
-                action("Subcontracting Orders")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    Caption = 'Subcontracting Orders';
-                    RunObject = page "Subcontracting Order List";
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                action("Subcontracting Transfer Orders")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    Caption = 'Subcontracting Transfer Orders';
-                    RunObject = page "Subcontracting Transfer List";
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 group("Group1")
                 {
                     Caption = 'Posted Documents';

@@ -1135,7 +1135,7 @@ codeunit 134023 "ERM Pmt Tol Multi Doc Customer"
     begin
         CustLedgerEntry.SetRange("Customer No.", CustomerNo);
         CustLedgerEntry.SetRange("Document Type", DocumentType);
-        CustLedgerEntry.FindSet(true, false);
+        CustLedgerEntry.FindSet(true);
         foreach MaxPmtTolerance in MaxPmtTolAmounts do begin
             CustLedgerEntry.Validate("Max. Payment Tolerance", MaxPmtTolerance);
             CustLedgerEntry.Modify(true);

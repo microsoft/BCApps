@@ -68,24 +68,6 @@ codeunit 27021 "DIOT Data Management"
         NegativeAmountErr: Label 'The amount for Concept No. %1 for Vendor with No. = %2 is negative, which is not valid.', Comment = '%1 = DIOT Concept No. Field Value; %2 = Vendor No. Field Value';
         NoDataMsg: Label 'There are no VAT Entries for configured concepts in the specified date range.';
 
-#if not CLEAN27
-    [Obsolete('Use GetTypeOfOperationCode(TypeOfOperation: Enum) instead.', '27.0')]
-    procedure GetTypeOfOperationCode(TypeOfOperation: Option): code[2]
-    var
-        DummyVendor: Record Vendor;
-    begin
-        case (TypeOfOperation) of
-            DummyVendor."DIOT Type of Operation"::"Prof. Services".AsInteger():
-                exit('03');
-            DummyVendor."DIOT Type of Operation"::"Lease and Rent".AsInteger():
-                exit('06');
-            DummyVendor."DIOT Type of Operation"::Others.AsInteger():
-                exit('85');
-            else
-                exit('');
-        end;
-    end;
-#endif
     procedure GetTypeOfOperationCode(TypeOfOperation: Enum "DIOT Type of Operation"): Text[2]
     begin
         case TypeOfOperation of

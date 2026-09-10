@@ -28,17 +28,11 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
         if not HybridDeployment.VerifyCanStartUpgrade(CompanyName()) then
             exit;
 
-#if not CLEAN27
-        UpgradeInventoryPlanningFields();
-#endif
 
 #if not CLEANSCHEMA29
         UpgradeFlushingMethod();
 #endif
 
-#if not CLEAN27
-        UpgradeGranularWarehouseHandlingSetup();
-#endif
 
         UpgradeProdDefinitionDisplaySetup();
     end;
@@ -238,100 +232,5 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
     end;
 #endif
 
-#if not CLEAN27
-    local procedure UpgradeInventoryPlanningFields()
-    var
-        InventorySetup: Record Microsoft.Inventory.Setup."Inventory Setup";
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetInventoryPlanningSetupUpgradeTag()) then
-            exit;
 
-        if not ManufacturingSetup.Get() then
-            exit;
-
-        if InventorySetup.Get() then begin
-            InventorySetup."Current Demand Forecast" := ManufacturingSetup."Current Production Forecast";
-            InventorySetup."Use Forecast on Variants" := ManufacturingSetup."Use Forecast on Variants";
-            InventorySetup."Use Forecast on Locations" := ManufacturingSetup."Use Forecast on Locations";
-            InventorySetup."Default Safety Lead Time" := ManufacturingSetup."Default Safety Lead Time";
-            InventorySetup."Combined MPS/MRP Calculation" := ManufacturingSetup."Combined MPS/MRP Calculation";
-            InventorySetup."Default Dampener %" := ManufacturingSetup."Default Dampener %";
-            InventorySetup."Default Dampener Period" := ManufacturingSetup."Default Dampener Period";
-            InventorySetup."Blank Overflow Level" := ManufacturingSetup."Blank Overflow Level";
-            InventorySetup.Modify();
-        end;
-
-        SetUpgradeTag(true, UpgradeTagDefinitions.GetInventoryPlanningSetupUpgradeTag());
-    end;
-#endif
-
-#if not CLEAN27
-    local procedure UpgradeGranularWarehouseHandlingSetup()
-    var
-        Location: Record Location;
-        LocationDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetLocationGranularWarehouseHandlingSetupsUpgradeTag()) then
-            exit;
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Pick"), '=%1', false);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Shipment"), '=%1', false);
-        LocationDataTransfer.AddConstantValue("Prod. Consump. Whse. Handling"::"Warehouse Pick (optional)", Location.FieldNo("Prod. Consump. Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Pick"), '=%1', false);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Shipment"), '=%1', true);
-        LocationDataTransfer.AddConstantValue("Prod. Consump. Whse. Handling"::"Warehouse Pick (optional)", Location.FieldNo("Prod. Consump. Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Pick"), '=%1', true);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Shipment"), '=%1', false);
-        LocationDataTransfer.AddConstantValue("Prod. Consump. Whse. Handling"::"Inventory Pick/Movement", Location.FieldNo("Prod. Consump. Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Pick"), '=%1', true);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Shipment"), '=%1', true);
-        LocationDataTransfer.AddConstantValue("Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)", Location.FieldNo("Prod. Consump. Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Put-away"), '=%1', false);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Receive"), '=%1', false);
-        LocationDataTransfer.AddConstantValue("Prod. Output Whse. Handling"::"No Warehouse Handling", Location.FieldNo("Prod. Output Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Put-away"), '=%1', false);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Receive"), '=%1', true);
-        LocationDataTransfer.AddConstantValue("Prod. Output Whse. Handling"::"No Warehouse Handling", Location.FieldNo("Prod. Output Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Put-away"), '=%1', true);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Receive"), '=%1', true);
-        LocationDataTransfer.AddConstantValue("Prod. Output Whse. Handling"::"No Warehouse Handling", Location.FieldNo("Prod. Output Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        LocationDataTransfer.SetTables(Database::Location, Database::Location);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Put-away"), '=%1', true);
-        LocationDataTransfer.AddSourceFilter(Location.FieldNo("Require Receive"), '=%1', false);
-        LocationDataTransfer.AddConstantValue("Prod. Output Whse. Handling"::"Inventory Put-away", Location.FieldNo("Prod. Output Whse. Handling"));
-        LocationDataTransfer.CopyFields();
-        Clear(LocationDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetLocationGranularWarehouseHandlingSetupsUpgradeTag());
-    end;
-#endif
 }

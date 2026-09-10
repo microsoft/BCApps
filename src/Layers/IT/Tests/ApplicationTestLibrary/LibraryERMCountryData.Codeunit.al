@@ -227,11 +227,7 @@ codeunit 131305 "Library - ERM Country Data"
 
     procedure UpdateLocalData()
     var
-#if not CLEAN27
-        SettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         SettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();

@@ -73,26 +73,6 @@ report 114 "Salesperson - Sales Statistics"
             {
                 IncludeCaption = true;
             }
-#if not CLEAN27
-            column(COMPANYNAME; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalespersonFilter; SalespersonFilter)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CustLedgEntryFilter; CustLedgEntryFilter)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
 
             trigger OnAfterGetRecord()
             var
@@ -260,18 +240,6 @@ report 114 "Salesperson - Sales Statistics"
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Salesperson Sales Statistics RDLC';
-            Type = RDLC;
-            LayoutFile = './Sales/Reports/SalespersonSalesStatistics.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels

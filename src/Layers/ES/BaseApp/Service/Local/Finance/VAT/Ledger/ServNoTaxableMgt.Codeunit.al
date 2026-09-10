@@ -179,9 +179,6 @@ codeunit 10741 "Serv. No Taxable Mgt."
         NoTaxableEntry."VAT Reporting Date" := ServiceHeader."VAT Reporting Date";
 
         OnAfterInitFromServiceDocument(NoTaxableEntry, ServiceHeader);
-#if not CLEAN27
-        NoTaxableEntry.RunOnAfterInitFromServiceDocument(NoTaxableEntry, ServiceHeader);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

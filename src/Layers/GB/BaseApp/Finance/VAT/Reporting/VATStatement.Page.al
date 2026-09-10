@@ -156,30 +156,6 @@ page 317 "VAT Statement"
         }
         area(reporting)
         {
-#if not CLEAN27
-            action("VAT Audit Report")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Audit Report';
-                Image = "Report";
-                RunObject = Report "VAT Audit";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'Export the data required for auditing in a comma-separated value (CSV) file format.';
-            }
-            action("VAT Entry Exception Report")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Entry Exception Report';
-                Image = "Report";
-                RunObject = Report "VAT Entry Exception Report";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'Print the Exception report so that you can document and show differences in VAT amounts to tax authorities.';
-            }
-#endif
         }
         area(processing)
         {
@@ -230,21 +206,6 @@ page 317 "VAT Statement"
             group(Category_Report)
             {
                 Caption = 'Reports';
-
-#if not CLEAN27
-                actionref("VAT Audit Report_Promoted"; "VAT Audit Report")
-                {
-                    ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                actionref("VAT Entry Exception Report_Promoted"; "VAT Entry Exception Report")
-                {
-                    ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
         }
     }

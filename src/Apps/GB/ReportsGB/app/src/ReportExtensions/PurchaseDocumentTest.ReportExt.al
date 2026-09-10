@@ -8,9 +8,7 @@ using Microsoft.Purchases.Reports;
 
 reportextension 10580 "Purchase Document - Test" extends "Purchase Document - Test"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/PurchaseDocumentTestGB.rdlc';
-#endif
     dataset
     {
         add(PageCounter)
@@ -55,20 +53,6 @@ reportextension 10580 "Purchase Document - Test" extends "Purchase Document - Te
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Purchase Document Test GB localization';
-            LayoutFile = './src/ReportExtensions/PurchaseDocumentTestGB.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         ReverseChargeCaption_Control1040006Lbl: Label 'Reverse Charge';

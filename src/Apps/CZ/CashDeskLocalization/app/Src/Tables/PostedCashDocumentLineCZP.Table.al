@@ -519,20 +519,4 @@ table 11738 "Posted Cash Document Line CZP"
         exit(GeneralLedgerSetup."Additional Reporting Currency");
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the CashDocumentStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure ExtStatistics()
-    var
-        PostedCashDocumentLineCZP: Record "Posted Cash Document Line CZP";
-    begin
-        TestField("Cash Desk No.");
-        TestField("Cash Document No.");
-        TestField("Line No.");
-
-        PostedCashDocumentLineCZP.SetRange("Cash Desk No.", "Cash Desk No.");
-        PostedCashDocumentLineCZP.SetRange("Cash Document No.", "Cash Document No.");
-        PostedCashDocumentLineCZP.SetRange("Line No.", "Line No.");
-        Page.RunModal(Page::"Posted Cash Document Stat. CZP", PostedCashDocumentLineCZP);
-    end;
-#endif
 }

@@ -205,13 +205,6 @@ codeunit 99000846 "Trans. Get Demand To Reserve"
         until TempTransferLine.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetDemandOnBeforeSetTempTransferLine(var TransferLine: Record "Transfer Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSyncTransferOrderLinesOnBeforeInsertReservationWkshLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var TempTransferLine: Record "Transfer Line" temporary; var DoInsertReservationWkshLine: Boolean)

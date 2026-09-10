@@ -9,9 +9,7 @@ using Microsoft.Sales.Setup;
 
 reportextension 10581 "Sales Document - Test" extends "Sales Document - Test"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/SalesDocumentTestGB.rdlc';
-#endif
     dataset
     {
         add(PageCounter)
@@ -88,20 +86,6 @@ reportextension 10581 "Sales Document - Test" extends "Sales Document - Test"
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Sales Document Test GB localization';
-            LayoutFile = './src/ReportExtensions/SalesDocumentTestGB.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     trigger OnPreReport()
     begin

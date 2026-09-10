@@ -672,26 +672,6 @@ codeunit 7000005 "Invoice-Split Payment"
         until PurchLine2.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ServInvoiceSplitPayment', '27.0')]
-    procedure SplitServiceInv(var ServiceHeader: Record Microsoft.Service.Document."Service Header"; var CustLedgEntry: Record "Cust. Ledger Entry"; var Window: Dialog; SourceCode: Code[10]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocNo: Code[20]; VATAmount: Decimal)
-    var
-        ServInvoiceSplitPayment: Codeunit "Serv. Invoice-Split Payment";
-    begin
-        ServInvoiceSplitPayment.SplitServiceInvoice(ServiceHeader, CustLedgEntry, Window, SourceCode, GenJnlLineExtDocNo, GenJnlLineDocNo, VATAmount);
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ServInvoiceSplitPayment', '27.0')]
-    procedure FindCustVATSetupServ(var VATSetup: Record "VAT Posting Setup"; ServiceHeader2: Record Microsoft.Service.Document."Service Header")
-    var
-        ServInvoiceSplitPayment: Codeunit "Serv. Invoice-Split Payment";
-    begin
-        ServInvoiceSplitPayment.FindCustVATSetupServ(VATSetup, ServiceHeader2, ErrorMessage, ExistsVATNoReal);
-    end;
-#endif
-
     procedure CalculateDate(DateFormulaText: Code[20]; DueDate: Date): Date
     var
         DateFormula: DateFormula;
@@ -759,32 +739,6 @@ codeunit 7000005 "Invoice-Split Payment"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeSplitServInvCloseEntry(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        OnBeforeSplitServInvCloseEntry(GenJournalLine, ServiceHeader);
-    end;
-
-    [Obsolete('Moved to codeunit ServInvoiceSplitPayment', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSplitServInvCloseEntry(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeSplitServInvCreateBills(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        OnBeforeSplitServInvCreateBills(GenJournalLine, ServiceHeader);
-    end;
-
-    [Obsolete('Moved to codeunit ServInvoiceSplitPayment', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSplitServInvCreateBills(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnSplitPurchInvOnBeforeCheckPaymentMethod(var PurchHeader: Record "Purchase Header"; var PaymentMethod: Record "Payment Method"; var PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
     begin
@@ -804,19 +758,6 @@ codeunit 7000005 "Invoice-Split Payment"
     local procedure OnSplitPurchInvOnCreateBillsOnBeforePostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; PurchaseHeader: Record "Purchase Header")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnSplitServiceInvOnCreateBillsOnBeforePostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        OnSplitServiceInvOnCreateBillsOnBeforePostGenJnlLine(GenJournalLine, ServiceHeader);
-    end;
-
-    [Obsolete('Moved to codeunit ServInvoiceSplitPayment', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSplitServiceInvOnCreateBillsOnBeforePostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSplitPurchInv(var PurchHeader: Record "Purchase Header"; var VendLedgEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)

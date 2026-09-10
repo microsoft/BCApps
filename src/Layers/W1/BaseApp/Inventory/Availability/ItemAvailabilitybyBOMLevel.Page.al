@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -495,23 +495,7 @@ page 5871 "Item Availability by BOM Level"
         ShowBy := NewShowBy;
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitSource()', '27.0')]
-    procedure InitAsmOrder(NewAsmHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        SourceRecordVar := NewAsmHeader;
-        ShowBy := ShowBy::Assembly;
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitSource()', '27.0')]
-    procedure InitProdOrder(NewProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        SourceRecordVar := NewProdOrderLine;
-        ShowBy := ShowBy::Production;
-    end;
-#endif
 
     procedure InitDate(NewDemandDate: Date)
     begin

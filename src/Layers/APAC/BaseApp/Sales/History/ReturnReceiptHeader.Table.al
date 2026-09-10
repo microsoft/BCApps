@@ -714,13 +714,7 @@ table 6660 "Return Receipt Header"
         /// <summary>
         /// Specifies the tracking number for the return shipment package.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';

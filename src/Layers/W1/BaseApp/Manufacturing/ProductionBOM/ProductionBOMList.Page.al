@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -208,21 +208,6 @@ page 99000787 "Production BOM List"
                 Image = "Report";
                 RunObject = Report "Quantity Explosion of BOM";
             }
-#if not CLEAN27
-            action("Compare List")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Compare List (Obsolete)';
-                Image = "Report";
-                //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
-                //PromotedCategory = "Report";
-                RunObject = Report "Compare List";
-                ToolTip = 'View a comparison of components for two items. The printout compares the components, their unit cost, cost share and cost per component.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the "Compare Production Cost Shares" report and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             action("Compare Production Cost Shares")
             {
                 ApplicationArea = Manufacturing;

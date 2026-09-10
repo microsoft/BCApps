@@ -1,4 +1,4 @@
-﻿namespace System.Integration.PowerBI;
+namespace System.Integration.PowerBI;
 
 using System;
 using System.Azure.Identity;
@@ -15,10 +15,6 @@ codeunit 6301 "Power BI Service Mgt."
         AzureAdMgt: Codeunit "Azure AD Mgt.";
         GenericErr: Label 'An error occurred while trying to get reports from the Power BI service. Please try again or contact your system administrator if the error persists.';
         PowerBiResourceNameTxt: Label 'Power BI Services';
-#if not CLEAN27
-        MainPageRatioTxt: Label '16:9', Locked = true;
-        FactboxRatioTxt: Label '4:3', Locked = true;
-#endif
         FailedAuthErr: Label 'We failed to authenticate with Power BI. Try to sign out and in again. This problem typically happens if you no longer have a license for Power BI or if you just changed your email or password.';
         UnauthorizedErr: Label 'You do not have a Power BI account. If you have just activated a license, it might take several minutes for the changes to be effective in Power BI.';
         PowerBIEmbedReportUrlTemplateTxt: Label 'https://app.powerbi.com/reportEmbed?reportId=%1', Locked = true;
@@ -80,19 +76,6 @@ codeunit 6301 "Power BI Service Mgt."
         exit(GenericErr);
     end;
 
-#if not CLEAN27
-    [Obsolete('This function is now deprecated, and the client decides the addin ratio instead.', '27.0')]
-    procedure GetFactboxRatio(): Text
-    begin
-        exit(FactboxRatioTxt);
-    end;
-
-    [Obsolete('This function is now deprecated, and the client decides the addin ratio instead.', '27.0')]
-    procedure GetMainPageRatio(): Text
-    begin
-        exit(MainPageRatioTxt);
-    end;
-#endif
 
     procedure GetContentPacksServicesUrl(): Text
     begin

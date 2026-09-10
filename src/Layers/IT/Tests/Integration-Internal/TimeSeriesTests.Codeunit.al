@@ -645,17 +645,9 @@ codeunit 135200 "Time Series Tests"
     [Scope('OnPrem')]
     procedure OpenVatEntries()
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
-#endif
     begin
-#if not CLEAN27
-        PeriodicSettlementVATEntry.ModifyAll("VAT Period Closed", false);
-#else
         PeriodicVATSettlementEntry.ModifyAll("VAT Period Closed", false);
-#endif
     end;
 
     [Normal]

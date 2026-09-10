@@ -745,13 +745,7 @@ table 114 "Sales Cr.Memo Header"
         /// <summary>
         /// Specifies the tracking number for the shipped package.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';

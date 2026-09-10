@@ -398,15 +398,6 @@ codeunit 99000886 "Capable to Promise"
         exit(1);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    procedure ReassignRefOrderNos(OrderPromisingID: Code[20])
-    var
-        ProdOrderAvailabilityMgt: Codeunit Microsoft.Manufacturing.Document."Prod. Order Availability Mgt.";
-    begin
-        ProdOrderAvailabilityMgt.ReassignRefOrderNos(OrderPromisingID);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReqLineInsert(var RequisitionLine: Record "Requisition Line")
@@ -448,30 +439,6 @@ codeunit 99000886 "Capable to Promise"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeReassignRefOrderNos(OrderPromisingID: Code[20]; var IsHandled: Boolean);
-    begin
-        OnBeforeReassignRefOrderNos(OrderPromisingID, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeReassignRefOrderNos(OrderPromisingID: Code[20]; var IsHandled: Boolean);
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnReassignRefOrderNosOnAfterRequisitionLineModifyAll(var RequisitionLine: Record "Requisition Line");
-    begin
-        OnReassignRefOrderNosOnAfterRequisitionLineModifyAll(RequisitionLine);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnReassignRefOrderNosOnAfterRequisitionLineModifyAll(var RequisitionLine: Record "Requisition Line");
-    begin
-    end;
-#endif
 }
 

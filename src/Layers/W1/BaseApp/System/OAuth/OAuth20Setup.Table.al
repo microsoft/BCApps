@@ -183,14 +183,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Call IsolatedStorage.SetEncrypted or IsolatedStorage.Set from your app.', '27.0')]
-#pragma warning restore AS0072
     internal procedure SetToken(var TokenKey: Guid; TokenValue: SecretText)
-#else
-    internal procedure SetToken(var TokenKey: Guid; TokenValue: SecretText)
-#endif
     begin
         if IsNullGuid(TokenKey) then
             TokenKey := CreateGuid();
@@ -202,14 +195,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Call IsolatedStorage.Get from your app.', '27.0')]
     internal procedure GetTokenAsSecretText(TokenKey: Guid) TokenValue: SecretText
-#pragma warning restore AS0072
-#else
-    internal procedure GetTokenAsSecretText(TokenKey: Guid) TokenValue: SecretText
-#endif
     begin
         if not HasToken(TokenKey) then
             exit(TokenValue);
@@ -218,14 +204,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Call IsolatedStorage.Delete from your app.', '27.0')]
     internal procedure DeleteToken(TokenKey: Guid)
-#pragma warning restore AS0072
-#else
-    internal procedure DeleteToken(TokenKey: Guid)
-#endif
     begin
         if not HasToken(TokenKey) then
             exit;
@@ -234,14 +213,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Call IsolatedStorage.Contains from your app.', '27.0')]
     internal procedure HasToken(TokenKey: Guid): Boolean
-#pragma warning restore AS0072
-#else
-    internal procedure HasToken(TokenKey: Guid): Boolean
-#endif
     begin
         exit(not IsNullGuid(TokenKey) and IsolatedStorage.Contains(TokenKey, GetTokenDataScope()));
     end;
@@ -261,14 +233,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Get the Rec."Client ID" from IsolatedStorage, call OAuth20Mgt.GetAuthorizationURLAsSecretText with it, unwrap the result and make a hyperlink.', '27.0')]
     internal procedure RequestAuthorizationCode()
-#pragma warning restore AS0072
-#else
-    internal procedure RequestAuthorizationCode()
-#endif
     var
         Processed: Boolean;
     begin
@@ -282,14 +247,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Get the client credentials from IsolatedStorage using Rec."Client ID" and Rec."Client Secret", call OAuth20Mgt.RequestAccessToken or implement this yourself, then save the access token with IsolatedStorage.SetEncrypted or IsolatedStorage.Set.', '27.0')]
     internal procedure RequestAccessToken(var MessageText: Text; AuthorizationCode: Text) Result: Boolean
-#pragma warning restore AS0072
-#else
-    internal procedure RequestAccessToken(var MessageText: Text; AuthorizationCode: Text) Result: Boolean
-#endif
     var
         Processed: Boolean;
     begin
@@ -301,14 +259,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Get the refresh token with IsolatedStorage.Get(Rec."Refresh Token"), then call OAuth20Mgt.RefreshAccessToken with it and save the access token with IsolatedStorage.SetEncrypted or IsolatedStorage.Set.', '27.0')]
     internal procedure RefreshAccessToken(var MessageText: Text) Result: Boolean
-#pragma warning restore AS0072
-#else
-    internal procedure RefreshAccessToken(var MessageText: Text) Result: Boolean
-#endif
     var
         Processed: Boolean;
     begin
@@ -318,14 +269,7 @@ table 1140 "OAuth 2.0 Setup"
     end;
 
     [NonDebuggable]
-#if not CLEAN27
-#pragma warning disable AS0072
-    [Obsolete('This method is being marked as internal. Implement your version of InvokeRequest by getting the Rec."Access Token" from IsolatedStorage, then calling public method OAuth20Mgt.InvokeRequest with it. If you set parameter RetryOnCredentialsFailure to true, you must also subscribe to event OnBeforeRefreshAccessToken raised by OAuth20Setup table and process it with your implementation of RefreshAccessToken and subscribe to OnBeforeInvokeRequest event raised by OAuth20Setup table and process it with your implementation of InvokeRequest (this implementation)', '27.0')]
     internal procedure InvokeRequest(RequestJSON: Text; var ResponseJSON: Text; var HttpError: Text; RetryOnCredentialsFailure: Boolean) Result: Boolean
-#pragma warning restore AS0072
-#else
-    internal procedure InvokeRequest(RequestJSON: Text; var ResponseJSON: Text; var HttpError: Text; RetryOnCredentialsFailure: Boolean) Result: Boolean
-#endif
     var
         Processed: Boolean;
     begin

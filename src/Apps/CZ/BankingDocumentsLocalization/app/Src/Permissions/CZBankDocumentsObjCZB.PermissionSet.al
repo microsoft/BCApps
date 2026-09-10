@@ -43,9 +43,6 @@ permissionset 11792 "CZ Bank Documents - Obj. CZB"
                   Codeunit "Upgrade Tag Definitions CZB" = X,
                   Codeunit "User Setup Adv. Management CZB" = X,
                   Codeunit "Workflow Handler CZB" = X,
-#if not CLEAN27
-                  Page "Banking Doc. Statistics CZB" = X,
-#endif
                   Page "Bank Statement CZB" = X,
                   Page "Bank Statement Lines CZB" = X,
                   Page "Bank Statements CZB" = X,

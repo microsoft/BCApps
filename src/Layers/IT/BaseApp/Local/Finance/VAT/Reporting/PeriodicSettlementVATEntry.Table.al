@@ -12,13 +12,8 @@ table 12135 "Periodic Settlement VAT Entry"
     Caption = 'Periodic Settlement VAT Entry';
     DataClassification = CustomerContent;
     ObsoleteReason = 'Adding a new field to the key. Use table 12102 "Periodic Settl. VAT Entry" instead.';
-#if not CLEAN27
-    ObsoleteState = Pending;
-    ObsoleteTag = '27.0';
-#else
     ObsoleteState = Removed;
     ObsoleteTag = '30.0';
-#endif
 
     fields
     {

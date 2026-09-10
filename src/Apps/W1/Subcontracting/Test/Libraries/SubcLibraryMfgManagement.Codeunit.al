@@ -8,9 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
-#if CLEAN27
 using Microsoft.Inventory.Setup;
-#endif
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
@@ -39,9 +37,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
     local procedure CreateManufacturingSetup()
     var
         MfgSetup: Record "Manufacturing Setup";
-#if CLEAN27
         InventorySetup: Record "Inventory Setup";
-#endif
     begin
         if not MfgSetup.Get() then
             MfgSetup.Insert();
@@ -58,13 +54,6 @@ codeunit 139984 "Subc. Library Mfg. Management"
         MfgSetup."Work Center Nos." := LibraryERM.CreateNoSeriesCode();
         MfgSetup."Routing Nos." := LibraryERM.CreateNoSeriesCode();
         MfgSetup."Production BOM Nos." := LibraryERM.CreateNoSeriesCode();
-#if not CLEAN27
-#pragma warning disable AL0432
-        MfgSetup."Combined MPS/MRP Calculation" := true;
-        Evaluate(MfgSetup."Default Safety Lead Time", '<1D>');
-#pragma warning restore AL0432
-        MfgSetup.Modify();
-#else
         if not InventorySetup.Get() then begin
             InventorySetup.Init();
             InventorySetup.Insert();
@@ -72,7 +61,6 @@ codeunit 139984 "Subc. Library Mfg. Management"
             Evaluate(InventorySetup."Default Safety Lead Time", '<1D>');
             InventorySetup.Modify();
         end;
-#endif
     end;
 
     procedure CreateWorkCenterWithFixedCost(var WorkCenter: Record "Work Center"; ShopCalendarCode: Code[10]; DirectUnitCost: Decimal)

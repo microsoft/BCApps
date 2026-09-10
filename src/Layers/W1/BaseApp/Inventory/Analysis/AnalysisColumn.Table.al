@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -182,22 +182,5 @@ table 7118 "Analysis Column"
         TempAnalysisLine: Record "Analysis Line" temporary;
         AnalysisRepMgmt: Codeunit "Analysis Report Management";
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Period Formula Parser', '27.0')]
-    procedure ParsePeriodFormula(FormulaExpression: Code[20]; var Steps: Integer; var Type: Enum "Period Type"; var RangeFromType: Enum "Period Formula Range"; var RangeToType: Enum "Period Formula Range"; var RangeFromInt: Integer; var RangeToInt: Integer)
-    var
-        PeriodFormulaParser: Codeunit "Period Formula Parser";
-    begin
-        PeriodFormulaParser.ParsePeriodFormula(
-            FormulaExpression,
-            Steps,
-            Type,
-            RangeFromType,
-            RangeToType,
-            RangeFromInt,
-            RangeToInt,
-            "Comparison Period Formula LCID");
-    end;
-#endif
 }
 

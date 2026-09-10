@@ -212,7 +212,7 @@ codeunit 18970 "Check Management Subscriber"
         GenJournalLine."Financial Void" := true;
         GenJnlPostLine.UnapplyCustLedgEntry(GenJournalLine, PaymentDetailedCustLedgEntry);
 
-        if OrigPaymentCustLedgerEntry.FindSet(true, false) then
+        if OrigPaymentCustLedgerEntry.FindSet(true) then
             repeat
                 MakeAppliesID(AppliesID, CheckLedgerEntry."Document No.");
                 OrigPaymentCustLedgerEntry."Applies-to ID" := AppliesID;
@@ -532,7 +532,7 @@ codeunit 18970 "Check Management Subscriber"
         GenJournalLine."Financial Void" := true;
         GenJnlPostLine.UnapplyVendLedgEntry(GenJournalLine, PayDetailedVendorLedgEntry);
 
-        OrigPaymentVendorLedgerEntry.FindSet(true, false);
+        OrigPaymentVendorLedgerEntry.FindSet(true);
         repeat
             MakeAppliesID(AppliesID, CheckLedgerEntry."Document No.");
             OrigPaymentVendorLedgerEntry."Applies-to ID" := AppliesID;

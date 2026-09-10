@@ -169,13 +169,6 @@ codeunit 5473 "Create VAT Posting Groups"
         exit(ExportTok);
     end;
 
-#if not CLEAN27
-    [Obsolete('Zero() is now replaced with NoVAT() instead', '27.0')]
-    procedure Zero(): Code[20]
-    begin
-        exit(NoVATTok);
-    end;
-#endif
 
     procedure NoVAT(): Code[20]
     begin

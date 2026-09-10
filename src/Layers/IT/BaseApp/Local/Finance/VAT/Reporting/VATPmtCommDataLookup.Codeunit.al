@@ -8,9 +8,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 
 codeunit 12151 "VAT Pmt. Comm. Data Lookup"
 {
@@ -24,14 +21,8 @@ codeunit 12151 "VAT Pmt. Comm. Data Lookup"
         CompanyOfficials: Record "Company Officials";
         VATReportSetup: Record "VAT Report Setup";
         VATEntry: Record "VAT Entry";
-#if not CLEAN27
-        LastPeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#endif
         LastPeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        FeatureManagementIT: Codeunit "Feature Management IT";
-#endif
         TaxDeclarant: Text[16];
         ChargeCode: Text[2];
         YearOfDeclaration: Text[2];
@@ -87,15 +78,7 @@ codeunit 12151 "VAT Pmt. Comm. Data Lookup"
         if StartYear <> EndYear then
             Error(DatesInDifferentYearsErr);
         VATEntry.SetRange("Operation Occurred Date", StartDate, EndDate);
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then
-            InitializeValuesFromLastPeriodicVATSettlementEntries(EndDate)
-        else
-            PeriodicSettlementVATEntryFound :=
-            LastPeriodicSettlementVATEntry.Get(GetVATPeriodFromDate(EndDate));
-#else
         InitializeValuesFromLastPeriodicVATSettlementEntries(EndDate);
-#endif
     end;
 
     local procedure InitializeValuesFromLastPeriodicVATSettlementEntries(PeriodEndDate: Date)
@@ -479,14 +462,7 @@ codeunit 12151 "VAT Pmt. Comm. Data Lookup"
         VATEntry.CalcSums(Amount);
         VATPurchases := VATEntry.Amount;
         VATEntry.SetRange(Type);
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then
-            OnAfterGetVATPurchases(LastPeriodicVATSettlementEntry, PeriodicSettlementVATEntryFound, VATPurchases)
-        else
-            OnGetVATPurchasesOnBeforeExit(LastPeriodicSettlementVATEntry, PeriodicSettlementVATEntryFound, VATPurchases);
-#else
         OnAfterGetVATPurchases(LastPeriodicVATSettlementEntry, PeriodicSettlementVATEntryFound, VATPurchases);
-#endif
         exit(VATPurchases);
     end;
 
@@ -521,109 +497,49 @@ codeunit 12151 "VAT Pmt. Comm. Data Lookup"
     [Scope('OnPrem')]
     procedure GetPeriodVATDebit(): Decimal
     begin
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if not PeriodicSettlementVATEntryFound then
-                exit(0);
-            exit(PriorPeriodOutputVAT)
-        end else
-            if PeriodicSettlementVATEntryFound then
-                exit(LastPeriodicSettlementVATEntry."Prior Period Output VAT");
-#else
         if not PeriodicSettlementVATEntryFound then
             exit(0);
         exit(PriorPeriodOutputVAT);
-#endif
     end;
 
     [Scope('OnPrem')]
     procedure GetPeriodVATCredit(): Decimal
     begin
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if not PeriodicSettlementVATEntryFound then
-                exit(0);
-            exit(PriorPeriodInputVAT)
-        end else
-            if PeriodicSettlementVATEntryFound then
-                exit(LastPeriodicSettlementVATEntry."Prior Period Input VAT");
-#else
         if not PeriodicSettlementVATEntryFound then
             exit(0);
         exit(PriorPeriodInputVAT);
-#endif
     end;
 
     [Scope('OnPrem')]
     procedure GetAnnualVATCredit(): Decimal
     begin
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if not PeriodicSettlementVATEntryFound then
-                exit(0);
-            exit(PriorYearInputVAT)
-        end else
-            if PeriodicSettlementVATEntryFound then
-                exit(LastPeriodicSettlementVATEntry."Prior Year Input VAT");
-#else
         if not PeriodicSettlementVATEntryFound then
             exit(0);
         exit(PriorYearInputVAT);
-#endif
     end;
 
     [Scope('OnPrem')]
     procedure GetCreditVATCompensation(): Decimal
     begin
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if not PeriodicSettlementVATEntryFound then
-                exit(0);
-            exit(CreditVATCompensation)
-        end else
-            if PeriodicSettlementVATEntryFound then
-                exit(LastPeriodicSettlementVATEntry."Credit VAT Compensation");
-#else
         if not PeriodicSettlementVATEntryFound then
             exit(0);
         exit(CreditVATCompensation);
-#endif
     end;
 
     [Scope('OnPrem')]
     procedure GetTaxDebitVariationInterest(): Decimal
     begin
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if not PeriodicSettlementVATEntryFound then
-                exit(0);
-            exit(TaxDebitVariationInterest);
-        end else
-            if PeriodicSettlementVATEntryFound then
-                exit(LastPeriodicSettlementVATEntry."Tax Debit Variation Interest");
-#else
         if not PeriodicSettlementVATEntryFound then
             exit(0);
         exit(TaxDebitVariationInterest);
-#endif
     end;
 
     [Scope('OnPrem')]
     procedure GetAdvancedTaxAmount(): Decimal
     begin
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            if not PeriodicSettlementVATEntryFound then
-                exit(0);
-            exit(AdvancedAmount)
-        end else
-            if PeriodicSettlementVATEntryFound then
-                exit(LastPeriodicSettlementVATEntry."Advanced Amount");
-#else
         if not PeriodicSettlementVATEntryFound then
             exit(0);
         exit(AdvancedAmount);
-#endif
     end;
 
     local procedure GetTotalCalculation(): Decimal
@@ -669,13 +585,6 @@ codeunit 12151 "VAT Pmt. Comm. Data Lookup"
         exit(Format(Date2DMY(GivenDate, 3)) + '/' +
           ConvertStr(Format(Date2DMY(GivenDate, 2), 2), ' ', '0'));
     end;
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is obsolete. Use OnAfterGetVATPurchases instead.', '27.0')]
-    local procedure OnGetVATPurchasesOnBeforeExit(LastPeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; PeriodicSettlementVATEntryFound: Boolean; var VATPurchases: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetVATPurchases(LastPeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry"; PeriodicSettlementVATEntryFound: Boolean; var VATPurchases: Decimal)

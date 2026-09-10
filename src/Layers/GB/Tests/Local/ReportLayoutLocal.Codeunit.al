@@ -15,16 +15,6 @@ codeunit 144303 "Report Layout - Local"
         LibrarySales: Codeunit "Library - Sales";
         isInitialized: Boolean;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('RHVATEntryExceptionReport')]
-    [Scope('OnPrem')]
-    procedure TestVATEntryExceptionReport()
-    begin
-        Initialize();
-        REPORT.Run(REPORT::"VAT Entry Exception Report");
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('StandardSalesDraftInvoiceRequestPageHandler')]
@@ -115,12 +105,6 @@ codeunit 144303 "Report Layout - Local"
         Commit();
     end;
 
-#if not CLEAN27
-    local procedure FormatFileName(ReportCaption: Text) ReportFileName: Text
-    begin
-        ReportFileName := DelChr(ReportCaption, '=', '/') + '.pdf'
-    end;
-#endif
     local procedure CreateSalesDocWithVATPostingSetup(var SalesHeader: Record "Sales Header"; DocType: Enum "Sales Document Type"; VATPostingSetup: Record "VAT Posting Setup")
     var
         SalesLine: Record "Sales Line";
@@ -137,18 +121,6 @@ codeunit 144303 "Report Layout - Local"
         SalesLine.Modify(true);
     end;
 
-#if not CLEAN27
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RHVATEntryExceptionReport(var VATEntryExceptionReport: TestRequestPage "VAT Entry Exception Report")
-    begin
-        VATEntryExceptionReport.VATBaseDiscount.SetValue(true);
-        VATEntryExceptionReport.ManualVATDifference.SetValue(true);
-        VATEntryExceptionReport.VATCalculationTypes.SetValue(true);
-        VATEntryExceptionReport.VATRate.SetValue(true);
-        VATEntryExceptionReport.SaveAsPdf(FormatFileName(VATEntryExceptionReport.Caption));
-    end;
-#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

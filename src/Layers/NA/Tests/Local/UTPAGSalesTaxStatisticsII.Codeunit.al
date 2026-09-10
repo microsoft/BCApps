@@ -122,51 +122,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         // Exercise & Verify: Invokes Action - Statistics on Sales Return Order and verify the Tax Amount and Amount Incl. Tax on Statistics page in SalesOrderStatsPageHandler.
         OpenSalesOrderStatsPageForSalesReturnOrder(SalesLine."Document No.");
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ServiceOrderStatsPageHandler')]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsServiceOrder()
-    var
-        TaxDetail: Record "Tax Detail";
-    begin
-        // Purpose of the test is to validate Statistics - OnAction Trigger of Page ID - 5900, Service Order with Tax Area and Tax Liable.
-
-        // Setup: Create and open Service Order Statistics with Tax Area Code.
-        Initialize();
-        CreateTaxDetail(TaxDetail);
-        CreateAndOpenServiceOrderStatistics(TaxDetail."Tax Group Code", CreateTaxAreaLine(TaxDetail."Tax Jurisdiction Code"), true, TaxDetail."Tax Below Maximum");  // Tax Liable TRUE.
-    end;
-
-    [Test]
-    [HandlerFunctions('ServiceOrderStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsWithTaxAreaServiceOrder()
-    var
-        TaxDetail: Record "Tax Detail";
-    begin
-        // Purpose of the test is to validate Statistics - OnAction Trigger of Page ID - 5900, Service Order without Tax Area and Tax Liable.
-
-        // Setup: Create and open Service Order Statistics without Tax Area Code.
-        Initialize();
-        CreateTaxDetail(TaxDetail);
-        CreateAndOpenServiceOrderStatistics(TaxDetail."Tax Group Code", '', false, TaxDetail."Tax Below Maximum");  // Tax Liable FALSE.
-    end;
-
-    local procedure CreateAndOpenServiceOrderStatistics(TaxGroupCode: Code[20]; TaxAreaCode: Code[20]; TaxLiable: Boolean; TaxBelowMaximum: Decimal)
-    var
-        ServiceLine: Record "Service Line";
-        TaxAmount: Decimal;
-    begin
-        // Create Service Order with Tax Area Code.
-        CreateServiceDocument(ServiceLine, ServiceLine."Document Type"::Order, TaxAreaCode, TaxGroupCode, TaxLiable);
-        TaxAmount := ServiceLine."Unit Price" * ServiceLine.Quantity * TaxBelowMaximum / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Required inside ServiceOrderStatisticsPageHandler.
-
-        // Exercise and verify: Invokes Action - Statistics on Page Service Order and verified Tax Amount on ServiceOrderStatisticsPageHandler.
-        OpenStatisticsPageForServiceOrder(ServiceLine."Document No.");
-    end;
-#endif
     [Test]
     [HandlerFunctions('ServiceOrderStatsPageHandlerNM')]
     [Scope('OnPrem')]
@@ -423,49 +378,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         OpenSalesOrderStatsPageForBlanketSalesOrder(SalesLine."Document No.");
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('SalesInvoiceStatisticsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsPostedSalesInvoice()
-    var
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        VATAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 132, Posted Sales Invoice without Tax Area.
-
-        // Setup: Create Posted Sales Invoice.
-        CreatePostedSalesInvoice(SalesInvoiceLine, '', '', false);  // Blank for Tax Area Code and Tax Group Code, Tax Liable - FALSE.
-        VATAmount := SalesInvoiceLine."Line Amount" * SalesInvoiceLine."VAT %" / 100;
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue values for use in SalesInvoiceStatisticsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Sales Invoice and verify the VAT Amount on Statistics page in SalesInvoiceStatisticsPageHandler.
-        OpenStatisticsPageForPostedSalesInvoice(SalesInvoiceLine."Document No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('SalesInvoiceStatsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsWithTaxAreaPostedSalesInvoice()
-    var
-        TaxDetail: Record "Tax Detail";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        TaxAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 132, Posted Sales Invoice with Tax Area.
-
-        // Setup: Create Tax Setup, Create Posted Sales Invoice.
-        CreateTaxDetail(TaxDetail);
-        CreatePostedSalesInvoice(SalesInvoiceLine, CreateTaxAreaLine(TaxDetail."Tax Jurisdiction Code"), TaxDetail."Tax Group Code", true);  // Tax Liable TRUE.
-        TaxAmount := SalesInvoiceLine."Line Amount" * TaxDetail."Tax Below Maximum" / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Enqueue values for use in SalesInvoiceStatsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Invoice and verify the Tax Amount on Statistics page in SalesInvoiceStatsPageHandler.
-        OpenStatisticsPageForPostedSalesInvoice(SalesInvoiceLine."Document No.");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesInvoiceStatisticsPageHandlerNM')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -507,49 +419,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Invoice and verify the Tax Amount on Statistics page in SalesInvoiceStatsPageHandler.
         OpenStatsPageForPostedSalesInvoiceNM(SalesInvoiceLine."Document No.");
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('SalesInvoiceStatisticsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsPostedSalesInvList()
-    var
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        VATAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 143, Posted Sales Invoices without Tax Area.
-
-        // Setup: Create Posted Sales Invoice.
-        CreatePostedSalesInvoice(SalesInvoiceLine, '', '', false);  // Blank for Tax Area Code and Tax Group Code, Tax Liable - FALSE.
-        VATAmount := SalesInvoiceLine."Line Amount" * SalesInvoiceLine."VAT %" / 100;
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue values for use in SalesInvoiceStatisticsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Invoices and verify the VAT Amount on Statistics page in SalesInvoiceStatisticsPageHandler.
-        OpenStatisticsPageForPostedSalesInvoiceList(SalesInvoiceLine."Document No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('SalesInvoiceStatsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsWithTaxAreaPostedSalesInvoiceList()
-    var
-        TaxDetail: Record "Tax Detail";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        TaxAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 143, Posted Sales Invoices with Tax Area.
-
-        // Setup: Create Tax Setup, Create Posted Sales Invoice.
-        CreateTaxDetail(TaxDetail);
-        CreatePostedSalesInvoice(SalesInvoiceLine, CreateTaxAreaLine(TaxDetail."Tax Jurisdiction Code"), TaxDetail."Tax Group Code", true);  // Tax Liable TRUE.
-        TaxAmount := SalesInvoiceLine."Line Amount" * TaxDetail."Tax Below Maximum" / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Enqueue values for use in SalesInvoiceStatsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Invoices and verify the Tax Amount on Statistics page in SalesInvoiceStatsPageHandler.
-        OpenStatisticsPageForPostedSalesInvoiceList(SalesInvoiceLine."Document No.");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesInvoiceStatisticsPageHandlerNM')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -591,49 +460,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Invoices and verify the Tax Amount on Statistics page in SalesInvoiceStatsPageHandler.
         OpenStatsPageForPostedSalesInvoiceListNM(SalesInvoiceLine."Document No.");
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('SalesCreditMemoStatisticsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsPostedSalesCrMemo()
-    var
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        VATAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 134, Posted Sales Credit Memo without Tax Area.
-
-        // Setup: Create Posted Sales Credit Memo.
-        CreatePostedSalesCreditMemo(SalesCrMemoLine, '', '', false);  // Blank for Tax Area Code and Tax Group Code, Tax Liable - FALSE.
-        VATAmount := SalesCrMemoLine."Line Amount" * SalesCrMemoLine."VAT %" / 100;
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue values for use in SalesCreditMemoStatisticsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Credit Memo and verify the VAT Amount on Statistics page in SalesCreditMemoStatisticsPageHandler.
-        OpenStatisticsPageForPostedSalesCrMemo(SalesCrMemoLine."Document No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('SalesCreditMemoStatsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsWithTaxAreaPostedSalesCrMemo()
-    var
-        TaxDetail: Record "Tax Detail";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        TaxAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 132, Posted Sales Credit Memo with Tax Area.
-
-        // Setup: Create Tax Setup, Create Posted Sales Credit Memo.
-        CreateTaxDetail(TaxDetail);
-        CreatePostedSalesCreditMemo(SalesCrMemoLine, CreateTaxAreaLine(TaxDetail."Tax Jurisdiction Code"), TaxDetail."Tax Group Code", true);  // Tax Liable TRUE.
-        TaxAmount := SalesCrMemoLine."Line Amount" * TaxDetail."Tax Below Maximum" / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Enqueue values for use in SalesCreditMemoStatsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Credit Memo and verify the Tax Amount on Statistics page in SalesCreditMemoStatsPageHandler.
-        OpenStatisticsPageForPostedSalesCrMemo(SalesCrMemoLine."Document No.");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesCreditMemoStatisticsPageHandlerNM')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -675,49 +501,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Credit Memo and verify the Tax Amount on Statistics page in SalesCreditMemoStatsPageHandler.
         OpenStatsPageForPostedSalesCrMemoNM(SalesCrMemoLine."Document No.");
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('SalesCreditMemoStatisticsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsPostedSalesCrMemoList()
-    var
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        VATAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 144, Posted Sales Credit Memos without Tax Area.
-
-        // Setup: Create Posted Sales Credit Memo.
-        CreatePostedSalesCreditMemo(SalesCrMemoLine, '', '', false);  // Blank for Tax Area Code and Tax Group Code, Tax Liable - FALSE.
-        VATAmount := SalesCrMemoLine."Line Amount" * SalesCrMemoLine."VAT %" / 100;
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue values for use in SalesCreditMemoStatisticsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Credit Memos and verify the VAT Amount on Statistics page in SalesCreditMemoStatisticsPageHandler.
-        OpenStatisticsPageForPostedSalesCrMemoList(SalesCrMemoLine."Document No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('SalesCreditMemoStatsPageHandler')]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsWithTaxAreaPostedSalesCrMemoList()
-    var
-        TaxDetail: Record "Tax Detail";
-        SalesCrMemoLine: Record "Sales Cr.Memo Line";
-        TaxAmount: Decimal;
-    begin
-        // Purpose of the test is to validate Statistics - OnAction trigger of the Page ID: 144, Posted Sales Credit Memos with Tax Area.
-
-        // Setup: Create Tax Setup, Create Posted Sales Credit Memo.
-        CreateTaxDetail(TaxDetail);
-        CreatePostedSalesCreditMemo(SalesCrMemoLine, CreateTaxAreaLine(TaxDetail."Tax Jurisdiction Code"), TaxDetail."Tax Group Code", true);  // Tax Liable TRUE.
-        TaxAmount := SalesCrMemoLine."Line Amount" * TaxDetail."Tax Below Maximum" / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Enqueue values for use in SalesCreditMemoStatsPageHandler.
-
-        // Exercise & Verify: Invokes Action - Statistics on Page Posted Sales Credit Memos and verify the Tax Amount on Statistics page in SalesCreditMemoStatsPageHandler.
-        OpenStatisticsPageForPostedSalesCrMemoList(SalesCrMemoLine."Document No.");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesCreditMemoStatisticsPageHandlerNM')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -1017,57 +800,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         SalesReturnOrder.Close();
     end;
 
-#if not CLEAN27
-    local procedure OpenStatisticsPageForPostedSalesCrMemo(No: Code[20])
-    var
-        PostedSalesCreditMemo: TestPage "Posted Sales Credit Memo";
-    begin
-        PostedSalesCreditMemo.OpenEdit();
-        PostedSalesCreditMemo.FILTER.SetFilter("No.", No);
-        PostedSalesCreditMemo.Statistics.Invoke();  // SalesCreditMemoStatisticsPageHandler or SalesCreditMemoStatsPageHandler.
-        PostedSalesCreditMemo.Close();
-    end;
-
-    local procedure OpenStatisticsPageForPostedSalesCrMemoList(No: Code[20])
-    var
-        PostedSalesCreditMemos: TestPage "Posted Sales Credit Memos";
-    begin
-        PostedSalesCreditMemos.OpenEdit();
-        PostedSalesCreditMemos.FILTER.SetFilter("No.", No);
-        PostedSalesCreditMemos.Statistics.Invoke();  // SalesCreditMemoStatisticsPageHandler or SalesCreditMemoStatsPageHandler.
-        PostedSalesCreditMemos.Close();
-    end;
-
-    local procedure OpenStatisticsPageForPostedSalesInvoice(No: Code[20])
-    var
-        PostedSalesInvoice: TestPage "Posted Sales Invoice";
-    begin
-        PostedSalesInvoice.OpenEdit();
-        PostedSalesInvoice.FILTER.SetFilter("No.", No);
-        PostedSalesInvoice.Statistics.Invoke();  // Opens Handler - SalesInvoiceStatisticsPageHandler or SalesOrderStatsPageHandler.
-        PostedSalesInvoice.Close();
-    end;
-
-    local procedure OpenStatisticsPageForPostedSalesInvoiceList(No: Code[20])
-    var
-        PostedSalesInvoices: TestPage "Posted Sales Invoices";
-    begin
-        PostedSalesInvoices.OpenEdit();
-        PostedSalesInvoices.FILTER.SetFilter("No.", No);
-        PostedSalesInvoices.Statistics.Invoke();  // Opens Handler - SalesInvoiceStatisticsPageHandler or SalesOrderStatsPageHandler.
-        PostedSalesInvoices.Close();
-    end;
-
-    local procedure OpenStatisticsPageForServiceOrder(No: Code[20])
-    var
-        ServiceOrder: TestPage "Service Order";
-    begin
-        ServiceOrder.OpenEdit();
-        ServiceOrder.FILTER.SetFilter("No.", No);
-        ServiceOrder.Statistics.Invoke();  // Opens Handler - ServiceOrderStatsPageHandler and ServiceOrderStatisticsPageHandlerPageHandler.
-        ServiceOrder.Close();
-    end;
-#endif
     local procedure OpenStatisticsPageForPostedSalesCrMemoNM(No: Code[20])
     var
         PostedSalesCreditMemo: TestPage "Posted Sales Credit Memo";
@@ -1253,29 +985,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         VerifyTaxOnStatisticsPage(PurchaseOrderStatistics."VATAmount[1]".AsDecimal(), PurchaseOrderStatistics.TotalInclVAT_General.AsDecimal());
         PurchaseOrderStatistics.OK().Invoke();
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceOrderStatsPageHandler(var ServiceOrderStats: TestPage "Service Order Stats.")
-    var
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        ServiceOrderStats."VATAmount[2]".AssertEquals(TaxAmount);
-        ServiceOrderStats.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceOrderStatisticsPageHandler(var ServiceOrderStatistics: TestPage "Service Order Statistics")
-    var
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        ServiceOrderStatistics."VATAmount[2]".AssertEquals(TaxAmount);
-        ServiceOrderStatistics.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceOrderStatsPageHandlerNM(var ServiceOrderStats: TestPage "Service Order Stats.")
@@ -1319,29 +1028,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         SalesStats.TaxAmount.AssertEquals(TaxAmount);
         SalesStats.OK().Invoke();
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesInvoiceStatisticsPageHandler(var SalesInvoiceStatistics: TestPage "Sales Invoice Statistics")
-    var
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(VATAmount);
-        SalesInvoiceStatistics.Subform."VAT Amount".AssertEquals(VATAmount);
-        SalesInvoiceStatistics.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesInvoiceStatsPageHandler(var SalesInvoiceStats: TestPage "Sales Invoice Stats.")
-    var
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        SalesInvoiceStats.Subform."Tax Amount".AssertEquals(TaxAmount);
-        SalesInvoiceStats.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesInvoiceStatisticsPageHandlerNM(var SalesInvoiceStatistics: TestPage "Sales Invoice Statistics")
@@ -1363,29 +1049,6 @@ codeunit 141020 "UT PAG Sales Tax Statistics II"
         SalesInvoiceStats.Subform."Tax Amount".AssertEquals(TaxAmount);
         SalesInvoiceStats.OK().Invoke();
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesCreditMemoStatisticsPageHandler(var SalesCreditMemoStatistics: TestPage "Sales Credit Memo Statistics")
-    var
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(VATAmount);
-        SalesCreditMemoStatistics.Subform."VAT Amount".AssertEquals(VATAmount);
-        SalesCreditMemoStatistics.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesCreditMemoStatsPageHandler(var SalesCreditMemoStats: TestPage "Sales Credit Memo Stats.")
-    var
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        SalesCreditMemoStats.Subform."Tax Amount".AssertEquals(TaxAmount);
-        SalesCreditMemoStats.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesCreditMemoStatisticsPageHandlerNM(var SalesCreditMemoStatistics: TestPage "Sales Credit Memo Statistics")

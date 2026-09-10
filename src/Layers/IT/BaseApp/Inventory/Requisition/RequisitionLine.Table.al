@@ -38,10 +38,6 @@ table 246 "Requisition Line"
     DataCaptionFields = "Journal Batch Name", "Line No.";
     DrillDownPageID = "Requisition Lines";
     LookupPageID = "Requisition Lines";
-#if not CLEAN28
-    Permissions = TableData Microsoft.Manufacturing.Routing."Routing Header" = r,
-                  TableData Microsoft.Manufacturing.ProductionBOM."Production BOM Header" = r;
-#endif
     DataClassification = CustomerContent;
 
     fields

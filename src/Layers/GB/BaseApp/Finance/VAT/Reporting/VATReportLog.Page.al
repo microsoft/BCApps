@@ -60,11 +60,7 @@ page 739 "VAT Report Log"
                 Enabled = DownloadSubmissionControllerStatus;
                 Image = XMLFile;
                 ToolTip = 'Open the report again to make changes.';
-#if not CLEAN27
-                Visible = true;
-#else
                 Visible = false;
-#endif
 
                 trigger OnAction()
                 var
@@ -72,13 +68,8 @@ page 739 "VAT Report Log"
                 begin
                     CurrPage.SetSelectionFilter(VATReportArchive);
                     if VATReportArchive.FindFirst() then
-#if not CLEAN27
-                        VATReportArchive.DownloadSubmissionMessage(
-                          VATReportArchive."VAT Report Type".AsInteger(), VATReportArchive."VAT Report No.", VATReportArchive."Xml Part ID");
-#else
                         VATReportArchive.DownloadSubmissionMessage(
                           VATReportArchive."VAT Report Type".AsInteger(), VATReportArchive."VAT Report No.");
-#endif                
                 end;
             }
             action("Download Response Message")
@@ -88,11 +79,7 @@ page 739 "VAT Report Log"
                 Enabled = DownloadResponseControllerStatus;
                 Image = XMLFile;
                 ToolTip = 'Open the report again to make changes.';
-#if not CLEAN27
-                Visible = true;
-#else
                 Visible = false;
-#endif
 
                 trigger OnAction()
                 var
@@ -100,13 +87,8 @@ page 739 "VAT Report Log"
                 begin
                     CurrPage.SetSelectionFilter(VATReportArchive);
                     if VATReportArchive.FindFirst() then
-#if not CLEAN27
-                        VATReportArchive.DownloadResponseMessage(
-                          VATReportArchive."VAT Report Type".AsInteger(), VATReportArchive."VAT Report No.", VATReportArchive."Xml Part ID");
-#else
                         VATReportArchive.DownloadResponseMessage(
                           VATReportArchive."VAT Report Type".AsInteger(), VATReportArchive."VAT Report No.");
-#endif
                 end;
             }
         }

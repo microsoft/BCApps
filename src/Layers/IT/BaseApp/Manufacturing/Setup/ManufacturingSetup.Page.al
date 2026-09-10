@@ -123,87 +123,10 @@ page 99000768 "Manufacturing Setup"
             group(Planning)
             {
                 Caption = 'Planning';
-#if not CLEAN27
-                field("Current Production Forecast"; Rec."Current Production Forecast")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Use Forecast on Locations"; Rec."Use Forecast on Locations")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Use Forecast on Variants"; Rec."Use Forecast on Variants")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Default Safety Lead Time"; Rec."Default Safety Lead Time")
-                {
-                    ApplicationArea = Manufacturing, Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Blank Overflow Level"; Rec."Blank Overflow Level")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Combined MPS/MRP Calculation"; Rec."Combined MPS/MRP Calculation")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-#endif
                 field("Components at Location"; Rec."Components at Location")
                 {
                     ApplicationArea = Manufacturing, Planning;
                 }
-#if not CLEAN27
-                field("Default Dampener Period"; Rec."Default Dampener Period")
-                {
-                    ApplicationArea = Planning;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-                field("Default Dampener %"; Rec."Default Dampener %")
-                {
-                    ApplicationArea = Planning;
-                    AutoFormatType = 0;
-                    ObsoleteReason = 'Moved to page Inventory Setup';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    Editable = false;
-                    Visible = false;
-                }
-#endif
                 field("Manual Scheduling"; Rec."Manual Scheduling")
                 {
                     ApplicationArea = Manufacturing;
@@ -213,38 +136,6 @@ page 99000768 "Manufacturing Setup"
                     ApplicationArea = Manufacturing;
                 }
             }
-#if not CLEAN27
-            group(Subcontracting)
-            {
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                Caption = 'Subcontracting';
-                field("Subcontr. Ship. Reason Code"; Rec."Subcontr. Ship. Reason Code")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the reason code for the subcontracting shipment.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Subcontr. Return Reason Code"; Rec."Subcontr. Return Reason Code")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the reason code for the subcontracting return.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Legacy Subcontracting"; Rec."Legacy Subcontracting")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '28.0';
-                }
-            }
-#endif
             group(ProductionDefinitionWizard)
             {
                 Caption = 'Production Definition Wizard';

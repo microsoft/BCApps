@@ -46,9 +46,6 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 using System.Telemetry;
 
 /// <summary>
@@ -8392,35 +8389,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
     [Scope('OnPrem')]
     procedure CheckIfVATPeriodClosed(PostingDate: Date)
     var
-#if not CLEAN27
-        SettlementVATEntry: Record "Periodic Settlement VAT Entry";
         VATSettlementEntry: Record "Periodic VAT Settlement Entry";
-        FeatureManagementIT: Codeunit "Feature Management IT";
-#else
-        VATSettlementEntry: Record "Periodic VAT Settlement Entry";
-#endif
         VATPeriod: Code[10];
     begin
         VATPeriod :=
           Format(Date2DMY(PostingDate, 3)) + '/' +
           ConvertStr(Format(Date2DMY(PostingDate, 2), 2), ' ', '0');
-#if not CLEAN27
-        if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-            VATSettlementEntry.SetRange("VAT Period", VATPeriod);
-            if VATSettlementEntry.FindSet() then
-                repeat
-                    VATSettlementEntry.TestField("VAT Period Closed", false);
-                until VATSettlementEntry.Next() = 0;
-        end else
-            if SettlementVATEntry.Get(VATPeriod) then
-                SettlementVATEntry.TestField("VAT Period Closed", false);
-#else
         VATSettlementEntry.SetRange("VAT Period", VATPeriod);
         if VATSettlementEntry.FindSet() then
             repeat
                 VATSettlementEntry.TestField("VAT Period Closed", false);
             until VATSettlementEntry.Next() = 0;
-#endif
     end;
 
     [Scope('OnPrem')]
@@ -10459,13 +10438,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcPmtDiscPossible(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcPmtDiscTolerance(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var GenJnlLine: Record "Gen. Journal Line"; var PmtDiscTol: Decimal; var PmtDiscTolLCY: Decimal; var PmtDiscTolAddCurr: Decimal)
@@ -10527,13 +10499,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcPmtDiscPossible(var GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean; RoundingPrecision: Decimal)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCustPostApplyCustLedgEntry(var GenJnlLinePostApply: Record "Gen. Journal Line"; var CustLedgEntryPostApply: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
     begin
@@ -11479,13 +11444,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcPmtDiscPossibleOnBeforeOriginalPmtDiscPossible(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AmountRoundingPrecision: Decimal)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPrepareTempCustLedgEntryOnAfterSetFiltersByAppliesToId(var OldCustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; Customer: Record Customer)
     begin
@@ -12139,13 +12097,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostCustOnBeforeInsertDtldCVLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; var TempDetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPostDtldCustLedgEntriesOnBeforeNextEntryNo(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; CustomerPostingGroup: Record "Customer Posting Group"; LedgEntryInserted: Boolean; var NextEntryNo: Integer; var SavedEntryNo: Integer; var IsHandled: Boolean)
     begin

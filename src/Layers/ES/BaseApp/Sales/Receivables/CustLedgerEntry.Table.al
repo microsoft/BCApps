@@ -1475,37 +1475,6 @@ table 21 "Cust. Ledger Entry"
         exit('');
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by W1 version of procedure', '27.0')]
-    procedure SetApplyToFilters(CustomerNo: Code[20]; ApplyDocType: Option; ApplyDocNo: Code[20]; ApplyBillNo: Code[20]; ApplyAmount: Decimal)
-    begin
-        SetCurrentKey("Customer No.", Open, Positive, "Due Date");
-        SetRange("Customer No.", CustomerNo);
-        SetRange(Open, true);
-        SetFilter("Document Situation", '<>%1', "Document Situation"::"Posted BG/PO");
-        if ApplyDocNo <> '' then begin
-            SetRange("Document Type", ApplyDocType);
-            SetRange("Document No.", ApplyDocNo);
-            if ApplyBillNo <> '' then
-                SetRange("Bill No.", ApplyBillNo);
-            if FindFirst() then;
-            SetRange("Document Type");
-            SetRange("Document No.");
-            SetRange("Bill No.");
-        end else
-            if ApplyDocType <> 0 then begin
-                SetRange("Document Type", ApplyDocType);
-                if FindFirst() then;
-                SetRange("Document Type");
-            end else
-                if ApplyAmount <> 0 then begin
-                    SetRange(Positive, ApplyAmount < 0);
-                    if FindFirst() then;
-                    SetRange(Positive);
-                end;
-    end;
-#endif
-
     /// <summary>
     /// Sets filters on the record to show entries that can be applied based on the specified criteria.
     /// </summary>
@@ -1538,15 +1507,6 @@ table 21 "Cust. Ledger Entry"
                     SetRange(Positive);
                 end;
     end;
-
-#if not CLEAN27
-    [Obsolete('Replaced by W1 version of procedure', '27.0')]
-    procedure SetAmountToApply(AppliesToDocNo: Code[20]; CustomerNo: Code[20]; var AppliesToBillNo: Code[20])
-    begin
-        SetAmountToApply(AppliesToDocNo, CustomerNo);
-        AppliesToBillNo := "Bill No.";
-    end;
-#endif
 
     /// <summary>
     /// Toggles the Amount to Apply field between the remaining amount and zero for the specified document.

@@ -21,10 +21,6 @@ codeunit 9812 "Job Queue Start Report Runner" implements "Job Queue Report Runne
         ShouldModifyNotifyOnSuccess := JobQueueEntry."Notify On Success" = false;
         OriginalReportOutputType := JobQueueEntry."Report Output Type";
         OnAfterExecuteReport(ReportID, JobQueueEntry, ShouldModifyNotifyOnSuccess);
-#if not CLEAN27 // Backwards compatibility
-        if JobQueueEntry."Report Output Type" <> OriginalReportOutputType then
-            exit; // Any change in report output type is handed in event subscriber
-#endif
 
         if ShouldModifyNotifyOnSuccess then begin
             JobQueueEntry."Notify On Success" := true;

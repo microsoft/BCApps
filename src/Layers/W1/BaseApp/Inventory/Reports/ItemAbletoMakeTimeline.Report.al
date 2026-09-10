@@ -277,23 +277,7 @@ report 5871 "Item - Able to Make (Timeline)"
         ShowBy := NewShowBy;
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitSource()', '27.0')]
-    procedure InitAsmOrder(NewAsmHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        SourceRecordVar := NewAsmHeader;
-        ShowBy := ShowBy::Assembly;
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitSource()', '27.0')]
-    procedure InitProdOrder(NewProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        SourceRecordVar := NewProdOrderLine;
-        ShowBy := ShowBy::Production;
-    end;
-#endif
 
     local procedure CalcQuantities(var Item: Record Item; var InvtQty: Decimal; var SchRcptQty: Decimal; var GrossReqQty: Decimal; Date: Date)
     var

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -45,9 +45,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         MfgPutAwayHelper: Codeunit "Mfg. Put Away Helper";
-#if not CLEAN27
-        CreatePutaway: Codeunit "Create Put-away";
-#endif
         BinTypeFilter: Text;
         MessageText: Text;
         WarehouseClassCode: Code[10];
@@ -100,9 +97,6 @@ codeunit 99000893 "Mfg. Create Put-away"
             CurrBinContent.SetRange("Unit of Measure Code", PutAwayItemUnitOfMeasure.Code);
         IsHandled := false;
         OnFindBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBinContent, BinContentFound, IsHandled);
-#if not CLEAN27
-        CreatePutaway.RunOnFindBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBinContent, BinContentFound, IsHandled);
-#endif
         if not IsHandled then
             BinContentFound := CurrBinContent.Find('+');
 
@@ -127,9 +121,6 @@ codeunit 99000893 "Mfg. Create Put-away"
             CurrBin.SetRange(CurrBin.Empty, true);
         IsHandled := false;
         OnFindBin(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBin, BinFound, IsHandled);
-#if not CLEAN27
-        CreatePutaway.RunOnFindBin(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBin, BinFound, IsHandled);
-#endif
         if IsHandled then
             exit(BinFound);
 
@@ -156,9 +147,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     local procedure AssignQtyToPutAwayForBinMandatory()
     begin
         OnBeforeAssignQtyToPutAwayForBinMandatory(CurrItem, CurrLocation, QtyToPutAwayBase, RemQtyToPutAwayBase);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeAssignQtyToPutAwayForBinMandatory(CurrItem, CurrLocation, QtyToPutAwayBase, RemQtyToPutAwayBase);
-#endif
 
         if QtyToPutAwayBase >= RemQtyToPutAwayBase then begin
             QtyToPutAwayBase := RemQtyToPutAwayBase;
@@ -175,9 +163,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     begin
         IsHandled := false;
         OnBeforeCalcAvailCubageAndWeight(CurrBin, PostedWhseReceiptLine, PutAwayItemUnitOfMeasure, QtyToPutAwayBase, IsHandled, PutAwayTemplateLine);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeCalcAvailCubageAndWeight(CurrBin, PostedWhseReceiptLine, PutAwayItemUnitOfMeasure, QtyToPutAwayBase, IsHandled, PutAwayTemplateLine);
-#endif
         if IsHandled then
             exit;
 
@@ -239,9 +224,6 @@ codeunit 99000893 "Mfg. Create Put-away"
             CurrLocation.Get(LocationCode);
 
         OnAfterGetLocation(LocationCode, CurrLocation, PostedWhseReceiptLine);
-#if not CLEAN27
-        CreatePutaway.RunOnAfterGetLocation(LocationCode, CurrLocation, PostedWhseReceiptLine);
-#endif
     end;
 
     local procedure GetBin(LocationCode: Code[10]; BinCode: Code[20])
@@ -270,9 +252,6 @@ codeunit 99000893 "Mfg. Create Put-away"
                 Clear(CurrStockkeepingUnit);
 
         OnAfterGetItemAndSKU(CurrLocation, CurrItem, CurrStockkeepingUnit);
-#if not CLEAN27
-        CreatePutaway.RunOnAfterGetItemAndSKU(CurrLocation, CurrItem, CurrStockkeepingUnit);
-#endif
     end;
 
     local procedure GetWarehouseClassCode()
@@ -286,9 +265,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     begin
         IsHandled := false;
         OnBeforeGetPutAwayTemplate(CurrStockkeepingUnit, CurrItem, CurrLocation, PutAwayTemplateHeader, IsHandled);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeGetPutAwayTemplate(CurrStockkeepingUnit, CurrItem, CurrLocation, PutAwayTemplateHeader, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -323,9 +299,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         BreakbulkFilter := BreakbulkFilter2;
 
         OnAfterSetValues(AssignedID, SortActivity, DoNotFillQtytoHandle, BreakbulkFilter);
-#if not CLEAN27
-        CreatePutaway.RunOnAfterSetValues(AssignedID, SortActivity, DoNotFillQtytoHandle, BreakbulkFilter);
-#endif
     end;
 
     procedure GetWhseActivHeaderNo(var FirstPutAwayNo: Code[20]; var LastPutAwayNo: Code[20])
@@ -334,17 +307,11 @@ codeunit 99000893 "Mfg. Create Put-away"
         LastPutAwayNo := CurrWarehouseActivityHeader."No.";
 
         OnAfterGetWhseActivHeaderNo(FirstPutAwayNo, LastPutAwayNo);
-#if not CLEAN27
-        CreatePutaway.RunOnAfterGetWhseActivHeaderNo(FirstPutAwayNo, LastPutAwayNo);
-#endif
     end;
 
     procedure EverythingIsHandled(): Boolean
     begin
         OnBeforeEverythingIsHandled(EverythingHandled);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeEverythingIsHandled(EverythingHandled);
-#endif
         exit(EverythingHandled);
     end;
 
@@ -361,9 +328,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         Found: Boolean;
     begin
         OnBeforeGetFirstPutAwayDocument(TempWarehouseActivityHeader);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeGetFirstPutAwayDocument(TempWarehouseActivityHeader);
-#endif
         Found := TempWarehouseActivityHeader.Find('-');
         if Found then begin
             WhseActivHeader := TempWarehouseActivityHeader;
@@ -380,9 +344,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         Found: Boolean;
     begin
         OnBeforeGetNextPutAwayDocument(TempWarehouseActivityHeader);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeGetNextPutAwayDocument(TempWarehouseActivityHeader);
-#endif
         Found := TempWarehouseActivityHeader.Next() <> 0;
         if Found then begin
             WhseActivHeader := TempWarehouseActivityHeader;
@@ -411,9 +372,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         TempWhseItemTrackingLine.CopyTrackingFromPostedWhseRcptLine(PostedWhseRcptLine);
         TempWhseItemTrackingLine."Quantity (Base)" := QtyToPickBase;
         OnUpdateTempWhseItemTrkgLines(TempWhseItemTrackingLine, PostedWhseRcptLine);
-#if not CLEAN27
-        CreatePutaway.RunOnUpdateTempWhseItemTrkgLines(TempWhseItemTrackingLine, PostedWhseRcptLine);
-#endif
         TempWhseItemTrackingLine.Insert();
     end;
 
@@ -465,9 +423,6 @@ codeunit 99000893 "Mfg. Create Put-away"
 
         IsHandled := false;
         OnNextBin(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBin, BinFound, IsHandled);
-#if not CLEAN27
-        CreatePutaway.RunOnNextBin(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBin, BinFound, IsHandled);
-#endif
         if not IsHandled then
             BinFound := CurrBin.Next(-1) <> 0;
 
@@ -484,9 +439,6 @@ codeunit 99000893 "Mfg. Create Put-away"
 
         IsHandled := false;
         OnNextBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBinContent, BinContentFound, IsHandled);
-#if not CLEAN27
-        CreatePutaway.RunOnNextBinContent(PostedWhseReceiptLine, PutAwayTemplateLine, CurrBinContent, BinContentFound, IsHandled);
-#endif
         if not IsHandled then
             BinContentFound := CurrBinContent.Next(-1) <> 0;
 
@@ -531,9 +483,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     internal procedure CreateWhsePutAwayForProdOutput()
     begin
         OnBeforeCreateWhsePutAwayForProdOutput(TempProductionOrderForWhsePutAwayForProdOutput);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeCreateWhsePutAwayForProdOutput(TempProductionOrderForWhsePutAwayForProdOutput);
-#endif
         if TempProductionOrderForWhsePutAwayForProdOutput.FindSet() then
             repeat
                 ProcessWhsePutAwayForProdOrderFromItemJnlLine(TempProductionOrderForWhsePutAwayForProdOutput);
@@ -661,9 +610,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     internal procedure CreateWhsePutAwayForProdOrder(var ProductionOrder: Record "Production Order")
     begin
         OnBeforeCreateWhsePutAwayForProdOrder(ProductionOrder);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeCreateWhsePutAwayForProdOrder(ProductionOrder);
-#endif
         if not MfgPutAwayHelper.CanCreateProdWhsePutAway(ProductionOrder) then
             exit;
 
@@ -810,9 +756,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     local procedure FindBinForProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary; var BinContentQtyBase: Decimal)
     begin
         OnBeforeFindBinForProdOrderLine(ProdOrderLine, TempProdOrdLineTrackingBuff, BinContentQtyBase);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeFindBinForProdOrderLine(ProdOrderLine, TempProdOrdLineTrackingBuff, BinContentQtyBase);
-#endif
         if not FindBin(ProdOrderLine."Location Code", WarehouseClassCode) then
             exit;
 
@@ -825,9 +768,6 @@ codeunit 99000893 "Mfg. Create Put-away"
     local procedure FindBinFromBinContentForProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; var TempProdOrdLineTrackingBuff: Record "Prod. Ord. Line Tracking Buff." temporary; var BinContentQtyBase: Decimal)
     begin
         OnBeforeFindBinFromBinContentForProdOrderLine(ProdOrderLine, TempProdOrdLineTrackingBuff, BinContentQtyBase);
-#if not CLEAN27
-        CreatePutaway.RunOnBeforeFindBinFromBinContentForProdOrderLine(ProdOrderLine, TempProdOrdLineTrackingBuff, BinContentQtyBase);
-#endif
         if not FindBinContent(ProdOrderLine."Location Code", ProdOrderLine."Item No.", ProdOrderLine."Variant Code", WarehouseClassCode) then
             exit;
 
@@ -1145,9 +1085,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         end;
 
         OnCreateNewWhseActivityForProdOrderLineOnBeforeValidateQuantity(WarehouseActivityLine, ProdOrderLine, TempProdOrdLineTrackingBuff);
-#if not CLEAN27
-        CreatePutaway.RunOnCreateNewWhseActivityForProdOrderLineOnBeforeValidateQuantity(WarehouseActivityLine, ProdOrderLine, TempProdOrdLineTrackingBuff);
-#endif        
 
         WarehouseActivityLine.Validate(
               Quantity, UnitOfMeasureManagement.RoundQty(QtyToHandleBase / WarehouseActivityLine."Qty. per Unit of Measure", WarehouseActivityLine."Qty. Rounding Precision"));
@@ -1164,9 +1101,6 @@ codeunit 99000893 "Mfg. Create Put-away"
         end;
 
         OnCreateNewWhseActivityForProdOrderLineOnAfterSetQtyToHandle(WarehouseActivityLine, ProdOrderLine, TempProdOrdLineTrackingBuff, DoNotFillQtytoHandle);
-#if not CLEAN27
-        CreatePutaway.RunOnCreateNewWhseActivityForProdOrderLineOnAfterSetQtyToHandle(WarehouseActivityLine, ProdOrderLine, TempProdOrdLineTrackingBuff, DoNotFillQtytoHandle);
-#endif        
 
         WarehouseActivityLine.CopyTrackingFromProdOrderLineTrackingBuffer(TempProdOrdLineTrackingBuff);
         WarehouseActivityLine."Warranty Date" := TempProdOrdLineTrackingBuff."Warranty Date";

@@ -200,31 +200,6 @@ codeunit 5278 "Create No. Series"
         exit('I-SHPT+');
     end;
 
-#if not CLEAN27
-    [Obsolete('The procedure is moved into "Create Job No Series" codeunit 5195.', '27.0')]
-    procedure JobJournal(): Code[20]
-    var
-        CreateJobNoSeries: Codeunit Microsoft.DemoData.Jobs."Create Job No Series";
-    begin
-        exit(CreateJobNoSeries.JobJournal());
-    end;
-
-    [Obsolete('The procedure is moved into "Create Job No Series" codeunit 5195.', '27.0')]
-    procedure RecurringJobJournal(): Code[20]
-    var
-        CreateJobNoSeries: Codeunit Microsoft.DemoData.Jobs."Create Job No Series";
-    begin
-        exit(CreateJobNoSeries.RecurringJobJournal());
-    end;
-
-    [Obsolete('The procedure is moved into "Create Job No Series" codeunit 5195.', '27.0')]
-    procedure JobWIP(): Code[20]
-    var
-        CreateJobNoSeries: Codeunit Microsoft.DemoData.Jobs."Create Job No Series";
-    begin
-        exit(CreateJobNoSeries.JobWIP());
-    end;
-#endif
 
     procedure JobPriceList(): Code[20]
     begin

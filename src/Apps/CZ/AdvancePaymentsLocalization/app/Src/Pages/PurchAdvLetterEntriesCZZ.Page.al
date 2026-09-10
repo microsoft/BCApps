@@ -299,42 +299,6 @@ page 31183 "Purch. Adv. Letter Entries CZZ"
                         PurchPostAdvanceLetterCZZ.PostCancelUsageVAT(Rec, true);
                     end;
                 }
-#if not CLEAN27                
-                action(PostNonDeductibleVAT)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Post Non-Deductible VAT (Obsolete)';
-                    Enabled = false;
-                    Visible = false;
-                    Image = Post;
-                    ToolTip = 'Post non-deductible VAT.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    ObsoleteReason = 'The action is obsolete and will be removed in a future version. Non-deductible VAT must always be posted in advances so this field is useless.';
-
-                    trigger OnAction()
-                    begin
-                        PurchPostAdvanceLetterCZZ.PostNonDeductibleVAT(Rec, false);
-                    end;
-                }
-                action(PostNonDeductibleVATPreview)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Post Non-Deductible VAT Preview (Obsolete)';
-                    Enabled = false;
-                    Visible = false;
-                    Image = ViewPostedOrder;
-                    ToolTip = 'Post non-deductible VAT.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    ObsoleteReason = 'The action is obsolete and will be removed in a future version. Non-deductible VAT must always be posted in advances so this field is useless.';
-
-                    trigger OnAction()
-                    begin
-                        PurchPostAdvanceLetterCZZ.PostNonDeductibleVAT(Rec, true);
-                    end;
-                }
-#endif
             }
             group(Payment)
             {

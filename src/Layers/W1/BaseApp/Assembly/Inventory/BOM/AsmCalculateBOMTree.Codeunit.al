@@ -63,9 +63,6 @@ codeunit 931 "Asm. Calculate BOM Tree"
                     sender.GenerateItemSubTree(AsmLine."No.", BOMBuffer);
                 end;
                 OnGenerateAsmHeaderSubTreeOnAfterAsmLineLoop(ParentBOMBuffer, BOMBuffer);
-#if not CLEAN27
-                sender.RunOnGenerateAsmHeaderSubTreeOnAfterAsmLineLoop(ParentBOMBuffer, BOMBuffer);
-#endif
             until AsmLine.Next() = 0;
             BOMBuffer := ParentBOMBuffer;
 

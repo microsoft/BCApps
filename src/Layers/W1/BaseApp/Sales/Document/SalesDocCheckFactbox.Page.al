@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,24 +40,6 @@ page 9119 "Sales Doc. Check Factbox"
                     end;
                 }
             }
-#if not CLEAN27
-            field(Refresh; RefreshTxt)
-            {
-                ApplicationArea = Basic, Suite;
-                ShowCaption = false;
-                ObsoleteReason = 'Use the Refresh action instead.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                Visible = false;
-                trigger OnDrillDown()
-                var
-                    DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
-                begin
-                    DocumentErrorsMgt.SetFullDocumentCheck(true);
-                    CheckErrorsInBackground(Rec);
-                end;
-            }
-#endif
             group(Control2)
             {
                 Caption = 'Issues';
@@ -124,9 +106,6 @@ page 9119 "Sales Doc. Check Factbox"
         ErrorText: array[2] of Text;
         OtherIssuesTxt: Label '(+%1 other issues)', comment = '%1 - number of issues';
         NoIssuesFoundTxt: Label 'No issues found.';
-#if not CLEAN27
-        RefreshTxt: Label 'Refresh';
-#endif
     local procedure GetTotalErrorsStyle(): Text
     begin
         if NumberOfErrors = 0 then

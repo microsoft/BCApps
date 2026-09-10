@@ -2243,14 +2243,6 @@ xmlport 5801 "Export Item Data"
             until ItemApplnEntryHistory.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('Use xml port MfgExportItemData instead', '27.0')]
-    procedure CollectProdOrder(ProdOrderNo: Code[20])
-    begin
-        if ProdOrderNo = '' then
-            exit;
-    end;
-#endif
 
     procedure CollectCapValueEntry(CapEntryNo: Integer)
     var

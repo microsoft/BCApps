@@ -827,12 +827,4 @@ report 394 "Suggest Employee Payments"
     local procedure OnGetEmplLedgEntriesOnAfterSetFilters(var EmployeeLedgerEntry: Record "Employee Ledger Entry"; Positive: Boolean; SkipExportedPayments: Boolean);
     begin
     end;
-
-#if not CLEAN27
-    [Obsolete('The event is never raised', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterIncludeEmployee(Employee: Record Employee; EmployeeBalance: Decimal; var Result: Boolean)
-    begin
-    end;
-#endif
 }

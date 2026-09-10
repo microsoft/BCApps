@@ -11,9 +11,7 @@ using System.Utilities;
 
 reportextension 10587 "Purchase - Quote" extends "Purchase - Quote"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/PurchaseQuote.rdlc';
-#endif
     dataset
     {
         add(CopyLoop)
@@ -149,20 +147,6 @@ reportextension 10587 "Purchase - Quote" extends "Purchase - Quote"
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Purchase Quote GB localization';
-            LayoutFile = './src/ReportExtensions/PurchaseQuote.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         ShipmentMethod: Record "Shipment Method";
