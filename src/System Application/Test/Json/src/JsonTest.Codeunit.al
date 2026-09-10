@@ -754,8 +754,7 @@ codeunit 139910 "Json Test"
     procedure TestGetValueAndSetToSupportedFieldTypes()
     var
         AccessControl: Record "Access Control";
-        ObjectMetadata: Record Object;
-        Profile: Record Profile;
+        DateRecord: Record Date;
         RecordLink: Record "Record Link";
         SourcePrinter: Record Printer;
         TableInformation: Record "Table Information";
@@ -817,23 +816,20 @@ codeunit 139910 "Json Test"
         Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.decimal', TableInformation.FieldNo("Record Size")), 'Decimal path was not assigned.');
         RecordRef.SetTable(TableInformation);
 
-        RecordRef.GetTable(ObjectMetadata);
-        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.date', ObjectMetadata.FieldNo(Date)), 'Date path was not assigned.');
-        RecordRef.SetTable(ObjectMetadata);
+        RecordRef.GetTable(DateRecord);
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.date', DateRecord.FieldNo("Period Start")), 'Date path was not assigned.');
+        RecordRef.SetTable(DateRecord);
 
         RecordRef.GetTable(AccessControl);
         Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.guid', AccessControl.FieldNo("User Security ID")), 'GUID path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.code', AccessControl.FieldNo("Role ID")), 'Code path was not assigned.');
         RecordRef.SetTable(AccessControl);
-
-        RecordRef.GetTable(Profile);
-        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.code', Profile.FieldNo("Profile ID")), 'Code path was not assigned.');
-        RecordRef.SetTable(Profile);
 
         // [THEN] Decimal, Date, GUID, and Code conversions are correct
         Assert.AreEqual(12.5, TableInformation."Record Size", 'Decimal field value is incorrect.');
-        Assert.AreEqual(ExpectedDate, ObjectMetadata.Date, 'Date field value is incorrect.');
+        Assert.AreEqual(ExpectedDate, DateRecord."Period Start", 'Date field value is incorrect.');
         Assert.AreEqual(ExpectedGuid, AccessControl."User Security ID", 'GUID field value is incorrect.');
-        Assert.AreEqual('LOWERCASE', Profile."Profile ID", 'Code field value is incorrect.');
+        Assert.AreEqual('LOWERCASE', AccessControl."Role ID", 'Code field value is incorrect.');
     end;
 
     [Test]
