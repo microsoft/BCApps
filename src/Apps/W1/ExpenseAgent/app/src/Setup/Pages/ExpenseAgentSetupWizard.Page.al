@@ -738,6 +738,19 @@ page 6991 "Expense Agent Setup Wizard"
                         ConfigUpdated();
                     end;
                 }
+                field(MileageRateSetupLink; MileageRateSetupLinkTxt)
+                {
+                    ShowCaption = false;
+                    Editable = false;
+                    ToolTip = 'Specifies where to configure mileage rates by vehicle type.';
+
+                    trigger OnDrillDown()
+                    var
+                        MileageRateSetup: Page "Mileage Rate Setup";
+                    begin
+                        MileageRateSetup.RunModal();
+                    end;
+                }
             }
             group(ProjectGroup)
             {
@@ -973,6 +986,7 @@ page 6991 "Expense Agent Setup Wizard"
         ExpensePoliciesLinkTxt: Label 'View expense policies';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
+        MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
         ExpenseDashboardLinkTxt: Label 'Go to Expense app (opens in new window)';
         ExpenseDashboardUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
         ExpenseDashboardUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
