@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "path": "App"
+        },
+        {
+            "path": "../../NA/ShopifyNA/app"
+        },
+        {
+            "path": "../../NA/ShopifyNA/test"
+        }
+    ],
+    "settings": {}
+}

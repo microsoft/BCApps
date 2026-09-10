@@ -6294,7 +6294,7 @@ table 81 "Gen. Journal Line"
                         then
                             Error(
                               Text1500001,
-                              FieldName("Applies-to Doc. No."), FieldName("Adjustment Applies-to"));
+                              FieldCaption("Applies-to Doc. No."), FieldCaption("Adjustment Applies-to"));
                         "Applies-to Doc. Type" := CustLedgEntry."Document Type";
                         "BAS Adjustment" := BASManagement.CheckBASPeriod("Document Date", CustLedgEntry."Document Date");
                     end else
@@ -8118,7 +8118,7 @@ table 81 "Gen. Journal Line"
                         then
                             Error(
                               Text1500001,
-                              FieldName("Applies-to Doc. No."), FieldName("Adjustment Applies-to"));
+                              FieldCaption("Applies-to Doc. No."), FieldCaption("Adjustment Applies-to"));
                         "Applies-to Doc. Type" := CustLedgEntry."Document Type";
                         "BAS Adjustment" := BASManagement.CheckBASPeriod("Document Date", CustLedgEntry."Document Date");
                     end;

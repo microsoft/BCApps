@@ -218,7 +218,6 @@ codeunit 101004 "Create Currency"
         Currency.Validate("EMU Currency", CurrencyData."EMU Currency");
         Currency.Validate("Amount Decimal Places", CurrencyData."Amount Decimal Places");
         Currency.Validate("Unit-Amount Decimal Places", CurrencyData."Unit-Amount Decimal Places");
-        Currency.Validate(Symbol, Currency.ResolveCurrencySymbol(Currency.Code));
         Currency.Insert(true);
     end;
 

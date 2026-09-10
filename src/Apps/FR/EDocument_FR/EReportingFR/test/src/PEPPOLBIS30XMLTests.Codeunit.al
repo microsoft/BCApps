@@ -762,7 +762,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETIsEmpty()
+    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETAndSIRENAreEmpty()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
@@ -773,9 +773,9 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Initialize();
 
         // [GIVEN] Company with blank SIRET No. and Registration No., and a VAT registration number
+        CompanyInformation.Get();
         OriginalSIRETNo := CompanyInformation."SIRET No.";
         OriginalRegistrationNo := CompanyInformation."Registration No.";
-        CompanyInformation.Get();
         CompanyInformation."SIRET No." := '';
         CompanyInformation."Registration No." := '';
         CompanyInformation.Modify(true);
@@ -1173,6 +1173,36 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         AssertExpectedDialogError(EDocHelpers.GetServiceParticipantAddressIncompleteError());
     end;
+
+    [Test]
+    procedure CheckRaisesErrorWhenParticipantIdentifierIsMalformed()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Check rejects a service participant identifier that does not match SIREN or SIREN_suffix format
+        Initialize();
+
+        // [GIVEN] Customer "C" with a service participant whose identifier is malformed
+        CustomerNo := CreateCustomer('buyer@example.com', "Electronic Address Scheme"::"EM");
+        ServiceParticipant.Init();
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
+        ServiceParticipant.Participant := CustomerNo;
+        ServiceParticipant."Participant Identifier" := 'INVALID';
+        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0225";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
+
+        // [WHEN] Check the posted sales invoice
+        asserterror CheckInvoice(SalesInvoiceHeader);
+
+        // [THEN] The malformed participant identifier error is raised
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            ServiceParticipant.FieldCaption("Participant Identifier"), CustomerNo));
+    end;
     #endregion
 
     local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
@@ -1189,11 +1219,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
-        InitializeCompanyIdentity();
-        if IsInitialized then
+        if IsInitialized then begin
+            LibrarySetupStorage.Restore();
+            InitializeCompanyIdentity();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
 
+        InitializeCompanyIdentity();
         CompanyInformation.Get();
         CompanyInformation.Name := 'Test Company FR';
         CompanyInformation.Address := '123 Rue de Paris';
