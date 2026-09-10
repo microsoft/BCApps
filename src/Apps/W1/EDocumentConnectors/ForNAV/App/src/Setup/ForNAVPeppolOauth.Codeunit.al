@@ -352,6 +352,14 @@ codeunit 6422 "ForNAV Peppol Oauth"
         end;
     end;
 
+    // Test hook: lets PeppolTest short-circuit a raw (non-Setup.Send) outbound request and
+    // hand back a canned status/body, so setup and rotation requests can be exercised
+    // without a real network call. Callers inspect the request URI to tell endpoints apart.
+    [InternalEvent(false)]
+    local procedure OnBeforeSendRaw(HttpRequestMessage: HttpRequestMessage; var Handled: Boolean; var ResponseStatusCode: Integer; var ResponseBody: Text)
+    begin
+    end;
+
     [NonDebuggable]
     internal procedure SendSetupRequest(IsSaas: Boolean; NewEndpoint: Text): Boolean
     var
@@ -359,6 +367,9 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpHeaders: HttpHeaders;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+        Handled: Boolean;
+        ResponseStatusCode: Integer;
+        ResponseBody: Text;
     begin
         if IsSaas then
             HttpRequestMessage.SetRequestUri(GetPeppolSetupURL(NewEndpoint) + RequestConfigLbl)
@@ -368,8 +379,14 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpRequestMessage.GetHeaders(HttpHeaders);
         AddSetupHeaders(HttpHeaders);
         HttpRequestMessage.Method('POST');
-        HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
-        exit(HttpResponseMessage.HttpStatusCode = 204);
+
+        OnBeforeSendRaw(HttpRequestMessage, Handled, ResponseStatusCode, ResponseBody);
+        if not Handled then begin
+            HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            ResponseStatusCode := HttpResponseMessage.HttpStatusCode;
+        end;
+
+        exit(ResponseStatusCode = 204);
     end;
 
     [NonDebuggable]
@@ -385,6 +402,8 @@ codeunit 6422 "ForNAV Peppol Oauth"
         Response: Text;
         ResponseObject: JsonObject;
         Token: JsonToken;
+        Handled: Boolean;
+        ResponseStatusCode: Integer;
         CannotRotateKeyErr: Label 'Cannot rotate key. Contact your ForNAV partner.\%1', Comment = '%1 = reason';
         DialogLbl: Label 'Request new client secret from the FORNAV Peppol Network. Please wait...';
         Dlg: Dialog;
@@ -406,14 +425,19 @@ codeunit 6422 "ForNAV Peppol Oauth"
         HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
 
         HttpRequestMessage.Method('POST');
-        HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
 
-        HttpResponseMessage.Content.ReadAs(Response);
+        OnBeforeSendRaw(HttpRequestMessage, Handled, ResponseStatusCode, Response);
+        if not Handled then begin
+            HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            ResponseStatusCode := HttpResponseMessage.HttpStatusCode;
+            HttpResponseMessage.Content.ReadAs(Response);
+        end;
+
         if not ResponseObject.ReadFrom(Response) then
-            Error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
+            Error(CannotRotateKeyErr, Response);
 
-        if HttpResponseMessage.HttpStatusCode <> 200 then
-            Error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
+        if ResponseStatusCode <> 200 then
+            Error(CannotRotateKeyErr, Response);
 
         ResponseObject.Get('clientId', Token);
         if GetClientID() <> Token.AsValue().AsText() then
