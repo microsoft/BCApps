@@ -5,7 +5,7 @@
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
 using System.Environment;
-using System.Utilities;
+using System.Reflection;
 
 codeunit 148222 "Setup Tests"
 {
