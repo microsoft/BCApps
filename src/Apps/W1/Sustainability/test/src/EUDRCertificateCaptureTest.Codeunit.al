@@ -17,6 +17,7 @@ using System.TestLibraries.Utilities;
 codeunit 148223 "EUDR Certificate Capture Test"
 {
     Subtype = Test;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
