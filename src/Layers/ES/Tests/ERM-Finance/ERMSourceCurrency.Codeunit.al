@@ -2042,7 +2042,7 @@ codeunit 134897 "ERM Source Currency"
         VendorNo := CreateVendorWithNewPostingGroups(
             VendorPostingGroup, GeneralPostingSetup, VATPostingSetup,
             VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
-        VATPostingSetup.Validate("VAT %", LibraryRandom.RandDecInRange(8.1, 8.1, 2));
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandDecInDecimalRange(8.1, 8.1, 2));
         VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
         VATPostingSetup.Modify(true);
 
