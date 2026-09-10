@@ -8,7 +8,6 @@ namespace System.Test.Text.Json;
 using System.Device;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Reflection;
 using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Text.Json;

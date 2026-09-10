@@ -11,7 +11,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.QRGeneration;
 using System.Security.Encryption;
-using System.Text;
 using System.Utilities;
 
 codeunit 18023 "E-InvJsonHandlerForTransShpt"

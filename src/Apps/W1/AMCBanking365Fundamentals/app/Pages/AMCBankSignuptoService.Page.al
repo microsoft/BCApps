@@ -8,11 +8,9 @@ namespace Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using System;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
-using System.Text;
 using System.Utilities;
 
 page 20109 "AMC Bank Signup to Service"

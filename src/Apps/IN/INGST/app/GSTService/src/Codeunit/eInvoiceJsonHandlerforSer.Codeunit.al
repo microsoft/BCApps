@@ -16,7 +16,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.History;
 using System.Security.Encryption;
-using System.Text;
 using System.Utilities;
 
 codeunit 18160 "e-Invoice Json Handler for Ser"
