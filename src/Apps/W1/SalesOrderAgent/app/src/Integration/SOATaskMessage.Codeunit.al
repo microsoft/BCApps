@@ -137,7 +137,9 @@ codeunit 4398 "SOA Task Message"
         if AgentTaskMessage.Type = AgentTaskMessage.Type::Output then begin
             if not SourceAgentTaskMessage.Get(AgentTaskMessage."Task ID", AgentTaskMessage."Input Message ID") then
                 exit('');
-            if SOASendReply.TryGetMappedReplyCcRecipients(SourceAgentTaskMessage, CcRecipients, IsMappedReply) and IsMappedReply then
+            if not SOASendReply.TryGetMappedReplyCcRecipients(SourceAgentTaskMessage, CcRecipients, IsMappedReply) then
+                exit('');
+            if IsMappedReply then
                 exit(RecipientsToText(CcRecipients));
         end;
 
