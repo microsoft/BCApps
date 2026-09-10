@@ -78,5 +78,55 @@
     "codeunitId": 139739,
     "codeunitName": "APIV1 - Item Variants E2E",
     "method": "TestDeleteInUse"
+  },
+  {
+    "codeunitId": 139734,
+    "codeunitName": "APIV1 - Sales Inv. Lines E2E",
+    "method": "TestPostingBlankLineDefaultsToItemType"
+  },
+  {
+    "codeunitId": 139735,
+    "codeunitName": "APIV1 - Sales Order Lines E2E",
+    "method": "TestPostingBlankLineDefaultsToItemType"
+  },
+  {
+    "codeunitId": 139736,
+    "codeunitName": "APIV1 - Sales Quote Lines E2E",
+    "method": "TestPostingBlankLineDefaultsToItemType"
+  },
+  {
+    "codeunitId": 139737,
+    "codeunitName": "APIV1 - Sales CrMemo Lines E2E",
+    "method": "TestPostingBlankLineDefaultsToItemType"
+  },
+  {
+    "codeunitId": 139738,
+    "codeunitName": "APIV1 - Purchase Inv Lines E2E",
+    "method": "TestPostingBlankLineDefaultsToItemType"
+  },
+  {
+    "codeunitId": 139731,
+    "codeunitName": "APIV1 - Automation RS Package",
+    "method": "TestImportRSPackage"
+  },
+  {
+    "codeunitId": 139731,
+    "codeunitName": "APIV1 - Automation RS Package",
+    "method": "TestImportWrongRSPackage"
+  },
+  {
+    "codeunitId": 139731,
+    "codeunitName": "APIV1 - Automation RS Package",
+    "method": "TestApplyRSPackage"
+  },
+  {
+    "codeunitId": 139730,
+    "codeunitName": "APIV1 - GLEntries E2E",
+    "method": "TestGetGLEntries"
+  },
+  {
+    "codeunitId": 139709,
+    "codeunitName": "Sales Invoices E2E",
+    "method": "TestGetInvoicesAppliesDiscountPct"
   }
 ]

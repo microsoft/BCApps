@@ -800,10 +800,11 @@ codeunit 148347 "Travel Requests API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Travel Requests API Test");
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Travel Requests API Test");
         if not ExpenseAgentSetup.Get() then begin
