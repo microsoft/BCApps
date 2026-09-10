@@ -1462,7 +1462,8 @@ page 6991 "Expense Agent Setup Wizard"
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
 
-        if IsConfigUpdated and not IsNullGuid(AgentSetupBuffer."User Security ID") then
+        // Keep the platform attribution aligned with the administrator changing the lifecycle state.
+        if StateChanged() and not IsNullGuid(AgentSetupBuffer."User Security ID") then
             AgentSetupBuffer."Values Updated" := true;
         AgentSetup.SaveChanges(AgentSetupBuffer);
         SaveSetup();
