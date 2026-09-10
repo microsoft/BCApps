@@ -36,6 +36,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EmptyRecordId: RecordId;
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
         MissingInformationForMatchErr: Label 'Some of the draft lines that were matched to purchase order lines are missing unit of measure information. Please specify the unit of measure for those lines and try again.';
+        CreatedFromDraftEDoc: Boolean;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
 
@@ -45,14 +46,15 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             Error(MissingInformationForMatchErr);
 
         IEDocumentFinishPurchaseDraft := EDocImportParameters."Processing Customizations";
-        if EDocImportParameters."Existing Doc. RecordId" <> EmptyRecordId then begin
+        CreatedFromDraftEDoc := EDocImportParameters."Existing Doc. RecordId" = EmptyRecordId;
+        if not CreatedFromDraftEDoc then begin
             EDocImpSessionTelemetry.SetBool('LinkedToExisting', true);
             PurchaseHeader.Get(EDocImportParameters."Existing Doc. RecordId");
         end else
             PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
 
         EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
-        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader);
+        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader, CreatedFromDraftEDoc);
 
         exit(PurchaseHeader.RecordId);
     end;
@@ -118,7 +120,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
         if EDocumentPurchaseHeader."Posting Description" <> '' then
             PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
-        PurchaseHeader."Created From Draft E-Doc" := true;
         PurchaseHeader.Modify();
 
         // Validate of currency has to happen after insert.

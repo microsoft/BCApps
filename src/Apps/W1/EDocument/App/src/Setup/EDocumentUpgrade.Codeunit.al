@@ -141,23 +141,36 @@ codeunit 6168 "E-Document Upgrade"
         if EDocRecordLink.FindSet() then
             repeat
                 if PurchaseHeader.GetBySystemId(EDocRecordLink."Target SystemId") then
-                    if not PurchaseHeader."Created From Draft E-Doc" then begin
-                        PurchaseHeader."Created From Draft E-Doc" := true;
-                        PurchaseHeader.Modify();
-                    end;
+                    if IsActiveEDocumentLink(EDocRecordLink, PurchaseHeader) then
+                        if not PurchaseHeader."Created From Draft E-Doc" then begin
+                            PurchaseHeader."Created From Draft E-Doc" := true;
+                            PurchaseHeader.Modify();
+                        end;
             until EDocRecordLink.Next() = 0;
 
         EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
         if EDocRecordLink.FindSet() then
             repeat
                 if PurchaseLine.GetBySystemId(EDocRecordLink."Target SystemId") then
-                    if not PurchaseLine."Created From Draft E-Doc" then begin
-                        PurchaseLine."Created From Draft E-Doc" := true;
-                        PurchaseLine.Modify();
-                    end;
+                    if PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.") then
+                        if IsActiveEDocumentLink(EDocRecordLink, PurchaseHeader) then
+                            if not PurchaseLine."Created From Draft E-Doc" then begin
+                                PurchaseLine."Created From Draft E-Doc" := true;
+                                PurchaseLine.Modify();
+                            end;
             until EDocRecordLink.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetCreatedFromDraftEDocFlagTag());
+    end;
+
+    local procedure IsActiveEDocumentLink(EDocRecordLink: Record "E-Doc. Record Link"; PurchaseHeader: Record "Purchase Header"): Boolean
+    var
+        EDocument: Record "E-Document";
+    begin
+        if not EDocument.Get(EDocRecordLink."E-Document Entry No.") then
+            exit(false);
+
+        exit(PurchaseHeader."E-Document Link" = EDocument.SystemId);
     end;
 
     internal procedure GetCreatedFromDraftEDocFlagTag(): Code[250]

@@ -379,7 +379,7 @@ codeunit 6103 "E-Document Subscribers"
         PurchaseDocChangeTok: Label 'Purchase Document Field Validation', Locked = true;
         PurchaseInvoiceStageTok: Label 'Purchase Invoice', Locked = true;
     begin
-        LogFieldValidation('', PurchaseDocChangeTok, PurchaseInvoiceStageTok, EDocumentSystemId, DraftLineSystemId, FieldName);
+        LogFieldValidation('0000VBT', PurchaseDocChangeTok, PurchaseInvoiceStageTok, EDocumentSystemId, DraftLineSystemId, FieldName);
     end;
 
     #endregion

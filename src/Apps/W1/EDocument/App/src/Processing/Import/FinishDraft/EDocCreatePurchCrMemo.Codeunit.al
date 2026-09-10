@@ -33,15 +33,17 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EmptyRecordId: RecordId;
         IEDocumentFinishPurchaseCrMemo: Interface IEDocumentCreatePurchaseCreditMemo;
+        CreatedFromDraftEDoc: Boolean;
     begin
         IEDocumentFinishPurchaseCrMemo := EDocImportParameters."Processing Customizations";
-        if EDocImportParameters."Existing Doc. RecordId" <> EmptyRecordId then begin
+        CreatedFromDraftEDoc := EDocImportParameters."Existing Doc. RecordId" = EmptyRecordId;
+        if not CreatedFromDraftEDoc then begin
             EDocImpSessionTelemetry.SetBool('LinkedToExisting', true);
             PurchaseHeader.Get(EDocImportParameters."Existing Doc. RecordId");
         end else
             PurchaseHeader := IEDocumentFinishPurchaseCrMemo.CreatePurchaseCreditMemo(EDocument);
 
-        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader);
+        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader, CreatedFromDraftEDoc);
 
         exit(PurchaseHeader.RecordId);
     end;
@@ -131,7 +133,6 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
             if EDocumentPurchaseHeader."Applies-to Ext. Invoice No." <> '' then
                 ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", PurchaseHeader);
 
-        PurchaseHeader."Created From Draft E-Doc" := true;
         PurchaseHeader.Modify();
 
         EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);
