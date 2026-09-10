@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
-codeunit 148347 "Expense Attach. Failure Mock"
+codeunit 148350 "Expense Attach. Failure Mock"
 {
     Access = Internal;
     EventSubscriberInstance = Manual;
