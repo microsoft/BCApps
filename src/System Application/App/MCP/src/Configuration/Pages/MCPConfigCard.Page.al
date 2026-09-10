@@ -70,7 +70,7 @@ page 8351 "MCP Config Card"
                     field(Default; Rec.Default)
                     {
                         Caption = 'Default';
-                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Use the Set as Default and Clear Default actions on the configuration list to change this.';
+                        ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection. Use the Set as Default and Clear Default actions to change this.';
                         Editable = false;
                     }
                     field(AllowProdChanges; Rec.AllowProdChanges)
@@ -134,6 +134,34 @@ page 8351 "MCP Config Card"
         }
         area(Processing)
         {
+            action(SetAsDefault)
+            {
+                Caption = 'Set as Default';
+                ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                Image = Approve;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Enabled = not Rec.Default;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ClearDefault)
+            {
+                Caption = 'Clear Default';
+                ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                Image = Undo;
+                AccessByPermission = tabledata "MCP Configuration" = M;
+                Enabled = Rec.Default;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ClearDefaultConfiguration();
+                    CurrPage.Update(false);
+                end;
+            }
             action(Validate)
             {
                 Caption = 'Validate';
@@ -178,6 +206,8 @@ page 8351 "MCP Config Card"
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
             actionref(Promoted_Validate; Validate) { }
             group(Promoted_Advanced)
             {

@@ -1265,6 +1265,28 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
+    procedure TestSetAsDefaultConfigurationFromCard()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] An active configuration is open on the card
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [WHEN] Set as Default is invoked
+        MCPConfigCard.SetAsDefault.Invoke();
+
+        // [THEN] Configuration is marked as default
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.Default, 'Configuration should be marked as default');
+    end;
+
+    [Test]
     procedure TestClearDefaultConfiguration()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1284,6 +1306,32 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfiguration.Default, 'Configuration should not be marked as default');
 
         // [THEN] System default is re-marked as default
+        SystemDefault.Get('');
+        Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
+    [Test]
+    procedure TestClearDefaultConfigurationFromCard()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A designated default configuration is open on the card
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [WHEN] Clear Default is invoked
+        MCPConfigCard.ClearDefault.Invoke();
+
+        // [THEN] The system default is restored
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.Default, 'Configuration should not be marked as default');
         SystemDefault.Get('');
         Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
     end;
