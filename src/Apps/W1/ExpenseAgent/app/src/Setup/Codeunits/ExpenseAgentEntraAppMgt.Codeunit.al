@@ -99,19 +99,15 @@ codeunit 6913 "Expense Agent Entra App Mgt."
 
     local procedure VerifyCurrentUserCanManageExpenseAgent()
     var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-        AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
         UserPermissions: Codeunit "User Permissions";
-        NullGuid: Guid;
     begin
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             Error(NotAuthorizedToManageExpenseAgentErr);
 
         GetExpenseAgentPermissionSet(AggregatePermissionSet);
-        if UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), GetCurrentCompanyName(), SuperPermissionSetTok, AccessControl.Scope::System, NullGuid) then
-            exit;
-        if not UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), GetCurrentCompanyName(), SecurityPermissionSetTok, AccessControl.Scope::System, NullGuid) then
+        if not UserPermissions.CanManageUsersOnTenant(UserSecurityId()) then
             Error(SecurityPermissionRequiredErr);
         if not UserPermissions.HasUserPermissionSetAssigned(
             UserSecurityId(),
@@ -214,6 +210,4 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         ExpenseAgentPermissionSetMissingErr: Label 'The Expense Agent permission set is not available.';
         NotAuthorizedToManageExpenseAgentErr: Label 'You do not have permission to manage the Expense Agent.';
         SecurityPermissionRequiredErr: Label 'You must be assigned either the SUPER or SECURITY permission set to manage the Expense Agent Microsoft Entra application.';
-        SecurityPermissionSetTok: Label 'SECURITY', Locked = true;
-        SuperPermissionSetTok: Label 'SUPER', Locked = true;
 }
