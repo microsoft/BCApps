@@ -11,7 +11,7 @@ codeunit 30239 "Shpfy County From Json Name" implements "Shpfy ICounty From Json
 {
     Access = Internal;
 
-    internal procedure County(JAddressObject: JsonObject): Text
+    procedure County(JAddressObject: JsonObject): Text
     var
         Customer: Record Customer;
         JsonHelper: Codeunit "Shpfy Json Helper";

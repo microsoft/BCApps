@@ -46,22 +46,22 @@ codeunit 1686 "Email Logging OAuth Client" implements "Email Logging OAuth Clien
         AcquireAccessTokenTxt: Label 'Asquire access token.', Locked = true;
         ThirdPartyAppOnlyErr: Label 'Authentication using the client ID and secret for email logging is not enabled.';
 
-    internal procedure GetAccessToken(PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText)
+    procedure GetAccessToken(PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText)
     begin
         TryGetAccessTokenInternal(PromptInteraction, AccessToken);
     end;
 
-    internal procedure TryGetAccessToken(PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText): Boolean
+    procedure TryGetAccessToken(PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText): Boolean
     begin
         exit(TryGetAccessTokenInternal(PromptInteraction, AccessToken));
     end;
 
-    internal procedure GetAccessToken(var AccessToken: SecretText)
+    procedure GetAccessToken(var AccessToken: SecretText)
     begin
         TryGetAccessTokenInternal(AccessToken);
     end;
 
-    internal procedure TryGetAccessToken(var AccessToken: SecretText): Boolean
+    procedure TryGetAccessToken(var AccessToken: SecretText): Boolean
     begin
         exit(TryGetAccessTokenInternal(AccessToken));
     end;
@@ -124,12 +124,12 @@ codeunit 1686 "Email Logging OAuth Client" implements "Email Logging OAuth Clien
             Error(CouldNotGetAccessTokenErr);
     end;
 
-    internal procedure GetLastErrorMessage(): Text
+    procedure GetLastErrorMessage(): Text
     begin
         exit(OAuth2.GetLastErrorMessage());
     end;
 
-    internal procedure Initialize()
+    procedure Initialize()
     begin
         if IsInitialized then
             exit;
@@ -144,7 +144,7 @@ codeunit 1686 "Email Logging OAuth Client" implements "Email Logging OAuth Clien
         Initialize(ClientId, ClientSecret, RedirectUrl);
     end;
 
-    internal procedure Initialize(NewClientId: Text; NewClientSecret: SecretText; NewRedirectUrl: Text)
+    procedure Initialize(NewClientId: Text; NewClientSecret: SecretText; NewRedirectUrl: Text)
     begin
         Scopes.Add(GraphScopesLbl);
 
@@ -174,7 +174,7 @@ codeunit 1686 "Email Logging OAuth Client" implements "Email Logging OAuth Clien
         exit(OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, RedirectUrl, CommonOAuthAuthorityUrlLbl, Scopes, AccessToken) and (not AccessToken.IsEmpty()))
     end;
 
-    internal procedure GetApplicationType() ApplicationType: Enum "Email Logging App Type"
+    procedure GetApplicationType() ApplicationType: Enum "Email Logging App Type"
     var
         EnvironmentInformation: Codeunit "Environment Information";
         UrlHelper: Codeunit "Url Helper";

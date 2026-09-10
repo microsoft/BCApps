@@ -10,20 +10,20 @@ codeunit 8010 "Calculation Base By Perc" implements "Contract Price Update"
         IncludeServiceCommitmentUpToDate: Date;
         PerformUpdateOnDate: Date;
 
-    internal procedure SetPriceUpdateParameters(NewPriceUpdateTemplate: Record "Price Update Template"; NewIncludeServiceCommitmentUpToDate: Date; NewPerformUpdateOnDate: Date)
+    procedure SetPriceUpdateParameters(NewPriceUpdateTemplate: Record "Price Update Template"; NewIncludeServiceCommitmentUpToDate: Date; NewPerformUpdateOnDate: Date)
     begin
         PriceUpdateTemplate := NewPriceUpdateTemplate;
         IncludeServiceCommitmentUpToDate := NewIncludeServiceCommitmentUpToDate;
         PerformUpdateOnDate := NewPerformUpdateOnDate;
     end;
 
-    internal procedure ApplyFilterOnServiceCommitments()
+    procedure ApplyFilterOnServiceCommitments()
     begin
         PriceUpdateManagement.TestIncludeServiceCommitmentUpToDate(IncludeServiceCommitmentUpToDate);
         PriceUpdateManagement.GetAndApplyFiltersOnServiceCommitment(ServiceCommitment, PriceUpdateTemplate, IncludeServiceCommitmentUpToDate);
     end;
 
-    internal procedure CreatePriceUpdateProposal()
+    procedure CreatePriceUpdateProposal()
     begin
         if ServiceCommitment.FindSet() then
             repeat
@@ -44,7 +44,7 @@ codeunit 8010 "Calculation Base By Perc" implements "Contract Price Update"
             until ServiceCommitment.Next() = 0;
     end;
 
-    internal procedure CalculateNewPrice(UpdatePercentValue: Decimal; var NewContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
+    procedure CalculateNewPrice(UpdatePercentValue: Decimal; var NewContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
     begin
         NewContractPriceUpdateLine."New Calculation Base %" := UpdatePercentValue;
         NewContractPriceUpdateLine."New Calculation Base" := NewContractPriceUpdateLine."Old Calculation Base";

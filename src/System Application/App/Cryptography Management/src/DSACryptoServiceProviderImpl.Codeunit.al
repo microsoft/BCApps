@@ -43,7 +43,7 @@ codeunit 1448 "DSACryptoServiceProvider Impl." implements "Signature Algorithm v
         ArrayToOutStream(Signature, SignatureOutStream);
     end;
 
-    local procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; var Signature: DotNet Array)
+    procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; var Signature: DotNet Array)
     begin
         if Bytes.Length() = 0 then
             exit;
@@ -80,7 +80,7 @@ codeunit 1448 "DSACryptoServiceProvider Impl." implements "Signature Algorithm v
         exit(VerifyData(Bytes, HashAlgorithm, Signature));
     end;
 
-    local procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; Signature: DotNet Array): Boolean
+    procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; Signature: DotNet Array): Boolean
     var
         Verified: Boolean;
     begin

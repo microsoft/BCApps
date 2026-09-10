@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
         exit(CreateStandardDataSAFT.LoadStandardAccounts(StandardAccountType));
     end;
 
-    internal procedure CreateAuditFileExportLines(var AuditFileExportHeader: Record "Audit File Export Header")
+    procedure CreateAuditFileExportLines(var AuditFileExportHeader: Record "Audit File Export Header")
     var
         AuditFileExportLine: Record "Audit File Export Line";
         AuditFileExportMgt: Codeunit "Audit File Export Mgt.";
@@ -54,14 +54,14 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
                 SourceDocumentsTxt, AuditFileExportHeader."Starting Date", AuditFileExportHeader."Ending Date");
     end;
 
-    internal procedure GenerateFileContentForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
+    procedure GenerateFileContentForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line"; var TempBlob: Codeunit "Temp Blob")
     var
         GenerateXMLFileSAFT: Codeunit "Generate File SAF-T";
     begin
         GenerateXMLFileSAFT.GenerateFileContent(AuditFileExportLine, TempBlob);
     end;
 
-    internal procedure GetFileNameForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line") FileName: Text[1024]
+    procedure GetFileNameForAuditFileExportLine(var AuditFileExportLine: Record "Audit File Export Line") FileName: Text[1024]
     var
         AuditExportLineCopy: Record "Audit File Export Line";
         SAFTDataMgt: Codeunit "SAF-T Data Mgt.";
@@ -76,7 +76,7 @@ codeunit 5281 "Audit Data Handling SAF-T" implements "Audit File Export Data Han
         FileName := SAFTDataMgt.GetXmlFileName(CreatedDateTime, AuditFileExportLine."Line No.", TotalNumberOfFiles);
     end;
 
-    internal procedure InitAuditExportDataTypeSetup()
+    procedure InitAuditExportDataTypeSetup()
     var
         AuditFileExportSetup: Record "Audit File Export Setup";
         LoadStandardDataSAFT: Interface CreateStandardDataSAFT;

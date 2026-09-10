@@ -19,7 +19,7 @@ codeunit 30108 "Shpfy County Code" implements "Shpfy ICounty"
     /// </summary>
     /// <param name="CustomerAddress">Parameter of type Record "Shopify Customer Address".</param>
     /// <returns>Return variable "Text".</returns>
-    internal procedure County(CustomerAddress: Record "Shpfy Customer Address"): Text
+    procedure County(CustomerAddress: Record "Shpfy Customer Address"): Text
     var
         Customer: Record Customer;
     begin
@@ -31,7 +31,7 @@ codeunit 30108 "Shpfy County Code" implements "Shpfy ICounty"
     /// </summary>
     /// <param name="CompanyLocation">Parameter of type Record "Shopify Company Location".</param>
     /// <returns>Return variable "Text".</returns>
-    internal procedure County(CompanyLocation: Record "Shpfy Company Location"): Text
+    procedure County(CompanyLocation: Record "Shpfy Company Location"): Text
     var
         Customer: Record Customer;
     begin

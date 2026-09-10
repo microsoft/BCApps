@@ -31,7 +31,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <param name="DestinationLocationCode">The destination location code.</param>
     /// <param name="OptionalInTransitLocationCode">The optional in-transit location code.</param>
     /// <returns>True if a transfer line was created; otherwise, false.</returns>
-    internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; DestinationLocationCode: Code[10]; OptionalInTransitLocationCode: Code[10]) DidSomething: Boolean
+    procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; DestinationLocationCode: Code[10]; OptionalInTransitLocationCode: Code[10]) DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin
@@ -51,7 +51,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to transfer.</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, in-transit location, and quantity.</param>
     /// <returns>True if at least one transfer line was created; otherwise, false.</returns>
-    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         Location: Record Location;
         TransferRoute: Record "Transfer Route";

@@ -35,7 +35,7 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
     /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
     /// <param name="QltyQuantityBehavior">The rule used to determine the put-away quantity.</param>
     /// <returns>True if a warehouse put-away document was created; otherwise, false.</returns>
-    internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
+    procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin

@@ -26,7 +26,7 @@ codeunit 1682 "Email Logging API Client" implements "Email Logging API Client"
         RestAPINotSupportedErr: Label 'REST API is not yet supported for this mailbox', Locked = true;
         TheMailboxIsNotValidErr: Label 'We cannot connect to the shared mailbox in Office 365.\\This might be because the Exchange user does not have a valid license for Office 365.';
 
-    internal procedure GetMessages(AccessToken: SecretText; EmailAddress: Text; MaxCount: Integer; var JsonObject: JsonObject)
+    procedure GetMessages(AccessToken: SecretText; EmailAddress: Text; MaxCount: Integer; var JsonObject: JsonObject)
     var
         RequestUri: Text;
         ErrorMessage: Text;
@@ -41,7 +41,7 @@ codeunit 1682 "Email Logging API Client" implements "Email Logging API Client"
         end;
     end;
 
-    internal procedure DeleteMessage(AccessToken: SecretText; EmailAddress: Text; MessageId: Text)
+    procedure DeleteMessage(AccessToken: SecretText; EmailAddress: Text; MessageId: Text)
     var
         RequestUri: Text;
         ErrorMessage: Text;
@@ -57,7 +57,7 @@ codeunit 1682 "Email Logging API Client" implements "Email Logging API Client"
         Session.LogMessage('0000FXZ', MessageDeletedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
-    internal procedure ArchiveMessage(AccessToken: SecretText; EmailAddress: Text; SourceMessageId: Text; var TargetMessageJsonObject: JsonObject)
+    procedure ArchiveMessage(AccessToken: SecretText; EmailAddress: Text; SourceMessageId: Text; var TargetMessageJsonObject: JsonObject)
     var
         RequestJsonObject: JsonObject;
         ResponseJsonObject: JsonObject;

@@ -37,7 +37,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <param name="ReasonCode">The optional return reason code.</param>
     /// <param name="ExternalDocumentNo">The optional vendor credit memo number.</param>
     /// <returns>True if subscribers report that a purchase return was created; otherwise, false.</returns>
-    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReasonCode: Code[10]; ExternalDocumentNo: Code[35]): Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReasonCode: Code[10]; ExternalDocumentNo: Code[35]): Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin
