@@ -137,6 +137,7 @@ codeunit 5468 "Graph Mgt - Complex Types"
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
         JsonObject: JsonObject;
         CodeText: Text;
+        DescriptionText: Text;
     begin
         if JSON = NullJSONTxt then begin
             Clear(Code);
@@ -147,8 +148,9 @@ codeunit 5468 "Graph Mgt - Complex Types"
         JsonObject.ReadFrom(JSON);
 
         GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, CodePropertyTxt, CodeText);
-        TryGetJsonText(JsonObject, DescriptionPropertyTxt, Description);
+        TryGetJsonText(JsonObject, DescriptionPropertyTxt, DescriptionText);
         Code := CopyStr(CodeText, 1, MaxStrLen(Code));
+        Description := CopyStr(DescriptionText, 1, MaxStrLen(Description));
     end;
 
     procedure GetPostalAddressEDM(): Text

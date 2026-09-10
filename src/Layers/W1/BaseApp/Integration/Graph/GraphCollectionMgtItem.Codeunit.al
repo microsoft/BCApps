@@ -268,13 +268,17 @@ codeunit 5470 "Graph Collection Mgt - Item"
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
         JsonObject: JsonObject;
         UnitCode: Text;
+        UnitName: Text;
+        UnitSymbol: Text;
     begin
         JsonObject.ReadFrom(UnitOfMeasureJSONString);
 
         GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, UOMComplexTypeUnitCode(), UnitCode);
         UnitOfMeasure.Code := CopyStr(UnitCode, 1, MaxStrLen(UnitOfMeasure.Code));
-        TryGetJsonText(JsonObject, UOMComplexTypeUnitName(), UnitOfMeasure.Description);
-        TryGetJsonText(JsonObject, UOMComplexTypeSymbol(), UnitOfMeasure.Symbol);
+        TryGetJsonText(JsonObject, UOMComplexTypeUnitName(), UnitName);
+        TryGetJsonText(JsonObject, UOMComplexTypeSymbol(), UnitSymbol);
+        UnitOfMeasure.Description := CopyStr(UnitName, 1, MaxStrLen(UnitOfMeasure.Description));
+        UnitOfMeasure.Symbol := CopyStr(UnitSymbol, 1, MaxStrLen(UnitOfMeasure.Symbol));
     end;
 
     local procedure ParseJSONToItemUnitOfMeasure(UnitOfMeasureJSONString: Text; var Item: Record Item; var TempItemUnitOfMeasure: Record "Item Unit of Measure" temporary; var UnitOfMeasure: Record "Unit of Measure"; var BaseUnitOfMeasureCode: Code[10]): Boolean

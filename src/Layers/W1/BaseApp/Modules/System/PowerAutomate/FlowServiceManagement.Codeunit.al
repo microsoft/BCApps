@@ -197,8 +197,8 @@ codeunit 6400 "Flow Service Management"
             TryGetJsonText(PropertiesJsonObject, 'displayName', EnvironmentDisplayName);
 
             TempFlowUserEnvironmentBuffer.Init();
-            TempFlowUserEnvironmentBuffer."Environment ID" := EnvironmentId;
-            TempFlowUserEnvironmentBuffer."Environment Display Name" := EnvironmentDisplayName;
+            TempFlowUserEnvironmentBuffer."Environment ID" := CopyStr(EnvironmentId, 1, MaxStrLen(TempFlowUserEnvironmentBuffer."Environment ID"));
+            TempFlowUserEnvironmentBuffer."Environment Display Name" := CopyStr(EnvironmentDisplayName, 1, MaxStrLen(TempFlowUserEnvironmentBuffer."Environment Display Name"));
 
             if EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId() = TempFlowUserEnvironmentBuffer."Environment Id" then
                 TempFlowUserEnvironmentBuffer.Linked := true;
@@ -207,7 +207,7 @@ codeunit 6400 "Flow Service Management"
             FlowUserEnvironmentConfig.Reset();
             FlowUserEnvironmentConfig.SetRange("Environment ID", EnvironmentId);
             FlowUserEnvironmentConfig.SetRange("User Security ID", UserSecurityId());
-            TempFlowUserEnvironmentBuffer.Enabled := FlowUserEnvironmentConfig.FindFirst();
+            TempFlowUserEnvironmentBuffer.Enabled := not FlowUserEnvironmentConfig.IsEmpty();
 
             // check if environment is the default
             TempFlowUserEnvironmentBuffer.Default := IsJsonTrue(PropertiesJsonObject, 'isDefault');

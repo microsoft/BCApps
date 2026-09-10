@@ -14,6 +14,7 @@ codeunit 130618 "Library - Graph Mgt"
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
+        AtLeastItemsReturnedErr: Label 'At least %1 item(s) should be returned', Comment = '%1 - Minimum number of items';
 
     procedure InitializeObject(JsonText: Text)
     begin
@@ -588,7 +589,7 @@ codeunit 130618 "Library - Graph Mgt"
         ObjectCollection := JSONObject.GetArray(PropertyName);
 
         Assert.IsTrue(
-          ObjectCollection.Count() >= ObjectNumber, StrSubstNo('At least %1 item(s) should be returned', ObjectNumber));
+          ObjectCollection.Count() >= ObjectNumber, StrSubstNo(AtLeastItemsReturnedErr, ObjectNumber));
         if not ObjectCollection.Get(ObjectNumber - 1, JsonToken) then
             exit(false);
         JsonToken.WriteTo(ObjectJSON);

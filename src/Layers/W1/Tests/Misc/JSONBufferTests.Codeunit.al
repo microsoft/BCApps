@@ -357,8 +357,7 @@ codeunit 139210 "JSON Buffer Tests"
         TempJSONBuffer.ReadFromText(StrSubstNo('{"Variable":"%1"}', LongString));
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.AreEqual(LongString, PropertyValue, 'Invalid string');
-        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::String);
-        TempJSONBuffer.FindFirst();
+        Assert.IsTrue(FindTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::String), 'The string value was not found');
         TempJSONBuffer.CalcFields("Value BLOB");
         Assert.IsTrue(TempJSONBuffer."Value BLOB".HasValue(), 'The long value was not stored in the BLOB');
     end;
@@ -367,7 +366,7 @@ codeunit 139210 "JSON Buffer Tests"
     [Scope('OnPrem')]
     procedure ReadJSONFromBlob()
     var
-        SourceJSONBuffer: Record "JSON Buffer" temporary;
+        TempSourceJSONBuffer: Record "JSON Buffer" temporary;
         TempJSONBuffer: Record "JSON Buffer" temporary;
         BlobFieldRef: FieldRef;
         SourceRecordRef: RecordRef;
@@ -376,12 +375,12 @@ codeunit 139210 "JSON Buffer Tests"
     begin
         // [SCENARIO] JSON Buffer continues to support UTF-8 JSON stored in a BLOB field
         LibraryLowerPermissions.SetO365Basic();
-        SourceJSONBuffer."Entry No." := 1;
-        SourceJSONBuffer."Value BLOB".CreateOutStream(OutStream, TEXTENCODING::UTF8);
+        TempSourceJSONBuffer."Entry No." := 1;
+        TempSourceJSONBuffer."Value BLOB".CreateOutStream(OutStream, TEXTENCODING::UTF8);
         OutStream.WriteText('{"fromBlob":true}');
-        SourceJSONBuffer.Insert();
-        SourceRecordRef.GetTable(SourceJSONBuffer);
-        BlobFieldRef := SourceRecordRef.Field(SourceJSONBuffer.FieldNo("Value BLOB"));
+        TempSourceJSONBuffer.Insert();
+        SourceRecordRef.GetTable(TempSourceJSONBuffer);
+        BlobFieldRef := SourceRecordRef.Field(TempSourceJSONBuffer.FieldNo("Value BLOB"));
 
         TempJSONBuffer.ReadFromBlob(BlobFieldRef);
 
@@ -438,8 +437,7 @@ codeunit 139210 "JSON Buffer Tests"
         // [THEN] JSON Buffer preserves the value as a string without seconds or milliseconds
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.IsFalse(PropertyValue.Contains('.'), 'DateTime contains seconds and milliseconds');
-        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::String);
-        Assert.IsTrue(TempJSONBuffer.FindFirst(), 'The date-time-like value was not preserved as a string');
+        Assert.IsTrue(FindTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::String), 'The date-time-like value was not preserved as a string');
         Assert.AreEqual('System.String', TempJSONBuffer."Value Type", 'The string value type is incorrect');
     end;
 
@@ -461,8 +459,7 @@ codeunit 139210 "JSON Buffer Tests"
         // [THEN] JSON Buffer contains formatted DateTime with seconds and milliseconds
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.IsTrue(PropertyValue.Contains('.'), StrSubstNo('DateTime does not contain seconds and milliseconds. DateTimeString: %1, PropertyValue: %2', DateTimeString, PropertyValue));
-        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::Date);
-        Assert.IsTrue(TempJSONBuffer.FindFirst(), 'The ISO DateTime was not recognized');
+        Assert.IsTrue(FindTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::Date), 'The ISO DateTime was not recognized');
         Assert.AreEqual('System.DateTime', TempJSONBuffer."Value Type", 'The DateTime value type is incorrect');
     end;
 
@@ -477,8 +474,7 @@ codeunit 139210 "JSON Buffer Tests"
 
         TempJSONBuffer.ReadFromText('{"dateOnly":"2025-12-31","invalidDateTime":"2025-13-40T25:61"}');
 
-        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::String);
-        Assert.AreEqual(2, TempJSONBuffer.Count(), 'Date-like strings were classified as DateTime values');
+        Assert.AreEqual(2, CountTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::String), 'Date-like strings were classified as DateTime values');
     end;
 
     local procedure VerifyJSONBuffer(var TempJSONBuffer: Record "JSON Buffer" temporary; Depth: Integer; TokenType: Option; Value: Text; ValueType: Text[250]; Path: Text[250])
@@ -510,5 +506,28 @@ codeunit 139210 "JSON Buffer Tests"
                 ExpectedEntryNo += 1;
                 Assert.AreEqual(ExpectedEntryNo, TempJSONBuffer."Entry No.", 'JSON buffer entry numbers are not contiguous');
             until TempJSONBuffer.Next() = 0;
+    end;
+
+    local procedure FindTokenType(var TempJSONBuffer: Record "JSON Buffer" temporary; TokenType: Option): Boolean
+    begin
+        TempJSONBuffer.Reset();
+        if TempJSONBuffer.FindSet() then
+            repeat
+                if TempJSONBuffer."Token type" = TokenType then
+                    exit(true);
+            until TempJSONBuffer.Next() = 0;
+    end;
+
+    local procedure CountTokenType(var TempJSONBuffer: Record "JSON Buffer" temporary; TokenType: Option): Integer
+    var
+        TokenCount: Integer;
+    begin
+        TempJSONBuffer.Reset();
+        if TempJSONBuffer.FindSet() then
+            repeat
+                if TempJSONBuffer."Token type" = TokenType then
+                    TokenCount += 1;
+            until TempJSONBuffer.Next() = 0;
+        exit(TokenCount);
     end;
 }

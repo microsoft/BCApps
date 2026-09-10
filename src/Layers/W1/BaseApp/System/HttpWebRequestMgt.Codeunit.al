@@ -20,6 +20,7 @@ codeunit 1297 "Http Web Request Mgt."
         InternalErr: Label 'The remote service has returned the following error message:\\';
         NoCookieForYouErr: Label 'The web request has no cookies.';
         TimeoutErr: Label 'The server timed out waiting for the request.';
+        HttpErrorTxt: Label 'Http error %1 (%2)\%3', Comment = '%1 - Error code, %2 - Error name, %3 - Error description';
 
     [Scope('OnPrem')]
     procedure GetResponse(var ResponseInStream: InStream; var HttpStatusCode: DotNet HttpStatusCode; var ResponseHeaders: DotNet NameValueCollection): Boolean
@@ -136,7 +137,7 @@ codeunit 1297 "Http Web Request Mgt."
             name := ErrorJsonObject.GetText('name', true);
             description := ErrorJsonObject.GetText('description', true);
         end;
-        exit(StrSubstNo('Http error %1 (%2)\%3', code, name, description));
+        exit(StrSubstNo(HttpErrorTxt, code, name, description));
     end;
 
     [TryFunction]
