@@ -9,7 +9,6 @@ using Microsoft.Sustainability.PowerBIReports;
 using Microsoft.Sustainability.Scorecard;
 using System.Security.User;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 
 codeunit 148215 "PowerBI Sustainability Test"
 {

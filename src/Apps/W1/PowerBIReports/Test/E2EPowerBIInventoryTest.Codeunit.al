@@ -34,7 +34,6 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 using System.Utilities;
 
 /// <summary>

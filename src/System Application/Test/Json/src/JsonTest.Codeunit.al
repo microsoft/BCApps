@@ -759,13 +759,13 @@ codeunit 139910 "Json Test"
         SourcePrinter: Record Printer;
         TableInformation: Record "Table Information";
         Json: Codeunit "Json";
-        FieldsJsonObject: JsonObject;
-        RootJsonObject: JsonObject;
-        BlobInStream: InStream;
+        ExpectedRecordId: RecordId;
         RecordRef: RecordRef;
         ExpectedDate: Date;
         ExpectedGuid: Guid;
-        ExpectedRecordId: RecordId;
+        BlobInStream: InStream;
+        FieldsJsonObject: JsonObject;
+        RootJsonObject: JsonObject;
         BlobText: Text;
         JsonText: Text;
         LongText: Text;

@@ -12,7 +12,6 @@ using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using System.Text;
 using System.Utilities;
 
 /// <summary>

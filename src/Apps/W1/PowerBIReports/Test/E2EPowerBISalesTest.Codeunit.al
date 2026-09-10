@@ -17,7 +17,6 @@ using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.Text;
 using System.Utilities;
 
 /// <summary>

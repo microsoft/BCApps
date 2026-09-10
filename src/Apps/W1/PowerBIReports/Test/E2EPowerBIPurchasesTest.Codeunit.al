@@ -14,7 +14,6 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 using System.Utilities;
 
 /// <summary>

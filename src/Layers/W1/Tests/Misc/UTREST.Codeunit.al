@@ -1,5 +1,3 @@
-using System.Text.Json;
-
 codeunit 139148 "UT REST"
 {
     Subtype = Test;
@@ -80,7 +78,7 @@ codeunit 139148 "UT REST"
     [Scope('OnPrem')]
     procedure XmlText2JsonText()
     var
-        JSONMgt: Codeunit Json;
+        JSONMgt: Codeunit System.Text.Json.Json;
         XmlText: Text;
         JsonText: Text;
     begin
@@ -100,7 +98,7 @@ codeunit 139148 "UT REST"
     [Scope('OnPrem')]
     procedure XmlTextWithUTF8BOM2JsonText()
     var
-        JSONMgt: Codeunit Json;
+        JSONMgt: Codeunit System.Text.Json.Json;
         ByteOrderMarkUtf8: Text[1];
         XmlText: Text;
         JsonText: Text;
@@ -122,7 +120,7 @@ codeunit 139148 "UT REST"
     [Scope('OnPrem')]
     procedure JsonText2XmlText()
     var
-        JSONMgt: Codeunit Json;
+        JSONMgt: Codeunit System.Text.Json.Json;
         XmlText: Text;
         JsonText: Text;
     begin

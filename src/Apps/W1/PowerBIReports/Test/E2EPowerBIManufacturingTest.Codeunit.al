@@ -23,7 +23,6 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.PowerBIReports.Test;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 using System.Utilities;
 
 /// <summary>

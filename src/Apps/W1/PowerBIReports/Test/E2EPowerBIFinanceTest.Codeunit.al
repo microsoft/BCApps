@@ -19,7 +19,6 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
-using System.Text;
 using System.Utilities;
 
 /// <summary>
