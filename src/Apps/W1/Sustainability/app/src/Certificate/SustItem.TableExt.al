@@ -413,20 +413,19 @@ tableextension 6220 "Sust. Item" extends Item
 
     local procedure AssignEUDRItemTrackingCode()
     var
-        EUDRItemTrackingCode: Record "Item Tracking Code";
         ItemTrackingCode: Record "Item Tracking Code";
         ItemTrackingCodes: Page "Item Tracking Codes";
     begin
-        EUDRItemTrackingCode.SetRange("Lot Specific Tracking", true);
-        EUDRItemTrackingCode.SetRange("Lot Info. Inbound Must Exist", true);
-        EUDRItemTrackingCode.SetRange("Lot Info. Outbound Must Exist", true);
-        ItemTrackingCodes.SetTableView(EUDRItemTrackingCode);
+        ItemTrackingCode.SetRange("Lot Specific Tracking", true);
+        ItemTrackingCode.SetRange("Lot Info. Inbound Must Exist", true);
+        ItemTrackingCode.SetRange("Lot Info. Outbound Must Exist", true);
+        ItemTrackingCodes.SetTableView(ItemTrackingCode);
         ItemTrackingCodes.LookupMode(true);
 
         if ItemTrackingCodes.RunModal() <> Action::LookupOK then
             Error(EUDRItemTrackingCodeErr, Rec.FieldCaption("EUDR Relevant"), Rec.TableCaption(), Rec.FieldCaption("Item Tracking Code"), ItemTrackingCode.FieldCaption("Lot Specific Tracking"), ItemTrackingCode.FieldCaption("Lot Info. Inbound Must Exist"), ItemTrackingCode.FieldCaption("Lot Info. Outbound Must Exist"));
 
-        ItemTrackingCodes.GetRecord(EUDRItemTrackingCode);
-        Rec.Validate("Item Tracking Code", EUDRItemTrackingCode.Code);
+        ItemTrackingCodes.GetRecord(ItemTrackingCode);
+        Rec.Validate("Item Tracking Code", ItemTrackingCode.Code);
     end;
 }
