@@ -5,7 +5,6 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var
@@ -71,6 +70,7 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

@@ -9,7 +9,6 @@ codeunit 139838 "APIV2 - Purchase Inv Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
 
@@ -32,11 +31,13 @@ codeunit 139838 "APIV2 - Purchase Inv Lines E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryApplicationArea.EnableFoundationSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();

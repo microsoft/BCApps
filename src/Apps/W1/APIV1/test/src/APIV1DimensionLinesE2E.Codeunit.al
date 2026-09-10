@@ -9,7 +9,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Dimension Line]
     end;
 
@@ -29,6 +28,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
 
     procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

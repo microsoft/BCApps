@@ -9,7 +9,6 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 
@@ -33,11 +32,13 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibrarySales.SetStockoutWarning(false);
 

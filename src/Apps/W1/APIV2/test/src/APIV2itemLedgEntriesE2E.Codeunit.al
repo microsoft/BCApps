@@ -9,7 +9,6 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item Ledger Entry]
     end;
 
@@ -27,12 +26,14 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         LibraryApplicationArea.EnableFoundationSetup();
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateVATPostingSetup();

@@ -9,7 +9,6 @@ codeunit 139855 "APIV2 - Opportunities E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Opportunity]
     end;
 
@@ -431,6 +430,7 @@ codeunit 139855 "APIV2 - Opportunities E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
