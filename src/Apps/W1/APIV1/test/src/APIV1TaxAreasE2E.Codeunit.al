@@ -9,7 +9,6 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Tax Area]
     end;
 
@@ -25,10 +24,12 @@ codeunit 139726 "APIV1 - Tax Areas E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := TRUE;
         COMMIT();
