@@ -6042,6 +6042,208 @@ codeunit 137405 "SCM Item Tracking"
         exit(ItemLedgerEntry.Quantity);
     end;
 
+    [Test]
+    procedure GetAvailableLotQtyNetsProdOrderComponentReservationWithOwnUnregisteredPick()
+    var
+        ComponentItem: Record Item;
+        ProductionItem: Record Item;
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ReservationEntry: Record "Reservation Entry";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TrackingSpecification: Record "Tracking Specification" temporary;
+        AvailableLotQty: Decimal;
+        Quantity: Decimal;
+        LotNo: Code[50];
+    begin
+        // [FEATURE] [Item Tracking] [Warehouse Pick] [Production Order]
+        // [SCENARIO] A production component's own unregistered warehouse pick
+        // must be netted against the component tracking entry only once.
+        Initialize();
+
+        // [GIVEN] Lot-tracked component inventory at a pick-requiring location.
+        Quantity := LibraryRandom.RandIntInRange(2, 10);
+        LotNo := CopyStr(LibraryUtility.GenerateRandomCode(ReservationEntry.FieldNo("Lot No."),Database::"Reservation Entry"),1,MaxStrLen(LotNo));
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Location.Validate("Require Pick", true);
+        Location.Modify(true);
+
+        CreateLotTrackedInventoryForProdComponentTest(ComponentItem, Location.Code, LotNo, Quantity);
+
+        // [GIVEN] A released production order with a component whose
+        // Prod. Order Line No. and component Line No. are both nonzero
+        // and deliberately different.
+        CreateReleasedProdOrderComponentForTrackingTest(ProductionOrder,ProdOrderLine,ProdOrderComponent,ProductionItem,ComponentItem,Location.Code, Quantity);
+
+        Assert.IsTrue(ProdOrderComponent."Prod. Order Line No." > 0,'The production order line number must be nonzero.');
+        Assert.IsTrue(ProdOrderComponent."Line No." > 0,'The production component line number must be nonzero.');
+        Assert.IsTrue(ProdOrderComponent."Prod. Order Line No." <> ProdOrderComponent."Line No.",'The production order line and component line numbers must differ so that reversed source mapping cannot pass the test.');
+
+        // [GIVEN] Existing lot tracking for the production component.
+        CreateProdOrderComponentTrackingReservation(ReservationEntry, ProdOrderComponent, ComponentItem,Location.Code, LotNo, Quantity);
+
+        // [GIVEN] An unregistered Pick/Take line for that same component.
+        // Source Line No. maps to Source Prod. Order Line.
+        // Source Subline No. maps to Source Ref. No.
+        CreateUnregisteredProdOrderComponentPick(WarehouseActivityLine, ProdOrderComponent, ComponentItem,Location.Code, LotNo, Quantity);
+
+        WarehouseActivityLine.TestField("Source Type", Database::"Prod. Order Component");
+        WarehouseActivityLine.TestField("Source Subtype", ProdOrderComponent.Status.AsInteger());
+        WarehouseActivityLine.TestField("Source No.", ProdOrderComponent."Prod. Order No.");
+        WarehouseActivityLine.TestField("Source Line No.", ProdOrderComponent."Prod. Order Line No.");
+        WarehouseActivityLine.TestField("Source Subline No.", ProdOrderComponent."Line No.");
+        WarehouseActivityLine.TestField("Lot No.", LotNo);
+        WarehouseActivityLine.TestField("Qty. Outstanding (Base)", Quantity);
+
+        // [GIVEN] The lookup source is the production component, using
+        // the Reservation Entry / Tracking Specification pointer layout.
+        InitializeProdOrderComponentTrackingSpecification(TrackingSpecification, ProdOrderComponent, ComponentItem,Location.Code, LotNo, Quantity);
+
+        // [WHEN] Lot availability is calculated through the path changed
+        AvailableLotQty :=ItemTrackingDataCollection.GetAvailableLotQty(TrackingSpecification);
+
+        // [THEN] The component reservation and its own unregistered pick
+        // represent one allocation, not two allocations.
+        Assert.AreEqual(Quantity,AvailableLotQty,'The production component tracking entry and its own unregistered pick must be netted once.');
+    end;
+
+    local procedure CreateLotTrackedInventoryForProdComponentTest(var Item: Record Item;LocationCode: Code[10];LotNo: Code[50];Quantity: Decimal)
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibraryItemTracking.CreateLotItemTrackingCode(
+            ItemTrackingCode, false, false);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine,Item."No.",LocationCode,'', Quantity);
+
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry,ItemJournalLine,'',LotNo,Quantity);
+
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name",ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreateReleasedProdOrderComponentForTrackingTest(var ProductionOrder: Record "Production Order";var ProdOrderLine: Record "Prod. Order Line";var ProdOrderComponent: Record "Prod. Order Component";var ProductionItem: Record Item;ComponentItem: Record Item;LocationCode: Code[10]; Quantity: Decimal)
+    var
+        DummyComponentItem: Record Item;
+        DummyProdOrderComponent: Record "Prod. Order Component";
+    begin
+        LibraryInventory.CreateItem(ProductionItem);
+
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder,ProductionOrder.Status::Released, ProductionItem,LocationCode,'',Quantity, WorkDate());
+
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder,false,true,true,true,false);
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        // Create one preceding component so the tested component gets a
+        // component Line No. different from the Prod. Order Line No.
+        LibraryInventory.CreateItem(DummyComponentItem);
+        LibraryManufacturing.CreateProdOrderComponent(DummyProdOrderComponent,ProductionOrder.Status,ProductionOrder."No.",ProdOrderLine."Line No.");
+        DummyProdOrderComponent.Validate("Item No.", DummyComponentItem."No.");
+        DummyProdOrderComponent.Validate("Location Code", LocationCode);
+        DummyProdOrderComponent.Validate("Quantity per", 1);
+        DummyProdOrderComponent.Modify(true);
+
+        LibraryManufacturing.CreateProdOrderComponent(ProdOrderComponent,ProductionOrder.Status,ProductionOrder."No.",ProdOrderLine."Line No.");
+        ProdOrderComponent.Validate("Item No.", ComponentItem."No.");
+        ProdOrderComponent.Validate("Location Code", LocationCode);
+        ProdOrderComponent.Validate("Quantity per", 1);
+        ProdOrderComponent.Modify(true);
+    end;
+
+    local procedure CreateProdOrderComponentTrackingReservation(var ReservationEntry: Record "Reservation Entry";ProdOrderComponent: Record "Prod. Order Component";Item: Record Item;LocationCode: Code[10];LotNo: Code[50];Quantity: Decimal)
+    var
+        EntryNo: Integer;
+    begin
+        ReservationEntry.Reset();
+        ReservationEntry.LockTable();
+        if ReservationEntry.FindLast() then
+            EntryNo := ReservationEntry."Entry No." + 1
+        else
+            EntryNo := 1;
+
+        ReservationEntry.Init();
+        ReservationEntry."Entry No." := EntryNo;
+        ReservationEntry.Positive := false;
+        ReservationEntry."Item No." := Item."No.";
+        ReservationEntry."Location Code" := LocationCode;
+        ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Surplus;
+        ReservationEntry.Quantity := -Quantity;
+        ReservationEntry."Quantity (Base)" := -Quantity;
+
+        ReservationEntry."Source Type" := Database::"Prod. Order Component";
+        ReservationEntry."Source Subtype" := ProdOrderComponent.Status.AsInteger();
+        ReservationEntry."Source ID" := ProdOrderComponent."Prod. Order No.";
+        ReservationEntry."Source Batch Name" := '';
+        ReservationEntry."Source Prod. Order Line" := ProdOrderComponent."Prod. Order Line No.";
+        ReservationEntry."Source Ref. No." := ProdOrderComponent."Line No.";
+
+        ReservationEntry."Lot No." := LotNo;
+        ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
+        ReservationEntry."Creation Date" := WorkDate();
+        ReservationEntry.Insert();
+    end;
+
+    local procedure CreateUnregisteredProdOrderComponentPick(var WarehouseActivityLine: Record "Warehouse Activity Line";ProdOrderComponent: Record "Prod. Order Component";Item: Record Item;LocationCode: Code[10];LotNo: Code[50];Quantity: Decimal)
+    var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        WarehouseActivityHeader.Init();
+        WarehouseActivityHeader.Type := WarehouseActivityHeader.Type::Pick;
+        WarehouseActivityHeader."No." := LibraryUtility.GenerateRandomCode(WarehouseActivityHeader.FieldNo("No."),Database::"Warehouse Activity Header");
+        WarehouseActivityHeader."Location Code" := LocationCode;
+        WarehouseActivityHeader.Insert();
+
+        WarehouseActivityLine.Init();
+        WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::Pick;
+        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
+        WarehouseActivityLine."Line No." := 10000;
+        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
+
+        WarehouseActivityLine."Source Type" := Database::"Prod. Order Component";
+        WarehouseActivityLine."Source Subtype" := ProdOrderComponent.Status.AsInteger();
+        WarehouseActivityLine."Source No." := ProdOrderComponent."Prod. Order No.";
+        WarehouseActivityLine."Source Line No." := ProdOrderComponent."Prod. Order Line No.";
+        WarehouseActivityLine."Source Subline No." := ProdOrderComponent."Line No.";
+
+        WarehouseActivityLine."Item No." := Item."No.";
+        WarehouseActivityLine."Location Code" := LocationCode;
+        WarehouseActivityLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        WarehouseActivityLine."Qty. per Unit of Measure" := 1;
+        WarehouseActivityLine.Quantity := Quantity;
+        WarehouseActivityLine."Quantity (Base)" := Quantity;
+        WarehouseActivityLine."Qty. Outstanding" := Quantity;
+        WarehouseActivityLine."Qty. Outstanding (Base)" := Quantity;
+        WarehouseActivityLine."Lot No." := LotNo;
+        WarehouseActivityLine.Insert();
+    end;
+
+    local procedure InitializeProdOrderComponentTrackingSpecification(var TrackingSpecification: Record "Tracking Specification" temporary;ProdOrderComponent: Record "Prod. Order Component";Item: Record Item;LocationCode: Code[10];LotNo: Code[50];Quantity: Decimal)
+    begin
+        TrackingSpecification.Init();
+        TrackingSpecification."Item No." := Item."No.";
+        TrackingSpecification."Location Code" := LocationCode;
+        TrackingSpecification."Lot No." := LotNo;
+        TrackingSpecification."Quantity (Base)" := -Quantity;
+
+        TrackingSpecification."Source Type" := Database::"Prod. Order Component";
+        TrackingSpecification."Source Subtype" := ProdOrderComponent.Status.AsInteger();
+        TrackingSpecification."Source ID" :=  ProdOrderComponent."Prod. Order No.";
+        TrackingSpecification."Source Batch Name" := '';
+        TrackingSpecification."Source Prod. Order Line" := ProdOrderComponent."Prod. Order Line No.";
+        TrackingSpecification."Source Ref. No." := ProdOrderComponent."Line No.";
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
