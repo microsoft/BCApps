@@ -1165,10 +1165,9 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         GLEntry.SetRange("Document No.", DocumentNo);
         if GLEntry.FindSet() then
             repeat
-                if GLEntry."Gen. Posting Type" = GLEntry."Gen. Posting Type"::Settlement then begin
+                if GLEntry."Gen. Posting Type" = GLEntry."Gen. Posting Type"::Settlement then 
                     if GLEntry."Source Currency VAT Amount" <> 0 then
                         Assert.AreEqual(GLEntry."Source Currency VAT Amount", GLEntry.Amount, SourceVATAmountMismatchErr);
-                end;
             until GLEntry.Next() = 0;
     end;
 
