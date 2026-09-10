@@ -11,7 +11,6 @@ using Microsoft.Utilities;
 using System;
 using System.Environment;
 using System.Reflection;
-using System.Text;
 
 table 469 "Workflow Webhook Subscription"
 {

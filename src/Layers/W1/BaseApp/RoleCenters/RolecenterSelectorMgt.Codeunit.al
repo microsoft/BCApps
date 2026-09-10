@@ -9,7 +9,6 @@ using System.Apps;
 using System.Globalization;
 using System.Reflection;
 using System.Security.User;
-using System.Text;
 using System.Xml;
 
 codeunit 1485 "Rolecenter Selector Mgt."

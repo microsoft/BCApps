@@ -9,13 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
+#if not CLEAN30
 using System;
+#endif
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 
 codeunit 5465 "Graph Mgt - General Tools"

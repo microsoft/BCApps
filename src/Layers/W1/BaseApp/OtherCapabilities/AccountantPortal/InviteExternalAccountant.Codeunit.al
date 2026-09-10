@@ -4,7 +4,6 @@ using System;
 using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Integration;
-using System.Text;
 using System.Utilities;
 
 codeunit 9033 "Invite External Accountant"

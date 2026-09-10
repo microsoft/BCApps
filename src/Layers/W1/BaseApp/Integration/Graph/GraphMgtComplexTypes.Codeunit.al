@@ -12,8 +12,6 @@ using Microsoft.Integration.Entity;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
-using System;
-using System.Text;
 
 codeunit 5468 "Graph Mgt - Complex Types"
 {

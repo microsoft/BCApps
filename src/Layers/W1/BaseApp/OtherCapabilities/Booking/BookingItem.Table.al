@@ -1,8 +1,6 @@
 namespace Microsoft.Booking;
 
 using Microsoft.Integration.Graph;
-using System;
-using System.Text;
 using System.Utilities;
 
 table 6707 "Booking Item"

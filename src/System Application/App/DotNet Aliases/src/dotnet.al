@@ -978,9 +978,11 @@ dotnet
         {
         }
 
+#if not CLEAN30
         type("Newtonsoft.Json.JsonTextWriter"; "JsonTextWriter")
         {
         }
+#endif
 
         type("Newtonsoft.Json.Linq.JArray"; "JArray")
         {
@@ -998,9 +1000,11 @@ dotnet
         {
         }
 
+#if not CLEAN30
         type("Newtonsoft.Json.Linq.JValue"; "JValue")
         {
         }
+#endif
     }
 
     assembly("Microsoft.Dynamics.Nav.PluralizationService")

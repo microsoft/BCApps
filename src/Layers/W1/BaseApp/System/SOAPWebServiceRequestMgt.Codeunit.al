@@ -3,7 +3,6 @@ namespace System.Integration;
 using Microsoft.Utilities;
 using System;
 using System.Reflection;
-using System.Text;
 using System.Utilities;
 using System.Xml;
 

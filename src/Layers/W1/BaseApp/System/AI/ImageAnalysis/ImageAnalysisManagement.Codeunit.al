@@ -5,7 +5,6 @@ using System.Azure.KeyVault;
 using System.Environment;
 using System.IO;
 using System.Security.Authentication;
-using System.Text;
 using System.Utilities;
 
 codeunit 2020 "Image Analysis Management"

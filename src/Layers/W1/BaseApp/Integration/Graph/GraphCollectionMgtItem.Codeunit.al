@@ -7,10 +7,8 @@ namespace Microsoft.Integration.Graph;
 using Microsoft.API.Upgrade;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
-using System;
 using System.DateTime;
 using System.Reflection;
-using System.Text;
 
 codeunit 5470 "Graph Collection Mgt - Item"
 {

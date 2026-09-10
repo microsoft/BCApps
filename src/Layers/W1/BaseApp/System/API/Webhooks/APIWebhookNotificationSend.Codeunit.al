@@ -9,7 +9,6 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Text;
 using System.Threading;
 using System.Utilities;
 

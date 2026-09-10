@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Security.AccessControl;
 #endif
 using System.Security.User;
-using System.Text;
 using System.Xml;
 
 

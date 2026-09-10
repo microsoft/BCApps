@@ -9,7 +9,6 @@ using Microsoft.CRM.Contact;
 using Microsoft.Foundation.Address;
 using System;
 using System.Reflection;
-using System.Text;
 
 codeunit 5458 "Graph Collection Mgt - Contact"
 {
