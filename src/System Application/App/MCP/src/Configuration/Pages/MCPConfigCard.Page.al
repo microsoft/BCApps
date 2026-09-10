@@ -134,6 +134,17 @@ page 8351 "MCP Config Card"
         }
         area(Processing)
         {
+            action(Validate)
+            {
+                Caption = 'Validate';
+                ToolTip = 'Validates the MCP configuration to ensure all settings and tools are correctly configured.';
+                Image = ValidateEmailLoggingSetup;
+
+                trigger OnAction()
+                begin
+                    MCPConfigImplementation.ValidateConfiguration(Rec, false);
+                end;
+            }
             action(SetAsDefault)
             {
                 Caption = 'Set as Default';
@@ -160,17 +171,6 @@ page 8351 "MCP Config Card"
                 begin
                     MCPConfigImplementation.ClearDefaultConfiguration();
                     CurrPage.Update(false);
-                end;
-            }
-            action(Validate)
-            {
-                Caption = 'Validate';
-                ToolTip = 'Validates the MCP configuration to ensure all settings and tools are correctly configured.';
-                Image = ValidateEmailLoggingSetup;
-
-                trigger OnAction()
-                begin
-                    MCPConfigImplementation.ValidateConfiguration(Rec, false);
                 end;
             }
             group(Advanced)
@@ -206,9 +206,9 @@ page 8351 "MCP Config Card"
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_Validate; Validate) { }
             actionref(Promoted_SetAsDefault; SetAsDefault) { }
             actionref(Promoted_ClearDefault; ClearDefault) { }
-            actionref(Promoted_Validate; Validate) { }
             group(Promoted_Advanced)
             {
                 Caption = 'Advanced';
