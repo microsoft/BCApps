@@ -16,7 +16,9 @@ codeunit 265 "Feature Key Management"
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
+#if not CLEAN29
         DocumentReportExperienceTxt: Label 'DocumentReportExperience', Locked = true;
+#endif
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
         ConcurrentInventoryPosting: Boolean;
         ConcurrentInventoryPostingRead: Boolean;
@@ -38,10 +40,13 @@ codeunit 265 "Feature Key Management"
         exit(FeatureManagementFacade.IsEnabled(GetSIEAuditFileExportFeatureKeyId()));
     end;
 
+#if not CLEAN29
+    [Obsolete('The Document Report Experience feature key is being retired. The composite layout feature is always on.', '29.0')]
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
     end;
+#endif
 
 #if not CLEAN27
     [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
