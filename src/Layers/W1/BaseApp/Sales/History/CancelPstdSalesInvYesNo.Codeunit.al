@@ -67,7 +67,7 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
     begin
         if SalesInvoiceHeader."Order No." <> '' then begin
             SalesReceivablesSetup.GetRecordOnce();
-            if SalesReceivablesSetup."Update Order Qty. on CM/Return" then
+            if SalesReceivablesSetup."Restore Order qty. on return" then
                 exit(CancelPostedInvoiceFromOrderQst);
         end;
 

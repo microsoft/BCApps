@@ -221,7 +221,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         end;
 
         SalesReceivablesSetup.GetRecordOnce();
-        if SalesReceivablesSetup."Update Order Qty. on CM/Return" then begin
+        if SalesReceivablesSetup."Restore Order qty. on return" then begin
             SalesHeaderOrder.SetRange("Document Type", SalesHeaderOrder."Document Type"::Order);
             SalesHeaderOrder.SetRange("No.", SalesInvoiceHeader."Order No.");
             if not SalesHeaderOrder.IsEmpty() then begin
@@ -1034,7 +1034,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
     begin
         SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Update Order Qty. on CM/Return" then
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
             exit;
 
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
@@ -1133,7 +1133,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         IsHandled: Boolean;
     begin
         SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Update Order Qty. on CM/Return" then
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
             exit;
 
         IsHandled := false;

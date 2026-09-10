@@ -8952,7 +8952,7 @@ codeunit 80 "Sales-Post"
         IsHandled: Boolean;
     begin
         SalesSetup.GetRecordOnce();
-        if not SalesSetup."Update Order Qty. on CM/Return" then
+        if not SalesSetup."Restore Order qty. on return" then
             exit;
 
         IsHandled := false;

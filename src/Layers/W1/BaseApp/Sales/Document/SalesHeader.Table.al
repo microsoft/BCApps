@@ -9675,7 +9675,7 @@ table 36 "Sales Header"
         IsHandled: Boolean;
     begin
         SalesReceivablesSetup.GetRecordOnce();
-        if not SalesReceivablesSetup."Update Order Qty. on CM/Return" then
+        if not SalesReceivablesSetup."Restore Order qty. on return" then
             exit;
 
         SalesCreditMemoHeader.SetLoadFields("Pre-Assigned No.", "Cust. Ledger Entry No.");
