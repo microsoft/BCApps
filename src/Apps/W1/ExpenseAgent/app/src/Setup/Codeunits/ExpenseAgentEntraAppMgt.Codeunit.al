@@ -42,12 +42,14 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     internal procedure DisableAadApplicationForCurrentCompany()
     var
         AadApplication: Record "AAD Application";
+        HasOtherCompanyPermission: Boolean;
     begin
         if not GetAadApplication(AadApplication) then
             exit;
 
+        HasOtherCompanyPermission := HasExpenseAgentPermissionForOtherCompany(AadApplication);
         RemovePermissionForCurrentCompany(AadApplication);
-        if HasAnyExpenseAgentPermission(AadApplication) then
+        if HasOtherCompanyPermission then
             exit;
         if AadApplication.State = AadApplication.State::Disabled then
             exit;
@@ -88,17 +90,26 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     local procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
     var
         AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
-        AccessControl.SetRange("Company Name", CompanyName());
+        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
+            exit(false);
+
+        SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
+        AccessControl.SetRange("Company Name", GetCurrentCompanyName());
         exit(not AccessControl.IsEmpty());
     end;
 
-    local procedure HasAnyExpenseAgentPermission(AadApplication: Record "AAD Application"): Boolean
+    local procedure HasExpenseAgentPermissionForOtherCompany(AadApplication: Record "AAD Application"): Boolean
     var
         AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
+        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
+            exit(false);
+
+        SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
+        AccessControl.SetFilter("Company Name", '<>%1', GetCurrentCompanyName());
         exit(not AccessControl.IsEmpty());
     end;
 
@@ -107,40 +118,61 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        if not AggregatePermissionSet.FindFirst() then
+        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
             exit;
 
         AccessControl.Init();
         AccessControl.Validate("User Security ID", AadApplication."User ID");
-        AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
+        AccessControl.Validate("Role ID", AggregatePermissionSet."Role ID");
         AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
-        AccessControl.Validate("Company Name", CompanyName());
+        AccessControl.Validate(Scope, AggregatePermissionSet.Scope);
+        AccessControl.Validate("Company Name", GetCurrentCompanyName());
         AccessControl.Insert(true);
     end;
 
     local procedure RemovePermissionForCurrentCompany(AadApplication: Record "AAD Application")
     var
         AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
-        SetExpenseAgentPermissionFilters(AccessControl, AadApplication);
-        AccessControl.SetRange("Company Name", CompanyName());
+        if not GetExpenseAgentPermissionSet(AggregatePermissionSet) then
+            exit;
+
+        SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
+        AccessControl.SetRange("Company Name", GetCurrentCompanyName());
         AccessControl.DeleteAll(true);
     end;
 
     local procedure GetAadApplication(var AadApplication: Record "AAD Application"): Boolean
     begin
-        AadApplication.SetRange("Client Id", GetAadAppId());
-        exit(AadApplication.FindFirst());
+        exit(AadApplication.Get(GetAadAppId()));
     end;
 
-    local procedure SetExpenseAgentPermissionFilters(var AccessControl: Record "Access Control"; AadApplication: Record "AAD Application")
+    local procedure GetCurrentCompanyName(): Text[30]
+    begin
+        exit(CopyStr(CompanyName(), 1, 30));
+    end;
+
+    local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set"): Boolean
+    var
+        ExpenseAgentAppId: Guid;
+    begin
+        Evaluate(ExpenseAgentAppId, ExpenseAgentAppIdTxt);
+        AggregatePermissionSet.SetRange("App ID", ExpenseAgentAppId);
+        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
+        exit(AggregatePermissionSet.FindFirst());
+    end;
+
+    local procedure SetExpenseAgentPermissionFilters(var AccessControl: Record "Access Control"; AadApplication: Record "AAD Application"; AggregatePermissionSet: Record "Aggregate Permission Set")
     begin
         AccessControl.SetRange("User Security ID", AadApplication."User ID");
-        AccessControl.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
+        AccessControl.SetRange("Role ID", AggregatePermissionSet."Role ID");
+        AccessControl.SetRange(Scope, AggregatePermissionSet.Scope);
+        AccessControl.SetRange("App ID", AggregatePermissionSet."App ID");
     end;
 
     var
         ExpenseAgentAadAppIdTxt: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
+        ExpenseAgentAppIdTxt: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
 }
