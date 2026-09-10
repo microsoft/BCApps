@@ -8,7 +8,6 @@ codeunit 139704 "APIV1 - Payment Terms E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Payment Terms]
     end;
 
@@ -21,10 +20,12 @@ codeunit 139704 "APIV1 - Payment Terms E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := TRUE;
         COMMIT();

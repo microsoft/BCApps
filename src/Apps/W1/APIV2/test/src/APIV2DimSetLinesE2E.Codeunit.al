@@ -9,7 +9,6 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Dimension Line]
     end;
 
@@ -30,6 +29,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
     procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
@@ -42,6 +42,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         JournalName: Code[10];
         JournalLineGUID: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in journal through a POST method and check if it was created
         LibraryGraphJournalLines.Initialize();
 
@@ -66,6 +67,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineId: Guid;
 
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales order and a sales order line through a POST method and check if it was created
         // [GIVEN] A sales order
         LibrarySales.CreateSalesOrder(SalesHeader);
@@ -94,6 +96,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineId: Guid;
         CustomerNo: Code[20];
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales quote and sales quote line through a POST method and check if it was created
         // [GIVEN] A sales quote
         LibrarySales.CreateCustomer(Customer);
@@ -122,6 +125,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales credit memo and a sales cr memo line through a POST method and check if it was created
         // [GIVEN] A sales credit memo
         LibrarySales.CreateSalesCreditMemo(SalesHeader);
@@ -148,6 +152,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales invoice and a sales invoice line through a POST method and check if it was created
         // [GIVEN] A sales invoice
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -174,6 +179,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase invoice and a purchase invoice line through a POST method and check if it was created
         // [GIVEN] A purchase invoice
         LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
@@ -200,6 +206,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase order and a purchase order line through a POST method and check if it was created
         // [GIVEN] A purchase order
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -226,6 +233,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         DocumentRecordRef: RecordRef;
         TimeSheetDetailId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a time registration entry through a POST method and check if it was created
         // [GIVEN] A Time registration entry
         UserSetup.DeleteAll();
@@ -326,6 +334,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         JournalName: Code[10];
         JournalLineGUID: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a journal line and use a GET method to retrieve them
         // [GIVEN] a journal in the General Journal Table
         LibraryGraphJournalLines.Initialize();
@@ -343,6 +352,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         SalesLine: Record "Sales Line";
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a sales order and sales order line and use a GET method to retrieve them
         // [GIVEN] a sales order with lines
         LibrarySales.CreateSalesOrder(SalesHeader);
@@ -366,6 +376,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         CustomerNo: Code[20];
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a sales quote and sales quote line and use a GET method to retrieve them
         // [GIVEN] a sales quote with lines
         LibrarySales.CreateCustomer(Customer);
@@ -389,6 +400,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         SalesLine: Record "Sales Line";
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a sales cr memo and sales cr memo line and use a GET method to retrieve them
         // [GIVEN] a sales cr memo with lines
         LibrarySales.CreateSalesCreditMemo(SalesHeader);
@@ -410,6 +422,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         SalesLine: Record "Sales Line";
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a sales invoice and sales invoice line and use a GET method to retrieve them
         // [GIVEN] a sales invoice with lines
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -431,6 +444,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         PurchaseLine: Record "Purchase Line";
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a pucrhase invoice and purchase invoice line and use a GET method to retrieve them
         // [GIVEN] a purchase invoice with lines
         LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
@@ -452,6 +466,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         PurchaseLine: Record "Purchase Line";
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a pucrhase order and purchase order line and use a GET method to retrieve them
         // [GIVEN] a purchase order with lines
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -475,6 +490,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         DocumentRecordRef: RecordRef;
         TimeSheetDetailId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a time registration entry through a POST method and and use a GET method to retrieve them
         // [GIVEN] A Time registration entry
         UserSetup.DeleteAll();
@@ -556,6 +572,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         JournalName: Code[10];
         JournalLineGUID: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line, use a PATCH method to change it and then verify the changes
         LibraryGraphJournalLines.Initialize();
 
@@ -577,6 +594,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales order and a sales order line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A sales order
         LibrarySales.CreateSalesOrder(SalesHeader);
@@ -605,6 +623,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineId: Guid;
         CustomerNo: Code[20];
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales quote and a sales quote line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A sales quote
         LibrarySales.CreateCustomer(Customer);
@@ -633,6 +652,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales credit memo and a sales cr memo line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A sales credit memo
         LibrarySales.CreateSalesCreditMemo(SalesHeader);
@@ -659,6 +679,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales invoice and a sales invoice line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A sales invoice
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -685,6 +706,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase invoice and a purchase invoice line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A purchase invoice
         LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
@@ -711,6 +733,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase order and a purchase order line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A purchase order
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -737,6 +760,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         DocumentRecordRef: RecordRef;
         TimeSheetDetailId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a time registration entry, use a PATCH method to change it and then verify the changes
         // [GIVEN] A Time registration entry
         UserSetup.DeleteAll();
@@ -757,6 +781,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase credit memo and a purchase cr memo line through a POST method and check if it was created
         // [GIVEN] A purchase credit memo
         LibraryPurchase.CreatePurchaseCreditMemo(PurchaseHeader);
@@ -781,6 +806,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         PurchaseLine: Record "Purchase Line";
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create dimension lines in a purchase cr memo and purchase cr memo line and use a GET method to retrieve them
         // [GIVEN] a purchase cr memo with lines
         LibraryPurchase.CreatePurchaseCreditMemo(PurchaseHeader);
@@ -804,6 +830,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase credit memo and a purchase cr memo line, use a PATCH method to change it and then verify the changes
         // [GIVEN] A purchase credit memo
         LibraryPurchase.CreatePurchaseCreditMemo(PurchaseHeader);
@@ -830,6 +857,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase credit memo and a purchase cr memo line, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A purchase credit memo
         LibraryPurchase.CreatePurchaseCreditMemo(PurchaseHeader);
@@ -994,6 +1022,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         JournalName: Code[10];
         JournalLineGUID: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line, use a DELETE method to remove it and then verify the deletion
         LibraryGraphJournalLines.Initialize();
 
@@ -1016,6 +1045,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineId: Guid;
 
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales order and a sales order, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A sales order
         LibrarySales.CreateSalesOrder(SalesHeader);
@@ -1044,6 +1074,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineId: Guid;
         CustomerNo: Code[20];
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales quote and sales quote line, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A sales quote
         LibrarySales.CreateCustomer(Customer);
@@ -1072,6 +1103,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales credit memo and a sales cr memo line, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A sales credit memo
         LibrarySales.CreateSalesCreditMemo(SalesHeader);
@@ -1098,6 +1130,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a sales invoice and a sales invoice line, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A sales invoice
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -1124,6 +1157,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase invoice and a purchase invoice line, use a DELETE method to remove it and then verify the deletion
         LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
         DocumentRecordRef.GetTable(PurchaseHeader);
@@ -1149,6 +1183,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LineRecordRef: RecordRef;
         LineId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a purchase order and a purchase order, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A purchase order
         LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
@@ -1173,6 +1208,7 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         DocumentRecordRef: RecordRef;
         TimeSheetDetailId: Guid;
     begin
+        Initialize();
         // [SCENARIO] Create a dimension line in a time registration entry, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] A Time registration entry
         TimeSheetDetailId := CreateTimeSheet();

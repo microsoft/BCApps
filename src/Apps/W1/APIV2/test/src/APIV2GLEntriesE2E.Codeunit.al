@@ -9,7 +9,6 @@ codeunit 139830 "APIV2 - GLEntries E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [G/L Entry]
     end;
 
@@ -26,12 +25,14 @@ codeunit 139830 "APIV2 - GLEntries E2E"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         LibraryApplicationArea.EnableFoundationSetup();
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateVATPostingSetup();

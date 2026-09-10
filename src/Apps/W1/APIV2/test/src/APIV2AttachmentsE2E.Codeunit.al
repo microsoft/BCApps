@@ -9,7 +9,6 @@ codeunit 139833 "APIV2 - Attachments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Attachment]
     end;
 
@@ -1689,6 +1688,7 @@ codeunit 139833 "APIV2 - Attachments E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

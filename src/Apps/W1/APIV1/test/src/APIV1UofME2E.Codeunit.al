@@ -8,7 +8,6 @@ codeunit 139712 "APIV1 - UofM E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Unit of Measure]
     end;
 
@@ -122,6 +121,7 @@ codeunit 139712 "APIV1 - UofM E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

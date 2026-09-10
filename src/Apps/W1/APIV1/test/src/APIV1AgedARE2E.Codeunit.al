@@ -8,7 +8,6 @@ codeunit 139720 "APIV1 - Aged AR E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Aged Report]
     end;
 
@@ -62,10 +61,12 @@ codeunit 139720 "APIV1 - Aged AR E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryApplicationArea.EnableFoundationSetup();
         IsInitialized := TRUE;
