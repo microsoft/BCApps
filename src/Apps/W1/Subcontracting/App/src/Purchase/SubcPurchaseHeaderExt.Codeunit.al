@@ -70,11 +70,11 @@ codeunit 20533 "Subc. Purchase Header Ext"
     var
         TransferHeader: Record "Transfer Header";
         NoNewTransferLinesTitleLbl: Label 'There are no new subcontracting transfer lines to create';
-        CoveredTransferDemandMsg: Label 'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.';
+        CoveredTransferDemandErr: Label 'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.';
         ShowOpenTransferOrdersLbl: Label 'Show open transfer orders';
     begin
         TransferOrderErrorInfo.Title := NoNewTransferLinesTitleLbl;
-        TransferOrderErrorInfo.Message := CoveredTransferDemandMsg;
+        TransferOrderErrorInfo.Message := CoveredTransferDemandErr;
         TransferOrderErrorInfo.RecordId := PurchaseHeader.RecordId();
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         TransferHeader.SetRange("Subc. Return Order", false);

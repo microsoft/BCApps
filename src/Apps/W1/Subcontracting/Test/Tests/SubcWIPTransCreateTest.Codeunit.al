@@ -39,6 +39,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeader: Record "Purchase Header";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
         OriginalQuantity: Decimal;
         PurchaseOrder: TestPage "Purchase Order";
     begin
@@ -56,9 +57,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Coverage is explained and no duplicate WIP quantity is created.
-        Assert.AreEqual(
-            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
-            GetLastErrorText(), 'Covered WIP must not report missing demand.');
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
         Assert.AreEqual(1, TransferLine.Count(), 'No duplicate WIP line should be created.');
         TransferLine.FindFirst();
         Assert.AreEqual(OriginalQuantity, TransferLine.Quantity, 'Covered WIP quantity must not change.');
@@ -94,9 +93,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Coverage is explained and the action opens the existing shipped transfer.
-        Assert.AreEqual(
-            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
-            GetLastErrorText(), 'Shipped WIP must explain existing coverage.');
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
         PurchaseOrder.Close();
         OpenedTransferOrderNo := '';
         SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(
@@ -618,6 +615,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 648962] Posted WIP covering positive eligible demand produces an explanatory error without a new transfer.
@@ -685,9 +683,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         asserterror PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] The error explains that transfer activity already covers the demand, and no WIP transfer is created.
-        Assert.AreEqual(
-            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
-            GetLastErrorText(), 'Posted WIP coverage must not report missing transfer demand.');
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
     end;
 
     [Test]

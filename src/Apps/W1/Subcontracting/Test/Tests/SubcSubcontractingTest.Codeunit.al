@@ -89,9 +89,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] The error explains coverage and neither headers nor quantities are duplicated.
-        Assert.AreEqual(
-            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
-            GetLastErrorText(), 'Covered component demand must not report missing transfer demand.');
+        Assert.ExpectedError(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader).Message);
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         TransferHeader.SetRange("Subc. Return Order", false);
         Assert.AreEqual(1, TransferHeader.Count(), 'No duplicate outbound transfer order should be created.');
