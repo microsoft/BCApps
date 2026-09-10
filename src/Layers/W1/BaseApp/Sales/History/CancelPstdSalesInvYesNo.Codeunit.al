@@ -22,7 +22,7 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
     end;
 
     var
-        CancelPostedInvoiceFromOrderQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the  will be restored, provided the sales order still exists.\ \Do you want to continue?';
+        CancelPostedInvoiceFromOrderQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the original sales order will be restored, provided the sales order still exists.\ \Do you want to continue?';
         CancelPostedInvoiceQst: Label 'The posted sales invoice will be canceled, and a sales credit memo will be created and posted.\ \Do you want to continue?';
         OpenPostedCreditMemoQst: Label 'A credit memo was successfully created. Do you want to open the posted credit memo?';
 
