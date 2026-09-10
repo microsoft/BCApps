@@ -212,6 +212,9 @@ codeunit 50103 "Fabric Install"
         TableIds.Add(5109);     // Purchase Header Archive
         TableIds.Add(5110);     // Purchase Line Archive
         TableIds.Add(5200);     // Employee
+        TableIds.Add(5203);     // Employee Qualification
+        TableIds.Add(5207);     // Employee Absence
+        TableIds.Add(5222);     // Employee Ledger Entry
         TableIds.Add(5404);     // Item Unit of Measure
         TableIds.Add(5405);     // Production Order
         TableIds.Add(5406);     // Prod. Order Line
@@ -251,6 +254,12 @@ codeunit 50103 "Fabric Install"
         TableIds.Add(5993);     // Service Invoice Line
         TableIds.Add(5994);     // Service Cr.Memo Header
         TableIds.Add(5995);     // Service Cr.Memo Line
+        TableIds.Add(6210);     // Sustainability Account
+        TableIds.Add(6211);     // Sustain. Account Category
+        TableIds.Add(6212);     // Sustain. Account Subcategory
+        TableIds.Add(6216);     // Sustainability Ledger Entry
+        TableIds.Add(6219);     // Sustainability Goal
+        TableIds.Add(6226);     // Emission Fee
         TableIds.Add(6505);     // Lot No. Information
         TableIds.Add(6635);     // Return Reason
         TableIds.Add(7132);     // Item Budget Name
@@ -264,6 +273,10 @@ codeunit 50103 "Fabric Install"
         TableIds.Add(7501);     // Item Attribute Value
         TableIds.Add(7505);     // Item Attribute Value Mapping
         TableIds.Add(8019);     // Sub. Contr. Analysis Entry
+        TableIds.Add(8052);     // Customer Subscription Contract
+        TableIds.Add(8063);     // Vendor Subscription Contract
+        TableIds.Add(8066);     // Cust. Sub. Contract Deferral
+        TableIds.Add(8072);     // Vend. Sub. Contract Deferral
         TableIds.Add(36951);    // PowerBI Reports Setup
         TableIds.Add(36952);    // 
         TableIds.Add(36953);    // Account Category
