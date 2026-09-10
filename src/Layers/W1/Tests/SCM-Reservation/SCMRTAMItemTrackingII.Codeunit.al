@@ -4516,13 +4516,13 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         PostPurchaseDocument(PurchaseHeader."Document Type", PurchaseHeader."No.", true, false);
         FindSalesShipmentHeader(SalesShipmentHeader, SalesHeader."No.");
         SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
-        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange("No.", Item."No.");
         SalesShipmentLine.FindFirst();
         SalesShipmentLine.TestField("Bin Code", '');
         PurchRcptHeader.SetRange("Order No.", PurchaseHeader."No.");
         PurchRcptHeader.FindFirst();
         PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
-        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", Item."No.");
         PurchRcptLine.FindFirst();
         PurchRcptLine.TestField("Bin Code", '');
 
