@@ -84,11 +84,12 @@ codeunit 148348 "Expense VAT Spec. API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense VAT Spec. API Test");
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense VAT Spec. API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();

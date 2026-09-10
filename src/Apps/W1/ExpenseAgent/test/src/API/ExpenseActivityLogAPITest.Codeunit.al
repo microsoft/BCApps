@@ -600,12 +600,13 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
         CleanupTestData();
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
         LibraryERMCountryData.UpdateGeneralLedgerSetup();

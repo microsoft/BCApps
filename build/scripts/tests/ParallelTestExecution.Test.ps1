@@ -579,8 +579,22 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     $initializer.Value | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);'
                     $guard = [regex]::Match($initializer.Value, '(?i)if\s+\w*Initialized\s+then')
                     if ($guard.Success) {
-                        $initializer.Value.IndexOf('SetAuthenticationProvider') | Should -BeLessThan $guard.Index `
-                            -Because "$candidateFile must configure authentication before its initialized guard"
+                        $initializer.Value.IndexOf('SetAuthenticationProvider') | Should -BeGreaterThan $guard.Index `
+                            -Because "$candidateFile retains its Graph instance and should select its provider only during first-time initialization"
+                    }
+                    $negativeGuard = [regex]::Match($initializer.Value, '(?is)if\s+not\s+\w*Initialized\s+then\s+begin(?<body>.*?)end;')
+                    if ($negativeGuard.Success) {
+                        $negativeGuard.Groups['body'].Value | Should -Match 'SetAuthenticationProvider' `
+                            -Because "$candidateFile should select its provider in its existing first-time initialization branch"
+                    }
+                    if ($content -match 'SetLicenseSafeWorkDate\(\);') {
+                        $onRun.Value | Should -Not -Match 'SetLicenseSafeWorkDate'
+                        $initializer.Value | Should -Match '(?is)\bbegin\s+(?:(?:LibraryGraphMgt|LibGraphMgt)\.SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);\s*)?(?:LibraryGraphMgt|LibGraphMgt)\.SetLicenseSafeWorkDate\(\);' `
+                            -Because "$candidateFile needs the session date established before fixture creation"
+                        if ($guard.Success) {
+                            $initializer.Value.IndexOf('SetLicenseSafeWorkDate') | Should -BeLessThan $guard.Index `
+                                -Because "$candidateFile must reapply the session work date even after its instance was initialized"
+                        }
                     }
                 }
 

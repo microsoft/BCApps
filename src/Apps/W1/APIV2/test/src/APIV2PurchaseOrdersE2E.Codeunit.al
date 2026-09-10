@@ -9,7 +9,6 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Order]
     end;
 

@@ -12,7 +12,6 @@ codeunit 148018 "IRS 1099 API Tests"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var
@@ -57,13 +56,15 @@ codeunit 148018 "IRS 1099 API Tests"
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRSReportingPeriod: Record "IRS Reporting Period";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IRS1099FormDocHeader.DeleteAll(true);
         IRSReportingPeriod.DeleteAll(true);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 API Tests");
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"IRS 1099 API Tests");
 
         IsInitialized := true;
