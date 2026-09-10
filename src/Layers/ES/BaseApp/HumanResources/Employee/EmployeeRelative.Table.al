@@ -46,6 +46,7 @@ table 5205 "Employee Relative"
         field(6; "First Family Name"; Text[30])
         {
             Caption = 'First Family Name';
+            ToolTip = 'Specifies the first part of the family name.';
         }
         field(7; "Birth Date"; Date)
         {
