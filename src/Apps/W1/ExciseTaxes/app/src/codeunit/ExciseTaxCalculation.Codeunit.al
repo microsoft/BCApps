@@ -349,10 +349,11 @@ codeunit 7412 "Excise Tax Calculation"
                 end;
         end;
 
-        ItemLedgerEntry.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        ItemLedgerEntry.CalcFields("Cost Amount (Actual)");
         if ItemLedgerEntry."Cost Amount (Actual)" <> 0 then
             exit(Abs(ItemLedgerEntry."Cost Amount (Actual)"));
 
+        ItemLedgerEntry.CalcFields("Cost Amount (Expected)");
         exit(Abs(ItemLedgerEntry."Cost Amount (Expected)"));
     end;
 
