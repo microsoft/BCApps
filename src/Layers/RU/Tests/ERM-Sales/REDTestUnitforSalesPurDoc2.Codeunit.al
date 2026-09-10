@@ -32,6 +32,7 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         FieldErrorErr: Label 'Calc. Method must not be 4 in Deferral Template Deferral Code';
         AmountLCYNotFilledErr: Label 'Amount (LCY) should be filled before posting.';
         AmountLCYSumErr: Label 'The sum of the deferral line Amount (LCY) values must equal the header Amount to Defer (LCY).';
+        DeferralCodeChangedErr: Label 'Deferral Code cannot be changed on a line with a deferral schedule.';
 
     [Test]
     [Scope('OnPrem')]
