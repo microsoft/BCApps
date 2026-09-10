@@ -54,25 +54,22 @@ codeunit 5468 "Graph Mgt - Complex Types"
 
     procedure GetDocumentLineObjectDetailsJSON(No: Text; Name: Text): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
+        JsonText: Text;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-
         if No <> '' then
-            JSONManagement.AddJPropertyToJObject(JsonObject, DocumentLineObjectDetailsNoTxt, No);
+            JsonObject.Add(DocumentLineObjectDetailsNoTxt, No);
 
         if Name <> '' then
-            JSONManagement.AddJPropertyToJObject(JsonObject, DocumentLineObjectDetailsNameTxt, Name);
+            JsonObject.Add(DocumentLineObjectDetailsNameTxt, Name);
 
-        exit(JSONManagement.WriteObjectToString());
+        JsonObject.WriteTo(JsonText);
+        exit(JsonText);
     end;
 
     procedure ParseDocumentLineObjectDetailsFromJSON(JSON: Text; var No: Code[20]; var Name: Text[100]; var Description: Text[50])
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         NoTxt: Text;
         NameTxt: Text;
         DescriptionTxt: Text;
@@ -81,15 +78,14 @@ codeunit 5468 "Graph Mgt - Complex Types"
         Clear(Name);
         Clear(Description);
 
-        JSONManagement.InitializeObject(JSON);
-        JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, DocumentLineObjectDetailsNoTxt, NoTxt) then
+        JsonObject.ReadFrom(JSON);
+        if TryGetJsonText(JsonObject, DocumentLineObjectDetailsNoTxt, NoTxt) then
             No := CopyStr(NoTxt, 1, 20);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, DocumentLineObjectDetailsNameTxt, NameTxt) then
+        if TryGetJsonText(JsonObject, DocumentLineObjectDetailsNameTxt, NameTxt) then
             Name := CopyStr(NameTxt, 1, 50);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, DocumentLineObjectDetailsDescriptionTxt, DescriptionTxt) then
+        if TryGetJsonText(JsonObject, DocumentLineObjectDetailsDescriptionTxt, DescriptionTxt) then
             Description := CopyStr(DescriptionTxt, 1, 50);
     end;
 
@@ -104,18 +100,15 @@ codeunit 5468 "Graph Mgt - Complex Types"
 
     procedure GetBookingsDateJSON(DateTime: DateTime; var JSON: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         DateString: Text;
     begin
         DateString := Format(DateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>.0000001Z');
 
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'dateTime', DateString);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'timeZone', 'UTC');
+        JsonObject.Add('dateTime', DateString);
+        JsonObject.Add('timeZone', 'UTC');
 
-        JSON := JSONManagement.WriteObjectToString();
+        JsonObject.WriteTo(JSON);
     end;
 
     procedure GetCodeAndDescriptionEDM(TypeName: Text[32]; CodeField: Code[50]; DescriptionField: Text[250]): Text
@@ -134,21 +127,17 @@ codeunit 5468 "Graph Mgt - Complex Types"
 
     procedure GetCodeAndDescriptionJSON("Code": Code[50]; Description: Text[250]; var JSON: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.AddJPropertyToJObject(JsonObject, CodePropertyTxt, Code);
-        JSONManagement.AddJPropertyToJObject(JsonObject, DescriptionPropertyTxt, Description);
-        JSON := JSONManagement.WriteObjectToString();
+        JsonObject.Add(CodePropertyTxt, Code);
+        JsonObject.Add(DescriptionPropertyTxt, Description);
+        JsonObject.WriteTo(JSON);
     end;
 
     procedure GetCodeAndDescriptionFromJSON(JSON: Text; var "Code": Code[50]; var Description: Text[250])
     var
-        JSONManagement: Codeunit "JSON Management";
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         CodeText: Text;
     begin
         if JSON = NullJSONTxt then begin
@@ -157,11 +146,10 @@ codeunit 5468 "Graph Mgt - Complex Types"
             exit;
         end;
 
-        JSONManagement.InitializeObject(JSON);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JSON);
 
         GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, CodePropertyTxt, CodeText);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, DescriptionPropertyTxt, Description);
+        TryGetJsonText(JsonObject, DescriptionPropertyTxt, Description);
         Code := CopyStr(CodeText, 1, MaxStrLen(Code));
     end;
 
@@ -188,9 +176,9 @@ codeunit 5468 "Graph Mgt - Complex Types"
     procedure GetUnitOfMeasureJSON(UnitOfMeasureCode: Code[20]): Text
     var
         UnitOfMeasure: Record "Unit of Measure";
-        JSONManagement: Codeunit "JSON Management";
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
+        JsonText: Text;
     begin
         if UnitOfMeasureCode = '' then
             exit('');
@@ -198,26 +186,23 @@ codeunit 5468 "Graph Mgt - Complex Types"
         if not UnitOfMeasure.Get(UnitOfMeasureCode) then
             exit('');
 
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-
         // TODO: Refactor from item
-        JSONManagement.AddJPropertyToJObject(JsonObject, GraphCollectionMgtItem.UOMComplexTypeUnitCode(), UnitOfMeasure.Code);
+        JsonObject.Add(GraphCollectionMgtItem.UOMComplexTypeUnitCode(), UnitOfMeasure.Code);
         if UnitOfMeasure.Description <> '' then
-            JSONManagement.AddJPropertyToJObject(JsonObject, GraphCollectionMgtItem.UOMComplexTypeUnitName(), UnitOfMeasure.Description);
+            JsonObject.Add(GraphCollectionMgtItem.UOMComplexTypeUnitName(), UnitOfMeasure.Description);
 
         if UnitOfMeasure.Symbol <> '' then
-            JSONManagement.AddJPropertyToJObject(JsonObject, GraphCollectionMgtItem.UOMComplexTypeSymbol(), UnitOfMeasure.Symbol);
+            JsonObject.Add(GraphCollectionMgtItem.UOMComplexTypeSymbol(), UnitOfMeasure.Symbol);
 
-        exit(JSONManagement.WriteObjectToString());
+        JsonObject.WriteTo(JsonText);
+        exit(JsonText);
     end;
 
     procedure ApplyPostalAddressFromJSON(JSON: Text; var EntityRecRef: RecordRef; Line1FieldNo: Integer; Line2FieldNo: Integer; CityFieldNo: Integer; StateFieldNo: Integer; CountryCodeFieldNo: Integer; PostCodeFieldNo: Integer)
     var
         GraphCollectionMgtContact: Codeunit "Graph Collection Mgt - Contact";
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         TempStreet: Text;
         Line1: Text[100];
         Line2: Text[50];
@@ -227,13 +212,12 @@ codeunit 5468 "Graph Mgt - Complex Types"
         PostCode: Text;
     begin
         if NullJSONTxt <> JSON then begin
-            JSONManagement.InitializeObject(JSON);
-            JSONManagement.GetJSONObject(JsonObject);
+            JsonObject.ReadFrom(JSON);
 
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, 'street', TempStreet);
             GraphCollectionMgtContact.SplitStreet(TempStreet, Line1, Line2);
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, 'city', City);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'state', State);
+            TryGetJsonText(JsonObject, 'state', State);
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, 'countryLetterCode', CountryCode);
             GraphMgtGeneralTools.GetMandatoryStringPropertyFromJObject(JsonObject, 'postalCode', PostCode);
         end;
@@ -250,19 +234,15 @@ codeunit 5468 "Graph Mgt - Complex Types"
     procedure GetPostalAddressJSON(Line1: Text; Line2: Text; City: Text; State: Text; CountryCode: Code[10]; PostCode: Code[20]; var JSON: Text)
     var
         GraphCollectionMgtContact: Codeunit "Graph Collection Mgt - Contact";
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.Add('street', GraphCollectionMgtContact.ConcatenateStreet(Line1, Line2));
+        JsonObject.Add('city', City);
+        JsonObject.Add('state', State);
+        JsonObject.Add('countryLetterCode', CountryCode);
+        JsonObject.Add('postalCode', PostCode);
 
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'street', GraphCollectionMgtContact.ConcatenateStreet(Line1, Line2));
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'city', City);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'state', State);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'countryLetterCode', CountryCode);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'postalCode', PostCode);
-
-        JSON := JSONManagement.WriteObjectToString();
+        JsonObject.WriteTo(JSON);
     end;
 
     procedure GetDimensionEDM(): Text
@@ -279,53 +259,50 @@ codeunit 5468 "Graph Mgt - Complex Types"
     procedure GetDimensionsJSON(DimensionSetId: Integer): Text
     var
         DimensionSetEntry: Record "Dimension Set Entry";
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        JsonArray: DotNet JArray;
+        JsonObject: JsonObject;
+        JsonArray: JsonArray;
+        JsonText: Text;
     begin
         DimensionSetEntry.SetRange("Dimension Set ID", DimensionSetId);
         if not DimensionSetEntry.FindSet() then
             exit('');
 
-        JSONManagement.InitializeEmptyCollection();
-        JSONManagement.GetJsonArray(JsonArray);
-
         repeat
             GetDimensionJObject(DimensionSetEntry, JsonObject);
-            JSONManagement.AddJObjectToJArray(JsonArray, JsonObject);
+            JsonArray.Add(JsonObject);
         until DimensionSetEntry.Next() = 0;
 
-        exit(JSONManagement.WriteCollectionToString());
+        JsonArray.WriteTo(JsonText);
+        exit(JsonText);
     end;
 
-    local procedure GetDimensionJObject(var DimensionSetEntry: Record "Dimension Set Entry"; var JsonObject: DotNet JObject)
-    var
-        JSONManagement: Codeunit "JSON Management";
+    local procedure GetDimensionJObject(var DimensionSetEntry: Record "Dimension Set Entry"; var JsonObject: JsonObject)
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        Clear(JsonObject);
         DimensionSetEntry.CalcFields("Dimension Name", "Dimension Value Name");
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'code', DimensionSetEntry."Dimension Code");
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'displayName', DimensionSetEntry."Dimension Name");
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'valueCode', DimensionSetEntry."Dimension Value Code");
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'valueDisplayName', DimensionSetEntry."Dimension Value Name");
+        JsonObject.Add('code', DimensionSetEntry."Dimension Code");
+        JsonObject.Add('displayName', DimensionSetEntry."Dimension Name");
+        JsonObject.Add('valueCode', DimensionSetEntry."Dimension Value Code");
+        JsonObject.Add('valueDisplayName', DimensionSetEntry."Dimension Value Name");
     end;
 
     procedure GetDimensionSetFromJSON(DimensionsJSON: Text; OldDimensionSetId: Integer; var NewDimensionSetId: Integer)
     var
         TempDimensionSetEntry: Record "Dimension Set Entry" temporary;
         DimensionManagement: Codeunit DimensionManagement;
-        JSONManagement: Codeunit "JSON Management";
-        LineJsonObject: DotNet JObject;
+        DimensionsJsonArray: JsonArray;
+        LineJsonToken: JsonToken;
+        LineJsonObject: JsonObject;
         I: Integer;
         NumberOfLines: Integer;
         "Code": Code[20];
         Value: Code[20];
     begin
-        JSONManagement.InitializeCollection(DimensionsJSON);
-        NumberOfLines := JSONManagement.GetCollectionCount();
+        DimensionsJsonArray.ReadFrom(DimensionsJSON);
+        NumberOfLines := DimensionsJsonArray.Count();
         for I := 1 to NumberOfLines do begin
-            JSONManagement.GetJObjectFromCollectionByIndex(LineJsonObject, I - 1);
+            DimensionsJsonArray.Get(I - 1, LineJsonToken);
+            LineJsonObject := LineJsonToken.AsObject();
             GetDimensionFromJObject(LineJsonObject, Code, Value);
             TempDimensionSetEntry.Init();
             TempDimensionSetEntry."Dimension Set ID" := OldDimensionSetId;
@@ -337,7 +314,7 @@ codeunit 5468 "Graph Mgt - Complex Types"
         NewDimensionSetId := DimensionManagement.GetDimensionSetID(TempDimensionSetEntry);
     end;
 
-    local procedure GetDimensionFromJObject(var JsonObject: DotNet JObject; var "Code": Code[20]; var Value: Code[20])
+    local procedure GetDimensionFromJObject(JsonObject: JsonObject; var "Code": Code[20]; var Value: Code[20])
     var
         Dimension: Record Dimension;
         GraphMgtGeneralTools: Codeunit "Graph Mgt - General Tools";
@@ -351,6 +328,19 @@ codeunit 5468 "Graph Mgt - Complex Types"
             if not Dimension.Get(Code) then
                 Error(DimensionErr, Code);
         Value := CopyStr(ValueText, 1, MaxStrLen(Value));
+    end;
+
+    local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
+            exit(false);
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit(true);
+        Value := JsonToken.AsValue().AsText();
+        exit(true);
     end;
 
     [Scope('OnPrem')]
@@ -495,4 +485,3 @@ codeunit 5468 "Graph Mgt - Complex Types"
         exit(GraphMgtComplexTypes.GetDocumentLineObjectDetailsJSON(PurchInvLineAggregate."No.", Name));
     end;
 }
-

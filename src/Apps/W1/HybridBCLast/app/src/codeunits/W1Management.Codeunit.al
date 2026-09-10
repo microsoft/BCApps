@@ -41,16 +41,19 @@ codeunit 4026 "W1 Management"
         HybridReplicationSummary: Record "Hybrid Replication Summary";
         HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         HybridBCLastWizard: Codeunit "Hybrid BC Last Wizard";
-        JsonManagement: Codeunit "JSON Management";
-        JsonValue: Variant;
+        NotificationJson: JsonObject;
+        JsonToken: JsonToken;
         SyncedVersion: BigInteger;
     begin
         if not HybridCloudManagement.CanHandleNotification(SubscriptionId, HybridBCLastWizard.ProductId()) then
             exit;
 
-        JsonManagement.InitializeObject(NotificationText);
-        if JsonManagement.GetPropertyValueByName('SyncedVersion', JsonValue) then
-            SyncedVersion := JsonValue;
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        if NotificationJson.Get('SyncedVersion', JsonToken) then
+            if JsonToken.IsValue() then
+                if not (JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined()) then
+                    SyncedVersion := JsonToken.AsValue().AsBigInteger();
 
         HybridReplicationSummary.Get(RunId);
         HybridReplicationSummary."Synced Version" := SyncedVersion;

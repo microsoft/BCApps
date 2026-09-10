@@ -154,52 +154,41 @@ codeunit 6361 "Pagero Connection"
 
     procedure ParseGetADocumentResponse(InputTxt: Text): Text
     var
-        JsonManagement: Codeunit "JSON Management";
-        JsonManagement2: Codeunit "JSON Management";
-        Value: Text;
-        IncrementalTable: Text;
+        ResponseJson: JsonObject;
+        ItemJson: JsonObject;
+        ItemsToken: JsonToken;
+        IdToken: JsonToken;
     begin
-        if not JsonManagement.InitializeFromString(InputTxt) then
+        if not ResponseJson.ReadFrom(InputTxt) then
             exit('');
 
-        JsonManagement.GetArrayPropertyValueAsStringByName('items', Value);
-        JsonManagement.InitializeCollection(Value);
-
-        if JsonManagement.GetCollectionCount() > 0 then begin
-            JsonManagement.GetObjectFromCollectionByIndex(IncrementalTable, 0);
-            JsonManagement2.InitializeObject(IncrementalTable);
-            JsonManagement2.GetArrayPropertyValueAsStringByName('id', Value);
-            exit(Value);
+        if not ResponseJson.Get('items', ItemsToken) then
+            exit('');
+        if not ItemsToken.IsArray() then
+            exit('');
+        if ItemsToken.AsArray().Count() = 0 then
+            exit('');
+        ItemsToken.AsArray().Get(0, ItemsToken);
+        if not ItemsToken.IsObject() then
+            exit('');
+        ItemJson := ItemsToken.AsObject();
+        if ItemJson.Get('id', IdToken) and IdToken.IsValue() then begin
+            if IdToken.AsValue().IsNull() or IdToken.AsValue().IsUndefined() then
+                exit('');
+            exit(IdToken.AsValue().AsText());
         end;
-        exit('');
     end;
 
     procedure ParseJsonString(HttpContentResponse: HttpContent): Text
     var
         ResponseJObject: JsonObject;
-        ResponseJson: Text;
         Result: Text;
-        IsJsonResponse: Boolean;
     begin
         HttpContentResponse.ReadAs(Result);
-        IsJsonResponse := ResponseJObject.ReadFrom(Result);
-        if IsJsonResponse then
-            ResponseJObject.WriteTo(ResponseJson)
-        else
-            exit('');
-
-        if not TryInitJson(ResponseJson) then
+        if not ResponseJObject.ReadFrom(Result) then
             exit('');
 
         exit(Result);
-    end;
-
-    [TryFunction]
-    local procedure TryInitJson(JsonTxt: Text)
-    var
-        JsonManagement: Codeunit "JSON Management";
-    begin
-        JSONManagement.InitializeObject(JsonTxt);
     end;
 
     local procedure CheckIfSuccessfulRequest(EDocument: Record "E-Document"; HttpResponse: HttpResponseMessage): Boolean

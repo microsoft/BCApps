@@ -91,10 +91,10 @@ codeunit 18160 "e-Invoice Json Handler for Ser"
 
     procedure GetEInvoiceResponse(var RecRef: RecordRef)
     var
-        JSONManagement: Codeunit "JSON Management";
         QRGenerator: Codeunit "QR Generator";
         TempBlob: Codeunit "Temp Blob";
         FieldRef: FieldRef;
+        ResponseJson: JsonObject;
         JsonString: Text;
         TempIRNTxt: Text;
         TempDateTime: DateTime;
@@ -106,14 +106,14 @@ codeunit 18160 "e-Invoice Json Handler for Ser"
         if (JsonString = '') or (JsonString = '[]') then
             exit;
 
-        JSONManagement.InitializeObject(JsonString);
+        ResponseJson.ReadFrom(JsonString);
         FieldRef := RecRef.Field(ServiceInvoiceHeader.FieldNo("IRN Hash"));
         TempIRNTxt := FieldRef.Value;
-        if TempIRNTxt = JSONManagement.GetValue(IRNTxt) then begin
+        if TempIRNTxt = GetJsonValue(ResponseJson, IRNTxt) then begin
             FieldRef := RecRef.Field(ServiceInvoiceHeader.FieldNo("Acknowledgement No."));
-            FieldRef.Value := JSONManagement.GetValue(AcknowledgementNoTxt);
+            FieldRef.Value := GetJsonValue(ResponseJson, AcknowledgementNoTxt);
 
-            AcknowledgementDateTimeText := JSONManagement.GetValue(AcknowledgementDateTxt);
+            AcknowledgementDateTimeText := GetJsonValue(ResponseJson, AcknowledgementDateTxt);
             Evaluate(AcknowledgementDate, CopyStr(AcknowledgementDateTimeText, 1, 10));
             Evaluate(AcknowledgementTime, CopyStr(AcknowledgementDateTimeText, 11, 8));
             TempDateTime := CreateDateTime(AcknowledgementDate, AcknowledgementTime);
@@ -122,12 +122,25 @@ codeunit 18160 "e-Invoice Json Handler for Ser"
             FieldRef.Value := TempDateTime;
             FieldRef := RecRef.Field(ServiceInvoiceHeader.FieldNo(IsJSONImported));
             FieldRef.Value := true;
-            QRGenerator.GenerateQRCodeImage(JSONManagement.GetValue(SignedQRCodeTxt), TempBlob);
+            QRGenerator.GenerateQRCodeImage(GetJsonValue(ResponseJson, SignedQRCodeTxt), TempBlob);
             FieldRef := RecRef.Field(ServiceInvoiceHeader.FieldNo("QR Code"));
             TempBlob.ToRecordRef(RecRef, ServiceInvoiceHeader.FieldNo("QR Code"));
             RecRef.Modify();
         end else
             Error(IRNHashErr, TempIRNTxt);
+    end;
+
+    local procedure GetJsonValue(JsonObject: JsonObject; PropertyName: Text): Text
+    var
+        JsonToken: JsonToken;
+    begin
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit('');
+        if not JsonToken.IsValue() then
+            exit('');
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit('');
+        exit(JsonToken.AsValue().AsText());
     end;
 
     local procedure GetResponseText() ResponseText: Text

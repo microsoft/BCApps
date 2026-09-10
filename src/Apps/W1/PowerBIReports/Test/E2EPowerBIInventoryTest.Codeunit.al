@@ -98,7 +98,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyZone(Response: Text; Zone: Record Zone)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.zoneCode == ''' + Format(Zone.Code) + ''')]'), 'Zone not found.');
@@ -140,7 +140,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyBin(Response: Text; Bin: Record Bin)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.binCode == ''' + Format(Bin.Code) + ''')]'), 'Bin not found.');
@@ -190,7 +190,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifySalesLine(Response: Text; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         if (SalesLine.Type = SalesLine.Type::Item) and (SalesLine."Outstanding Qty. (Base)" <> 0) then begin
@@ -286,7 +286,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyPurchLine(Response: Text; PurchLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         if (PurchLine.Type = PurchLine.Type::Item) and (PurchLine."Outstanding Qty. (Base)" <> 0) then begin
@@ -396,7 +396,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyRequisitionLine(Response: Text; RequisitionLine: Record "Requisition Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(RequisitionLine."No.") + ''')]'), 'Requisition line not found.');
@@ -490,7 +490,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyTransferLine(Response: Text; TransferLine: Record "Transfer Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(TransferLine."Item No.") + ''')]'), 'Transfer line not found.');
@@ -575,7 +575,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyServiceLine(Response: Text; ServiceLine: Record "Service Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(ServiceLine."No.") + ''')]'), 'Service line not found.');
@@ -671,7 +671,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyItemLedgerEntry(Response: Text; ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
         BoolText: Text;
     begin
         JsonMgt.InitializeObject(Response);
@@ -738,7 +738,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyWhseActivityLine(Response: Text; WhseActivityLine: Record "Warehouse Activity Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
         BoolText: Text;
     begin
         JsonMgt.InitializeObject(Response);
@@ -795,7 +795,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyWhseEntry(Response: Text; WhseEntry: Record "Warehouse Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(WhseEntry."Item No.") + ''')]'), 'Warehouse entry not found.');
@@ -878,7 +878,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyFromBinWhseJournalLine(Response: Text; WhseJournalLine: Record "Warehouse Journal Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(WhseJournalLine."Item No.") + ''')]'), 'Warehouse journal line not found.');
@@ -927,7 +927,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyToBinWhseJournalLine(Response: Text; WhseJournalLine: Record "Warehouse Journal Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(WhseJournalLine."Item No.") + ''')]'), 'Warehouse journal line not found.');
@@ -1012,7 +1012,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyInventoryValue(Response: Text; ValueEntry: Record "Value Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
 
     begin
         JsonMgt.InitializeObject(Response);
@@ -1096,7 +1096,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyAssemblyHeader(Response: Text; AssemblyHeader: Record "Assembly Header")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.documentNo == ''' + Format(AssemblyHeader."No.") + ''')]'), 'Assembly header not found.');
@@ -1171,7 +1171,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyAssemblyLine(Response: Text; AssemblyLine: Record "Assembly Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(AssemblyLine."No.") + ''')]'), 'Assembly line not found.');
@@ -1261,7 +1261,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyJobPlanningLine(Response: Text; JobPlanningLine: Record "Job Planning Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(JobPlanningLine."No.") + ''')]'), 'Job planning line not found.');
@@ -1365,7 +1365,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyProdOrderLine(Response: Text; ProdOrderLine: Record "Prod. Order Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
 
     begin
         JsonMgt.InitializeObject(Response);
@@ -1465,7 +1465,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyProdOrderCompLine(Response: Text; ProdOrderComp: Record "Prod. Order Component")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.documentNo == ''' + Format(ProdOrderComp."Prod. Order No.") + ''')]'), 'Production order component line not found.');
@@ -1552,7 +1552,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure VerifyPlanningComponent(Response: Text; PlanningComponent: Record "Planning Component")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemNo == ''' + Format(PlanningComponent."Item No.") + ''')]'), 'Planning component not found.');

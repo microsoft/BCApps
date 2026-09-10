@@ -17,8 +17,10 @@ codeunit 5461 "Json Impl."
 
     var
         SourceWarningLength: Integer;
-        JsonArrayDotNet: DotNet JArray;
-        JsonObjectDotNet: DotNet JObject;
+        JsonArrayState: JsonArray;
+        JsonObjectState: JsonObject;
+        InvalidJsonArrayErr: Label 'The value is not a valid JSON array.';
+        InvalidJsonObjectErr: Label 'The value is not a valid JSON object.';
         LogLimitWarningTxt: Label 'The JSON input length (%1) exceeds the maximum suggested length (%2) for JSON processing.', Locked = true;
 
     internal procedure EmitLengthWarning(SourceLength: Integer; tag: Text; FormatString: Text)
@@ -31,69 +33,72 @@ codeunit 5461 "Json Impl."
     end;
 
     procedure InitializeCollectionFromString(JSONString: Text)
+    var
+        NewJsonArray: JsonArray;
     begin
-        Clear(JsonArrayDotNet);
         if JSONString <> '' then begin
             EmitLengthWarning(StrLen(JSONString), '0000QNC', LogLimitWarningTxt);
-            JsonArrayDotNet := JsonArrayDotNet.Parse(JSONString)
-        end else
-            InitializeEmptyCollection();
+            if not NewJsonArray.ReadFrom(JSONString) then
+                Error(InvalidJsonArrayErr);
+        end;
+        JsonArrayState := NewJsonArray;
     end;
 
     procedure InitializeObjectFromString(JSONString: Text)
     begin
-        Clear(JsonObjectDotNet);
-        if JSONString <> '' then begin
+        if JSONString <> '' then
             EmitLengthWarning(StrLen(JSONString), '0000QND', LogLimitWarningTxt);
-            JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
-        end else
-            InitializeEmptyObject();
+        SetObjectStateFromString(JSONString);
     end;
 
     procedure GetCollectionCount(): Integer
     begin
-        exit(JsonArrayDotNet.Count);
+        exit(JsonArrayState.Count());
     end;
 
     procedure GetCollectionAsText() Value: Text
     begin
-        GetCollection().WriteTo(Value);
+        JsonArrayState.WriteTo(Value);
     end;
 
     procedure GetCollectionAsText(Indentation: Boolean) Value: Text
     var
-        JsonConvert: DotNet JsonConvert;
-        Formatting: DotNet Formatting;
+        JsonTextBuilder: TextBuilder;
     begin
-        Value := GetCollectionAsText();
+        if not Indentation then
+            exit(GetCollectionAsText());
 
-        if Indentation then begin
-            JsonArrayDotNet := JsonArrayDotNet.Parse(Value);
-            Value := JsonConvert.SerializeObject(JsonArrayDotNet, Formatting.Indented)
-        end;
+        AppendJsonArray(JsonArrayState, 0, JsonTextBuilder);
+        exit(JsonTextBuilder.ToText());
     end;
 
-    procedure GetCollection() JArray: JsonArray
+    procedure GetCollection() JsonArray: JsonArray
+    var
+        JsonText: Text;
     begin
-        JArray.ReadFrom(JsonArrayDotNet.ToString());
+        JsonArrayState.WriteTo(JsonText);
+        JsonArray.ReadFrom(JsonText);
     end;
 
     procedure GetObjectAsText() Value: Text
     begin
-        GetObject().WriteTo(Value);
+        JsonObjectState.WriteTo(Value);
     end;
 
-    procedure GetObject() JObject: JsonObject
+    procedure GetObject() JsonObject: JsonObject
+    var
+        JsonText: Text;
     begin
-        JObject.ReadFrom(JsonObjectDotNet.ToString());
+        JsonObjectState.WriteTo(JsonText);
+        JsonObject.ReadFrom(JsonText);
     end;
 
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
     begin
-        if not GetJObjectFromCollectionByIndex(Index) then
+        if not SelectObjectFromCollection(Index) then
             exit(false);
 
-        JsonObjectTxt := JsonObjectDotNet.ToString();
+        JsonObjectState.WriteTo(JsonObjectTxt);
         exit(true);
     end;
 
@@ -101,174 +106,289 @@ codeunit 5461 "Json Impl."
     var
         FieldRef: FieldRef;
     begin
-        if IsNull(JsonObjectDotNet) then
-            exit(false);
-
         FieldRef := RecordRef.Field(FieldNo);
         exit(GetPropertyValueFromJObjectByPathSetToFieldRef(PropertyPath, FieldRef));
     end;
 
-    procedure GetPropertyValueFromJObjectByName(propertyName: Text; var value: Variant): Boolean
+    procedure GetPropertyValueFromJObjectByName(PropertyName: Text; var Value: Variant): Boolean
     var
-        JPropertyDotNet: DotNet JProperty;
-        JTokenDotNet: DotNet JToken;
+        JsonToken: JsonToken;
     begin
-        Clear(value);
-        if JsonObjectDotNet.TryGetValue(propertyName, JTokenDotNet) then begin
-            JPropertyDotNet := JsonObjectDotNet.Property(propertyName);
-            value := JPropertyDotNet.Value;
-            exit(true);
-        end;
-        exit(false);
+        Clear(Value);
+        if not JsonObjectState.Get(PropertyName, JsonToken) then
+            exit(false);
+
+        JsonTokenToVariant(JsonToken, Value);
+        exit(true);
     end;
 
-    procedure GetStringPropertyValueFromJObjectByName(propertyName: Text; var value: Text): Boolean
+    procedure GetStringPropertyValueFromJObjectByName(PropertyName: Text; var Value: Text): Boolean
     var
-        VariantValue: Variant;
+        JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
-        Clear(value);
-        if GetPropertyValueFromJObjectByName(propertyName, VariantValue) then begin
-            value := Format(VariantValue);
+        Clear(Value);
+        if not JsonObjectState.Get(PropertyName, JsonToken) then
+            exit(false);
+        if not JsonToken.IsValue() then begin
+            JsonToken.WriteTo(Value);
             exit(true);
         end;
-        exit(false);
-    end;
 
-    procedure GetEnumPropertyValueFromJObjectByName(propertyName: Text; var value: Option): Boolean
-    var
-        StringValue: Text;
-    begin
-        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
-            Evaluate(value, StringValue, 0);
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
             exit(true);
-        end;
-        exit(false);
+
+        Value := GetJsonValueAsText(JsonToken);
+        exit(true);
     end;
 
-    procedure GetBoolPropertyValueFromJObjectByName(propertyName: Text; var value: Boolean): Boolean
+    procedure GetEnumPropertyValueFromJObjectByName(PropertyName: Text; var Value: Option): Boolean
     var
-        StringValue: Text;
+        JsonToken: JsonToken;
     begin
-        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
-            Evaluate(value, StringValue, 2);
-            exit(true);
-        end;
-        exit(false);
+        if not GetJsonValueByName(PropertyName, JsonToken) then
+            exit(false);
+
+        Evaluate(Value, JsonToken.AsValue().AsText(), 0);
+        exit(true);
     end;
 
-    procedure GetDecimalPropertyValueFromJObjectByName(propertyName: Text; var value: Decimal): Boolean
+    procedure GetBoolPropertyValueFromJObjectByName(PropertyName: Text; var Value: Boolean): Boolean
     var
-        StringValue: Text;
+        JsonToken: JsonToken;
     begin
-        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
-            Evaluate(value, StringValue);
-            exit(true);
-        end;
-        exit(false);
+        Clear(Value);
+        if not GetJsonValueByName(PropertyName, JsonToken) then
+            exit(false);
+
+        Value := JsonToken.AsValue().AsBoolean();
+        exit(true);
     end;
 
-    procedure GetIntegerPropertyValueFromJObjectByName(propertyName: Text; var value: Integer): Boolean
+    procedure GetDecimalPropertyValueFromJObjectByName(PropertyName: Text; var Value: Decimal): Boolean
     var
-        StringValue: Text;
+        JsonToken: JsonToken;
     begin
-        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
-            Evaluate(value, StringValue);
-            exit(true);
-        end;
-        exit(false);
+        Clear(Value);
+        if not GetJsonValueByName(PropertyName, JsonToken) then
+            exit(false);
+
+        Value := JsonToken.AsValue().AsDecimal();
+        exit(true);
     end;
 
-    procedure GetGuidPropertyValueFromJObjectByName(propertyName: Text; var value: Guid): Boolean
+    procedure GetIntegerPropertyValueFromJObjectByName(PropertyName: Text; var Value: Integer): Boolean
     var
-        StringValue: Text;
+        JsonToken: JsonToken;
     begin
-        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
-            Evaluate(value, StringValue);
-            exit(true);
-        end;
-        exit(false);
+        Clear(Value);
+        if not GetJsonValueByName(PropertyName, JsonToken) then
+            exit(false);
+
+        Value := JsonToken.AsValue().AsInteger();
+        exit(true);
     end;
 
-    procedure ReplaceOrAddJPropertyInJObject(propertyName: Text; value: Variant): Boolean
+    procedure GetGuidPropertyValueFromJObjectByName(PropertyName: Text; var Value: Guid): Boolean
     var
-        JPropertyDotNet: DotNet JProperty;
-        OldPropertyDotNet: DotNet JProperty;
-        OldValue: Variant;
+        JsonToken: JsonToken;
     begin
-        JPropertyDotNet := JsonObjectDotNet.Property(propertyName);
-        if not IsNull(JPropertyDotNet) then begin
-            OldPropertyDotNet := JsonObjectDotNet.Property(propertyName);
-            OldValue := OldPropertyDotNet.Value;
-            JPropertyDotNet.Replace(JPropertyDotNet.JProperty(propertyName, value));
-            exit(Format(OldValue) <> Format(value));
+        Clear(Value);
+        if not GetJsonValueByName(PropertyName, JsonToken) then
+            exit(false);
+
+        Evaluate(Value, JsonToken.AsValue().AsText());
+        exit(true);
+    end;
+
+    procedure ReplaceOrAddJPropertyInJObject(PropertyName: Text; Value: Variant): Boolean
+    var
+        NewJsonToken: JsonToken;
+        OldJsonToken: JsonToken;
+        NewValueText: Text;
+        OldValueText: Text;
+    begin
+        CreateJsonTokenFromVariant(Value, NewJsonToken);
+        NewJsonToken.WriteTo(NewValueText);
+
+        if JsonObjectState.Get(PropertyName, OldJsonToken) then begin
+            OldJsonToken.WriteTo(OldValueText);
+            JsonObjectState.Replace(PropertyName, NewJsonToken);
+            exit(OldValueText <> NewValueText);
         end;
 
-        AddJPropertyToJObject(propertyName, value);
+        JsonObjectState.Add(PropertyName, NewJsonToken);
         exit(true);
     end;
 
     procedure AddJObjectToCollection(JSONString: Text): Boolean
     begin
-        if JSONString <> '' then
-            JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
-        else
-            InitializeEmptyObject();
-
+        SetObjectStateFromString(JSONString);
         AddJObjectToCollection();
         exit(true);
     end;
 
     procedure RemoveJObjectFromCollection(Index: Integer): Boolean
     begin
-        if (GetCollectionCount() = 0) or (GetCollectionCount() <= Index) then
+        if not IsValidCollectionIndex(Index) then
             exit(false);
 
-        JsonArrayDotNet.RemoveAt(Index);
+        JsonArrayState.RemoveAt(Index);
         exit(true);
     end;
 
     procedure ReplaceJObjectInCollection(Index: Integer; JSONString: Text): Boolean
     begin
-        if not GetJObjectFromCollectionByIndex(Index) then
+        if not SelectObjectFromCollection(Index) then
             exit(false);
 
-        if JSONString <> '' then
-            JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
-        else
-            InitializeEmptyObject();
-
-        JsonArrayDotNet.RemoveAt(Index);
-        JsonArrayDotNet.Insert(Index, JsonObjectDotNet);
+        SetObjectStateFromString(JSONString);
+        JsonArrayState.Set(Index, JsonObjectState);
         exit(true);
     end;
 
-    local procedure GetJObjectFromCollectionByIndex(Index: Integer): Boolean
+    local procedure SelectObjectFromCollection(Index: Integer): Boolean
+    var
+        JsonToken: JsonToken;
     begin
-        if (GetCollectionCount() = 0) or (GetCollectionCount() <= Index) then
+        if not IsValidCollectionIndex(Index) then
+            exit(false);
+        if not JsonArrayState.Get(Index, JsonToken) then
+            exit(false);
+        if not JsonToken.IsObject() then
             exit(false);
 
-        JsonObjectDotNet := JsonArrayDotNet.Item(Index);
-        exit(not IsNull(JsonObjectDotNet))
+        JsonObjectState := JsonToken.AsObject();
+        exit(true);
     end;
 
-    local procedure GetPropertyValueFromJObjectByPathSetToFieldRef(propertyPath: Text; var FieldRef: FieldRef): Boolean
+    local procedure IsValidCollectionIndex(Index: Integer): Boolean
+    begin
+        exit((Index >= 0) and (Index < JsonArrayState.Count()));
+    end;
+
+    local procedure GetJsonValueByName(PropertyName: Text; var JsonToken: JsonToken): Boolean
+    var
+        JsonValue: JsonValue;
+    begin
+        if not JsonObjectState.Get(PropertyName, JsonToken) then
+            exit(false);
+        if not JsonToken.IsValue() then
+            exit(false);
+
+        JsonValue := JsonToken.AsValue();
+        exit(not JsonValue.IsNull() and not JsonValue.IsUndefined());
+    end;
+
+    local procedure JsonTokenToVariant(JsonToken: JsonToken; var Value: Variant)
+    var
+        BigIntegerValue: BigInteger;
+        BooleanValue: Boolean;
+        DecimalValue: Decimal;
+        IntegerValue: Integer;
+        JsonArrayValue: JsonArray;
+        JsonObjectValue: JsonObject;
+        JsonValue: JsonValue;
+        SerializedValue: Text;
+        TextValue: Text;
+    begin
+        Clear(Value);
+        case true of
+            JsonToken.IsObject():
+                begin
+                    JsonObjectValue := JsonToken.AsObject();
+                    Value := JsonObjectValue;
+                end;
+            JsonToken.IsArray():
+                begin
+                    JsonArrayValue := JsonToken.AsArray();
+                    Value := JsonArrayValue;
+                end;
+            JsonToken.IsValue():
+                begin
+                    JsonValue := JsonToken.AsValue();
+                    if JsonValue.IsNull() or JsonValue.IsUndefined() then
+                        exit;
+
+                    JsonToken.WriteTo(SerializedValue);
+                    if SerializedValue.StartsWith('"') then begin
+                        TextValue := JsonValue.AsText();
+                        Value := TextValue;
+                    end else
+                        if (SerializedValue = 'true') or (SerializedValue = 'false') then begin
+                            BooleanValue := JsonValue.AsBoolean();
+                            Value := BooleanValue;
+                        end else
+                            if (StrPos(SerializedValue, '.') = 0) and (StrPos(LowerCase(SerializedValue), 'e') = 0) and TryGetJsonInteger(JsonValue, IntegerValue) then
+                                Value := IntegerValue
+                            else
+                                if (StrPos(SerializedValue, '.') = 0) and (StrPos(LowerCase(SerializedValue), 'e') = 0) and TryGetJsonBigInteger(JsonValue, BigIntegerValue) then
+                                    Value := BigIntegerValue
+                                else
+                                    if TryGetJsonDecimal(JsonValue, DecimalValue) then
+                                        Value := DecimalValue
+                                    else begin
+                                        TextValue := SerializedValue;
+                                        Value := TextValue;
+                                    end;
+                end;
+        end;
+    end;
+
+    local procedure GetJsonValueAsText(JsonToken: JsonToken): Text
+    var
+        SerializedValue: Text;
+    begin
+        JsonToken.WriteTo(SerializedValue);
+        case SerializedValue of
+            'true':
+                exit('True');
+            'false':
+                exit('False');
+        end;
+        exit(JsonToken.AsValue().AsText());
+    end;
+
+    [TryFunction]
+    local procedure TryGetJsonInteger(JsonValue: JsonValue; var IntegerValue: Integer)
+    begin
+        IntegerValue := JsonValue.AsInteger();
+    end;
+
+    [TryFunction]
+    local procedure TryGetJsonBigInteger(JsonValue: JsonValue; var BigIntegerValue: BigInteger)
+    begin
+        BigIntegerValue := JsonValue.AsBigInteger();
+    end;
+
+    [TryFunction]
+    local procedure TryGetJsonDecimal(JsonValue: JsonValue; var DecimalValue: Decimal)
+    begin
+        DecimalValue := JsonValue.AsDecimal();
+    end;
+
+    local procedure GetPropertyValueFromJObjectByPathSetToFieldRef(PropertyPath: Text; var FieldRef: FieldRef): Boolean
     var
         RecID: RecordId;
-        Value: Variant;
+        Value: Text;
         IntVar: Integer;
         DecimalVal: Decimal;
         GuidVal: Guid;
         DateVal: Date;
         BoolVal, Success : Boolean;
-        JPropertyDotNet: DotNet JProperty;
+        JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
-        Success := false;
-        JPropertyDotNet := JsonObjectDotNet.SelectToken(propertyPath);
-
-        if IsNull(JPropertyDotNet) then
+        if not JsonObjectState.SelectToken(PropertyPath, JsonToken) then
+            exit(false);
+        if not JsonToken.IsValue() then
             exit(false);
 
-        Value := Format(JPropertyDotNet.Value, 0, 9);
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(false);
+        Value := JsonValue.AsText();
 
         case FieldRef.Type of
             FieldType::Integer,
@@ -399,45 +519,208 @@ codeunit 5461 "Json Impl."
         until Counter = Number;
     end;
 
-    local procedure AddJPropertyToJObject(propertyName: Text; value: Variant)
+    local procedure CreateJsonTokenFromVariant(Value: Variant; var JsonToken: JsonToken)
     var
-        JObjectDotNet: DotNet JObject;
-        JPropertyDotNet: DotNet JProperty;
+        JsonObject: JsonObject;
+    begin
+        AddJPropertyToJObject(JsonObject, 'value', Value);
+        JsonObject.Get('value', JsonToken);
+    end;
+
+    local procedure AddJPropertyToJObject(var JsonObject: JsonObject; PropertyName: Text; Value: Variant)
+    var
+        JsonArrayValue: JsonArray;
+        JsonObjectValue: JsonObject;
+        BooleanValue: Boolean;
+        DecimalValue: Decimal;
+        IntegerValue: Integer;
         ValueText: Text;
     begin
         case true of
-            value.IsDotNet:
+            Value.IsJsonObject():
                 begin
-                    JObjectDotNet := value;
-                    JsonObjectDotNet.Add(propertyName, JObjectDotNet);
+                    JsonObjectValue := Value;
+                    JsonObject.Add(PropertyName, JsonObjectValue);
                 end;
-            value.IsInteger,
-            value.IsDecimal,
-            value.IsBoolean:
+            Value.IsJsonArray():
                 begin
-                    JPropertyDotNet := JPropertyDotNet.JProperty(propertyName, value);
-                    JsonObjectDotNet.Add(JPropertyDotNet);
+                    JsonArrayValue := Value;
+                    JsonObject.Add(PropertyName, JsonArrayValue);
+                end;
+            Value.IsInteger():
+                begin
+                    IntegerValue := Value;
+                    JsonObject.Add(PropertyName, IntegerValue);
+                end;
+            Value.IsDecimal():
+                begin
+                    DecimalValue := Value;
+                    JsonObject.Add(PropertyName, DecimalValue);
+                end;
+            Value.IsBoolean():
+                begin
+                    BooleanValue := Value;
+                    JsonObject.Add(PropertyName, BooleanValue);
                 end;
             else begin
-                ValueText := Format(value, 0, 9);
-                JPropertyDotNet := JPropertyDotNet.JProperty(propertyName, ValueText);
-                JsonObjectDotNet.Add(JPropertyDotNet);
+                ValueText := Format(Value, 0, 9);
+                JsonObject.Add(PropertyName, ValueText);
             end;
         end;
     end;
 
     local procedure AddJObjectToCollection()
+    var
+        JsonObjectClone: JsonObject;
+        JsonText: Text;
     begin
-        JsonArrayDotNet.Add(JsonObjectDotNet.DeepClone());
+        JsonObjectState.WriteTo(JsonText);
+        JsonObjectClone.ReadFrom(JsonText);
+        JsonArrayState.Add(JsonObjectClone);
     end;
 
-    local procedure InitializeEmptyCollection()
+    local procedure SetObjectStateFromString(JSONString: Text)
+    var
+        NewJsonObject: JsonObject;
     begin
-        JsonArrayDotNet := JsonArrayDotNet.JArray();
+        if JSONString <> '' then
+            if not NewJsonObject.ReadFrom(JSONString) then
+                Error(InvalidJsonObjectErr);
+        JsonObjectState := NewJsonObject;
     end;
 
-    local procedure InitializeEmptyObject()
+    local procedure AppendJsonToken(JsonToken: JsonToken; IndentationLevel: Integer; var JsonTextBuilder: TextBuilder)
+    var
+        ScalarText: Text;
     begin
-        JsonObjectDotNet := JsonObjectDotNet.JObject();
+        case true of
+            JsonToken.IsObject():
+                AppendJsonObject(JsonToken.AsObject(), IndentationLevel, JsonTextBuilder);
+            JsonToken.IsArray():
+                AppendJsonArray(JsonToken.AsArray(), IndentationLevel, JsonTextBuilder);
+            else begin
+                JsonToken.WriteTo(ScalarText);
+                JsonTextBuilder.Append(ScalarText);
+            end;
+        end;
     end;
+
+    local procedure AppendJsonObject(JsonObject: JsonObject; IndentationLevel: Integer; var JsonTextBuilder: TextBuilder)
+    var
+        JsonToken: JsonToken;
+        PropertyNames: List of [Text];
+        PropertyName: Text;
+        PropertyIndex: Integer;
+    begin
+        PropertyNames := JsonObject.Keys();
+        if PropertyNames.Count() = 0 then begin
+            JsonTextBuilder.Append('{}');
+            exit;
+        end;
+
+        JsonTextBuilder.Append('{');
+        JsonTextBuilder.Append(GetCRLF());
+        foreach PropertyName in PropertyNames do begin
+            PropertyIndex += 1;
+            AppendIndentation(IndentationLevel + 1, JsonTextBuilder);
+            JsonTextBuilder.Append(SerializeJsonString(PropertyName));
+            JsonTextBuilder.Append(': ');
+            JsonObject.Get(PropertyName, JsonToken);
+            AppendJsonToken(JsonToken, IndentationLevel + 1, JsonTextBuilder);
+            if PropertyIndex < PropertyNames.Count() then
+                JsonTextBuilder.Append(',');
+            JsonTextBuilder.Append(GetCRLF());
+        end;
+        AppendIndentation(IndentationLevel, JsonTextBuilder);
+        JsonTextBuilder.Append('}');
+    end;
+
+    local procedure AppendJsonArray(JsonArray: JsonArray; IndentationLevel: Integer; var JsonTextBuilder: TextBuilder)
+    var
+        JsonToken: JsonToken;
+        Index: Integer;
+    begin
+        if JsonArray.Count() = 0 then begin
+            JsonTextBuilder.Append('[]');
+            exit;
+        end;
+
+        JsonTextBuilder.Append('[');
+        JsonTextBuilder.Append(GetCRLF());
+        for Index := 0 to JsonArray.Count() - 1 do begin
+            AppendIndentation(IndentationLevel + 1, JsonTextBuilder);
+            JsonArray.Get(Index, JsonToken);
+            AppendJsonToken(JsonToken, IndentationLevel + 1, JsonTextBuilder);
+            if Index < JsonArray.Count() - 1 then
+                JsonTextBuilder.Append(',');
+            JsonTextBuilder.Append(GetCRLF());
+        end;
+        AppendIndentation(IndentationLevel, JsonTextBuilder);
+        JsonTextBuilder.Append(']');
+    end;
+
+    local procedure AppendIndentation(IndentationLevel: Integer; var JsonTextBuilder: TextBuilder)
+    begin
+        if IndentationLevel > 0 then
+            JsonTextBuilder.Append(PadStr('', IndentationLevel * 2, ' '));
+    end;
+
+    local procedure SerializeJsonString(Value: Text) SerializedValue: Text
+    var
+        JsonArray: JsonArray;
+    begin
+        JsonArray.Add(Value);
+        JsonArray.WriteTo(SerializedValue);
+        exit(CopyStr(SerializedValue, 2, StrLen(SerializedValue) - 2));
+    end;
+
+    local procedure GetCRLF() CRLF: Text[2]
+    begin
+        CRLF[1] := 13;
+        CRLF[2] := 10;
+    end;
+
+    // XML-JSON compatibility region: native AL has no XmlNodeConverter-equivalent mapping.
+    procedure XMLTextToJSONText(Xml: Text) Json: Text
+    var
+        JsonConvert: DotNet JsonConvert;
+        JsonFormatting: DotNet Formatting;
+        DotNetXmlDocument: DotNet XmlDocument;
+        DtdProcessing: DotNet DtdProcessing;
+        StringReader: DotNet StringReader;
+        XmlReaderSettings: DotNet XmlReaderSettings;
+        XmlTextReader: DotNet XmlTextReader;
+    begin
+        ClearUTF8BOMSymbols(Xml);
+        DotNetXmlDocument := DotNetXmlDocument.XmlDocument();
+        StringReader := StringReader.StringReader(Xml);
+        XmlReaderSettings := XmlReaderSettings.XmlReaderSettings();
+        XmlReaderSettings.DtdProcessing := DtdProcessing.Prohibit;
+        XmlTextReader := XmlTextReader.Create(StringReader, XmlReaderSettings);
+        DotNetXmlDocument.Load(XmlTextReader);
+        XmlTextReader.Close();
+        StringReader.Close();
+        Json := JsonConvert.SerializeXmlNode(DotNetXmlDocument.DocumentElement, JsonFormatting.Indented, true);
+    end;
+
+    procedure JSONTextToXMLText(Json: Text; DocumentElementName: Text) Xml: Text
+    var
+        JsonConvert: DotNet JsonConvert;
+        DotNetXmlDocument: DotNet XmlDocument;
+    begin
+        DotNetXmlDocument := JsonConvert.DeserializeXmlNode(Json, DocumentElementName);
+        Xml := DotNetXmlDocument.DocumentElement.OuterXml();
+    end;
+
+    local procedure ClearUTF8BOMSymbols(var Xml: Text)
+    var
+        ByteOrderMarkUtf8: Char;
+    begin
+        ByteOrderMarkUtf8 := 65279;
+        if Xml = '' then
+            exit;
+        if Xml[1] = ByteOrderMarkUtf8 then
+            Xml := DelStr(Xml, 1, 1);
+    end;
+    // End XML-JSON compatibility region.
 }

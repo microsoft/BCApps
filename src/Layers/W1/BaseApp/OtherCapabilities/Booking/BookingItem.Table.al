@@ -197,17 +197,18 @@ table 6707 "Booking Item"
 
     local procedure GetDate(FieldNo: Integer) ParsedDateTime: DateTime
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
+        JsonToken: JsonToken;
         DateBlobString: Text;
-        DateTimeJsonValue: Text;
     begin
         DateBlobString := GetBlobString(FieldNo);
+        if DateBlobString = '' then
+            exit;
         if NullJSONTxt <> DateBlobString then begin
-            JSONManagement.InitializeObject(DateBlobString);
-            JSONManagement.GetJSONObject(JsonObject);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'dateTime', DateTimeJsonValue);
-            Evaluate(ParsedDateTime, DateTimeJsonValue);
+            JsonObject.ReadFrom(DateBlobString);
+            if JsonObject.Get('dateTime', JsonToken) and JsonToken.IsValue() then
+                if not JsonToken.AsValue().IsNull() and not JsonToken.AsValue().IsUndefined() then
+                    if not Evaluate(ParsedDateTime, JsonToken.AsValue().AsText()) then;
         end;
     end;
 
@@ -225,4 +226,3 @@ table 6707 "Booking Item"
         Allowed := ("Service Name" <> '') and not IsEmpty();
     end;
 }
-

@@ -19,7 +19,10 @@ codeunit 5458 "Graph Collection Mgt - Contact"
     end;
 
     var
-        JSONManagement: Codeunit "JSON Management";
+        JsonArrayState: JsonArray;
+        JsonObjectState: JsonObject;
+        SelectedCollectionIndex: Integer;
+        HasSelectedCollectionIndex: Boolean;
         WebsiteType: Option Other,Home,Work,Blog,"Profile";
         PhoneType: Option Home,Business,Mobile,Other,Assistant,HomeFax,BusinessFax,OtherFax,Pager,Radio;
         AddressType: Option Unknown,Home,Business,Other;
@@ -38,316 +41,300 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetEmailAddress(Index: Integer; var Name: Text; var Address: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         Clear(Name);
         Clear(Address);
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Name', Name);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Address', Address);
+        GetJObjectFromCollectionByIndex(JObject, Index);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Name', Name);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Address', Address);
     end;
 
     procedure AddEmailAddress(Name: Text; Address: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         if Address = '' then
             exit;
 
-        JObject := JObject.JObject();
-        JSONManagement.AddJPropertyToJObject(JObject, 'Name', Name);
-        JSONManagement.AddJPropertyToJObject(JObject, 'Address', Address);
-        JSONManagement.AddJObjectToCollection(JObject);
+        JObject.Add('Name', Name);
+        JObject.Add('Address', Address);
+        AddJObjectToCollection(JObject);
     end;
 
     procedure UpdateEmailAddress(EmailAddressesString: Text; Index: Integer; Address: Text): Text
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        JSONManagement.InitializeCollection(EmailAddressesString);
-        if Index > JSONManagement.GetCollectionCount() then // cannot add where index would leave empty slots.
+        InitializeCollection(EmailAddressesString);
+        if Index > GetCollectionCount() then // cannot add where index would leave empty slots.
             exit(EmailAddressesString);
 
-        if JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index) then begin
-            JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'Name', '');
-            JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'Address', Address)
+        if GetJObjectFromCollectionByIndex(JObject, Index) then begin
+            ReplaceOrAddJPropertyInJObject(JObject, 'Name', '');
+            ReplaceOrAddJPropertyInJObject(JObject, 'Address', Address)
         end else
             AddEmailAddress('', Address);
 
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure GetWebsiteByIndex(Index: Integer; var Type: Option; var Address: Text; var DisplayName: Text; var Name: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetEnumPropertyValueFromJObjectByName(JObject, 'Type', Type);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Address', Address);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'DisplayName', DisplayName);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Name', Name);
+        GetJObjectFromCollectionByIndex(JObject, Index);
+        GetEnumPropertyValueFromJObjectByName(JObject, 'Type', Type);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Address', Address);
+        GetStringPropertyValueFromJObjectByName(JObject, 'DisplayName', DisplayName);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Name', Name);
     end;
 
     local procedure GetWebsiteByType(Type: Option; var Address: Text; var DisplayName: Text; var Name: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         WebsiteType := Type;
-        if not JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)) then
+        if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)) then
             exit;
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Address', Address);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'DisplayName', DisplayName);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Name', Name);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Address', Address);
+        GetStringPropertyValueFromJObjectByName(JObject, 'DisplayName', DisplayName);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Name', Name);
     end;
 
     procedure AddWebsite(Type: Option; Address: Text; DisplayName: Text; Name: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         if Address = '' then
             exit;
-        JObject := JObject.JObject();
         WebsiteType := Type;
-        JSONManagement.AddJPropertyToJObject(JObject, 'Type', Format(WebsiteType, 0, 0));
-        JSONManagement.AddJPropertyToJObject(JObject, 'Address', Address);
-        JSONManagement.AddJPropertyToJObject(JObject, 'DisplayName', DisplayName);
-        JSONManagement.AddJPropertyToJObject(JObject, 'Name', Name);
-        JSONManagement.AddJObjectToCollection(JObject);
+        JObject.Add('Type', Format(WebsiteType, 0, 0));
+        JObject.Add('Address', Address);
+        JObject.Add('DisplayName', DisplayName);
+        JObject.Add('Name', Name);
+        AddJObjectToCollection(JObject);
     end;
 
     procedure UpdateWebsite(Type: Option; Address: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         WebsiteType := Type;
-        if not JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)) then begin
+        if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)) then begin
             if Address = '' then
                 exit;
-            JObject := JObject.JObject();
-            JSONManagement.AddJObjectToCollection(JObject);
+            AddJObjectToCollection(JObject);
         end else
             JObject.Remove('Type');
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'Address', Address);
+        ReplaceOrAddJPropertyInJObject(JObject, 'Address', Address);
     end;
 
     procedure GetImAddress(Index: Integer; var ImAddress: Text)
     var
-        JObject: DotNet JObject;
+        JsonToken: JsonToken;
     begin
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetStringValueFromJObject(JObject, ImAddress);
+        GetTokenFromCollectionByIndex(JsonToken, Index);
+        GetStringValueFromJsonToken(JsonToken, ImAddress);
     end;
 
     procedure AddImAddress(ImAddress: Text)
-    var
-        JObject: DotNet JObject;
     begin
         if ImAddress = '' then
             exit;
 
-        JObject := JObject.JObject();
-        JSONManagement.AddJValueToJObject(JObject, ImAddress);
-        JSONManagement.AddJObjectToCollection(JObject);
+        AddValueToCollection(ImAddress);
     end;
 
     procedure GetPhoneByIndex(Index: Integer; var Type: Option; var Number: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetEnumPropertyValueFromJObjectByName(JObject, 'Type', Type);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Number', Number);
+        GetJObjectFromCollectionByIndex(JObject, Index);
+        GetEnumPropertyValueFromJObjectByName(JObject, 'Type', Type);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Number', Number);
     end;
 
     procedure GetPhoneByType(Type: Option; var Number: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         PhoneType := Type;
-        if not JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0)) then
+        if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0)) then
             exit;
 
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Number', Number);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Number', Number);
     end;
 
     procedure AddPhone(Type: Option; Number: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         PhoneType := Type;
         if Number = '' then
             exit;
 
-        JObject := JObject.JObject();
-        JSONManagement.AddJPropertyToJObject(JObject, 'Type', Format(PhoneType, 0, 0));
-        JSONManagement.AddJPropertyToJObject(JObject, 'Number', Number);
-        JSONManagement.AddJObjectToCollection(JObject);
+        JObject.Add('Type', Format(PhoneType, 0, 0));
+        JObject.Add('Number', Number);
+        AddJObjectToCollection(JObject);
     end;
 
     procedure GetPostalAddressByIndex(Index: Integer; var Type: Option; var PostOfficeBox: Text; var Street: Text; var City: Text; var State: Text; var CountryOrRegion: Text; var PostalCode: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetEnumPropertyValueFromJObjectByName(JObject, 'Type', Type);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'PostOfficeBox', PostOfficeBox);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Street', Street);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'City', City);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'State', State);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'CountryOrRegion', CountryOrRegion);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'PostalCode', PostalCode);
+        GetJObjectFromCollectionByIndex(JObject, Index);
+        GetEnumPropertyValueFromJObjectByName(JObject, 'Type', Type);
+        GetStringPropertyValueFromJObjectByName(JObject, 'PostOfficeBox', PostOfficeBox);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Street', Street);
+        GetStringPropertyValueFromJObjectByName(JObject, 'City', City);
+        GetStringPropertyValueFromJObjectByName(JObject, 'State', State);
+        GetStringPropertyValueFromJObjectByName(JObject, 'CountryOrRegion', CountryOrRegion);
+        GetStringPropertyValueFromJObjectByName(JObject, 'PostalCode', PostalCode);
     end;
 
     local procedure GetPostalAddressByType(Type: Option; var Address: Text[100]; var Address2: Text[50]; var City: Text[30]; var County: Text[30]; var CountryRegionCode: Code[10]; var PostCode: Code[20])
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         value: Text;
     begin
         AddressType := Type;
-        if not JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)) then
+        if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)) then
             exit;
 
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'Street', value);
+        GetStringPropertyValueFromJObjectByName(JObject, 'Street', value);
         SplitStreet(value, Address, Address2);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'City', value);
+        GetStringPropertyValueFromJObjectByName(JObject, 'City', value);
         City := CopyStr(value, 1, MaxStrLen(value));
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'State', value);
+        GetStringPropertyValueFromJObjectByName(JObject, 'State', value);
         County := CopyStr(value, 1, MaxStrLen(value));
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'CountryOrRegion', value);
+        GetStringPropertyValueFromJObjectByName(JObject, 'CountryOrRegion', value);
         CountryRegionCode := FindCountryRegionCode(value);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'PostalCode', value);
+        GetStringPropertyValueFromJObjectByName(JObject, 'PostalCode', value);
         PostCode := CopyStr(value, 1, MaxStrLen(PostCode));
     end;
 
     procedure AddPostalAddress(Type: Option; PostOfficeBox: Text; Street: Text; City: Text; State: Text; CountryOrRegion: Text; PostalCode: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        JObject := JObject.JObject();
         AddressType := Type;
-        JSONManagement.AddJPropertyToJObject(JObject, 'Type', Format(AddressType, 0, 0));
-        JSONManagement.AddJPropertyToJObject(JObject, 'PostOfficeBox', PostOfficeBox);
-        JSONManagement.AddJPropertyToJObject(JObject, 'Street', Street);
-        JSONManagement.AddJPropertyToJObject(JObject, 'City', City);
-        JSONManagement.AddJPropertyToJObject(JObject, 'State', State);
-        JSONManagement.AddJPropertyToJObject(JObject, 'CountryOrRegion', CountryOrRegion);
-        JSONManagement.AddJPropertyToJObject(JObject, 'PostalCode', PostalCode);
-        JSONManagement.AddJObjectToCollection(JObject);
+        JObject.Add('Type', Format(AddressType, 0, 0));
+        JObject.Add('PostOfficeBox', PostOfficeBox);
+        JObject.Add('Street', Street);
+        JObject.Add('City', City);
+        JObject.Add('State', State);
+        JObject.Add('CountryOrRegion', CountryOrRegion);
+        JObject.Add('PostalCode', PostalCode);
+        AddJObjectToCollection(JObject);
     end;
 
     procedure GetChildren(Index: Integer; var Child: Text)
     var
-        JObject: DotNet JObject;
+        JsonToken: JsonToken;
     begin
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetStringValueFromJObject(JObject, Child);
+        GetTokenFromCollectionByIndex(JsonToken, Index);
+        GetStringValueFromJsonToken(JsonToken, Child);
     end;
 
     procedure AddChildren(Child: Text)
-    var
-        JObject: DotNet JObject;
     begin
         if Child = '' then
             exit;
 
-        JObject := JObject.JObject();
-        JSONManagement.AddJValueToJObject(JObject, Child);
-        JSONManagement.AddJObjectToCollection(JObject);
+        AddValueToCollection(Child);
     end;
 
     procedure GetFlag(var CompletedDateTime: Text; var CompletedTimeZone: Text; var DueDateTime: Text; var DueTimeZone: Text; var StartDateTime: Text; var StartTimeZone: Text; var FlagStatus: Option)
     var
-        JsonObject: DotNet JObject;
-        JObjectVariant: Variant;
+        CurrentJsonObject: JsonObject;
+        NestedJsonObject: JsonObject;
+        JsonToken: JsonToken;
     begin
-        JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetPropertyValueFromJObjectByName(JsonObject, 'CompletedDateTime', JObjectVariant) then begin
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JObjectVariant, 'CompletedDateTime', CompletedDateTime);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JObjectVariant, 'CompletedTimeZone', CompletedTimeZone);
+        GetJSONObject(CurrentJsonObject);
+        if CurrentJsonObject.Get('CompletedDateTime', JsonToken) and JsonToken.IsObject() then begin
+            NestedJsonObject := JsonToken.AsObject();
+            GetStringPropertyValueFromJObjectByName(NestedJsonObject, 'CompletedDateTime', CompletedDateTime);
+            GetStringPropertyValueFromJObjectByName(NestedJsonObject, 'CompletedTimeZone', CompletedTimeZone);
         end;
-        if JSONManagement.GetPropertyValueFromJObjectByName(JsonObject, 'DueDateTime', JObjectVariant) then begin
-            ;
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JObjectVariant, 'DateTime', DueDateTime);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JObjectVariant, 'TimeZone', DueTimeZone);
+        if CurrentJsonObject.Get('DueDateTime', JsonToken) and JsonToken.IsObject() then begin
+            NestedJsonObject := JsonToken.AsObject();
+            GetStringPropertyValueFromJObjectByName(NestedJsonObject, 'DateTime', DueDateTime);
+            GetStringPropertyValueFromJObjectByName(NestedJsonObject, 'TimeZone', DueTimeZone);
         end;
-        if JSONManagement.GetPropertyValueFromJObjectByName(JsonObject, 'StartDateTime', JObjectVariant) then begin
-            ;
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JObjectVariant, 'DateTime', StartDateTime);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JObjectVariant, 'TimeZone', StartTimeZone);
+        if CurrentJsonObject.Get('StartDateTime', JsonToken) and JsonToken.IsObject() then begin
+            NestedJsonObject := JsonToken.AsObject();
+            GetStringPropertyValueFromJObjectByName(NestedJsonObject, 'DateTime', StartDateTime);
+            GetStringPropertyValueFromJObjectByName(NestedJsonObject, 'TimeZone', StartTimeZone);
         end;
 
-        JSONManagement.GetEnumPropertyValueFromJObjectByName(JsonObject, 'FlagStatus', FlagStatusOption);
+        GetEnumPropertyValueFromJObjectByName(CurrentJsonObject, 'FlagStatus', FlagStatusOption);
         FlagStatus := FlagStatusOption;
     end;
 
     procedure AddFlag(CompletedDateTime: Text; CompletedTimeZone: Text; DueDateTime: Text; DueTimeZone: Text; StartDateTime: Text; StartTimeZone: Text; FlagStatus: Option)
     var
-        JObject: DotNet JObject;
-        JsonObject: DotNet JObject;
+        JObject: JsonObject;
+        CurrentJsonObject: JsonObject;
     begin
-        JSONManagement.GetJSONObject(JsonObject);
+        GetJSONObject(CurrentJsonObject);
 
-        JObject := JObject.JObject();
-        JSONManagement.AddJPropertyToJObject(JObject, 'DateTime', CompletedDateTime);
-        JSONManagement.AddJPropertyToJObject(JObject, 'TimeZone', CompletedTimeZone);
-        JSONManagement.AddJObjectToJObject(JsonObject, 'CompletedDateTime', JObject);
-        JObject := JObject.JObject();
+        JObject.Add('DateTime', CompletedDateTime);
+        JObject.Add('TimeZone', CompletedTimeZone);
+        CurrentJsonObject.Add('CompletedDateTime', JObject);
+        Clear(JObject);
 
-        JSONManagement.AddJPropertyToJObject(JObject, 'DateTime', DueDateTime);
-        JSONManagement.AddJPropertyToJObject(JObject, 'TimeZone', DueTimeZone);
-        JSONManagement.AddJObjectToJObject(JsonObject, 'DueDateTime', JObject);
-        JObject := JObject.JObject();
-        JSONManagement.AddJPropertyToJObject(JObject, 'DateTime', StartDateTime);
-        JSONManagement.AddJPropertyToJObject(JObject, 'TimeZone', StartTimeZone);
-        JSONManagement.AddJObjectToJObject(JsonObject, 'StartDateTime', JObject);
+        JObject.Add('DateTime', DueDateTime);
+        JObject.Add('TimeZone', DueTimeZone);
+        CurrentJsonObject.Add('DueDateTime', JObject);
+        Clear(JObject);
+        JObject.Add('DateTime', StartDateTime);
+        JObject.Add('TimeZone', StartTimeZone);
+        CurrentJsonObject.Add('StartDateTime', JObject);
         FlagStatusOption := FlagStatus;
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'FlagStatus', Format(FlagStatusOption, 0, 0));
+        CurrentJsonObject.Add('FlagStatus', Format(FlagStatusOption, 0, 0));
     end;
 
     procedure GetCategory(Index: Integer; var Category: Text)
     var
-        JObject: DotNet JObject;
+        JsonToken: JsonToken;
     begin
-        if Index >= JSONManagement.GetCollectionCount() then
+        if Index >= GetCollectionCount() then
             exit;
 
-        JSONManagement.GetJObjectFromCollectionByIndex(JObject, Index);
-        JSONManagement.GetStringValueFromJObject(JObject, Category);
+        GetTokenFromCollectionByIndex(JsonToken, Index);
+        GetStringValueFromJsonToken(JsonToken, Category);
     end;
 
     procedure AddCategory(Category: Text)
-    var
-        JObject: DotNet JObject;
     begin
-        JObject := JObject.JObject();
-        JSONManagement.AddJValueToJObject(JObject, Category);
-        JSONManagement.AddJObjectToCollection(JObject);
+        AddValueToCollection(Category);
     end;
 
     local procedure HasPostalAddress(Type: Option): Boolean
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         AddressType := Type;
-        exit(JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)))
+        exit(GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)))
     end;
 
     procedure HasHomeAddressOrPhone(PostalAddressesString: Text; PhonesString: Text; WebsitesString: Text): Boolean
@@ -355,11 +342,11 @@ codeunit 5458 "Graph Collection Mgt - Contact"
         HasAddress: Boolean;
         HasPhones: Boolean;
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         HasAddress := HasPostalAddress(AddressType::Home);
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         HasPhones := HasPhone(PhoneType::Home) or HasPhone(PhoneType::HomeFax);
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         exit(HasAddress or HasPhones or HasWebsite(WebsiteType::Home));
     end;
 
@@ -368,17 +355,17 @@ codeunit 5458 "Graph Collection Mgt - Contact"
         HasAddress: Boolean;
         HasPhones: Boolean;
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         HasAddress := HasPostalAddress(AddressType::Business);
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         HasPhones := HasPhone(PhoneType::Business) or HasPhone(PhoneType::BusinessFax);
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         exit(HasAddress or HasPhones or HasWebsite(WebsiteType::Work));
     end;
 
     procedure HasBusinessAddress(PostalAddressesString: Text): Boolean
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         exit(HasPostalAddress(AddressType::Business));
     end;
 
@@ -387,237 +374,235 @@ codeunit 5458 "Graph Collection Mgt - Contact"
         HasAddress: Boolean;
         HasPhones: Boolean;
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         HasAddress := HasPostalAddress(AddressType::Other);
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         HasPhones := HasPhone(PhoneType::Other) or HasPhone(PhoneType::OtherFax);
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         exit(HasAddress or HasPhones or HasWebsite(WebsiteType::Other));
     end;
 
     local procedure UpdatePostalAddress(Type: Option; Address: Text[100]; Address2: Text[50]; City: Text[30]; County: Text[30]; CountryRegionCode: Code[10]; PostCode: Code[20])
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         AddressType := Type;
         if (Address = '') and (Address2 = '') and (City = '') and (County = '') and (PostCode = '') then begin
-            if JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)) then
-                JObject.Remove();
+            if GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)) then
+                RemoveSelectedJObjectFromCollection();
             exit;
         end;
 
-        if not JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)) then begin
-            JObject := JObject.JObject();
-            JSONManagement.AddJPropertyToJObject(JObject, 'Type', Format(AddressType, 0, 0));
-            JSONManagement.AddJObjectToCollection(JObject);
-            JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0));
+        if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0)) then begin
+            JObject.Add('Type', Format(AddressType, 0, 0));
+            AddJObjectToCollection(JObject);
+            GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(AddressType, 0, 0));
         end;
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'Street', ConcatenateStreet(Address, Address2));
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'City', City);
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'State', County);
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'CountryOrRegion', CountryRegionCode);
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'PostalCode', PostCode);
+        ReplaceOrAddJPropertyInJObject(JObject, 'Street', ConcatenateStreet(Address, Address2));
+        ReplaceOrAddJPropertyInJObject(JObject, 'City', City);
+        ReplaceOrAddJPropertyInJObject(JObject, 'State', County);
+        ReplaceOrAddJPropertyInJObject(JObject, 'CountryOrRegion', CountryRegionCode);
+        ReplaceOrAddJPropertyInJObject(JObject, 'PostalCode', PostCode);
     end;
 
     procedure UpdateHomeAddress(PostalAddressesString: Text; Address: Text[100]; Address2: Text[50]; City: Text[30]; County: Text[30]; CountryRegionCode: Code[10]; PostCode: Code[20]): Text
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         UpdatePostalAddress(AddressType::Home, Address, Address2, City, County, CountryRegionCode, PostCode);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateBusinessAddress(PostalAddressesString: Text; Address: Text[100]; Address2: Text[50]; City: Text[30]; County: Text[30]; CountryRegionCode: Code[10]; PostCode: Code[20]): Text
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         UpdatePostalAddress(AddressType::Business, Address, Address2, City, County, CountryRegionCode, PostCode);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateOtherAddress(PostalAddressesString: Text; Address: Text[100]; Address2: Text[50]; City: Text[30]; County: Text[30]; CountryRegionCode: Code[10]; PostCode: Code[20]): Text
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         UpdatePostalAddress(AddressType::Other, Address, Address2, City, County, CountryRegionCode, PostCode);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure GetHomeAddress(PostalAddressesString: Text; var Address: Text[100]; var Address2: Text[50]; var City: Text[30]; var County: Text[30]; var CountryRegionCode: Code[10]; var PostCode: Code[20])
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         GetPostalAddressByType(AddressType::Home, Address, Address2, City, County, CountryRegionCode, PostCode);
     end;
 
     procedure GetBusinessAddress(PostalAddressesString: Text; var Address: Text[100]; var Address2: Text[50]; var City: Text[30]; var County: Text[30]; var CountryRegionCode: Code[10]; var PostCode: Code[20])
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         GetPostalAddressByType(AddressType::Business, Address, Address2, City, County, CountryRegionCode, PostCode);
     end;
 
     procedure GetOtherAddress(PostalAddressesString: Text; var Address: Text[100]; var Address2: Text[50]; var City: Text[30]; var County: Text[30]; var CountryRegionCode: Code[10]; var PostCode: Code[20])
     begin
-        JSONManagement.InitializeCollection(PostalAddressesString);
+        InitializeCollection(PostalAddressesString);
         GetPostalAddressByType(AddressType::Other, Address, Address2, City, County, CountryRegionCode, PostCode);
     end;
 
     local procedure HasPhone(Type: Option): Boolean
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         PhoneType := Type;
-        exit(JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0)));
+        exit(GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0)));
     end;
 
     local procedure UpdatePhone(Type: Option; Number: Text)
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         PhoneType := Type;
-        if not JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0)) then begin
+        if not GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0)) then begin
             if Number = '' then
                 exit;
-            JObject := JObject.JObject();
-            JSONManagement.AddJPropertyToJObject(JObject, 'Type', Format(PhoneType, 0, 0));
-            JSONManagement.AddJObjectToCollection(JObject);
-            JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0))
+            JObject.Add('Type', Format(PhoneType, 0, 0));
+            AddJObjectToCollection(JObject);
+            GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(PhoneType, 0, 0))
         end;
-        JSONManagement.ReplaceOrAddJPropertyInJObject(JObject, 'Number', Number);
+        ReplaceOrAddJPropertyInJObject(JObject, 'Number', Number);
     end;
 
     procedure UpdateHomePhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Home, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateBusinessPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Business, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateMobilePhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Mobile, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateOtherPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Other, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateAssistantPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Assistant, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateHomeFaxPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::HomeFax, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateBusinessFaxPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::BusinessFax, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateOtherFaxPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::OtherFax, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdatePagerPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Pager, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateRadioPhone(PhonesString: Text; Number: Text): Text
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         UpdatePhone(PhoneType::Radio, Number);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure GetHomePhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Home, Number);
     end;
 
     procedure GetBusinessPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Business, Number);
     end;
 
     procedure GetMobilePhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Mobile, Number);
     end;
 
     procedure GetOtherPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Other, Number);
     end;
 
     procedure GetAssistantPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Assistant, Number);
     end;
 
     procedure GetHomeFaxPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::HomeFax, Number);
     end;
 
     procedure GetBusinessFaxPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::BusinessFax, Number);
     end;
 
     procedure GetOtherFaxPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::OtherFax, Number);
     end;
 
     procedure GetPagerPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Pager, Number);
     end;
 
     procedure GetRadioPhone(PhonesString: Text; var Number: Text)
     begin
-        JSONManagement.InitializeCollection(PhonesString);
+        InitializeCollection(PhonesString);
         GetPhoneByType(PhoneType::Radio, Number);
     end;
 
     local procedure HasWebsite(Type: Option): Boolean
     var
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         WebsiteType := Type;
-        exit(JSONManagement.GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)));
+        exit(GetJObjectFromCollectionByPropertyValue(JObject, 'Type', Format(WebsiteType, 0, 0)));
     end;
 
     procedure GetWorkWebsite(WebsitesString: Text; var Address: Text[80])
@@ -625,7 +610,7 @@ codeunit 5458 "Graph Collection Mgt - Contact"
         Name: Text;
         DisplayName: Text;
     begin
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         GetWebsiteByType(WebsiteType::Work, Address, Name, DisplayName);
     end;
 
@@ -634,22 +619,22 @@ codeunit 5458 "Graph Collection Mgt - Contact"
         Name: Text;
         DisplayName: Text;
     begin
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         GetWebsiteByType(WebsiteType::Home, Address, Name, DisplayName);
     end;
 
     procedure UpdateWorkWebsite(WebsitesString: Text; Address: Text[80]): Text
     begin
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         UpdateWebsite(WebsiteType::Work, Address);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure UpdateHomeWebsite(WebsitesString: Text; Address: Text[80]): Text
     begin
-        JSONManagement.InitializeCollection(WebsitesString);
+        InitializeCollection(WebsitesString);
         UpdateWebsite(WebsiteType::Home, Address);
-        exit(JSONManagement.WriteCollectionToString());
+        exit(WriteCollectionToString());
     end;
 
     procedure HasBusinessType(BusinessTypeString: Text): Boolean
@@ -660,28 +645,28 @@ codeunit 5458 "Graph Collection Mgt - Contact"
     [TryFunction]
     procedure TryGetBusinessTypeValue(BusinessTypeString: Text; var Value: Text)
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(BusinessTypeString);
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId);
+        InitializeObject(BusinessTypeString);
+        GetJSONObject(JsonObject);
+        GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId);
         if not (PropertyId = BusinessTypePropertyIdTxt) then
             Error(PropertyIdErr, BusinessTypePropertyIdTxt, PropertyId);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'Value', Value);
+        GetStringPropertyValueFromJObjectByName(JsonObject, 'Value', Value);
         Evaluate(BusinessType, Value, 0);
     end;
 
     procedure GetBusinessType(BusinessTypeString: Text; var Type: Option)
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(BusinessTypeString);
-        JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        InitializeObject(BusinessTypeString);
+        GetJSONObject(JsonObject);
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = BusinessTypePropertyIdTxt then begin
-                JSONManagement.GetEnumPropertyValueFromJObjectByName(JsonObject, 'Value', BusinessType);
+                GetEnumPropertyValueFromJObjectByName(JsonObject, 'Value', BusinessType);
                 Type := BusinessType;
                 exit;
             end;
@@ -691,39 +676,39 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure AddBusinessType(Type: Option): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
         BusinessType := Type;
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', BusinessTypePropertyIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', Format(BusinessType, 0, 0));
-        exit(JSONManagement.WriteObjectToString());
+        JsonObject.Add('PropertyId', BusinessTypePropertyIdTxt);
+        JsonObject.Add('Value', Format(BusinessType, 0, 0));
+        exit(WriteObjectToString());
     end;
 
     local procedure HasExtendedProperty(ExtendedPropertyString: Text; ExpectedPropertyId: Text): Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(ExtendedPropertyString);
-        JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        InitializeObject(ExtendedPropertyString);
+        GetJSONObject(JsonObject);
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             exit(ExpectedPropertyId = PropertyId);
     end;
 
     local procedure GetExtendedPropertyBoolValue(ExtendedPropertyString: Text; ExpectedPropertyId: Text; var Value: Text)
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
         BooleanValue: Boolean;
     begin
-        JSONManagement.InitializeObject(ExtendedPropertyString);
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId);
+        InitializeObject(ExtendedPropertyString);
+        GetJSONObject(JsonObject);
+        GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId);
         if not (PropertyId = ExpectedPropertyId) then
             Error(PropertyIdErr, ExpectedPropertyId, PropertyId);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'Value', Value);
+        GetStringPropertyValueFromJObjectByName(JsonObject, 'Value', Value);
         Evaluate(BooleanValue, Value, 2);
     end;
 
@@ -734,15 +719,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetIsCustomer(IsCustomerString: Text) IsCustomer: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsCustomerString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsCustomerString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsCustomerPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsCustomer);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsCustomer);
                 exit(IsCustomer);
             end;
 
@@ -757,15 +742,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure AddIsCustomer(IsCustomer: Boolean): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
 
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', IsCustomerPropertyIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', Format(IsCustomer, 0, 2));
+        JsonObject.Add('PropertyId', IsCustomerPropertyIdTxt);
+        JsonObject.Add('Value', Format(IsCustomer, 0, 2));
 
-        exit(JSONManagement.WriteObjectToString());
+        exit(WriteObjectToString());
     end;
 
     procedure HasIsVendor(IsVendorString: Text): Boolean
@@ -775,15 +760,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetIsVendor(IsVendorString: Text) IsVendor: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsVendorString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsVendorString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsVendorPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsVendor);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsVendor);
                 exit(IsVendor);
             end;
         exit(false);
@@ -797,15 +782,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure AddIsVendor(IsVendor: Boolean): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
 
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', IsVendorPropertyIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', Format(IsVendor, 0, 2));
+        JsonObject.Add('PropertyId', IsVendorPropertyIdTxt);
+        JsonObject.Add('Value', Format(IsVendor, 0, 2));
 
-        exit(JSONManagement.WriteObjectToString());
+        exit(WriteObjectToString());
     end;
 
     procedure HasIsBank(IsBankString: Text): Boolean
@@ -815,15 +800,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetIsBank(IsBankString: Text) IsBank: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsBankString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsBankString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsBankPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsBank);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsBank);
                 exit(IsBank);
             end;
         exit(false);
@@ -837,28 +822,28 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure AddIsBank(IsBank: Boolean): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
 
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', IsBankPropertyIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', Format(IsBank, 0, 2));
+        JsonObject.Add('PropertyId', IsBankPropertyIdTxt);
+        JsonObject.Add('Value', Format(IsBank, 0, 2));
 
-        exit(JSONManagement.WriteObjectToString());
+        exit(WriteObjectToString());
     end;
 
     procedure GetIsNavCreated(IsNavCreatedString: Text) IsNavCreated: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsNavCreatedString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsNavCreatedString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsNavCreatedPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsNavCreated);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsNavCreated);
                 exit(IsNavCreated);
             end;
         exit(false);
@@ -866,41 +851,41 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure AddIsNavCreated(IsNavCreated: Boolean): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
 
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', IsNavCreatedPropertyIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', Format(IsNavCreated, 0, 2));
+        JsonObject.Add('PropertyId', IsNavCreatedPropertyIdTxt);
+        JsonObject.Add('Value', Format(IsNavCreated, 0, 2));
 
-        exit(JSONManagement.WriteObjectToString());
+        exit(WriteObjectToString());
     end;
 
     procedure GetNavIntegrationId(NavIntegrationIdString: Text) NavIntegrationId: Guid
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(NavIntegrationIdString);
-        JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        InitializeObject(NavIntegrationIdString);
+        GetJSONObject(JsonObject);
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = NavIntegrationIdTxt then
-                JSONManagement.GetGuidPropertyValueFromJObjectByName(JsonObject, 'Value', NavIntegrationId);
+                GetGuidPropertyValueFromJObjectByName(JsonObject, 'Value', NavIntegrationId);
 
         exit(NavIntegrationId);
     end;
 
     procedure AddNavIntegrationId(IntegrationId: Guid): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', NavIntegrationIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', IntegrationId);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
+        JsonObject.Add('PropertyId', NavIntegrationIdTxt);
+        JsonObject.Add('Value', Format(IntegrationId, 0, 9));
 
-        exit(JSONManagement.WriteObjectToString());
+        exit(WriteObjectToString());
     end;
 
     procedure HasIsContact(IsContactString: Text): Boolean
@@ -910,15 +895,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetIsContact(IsContactString: Text) IsContact: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsContactString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsContactString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsContactPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsContact);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsContact);
                 exit(IsContact);
             end;
 
@@ -933,15 +918,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure AddIsContact(IsContact: Boolean): Text
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeEmptyObject();
+        GetJSONObject(JsonObject);
 
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'PropertyId', IsContactPropertyIdTxt);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Value', Format(IsContact, 0, 2));
+        JsonObject.Add('PropertyId', IsContactPropertyIdTxt);
+        JsonObject.Add('Value', Format(IsContact, 0, 2));
 
-        exit(JSONManagement.WriteObjectToString());
+        exit(WriteObjectToString());
     end;
 
     procedure HasIsLead(IsLeadString: Text): Boolean
@@ -951,15 +936,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetIsLead(IsLeadString: Text) IsLead: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsLeadString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsLeadString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsLeadPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsLead);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsLead);
                 exit(IsLead);
             end;
 
@@ -979,15 +964,15 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure GetIsPartner(IsPartnerString: Text) IsPartner: Boolean
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         PropertyId: Text;
     begin
-        JSONManagement.InitializeObject(IsPartnerString);
-        JSONManagement.GetJSONObject(JsonObject);
+        InitializeObject(IsPartnerString);
+        GetJSONObject(JsonObject);
 
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
+        if GetStringPropertyValueFromJObjectByName(JsonObject, 'PropertyId', PropertyId) then
             if PropertyId = IsPartnerPropertyIdTxt then begin
-                JSONManagement.GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsPartner);
+                GetBoolPropertyValueFromJObjectByName(JsonObject, 'Value', IsPartner);
                 exit(IsPartner);
             end;
 
@@ -1122,32 +1107,198 @@ codeunit 5458 "Graph Collection Mgt - Contact"
 
     procedure InitializeCollection(JSONString: Text)
     begin
-        JSONManagement.InitializeCollection(JSONString);
+        ResetSelectedCollectionIndex();
+        Clear(JsonArrayState);
+        if JSONString <> '' then
+            JsonArrayState.ReadFrom(JSONString);
     end;
 
     procedure InitializeObject(JSONString: Text)
     begin
-        JSONManagement.InitializeObject(JSONString);
+        ResetSelectedCollectionIndex();
+        Clear(JsonObjectState);
+        if JSONString <> '' then
+            JsonObjectState.ReadFrom(JSONString);
     end;
 
     procedure IsBlankOrEmptyJsonObject(JSONString: Text): Boolean
-    var
-        JSONManagement2: Codeunit "JSON Management";
-        EmptyJsonObjectString: Text;
     begin
-        JSONManagement2.InitializeEmptyObject();
-        EmptyJsonObjectString := JSONManagement2.WriteObjectToString();
-        exit((JSONString = '') or (JSONString = EmptyJsonObjectString));
+        exit((JSONString = '') or (JSONString = '{}'));
     end;
 
     procedure WriteCollectionToString(): Text
+    var
+        JsonText: Text;
     begin
-        exit(JSONManagement.WriteCollectionToString());
+        JsonArrayState.WriteTo(JsonText);
+        exit(JsonText);
     end;
 
     procedure WriteObjectToString(): Text
+    var
+        JsonText: Text;
     begin
-        exit(JSONManagement.WriteObjectToString());
+        JsonObjectState.WriteTo(JsonText);
+        exit(JsonText);
+    end;
+
+    local procedure InitializeEmptyObject()
+    begin
+        ResetSelectedCollectionIndex();
+        Clear(JsonObjectState);
+    end;
+
+    local procedure GetCollectionCount(): Integer
+    begin
+        exit(JsonArrayState.Count());
+    end;
+
+    local procedure GetJSONObject(var JObject: JsonObject)
+    begin
+        JObject := JsonObjectState;
+    end;
+
+    local procedure GetJObjectFromCollectionByIndex(var JObject: JsonObject; Index: Integer): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        ResetSelectedCollectionIndex();
+        if not GetTokenFromCollectionByIndex(JsonToken, Index) then
+            exit(false);
+        if not JsonToken.IsObject() then
+            exit(false);
+        JObject := JsonToken.AsObject();
+        SelectedCollectionIndex := Index;
+        HasSelectedCollectionIndex := true;
+        exit(true);
+    end;
+
+    local procedure GetTokenFromCollectionByIndex(var JsonToken: JsonToken; Index: Integer): Boolean
+    begin
+        if (Index < 0) or (Index >= JsonArrayState.Count()) then
+            exit(false);
+        exit(JsonArrayState.Get(Index, JsonToken));
+    end;
+
+    local procedure GetJObjectFromCollectionByPropertyValue(var JObject: JsonObject; PropertyName: Text; Value: Text): Boolean
+    var
+        CandidateToken: JsonToken;
+        CandidateObject: JsonObject;
+        CandidateValue: Text;
+        Index: Integer;
+    begin
+        ResetSelectedCollectionIndex();
+        Clear(JObject);
+        for Index := 0 to JsonArrayState.Count() - 1 do begin
+            JsonArrayState.Get(Index, CandidateToken);
+            if CandidateToken.IsObject() then begin
+                CandidateObject := CandidateToken.AsObject();
+                if GetStringPropertyValueFromJObjectByName(CandidateObject, PropertyName, CandidateValue) then
+                    if CandidateValue = Value then begin
+                        JObject := CandidateObject;
+                        SelectedCollectionIndex := Index;
+                        HasSelectedCollectionIndex := true;
+                        exit(true);
+                    end;
+            end;
+        end;
+    end;
+
+    local procedure RemoveSelectedJObjectFromCollection()
+    begin
+        if not HasSelectedCollectionIndex then
+            exit;
+        if SelectedCollectionIndex < 0 then begin
+            ResetSelectedCollectionIndex();
+            exit;
+        end;
+        if SelectedCollectionIndex >= JsonArrayState.Count() then begin
+            ResetSelectedCollectionIndex();
+            exit;
+        end;
+        JsonArrayState.RemoveAt(SelectedCollectionIndex);
+        ResetSelectedCollectionIndex();
+    end;
+
+    local procedure GetStringPropertyValueFromJObjectByName(JObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JObject.Get(PropertyName, JsonToken) then
+            exit(false);
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit(true);
+            Value := JsonToken.AsValue().AsText();
+        end else
+            JsonToken.WriteTo(Value);
+        exit(true);
+    end;
+
+    local procedure GetStringValueFromJsonToken(JsonToken: JsonToken; var Value: Text)
+    begin
+        Clear(Value);
+        if not JsonToken.IsValue() then
+            exit;
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit;
+        Value := JsonToken.AsValue().AsText();
+    end;
+
+    local procedure ResetSelectedCollectionIndex()
+    begin
+        SelectedCollectionIndex := -1;
+        HasSelectedCollectionIndex := false;
+    end;
+
+    local procedure GetEnumPropertyValueFromJObjectByName(JObject: JsonObject; PropertyName: Text; var Value: Option)
+    var
+        TextValue: Text;
+    begin
+        GetStringPropertyValueFromJObjectByName(JObject, PropertyName, TextValue);
+        Evaluate(Value, TextValue, 0);
+    end;
+
+    local procedure GetBoolPropertyValueFromJObjectByName(JObject: JsonObject; PropertyName: Text; var Value: Boolean): Boolean
+    var
+        TextValue: Text;
+    begin
+        if not GetStringPropertyValueFromJObjectByName(JObject, PropertyName, TextValue) then
+            exit(false);
+        Evaluate(Value, TextValue, 2);
+        exit(true);
+    end;
+
+    local procedure GetGuidPropertyValueFromJObjectByName(JObject: JsonObject; PropertyName: Text; var Value: Guid): Boolean
+    var
+        TextValue: Text;
+    begin
+        if not GetStringPropertyValueFromJObjectByName(JObject, PropertyName, TextValue) then
+            exit(false);
+        exit(Evaluate(Value, TextValue));
+    end;
+
+    local procedure AddJObjectToCollection(JObject: JsonObject)
+    begin
+        JsonArrayState.Add(JObject.AsToken().Clone());
+    end;
+
+    local procedure AddValueToCollection(Value: Text)
+    begin
+        JsonArrayState.Add(Value);
+    end;
+
+    local procedure ReplaceOrAddJPropertyInJObject(var JObject: JsonObject; PropertyName: Text; Value: Text): Boolean
+    var
+        OldValue: Text;
+    begin
+        if JObject.Contains(PropertyName) then begin
+            GetStringPropertyValueFromJObjectByName(JObject, PropertyName, OldValue);
+            JObject.Replace(PropertyName, Value);
+            exit(OldValue <> Value);
+        end;
+        JObject.Add(PropertyName, Value);
+        exit(true);
     end;
 }
-

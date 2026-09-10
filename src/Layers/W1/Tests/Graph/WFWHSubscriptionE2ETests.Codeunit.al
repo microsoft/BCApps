@@ -1422,19 +1422,14 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 
     local procedure GetJSONFromWorkflowWebhookSubscription(var WorkflowWebhookSubscriptionRec: Record "Workflow Webhook Subscription") WorkflowWebhookSubscriptionJSON: Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.AddJPropertyToJObject(
-          JsonObject, 'clientId', LowerCase(Format(WorkflowWebhookSubscriptionRec."Client Id", 0, 4)));
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'clientType', WorkflowWebhookSubscriptionRec."Client Type");
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'eventCode', WorkflowWebhookSubscriptionRec."Event Code");
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'conditions', WorkflowWebhookSubscriptionRec.GetConditions());
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'notificationUrl', WorkflowWebhookSubscriptionRec.GetNotificationUrl());
-
-        WorkflowWebhookSubscriptionJSON := JSONManagement.WriteObjectToString();
+        JsonObject.Add('clientId', LowerCase(Format(WorkflowWebhookSubscriptionRec."Client Id", 0, 4)));
+        JsonObject.Add('clientType', WorkflowWebhookSubscriptionRec."Client Type");
+        JsonObject.Add('eventCode', WorkflowWebhookSubscriptionRec."Event Code");
+        JsonObject.Add('conditions', WorkflowWebhookSubscriptionRec.GetConditions());
+        JsonObject.Add('notificationUrl', WorkflowWebhookSubscriptionRec.GetNotificationUrl());
+        JsonObject.WriteTo(WorkflowWebhookSubscriptionJSON);
     end;
 
     local procedure MockDeleteFromWebService(var WorkflowWebhookSubscriptionRec: Record "Workflow Webhook Subscription"): Text
@@ -1454,4 +1449,3 @@ codeunit 135528 "WFWH Subscription E2E Tests"
         exit(String);
     end;
 }
-

@@ -77,7 +77,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJob(Response: Text; Job: Record Job)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
         BoolText: Text;
     begin
         JsonMgt.InitializeObject(Response);
@@ -132,7 +132,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJobTask(Response: Text; JobTask: Record "Job Task")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.jobTaskNo == ''' + Format(JobTask."Job Task No.") + ''')]'), 'Job task not found.');
@@ -184,7 +184,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJobPlanningLine(Response: Text; JobPlanningLine: Record "Job Planning Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(JobPlanningLine."No.") + ''')]'), 'Job planning line not found.');
@@ -252,7 +252,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyJobLedgerEntry(Response: Text; JobLedgerEntry: Record "Job Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(JobLedgerEntry."No.") + ''')]'), 'Job ledger entry not found.');
@@ -306,7 +306,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyOutstandingPOLine(Response: Text; PurchaseLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
         OutstandingAmountLCY: Decimal;
     begin
         JsonMgt.InitializeObject(Response);
@@ -423,7 +423,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure VerifyRcvdNotInvdPOLine(Response: Text; PurchaseLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + Format(PurchaseLine."No.") + ''')]'), 'Received not invoiced PO line not found.');
@@ -466,7 +466,7 @@ codeunit 139879 "E2E PowerBI Project Test"
     begin
         if Value = '' then
             exit(0);
-        Evaluate(Output, Value);
+        Evaluate(Output, Value, 9);
         exit(Output);
     end;
 

@@ -104,7 +104,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyVendorLedgerEntry(Response: Text; PurchInvHeader: Record "Purch. Inv. Header"; VendorLedgerEntry: Record "Vendor Ledger Entry"; DetailedVendLedgerEntry: Record "Detailed Vendor Ledg. Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.dvleEntryNo == ' + Format(Format(DetailedVendLedgerEntry."Entry No.") + ')]')), 'Vendor ledger entry not found.');
@@ -193,7 +193,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyCustomerLedgerEntry(Response: Text; SalesInvHeader: Record "Sales Invoice Header"; CustomerLedgerEntry: Record "Cust. Ledger Entry"; DetailedCustLedgerEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.dcleEntryNo == ' + Format(Format(DetailedCustLedgerEntry."Entry No.") + ')]')), 'Customer ledger entry not found.');
@@ -253,7 +253,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLAccount(Response: Text; GLAccount: Record "G/L Account")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.accountNo == ''' + Format(GLAccount."No.") + ''')]'), 'G/L account not found.');
@@ -291,7 +291,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLAccountCategory(Response: Text; GLAccountCategory: Record "G/L Account Category")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLAccountCategory."Entry No.") + ')]'), 'G/L account category not found.');
@@ -327,7 +327,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLBudgetName(Response: Text; GLBudgetName: Record "G/L Budget Name")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.budgetName == ''' + Format(GLBudgetName.Name) + ''')]'), 'G/L budget name not found.');
@@ -372,7 +372,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyGLBudgetEntry(Response: Text; GLBudgetEntry: Record "G/L Budget Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(GLBudgetEntry."Entry No.") + ')]'), 'G/L budget entry not found.');
@@ -518,7 +518,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure VerifyPostedGLEntry(Response: Text; GLAccount: Record "G/L Account"; GLEntry: Record "G/L Entry"; EntryShouldExist: Boolean)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         if EntryShouldExist then begin

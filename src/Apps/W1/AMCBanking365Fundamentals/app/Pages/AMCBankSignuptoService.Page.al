@@ -202,13 +202,12 @@ page 20109 "AMC Bank Signup to Service"
     var
         CountryRegion: Record "Country/Region";
         EnvironmentInformation: Codeunit "Environment Information";
-        JSONManagement: Codeunit "JSON Management";
         EasyRegistrationTempBlob: Codeunit "Temp Blob";
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         HttpContent: HttpContent;
-        JObject: DotNet JObject;
-        ResponseJsonObject: DotNet JObject;
+        RequestJsonObject: JsonObject;
+        ResponseJsonObject: JsonObject;
         Handled: Boolean;
         restcall: text;
         ResponseResult: Text;
@@ -223,28 +222,27 @@ page 20109 "AMC Bank Signup to Service"
 
         if (CountryRegion.Get(rec."Country/Region Code")) then;
 
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JObject);
-        JSONManagement.AddJPropertyToJObject(JObject, 'companyname', rec.name);
-        JSONManagement.AddJPropertyToJObject(JObject, 'address1', rec.Address);
-        JSONManagement.AddJPropertyToJObject(JObject, 'address2', rec."Address 2");
-        JSONManagement.AddJPropertyToJObject(JObject, 'zipcode', rec."Post Code");
-        JSONManagement.AddJPropertyToJObject(JObject, 'city', rec.City);
-        JSONManagement.AddJPropertyToJObject(JObject, 'country', CountryRegion."ISO Code");
-        JSONManagement.AddJPropertyToJObject(JObject, 'state', rec.County);
-        JSONManagement.AddJPropertyToJObject(JObject, 'vatid', GetVatIdwithCountryId(CountryRegion));
-        JSONManagement.AddJPropertyToJObject(JObject, 'currency', CompanyCurrency);
-        JSONManagement.AddJPropertyToJObject(JObject, 'fullname', AdminUserName);
-        JSONManagement.AddJPropertyToJObject(JObject, 'email', AdminEmail);
-        JSONManagement.AddJPropertyToJObject(JObject, 'phone', rec."Phone No.");
-        JSONManagement.AddJPropertyToJObject(JObject, 'erp', 'Dyn. Nav');
-        JSONManagement.AddJPropertyToJObject(JObject, 'moduleguid', DelStr(AMCBankingMgt.GetLicenseNumber(), 1, 2));
-        JSONManagement.AddJPropertyToJObject(JObject, 'moduleprefix', 'BC');
-        JSONManagement.AddJPropertyToJObject(JObject, 'modulepostfix', GetModulePostFix(AMCBankingSetup));
-        JSONManagement.AddJPropertyToJObject(JObject, 'sandbox', EnvironmentInformation.IsSandbox());
-        JSONManagement.AddJPropertyToJObject(JObject, 'businessappinstalled', AMCBankingMgt.IsAMCBusinessInstalled());
+        RequestJsonObject.Add('companyname', rec.name);
+        RequestJsonObject.Add('address1', rec.Address);
+        RequestJsonObject.Add('address2', rec."Address 2");
+        RequestJsonObject.Add('zipcode', rec."Post Code");
+        RequestJsonObject.Add('city', rec.City);
+        RequestJsonObject.Add('country', CountryRegion."ISO Code");
+        RequestJsonObject.Add('state', rec.County);
+        RequestJsonObject.Add('vatid', GetVatIdwithCountryId(CountryRegion));
+        RequestJsonObject.Add('currency', CompanyCurrency);
+        RequestJsonObject.Add('fullname', AdminUserName);
+        RequestJsonObject.Add('email', AdminEmail);
+        RequestJsonObject.Add('phone', rec."Phone No.");
+        RequestJsonObject.Add('erp', 'Dyn. Nav');
+        RequestJsonObject.Add('moduleguid', DelStr(AMCBankingMgt.GetLicenseNumber(), 1, 2));
+        RequestJsonObject.Add('moduleprefix', 'BC');
+        RequestJsonObject.Add('modulepostfix', GetModulePostFix(AMCBankingSetup));
+        RequestJsonObject.Add('sandbox', EnvironmentInformation.IsSandbox());
+        RequestJsonObject.Add('businessappinstalled', AMCBankingMgt.IsAMCBusinessInstalled());
 
-        HttpContent.WriteFrom(JSONManagement.WriteObjectToString());
+        RequestJsonObject.WriteTo(ResponseResult);
+        HttpContent.WriteFrom(ResponseResult);
         HttpRequestMessage.Content(HttpContent);
 
         //Set Content-Type header
@@ -256,18 +254,28 @@ page 20109 "AMC Bank Signup to Service"
         AMCBankRESTRequestMgt.GetRestResponse(HttpResponseMessage, EasyRegistrationTempBlob);
         if (not AMCBankRESTRequestMgt.HasResponseErrors(EasyRegistrationTempBlob, restcall, 'syslog', ResponseResult, AMCBankingMgt.GetAppCaller())) then begin
             AMCBankRESTRequestMgt.GetJsonObjectFromBlob(EasyRegistrationTempBlob, ResponseJsonObject);
-            JSONManagement.InitializeObjectFromJObject(ResponseJsonObject);
-            if (JSONManagement.GetValue('modulepassword') <> '') then begin
+            if GetJsonValue(ResponseJsonObject, 'modulepassword') <> '' then begin
                 AMCBankingSetup."User Name" := CopyStr(BCLicenseNumberText, 1, 50);
-                AMCBankingSetup.SavePassword(JSONManagement.GetValue('modulepassword'));
+                AMCBankingSetup.SavePassword(GetJsonValue(ResponseJsonObject, 'modulepassword'));
                 AMCBankingSetup.Modify();
             end;
-            exit(JSONManagement.GetValue('url'));
+            exit(GetJsonValue(ResponseJsonObject, 'url'));
         end
         else
             AMCBankRESTRequestMgt.ShowResponseError(ResponseResult);
+    end;
 
-        exit('');
+    local procedure GetJsonValue(JsonObject: JsonObject; PropertyName: Text): Text
+    var
+        JsonToken: JsonToken;
+    begin
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit('');
+        if not JsonToken.IsValue() then
+            exit('');
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit('');
+        exit(JsonToken.AsValue().AsText());
     end;
 
     local procedure GetModulePostFix(AMCBankingSetup: Record "AMC Banking Setup"): Text

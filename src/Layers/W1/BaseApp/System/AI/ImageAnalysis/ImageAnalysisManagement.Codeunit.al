@@ -195,7 +195,7 @@ codeunit 2020 "Image Analysis Management"
     procedure Analyze(var ImageAnalysisResult: Codeunit "Image Analysis Result"; AnalysisTypes: List of [Enum "Image Analysis Type"]): Boolean
     var
         ImageAnalysisSetup: Record "Image Analysis Setup";
-        ResultJSONManagement: Codeunit "JSON Management";
+        ResultJson: JsonObject;
         UsageLimitError: Text;
     begin
         Initialize();
@@ -215,7 +215,7 @@ codeunit 2020 "Image Analysis Management"
                 if ImageAnalysisSetup.IsUsageLimitReached(UsageLimitError, LimitValue, LimitType) then
                     SetLastError(UsageLimitError, true)
                 else
-                    if InvokeAnalysisWithAuth(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
+                    if InvokeAnalysisWithAuth(ResultJson, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
                         ImageAnalysisSetup.Increment()
                     else
                         if ImageAnalysisProvider.GetLastError() <> '' then
@@ -223,7 +223,7 @@ codeunit 2020 "Image Analysis Management"
                         else
                             SetLastError(GenericErrorErr, false);
 
-        ImageAnalysisResult.SetResult(ResultJSONManagement, AnalysisTypes);
+        ImageAnalysisResult.SetResult(ResultJson, AnalysisTypes);
         OnAfterImageAnalysis(ImageAnalysisResult);
 
         exit(not HasError());
@@ -239,10 +239,10 @@ codeunit 2020 "Image Analysis Management"
         ImageAnalysisProvider := ImageAnalysisWrapperV10;
     end;
 
-    local procedure InvokeAnalysisWithAuth(var JSONManagement: Codeunit "JSON Management"; BaseUrl: Text; ImageAnalysisKey: SecretText; Path: Text; AnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
+    local procedure InvokeAnalysisWithAuth(var ResultJson: JsonObject; BaseUrl: Text; ImageAnalysisKey: SecretText; Path: Text; AnalysisTypes: List of [Enum "Image Analysis Type"]; LanguageId: Integer): Boolean
     begin
         ImageAnalysisProvider.SetUseOAuth2(UseOAuth2);
-        exit(ImageAnalysisProvider.InvokeAnalysis(JSONManagement, BaseUrl, ImageAnalysisKey, Path, AnalysisTypes, LanguageId));
+        exit(ImageAnalysisProvider.InvokeAnalysis(ResultJson, BaseUrl, ImageAnalysisKey, Path, AnalysisTypes, LanguageId));
     end;
 
     procedure GetLastError(var Message: Text; var IsUsageLimitError: Boolean): Boolean
@@ -351,7 +351,7 @@ codeunit 2020 "Image Analysis Management"
         LimitValueTxt := ExtractParameterValue(ImageAnalysisParameters, 'limitvalue', true);
 
         LocalLimitType := MachineLearningKeyVaultMgmt.GetLimitTypeOptionFromText(LimitTypeTxt);
-        Evaluate(LocalLimitValue, LimitValueTxt);
+        Evaluate(LocalLimitValue, LimitValueTxt, 9);
 
         Scopes.Add(CognitiveServicesScopeTok);
         if not OAuth2.AcquireTokensWithCertificate(AppId, Cert, RedirectUrl, AuthUrl, Scopes, ApiToken, IdToken) then begin
@@ -405,7 +405,7 @@ codeunit 2020 "Image Analysis Management"
         LimitValueTxt := ExtractParameterValue(ImageAnalysisParameters, 'limitvalue', true);
 
         LocalLimitType := MachineLearningKeyVaultMgmt.GetLimitTypeOptionFromText(LimitTypeTxt);
-        Evaluate(LocalLimitValue, LimitValueTxt);
+        Evaluate(LocalLimitValue, LimitValueTxt, 9);
     end;
 
     internal procedure ToCommaSeparatedList(ImageAnalysisTypes: List of [Enum "Image Analysis Type"]) ListAsText: Text

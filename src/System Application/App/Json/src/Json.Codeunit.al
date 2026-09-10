@@ -233,4 +233,20 @@ codeunit 5460 Json
         exit(JsonImpl.ReplaceJObjectInCollection(Index, Value));
     end;
 
+    /// <summary>
+    /// Converts XML text to JSON text.
+    /// </summary>
+    procedure XMLTextToJSONText(Xml: Text): Text
+    begin
+        exit(JsonImpl.XMLTextToJSONText(Xml));
+    end;
+
+    /// <summary>
+    /// Converts JSON text to XML text with the specified document element name.
+    /// </summary>
+    procedure JSONTextToXMLText(Json: Text; DocumentElementName: Text): Text
+    begin
+        exit(JsonImpl.JSONTextToXMLText(Json, DocumentElementName));
+    end;
+
 }

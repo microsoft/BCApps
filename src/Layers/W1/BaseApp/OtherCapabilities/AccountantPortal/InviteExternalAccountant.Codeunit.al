@@ -49,33 +49,34 @@ codeunit 9033 "Invite External Accountant"
     [Scope('OnPrem')]
     procedure InvokeInvitationsRequest(DisplayName: Text; EmailAddress: Text; WebClientUrl: Text; var InvitedUserId: Guid; var InviteReedemUrl: Text; var ErrorMessage: Text): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        InviteUserIdJsonObject: DotNet JObject;
-        InviteUserIdObjectValue: Text;
+        RequestJsonObject: JsonObject;
+        ResponseJsonObject: JsonObject;
+        InviteUserJsonObject: JsonObject;
+        JsonToken: JsonToken;
         ResponseContent: Text;
         Body: Text;
         FoundInviteRedeemUrlValue: Boolean;
         FoundInvitedUserObjectValue: Boolean;
         FoundInviteUserIdValue: Boolean;
     begin
-        Body := '{';
-        Body := Body + '"invitedUserDisplayName" : "' + DisplayName + '",';
-        Body := Body + '"invitedUserEmailAddress" : "' + EmailAddress + '",';
-        Body := Body + '"inviteRedirectUrl" : "' + WebClientUrl + '",';
-        Body := Body + '"sendInvitationMessage" : "false"';
-        Body := Body + '}';
+        RequestJsonObject.Add('invitedUserDisplayName', DisplayName);
+        RequestJsonObject.Add('invitedUserEmailAddress', EmailAddress);
+        RequestJsonObject.Add('inviteRedirectUrl', WebClientUrl);
+        RequestJsonObject.Add('sendInvitationMessage', 'false');
+        RequestJsonObject.WriteTo(Body);
 
         if InvokeRequestWithGraphAccessToken(GetGraphInvitationsUrl(), 'POST', Body, ResponseContent) then begin
-            JSONManagement.InitializeObject(ResponseContent);
-            JSONManagement.GetJSONObject(JsonObject);
-            FoundInviteRedeemUrlValue :=
-              JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, InviteReedemUrlTxt, InviteReedemUrl);
-            FoundInvitedUserObjectValue :=
-              JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, InvitedUserIdTxt, InviteUserIdObjectValue);
-            JSONManagement.InitializeObject(InviteUserIdObjectValue);
-            JSONManagement.GetJSONObject(InviteUserIdJsonObject);
-            FoundInviteUserIdValue := JSONManagement.GetGuidPropertyValueFromJObjectByName(InviteUserIdJsonObject, IdTxt, InvitedUserId);
+            if ResponseContent = '' then begin
+                ErrorMessage := InsufficientDataReturnedFromInvitationsApiTxt;
+                exit(false);
+            end;
+            ResponseJsonObject.ReadFrom(ResponseContent);
+            FoundInviteRedeemUrlValue := TryGetJsonText(ResponseJsonObject, InviteReedemUrlTxt, InviteReedemUrl);
+            FoundInvitedUserObjectValue := ResponseJsonObject.Get(InvitedUserIdTxt, JsonToken) and JsonToken.IsObject();
+            if FoundInvitedUserObjectValue then begin
+                InviteUserJsonObject := JsonToken.AsObject();
+                FoundInviteUserIdValue := TryGetJsonText(InviteUserJsonObject, IdTxt, Body) and Evaluate(InvitedUserId, Body);
+            end;
 
             if FoundInviteRedeemUrlValue and FoundInvitedUserObjectValue and FoundInviteUserIdValue then
                 exit(true);
@@ -134,41 +135,41 @@ codeunit 9033 "Invite External Accountant"
     [Scope('OnPrem')]
     procedure InvokeIsExternalAccountantLicenseAvailable(var ErrorMessage: Text; var TargetLicense: Text): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        JsonArray: DotNet JArray;
-        PrepaidUnitsJsonObject: DotNet JObject;
+        ResponseJsonObject: JsonObject;
+        SkuJsonObject: JsonObject;
+        PrepaidUnitsJsonObject: JsonObject;
+        SkuJsonArray: JsonArray;
+        JsonToken: JsonToken;
         NumberSkus: Integer;
         ResponseContent: Text;
         SkuIdValue: Text;
         ConsumedUnitsValue: Decimal;
-        PrepaidUnitsValue: Text;
         EnabledUnitsValue: Decimal;
     begin
         if InvokeRequestWithGraphAccessToken(GetGraphSubscribedSkusUrl(), 'GET', '', ResponseContent) then begin
-            if not JSONManagement.TryParseJObjectFromString(JsonObject, ResponseContent) then
+            if not ResponseJsonObject.ReadFrom(ResponseContent) then
                 Error(ExternalAccountantLicenseAvailabilityErr);
 
-            if not JSONManagement.GetArrayPropertyValueFromJObjectByName(JsonObject, ValueTxt, JsonArray) then
+            if not ResponseJsonObject.Get(ValueTxt, JsonToken) or not JsonToken.IsArray() then
                 Error(ExternalAccountantLicenseAvailabilityErr);
-            JSONManagement.InitializeCollectionFromJArray(JsonArray);
+            SkuJsonArray := JsonToken.AsArray();
 
-            NumberSkus := JSONManagement.GetCollectionCount();
+            NumberSkus := SkuJsonArray.Count();
             while NumberSkus > 0 do begin
                 NumberSkus := NumberSkus - 1;
-                if JSONManagement.GetJObjectFromCollectionByIndex(JsonObject, NumberSkus) then begin
-                    if not JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, SkuIdTxt, SkuIdValue) then
+                if SkuJsonArray.Get(NumberSkus, JsonToken) and JsonToken.IsObject() then begin
+                    SkuJsonObject := JsonToken.AsObject();
+                    if not TryGetJsonText(SkuJsonObject, SkuIdTxt, SkuIdValue) then
                         Error(ExternalAccountantLicenseAvailabilityErr);
-                    if not JSONManagement.GetDecimalPropertyValueFromJObjectByName(JsonObject, ConsumedUnitsTxt, ConsumedUnitsValue) then
+                    if not TryGetJsonDecimal(SkuJsonObject, ConsumedUnitsTxt, ConsumedUnitsValue) then
                         Error(ExternalAccountantLicenseAvailabilityErr);
                     // Check to see if there is an external accountant license available.
                     if (SkuIdValue = ExternalAccountantLicenseSkuIdTxt) then begin
                         TargetLicense := SkuIdValue;
-                        if not JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, PrepaidUnitsTxt, PrepaidUnitsValue) then
+                        if not SkuJsonObject.Get(PrepaidUnitsTxt, JsonToken) or not JsonToken.IsObject() then
                             Error(ExternalAccountantLicenseAvailabilityErr);
-                        if not JSONManagement.TryParseJObjectFromString(PrepaidUnitsJsonObject, PrepaidUnitsValue) then
-                            Error(ExternalAccountantLicenseAvailabilityErr);
-                        if not JSONManagement.GetDecimalPropertyValueFromJObjectByName(PrepaidUnitsJsonObject, EnabledUnitsTxt, EnabledUnitsValue) then
+                        PrepaidUnitsJsonObject := JsonToken.AsObject();
+                        if not TryGetJsonDecimal(PrepaidUnitsJsonObject, EnabledUnitsTxt, EnabledUnitsValue) then
                             Error(ExternalAccountantLicenseAvailabilityErr);
 
                         if ConsumedUnitsValue < EnabledUnitsValue then
@@ -315,20 +316,45 @@ codeunit 9033 "Invite External Accountant"
 
     local procedure GetMessageFromErrorJSON(ResponseContent: Text): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        ErrorObjectValue: Text;
+        ResponseJsonObject: JsonObject;
+        ErrorJsonObject: JsonObject;
+        JsonToken: JsonToken;
         MessageValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseContent);
-        JSONManagement.GetJSONObject(JsonObject);
-        if JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, ErrorTxt, ErrorObjectValue) then begin
-            JSONManagement.InitializeObject(ErrorObjectValue);
-            JSONManagement.GetJSONObject(JsonObject);
-            JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, MessageTxt, MessageValue);
+        if ResponseContent = '' then
+            exit('');
+        if not ResponseJsonObject.ReadFrom(ResponseContent) then
+            exit('');
+
+        if ResponseJsonObject.Get(ErrorTxt, JsonToken) and JsonToken.IsObject() then begin
+            ErrorJsonObject := JsonToken.AsObject();
+            TryGetJsonText(ErrorJsonObject, MessageTxt, MessageValue);
         end;
 
         exit(MessageValue);
+    end;
+
+    local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
+            exit(false);
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit(true);
+        Value := JsonToken.AsValue().AsText();
+        exit(true);
+    end;
+
+    local procedure TryGetJsonDecimal(JsonObject: JsonObject; PropertyName: Text; var Value: Decimal): Boolean
+    var
+        JsonText: Text;
+    begin
+        Clear(Value);
+        if not TryGetJsonText(JsonObject, PropertyName, JsonText) then
+            exit(false);
+        exit(Evaluate(Value, JsonText, 9));
     end;
 
     local procedure GetGraphInvitationsUrl(): Text
@@ -399,4 +425,3 @@ codeunit 9033 "Invite External Accountant"
         // This event is called when the invitation process tries to create a user.
     end;
 }
-

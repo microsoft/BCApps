@@ -934,7 +934,8 @@ codeunit 4001 "Hybrid Cloud Management"
 
     procedure CheckFixDataOnReplicationCompleted(NotificationText: Text): Boolean
     var
-        JsonManagement: Codeunit "JSON Management";
+        NotificationJson: JsonObject;
+        ServiceTypeToken: JsonToken;
         ServiceType: Text;
         FixData: Boolean;
         Handled: Boolean;
@@ -943,8 +944,11 @@ codeunit 4001 "Hybrid Cloud Management"
         if Handled then
             exit(FixData);
 
-        JsonManagement.InitializeObject(NotificationText);
-        JsonManagement.GetStringPropertyValueByName('ServiceType', ServiceType);
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        if NotificationJson.Get('ServiceType', ServiceTypeToken) and ServiceTypeToken.IsValue() then
+            if not ServiceTypeToken.AsValue().IsNull() and not ServiceTypeToken.AsValue().IsUndefined() then
+                ServiceType := ServiceTypeToken.AsValue().AsText();
         if not IsReplicationCompleted(ServiceType) then
             exit(false);
 
@@ -2078,12 +2082,13 @@ codeunit 4001 "Hybrid Cloud Management"
     procedure SetUpgradePendingOnReplicationRunCompleted(RunId: Text[50]; SubscriptionId: Text; NotificationText: Text)
     var
         HybridReplicationSummary: Record "Hybrid Replication Summary";
-        JsonManagement: Codeunit "JSON Management";
+        NotificationJson: JsonObject;
     begin
         HybridReplicationSummary.Get(RunId);
 
-        JsonManagement.InitializeObject(NotificationText);
-        if CompaniesReplicatedSuccessfully(HybridReplicationSummary, JsonManagement) then begin
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        if CompaniesReplicatedSuccessfully(HybridReplicationSummary, NotificationJson) then begin
             HybridReplicationSummary.Status := HybridReplicationSummary.Status::UpgradePending;
             HybridReplicationSummary.Modify();
             SetPendingOnHybridCompanyStatus();
@@ -2233,9 +2238,10 @@ codeunit 4001 "Hybrid Cloud Management"
         CloudMigrationStatusText := ReadyForReplicationStatusLbl;
     end;
 
-    internal procedure CompaniesReplicatedSuccessfully(var HybridReplicationSummary: Record "Hybrid Replication Summary"; var JsonManagement: Codeunit "JSON Management"): Boolean
+    internal procedure CompaniesReplicatedSuccessfully(var HybridReplicationSummary: Record "Hybrid Replication Summary"; NotificationJson: JsonObject): Boolean
     var
         HybridCompany: Record "Hybrid Company";
+        ServiceTypeToken: JsonToken;
         ServiceType: Text;
     begin
         if HybridReplicationSummary.Status <> HybridReplicationSummary.Status::Completed then
@@ -2248,8 +2254,11 @@ codeunit 4001 "Hybrid Cloud Management"
         if HybridCompany.IsEmpty() then
             exit(false);
 
-        if not JsonManagement.GetStringPropertyValueByName('ServiceType', ServiceType) then
+        if not NotificationJson.Get('ServiceType', ServiceTypeToken) or not ServiceTypeToken.IsValue() then
             exit(false);
+        if ServiceTypeToken.AsValue().IsNull() or ServiceTypeToken.AsValue().IsUndefined() then
+            exit(false);
+        ServiceType := ServiceTypeToken.AsValue().AsText();
 
         exit(IsReplicationCompleted(ServiceType));
     end;

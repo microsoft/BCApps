@@ -85,7 +85,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyItemBudget(Response: Text; ItemBudgetName: Record "Item Budget Name")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.budgetName == ''' + Format(ItemBudgetName.Name) + ''')]'), 'Item budget name not found.');
@@ -132,7 +132,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesOrderLine(Response: Text; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales line not found.');
@@ -187,7 +187,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyItemBudgetEntry(Response: Text; ItemBudgetEntry: Record "Item Budget Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(ItemBudgetEntry."Entry No.") + ')]'), 'Item budget entry not found.');
@@ -233,7 +233,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesValueEntryV2(Response: Text; SalesHeader: Record "Sales Header"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemLedgerEntryNo == ' + Format(ItemLedgerEntry."Entry No.") + ')]'), 'Sales item ledger entry not found.');
@@ -299,7 +299,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyShippedNotInvoiced(Response: Text; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales item ledger entry not found.');
@@ -362,7 +362,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesLineV2(Response: Text; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesLine."Line No.") + ')]'), 'Sales line not found.');
@@ -441,7 +441,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyOpportunity(Response: Text; Opportunity: Record Opportunity)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.opportunityNo == ''' + Format(Opportunity."No.") + ''')]'), 'Opportunity not found.');
@@ -503,7 +503,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyOpportunityEntry(Response: Text; OpportunityEntry: Record "Opportunity Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.opportunityEntryEntryNo == ' + Format(OpportunityEntry."Entry No.") + ')]'), 'Opportunity Entry No not found.');
@@ -564,7 +564,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesCycleStage(Response: Text; SalesCycleStage: Record "Sales Cycle Stage")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.salesCycleCode == ''' + SalesCycleStage."Sales Cycle Code" + ''')]'), 'Sales Cycle Code not found.');
@@ -607,7 +607,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyCloseOpportunityCode(Response: Text; CloseOpportunityCode: Record "Close Opportunity Code")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.closeOpportunityCode == ''' + CloseOpportunityCode.Code + ''')]'), 'Sales Cycle Code not found.');
@@ -664,7 +664,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesCreditLines(Response: Text; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesCrMemoLine: Record "Sales Cr.Memo Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesCrMemoLine."Line No.") + ')]'), 'Sales line not found.');
@@ -738,7 +738,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesInvoiceLines(Response: Text; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(SalesInvoiceLine."Line No.") + ')]'), 'Sales line not found.');
@@ -828,7 +828,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesInvoiceProjectLedgerEntry(Response: Text; SalesInvoiceHeader: Record "Sales Invoice Header"; JobLedgerEntry: Record "Job Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(JobLedgerEntry."Entry No.") + ')]'), 'Project ledger entry not found.');
@@ -938,7 +938,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifySalesCreditProjectLedgerEntry(Response: Text; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; JobLedgerEntry: Record "Job Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(JobLedgerEntry."Entry No.") + ')]'), 'Project ledger entry not found.');
@@ -997,7 +997,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyContact(Response: Text; Contact: Record Contact)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.contactNo == ''' + Format(Contact."No.") + ''')]'), 'Contact not found.');
@@ -1046,7 +1046,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyItemCategory(Response: Text; ItemCategory: Record "Item Category"; ParentCategoryCode: Code[20])
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.code == ''' + Format(ItemCategory.Code) + ''')]'), 'Item Category not found.');
@@ -1084,7 +1084,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyReturnReason(Response: Text; ReturnReason: Record "Return Reason")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.reasonCode == ''' + Format(ReturnReason.Code) + ''')]'), 'Return Reason not found.');
@@ -1122,7 +1122,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure VerifyResource(Response: Text; Resource: Record Resource)
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.resourceNo == ''' + Format(Resource."No.") + ''')]'), 'Resource not found.');
