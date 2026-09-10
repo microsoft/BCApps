@@ -1465,6 +1465,14 @@ page 6991 "Expense Agent Setup Wizard"
         AgentSetup.SaveChanges(AgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
+        UpdateAgentConfiguredBy();
+    end;
+
+    local procedure UpdateAgentConfiguredBy()
+    var
+        Agent: Codeunit Agent;
+    begin
+        Agent.SetDisplayName(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Display Name");
     end;
 
     local procedure ApplyScheduleChange()
