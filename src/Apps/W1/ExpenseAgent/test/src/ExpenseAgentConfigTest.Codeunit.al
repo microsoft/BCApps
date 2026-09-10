@@ -16,7 +16,7 @@ codeunit 148361 "Expense Agent Config. Test"
     TestPermissions = Restrictive;
     Permissions =
         tabledata "AAD Application" = rm,
-        tabledata "Access Control" = rimd;
+        tabledata "Access Control" = rid;
 
     var
         Assert: Codeunit Assert;
@@ -92,6 +92,29 @@ codeunit 148361 "Expense Agent Config. Test"
         VerifyAadApplicationState(AadApplication.State::Enabled);
         VerifyPermissionExists(AadApplication, UnrelatedPermissionSetTok, GetCurrentCompanyName());
         VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure ActivatingWithGlobalPermissionDoesNotAddCompanyPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [SCENARIO 640454] Activating with a global Expense Agent permission does not add a company permission
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has a global Expense Agent permission
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        MakeCurrentExpenseAgentPermissionGlobal(AadApplication);
+
+        // [WHEN] Activating the Expense Agent for the current company
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+
+        // [THEN] "EA" remains enabled with only the global Expense Agent permission
+        VerifyAadApplicationState(AadApplication.State::Enabled);
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, '');
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
     end;
 
     [Test]
@@ -182,6 +205,28 @@ codeunit 148361 "Expense Agent Config. Test"
         VerifyAadApplicationState(AadApplication.State::Disabled);
         VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
         VerifyPermissionExists(AadApplication, UnrelatedPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure DeactivatingWithGlobalPermissionPreservesApplication()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [SCENARIO 640454] Deactivating preserves a global Expense Agent permission and the Entra app state
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has a global Expense Agent permission
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        MakeCurrentExpenseAgentPermissionGlobal(AadApplication);
+
+        // [WHEN] Deactivating the Expense Agent for the current company
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] "EA" remains enabled with its global Expense Agent permission
+        VerifyAadApplicationState(AadApplication.State::Enabled);
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, '');
     end;
 
     local procedure Initialize()
@@ -295,5 +340,25 @@ codeunit 148361 "Expense Agent Config. Test"
         AggregatePermissionSet.SetRange("App ID", ExpenseAgentAppId);
         AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetTok);
         AggregatePermissionSet.FindFirst();
+    end;
+
+    local procedure MakeCurrentExpenseAgentPermissionGlobal(AadApplication: Record "AAD Application")
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+    begin
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
+        AccessControl.Get(
+            AadApplication."User ID",
+            AggregatePermissionSet."Role ID",
+            GetCurrentCompanyName(),
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID");
+        AccessControl.Rename(
+            AadApplication."User ID",
+            AggregatePermissionSet."Role ID",
+            '',
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID");
     end;
 }

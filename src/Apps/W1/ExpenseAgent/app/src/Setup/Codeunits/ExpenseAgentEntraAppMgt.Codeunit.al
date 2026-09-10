@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.Agents;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
@@ -18,6 +19,8 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     var
         AadApplication: Record "AAD Application";
     begin
+        EnsureCurrentUserCanManageExpenseAgent();
+
         if not GetAadApplication(AadApplication) then
             exit;
 
@@ -44,6 +47,8 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AadApplication: Record "AAD Application";
         HasOtherCompanyPermission: Boolean;
     begin
+        EnsureCurrentUserCanManageExpenseAgent();
+
         if not GetAadApplication(AadApplication) then
             exit;
 
@@ -96,7 +101,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
             exit(false);
 
         SetExpenseAgentPermissionFilters(AccessControl, AadApplication, AggregatePermissionSet);
-        AccessControl.SetRange("Company Name", GetCurrentCompanyName());
+        AccessControl.SetFilter("Company Name", '%1|''''', GetCurrentCompanyName());
         exit(not AccessControl.IsEmpty());
     end;
 
@@ -153,6 +158,14 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         exit(CopyStr(CompanyName(), 1, 30));
     end;
 
+    local procedure EnsureCurrentUserCanManageExpenseAgent()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+            Error(NotAuthorizedToManageExpenseAgentErr);
+    end;
+
     local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set"): Boolean
     var
         ExpenseAgentAppId: Guid;
@@ -175,4 +188,5 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         ExpenseAgentAadAppIdTxt: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
         ExpenseAgentAppIdTxt: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
+        NotAuthorizedToManageExpenseAgentErr: Label 'You do not have permission to manage the Expense Agent.';
 }
