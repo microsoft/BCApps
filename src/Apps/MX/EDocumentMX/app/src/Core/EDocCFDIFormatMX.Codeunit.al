@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.IO.CFDI;
+namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.Document;
@@ -11,9 +11,6 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Formats;
-using Microsoft.eServices.EDocument.IO.CartaPorte;
-using System.IO;
 using System.Utilities;
 
 codeunit 3304 "EDoc CFDI MX" implements "E-Document"
@@ -139,10 +136,6 @@ codeunit 3304 "EDoc CFDI MX" implements "E-Document"
             exit;
 
         EnsureSupportedTypes(Rec.Code);
-
-        //TODO:Agregar lo que sería pagos
-        //        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::;
-        //      EDocServiceSupportedType.Insert();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnBeforeEDocumentCheck', '', false, false)]

@@ -2,6 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.EServices.EDocument.Interfactura;
+
+using Microsoft.EServices.EDocument;
+using System.Security.Encryption;
+
 codeunit 3308 "Digital Sign MX"
 {
     var
@@ -56,6 +62,9 @@ codeunit 3308 "Digital Sign MX"
         if not SignDataWithCert(SignedString, OriginalString, CertBase64, CertPassword, LastUsedCertificateSN) then
             Error('Unable to sign the CFDI with the SAT certificate: %1', GetLastErrorText());
 
+        if SignedString = '' then
+            Error('Unable to sign the CFDI with the SAT certificate: the generated digital stamp is empty. Verify that the SAT certificate includes its private key and that the password is correct.');
+
         exit(SignedString);
     end;
 
@@ -106,6 +115,11 @@ codeunit 3308 "Digital Sign MX"
     procedure GetLastUsedCertificate(): Text
     begin
         exit(LastUsedCert);
+    end;
+
+    procedure GetLastUsedCertificateSerialNo(): Text
+    begin
+        exit(LastUsedCertificateSN);
     end;
 
     procedure GetCertificateSerialNo(SetupId: Code[10]): Text[250]

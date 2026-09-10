@@ -1,3 +1,16 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.EServices.EDocument.Interfactura;
+
+using Microsoft.Sales.History;
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Send;
+using System.Security.Encryption;
+using System.Utilities;
+
 codeunit 3305 "Interfactura Processing"
 {
     Access = Internal;
@@ -36,6 +49,203 @@ codeunit 3305 "Interfactura Processing"
         if not InvokeSoapRequest(EDocument, RequestTxt, RequestType, ErrorText, SendContext) then
             Error(ErrorText);
 
+        TryProcessAdvanceReverseAfterSettle(EDocument);
+
+    end;
+
+    local procedure TryProcessAdvanceReverseAfterSettle(var EDocument: Record "E-Document")
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CFDIDocuments: Record "CFDI Documents";
+        ExportInterfacturaMX: Codeunit "Export Interfactura MX";
+        RequestType: Option "Request Stamp",Cancel,CancelRequest;
+        HttpRequest: HttpRequestMessage;
+        HttpResponse: HttpResponseMessage;
+        AdvanceUUID: Text[50];
+        ReverseSignedXmlTxt: Text;
+        ResponseTxt: Text;
+        ErrorText: Text;
+        ResultCode: Text;
+    begin
+        if not IsAdvanceSettleSalesInvoice(EDocument, SalesInvoiceHeader) then
+            exit;
+
+        if EDocument."Clearance Date" = 0DT then
+            exit;
+
+        AdvanceUUID := FindPrepaymentUUID(SalesInvoiceHeader);
+        if AdvanceUUID = '' then
+            exit;
+
+        if not EnsureAdvanceReverseDocument(CFDIDocuments, SalesInvoiceHeader, AdvanceUUID) then
+            exit;
+
+        if CFDIDocuments."Electronic Document Sent" then
+            exit;
+
+        if not ExportInterfacturaMX.CreateAdvanceReverseSignedXML(SalesInvoiceHeader, AdvanceUUID, ReverseSignedXmlTxt) then
+            exit;
+
+        SaveTextBlobToCFDIDocuments(CFDIDocuments, CFDIDocuments.FieldNo("Signed Document XML"), ReverseSignedXmlTxt);
+
+        RequestType := RequestType::"Request Stamp";
+        if not InvokeSoapRequestCore(ReverseSignedXmlTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+            if ErrorText <> '' then begin
+                CFDIDocuments."Error Description" := CopyStr(ErrorText, 1, MaxStrLen(CFDIDocuments."Error Description"));
+                CFDIDocuments.Modify();
+            end;
+            exit;
+        end;
+
+        ResultCode := GetResultCodeFromResponse(ResponseTxt);
+        if ResultCode <> '1' then begin
+            if ErrorText = '' then
+                ErrorText := GetResponseErrorText(ResponseTxt);
+            CFDIDocuments."Error Description" := CopyStr(ErrorText, 1, MaxStrLen(CFDIDocuments."Error Description"));
+            CFDIDocuments.Modify();
+            exit;
+        end;
+
+        SaveTextBlobToCFDIDocuments(CFDIDocuments, CFDIDocuments.FieldNo("Original Document XML"), ResponseTxt);
+        CFDIDocuments."No. of E-Documents Sent" += 1;
+        CFDIDocuments."Electronic Document Sent" := true;
+        CFDIDocuments."Date/Time Sent" := Format(CurrentDateTime(), 0, 9);
+        CFDIDocuments."Date/Time Stamp Received" := CurrentDateTime();
+        if TryGetStampedUUIDFromResponse(ResponseTxt, AdvanceUUID) then
+            CFDIDocuments."Fiscal Invoice Number PAC" := AdvanceUUID;
+        CFDIDocuments.Modify();
+    end;
+
+    local procedure IsAdvanceSettleSalesInvoice(EDocument: Record "E-Document"; var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        if EDocument."Document Record ID".TableNo <> Database::"Sales Invoice Header" then
+            exit(false);
+
+        if not SalesInvoiceHeader.Get(EDocument."Document Record ID") then
+            exit(false);
+
+        if SalesInvoiceHeader."Prepayment Invoice" then
+            exit(false);
+
+        if SalesInvoiceHeader."Prepayment Order No." = '' then
+            exit(false);
+
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange("Prepayment Line", true);
+        exit(not SalesInvoiceLine.IsEmpty());
+    end;
+
+    local procedure FindPrepaymentUUID(SalesInvoiceHeader: Record "Sales Invoice Header"): Text[50]
+    var
+        PrepaymentInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        if SalesInvoiceHeader."Prepayment Order No." = '' then
+            exit('');
+
+        PrepaymentInvoiceHeader.SetCurrentKey("Prepayment Order No.", "Prepayment Invoice");
+        PrepaymentInvoiceHeader.SetRange("Prepayment Order No.", SalesInvoiceHeader."Prepayment Order No.");
+        PrepaymentInvoiceHeader.SetRange("Prepayment Invoice", true);
+        PrepaymentInvoiceHeader.SetFilter("Fiscal Invoice Number PAC", '<>%1', '');
+        if not PrepaymentInvoiceHeader.FindLast() then
+            exit('');
+
+        exit(CopyStr(PrepaymentInvoiceHeader."Fiscal Invoice Number PAC", 1, 50));
+    end;
+
+    local procedure EnsureAdvanceReverseDocument(var CFDIDocuments: Record "CFDI Documents"; SalesInvoiceHeader: Record "Sales Invoice Header"; AdvanceUUID: Text[50]): Boolean
+    begin
+        if CFDIDocuments.Get(SalesInvoiceHeader."No.", Database::"Sales Invoice Header", true, true) then
+            exit(true);
+
+        CFDIDocuments.Init();
+        CFDIDocuments."No." := SalesInvoiceHeader."No.";
+        CFDIDocuments."Document Table ID" := Database::"Sales Invoice Header";
+        CFDIDocuments.Prepayment := true;
+        CFDIDocuments.Reversal := true;
+        CFDIDocuments."Date/Time First Req. Sent" := Format(CurrentDateTime(), 0, 9);
+        CFDIDocuments."Fiscal Invoice Number PAC" := AdvanceUUID;
+        CFDIDocuments.Insert();
+        exit(true);
+    end;
+
+    local procedure SaveTextBlobToCFDIDocuments(var CFDIDocuments: Record "CFDI Documents"; FieldNo: Integer; BlobText: Text)
+    var
+        RecRef: RecordRef;
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BlobText);
+
+        RecRef.GetTable(CFDIDocuments);
+        TempBlob.ToRecordRef(RecRef, FieldNo);
+        RecRef.SetTable(CFDIDocuments);
+        CFDIDocuments.Modify();
+    end;
+
+    local procedure GetResultCodeFromResponse(ResponseText: Text): Text
+    var
+        XmlDoc: XmlDocument;
+        ResultNode: XmlNode;
+    begin
+        if not TryReadXml(ResponseText, XmlDoc) then
+            exit('');
+        if not TryGetResultNode(XmlDoc, ResultNode) then
+            exit('');
+        exit(GetXmlAttribute(ResultNode, 'IdRespuesta'));
+    end;
+
+    local procedure GetResponseErrorText(ResponseText: Text): Text
+    var
+        XmlDoc: XmlDocument;
+        ResultNode: XmlNode;
+        Description: Text;
+        Detail: Text;
+    begin
+        if not TryReadXml(ResponseText, XmlDoc) then
+            exit('');
+        if not TryGetResultNode(XmlDoc, ResultNode) then
+            exit('');
+
+        Description := GetXmlAttribute(ResultNode, 'Descripcion');
+        Detail := GetXmlAttribute(ResultNode, 'Detalle');
+        if (Description <> '') and (Detail <> '') then
+            exit(Description + ': ' + Detail);
+        if Description <> '' then
+            exit(Description);
+        exit(Detail);
+    end;
+
+    local procedure TryGetStampedUUIDFromResponse(ResponseText: Text; var UUID: Text[50]): Boolean
+    var
+        XmlDoc: XmlDocument;
+        WrappedXmlDoc: XmlDocument;
+        ResultNode: XmlNode;
+        WrappedXmlText: Text;
+        NamespaceManager: XmlNamespaceManager;
+        TimbreNode: XmlNode;
+    begin
+        UUID := '';
+        if not TryReadXml(ResponseText, XmlDoc) then
+            exit(false);
+        if not TryGetResultNode(XmlDoc, ResultNode) then
+            exit(false);
+
+        WrappedXmlText := '<root>' + ResultNode.AsXmlElement().InnerXml() + '</root>';
+        if not TryReadXml(WrappedXmlText, WrappedXmlDoc) then
+            exit(false);
+
+        NamespaceManager.NameTable(WrappedXmlDoc.NameTable());
+        NamespaceManager.AddNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
+        NamespaceManager.AddNamespace('tfd', 'http://www.sat.gob.mx/TimbreFiscalDigital');
+
+        if not WrappedXmlDoc.SelectSingleNode('cfdi:Comprobante/cfdi:Complemento/tfd:TimbreFiscalDigital', NamespaceManager, TimbreNode) then
+            exit(false);
+
+        UUID := CopyStr(GetXmlAttribute(TimbreNode, 'UUID'), 1, MaxStrLen(UUID));
+        exit(UUID <> '');
     end;
 
     internal procedure InvokeSoapRequest(var EDocument: Record "E-Document"; RequestText: Text; RequestType: Option "Request Stamp",Cancel,CancelRequest; var ErrorText: Text; var SendContext: Codeunit SendContext): Boolean
@@ -61,12 +271,13 @@ codeunit 3305 "Interfactura Processing"
 
     local procedure InvokeSoapRequestCore(RequestText: Text; RequestType: Option "Request Stamp",Cancel,CancelRequest; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var ResponseTxt: Text; var ErrorText: Text): Boolean
     var
-        IsSuccessful: Boolean;
-        HttpClient: HttpClient;
+        EInvoiceCommunication: Codeunit "EInvoice Communication";
+        CertificateManagement: Codeunit "Certificate Management";
+        IsolatedCertificate: Record "Isolated Certificate";
         MXPACWebServiceDetail: Record "MX PAC Web Service Detail";
-        ContentHeaders, RequestHeaders : HttpHeaders;
-        WebServiceUrl, StatusDescription : Text;
-        StatusCode: Integer;
+        WebServiceUrl: Text;
+        CertBase64: Text;
+        CertPassword: SecretText;
     begin
         if not InterfacturaSetup.Get() then begin
             ErrorText := ConnectionSetupErr;
@@ -91,36 +302,41 @@ codeunit 3305 "Interfactura Processing"
 
         Commit();
 
+        InterfacturaSetup.TestField("PAC Certificate");
+        if not IsolatedCertificate.Get(InterfacturaSetup."PAC Certificate") then begin
+            ErrorText := StrSubstNo(CommunicationErr, StrSubstNo('PAC certificate %1 not found.', InterfacturaSetup."PAC Certificate"));
+            exit(false);
+        end;
+
+        CertBase64 := CertificateManagement.GetCertAsBase64String(IsolatedCertificate);
+        CertPassword := CertificateManagement.GetPasswordAsSecret(IsolatedCertificate);
+        if CertBase64 = '' then begin
+            ErrorText := StrSubstNo(CommunicationErr, 'PAC certificate is empty.');
+            exit(false);
+        end;
+
         HttpRequest.Method := 'POST';
         HttpRequest.SetRequestUri(WebServiceUrl);
 
-        HttpRequest.GetHeaders(RequestHeaders);
-        RequestHeaders.Add('Accept', 'application/xml');
-        RequestHeaders.Add('Accept-Encoding', 'utf-8');
-        RequestHeaders.Add('SOAPAction', MXPACWebServiceDetail."Method Name");
+        EInvoiceCommunication.AddParameters(RequestText);
+        if RequestType = RequestType::"Request Stamp" then
+            EInvoiceCommunication.AddParameters(false);
+
+        ResponseTxt := EInvoiceCommunication.InvokeMethodWithCertificate(
+            WebServiceUrl,
+            MXPACWebServiceDetail."Method Name",
+            CertBase64,
+            CertPassword);
 
         HttpRequest.Content.WriteFrom(RequestText);
-        HttpRequest.Content.GetHeaders(ContentHeaders);
-        ContentHeaders.Remove('Content-Type');
-        ContentHeaders.Add('Content-Type', 'application/xml');
-        HttpRequest.Content(HttpRequest.Content);
+        HttpResponse.Content.WriteFrom(ResponseTxt);
 
-        IsSuccessful := HttpClient.Send(HttpRequest, HttpResponse);
-        if not IsSuccessful then begin
+        if ResponseTxt = '' then begin
             Session.LogMessage('0000QWY', NoResponseTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             ErrorText := NoResponseErr;
             exit(false);
         end;
 
-        StatusCode := HttpResponse.HttpStatusCode;
-        StatusDescription := HttpResponse.ReasonPhrase;
-        if not (StatusCode in [200, 202]) then begin
-            Session.LogMessage('0000QWZ', StrSubstNo(CommunicationTelemetryErr, Format(StatusCode) + ' ' + StatusDescription), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
-            ErrorText := StrSubstNo(CommunicationErr, Format(StatusCode) + ' ' + StatusDescription);
-            exit(false);
-        end;
-
-        HttpResponse.Content().ReadAs(ResponseTxt);
         Session.LogMessage('0000QX0', StrSubstNo(BatchSoapRequestSuccMsg, Format(RequestType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         exit(true);
     end;
@@ -300,34 +516,15 @@ codeunit 3305 "Interfactura Processing"
     procedure GetDocumentApproval(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
     begin
-        if EDocument."Clearance Date" <> 0DT then begin
-            Status := Enum::"E-Document Service Status"::Approved;
-            exit(true);
-        end;
-
         if not EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code) then begin
             Status := Enum::"E-Document Service Status"::"Pending Response";
             exit(false);
         end;
 
-        case EDocumentServiceStatus.Status of
-            EDocumentServiceStatus.Status::Cleared:
-                begin
-                    Status := Enum::"E-Document Service Status"::Approved;
-                    exit(true);
-                end;
-            EDocumentServiceStatus.Status::Rejected,
-            EDocumentServiceStatus.Status::"Not Cleared":
-                begin
-                    Status := Enum::"E-Document Service Status"::Rejected;
-                    exit(true);
-                end;
-            else begin
-                Status := Enum::"E-Document Service Status"::"Pending Response";
-                exit(false);
-            end;
-        end;
+        Status := EDocumentServiceStatus.Status;
+        exit(false);
     end;
 
     procedure CancelEDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean

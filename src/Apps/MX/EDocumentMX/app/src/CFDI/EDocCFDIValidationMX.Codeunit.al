@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.IO.CFDI;
+namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.Bank.BankAccount;
@@ -23,10 +23,6 @@ using Microsoft.Service.History;
 
 codeunit 3309 "EDoc CFDI Validation MX"
 {
-    // ← Migrado desde: code unit 10145 CheckSalesDocument (L7178), CheckCompanyInfo (L7224),
-    //                  CheckCustomer (L7241), CheckDocumentHeader (L7251), CheckDocumentLine (L7355),
-    //                  CheckCFDIRelations (L7436), RequestPaymentStamp (L5037-L5093)
-
     procedure CheckSalesDocument(SourceDocumentHeader: RecordRef)
     var
         CFDIRelation: Code[10];
@@ -424,7 +420,6 @@ codeunit 3309 "EDoc CFDI Validation MX"
             Error(DeletedDocumentSourceCodeErr, SourceCode);
     end;
 
-    // ← Migrado desde: RequestPaymentStamp (L5037) + GetCheckCompanyInfo (L5316)
     procedure CheckPaymentDocument(var SourceDocumentHeader: RecordRef)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -454,7 +449,6 @@ codeunit 3309 "EDoc CFDI Validation MX"
         CheckPaymentAppliedDocuments(CustLedgerEntry);
     end;
 
-    // ← Migrado desde: GetCheckCompanyInfo (L4194) + CheckCompanyInfo (L7224)
     procedure CheckCompanyInfo()
     var
         CompanyInformation: Record "Company Information";
@@ -472,7 +466,6 @@ codeunit 3309 "EDoc CFDI Validation MX"
         CompanyInformation.TestField("SAT Postal Code");
     end;
 
-    // ← Migrado desde: GetCheckCompanyInfo (L4177)
     procedure CheckCertificate(EDocService: Record "E-Document Service")
     var
         MXConnectionSetup: Record "MX Connection Setup";
@@ -487,12 +480,9 @@ codeunit 3309 "EDoc CFDI Validation MX"
         MXConnectionSetup.TestField("PAC Certificate");
         MXConnectionSetup.TestField("SAT Certificate");
 
-        // Ensures required MX PAC Web Service Detail rows exist and are complete
-        // for Request Stamp, Cancel and CancelRequest.
         MXConnectionSetup.ValidatePrerequisites();
     end;
 
-    // ← Migrado desde: CheckDocumentLine (L7355) — valida líneas de documento Sales/Service
     procedure CheckSalesDocumentLines(var SourceDocumentLines: RecordRef)
     var
         SalesLine: Record "Sales Line";
@@ -685,7 +675,6 @@ codeunit 3309 "EDoc CFDI Validation MX"
         end;
     end;
 
-    // ← Migrado desde: CheckCustomer (L7241)
     local procedure CheckCustomerFields(CustomerNo: Code[20])
     var
         Customer: Record Customer;
@@ -871,7 +860,6 @@ codeunit 3309 "EDoc CFDI Validation MX"
             Error(EmptySATCatalogErr, SATMaterialType.TableCaption());
     end;
 
-    // ← Migrado desde: CheckDocumentLine (L7375) — Unit of Measure + SAT Classification
     local procedure CheckLine(UnitOfMeasureCode: Code[10])
     var
         UnitOfMeasure: Record "Unit of Measure";

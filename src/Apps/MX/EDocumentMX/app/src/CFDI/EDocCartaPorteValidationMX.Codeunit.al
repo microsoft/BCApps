@@ -2,11 +2,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.eServices.EDocument.IO.CartaPorte;
+namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.FixedAssets.FixedAsset;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Item;
@@ -17,8 +16,6 @@ using Microsoft.Sales.History;
 
 codeunit 3310 "EDoc Carta Porte Validation MX"
 {
-
-
     procedure CheckShipmentDocument(SourceDocumentHeader: RecordRef)
     var
         SalesHeader: Record "Sales Header";
@@ -471,6 +468,25 @@ codeunit 3310 "EDoc Carta Porte Validation MX"
             if UnitOfMeasure.Get(TransferLine."Unit of Measure Code") then
                 UnitOfMeasure.TestField("SAT UofM Classification");
         until TransferLine.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", 'OnBeforeTransferOrderPostShipment', '', false, false)]
+    local procedure CheckTransferOrderBeforePost(var TransferHeader: Record "Transfer Header")
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocCartaPorteValidationMX: Codeunit "EDoc Carta Porte Validation MX";
+        EDocCFDIValidationMX: Codeunit "EDoc CFDI Validation MX";
+        SourceDocumentHeader: RecordRef;
+    begin
+
+        EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::CFDI);
+        if not EDocumentService.FindFirst() then
+            exit;
+
+        SourceDocumentHeader.GetTable(TransferHeader);
+        CheckTransferDocument(SourceDocumentHeader);
+        EDocCFDIValidationMX.CheckCompanyInfo();
+        EDocCFDIValidationMX.CheckCertificate(EDocumentService);
     end;
 
     var

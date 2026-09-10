@@ -2,19 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.EServices.EDocument.Interfactura;
+
+using Microsoft.Foundation.Company;
+using Microsoft.eServices.EDocument;
+using System.Utilities;
+
 codeunit 3311 "CFDI Cancellation MX"
 {
-
-    /*
-    
-    Migrar desde: codeunit 10145 CancelDocument (L1459) + CancelNonPaymentStampDocument
-    
-    */
-
-
-    // Se invoca desde IDocumentAction.InvokeAction() del conector
-    // o como acción directa del usuario
-
     procedure CreateCancellationXML(CancelDateTime: Text[50]; DateTimeStamped: Text; UUID: Text[50]; CancellationReasonCode: Code[10]; SubstitutionUUID: Text[50]; var TempBlob: Codeunit "Temp Blob")
     var
         CompanyInformation: Record "Company Information";

@@ -2,15 +2,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.EServices.EDocument.Interfactura;
+
+using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
+using Microsoft.Service.History;
+using Microsoft.eServices.EDocument;
+using System.Text;
+using System.Utilities;
+
 codeunit 3313 "CFDI Write-Back MX"
 {
-    // Helper codeunit for CFDI stamp data extraction from E-Document tables.
-    // Legacy write-back to posted document fields is intentionally removed:
-    // those NA fields (Fiscal Invoice Number PAC, Digital Stamp SAT, etc.) are
-    // transitional and will be obsoleted; all stamp data is read from E-Document tables.
-
-    /// <summary>Returns the UUID (Fiscal Invoice Number PAC) for a posted document
-    /// by finding its cleared E-Document and parsing the TimbreFiscalDigital node.</summary>
     procedure GetUUIDForDocument(DocumentRecordId: RecordId): Text
     var
         EDocument: Record "E-Document";

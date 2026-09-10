@@ -1,3 +1,30 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.EServices.EDocument.Interfactura;
+
+using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.UOM;
+using Microsoft.HumanResources.Employee;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Service.History;
+using Microsoft.eServices.EDocument;
+using System;
+using System.Reflection;
+using System.Security.Encryption;
+using System.Telemetry;
+using System.Utilities;
+
 codeunit 3303 "Export Interfactura MX"
 {
     var
@@ -16,20 +43,25 @@ codeunit 3303 "Export Interfactura MX"
         FeatureNameTok: Label 'EDocument Format Interfactura', Locked = true;
         StartEventNameTok: Label 'Export initiated. IsBatch is: %1', Locked = true;
         EndEventNameTok: Label 'Export completed', Locked = true;
+        NumeroPedimentoFormatTxt: Label '%1 %2 %3 %4', Locked = true;
 
     procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     var
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         SalesShipmentHeader: Record "Sales Shipment Header";
+        TransferHeader: Record "Transfer Header";
         TransferShipmentHeader: Record "Transfer Shipment Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesLine: Record "Sales Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         ServiceInvoiceLine: Record "Service Invoice Line";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
         SalesShipmentLine: Record "Sales Shipment Line";
+        TransferLine: Record "Transfer Line";
         TransferShipmentLine: Record "Transfer Shipment Line";
     //CustLedgerEntry: Record "Cust. Ledger Entry"; 
     begin
@@ -41,6 +73,14 @@ codeunit 3303 "Export Interfactura MX"
             MXConnectionSetup.Init();
 
         case SourceDocumentHeader.Number of
+            Database::"Sales Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesHeader);
+                    if not IsBatch then
+                        SalesHeader.SetRecFilter();
+                    SourceDocumentLines.SetTable(SalesLine);
+                    ExportSalesHeader(EDocument, SalesHeader, SalesLine, TempBlob, IsBatch);
+                end;
             Database::"Sales Invoice Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesInvoiceHeader);
@@ -81,6 +121,14 @@ codeunit 3303 "Export Interfactura MX"
                     SourceDocumentLines.SetTable(SalesShipmentLine);
                     ExportSalesShipment(EDocument, SalesShipmentHeader, SalesShipmentLine, TempBlob, IsBatch);
                 end;
+            Database::"Transfer Header":
+                begin
+                    SourceDocumentHeader.SetTable(TransferHeader);
+                    if not IsBatch then
+                        TransferHeader.SetRecFilter();
+                    SourceDocumentLines.SetTable(TransferLine);
+                    ExportTransferHeader(EDocument, TransferHeader, TransferLine, TempBlob, IsBatch);
+                end;
             Database::"Transfer Shipment Header":
                 begin
                     SourceDocumentHeader.SetTable(TransferShipmentHeader);
@@ -105,6 +153,26 @@ codeunit 3303 "Export Interfactura MX"
         OnAfterExport(SourceDocumentHeader, SourceDocumentLines, TempBlob, IsBatch);
     end;
 
+    #region Sales Order
+
+    local procedure ExportSalesHeader(var EDocument: Record "E-Document"; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    var
+        XmlDocOut: XmlDocument;
+        RootNode: XmlElement;
+        FileOutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(FileOutStream, TextEncoding::UTF8);
+
+        XmlDocument.ReadFrom(GetBasicXMLHeader(true, SalesHeader."Foreign Trade"), XmlDocOut);
+        XmlDocOut.GetRoot(RootNode);
+
+        BuildSalesHeaderNode(RootNode, SalesHeader, SalesLine);
+        SignComprobanteXml(RootNode, XmlDocOut);
+        XmlDocOut.WriteTo(FileOutStream);
+    end;
+
+    #endregion
+
     #region Invoice
 
     local procedure ExportInvoice(var EDocument: Record "E-Document"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
@@ -115,7 +183,9 @@ codeunit 3303 "Export Interfactura MX"
         OriginalString: Text;
         SignedString: Text;
         CertificateText: Text;
+        AdvanceUUID: Text[50];
         CertificateSerialNo: Text[250];
+        AdvanceScenario: Integer;
     begin
         TempBlob.CreateOutStream(FileOutStream, TextEncoding::UTF8);
 
@@ -124,14 +194,33 @@ codeunit 3303 "Export Interfactura MX"
 
         GetCertificateMetadata(CertificateText, CertificateSerialNo);
         SalesInvoiceHeader.CalcFields(Amount, "Amount Including VAT");
-        CreateXMLDocument33(
-            ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
-            SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount, 0, 0);
-        OriginalString := CreateOriginalStr33Document(XMLDocOut);
-        SignedString := CreateDigitalSignature(OriginalString, MXConnectionSetup.Id);
-        ComprobanteXMLNode.SetAttribute('Sello', SignedString);
+
+        AdvanceScenario := GetAdvanceScenario(SalesInvoiceHeader);
+        case AdvanceScenario of
+            1:
+                CreateXMLDocument33AdvancePayment(
+                    ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
+                    SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount);
+            2:
+                begin
+                    AdvanceUUID := FindPrepaymentUUID(SalesInvoiceHeader);
+                    CreateXMLDocument33AdvanceSettle(
+                        ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
+                        AdvanceUUID, SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount, 0, 0);
+                end;
+            else
+                CreateXMLDocument33(
+                    ComprobanteXMLNode, SalesInvoiceHeader, SalesInvoiceLine, '', CertificateText, CertificateSerialNo, XMLDocOut,
+                    SalesInvoiceHeader.Amount, SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount, 0, 0);
+        end;
 
         RemoveRedeclaredNamespaces(XMLDocOut);
+        OriginalString := CreateOriginalStr33Document(XMLDocOut);
+        SignedString := CreateDigitalSignature(OriginalString, MXConnectionSetup.Id);
+        XMLDocOut.GetRoot(ComprobanteXMLNode);
+        ComprobanteXMLNode.SetAttribute('Sello', SignedString);
+        ApplyLastUsedCertificateMetadata(ComprobanteXMLNode, CertificateSerialNo);
+
         XMLDocOut.WriteTo(FileOutStream);
     end;
 
@@ -195,33 +284,44 @@ codeunit 3303 "Export Interfactura MX"
         SignedString: Text;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
-        CertificateManagement: Codeunit "Certificate Management";
-        IsolatedCertificate: Record "Isolated Certificate";
     begin
         if not MXConnectionSetup.Get() then
             exit(false);
 
+        GetCertificateMetadata(CertificateText, CertificateSerialNo);
+        if (CertificateText = '') or (CertificateSerialNo = '') then
+            exit(false);
+
         ComprobanteXMLNode.SetAttribute('Sello', '');
-        OriginalString := CreateOriginalStr33Document(XMLDocOut);
-
-        if MXConnectionSetup."SAT Certificate" = '' then
-            exit(false);
-
-        if not IsolatedCertificate.Get(MXConnectionSetup."SAT Certificate") then
-            exit(false);
-
-        CertificateText := CertificateManagement.GetCertAsBase64String(IsolatedCertificate);
-        SignedString := CreateDigitalSignature(OriginalString, MXConnectionSetup.Id);
-        CertificateSerialNo := CopyStr(DigitalSignMX.GetCertificateSerialNo(MXConnectionSetup.Id), 1, MaxStrLen(CertificateSerialNo));
-
-        // SAT expects the raw DER certificate, not the PKCS#12 container that holds the private key
-        CertificateText := DigitalSignMX.GetLastUsedCertificate();
-
-        ComprobanteXMLNode.SetAttribute('Sello', SignedString);
         ComprobanteXMLNode.SetAttribute('NoCertificado', CertificateSerialNo);
         ComprobanteXMLNode.SetAttribute('Certificado', CertificateText);
+        RemoveRedeclaredNamespaces(XMLDocOut);
+        OriginalString := CreateOriginalStr33Document(XMLDocOut);
+
+        SignedString := CreateDigitalSignature(OriginalString, MXConnectionSetup.Id);
+
+        XMLDocOut.GetRoot(ComprobanteXMLNode);
+        ComprobanteXMLNode.SetAttribute('Sello', SignedString);
+        ApplyLastUsedCertificateMetadata(ComprobanteXMLNode, CertificateSerialNo);
 
         exit(true);
+    end;
+
+    local procedure ApplyLastUsedCertificateMetadata(var ComprobanteXMLNode: XmlElement; var CertificateSerialNo: Text[250])
+    var
+        CertificateText: Text;
+        LastUsedCertificateSerialNo: Text;
+    begin
+        CertificateText := DigitalSignMX.GetLastUsedCertificate();
+        LastUsedCertificateSerialNo := DigitalSignMX.GetLastUsedCertificateSerialNo();
+
+        if LastUsedCertificateSerialNo <> '' then begin
+            CertificateSerialNo := CopyStr(LastUsedCertificateSerialNo, 1, MaxStrLen(CertificateSerialNo));
+            ComprobanteXMLNode.SetAttribute('NoCertificado', CertificateSerialNo);
+        end;
+
+        if CertificateText <> '' then
+            ComprobanteXMLNode.SetAttribute('Certificado', CertificateText);
     end;
 
     #endregion
@@ -241,7 +341,6 @@ codeunit 3303 "Export Interfactura MX"
 
         BuildServiceInvoiceNode(RootNode, ServiceInvoiceHeader, ServiceInvoiceLine);
         SignComprobanteXml(RootNode, XmlDocOut);
-        RemoveRedeclaredNamespaces(XmlDocOut);
         XmlDocOut.WriteTo(FileOutStream);
     end;
 
@@ -262,7 +361,6 @@ codeunit 3303 "Export Interfactura MX"
 
         BuildCreditMemoNode(RootNode, SalesCrMemoHeader, SalesCrMemoLine);
         SignComprobanteXml(RootNode, XmlDocOut);
-        RemoveRedeclaredNamespaces(XmlDocOut);
         XmlDocOut.WriteTo(FileOutStream);
     end;
 
@@ -283,7 +381,6 @@ codeunit 3303 "Export Interfactura MX"
 
         BuildServiceCreditMemoNode(RootNode, ServiceCrMemoHeader, ServiceCrMemoLine);
         SignComprobanteXml(RootNode, XmlDocOut);
-        RemoveRedeclaredNamespaces(XmlDocOut);
         XmlDocOut.WriteTo(FileOutStream);
     end;
 
@@ -304,12 +401,30 @@ codeunit 3303 "Export Interfactura MX"
 
         BuildTransferNode(RootNode, SalesShptHeader, SalesShptLine);
         SignComprobanteXml(RootNode, XmlDocOut);
-        RemoveRedeclaredNamespaces(XmlDocOut);
         XmlDocOut.WriteTo(FileOutStream);
     end;
 
     #endregion
 
+    #region Transfer Header
+
+    local procedure ExportTransferHeader(var EDocument: Record "E-Document"; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    var
+        XmlDocOut: XmlDocument;
+        RootNode: XmlElement;
+        FileOutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(FileOutStream, TextEncoding::UTF8);
+
+        XmlDocument.ReadFrom(GetBasicXMLHeader(true, TransferHeader."Foreign Trade"), XmlDocOut);
+        XmlDocOut.GetRoot(RootNode);
+
+        BuildTransferHeaderNode(RootNode, TransferHeader, TransferLine);
+        SignComprobanteXml(RootNode, XmlDocOut);
+        XmlDocOut.WriteTo(FileOutStream);
+    end;
+
+    #endregion
 
     #region Transfer Shipment
 
@@ -326,14 +441,17 @@ codeunit 3303 "Export Interfactura MX"
 
         BuildTransferNode(RootNode, TransferShipment, TransferShipmentLine);
         SignComprobanteXml(RootNode, XmlDocOut);
-
-        RemoveRedeclaredNamespaces(XmlDocOut);
         XmlDocOut.WriteTo(FileOutStream);
     end;
 
     #endregion
 
     #region Common Procedures
+
+    local procedure CreateCFDIElement(ElementName: Text): XmlElement
+    begin
+        exit(XmlElement.Create(ElementName, CFDINamespaceTxt, ''));
+    end;
 
     local procedure GetBasicXMLHeader(IsCartaPorte: Boolean; IsForeignTrade: Boolean): Text
     var
@@ -402,12 +520,12 @@ codeunit 3303 "Export Interfactura MX"
         if CFDIRelationDocument.IsEmpty() then
             exit;
 
-        CfdiRelacionadosNode := XmlElement.Create('CfdiRelacionados');
+        CfdiRelacionadosNode := CreateCFDIElement('CfdiRelacionados');
         CfdiRelacionadosNode.SetAttribute('TipoRelacion', RelationType);
 
         if CFDIRelationDocument.FindSet() then
             repeat
-                CfdiRelacionadoNode := XmlElement.Create('CfdiRelacionado');
+                CfdiRelacionadoNode := CreateCFDIElement('CfdiRelacionado');
                 CfdiRelacionadoNode.SetAttribute('UUID', CFDIRelationDocument."Fiscal Invoice Number PAC");
                 CfdiRelacionadosNode.Add(CfdiRelacionadoNode.AsXmlNode());
             until CFDIRelationDocument.Next() = 0;
@@ -503,9 +621,12 @@ codeunit 3303 "Export Interfactura MX"
         SubTotal: Decimal;
         Total: Decimal;
         TaxTotal: Decimal;
+        CalculatedTaxBase: Decimal;
+        CalculatedTaxTotal: Decimal;
         CurrencyCode: Code[10];
         LineAmount: Decimal;
         LineDiscount: Decimal;
+        TotalDiscount: Decimal;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
     begin
@@ -524,13 +645,13 @@ codeunit 3303 "Export Interfactura MX"
 
         RootNode.SetAttribute('Version', '4.0');
         RootNode.SetAttribute('Folio', SalesCrMemoHeader."No.");
-        RootNode.SetAttribute('Fecha', FormatDateTime(CurrentDateTime()));
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesCrMemoHeader));
         RootNode.SetAttribute('Sello', '');
         RootNode.SetAttribute('FormaPago', SATUtilities.GetSATPaymentMethod(SalesCrMemoHeader."Payment Method Code"));
         RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
         RootNode.SetAttribute('Certificado', CertificateText);
         RootNode.SetAttribute('SubTotal', FormatAmount(SubTotal, CurrencyCode));
-        RootNode.SetAttribute('Descuento', FormatAmount(0, CurrencyCode));
+        RootNode.SetAttribute('Descuento', FormatAmount(TotalDiscount, CurrencyCode));
         if CurrencyCode <> '' then begin
             RootNode.SetAttribute('Moneda', CurrencyCode);
             if (CurrencyCode <> 'MXN') and (CurrencyCode <> 'XXX') then
@@ -544,13 +665,13 @@ codeunit 3303 "Export Interfactura MX"
 
         AddCfdiRelacionadosNode(RootNode, Database::"Sales Cr.Memo Header", SalesCrMemoHeader."No.", SalesCrMemoHeader."CFDI Relation");
 
-        EmisorNode := XmlElement.Create('Emisor');
+        EmisorNode := CreateCFDIElement('Emisor');
         EmisorNode.SetAttribute('Rfc', CompanyInfo."RFC Number");
         EmisorNode.SetAttribute('Nombre', CompanyInfo.Name);
         EmisorNode.SetAttribute('RegimenFiscal', CompanyInfo."SAT Tax Regime Classification");
         RootNode.Add(EmisorNode.AsXmlNode());
 
-        ReceptorNode := XmlElement.Create('Receptor');
+        ReceptorNode := CreateCFDIElement('Receptor');
         ReceptorNode.SetAttribute('Rfc', Customer."RFC No.");
         ReceptorNode.SetAttribute('Nombre', Customer.Name);
         ReceptorNode.SetAttribute('DomicilioFiscalReceptor', CompanyInfo."SAT Postal Code");
@@ -558,12 +679,12 @@ codeunit 3303 "Export Interfactura MX"
         ReceptorNode.SetAttribute('UsoCFDI', SalesCrMemoHeader."CFDI Purpose");
         RootNode.Add(ReceptorNode.AsXmlNode());
 
-        ConceptosNode := XmlElement.Create('Conceptos');
+        ConceptosNode := CreateCFDIElement('Conceptos');
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
         if SalesCrMemoLine.FindSet() then
             repeat
-                ConceptoNode := XmlElement.Create('Concepto');
+                ConceptoNode := CreateCFDIElement('Concepto');
                 LineAmount := SalesCrMemoLine.Amount;
                 LineDiscount := SalesCrMemoLine."Line Discount Amount";
                 ConceptoNode.SetAttribute('ClaveProdServ', SATUtilities.GetSATClassification(SalesCrMemoLine.Type, SalesCrMemoLine."No."));
@@ -574,25 +695,43 @@ codeunit 3303 "Export Interfactura MX"
                 ConceptoNode.SetAttribute('Descripcion', EncodeString(SalesCrMemoLine.Description));
                 ConceptoNode.SetAttribute('ValorUnitario', FormatDecimal(SalesCrMemoLine."Unit Price", 6));
                 ConceptoNode.SetAttribute('Importe', FormatDecimal(LineAmount, 6));
-                if LineDiscount <> 0 then
-                    ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
+                ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
+                TotalDiscount += LineDiscount;
                 ConceptoNode.SetAttribute('ObjetoImp', '02');
+
+                if SalesCrMemoLine."VAT %" <> 0 then begin
+                    CalculatedTaxBase += SalesCrMemoLine.Amount;
+                    CalculatedTaxTotal += SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount;
+
+                    ImpuestosNode := CreateCFDIElement('Impuestos');
+                    TrasladosNode := CreateCFDIElement('Traslados');
+                    TrasladoNode := CreateCFDIElement('Traslado');
+                    TrasladoNode.SetAttribute('Base', FormatDecimal(SalesCrMemoLine.Amount, 6));
+                    TrasladoNode.SetAttribute('Impuesto', '002');
+                    TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
+                    TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SalesCrMemoLine."VAT %" / 100, 6), 8, '0'));
+                    TrasladoNode.SetAttribute('Importe', FormatDecimal(SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount, 6));
+                    TrasladosNode.Add(TrasladoNode.AsXmlNode());
+                    ImpuestosNode.Add(TrasladosNode.AsXmlNode());
+                    ConceptoNode.Add(ImpuestosNode.AsXmlNode());
+                end;
+
                 ConceptosNode.Add(ConceptoNode.AsXmlNode());
             until SalesCrMemoLine.Next() = 0;
 
         RootNode.Add(ConceptosNode.AsXmlNode());
 
+        TaxTotal := CalculatedTaxTotal;
         if TaxTotal <> 0 then begin
-            ImpuestosNode := XmlElement.Create('Impuestos');
-            ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatDecimal(TaxTotal, 6));
-            ImpuestosNode.SetAttribute('TotalImpuestosRetenidos', FormatDecimal(0, 6));
-            TrasladosNode := XmlElement.Create('Traslados');
-            TrasladoNode := XmlElement.Create('Traslado');
-            TrasladoNode.SetAttribute('Base', FormatDecimal(SubTotal, 6));
+            ImpuestosNode := CreateCFDIElement('Impuestos');
+            ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
+            TrasladosNode := CreateCFDIElement('Traslados');
+            TrasladoNode := CreateCFDIElement('Traslado');
+            TrasladoNode.SetAttribute('Base', FormatAmount(CalculatedTaxBase, CurrencyCode));
             TrasladoNode.SetAttribute('Impuesto', '002');
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
             TrasladoNode.SetAttribute('TasaOCuota', '0.160000');
-            TrasladoNode.SetAttribute('Importe', FormatDecimal(TaxTotal, 6));
+            TrasladoNode.SetAttribute('Importe', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode.Add(TrasladoNode.AsXmlNode());
             ImpuestosNode.Add(TrasladosNode.AsXmlNode());
             RootNode.Add(ImpuestosNode.AsXmlNode());
@@ -614,9 +753,12 @@ codeunit 3303 "Export Interfactura MX"
         SubTotal: Decimal;
         Total: Decimal;
         TaxTotal: Decimal;
+        CalculatedTaxBase: Decimal;
+        CalculatedTaxTotal: Decimal;
         CurrencyCode: Code[10];
         LineAmount: Decimal;
         LineDiscount: Decimal;
+        TotalDiscount: Decimal;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
     begin
@@ -635,13 +777,13 @@ codeunit 3303 "Export Interfactura MX"
 
         RootNode.SetAttribute('Version', '4.0');
         RootNode.SetAttribute('Folio', ServiceInvoiceHeader."No.");
-        RootNode.SetAttribute('Fecha', FormatDateTime(CurrentDateTime()));
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(ServiceInvoiceHeader));
         RootNode.SetAttribute('Sello', '');
         RootNode.SetAttribute('FormaPago', SATUtilities.GetSATPaymentMethod(ServiceInvoiceHeader."Payment Method Code"));
         RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
         RootNode.SetAttribute('Certificado', CertificateText);
         RootNode.SetAttribute('SubTotal', FormatAmount(SubTotal, CurrencyCode));
-        RootNode.SetAttribute('Descuento', FormatAmount(0, CurrencyCode));
+        RootNode.SetAttribute('Descuento', FormatAmount(TotalDiscount, CurrencyCode));
         if CurrencyCode <> '' then begin
             RootNode.SetAttribute('Moneda', CurrencyCode);
             if (CurrencyCode <> 'MXN') and (CurrencyCode <> 'XXX') then
@@ -655,13 +797,13 @@ codeunit 3303 "Export Interfactura MX"
 
         AddCfdiRelacionadosNode(RootNode, Database::"Service Invoice Header", ServiceInvoiceHeader."No.", ServiceInvoiceHeader."CFDI Relation");
 
-        EmisorNode := XmlElement.Create('Emisor');
+        EmisorNode := CreateCFDIElement('Emisor');
         EmisorNode.SetAttribute('Rfc', CompanyInfo."RFC Number");
         EmisorNode.SetAttribute('Nombre', CompanyInfo.Name);
         EmisorNode.SetAttribute('RegimenFiscal', CompanyInfo."SAT Tax Regime Classification");
         RootNode.Add(EmisorNode.AsXmlNode());
 
-        ReceptorNode := XmlElement.Create('Receptor');
+        ReceptorNode := CreateCFDIElement('Receptor');
         ReceptorNode.SetAttribute('Rfc', Customer."RFC No.");
         ReceptorNode.SetAttribute('Nombre', Customer.Name);
         ReceptorNode.SetAttribute('DomicilioFiscalReceptor', CompanyInfo."SAT Postal Code");
@@ -669,12 +811,12 @@ codeunit 3303 "Export Interfactura MX"
         ReceptorNode.SetAttribute('UsoCFDI', ServiceInvoiceHeader."CFDI Purpose");
         RootNode.Add(ReceptorNode.AsXmlNode());
 
-        ConceptosNode := XmlElement.Create('Conceptos');
+        ConceptosNode := CreateCFDIElement('Conceptos');
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         ServiceInvoiceLine.SetFilter(Type, '<>%1', ServiceInvoiceLine.Type::" ");
         if ServiceInvoiceLine.FindSet() then
             repeat
-                ConceptoNode := XmlElement.Create('Concepto');
+                ConceptoNode := CreateCFDIElement('Concepto');
                 LineAmount := ServiceInvoiceLine.Amount;
                 LineDiscount := ServiceInvoiceLine."Line Discount Amount";
                 ConceptoNode.SetAttribute('ClaveProdServ', SATUtilities.GetSATClassification(ServiceInvoiceLine.Type, ServiceInvoiceLine."No."));
@@ -685,21 +827,39 @@ codeunit 3303 "Export Interfactura MX"
                 ConceptoNode.SetAttribute('Descripcion', EncodeString(ServiceInvoiceLine.Description));
                 ConceptoNode.SetAttribute('ValorUnitario', FormatDecimal(ServiceInvoiceLine."Unit Price", 6));
                 ConceptoNode.SetAttribute('Importe', FormatDecimal(LineAmount, 6));
-                if LineDiscount <> 0 then
-                    ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
+                ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
+                TotalDiscount += LineDiscount;
                 ConceptoNode.SetAttribute('ObjetoImp', '02');
+
+                if ServiceInvoiceLine."VAT %" <> 0 then begin
+                    CalculatedTaxBase += ServiceInvoiceLine.Amount;
+                    CalculatedTaxTotal += ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount;
+
+                    ImpuestosNode := CreateCFDIElement('Impuestos');
+                    TrasladosNode := CreateCFDIElement('Traslados');
+                    TrasladoNode := CreateCFDIElement('Traslado');
+                    TrasladoNode.SetAttribute('Base', FormatDecimal(ServiceInvoiceLine.Amount, 6));
+                    TrasladoNode.SetAttribute('Impuesto', '002');
+                    TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
+                    TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(ServiceInvoiceLine."VAT %" / 100, 6), 8, '0'));
+                    TrasladoNode.SetAttribute('Importe', FormatDecimal(ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount, 6));
+                    TrasladosNode.Add(TrasladoNode.AsXmlNode());
+                    ImpuestosNode.Add(TrasladosNode.AsXmlNode());
+                    ConceptoNode.Add(ImpuestosNode.AsXmlNode());
+                end;
+
                 ConceptosNode.Add(ConceptoNode.AsXmlNode());
             until ServiceInvoiceLine.Next() = 0;
 
         RootNode.Add(ConceptosNode.AsXmlNode());
 
+        TaxTotal := CalculatedTaxTotal;
         if TaxTotal <> 0 then begin
-            ImpuestosNode := XmlElement.Create('Impuestos');
+            ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatDecimal(TaxTotal, 6));
-            ImpuestosNode.SetAttribute('TotalImpuestosRetenidos', FormatDecimal(0, 6));
-            TrasladosNode := XmlElement.Create('Traslados');
-            TrasladoNode := XmlElement.Create('Traslado');
-            TrasladoNode.SetAttribute('Base', FormatDecimal(SubTotal, 6));
+            TrasladosNode := CreateCFDIElement('Traslados');
+            TrasladoNode := CreateCFDIElement('Traslado');
+            TrasladoNode.SetAttribute('Base', FormatDecimal(CalculatedTaxBase, 6));
             TrasladoNode.SetAttribute('Impuesto', '002');
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
             TrasladoNode.SetAttribute('TasaOCuota', '0.160000');
@@ -725,9 +885,12 @@ codeunit 3303 "Export Interfactura MX"
         SubTotal: Decimal;
         Total: Decimal;
         TaxTotal: Decimal;
+        CalculatedTaxBase: Decimal;
+        CalculatedTaxTotal: Decimal;
         CurrencyCode: Code[10];
         LineAmount: Decimal;
         LineDiscount: Decimal;
+        TotalDiscount: Decimal;
         CertificateText: Text;
         CertificateSerialNo: Text[250];
     begin
@@ -746,13 +909,13 @@ codeunit 3303 "Export Interfactura MX"
 
         RootNode.SetAttribute('Version', '4.0');
         RootNode.SetAttribute('Folio', ServiceCrMemoHeader."No.");
-        RootNode.SetAttribute('Fecha', FormatDateTime(CurrentDateTime()));
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(ServiceCrMemoHeader));
         RootNode.SetAttribute('Sello', '');
         RootNode.SetAttribute('FormaPago', SATUtilities.GetSATPaymentMethod(ServiceCrMemoHeader."Payment Method Code"));
         RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
         RootNode.SetAttribute('Certificado', CertificateText);
         RootNode.SetAttribute('SubTotal', FormatAmount(SubTotal, CurrencyCode));
-        RootNode.SetAttribute('Descuento', FormatAmount(0, CurrencyCode));
+        RootNode.SetAttribute('Descuento', FormatAmount(TotalDiscount, CurrencyCode));
         if CurrencyCode <> '' then begin
             RootNode.SetAttribute('Moneda', CurrencyCode);
             if (CurrencyCode <> 'MXN') and (CurrencyCode <> 'XXX') then
@@ -766,13 +929,13 @@ codeunit 3303 "Export Interfactura MX"
 
         AddCfdiRelacionadosNode(RootNode, Database::"Service Cr.Memo Header", ServiceCrMemoHeader."No.", ServiceCrMemoHeader."CFDI Relation");
 
-        EmisorNode := XmlElement.Create('Emisor');
+        EmisorNode := CreateCFDIElement('Emisor');
         EmisorNode.SetAttribute('Rfc', CompanyInfo."RFC Number");
         EmisorNode.SetAttribute('Nombre', CompanyInfo.Name);
         EmisorNode.SetAttribute('RegimenFiscal', CompanyInfo."SAT Tax Regime Classification");
         RootNode.Add(EmisorNode.AsXmlNode());
 
-        ReceptorNode := XmlElement.Create('Receptor');
+        ReceptorNode := CreateCFDIElement('Receptor');
         ReceptorNode.SetAttribute('Rfc', Customer."RFC No.");
         ReceptorNode.SetAttribute('Nombre', Customer.Name);
         ReceptorNode.SetAttribute('DomicilioFiscalReceptor', CompanyInfo."SAT Postal Code");
@@ -780,12 +943,12 @@ codeunit 3303 "Export Interfactura MX"
         ReceptorNode.SetAttribute('UsoCFDI', ServiceCrMemoHeader."CFDI Purpose");
         RootNode.Add(ReceptorNode.AsXmlNode());
 
-        ConceptosNode := XmlElement.Create('Conceptos');
+        ConceptosNode := CreateCFDIElement('Conceptos');
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         ServiceCrMemoLine.SetFilter(Type, '<>%1', ServiceCrMemoLine.Type::" ");
         if ServiceCrMemoLine.FindSet() then
             repeat
-                ConceptoNode := XmlElement.Create('Concepto');
+                ConceptoNode := CreateCFDIElement('Concepto');
                 LineAmount := ServiceCrMemoLine.Amount;
                 LineDiscount := ServiceCrMemoLine."Line Discount Amount";
                 ConceptoNode.SetAttribute('ClaveProdServ', SATUtilities.GetSATClassification(ServiceCrMemoLine.Type, ServiceCrMemoLine."No."));
@@ -796,29 +959,101 @@ codeunit 3303 "Export Interfactura MX"
                 ConceptoNode.SetAttribute('Descripcion', EncodeString(ServiceCrMemoLine.Description));
                 ConceptoNode.SetAttribute('ValorUnitario', FormatDecimal(ServiceCrMemoLine."Unit Price", 6));
                 ConceptoNode.SetAttribute('Importe', FormatDecimal(LineAmount, 6));
-                if LineDiscount <> 0 then
-                    ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
+                ConceptoNode.SetAttribute('Descuento', FormatDecimal(LineDiscount, 6));
+                TotalDiscount += LineDiscount;
                 ConceptoNode.SetAttribute('ObjetoImp', '02');
+
+                if ServiceCrMemoLine."VAT %" <> 0 then begin
+                    CalculatedTaxBase += ServiceCrMemoLine.Amount;
+                    CalculatedTaxTotal += ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount;
+
+                    ImpuestosNode := CreateCFDIElement('Impuestos');
+                    TrasladosNode := CreateCFDIElement('Traslados');
+                    TrasladoNode := CreateCFDIElement('Traslado');
+                    TrasladoNode.SetAttribute('Base', FormatDecimal(ServiceCrMemoLine.Amount, 6));
+                    TrasladoNode.SetAttribute('Impuesto', '002');
+                    TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
+                    TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(ServiceCrMemoLine."VAT %" / 100, 6), 8, '0'));
+                    TrasladoNode.SetAttribute('Importe', FormatDecimal(ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount, 6));
+                    TrasladosNode.Add(TrasladoNode.AsXmlNode());
+                    ImpuestosNode.Add(TrasladosNode.AsXmlNode());
+                    ConceptoNode.Add(ImpuestosNode.AsXmlNode());
+                end;
+
                 ConceptosNode.Add(ConceptoNode.AsXmlNode());
             until ServiceCrMemoLine.Next() = 0;
 
         RootNode.Add(ConceptosNode.AsXmlNode());
 
+        TaxTotal := CalculatedTaxTotal;
         if TaxTotal <> 0 then begin
-            ImpuestosNode := XmlElement.Create('Impuestos');
-            ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatDecimal(TaxTotal, 6));
-            ImpuestosNode.SetAttribute('TotalImpuestosRetenidos', FormatDecimal(0, 6));
-            TrasladosNode := XmlElement.Create('Traslados');
-            TrasladoNode := XmlElement.Create('Traslado');
-            TrasladoNode.SetAttribute('Base', FormatDecimal(SubTotal, 6));
+            ImpuestosNode := CreateCFDIElement('Impuestos');
+            ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
+            TrasladosNode := CreateCFDIElement('Traslados');
+            TrasladoNode := CreateCFDIElement('Traslado');
+            TrasladoNode.SetAttribute('Base', FormatAmount(CalculatedTaxBase, CurrencyCode));
             TrasladoNode.SetAttribute('Impuesto', '002');
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
             TrasladoNode.SetAttribute('TasaOCuota', '0.160000');
-            TrasladoNode.SetAttribute('Importe', FormatDecimal(TaxTotal, 6));
+            TrasladoNode.SetAttribute('Importe', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode.Add(TrasladoNode.AsXmlNode());
             ImpuestosNode.Add(TrasladosNode.AsXmlNode());
             RootNode.Add(ImpuestosNode.AsXmlNode());
         end;
+    end;
+
+    local procedure BuildSalesHeaderNode(var RootNode: XmlElement; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    var
+        CompanyInfo: Record "Company Information";
+        Customer: Record Customer;
+        SATUtilities: Codeunit "SAT Utilities";
+        RootXmlNode: XmlNode;
+        ConceptosNode: XmlNode;
+        ConceptoNode: XmlNode;
+        InformacionAduaneraNode: XmlNode;
+        NumeroPedimento: Text;
+    begin
+        CompanyInfo.Get();
+        GetCustomer(Customer, SalesHeader."Sell-to Customer No.", false);
+
+        RootNode.SetAttribute('Version', '4.0');
+        RootNode.SetAttribute('Folio', SalesHeader."No.");
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesHeader));
+        RootNode.SetAttribute('Sello', '');
+        RootNode.SetAttribute('NoCertificado', '');
+        RootNode.SetAttribute('Certificado', '');
+        RootNode.SetAttribute('SubTotal', '0');
+        RootNode.SetAttribute('Moneda', 'XXX');
+        RootNode.SetAttribute('Total', '0');
+        RootNode.SetAttribute('TipoDeComprobante', 'T');
+        RootNode.SetAttribute('Exportacion', SalesHeader."CFDI Export Code");
+        RootNode.SetAttribute('LugarExpedicion', CompanyInfo."SAT Postal Code");
+
+        AddCompanyIssuerReceiver(RootNode, 'S01');
+
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Conceptos', '', ConceptosNode);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        if SalesLine.FindSet() then
+            repeat
+                CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', ConceptoNode);
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', SATUtilities.GetSATClassification(SalesLine.Type, SalesLine."No."));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'NoIdentificacion', SalesLine."No.");
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', Format(SalesLine.Quantity, 0, 9));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', SATUtilities.GetSATUnitofMeasure(SalesLine."Unit of Measure Code"));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Unidad', SalesLine."Unit of Measure Code");
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', EncodeString(SalesLine.Description));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', '0');
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', '0');
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', '01');
+                if (not SalesHeader."Foreign Trade") and TryFormatNumeroPedimento(SalesLine."Custom Transit Number", NumeroPedimento) then begin
+                    CFDIXMLHelperMX.AddElementCFDI(ConceptoNode, 'InformacionAduanera', '', InformacionAduaneraNode);
+                    CFDIXMLHelperMX.AddAttribute(InformacionAduaneraNode, 'NumeroPedimento', NumeroPedimento);
+                end;
+            until SalesLine.Next() = 0;
+
+        AddCartaPorteComplementNode(RootNode, SalesHeader, SalesLine);
     end;
 
     local procedure BuildTransferNode(var RootNode: XmlElement; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesShipmentLine: Record "Sales Shipment Line")
@@ -828,12 +1063,14 @@ codeunit 3303 "Export Interfactura MX"
         RootXmlNode: XmlNode;
         ConceptosNode: XmlNode;
         ConceptoNode: XmlNode;
+        InformacionAduaneraNode: XmlNode;
+        NumeroPedimento: Text;
     begin
         CompanyInfo.Get();
 
         RootNode.SetAttribute('Version', '4.0');
         RootNode.SetAttribute('Folio', SalesShipmentHeader."No.");
-        RootNode.SetAttribute('Fecha', FormatDateTime(CurrentDateTime()));
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesShipmentHeader));
         RootNode.SetAttribute('Sello', '');
         RootNode.SetAttribute('NoCertificado', '');
         RootNode.SetAttribute('Certificado', '');
@@ -861,9 +1098,64 @@ codeunit 3303 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', '0');
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', '0');
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', '01');
+                if (not SalesShipmentHeader."Foreign Trade") and TryFormatNumeroPedimento(SalesShipmentLine."Custom Transit Number", NumeroPedimento) then begin
+                    CFDIXMLHelperMX.AddElementCFDI(ConceptoNode, 'InformacionAduanera', '', InformacionAduaneraNode);
+                    CFDIXMLHelperMX.AddAttribute(InformacionAduaneraNode, 'NumeroPedimento', NumeroPedimento);
+                end;
             until SalesShipmentLine.Next() = 0;
 
         AddCartaPorteComplementNode(RootNode, SalesShipmentHeader, SalesShipmentLine);
+    end;
+
+    local procedure BuildTransferHeaderNode(var RootNode: XmlElement; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        CompanyInfo: Record "Company Information";
+        SATUtilities: Codeunit "SAT Utilities";
+        RootXmlNode: XmlNode;
+        ConceptosNode: XmlNode;
+        ConceptoNode: XmlNode;
+        InformacionAduaneraNode: XmlNode;
+        NumeroPedimento: Text;
+    begin
+        CompanyInfo.Get();
+
+        RootNode.SetAttribute('Version', '4.0');
+        RootNode.SetAttribute('Folio', TransferHeader."No.");
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(TransferHeader));
+        RootNode.SetAttribute('Sello', '');
+        RootNode.SetAttribute('NoCertificado', '');
+        RootNode.SetAttribute('Certificado', '');
+        RootNode.SetAttribute('SubTotal', '0');
+        RootNode.SetAttribute('Moneda', 'XXX');
+        RootNode.SetAttribute('Total', '0');
+        RootNode.SetAttribute('TipoDeComprobante', 'T');
+        RootNode.SetAttribute('Exportacion', TransferHeader."CFDI Export Code");
+        RootNode.SetAttribute('LugarExpedicion', CompanyInfo."SAT Postal Code");
+
+        AddCompanyIssuerReceiver(RootNode, 'S01');
+
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Conceptos', '', ConceptosNode);
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        if TransferLine.FindSet() then
+            repeat
+                CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', ConceptoNode);
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', SATUtilities.GetSATClassification("Sales Line Type"::Item, TransferLine."Item No."));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'NoIdentificacion', TransferLine."Item No.");
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', Format(TransferLine.Quantity, 0, 9));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', SATUtilities.GetSATUnitofMeasure(TransferLine."Unit of Measure Code"));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Unidad', TransferLine."Unit of Measure Code");
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', EncodeString(TransferLine.Description));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', '0');
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', '0');
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', '01');
+                if (not TransferHeader."Foreign Trade") and TryFormatNumeroPedimento(TransferLine."Custom Transit Number", NumeroPedimento) then begin
+                    CFDIXMLHelperMX.AddElementCFDI(ConceptoNode, 'InformacionAduanera', '', InformacionAduaneraNode);
+                    CFDIXMLHelperMX.AddAttribute(InformacionAduaneraNode, 'NumeroPedimento', NumeroPedimento);
+                end;
+            until TransferLine.Next() = 0;
+
+        AddCartaPorteComplementNode(RootNode, TransferHeader, TransferLine);
     end;
 
     local procedure BuildTransferNode(var RootNode: XmlElement; var TransferShipment: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
@@ -873,12 +1165,14 @@ codeunit 3303 "Export Interfactura MX"
         RootXmlNode: XmlNode;
         ConceptosNode: XmlNode;
         ConceptoNode: XmlNode;
+        InformacionAduaneraNode: XmlNode;
+        NumeroPedimento: Text;
     begin
         CompanyInfo.Get();
 
         RootNode.SetAttribute('Version', '4.0');
         RootNode.SetAttribute('Folio', TransferShipment."No.");
-        RootNode.SetAttribute('Fecha', FormatDateTime(CurrentDateTime()));
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(TransferShipment));
         RootNode.SetAttribute('Sello', '');
         RootNode.SetAttribute('NoCertificado', '');
         RootNode.SetAttribute('Certificado', '');
@@ -906,6 +1200,10 @@ codeunit 3303 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', '0');
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', '0');
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', '01');
+                if (not TransferShipment."Foreign Trade") and TryFormatNumeroPedimento(TransferShipmentLine."Custom Transit Number", NumeroPedimento) then begin
+                    CFDIXMLHelperMX.AddElementCFDI(ConceptoNode, 'InformacionAduanera', '', InformacionAduaneraNode);
+                    CFDIXMLHelperMX.AddAttribute(InformacionAduaneraNode, 'NumeroPedimento', NumeroPedimento);
+                end;
             until TransferShipmentLine.Next() = 0;
 
         AddCartaPorteComplementNode(RootNode, TransferShipment, TransferShipmentLine);
@@ -929,11 +1227,11 @@ codeunit 3303 "Export Interfactura MX"
         CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Receptor', '', ReceptorNode);
         CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'Rfc', CompanyInfo."RFC Number");
         CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'Nombre', CompanyInfo.Name);
-        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'DomicilioFiscalReceptor', CompanyInfo."SAT Postal Code");
-        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'RegimenFiscalReceptor', CompanyInfo."SAT Tax Regime Classification");
         if UsageCode = '' then
             UsageCode := 'S01';
         CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'UsoCFDI', UsageCode);
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'DomicilioFiscalReceptor', CompanyInfo."SAT Postal Code");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'RegimenFiscalReceptor', CompanyInfo."SAT Tax Regime Classification");
     end;
 
     local procedure AddCartaPorteComplementNode(var RootNode: XmlElement; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesShipmentLine: Record "Sales Shipment Line")
@@ -968,9 +1266,11 @@ codeunit 3303 "Export Interfactura MX"
         AddNodeComercioExterior(ComplementoXmlNode, SalesShipmentHeader, SalesShipmentLine);
         CFDIXMLHelperMX.AddElementCartaPorte(ComplementoXmlNode, 'CartaPorte', '', '', CartaPorteNode);
 
+        if SalesShipmentHeader."Identifier IdCCP" = '' then
+            SalesShipmentHeader."Identifier IdCCP" := 'CCC' + CopyStr(DelChr(Format(CreateGuid()), '=', '{}'), 4);
+
         CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'Version', '3.1');
-        if SalesShipmentHeader."Identifier IdCCP" <> '' then
-            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'IdCCP', SalesShipmentHeader."Identifier IdCCP");
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'IdCCP', SalesShipmentHeader."Identifier IdCCP");
         if SalesShipmentHeader."Foreign Trade" then begin
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
@@ -1065,6 +1365,136 @@ codeunit 3303 "Export Interfactura MX"
         AddNodeCartaPorteFiguraTransporte(FiguraNode, Database::"Sales Shipment Header", SalesShipmentHeader."No.", CartaPorteNode, CFDITransportOperator, Employee);
     end;
 
+    local procedure AddCartaPorteComplementNode(var RootNode: XmlElement; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    var
+        Location: Record Location;
+        Customer: Record Customer;
+        Employee: Record Employee;
+        CFDITransportOperator: Record "CFDI Transport Operator";
+        Item: Record Item;
+        SATUtilities: Codeunit "SAT Utilities";
+        XmlDoc: XmlDocument;
+        RootXmlNode: XmlNode;
+        ComplementoXmlNode: XmlNode;
+        CartaPorteNode: XmlNode;
+        RegimenesNode: XmlNode;
+        RegimenNode: XmlNode;
+        UbicacionesNode: XmlNode;
+        MercanciasNode: XmlNode;
+        MercanciaNode: XmlNode;
+        FiguraNode: XmlNode;
+        HazardousMatExists: Boolean;
+        GrossWeight: Decimal;
+        SATClassificationCode: Code[10];
+        DestinationRFCNo: Text;
+        ForeignRegId: Text;
+        ResidenciaFiscal: Text;
+        OriginLocationCode: Code[10];
+        IdCCP: Text;
+    begin
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Complemento', '', ComplementoXmlNode);
+        RootNode.GetDocument(XmlDoc);
+        if SalesHeader."Foreign Trade" then
+            AddNodeComercioExterior(ComplementoXmlNode, SalesHeader, SalesLine);
+        CFDIXMLHelperMX.AddElementCartaPorte(ComplementoXmlNode, 'CartaPorte', '', '', CartaPorteNode);
+
+        IdCCP := 'CCC' + CopyStr(DelChr(Format(CreateGuid()), '=', '{}'), 4);
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'Version', '3.1');
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'IdCCP', IdCCP);
+        if SalesHeader."Foreign Trade" then begin
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'PaisOrigenDestino', SATUtilities.GetSATCountryCode(SalesHeader."Ship-to Country/Region Code"));
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'ViaEntradaSalida', '01');
+        end else
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'No');
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TotalDistRec', FormatDecimal(SalesHeader."Transit Distance", 6));
+
+        if SalesHeader."Foreign Trade" then begin
+            CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'RegimenesAduaneros', '', '', RegimenesNode);
+            CFDIXMLHelperMX.AddElementCartaPorte(RegimenesNode, 'RegimenAduaneroCCP', '', '', RegimenNode);
+            CFDIXMLHelperMX.AddAttribute(RegimenNode, 'RegimenAduanero', SalesHeader."SAT Customs Regime");
+        end;
+
+        CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'Ubicaciones', '', '', UbicacionesNode);
+        OriginLocationCode := GetSalesHeaderOriginLocationCode(SalesHeader, SalesLine);
+        Location.Get(OriginLocationCode);
+        AddNodeCartaPorteUbicacion(
+            'Origen',
+            Location,
+            'OR',
+            CompanyInformation."RFC Number",
+            '',
+            '',
+            FormatDateTime(SalesHeader."Transit-from Date/Time"),
+            '',
+            XmlDoc,
+            UbicacionesNode,
+            UbicacionesNode);
+
+        GetCustomer(Customer, SalesHeader."Sell-to Customer No.", false);
+        DestinationRFCNo := Customer."RFC No.";
+        if SalesHeader."Foreign Trade" and (Customer."Country/Region Code" <> '') and (Customer."Country/Region Code" <> 'MEX') then begin
+            ForeignRegId := Customer."VAT Registration No.";
+            ResidenciaFiscal := SATUtilities.GetSATCountryCode(Customer."Country/Region Code");
+        end;
+
+        AddNodeCartaPorteUbicacionAddress(
+            'Destino',
+            SalesHeader."SAT Address ID",
+            SalesHeader."Ship-to Address",
+            'DE',
+            DestinationRFCNo,
+            ForeignRegId,
+            ResidenciaFiscal,
+            FormatDateTime(SalesHeader."Transit-from Date/Time" + (SalesHeader."Transit Hours" * 60 * 60 * 1000)),
+            FormatDecimal(SalesHeader."Transit Distance", 6),
+            UbicacionesNode);
+
+        CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'Mercancias', '', '', MercanciasNode);
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        GrossWeight := 0;
+        if SalesLine.FindSet() then
+            repeat
+                GrossWeight += SalesLine.Quantity * SalesLine."Gross Weight";
+            until SalesLine.Next() = 0;
+        CFDIXMLHelperMX.AddAttribute(MercanciasNode, 'UnidadPeso', SalesHeader."SAT Weight Unit Of Measure");
+        CFDIXMLHelperMX.AddAttribute(MercanciasNode, 'NumTotalMercancias', FormatDecimal(SalesLine.Count, 0));
+        CFDIXMLHelperMX.AddAttribute(MercanciasNode, 'PesoBrutoTotal', FormatDecimal(GrossWeight, 3));
+        if SalesLine.FindSet() then
+            repeat
+                Item.Get(SalesLine."No.");
+                CFDIXMLHelperMX.AddElementCartaPorte(MercanciasNode, 'Mercancia', '', '', MercanciaNode);
+                SATClassificationCode := SATUtilities.GetSATClassification(SalesLine.Type, SalesLine."No.");
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'BienesTransp', SATClassificationCode);
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Descripcion', EncodeString(SalesLine.Description));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Cantidad', Format(SalesLine.Quantity, 0, 9));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ClaveUnidad', SATUtilities.GetSATUnitofMeasure(SalesLine."Unit of Measure Code"));
+                if Item."SAT Hazardous Material" <> '' then begin
+                    HazardousMatExists := true;
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'MaterialPeligroso', 'Sí');
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'CveMaterialPeligroso', Item."SAT Hazardous Material");
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Embalaje', Item."SAT Packaging Type");
+                end else
+                    if IsHazardousMaterialMandatory(SATClassificationCode) then
+                        CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'MaterialPeligroso', 'No');
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'PesoEnKg', FormatDecimal(SalesLine.Quantity * SalesLine."Gross Weight", 3));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorMercancia', '0');
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Moneda', 'MXN');
+                if SalesHeader."Foreign Trade" then begin
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'FraccionArancelaria', DelChr(Item."Tariff No."));
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UUIDComercioExt', '00000000-0000-0000-0000-000000000000');
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'TipoMateria', Item."SAT Material Type");
+                    if SalesLine."SAT Customs Document Type" <> '' then
+                        AddNodeDocumentacionAduanera(MercanciaNode, SalesLine."SAT Customs Document Type", 'identifier');
+                end;
+            until SalesLine.Next() = 0;
+
+        AddNodeCartaPorteAutotransporte(MercanciasNode, SalesHeader."Vehicle Code", SalesHeader."Trailer 1", SalesHeader."Trailer 2", SalesHeader."Insurer Name", SalesHeader."Insurer Policy Number", HazardousMatExists, SalesHeader."Medical Insurer Name", SalesHeader."Medical Ins. Policy Number");
+        AddNodeCartaPorteFiguraTransporte(FiguraNode, Database::"Sales Header", SalesHeader."No.", CartaPorteNode, CFDITransportOperator, Employee);
+    end;
+
     local procedure GetSalesShipmentOriginLocationCode(SalesShipmentHeader: Record "Sales Shipment Header"; var SalesShipmentLine: Record "Sales Shipment Line"): Code[10]
     begin
         if SalesShipmentHeader."Location Code" <> '' then
@@ -1076,6 +1506,140 @@ codeunit 3303 "Export Interfactura MX"
             exit(SalesShipmentLine."Location Code");
 
         exit('');
+    end;
+
+    local procedure GetSalesHeaderOriginLocationCode(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"): Code[10]
+    begin
+        if SalesHeader."Location Code" <> '' then
+            exit(SalesHeader."Location Code");
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
+        if SalesLine.FindFirst() then
+            exit(SalesLine."Location Code");
+
+        exit('');
+    end;
+
+    local procedure AddCartaPorteComplementNode(var RootNode: XmlElement; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Employee: Record Employee;
+        CFDITransportOperator: Record "CFDI Transport Operator";
+        Item: Record Item;
+        SATUtilities: Codeunit "SAT Utilities";
+        XmlDoc: XmlDocument;
+        RootXmlNode: XmlNode;
+        ComplementoXmlNode: XmlNode;
+        CartaPorteNode: XmlNode;
+        RegimenesNode: XmlNode;
+        RegimenNode: XmlNode;
+        UbicacionesNode: XmlNode;
+        MercanciasNode: XmlNode;
+        MercanciaNode: XmlNode;
+        FiguraNode: XmlNode;
+        HazardousMatExists: Boolean;
+        GrossWeight: Decimal;
+        SATClassificationCode: Code[10];
+        IdCCP: Text;
+    begin
+        LocationTo.Get(TransferHeader."Transfer-to Code");
+
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Complemento', '', ComplementoXmlNode);
+        RootNode.GetDocument(XmlDoc);
+        if TransferHeader."Foreign Trade" then
+            AddNodeComercioExterior(ComplementoXmlNode, TransferHeader, TransferLine);
+        CFDIXMLHelperMX.AddElementCartaPorte(ComplementoXmlNode, 'CartaPorte', '', '', CartaPorteNode);
+
+        IdCCP := 'CCC' + CopyStr(DelChr(Format(CreateGuid()), '=', '{}'), 4);
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'Version', '3.1');
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'IdCCP', IdCCP);
+        if TransferHeader."Foreign Trade" then begin
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'PaisOrigenDestino', SATUtilities.GetSATCountryCode(LocationTo."Country/Region Code"));
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'ViaEntradaSalida', '01');
+        end else
+            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'No');
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TotalDistRec', FormatDecimal(TransferHeader."Transit Distance", 6));
+
+        if TransferHeader."Foreign Trade" then begin
+            CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'RegimenesAduaneros', '', '', RegimenesNode);
+            CFDIXMLHelperMX.AddElementCartaPorte(RegimenesNode, 'RegimenAduaneroCCP', '', '', RegimenNode);
+            CFDIXMLHelperMX.AddAttribute(RegimenNode, 'RegimenAduanero', TransferHeader."SAT Customs Regime");
+        end;
+
+        CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'Ubicaciones', '', '', UbicacionesNode);
+        LocationFrom.Get(TransferHeader."Transfer-from Code");
+        AddNodeCartaPorteUbicacion(
+            'Origen',
+            LocationFrom,
+            'OR',
+            CompanyInformation."RFC Number",
+            '',
+            '',
+            FormatDateTime(TransferHeader."Transit-from Date/Time"),
+            '',
+            XmlDoc,
+            UbicacionesNode,
+            UbicacionesNode);
+        AddNodeCartaPorteUbicacion(
+            'Destino',
+            LocationTo,
+            'DE',
+            CompanyInformation."RFC Number",
+            '',
+            '',
+            FormatDateTime(TransferHeader."Transit-from Date/Time" + (TransferHeader."Transit Hours" * 60 * 60 * 1000)),
+            FormatDecimal(TransferHeader."Transit Distance", 6),
+            XmlDoc,
+            UbicacionesNode,
+            UbicacionesNode);
+
+        CFDIXMLHelperMX.AddElementCartaPorte(CartaPorteNode, 'Mercancias', '', '', MercanciasNode);
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        GrossWeight := 0;
+        if TransferLine.FindSet() then
+            repeat
+                GrossWeight += TransferLine.Quantity * TransferLine."Gross Weight";
+            until TransferLine.Next() = 0;
+        CFDIXMLHelperMX.AddAttribute(MercanciasNode, 'UnidadPeso', TransferHeader."SAT Weight Unit Of Measure");
+        CFDIXMLHelperMX.AddAttribute(MercanciasNode, 'NumTotalMercancias', FormatDecimal(TransferLine.Count, 0));
+        CFDIXMLHelperMX.AddAttribute(MercanciasNode, 'PesoBrutoTotal', FormatDecimal(GrossWeight, 3));
+        if TransferLine.FindSet() then
+            repeat
+                Item.Get(TransferLine."Item No.");
+                CFDIXMLHelperMX.AddElementCartaPorte(MercanciasNode, 'Mercancia', '', '', MercanciaNode);
+                SATClassificationCode := SATUtilities.GetSATClassification("Sales Line Type"::Item, TransferLine."Item No.");
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'BienesTransp', SATClassificationCode);
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Descripcion', EncodeString(TransferLine.Description));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Cantidad', Format(TransferLine.Quantity, 0, 9));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ClaveUnidad', SATUtilities.GetSATUnitofMeasure(TransferLine."Unit of Measure Code"));
+                if Item."SAT Hazardous Material" <> '' then begin
+                    HazardousMatExists := true;
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'MaterialPeligroso', 'Sí');
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'CveMaterialPeligroso', Item."SAT Hazardous Material");
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Embalaje', Item."SAT Packaging Type");
+                end else
+                    if IsHazardousMaterialMandatory(SATClassificationCode) then
+                        CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'MaterialPeligroso', 'No');
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'PesoEnKg', FormatDecimal(TransferLine.Quantity * TransferLine."Gross Weight", 3));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorMercancia', '0');
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'Moneda', 'MXN');
+                if TransferHeader."Foreign Trade" then begin
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'FraccionArancelaria', DelChr(Item."Tariff No."));
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UUIDComercioExt', '00000000-0000-0000-0000-000000000000');
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'TipoMateria', Item."SAT Material Type");
+                    if TransferLine."SAT Customs Document Type" <> '' then
+                        AddNodeDocumentacionAduanera(MercanciaNode, TransferLine."SAT Customs Document Type", 'identifier');
+                end;
+            until TransferLine.Next() = 0;
+
+        AddNodeCartaPorteAutotransporte(MercanciasNode, TransferHeader."Vehicle Code", TransferHeader."Trailer 1", TransferHeader."Trailer 2", TransferHeader."Insurer Name", TransferHeader."Insurer Policy Number", HazardousMatExists, TransferHeader."Medical Insurer Name", TransferHeader."Medical Ins. Policy Number");
+        AddNodeCartaPorteFiguraTransporte(FiguraNode, Database::"Transfer Header", TransferHeader."No.", CartaPorteNode, CFDITransportOperator, Employee);
     end;
 
     local procedure AddCartaPorteComplementNode(var RootNode: XmlElement; var TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line")
@@ -1108,9 +1672,11 @@ codeunit 3303 "Export Interfactura MX"
         AddNodeComercioExterior(ComplementoXmlNode, TransferShipmentHeader, TransferShipmentLine, LocationFrom, LocationTo);
         CFDIXMLHelperMX.AddElementCartaPorte(ComplementoXmlNode, 'CartaPorte', '', '', CartaPorteNode);
 
+        if TransferShipmentHeader."Identifier IdCCP" = '' then
+            TransferShipmentHeader."Identifier IdCCP" := 'CCC' + CopyStr(DelChr(Format(CreateGuid()), '=', '{}'), 4);
+
         CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'Version', '3.1');
-        if TransferShipmentHeader."Identifier IdCCP" <> '' then
-            CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'IdCCP', TransferShipmentHeader."Identifier IdCCP");
+        CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'IdCCP', TransferShipmentHeader."Identifier IdCCP");
         if TransferShipmentHeader."Foreign Trade" then begin
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'TranspInternac', 'Sí');
             CFDIXMLHelperMX.AddAttribute(CartaPorteNode, 'EntradaSalidaMerc', 'Salida');
@@ -1216,6 +1782,79 @@ codeunit 3303 "Export Interfactura MX"
         CFDIXMLHelperMX.AddNodeDomicilio(SATAddressId, AddressTxt, DomicilioNode);
     end;
 
+    local procedure AddNodeComercioExterior(XMLCurrNode: XmlNode; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    var
+        Customer: Record Customer;
+        Location: Record Location;
+        Item: Record Item;
+        UOM: Record "Unit of Measure";
+        SATUtilities: Codeunit "SAT Utilities";
+        ComercioExteriorNode: XmlNode;
+        EmisorNode: XmlNode;
+        ReceptorNode: XmlNode;
+        MercanciasNode: XmlNode;
+        MercanciaNode: XmlNode;
+        DomicilioNode: XmlNode;
+        LineAmount: Decimal;
+        SumUSD: Decimal;
+        LineCount: Integer;
+        OriginLocationCode: Code[10];
+    begin
+        if not SalesHeader."Foreign Trade" then
+            exit;
+
+        GetCustomer(Customer, SalesHeader."Sell-to Customer No.", false);
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        LineCount := SalesLine.Count();
+        if LineCount = 0 then
+            exit;
+
+        CFDIXMLHelperMX.AddElementCCE(XMLCurrNode, 'ComercioExterior', '', CFDIComercioExteriorNamespaceTxt, ComercioExteriorNode);
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Version', '2.0');
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'MotivoTraslado', SalesHeader."SAT Transfer Reason");
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'ClaveDePedimento', 'A1');
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '0');
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Incoterm', SalesHeader."SAT International Trade Term");
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TipoCambioUSD', FormatDecimal(SalesHeader."Exchange Rate USD", 6));
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TotalUSD', '0');
+
+        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Emisor', '', CFDIComercioExteriorNamespaceTxt, EmisorNode);
+        CFDIXMLHelperMX.AddElementCCE(EmisorNode, 'Domicilio', '', CFDIComercioExteriorNamespaceTxt, DomicilioNode);
+        OriginLocationCode := GetSalesHeaderOriginLocationCode(SalesHeader, SalesLine);
+        Location.Get(OriginLocationCode);
+        CFDIXMLHelperMX.AddNodeDomicilio(Location."SAT Address ID", Location.Address, DomicilioNode);
+
+        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Receptor', '', CFDIComercioExteriorNamespaceTxt, ReceptorNode);
+        if (SATUtilities.GetSATCountryCode(Customer."Country/Region Code") <> 'MEX') and (Customer."RFC No." = 'XEXX010101000') then
+            CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'NumRegIdTrib', Customer."VAT Registration No.");
+        CFDIXMLHelperMX.AddElementCCE(ReceptorNode, 'Domicilio', '', CFDIComercioExteriorNamespaceTxt, DomicilioNode);
+        CFDIXMLHelperMX.AddNodeDomicilio(SalesHeader."SAT Address ID", SalesHeader."Ship-to Address", DomicilioNode);
+
+        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Mercancias', '', CFDIComercioExteriorNamespaceTxt, MercanciasNode);
+        if SalesLine.FindSet() then
+            repeat
+                CFDIXMLHelperMX.AddElementCCE(MercanciasNode, 'Mercancia', '', CFDIComercioExteriorNamespaceTxt, MercanciaNode);
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'NoIdentificacion', SalesLine."No.");
+                if Item.Get(SalesLine."No.") and (Item."Tariff No." <> '') then
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'FraccionArancelaria', DelChr(Item."Tariff No."));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'CantidadAduana', Format(SalesLine.Quantity, 0, 9));
+                UOM.Get(SalesLine."Unit of Measure Code");
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UnidadAduana', UOM."SAT Customs Unit");
+                LineAmount := SalesLine.Quantity * SalesLine."Unit Price";
+                if (SalesHeader."Exchange Rate USD" <> 0) and (SalesLine.Quantity <> 0) then begin
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', FormatDecimal(SalesLine."Unit Price" / SalesHeader."Exchange Rate USD", 6));
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', FormatDecimal(LineAmount / SalesHeader."Exchange Rate USD", 4));
+                    SumUSD += LineAmount / SalesHeader."Exchange Rate USD";
+                end else begin
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', '0');
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', '0');
+                end;
+            until SalesLine.Next() = 0;
+
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TotalUSD', FormatDecimal(SumUSD, 2));
+    end;
+
     local procedure AddNodeComercioExterior(XMLCurrNode: XmlNode; SalesShipmentHeader: Record "Sales Shipment Header"; var SalesShipmentLine: Record "Sales Shipment Line")
     var
         Customer: Record Customer;
@@ -1286,6 +1925,61 @@ codeunit 3303 "Export Interfactura MX"
             until SalesShipmentLine.Next() = 0;
 
         CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TotalUSD', FormatDecimal(SumUSD, 2));
+    end;
+
+    local procedure AddNodeComercioExterior(XMLCurrNode: XmlNode; TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        Item: Record Item;
+        UOM: Record "Unit of Measure";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        ComercioExteriorNode: XmlNode;
+        EmisorNode: XmlNode;
+        ReceptorNode: XmlNode;
+        MercanciasNode: XmlNode;
+        MercanciaNode: XmlNode;
+        DomicilioNode: XmlNode;
+    begin
+        if not TransferHeader."Foreign Trade" then
+            exit;
+
+        LocationFrom.Get(TransferHeader."Transfer-from Code");
+        LocationTo.Get(TransferHeader."Transfer-to Code");
+
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        if TransferLine.IsEmpty() then
+            exit;
+
+        CFDIXMLHelperMX.AddElementCCE(XMLCurrNode, 'ComercioExterior', '', CFDIComercioExteriorNamespaceTxt, ComercioExteriorNode);
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Version', '2.0');
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'MotivoTraslado', TransferHeader."SAT Transfer Reason");
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'ClaveDePedimento', 'A1');
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'CertificadoOrigen', '0');
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'Incoterm', TransferHeader."SAT International Trade Term");
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TipoCambioUSD', FormatDecimal(TransferHeader."Exchange Rate USD", 6));
+        CFDIXMLHelperMX.AddAttribute(ComercioExteriorNode, 'TotalUSD', '0');
+
+        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Emisor', '', CFDIComercioExteriorNamespaceTxt, EmisorNode);
+        CFDIXMLHelperMX.AddElementCCE(EmisorNode, 'Domicilio', '', CFDIComercioExteriorNamespaceTxt, DomicilioNode);
+        CFDIXMLHelperMX.AddNodeDomicilio(LocationFrom."SAT Address ID", LocationFrom.Address, DomicilioNode);
+
+        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Receptor', '', CFDIComercioExteriorNamespaceTxt, ReceptorNode);
+        CFDIXMLHelperMX.AddElementCCE(ReceptorNode, 'Domicilio', '', CFDIComercioExteriorNamespaceTxt, DomicilioNode);
+        CFDIXMLHelperMX.AddNodeDomicilio(LocationTo."SAT Address ID", LocationTo.Address, DomicilioNode);
+
+        CFDIXMLHelperMX.AddElementCCE(ComercioExteriorNode, 'Mercancias', '', CFDIComercioExteriorNamespaceTxt, MercanciasNode);
+        if TransferLine.FindSet() then
+            repeat
+                CFDIXMLHelperMX.AddElementCCE(MercanciasNode, 'Mercancia', '', CFDIComercioExteriorNamespaceTxt, MercanciaNode);
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'NoIdentificacion', TransferLine."Item No.");
+                if Item.Get(TransferLine."Item No.") and (Item."Tariff No." <> '') then
+                    CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'FraccionArancelaria', DelChr(Item."Tariff No."));
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'CantidadAduana', Format(TransferLine.Quantity, 0, 9));
+                UOM.Get(TransferLine."Unit of Measure Code");
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'UnidadAduana', UOM."SAT Customs Unit");
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorUnitarioAduana', '0');
+                CFDIXMLHelperMX.AddAttribute(MercanciaNode, 'ValorDolares', '0');
+            until TransferLine.Next() = 0;
     end;
 
     local procedure AddNodeComercioExterior(XMLCurrNode: XmlNode; TransferShipmentHeader: Record "Transfer Shipment Header"; var TransferShipmentLine: Record "Transfer Shipment Line"; var LocationFrom: Record Location; var LocationTo: Record Location)
@@ -1430,6 +2124,7 @@ codeunit 3303 "Export Interfactura MX"
         Customer: Record Customer;
         CompanyInfo: Record "Company Information";
         SATUtilities: Codeunit "SAT Utilities";
+        SalesInvoiceRetentionLine: Record "Sales Invoice Line";
         ConceptosNode: XmlNode;
         ConceptoNode: XmlNode;
         CurrentNode: XmlNode;
@@ -1442,7 +2137,7 @@ codeunit 3303 "Export Interfactura MX"
 
         RootNode.SetAttribute('Version', '4.0');
         RootNode.SetAttribute('Folio', SalesInvoiceHeader."No.");
-        RootNode.SetAttribute('Fecha', FormatDateTime(CurrentDateTime()));
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesInvoiceHeader));
         RootNode.SetAttribute('Sello', SignedString);
         RootNode.SetAttribute('FormaPago', SATUtilities.GetSATPaymentMethod(SalesInvoiceHeader."Payment Method Code"));
         RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
@@ -1477,17 +2172,15 @@ codeunit 3303 "Export Interfactura MX"
         CurrentNode := XMLNewChild;
         CFDIXMLHelperMX.AddAttribute(CurrentNode, 'Rfc', Customer."RFC No.");
         CFDIXMLHelperMX.AddAttribute(CurrentNode, 'Nombre', Customer.Name);
-        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'DomicilioFiscalReceptor', CompanyInfo."SAT Postal Code");
-        if Customer."Country/Region Code" <> 'MEX' then begin
-            CFDIXMLHelperMX.AddAttribute(CurrentNode, 'ResidenciaFiscal', Customer."Country/Region Code");
-            CFDIXMLHelperMX.AddAttribute(CurrentNode, 'NumRegIdTrib', Customer."VAT Registration No.");
-        end;
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'DomicilioFiscalReceptor', SalesInvoiceHeader."Bill-to Post Code");
+        AddReceptorForeignTaxAttributes(CurrentNode, Customer);
         CFDIXMLHelperMX.AddAttribute(CurrentNode, 'RegimenFiscalReceptor', Customer."SAT Tax Regime Classification");
         CFDIXMLHelperMX.AddAttribute(CurrentNode, 'UsoCFDI', SalesInvoiceHeader."CFDI Purpose");
 
         CurrentNode := RootNode.AsXmlNode();
         CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Conceptos', '', XMLNewChild);
         ConceptosNode := XMLNewChild;
+        SalesInvoiceLine.SetRange("Retention Attached to Line No.", 0);
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         if SalesInvoiceLine.FindSet() then
             repeat
@@ -1505,7 +2198,7 @@ codeunit 3303 "Export Interfactura MX"
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatDecimal(LineAmount, 6));
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descuento', FormatDecimal(LineDiscount, 6));
                 CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', GetSubjectToTaxCode(SalesInvoiceLine));
-                AddNodeImpuestoPerLine(ConceptoNode.AsXmlElement(), SalesInvoiceLine.Amount, SalesInvoiceLine."VAT %", SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount, false);
+                AddNodeImpuestoPerLine(ConceptoNode.AsXmlElement(), SalesInvoiceLine, SalesInvoiceRetentionLine);
                 AddNodeCuentaPredial(ConceptoNode, SalesInvoiceLine."No.");
             until SalesInvoiceLine.Next() = 0;
 
@@ -1520,15 +2213,9 @@ codeunit 3303 "Export Interfactura MX"
 
     local procedure AddDocumentTaxNode(var RootNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
     var
-        BaseByRate: Dictionary of [Decimal, Decimal];
-        TaxByRate: Dictionary of [Decimal, Decimal];
-        RootXmlNode: XmlNode;
-        ImpuestosNode: XmlNode;
-        TrasladosNode: XmlNode;
-        TrasladoNode: XmlNode;
-        VATRate: Decimal;
-        LineTax: Decimal;
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
         TotalTax: Decimal;
+        TotalRetention: Decimal;
         CurrencyCode: Code[10];
     begin
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
@@ -1536,35 +2223,509 @@ codeunit 3303 "Export Interfactura MX"
             exit;
 
         repeat
-            VATRate := SalesInvoiceLine."VAT %";
-            LineTax := SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
-            if not BaseByRate.ContainsKey(VATRate) then begin
-                BaseByRate.Add(VATRate, 0);
-                TaxByRate.Add(VATRate, 0);
-            end;
-            BaseByRate.Set(VATRate, BaseByRate.Get(VATRate) + SalesInvoiceLine.Amount);
-            TaxByRate.Set(VATRate, TaxByRate.Get(VATRate) + LineTax);
-            TotalTax += LineTax;
+            InsertTempVATAmountLine(TempVATAmountLine, SalesInvoiceLine);
         until SalesInvoiceLine.Next() = 0;
 
+        TempVATAmountLine.SetRange(Positive, true);
+        if TempVATAmountLine.FindSet() then
+            repeat
+                TotalTax += TempVATAmountLine."VAT Amount";
+            until TempVATAmountLine.Next() = 0;
+
+        TempVATAmountLine.SetRange(Positive, false);
+        if TempVATAmountLine.FindSet() then
+            repeat
+                TotalRetention += TempVATAmountLine."VAT Amount";
+            until TempVATAmountLine.Next() = 0;
+
         CurrencyCode := SalesInvoiceHeader."Currency Code";
+        AddDocumentTaxNodeFromTempVATAmountLine(RootNode, TempVATAmountLine, TotalTax, TotalRetention, CurrencyCode);
+
+        SalesInvoiceLine.Reset();
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange("Retention Attached to Line No.", 0);
+    end;
+
+    local procedure AddDocumentTaxNodeFromTempVATAmountLine(var RootNode: XmlElement; var TempVATAmountLine: Record "VAT Amount Line" temporary; TotalTax: Decimal; TotalRetention: Decimal; CurrencyCode: Code[10])
+    var
+        RootXmlNode: XmlNode;
+        ImpuestosNode: XmlNode;
+        RetencionesNode: XmlNode;
+        RetencionNode: XmlNode;
+        TrasladosNode: XmlNode;
+        TrasladoNode: XmlNode;
+    begin
+        TempVATAmountLine.Reset();
+        if TempVATAmountLine.IsEmpty() then
+            exit;
+
         RootXmlNode := RootNode.AsXmlNode();
         CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Impuestos', '', ImpuestosNode);
-        CFDIXMLHelperMX.AddAttribute(ImpuestosNode, 'TotalImpuestosTrasladados', FormatAmount(TotalTax, CurrencyCode));
-        CFDIXMLHelperMX.AddElementCFDI(ImpuestosNode, 'Traslados', '', TrasladosNode);
 
-        foreach VATRate in BaseByRate.Keys() do begin
-            CFDIXMLHelperMX.AddElementCFDI(TrasladosNode, 'Traslado', '', TrasladoNode);
-            CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Base', FormatAmount(BaseByRate.Get(VATRate), CurrencyCode));
-            CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', GetTaxCode(VATRate, TaxByRate.Get(VATRate)));
-            if VATRate = 0 then
-                CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Exento')
-            else begin
-                CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Tasa');
-                CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TasaOCuota', FormatDecimal(VATRate / 100, 6));
-                CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Importe', FormatAmount(TaxByRate.Get(VATRate), CurrencyCode));
-            end;
+        TempVATAmountLine.SetRange(Positive, false);
+        if TempVATAmountLine.FindSet() then begin
+            CFDIXMLHelperMX.AddElementCFDI(ImpuestosNode, 'Retenciones', '', RetencionesNode);
+            repeat
+                CFDIXMLHelperMX.AddElementCFDI(RetencionesNode, 'Retencion', '', RetencionNode);
+                CFDIXMLHelperMX.AddAttribute(RetencionNode, 'Impuesto', GetTaxCode(TempVATAmountLine."VAT %", TempVATAmountLine."VAT Amount"));
+                CFDIXMLHelperMX.AddAttribute(RetencionNode, 'Importe', FormatAmount(TempVATAmountLine."VAT Amount", CurrencyCode));
+            until TempVATAmountLine.Next() = 0;
+            CFDIXMLHelperMX.AddAttribute(ImpuestosNode, 'TotalImpuestosRetenidos', FormatAmount(TotalRetention, CurrencyCode));
         end;
+
+        TempVATAmountLine.SetRange(Positive, true);
+        if TempVATAmountLine.FindSet() then begin
+            CFDIXMLHelperMX.AddElementCFDI(ImpuestosNode, 'Traslados', '', TrasladosNode);
+            repeat
+                CFDIXMLHelperMX.AddElementCFDI(TrasladosNode, 'Traslado', '', TrasladoNode);
+                if TempVATAmountLine."Tax Category" = GetTaxCategoryExempt() then begin
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Base', FormatAmount(TempVATAmountLine."VAT Base", CurrencyCode));
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', GetTaxCode(TempVATAmountLine."VAT %", TempVATAmountLine."VAT Amount"));
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Exento');
+                end else begin
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Base', FormatAmount(TempVATAmountLine."VAT Base", CurrencyCode));
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', GetTaxCode(TempVATAmountLine."VAT %", TempVATAmountLine."VAT Amount"));
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Tasa');
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TasaOCuota', PadStr(FormatAmount(TempVATAmountLine."VAT %" / 100, CurrencyCode), 8, '0'));
+                    CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Importe', FormatAmount(TempVATAmountLine."VAT Amount", CurrencyCode));
+                end;
+            until TempVATAmountLine.Next() = 0;
+            CFDIXMLHelperMX.AddAttribute(ImpuestosNode, 'TotalImpuestosTrasladados', FormatAmount(TotalTax, CurrencyCode));
+        end;
+
+        TempVATAmountLine.Reset();
+    end;
+
+    local procedure InsertTempVATAmountLine(var TempVATAmountLine: Record "VAT Amount Line" temporary; SalesInvoiceLine: Record "Sales Invoice Line")
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATIdentifier: Code[20];
+    begin
+        if SalesInvoiceLine.Type = SalesInvoiceLine.Type::" " then
+            exit;
+
+        if not VATPostingSetup.Get(SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group") then
+            exit;
+
+        if GetSubjectToTaxCode(SalesInvoiceLine) <> '02' then
+            exit;
+
+        if SalesInvoiceLine."Retention Attached to Line No." = 0 then
+            VATIdentifier := CopyStr(Format(SalesInvoiceLine."VAT %"), 1, MaxStrLen(TempVATAmountLine."VAT Identifier"))
+        else
+            VATIdentifier := CopyStr(Format(SalesInvoiceLine."Retention VAT %"), 1, MaxStrLen(TempVATAmountLine."VAT Identifier"));
+
+        if not TempVATAmountLine.Get(VATIdentifier, VATPostingSetup."VAT Calculation Type", '', '', false, SalesInvoiceLine.Amount > 0) then begin
+            TempVATAmountLine.Init();
+            TempVATAmountLine."VAT Identifier" := VATIdentifier;
+            TempVATAmountLine."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type";
+            TempVATAmountLine.Positive := SalesInvoiceLine.Amount >= 0;
+            TempVATAmountLine.Insert();
+        end;
+
+        if VATPostingSetup."CFDI VAT Exemption" then
+            TempVATAmountLine."Tax Category" := GetTaxCategoryExempt();
+
+        if SalesInvoiceLine."Retention Attached to Line No." = 0 then begin
+            TempVATAmountLine."Amount Including VAT" += SalesInvoiceLine."Amount Including VAT";
+            TempVATAmountLine."VAT %" := SalesInvoiceLine."VAT %";
+            TempVATAmountLine."VAT Amount" += SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+            TempVATAmountLine."VAT Base" += SalesInvoiceLine.Amount;
+            TempVATAmountLine.Modify();
+        end else begin
+            TempVATAmountLine."VAT %" := SalesInvoiceLine."Retention VAT %";
+            TempVATAmountLine."VAT Amount" += SalesInvoiceLine.Amount;
+            TempVATAmountLine.Modify();
+        end;
+    end;
+
+    local procedure GetTaxCategoryExempt(): Code[10]
+    begin
+        exit('E');
+    end;
+
+    local procedure CreateXMLDocument33AdvancePayment(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; var XMLDoc: XmlDocument; SubTotal: Decimal; RetainAmt: Decimal)
+    var
+        Customer: Record Customer;
+        CompanyInfo: Record "Company Information";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        SATUtilities: Codeunit "SAT Utilities";
+        RootXmlNode: XmlNode;
+        EmisorNode: XmlNode;
+        ReceptorNode: XmlNode;
+        ConceptosNode: XmlNode;
+        ConceptoNode: XmlNode;
+        TaxableLine: Record "Sales Invoice Line";
+        TaxableRetentionLine: Record "Sales Invoice Line";
+        TotalTax: Decimal;
+        CurrencyCode: Code[10];
+    begin
+        CompanyInfo.Get();
+        GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
+
+        RootNode.SetAttribute('Version', '4.0');
+        RootNode.SetAttribute('Folio', SalesInvoiceHeader."No.");
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesInvoiceHeader));
+        RootNode.SetAttribute('Sello', SignedString);
+        RootNode.SetAttribute('FormaPago', SATUtilities.GetSATPaymentMethod(SalesInvoiceHeader."Payment Method Code"));
+        RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
+        RootNode.SetAttribute('Certificado', Certificate);
+
+        CurrencyCode := SalesInvoiceHeader."Currency Code";
+        RootNode.SetAttribute('SubTotal', FormatAmount(SubTotal, CurrencyCode));
+        if CurrencyCode = '' then
+            RootNode.SetAttribute('Moneda', 'MXN')
+        else begin
+            RootNode.SetAttribute('Moneda', CurrencyCode);
+            if (CurrencyCode <> 'MXN') and (CurrencyCode <> 'XXX') then
+                RootNode.SetAttribute('TipoCambio', FormatDecimal(1 / SalesInvoiceHeader."Currency Factor", 6));
+        end;
+        RootNode.SetAttribute('Total', FormatAmount(SubTotal + RetainAmt, CurrencyCode));
+        RootNode.SetAttribute('TipoDeComprobante', 'I');
+        RootNode.SetAttribute('Exportacion', SalesInvoiceHeader."CFDI Export Code");
+        RootNode.SetAttribute('MetodoPago', 'PUE');
+        RootNode.SetAttribute('LugarExpedicion', CompanyInfo."SAT Postal Code");
+
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Emisor', '', EmisorNode);
+        CFDIXMLHelperMX.AddAttribute(EmisorNode, 'Rfc', CompanyInfo."RFC Number");
+        CFDIXMLHelperMX.AddAttribute(EmisorNode, 'Nombre', CompanyInfo.Name);
+        CFDIXMLHelperMX.AddAttribute(EmisorNode, 'RegimenFiscal', CompanyInfo."SAT Tax Regime Classification");
+
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Receptor', '', ReceptorNode);
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'Rfc', Customer."RFC No.");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'Nombre', Customer.Name);
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'DomicilioFiscalReceptor', SalesInvoiceHeader."Bill-to Post Code");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'RegimenFiscalReceptor', Customer."SAT Tax Regime Classification");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'UsoCFDI', SalesInvoiceHeader."CFDI Purpose");
+
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Conceptos', '', ConceptosNode);
+        CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', ConceptoNode);
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', '84111506');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', '1');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', 'ACT');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', 'Anticipo bien o servicio');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', FormatAmount(SubTotal, CurrencyCode));
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatAmount(SubTotal, CurrencyCode));
+
+        TaxableLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        TaxableLine.SetRange("Retention Attached to Line No.", 0);
+        if TaxableLine.FindFirst() then begin
+            CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', GetSubjectToTaxCode(TaxableLine));
+            AddNodeImpuestoPerLine(ConceptoNode.AsXmlElement(), TaxableLine, TaxableRetentionLine);
+            InsertTempVATAmountLine(TempVATAmountLine, TaxableLine);
+            TotalTax := TaxableLine."Amount Including VAT" - TaxableLine.Amount;
+        end else
+            CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', '01');
+
+        AddDocumentTaxNodeFromTempVATAmountLine(RootNode, TempVATAmountLine, TotalTax, 0, CurrencyCode);
+    end;
+
+    local procedure CreateXMLDocument33AdvanceSettle(var RootNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; var XMLDoc: XmlDocument; UUID: Text[50]; SubTotal: Decimal; TotalTax: Decimal; TotalRetention: Decimal; TotalDiscount: Decimal)
+    var
+        Customer: Record Customer;
+        CompanyInfo: Record "Company Information";
+        SalesInvoiceRetentionLine: Record "Sales Invoice Line";
+        SATUtilities: Codeunit "SAT Utilities";
+        ConceptosNode: XmlNode;
+        ConceptoNode: XmlNode;
+        CurrentNode: XmlNode;
+        XMLNewChild: XmlNode;
+        LineDiscount: Decimal;
+        LineAmount: Decimal;
+        CalculatedTotalDiscount: Decimal;
+    begin
+        CompanyInfo.Get();
+        GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
+
+        RootNode.SetAttribute('Version', '4.0');
+        RootNode.SetAttribute('Folio', SalesInvoiceHeader."No.");
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesInvoiceHeader));
+        RootNode.SetAttribute('Sello', SignedString);
+        RootNode.SetAttribute('FormaPago', '30');
+        RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
+        RootNode.SetAttribute('Certificado', Certificate);
+        RootNode.SetAttribute('SubTotal', FormatAmount(SubTotal, SalesInvoiceHeader."Currency Code"));
+        RootNode.SetAttribute('Descuento', FormatAmount(TotalDiscount, SalesInvoiceHeader."Currency Code"));
+        if SalesInvoiceHeader."Currency Code" = '' then
+            RootNode.SetAttribute('Moneda', 'MXN')
+        else begin
+            RootNode.SetAttribute('Moneda', SalesInvoiceHeader."Currency Code");
+            if (SalesInvoiceHeader."Currency Code" <> 'MXN') and (SalesInvoiceHeader."Currency Code" <> 'XXX') then
+                RootNode.SetAttribute('TipoCambio', FormatDecimal(1 / SalesInvoiceHeader."Currency Factor", 6));
+        end;
+        RootNode.SetAttribute('Total', FormatAmount(SubTotal - TotalDiscount + TotalTax - TotalRetention, SalesInvoiceHeader."Currency Code"));
+        RootNode.SetAttribute('TipoDeComprobante', 'I');
+        RootNode.SetAttribute('Exportacion', SalesInvoiceHeader."CFDI Export Code");
+        RootNode.SetAttribute('MetodoPago', SATUtilities.GetSATPaymentTerm(SalesInvoiceHeader."Payment Terms Code"));
+        RootNode.SetAttribute('LugarExpedicion', CompanyInfo."SAT Postal Code");
+
+        AddAdvanceCfdiRelacionadosNode(RootNode, UUID, GetAdvanceCFDIRelation(SalesInvoiceHeader."CFDI Relation"));
+
+        CurrentNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Emisor', '', XMLNewChild);
+        CurrentNode := XMLNewChild;
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'Rfc', CompanyInfo."RFC Number");
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'Nombre', CompanyInfo.Name);
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'RegimenFiscal', CompanyInfo."SAT Tax Regime Classification");
+
+        CurrentNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Receptor', '', XMLNewChild);
+        CurrentNode := XMLNewChild;
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'Rfc', Customer."RFC No.");
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'Nombre', Customer.Name);
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'DomicilioFiscalReceptor', SalesInvoiceHeader."Bill-to Post Code");
+        AddReceptorForeignTaxAttributes(CurrentNode, Customer);
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'RegimenFiscalReceptor', Customer."SAT Tax Regime Classification");
+        CFDIXMLHelperMX.AddAttribute(CurrentNode, 'UsoCFDI', SalesInvoiceHeader."CFDI Purpose");
+
+        CurrentNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Conceptos', '', XMLNewChild);
+        ConceptosNode := XMLNewChild;
+        SalesInvoiceLine.SetRange("Retention Attached to Line No.", 0);
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', XMLNewChild);
+                ConceptoNode := XMLNewChild;
+                LineAmount := GetReportedLineAmount(SalesInvoiceLine);
+                LineDiscount := SalesInvoiceLine."Line Discount Amount";
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', SATUtilities.GetSATClassification(SalesInvoiceLine.Type, SalesInvoiceLine."No."));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'NoIdentificacion', SalesInvoiceLine."No.");
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', Format(SalesInvoiceLine.Quantity, 0, 9));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', SATUtilities.GetSATUnitofMeasure(SalesInvoiceLine."Unit of Measure Code"));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Unidad', SalesInvoiceLine."Unit of Measure Code");
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', EncodeString(SalesInvoiceLine.Description));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', FormatDecimal(SalesInvoiceLine."Unit Price", 6));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatDecimal(LineAmount, 6));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descuento', FormatDecimal(LineDiscount, 6));
+                CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ObjetoImp', GetSubjectToTaxCode(SalesInvoiceLine));
+                CalculatedTotalDiscount += LineDiscount;
+                AddNodeImpuestoPerLine(ConceptoNode.AsXmlElement(), SalesInvoiceLine, SalesInvoiceRetentionLine);
+            until SalesInvoiceLine.Next() = 0;
+
+        RootNode.SetAttribute('Descuento', FormatAmount(CalculatedTotalDiscount, SalesInvoiceHeader."Currency Code"));
+        AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine);
+
+        if SalesInvoiceHeader."Foreign Trade" then begin
+            CurrentNode := RootNode.AsXmlNode();
+            CFDIXMLHelperMX.AddElementCFDI(CurrentNode, 'Complemento', '', XMLNewChild);
+            AddNodeComercioExterior(SalesInvoiceLine, SalesInvoiceHeader, XMLDoc, XMLNewChild, XMLNewChild);
+        end;
+    end;
+
+    local procedure CreateXMLDocument33AdvanceReverse(var RootNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; SignedString: Text; Certificate: Text; CertificateSerialNo: Text[250]; UUID: Text[50]; AdvanceAmount: Decimal)
+    var
+        Customer: Record Customer;
+        CompanyInfo: Record "Company Information";
+        RootXmlNode: XmlNode;
+        EmisorNode: XmlNode;
+        ReceptorNode: XmlNode;
+        ConceptosNode: XmlNode;
+        ConceptoNode: XmlNode;
+        ReverseAmount: Decimal;
+    begin
+        CompanyInfo.Get();
+        GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
+
+        ReverseAmount := Round(AdvanceAmount, 1, '=');
+        RootNode.SetAttribute('Version', '4.0');
+        RootNode.SetAttribute('Folio', SalesInvoiceHeader."No.");
+        RootNode.SetAttribute('Fecha', GetIssueDateTime(SalesInvoiceHeader));
+        RootNode.SetAttribute('Sello', SignedString);
+        RootNode.SetAttribute('FormaPago', '30');
+        RootNode.SetAttribute('NoCertificado', CertificateSerialNo);
+        RootNode.SetAttribute('Certificado', Certificate);
+        RootNode.SetAttribute('SubTotal', FormatDecimal(ReverseAmount, 0));
+        RootNode.SetAttribute('Moneda', 'XXX');
+        RootNode.SetAttribute('Total', FormatDecimal(ReverseAmount, 0));
+        RootNode.SetAttribute('TipoDeComprobante', 'E');
+        RootNode.SetAttribute('Exportacion', SalesInvoiceHeader."CFDI Export Code");
+        RootNode.SetAttribute('MetodoPago', 'PUE');
+        RootNode.SetAttribute('LugarExpedicion', CompanyInfo."SAT Postal Code");
+
+        AddAdvanceCfdiRelacionadosNode(RootNode, UUID, GetAdvanceCFDIRelation(SalesInvoiceHeader."CFDI Relation"));
+
+        RootXmlNode := RootNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Emisor', '', EmisorNode);
+        CFDIXMLHelperMX.AddAttribute(EmisorNode, 'Rfc', CompanyInfo."RFC Number");
+        CFDIXMLHelperMX.AddAttribute(EmisorNode, 'Nombre', CompanyInfo.Name);
+        CFDIXMLHelperMX.AddAttribute(EmisorNode, 'RegimenFiscal', CompanyInfo."SAT Tax Regime Classification");
+
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Receptor', '', ReceptorNode);
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'Rfc', Customer."RFC No.");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'Nombre', Customer.Name);
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'DomicilioFiscalReceptor', SalesInvoiceHeader."Bill-to Post Code");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'RegimenFiscalReceptor', Customer."SAT Tax Regime Classification");
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'UsoCFDI', 'P01');
+
+        CFDIXMLHelperMX.AddElementCFDI(RootXmlNode, 'Conceptos', '', ConceptosNode);
+        CFDIXMLHelperMX.AddElementCFDI(ConceptosNode, 'Concepto', '', ConceptoNode);
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveProdServ', '84111506');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Cantidad', '1');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ClaveUnidad', 'ACT');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Descripcion', 'Aplicacion de anticipo');
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'ValorUnitario', FormatDecimal(ReverseAmount, 0));
+        CFDIXMLHelperMX.AddAttribute(ConceptoNode, 'Importe', FormatDecimal(ReverseAmount, 0));
+    end;
+
+    local procedure AddAdvanceCfdiRelacionadosNode(var ParentNode: XmlElement; UUID: Text[50]; RelationType: Code[10])
+    var
+        CfdiRelacionadosNode: XmlElement;
+        CfdiRelacionadoNode: XmlElement;
+    begin
+        if (UUID = '') or (RelationType = '') then
+            exit;
+
+        CfdiRelacionadosNode := XmlElement.Create('CfdiRelacionados');
+        CfdiRelacionadosNode.SetAttribute('TipoRelacion', RelationType);
+
+        CfdiRelacionadoNode := XmlElement.Create('CfdiRelacionado');
+        CfdiRelacionadoNode.SetAttribute('UUID', UUID);
+        CfdiRelacionadosNode.Add(CfdiRelacionadoNode.AsXmlNode());
+
+        ParentNode.Add(CfdiRelacionadosNode.AsXmlNode());
+    end;
+
+    local procedure GetAdvanceCFDIRelation(CFDIRelation: Code[10]): Code[10]
+    begin
+        if CFDIRelation = '' then
+            exit('07');
+
+        exit(CFDIRelation);
+    end;
+
+    local procedure FindPrepaymentUUID(SalesInvoiceHeader: Record "Sales Invoice Header"): Text[50]
+    var
+        PrepaymentInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        if SalesInvoiceHeader."Prepayment Order No." = '' then
+            exit('');
+
+        PrepaymentInvoiceHeader.SetCurrentKey("Prepayment Order No.", "Prepayment Invoice");
+        PrepaymentInvoiceHeader.SetRange("Prepayment Order No.", SalesInvoiceHeader."Prepayment Order No.");
+        PrepaymentInvoiceHeader.SetRange("Prepayment Invoice", true);
+        PrepaymentInvoiceHeader.SetFilter("Fiscal Invoice Number PAC", '<>%1', '');
+        if not PrepaymentInvoiceHeader.FindLast() then
+            exit('');
+
+        exit(CopyStr(PrepaymentInvoiceHeader."Fiscal Invoice Number PAC", 1, 50));
+    end;
+
+    local procedure GetAdvanceScenario(SalesInvoiceHeader: Record "Sales Invoice Header"): Integer
+    var
+        SalesInvoiceLineLoc: Record "Sales Invoice Line";
+    begin
+        if SalesInvoiceHeader."Prepayment Invoice" then
+            exit(1);
+
+        if SalesInvoiceHeader."Prepayment Order No." = '' then
+            exit(0);
+
+        SalesInvoiceLineLoc.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLineLoc.SetRange("Prepayment Line", true);
+        if SalesInvoiceLineLoc.IsEmpty() then
+            exit(0);
+
+        exit(2);
+    end;
+
+    local procedure EnsureAdvanceReverseTracked(var CFDIDocuments: Record "CFDI Documents"; SalesInvoiceHeader: Record "Sales Invoice Header"; AdvanceUUID: Text[50]; Certificate: Text; CertificateSerialNo: Text[250])
+    var
+        ReverseXMLDoc: XmlDocument;
+        ReverseRootNode: XmlElement;
+        ReverseBlobOutStream: OutStream;
+        ReverseSignedString: Text;
+        ReverseOriginalString: Text;
+    begin
+        if AdvanceUUID = '' then
+            exit;
+
+        CFDIDocuments.SetRange("No.", SalesInvoiceHeader."No.");
+        CFDIDocuments.SetRange("Document Table ID", Database::"Sales Invoice Header");
+        CFDIDocuments.SetRange(Prepayment, true);
+        CFDIDocuments.SetRange(Reversal, true);
+        if not CFDIDocuments.IsEmpty() then
+            exit;
+
+        XmlDocument.ReadFrom(GetBasicXMLHeader(false, false), ReverseXMLDoc);
+        ReverseXMLDoc.GetRoot(ReverseRootNode);
+        CreateXMLDocument33AdvanceReverse(
+            ReverseRootNode, SalesInvoiceHeader, '', Certificate, CertificateSerialNo, AdvanceUUID, SalesInvoiceHeader.Amount);
+        RemoveRedeclaredNamespaces(ReverseXMLDoc);
+        ReverseOriginalString := CreateOriginalStr33Document(ReverseXMLDoc);
+        ReverseSignedString := CreateDigitalSignature(ReverseOriginalString, MXConnectionSetup.Id);
+        ReverseXMLDoc.GetRoot(ReverseRootNode);
+        ReverseRootNode.SetAttribute('Sello', ReverseSignedString);
+        ApplyLastUsedCertificateMetadata(ReverseRootNode, CertificateSerialNo);
+
+        CFDIDocuments.Init();
+        CFDIDocuments."No." := SalesInvoiceHeader."No.";
+        CFDIDocuments."Document Table ID" := Database::"Sales Invoice Header";
+        CFDIDocuments.Prepayment := true;
+        CFDIDocuments.Reversal := true;
+        CFDIDocuments."Certificate Serial No." := CertificateSerialNo;
+        CFDIDocuments."Date/Time First Req. Sent" := FormatDateTime(CurrentDateTime());
+        CFDIDocuments."Date/Time Sent" := CFDIDocuments."Date/Time First Req. Sent";
+        CFDIDocuments."Fiscal Invoice Number PAC" := AdvanceUUID;
+        CFDIDocuments."No. of E-Documents Sent" := 1;
+        CFDIDocuments."Electronic Document Sent" := false;
+        CFDIDocuments.Insert();
+
+        CFDIDocuments."Original Document XML".CreateOutStream(ReverseBlobOutStream, TextEncoding::UTF8);
+        ReverseXMLDoc.WriteTo(ReverseBlobOutStream);
+        CFDIDocuments.Modify();
+    end;
+
+    internal procedure CreateAdvanceReverseSignedXML(SalesInvoiceHeader: Record "Sales Invoice Header"; AdvanceUUID: Text[50]; var ReverseSignedXmlTxt: Text): Boolean
+    var
+        ReverseXMLDoc: XmlDocument;
+        ReverseRootNode: XmlElement;
+        ReverseSignedString: Text;
+        ReverseOriginalString: Text;
+        CertificateText: Text;
+        CertificateSerialNo: Text[250];
+    begin
+        ReverseSignedXmlTxt := '';
+        if AdvanceUUID = '' then
+            exit(false);
+
+        GetCertificateMetadata(CertificateText, CertificateSerialNo);
+        if (CertificateText = '') or (CertificateSerialNo = '') then
+            exit(false);
+
+        XmlDocument.ReadFrom(GetBasicXMLHeader(false, false), ReverseXMLDoc);
+        ReverseXMLDoc.GetRoot(ReverseRootNode);
+        CreateXMLDocument33AdvanceReverse(
+            ReverseRootNode, SalesInvoiceHeader, '', CertificateText, CertificateSerialNo, AdvanceUUID, SalesInvoiceHeader.Amount);
+
+        RemoveRedeclaredNamespaces(ReverseXMLDoc);
+        ReverseOriginalString := CreateOriginalStr33Document(ReverseXMLDoc);
+        ReverseSignedString := CreateDigitalSignature(ReverseOriginalString, MXConnectionSetup.Id);
+        ReverseXMLDoc.GetRoot(ReverseRootNode);
+        ReverseRootNode.SetAttribute('Sello', ReverseSignedString);
+        ApplyLastUsedCertificateMetadata(ReverseRootNode, CertificateSerialNo);
+
+        ReverseSignedXmlTxt := XmlDocumentToText(ReverseXMLDoc);
+        exit(ReverseSignedXmlTxt <> '');
+    end;
+
+    local procedure XmlDocumentToText(var XMLDoc: XmlDocument): Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        Chunk: Text;
+        XmlTxt: Text;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        XMLDoc.WriteTo(OutStream);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        while not InStream.EOS do begin
+            InStream.ReadText(Chunk);
+            XmlTxt += Chunk;
+        end;
+        exit(XmlTxt);
     end;
 
     local procedure AddNodeComercioExterior(var TempDocumentLineCCE: Record "Sales Invoice Line"; DocumentHeader: Record "Sales Invoice Header"; var XMLDoc: XmlDocument; XMLCurrNode: XmlNode; XMLNewChild: XmlNode)
@@ -1658,25 +2819,544 @@ codeunit 3303 "Export Interfactura MX"
 
     local procedure CreateOriginalStr33Document(var XMLDoc: XmlDocument): Text
     var
-        Root: XmlElement;
-        RootNode: XmlNode;
-        OuterXml: Text;
-        EndOfOpeningTag: Integer;
+        XmlText: Text;
+        OriginalString: Text;
+        PendingTotalImpuestosRetenidos: Text;
+        PendingTotalImpuestosTrasladados: Text;
+        Position: Integer;
     begin
-        // Create the canonical string for SAT signature: extract only the opening tag
-        // from OuterXml() which includes all attributes and namespace declarations
-        XMLDoc.GetRoot(Root);
-        RootNode := Root.AsXmlNode();
-        RootNode.WriteTo(OuterXml);
+        XMLDoc.WriteTo(XmlText);
 
-        // Find the end of the opening tag (the first '>' character)
-        EndOfOpeningTag := StrPos(OuterXml, '>');
+        // Legacy parity: build a CFDI-like original string using non-empty attribute values.
+        OriginalString := '||';
+        Position := 1;
+        while Position <= StrLen(XmlText) do
+            if CopyStr(XmlText, Position, 1) = '<' then begin
+                Position += 1;
+                if Position > StrLen(XmlText) then
+                    break;
 
-        if EndOfOpeningTag > 0 then
-            // Extract opening tag and make it self-closing: <element attr="val" />
-            exit(CopyStr(OuterXml, 1, EndOfOpeningTag - 1) + ' />')
-        else
-            exit('');
+                if CopyStr(XmlText, Position, 1) = '/' then
+                    HandleClosingTag(XmlText, Position, OriginalString, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados)
+                else
+                    if IsXmlSpecialTagStart(CopyStr(XmlText, Position, 1)) then
+                        SkipToTagEnd(XmlText, Position)
+                    else begin
+                        AppendOpeningTag(XmlText, Position, OriginalString, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    end;
+            end else
+                Position += 1;
+
+        exit(OriginalString + '|');
+    end;
+
+    local procedure AppendOpeningTag(XmlText: Text; var Position: Integer; var OriginalString: Text; var PendingTotalImpuestosRetenidos: Text; var PendingTotalImpuestosTrasladados: Text)
+    var
+        ElementName: Text;
+    begin
+        ReadElementName(XmlText, Position, ElementName);
+        if IsLegacyOrderedCartaPorteElement(ElementName) then begin
+            AppendLegacyOrderedTagAttributeValues(XmlText, Position, OriginalString, ElementName, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+            exit;
+        end;
+
+        AppendTagAttributeValues(XmlText, Position, OriginalString, ElementName, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+    end;
+
+    local procedure HandleClosingTag(XmlText: Text; var Position: Integer; var OriginalString: Text; var PendingTotalImpuestosRetenidos: Text; var PendingTotalImpuestosTrasladados: Text)
+    var
+        ElementName: Text;
+    begin
+        Position += 1;
+        ReadElementName(XmlText, Position, ElementName);
+
+        if LowerCase(GetXmlLocalName(ElementName)) = 'impuestos' then begin
+            AppendPendingOriginalValue(PendingTotalImpuestosRetenidos, OriginalString);
+            AppendPendingOriginalValue(PendingTotalImpuestosTrasladados, OriginalString);
+            PendingTotalImpuestosRetenidos := '';
+            PendingTotalImpuestosTrasladados := '';
+        end;
+
+        SkipToTagEnd(XmlText, Position);
+    end;
+
+    local procedure AppendPendingOriginalValue(PendingValue: Text; var OriginalString: Text)
+    var
+        NormalizedValue: Text;
+    begin
+        NormalizedValue := NormalizeOriginalStringValue(PendingValue);
+        if NormalizedValue <> '' then
+            OriginalString += NormalizedValue + '|';
+    end;
+
+    local procedure IsXmlSpecialTagStart(TagStartChar: Text[1]): Boolean
+    begin
+        exit((TagStartChar = '/') or (TagStartChar = '?') or (TagStartChar = '!'));
+    end;
+
+    local procedure SkipToTagEnd(XmlText: Text; var Position: Integer)
+    begin
+        while (Position <= StrLen(XmlText)) and (CopyStr(XmlText, Position, 1) <> '>') do
+            Position += 1;
+
+        if Position <= StrLen(XmlText) then
+            Position += 1;
+    end;
+
+    local procedure ReadElementName(XmlText: Text; var Position: Integer; var ElementName: Text)
+    var
+        StartPosition: Integer;
+    begin
+        StartPosition := Position;
+        while Position <= StrLen(XmlText) do
+            if IsWhiteSpace(CopyStr(XmlText, Position, 1)) or (CopyStr(XmlText, Position, 1) = '>') or (CopyStr(XmlText, Position, 1) = '/') then
+                break
+            else
+                Position += 1;
+
+        ElementName := CopyStr(XmlText, StartPosition, Position - StartPosition);
+    end;
+
+    local procedure AppendTagAttributeValues(XmlText: Text; var Position: Integer; var OriginalString: Text; ElementName: Text; var PendingTotalImpuestosRetenidos: Text; var PendingTotalImpuestosTrasladados: Text)
+    var
+        AttributeName: Text;
+        AttributeValue: Text;
+    begin
+        while Position <= StrLen(XmlText) do begin
+            SkipWhiteSpaces(XmlText, Position);
+            if Position > StrLen(XmlText) then
+                exit;
+
+            if CopyStr(XmlText, Position, 2) = '/>' then begin
+                Position += 2;
+                exit;
+            end;
+
+            if CopyStr(XmlText, Position, 1) = '>' then begin
+                Position += 1;
+                exit;
+            end;
+
+            ReadAttributeName(XmlText, Position, AttributeName);
+            if AttributeName = '' then begin
+                Position += 1;
+                continue;
+            end;
+
+            SkipWhiteSpaces(XmlText, Position);
+            if CopyStr(XmlText, Position, 1) <> '=' then
+                continue;
+
+            Position += 1;
+            SkipWhiteSpaces(XmlText, Position);
+            ReadAttributeValue(XmlText, Position, AttributeValue);
+            AppendOriginalAttributeValue(ElementName, AttributeName, AttributeValue, OriginalString, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+        end;
+    end;
+
+    local procedure ReadAttributeName(XmlText: Text; var Position: Integer; var AttributeName: Text)
+    var
+        StartPosition: Integer;
+    begin
+        StartPosition := Position;
+        while Position <= StrLen(XmlText) do
+            if IsWhiteSpace(CopyStr(XmlText, Position, 1)) or (CopyStr(XmlText, Position, 1) = '=') or (CopyStr(XmlText, Position, 1) = '>') or (CopyStr(XmlText, Position, 1) = '/') then
+                break
+            else
+                Position += 1;
+
+        AttributeName := CopyStr(XmlText, StartPosition, Position - StartPosition);
+    end;
+
+    local procedure ReadAttributeValue(XmlText: Text; var Position: Integer; var AttributeValue: Text)
+    var
+        QuoteChar: Text[1];
+        StartPosition: Integer;
+    begin
+        AttributeValue := '';
+        if Position > StrLen(XmlText) then
+            exit;
+
+        QuoteChar := CopyStr(XmlText, Position, 1);
+        if (QuoteChar = '"') or (QuoteChar = '''') then begin
+            Position += 1;
+            StartPosition := Position;
+            while (Position <= StrLen(XmlText)) and (CopyStr(XmlText, Position, 1) <> QuoteChar) do
+                Position += 1;
+
+            AttributeValue := CopyStr(XmlText, StartPosition, Position - StartPosition);
+            if Position <= StrLen(XmlText) then
+                Position += 1;
+            exit;
+        end;
+
+        StartPosition := Position;
+        while Position <= StrLen(XmlText) do
+            if IsWhiteSpace(CopyStr(XmlText, Position, 1)) or (CopyStr(XmlText, Position, 1) = '>') or (CopyStr(XmlText, Position, 1) = '/') then
+                break
+            else
+                Position += 1;
+
+        AttributeValue := CopyStr(XmlText, StartPosition, Position - StartPosition);
+    end;
+
+    local procedure AppendOriginalAttributeValue(ElementName: Text; AttributeName: Text; AttributeValue: Text; var OriginalString: Text; var PendingTotalImpuestosRetenidos: Text; var PendingTotalImpuestosTrasladados: Text)
+    var
+        NormalizedValue: Text;
+        LocalElementName: Text;
+        LowerAttributeName: Text;
+    begin
+        if ShouldSkipForOriginalString(AttributeName) then
+            exit;
+
+        LocalElementName := GetXmlLocalName(ElementName);
+        NormalizedValue := NormalizeOriginalStringValue(AttributeValue);
+        if NormalizedValue = '' then
+            exit;
+
+        LowerAttributeName := LowerCase(AttributeName);
+        if (LowerAttributeName in ['totalimpuestosretenidos', 'totalimpuestostrasladados']) and IsZeroOriginalStringValue(NormalizedValue) then
+            exit;
+
+        if LocalElementName = 'Impuestos' then
+            case LowerAttributeName of
+                'totalimpuestosretenidos':
+                    begin
+                        PendingTotalImpuestosRetenidos := NormalizedValue;
+                        exit;
+                    end;
+                'totalimpuestostrasladados':
+                    begin
+                        PendingTotalImpuestosTrasladados := NormalizedValue;
+                        exit;
+                    end;
+            end;
+
+        OriginalString += NormalizedValue + '|';
+    end;
+
+    local procedure GetXmlLocalName(ElementName: Text): Text
+    var
+        ColonPosition: Integer;
+    begin
+        ColonPosition := StrPos(ElementName, ':');
+        if ColonPosition = 0 then
+            exit(ElementName);
+
+        exit(CopyStr(ElementName, ColonPosition + 1));
+    end;
+
+    local procedure IsLegacyOrderedCartaPorteElement(ElementName: Text): Boolean
+    var
+        LocalElementName: Text;
+    begin
+        LocalElementName := LowerCase(GetXmlLocalName(ElementName));
+
+        case LocalElementName of
+            'comprobante', 'emisor', 'receptor', 'concepto', 'informacionaduanera', 'documentacionaduanera',
+            'cartaporte', 'ubicaciones', 'ubicacion', 'domicilio', 'mercancias', 'mercancia',
+            'autotransporte', 'identificacionvehicular', 'seguros', 'remolques', 'remolque',
+            'regimenesaduaneros', 'regimenaduaneroccp', 'figuratransporte', 'tiposfigura':
+                exit(true);
+            else
+                exit(false);
+        end;
+    end;
+
+    local procedure AppendLegacyOrderedTagAttributeValues(XmlText: Text; var Position: Integer; var OriginalString: Text; ElementName: Text; var PendingTotalImpuestosRetenidos: Text; var PendingTotalImpuestosTrasladados: Text)
+    var
+        LocalElementName: Text;
+        TagAttrStart: Integer;
+    begin
+        LocalElementName := LowerCase(GetXmlLocalName(ElementName));
+        // Save position at start of attributes; each AppendLegacyOrderedAttributeValue
+        // will search from this position independently, so XML attribute order doesn't matter.
+        TagAttrStart := Position;
+
+        case LocalElementName of
+            'comprobante':
+                begin
+                    // SAT cadenaoriginal_4_0.xslt Comprobante order (Sello/Certificado are auto-skipped)
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Version', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Serie', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Folio', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Fecha', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Sello', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'FormaPago', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NoCertificado', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Certificado', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'CondicionesDePago', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'SubTotal', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Descuento', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Moneda', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoCambio', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Total', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoDeComprobante', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Exportacion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'MetodoPago', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'LugarExpedicion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Confirmacion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'emisor':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Rfc', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Nombre', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RegimenFiscal', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'receptor':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Rfc', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Nombre', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'DomicilioFiscalReceptor', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ResidenciaFiscal', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumRegIdTrib', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RegimenFiscalReceptor', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'UsoCFDI', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'concepto':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ClaveProdServ', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NoIdentificacion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Cantidad', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ClaveUnidad', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Unidad', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Descripcion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ValorUnitario', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Importe', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Descuento', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ObjetoImp', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'informacionaduanera':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumeroPedimento', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'cartaporte':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Version', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'IdCCP', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TranspInternac', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'EntradaSalidaMerc', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PaisOrigenDestino', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ViaEntradaSalida', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TotalDistRec', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'ubicaciones', 'regimenesaduaneros', 'figuratransporte', 'remolques':
+                begin
+                    // Container nodes without attributes in the legacy-oriented canonical string.
+                end;
+            'regimenaduaneroccp':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RegimenAduanero', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'ubicacion':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoUbicacion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'IDUbicacion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RFCRemitenteDestinatario', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumRegIdTrib', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ResidenciaFiscal', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'FechaHoraSalidaLlegada', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'DistanciaRecorrida', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'domicilio':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Calle', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Colonia', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Localidad', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Municipio', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Estado', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Pais', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'CodigoPostal', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'mercancias':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PesoBrutoTotal', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'UnidadPeso', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumTotalMercancias', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'mercancia':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'BienesTransp', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Descripcion', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Cantidad', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ClaveUnidad', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'MaterialPeligroso', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'CveMaterialPeligroso', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Embalaje', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PesoEnKg', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ValorMercancia', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Moneda', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'FraccionArancelaria', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'UUIDComercioExt', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoMateria', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'documentacionaduanera':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoDocumento', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'IdentDocAduanero', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'autotransporte':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PermSCT', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumPermisoSCT', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'identificacionvehicular':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'ConfigVehicular', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PesoBrutoVehicular', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PlacaVM', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'AnioModeloVM', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'seguros':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'AseguraRespCivil', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PolizaRespCivil', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'AseguraMedAmbiente', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'PolizaMedAmbiente', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'remolque':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'SubTipoRem', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'Placa', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+            'tiposfigura':
+                begin
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'TipoFigura', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'RFCFigura', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NumLicencia', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                    AppendLegacyOrderedAttributeValue(XmlText, TagAttrStart, OriginalString, ElementName, 'NombreFigura', PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                end;
+        end;
+
+        SkipToTagEnd(XmlText, Position);
+    end;
+
+    local procedure AppendLegacyOrderedAttributeValue(XmlText: Text; TagStartPosition: Integer; var OriginalString: Text; ElementName: Text; AttributeName: Text; var PendingTotalImpuestosRetenidos: Text; var PendingTotalImpuestosTrasladados: Text)
+    var
+        SearchPosition: Integer;
+        CurrentAttributeName: Text;
+        CurrentAttributeValue: Text;
+    begin
+        // Always search from the beginning of the tag's attributes (TagStartPosition),
+        // not from where the previous attribute was found. This ensures we find attributes
+        // regardless of their order in the XML vs. the legacy canonical order.
+        SearchPosition := TagStartPosition;
+        while SearchPosition <= StrLen(XmlText) do begin
+            SkipWhiteSpaces(XmlText, SearchPosition);
+            if SearchPosition > StrLen(XmlText) then
+                exit;
+
+            if (CopyStr(XmlText, SearchPosition, 1) = '>') or (CopyStr(XmlText, SearchPosition, 2) = '/>') then
+                exit;
+
+            ReadAttributeName(XmlText, SearchPosition, CurrentAttributeName);
+            if CurrentAttributeName = '' then begin
+                SearchPosition += 1;
+                continue;
+            end;
+
+            SkipWhiteSpaces(XmlText, SearchPosition);
+            if CopyStr(XmlText, SearchPosition, 1) <> '=' then begin
+                SearchPosition += 1;
+                continue;
+            end;
+
+            SearchPosition += 1;
+            SkipWhiteSpaces(XmlText, SearchPosition);
+            ReadAttributeValue(XmlText, SearchPosition, CurrentAttributeValue);
+
+            if LowerCase(CurrentAttributeName) = LowerCase(AttributeName) then begin
+                AppendOriginalAttributeValue(ElementName, CurrentAttributeName, CurrentAttributeValue, OriginalString, PendingTotalImpuestosRetenidos, PendingTotalImpuestosTrasladados);
+                exit;
+            end;
+        end;
+    end;
+
+    local procedure ShouldSkipForOriginalString(AttributeName: Text): Boolean
+    var
+        LowerAttributeName: Text;
+    begin
+        if AttributeName = '' then
+            exit(true);
+
+        LowerAttributeName := LowerCase(AttributeName);
+
+        if CopyStr(LowerAttributeName, 1, 5) = 'xmlns' then
+            exit(true);
+
+        if CopyStr(LowerAttributeName, 1, 4) = 'xsi:' then
+            exit(true);
+
+        if LowerAttributeName in ['sello', 'certificado'] then
+            exit(true);
+
+        exit(false);
+    end;
+
+    local procedure NormalizeOriginalStringValue(Value: Text): Text
+    begin
+        Value := DecodeXmlAttributeValue(Value);
+        Value := DelChr(Value, '=', '|');
+        Value := CollapseAndTrimSpaces(Value);
+        exit(Value);
+    end;
+
+    local procedure IsZeroOriginalStringValue(Value: Text): Boolean
+    var
+        DecimalValue: Decimal;
+    begin
+        if Value = '' then
+            exit(false);
+
+        if Evaluate(DecimalValue, Value) then
+            exit(DecimalValue = 0);
+
+        exit(false);
+    end;
+
+    local procedure DecodeXmlAttributeValue(Value: Text): Text
+    begin
+        Value := Value.Replace('&quot;', '"');
+        Value := Value.Replace('&apos;', '''');
+        Value := Value.Replace('&lt;', '<');
+        Value := Value.Replace('&gt;', '>');
+        Value := Value.Replace('&amp;', '&');
+        exit(Value);
+    end;
+
+    local procedure CollapseAndTrimSpaces(Value: Text): Text
+    var
+        I: Integer;
+        CurrentChar: Text[1];
+        PreviousWasSpace: Boolean;
+        Result: Text;
+    begin
+        Value := DelChr(Value, '<>', ' ');
+        for I := 1 to StrLen(Value) do begin
+            CurrentChar := CopyStr(Value, I, 1);
+            if CurrentChar = ' ' then begin
+                if not PreviousWasSpace then begin
+                    Result += CurrentChar;
+                    PreviousWasSpace := true;
+                end;
+            end else begin
+                Result += CurrentChar;
+                PreviousWasSpace := false;
+            end;
+        end;
+
+        exit(Result);
+    end;
+
+    local procedure IsWhiteSpace(Character: Text[1]): Boolean
+    begin
+        exit((Character = ' ') or (Character = Format(9)) or (Character = Format(10)) or (Character = Format(13)));
+    end;
+
+    local procedure SkipWhiteSpaces(XmlText: Text; var Position: Integer)
+    begin
+        while (Position <= StrLen(XmlText)) and IsWhiteSpace(CopyStr(XmlText, Position, 1)) do
+            Position += 1;
     end;
 
     local procedure CreateDigitalSignature(OriginalString: Text; SetupId: Code[10]): Text
@@ -1762,6 +3442,97 @@ codeunit 3303 "Export Interfactura MX"
             CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Exento');
     end;
 
+    local procedure AddNodeImpuestoPerLine(ParentNode: XmlElement; SalesInvoiceLine: Record "Sales Invoice Line"; var SalesInvoiceRetentionLine: Record "Sales Invoice Line")
+    var
+        ParentXmlNode: XmlNode;
+        ImpuestosNode: XmlNode;
+        TrasladosNode: XmlNode;
+        TrasladoNode: XmlNode;
+        RetencionesNode: XmlNode;
+        RetencionNode: XmlNode;
+        RetentionAmount: Decimal;
+        IsVATExempt: Boolean;
+    begin
+        if GetSubjectToTaxCode(SalesInvoiceLine) <> '02' then
+            exit;
+        if IsNonTaxableVATLine(SalesInvoiceLine) then
+            exit;
+
+        ParentXmlNode := ParentNode.AsXmlNode();
+        CFDIXMLHelperMX.AddElementCFDI(ParentXmlNode, 'Impuestos', '', ImpuestosNode);
+
+        CFDIXMLHelperMX.AddElementCFDI(ImpuestosNode, 'Traslados', '', TrasladosNode);
+        CFDIXMLHelperMX.AddElementCFDI(TrasladosNode, 'Traslado', '', TrasladoNode);
+        IsVATExempt := IsVATExemptLine(SalesInvoiceLine);
+        AddNodeTrasladoRetentionPerLine(
+            TrasladoNode,
+            SalesInvoiceLine.Amount,
+            SalesInvoiceLine."VAT %",
+            SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount,
+            IsVATExempt);
+
+        SalesInvoiceRetentionLine.SetRange("Document No.", SalesInvoiceLine."Document No.");
+        SalesInvoiceRetentionLine.SetRange("Retention Attached to Line No.", SalesInvoiceLine."Line No.");
+        if SalesInvoiceRetentionLine.FindSet() then begin
+            CFDIXMLHelperMX.AddElementCFDI(ImpuestosNode, 'Retenciones', '', RetencionesNode);
+            repeat
+                RetentionAmount := SalesInvoiceRetentionLine.Amount;
+                CFDIXMLHelperMX.AddElementCFDI(RetencionesNode, 'Retencion', '', RetencionNode);
+                IsVATExempt := IsVATExemptLine(SalesInvoiceRetentionLine);
+                AddNodeTrasladoRetentionPerLine(
+                    RetencionNode,
+                    SalesInvoiceLine.Amount,
+                    SalesInvoiceRetentionLine."Retention VAT %",
+                    RetentionAmount,
+                    IsVATExempt);
+            until SalesInvoiceRetentionLine.Next() = 0;
+        end;
+    end;
+
+    local procedure AddNodeTrasladoRetentionPerLine(var TaxNode: XmlNode; BaseAmount: Decimal; VATPct: Decimal; VATAmount: Decimal; IsVATExempt: Boolean)
+    begin
+        CFDIXMLHelperMX.AddAttribute(TaxNode, 'Base', FormatDecimal(BaseAmount, 6));
+        CFDIXMLHelperMX.AddAttribute(TaxNode, 'Impuesto', GetTaxCode(VATPct, VATAmount));
+        if not IsVATExempt then begin
+            CFDIXMLHelperMX.AddAttribute(TaxNode, 'TipoFactor', 'Tasa');
+            CFDIXMLHelperMX.AddAttribute(TaxNode, 'TasaOCuota', PadStr(FormatDecimal(VATPct / 100, 6), 8, '0'));
+            CFDIXMLHelperMX.AddAttribute(TaxNode, 'Importe', FormatDecimal(VATAmount, 6));
+        end else
+            CFDIXMLHelperMX.AddAttribute(TaxNode, 'TipoFactor', 'Exento');
+    end;
+
+    local procedure IsNonTaxableVATLine(SalesInvoiceLine: Record "Sales Invoice Line"): Boolean
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if not VATPostingSetup.Get(SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group") then
+            exit(false);
+
+        exit(VATPostingSetup."CFDI Non-Taxable");
+    end;
+
+    local procedure IsVATExemptLine(SalesInvoiceLine: Record "Sales Invoice Line"): Boolean
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if not VATPostingSetup.Get(SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group") then
+            exit(false);
+
+        exit(VATPostingSetup."CFDI VAT Exemption");
+    end;
+
+    local procedure TryFormatNumeroPedimento(CustomTransitNumber: Text[30]; var NumeroPedimento: Text): Boolean
+    begin
+        NumeroPedimento := DelChr(CustomTransitNumber);
+        if NumeroPedimento = '' then
+            exit(false);
+
+        NumeroPedimento :=
+          StrSubstNo(NumeroPedimentoFormatTxt,
+            CopyStr(NumeroPedimento, 1, 2), CopyStr(NumeroPedimento, 3, 2), CopyStr(NumeroPedimento, 5, 4), CopyStr(NumeroPedimento, 9, 7));
+        exit(true);
+    end;
+
     local procedure AddNodeCuentaPredial(var ConceptoNode: XmlNode; ItemOrAssetNo: Code[20])
     var
         FixedAsset: Record "Fixed Asset";
@@ -1817,6 +3588,89 @@ codeunit 3303 "Export Interfactura MX"
     begin
         // SAT requires yyyy-MM-ddThh:mm:ss in local time, without milliseconds or time zone designator
         exit(Format(InDateTime, 0, '<Year4>-<Month,2>-<Day,2>T<Hours24,2>:<Minutes,2>:<Seconds,2>'));
+    end;
+
+    local procedure GetIssueDateTime(DocumentHeaderVariant: Variant): Text[50]
+    var
+        TimeZone: Text;
+    begin
+        TimeZone := GetTimeZoneFromDocument(DocumentHeaderVariant);
+        if TimeZone = '' then
+            TimeZone := GetDefaultMexicoTimeZone();
+
+        exit(FormatAsDateTime(Today, Time, TimeZone));
+    end;
+
+    local procedure FormatAsDateTime(DocumentDate: Date; DocumentTime: Time; TimeZone: Text): Text[50]
+    begin
+        exit(FormatDateTime(ConvertDateTimeToTimeZone(CreateDateTime(DocumentDate, DocumentTime), TimeZone)));
+    end;
+
+    local procedure ConvertDateTimeToTimeZone(InputDateTime: DateTime; TimeZone: Text): DateTime
+    var
+        TypeHelper: Codeunit "Type Helper";
+    begin
+        // GetInputDateTimeInUserTimeZone subtracts the user timezone offset,
+        // compensating for Format(DateTime) which adds it back.
+        // Without this step, the formatted Fecha would be shifted by the user's offset.
+        InputDateTime := TypeHelper.GetInputDateTimeInUserTimeZone(InputDateTime);
+        exit(TypeHelper.ConvertDateTimeFromUTCToTimeZone(InputDateTime, TimeZone));
+    end;
+
+    local procedure ConvertCurrentDateTimeToTimeZone(TimeZone: Text): DateTime
+    var
+        TypeHelper: Codeunit "Type Helper";
+    begin
+        // GetInputDateTimeInUserTimeZone subtracts the user timezone offset,
+        // compensating for Format(DateTime) which adds it back.
+        // Net chain: UTC −UserOffset −TargetOffset +UserOffset = UTC −TargetOffset.
+        exit(TypeHelper.ConvertDateTimeFromUTCToTimeZone(
+            TypeHelper.GetInputDateTimeInUserTimeZone(CurrentDateTime()), TimeZone));
+    end;
+
+    local procedure GetTimeZoneFromDocument(DocumentHeaderVariant: Variant): Text
+    var
+        DocumentHeader: Record "Document Header";
+        PostCode: Record "Post Code";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        Location: Record Location;
+        DataTypeManagement: Codeunit "Data Type Management";
+        RecRef: RecordRef;
+    begin
+        DataTypeManagement.GetRecordRef(DocumentHeaderVariant, RecRef);
+        if RecRef.Number = Database::"Transfer Shipment Header" then begin
+            RecRef.SetTable(TransferShipmentHeader);
+            if PostCode.Get(TransferShipmentHeader."Transfer-from Post Code", TransferShipmentHeader."Transfer-from City") then
+                if PostCode."Time Zone" <> '' then
+                    exit(PostCode."Time Zone");
+            exit(GetTimeZoneFromCompany());
+        end;
+
+        DocumentHeader.TransferFields(DocumentHeaderVariant);
+        Location.SetLoadFields("Post Code", City);
+        if Location.Get(DocumentHeader."Location Code") then
+            if PostCode.Get(Location."Post Code", Location.City) then
+                if PostCode."Time Zone" <> '' then
+                    exit(PostCode."Time Zone");
+
+        exit(GetTimeZoneFromCompany());
+    end;
+
+    local procedure GetTimeZoneFromCompany(): Text
+    var
+        CompanyInfo: Record "Company Information";
+        PostCode: Record "Post Code";
+    begin
+        CompanyInfo.Get();
+        if PostCode.Get(CompanyInfo."Post Code", CompanyInfo.City) then
+            if PostCode."Time Zone" <> '' then
+                exit(PostCode."Time Zone");
+        exit(GetDefaultMexicoTimeZone());
+    end;
+
+    local procedure GetDefaultMexicoTimeZone(): Text
+    begin
+        exit('Central Standard Time (Mexico)');
     end;
 
     local procedure FormatDecimalRange(InAmount: Decimal; DecimalPlacesFrom: Integer; DecimalPlacesTo: Integer): Text
@@ -1904,6 +3758,25 @@ codeunit 3303 "Export Interfactura MX"
         TailPart := TailPart.Replace(NamespaceDeclaration, '');
 
         XmlDocument.ReadFrom(HeadPart + TailPart, XMLDocInOut);
+    end;
+
+    local procedure AddReceptorForeignTaxAttributes(var ReceptorNode: XmlNode; Customer: Record Customer)
+    var
+        SATUtilities: Codeunit "SAT Utilities";
+        CountryCodeSAT: Text;
+    begin
+        if Customer."RFC No." <> 'XEXX010101000' then
+            exit;
+
+        CountryCodeSAT := SATUtilities.GetSATCountryCode(Customer."Country/Region Code");
+        if (CountryCodeSAT = '') or (CountryCodeSAT = 'MEX') then
+            exit;
+
+        if Customer."VAT Registration No." = '' then
+            exit;
+
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'ResidenciaFiscal', CountryCodeSAT);
+        CFDIXMLHelperMX.AddAttribute(ReceptorNode, 'NumRegIdTrib', Customer."VAT Registration No.");
     end;
 
     #endregion
