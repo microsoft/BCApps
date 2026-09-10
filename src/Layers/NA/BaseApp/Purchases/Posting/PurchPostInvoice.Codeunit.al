@@ -1320,7 +1320,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                             if PurchLine."Gen. Prod. Posting Group" = '' then
                                 Error(
                                   GenProdPostingGrDiscErr,
-                                  PurchLine.FieldName("Gen. Prod. Posting Group"), PurchLine.FieldName("Line No."), PurchLine."Line No.")
+                                  PurchLine.FieldCaption("Gen. Prod. Posting Group"), PurchLine.FieldCaption("Line No."), PurchLine."Line No.")
                             else
                                 GenPostingSetup.Get(PurchLine."Gen. Bus. Posting Group", PurchLine."Gen. Prod. Posting Group");
                     end else
