@@ -34,7 +34,7 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">The inspection that identifies the inventory and current tracking values.</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing the new tracking values and posting behavior.</param>
     /// <returns>True if item tracking was changed; otherwise, false.</returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;

@@ -20,7 +20,7 @@ codeunit 7293 "Csv Handler" implements "File Handler"
         HandlerNotInitializedErr: Label 'Handler not initialized';
         InvalidFileConfigurationErr: Label 'Invalid File Configuration';
 
-    procedure Process(var FileInputStream: InStream): Variant
+    internal procedure Process(var FileInputStream: InStream): Variant
     var
         MappingCacheManagement: Codeunit "Mapping Cache Management";
         FileHandlerResult: Codeunit "File Handler Result";
@@ -52,7 +52,7 @@ codeunit 7293 "Csv Handler" implements "File Handler"
         exit(FileHandlerResult);
     end;
 
-    procedure GetFileData(FileHandlerResultVariant: Variant): List of [List of [Text]]
+    internal procedure GetFileData(FileHandlerResultVariant: Variant): List of [List of [Text]]
     var
         TempCSVBuffer: Record "CSV Buffer" temporary;
         FileHandlerResult: Codeunit "File Handler Result";
@@ -94,7 +94,7 @@ codeunit 7293 "Csv Handler" implements "File Handler"
         end;
     end;
 
-    procedure Finalize(FileHandlerResultVariant: Variant)
+    internal procedure Finalize(FileHandlerResultVariant: Variant)
     var
         MappingCacheManagement: Codeunit "Mapping Cache Management";
         FileHandlerResult: Codeunit "File Handler Result";

@@ -56,7 +56,7 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
         ArrayToOutStream(Signature, SignatureOutStream);
     end;
 
-    procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; var Signature: DotNet Array)
+    local procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; var Signature: DotNet Array)
     begin
         if Bytes.Length() = 0 then
             exit;
@@ -89,7 +89,7 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
         exit(VerifyData(Bytes, HashAlgorithm, Signature));
     end;
 
-    procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; Signature: DotNet Array): Boolean
+    local procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; Signature: DotNet Array): Boolean
     var
         Verified: Boolean;
     begin

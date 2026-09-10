@@ -72,7 +72,7 @@ codeunit 8934 "View If Any Related Records" implements "Email View Policy"
         exit(HasAccess(EmailOutbox."Message Id", EmailOutbox."User Security Id"))
     end;
 
-    procedure HasAccess(MessageId: Guid; UserSecurityId: Guid): Boolean
+    internal procedure HasAccess(MessageId: Guid; UserSecurityId: Guid): Boolean
     var
         EmailRelatedRecord: Record "Email Related Record";
         RecordRef: RecordRef;

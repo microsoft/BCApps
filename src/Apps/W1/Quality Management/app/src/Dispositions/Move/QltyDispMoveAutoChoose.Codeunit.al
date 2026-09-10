@@ -35,7 +35,7 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, quantity, and posting behavior.</param>
     /// <returns>True if the selected movement disposition created or posted a movement; otherwise, false.</returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         Location: Record Location;
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;

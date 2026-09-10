@@ -50,7 +50,7 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
         ArrayToOutStream(Signature, SignatureOutStream);
     end;
 
-    procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; var Signature: DotNet Array)
+    local procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; var Signature: DotNet Array)
     begin
         if Bytes.Length() = 0 then
             exit;
@@ -99,7 +99,7 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
         exit(VerifyData(Bytes, HashAlgorithm, RSASignaturePadding, Signature));
     end;
 
-    procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; Signature: DotNet Array): Boolean
+    local procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; Signature: DotNet Array): Boolean
     var
         Verified: Boolean;
     begin

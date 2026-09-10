@@ -57,7 +57,7 @@ codeunit 11732 "Alt. Cust. VAT Reg. Impl. CZZ" implements "Alt. Cust. VAT Reg. A
         CopyFromCustomer(SalesAdvLetterHeaderCZZ, xSalesAdvLetterHeaderCZZ, Customer);
     end;
 
-    procedure CopyFromCustomer(var SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; xSalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; Customer: Record Customer)
+    local procedure CopyFromCustomer(var SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; xSalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; Customer: Record Customer)
     var
         ChangedFieldsList: Text;
     begin

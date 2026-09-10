@@ -36,7 +36,7 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
     /// <param name="ReleaseImmediately">Release the created internal put-away documents when true.</param>
     /// <param name="QltyQuantityBehavior">The rule used to determine the put-away quantity.</param>
     /// <returns>True if at least one internal put-away line was created; otherwise, false.</returns>
-    procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
+    internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReleaseImmediately: Boolean; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin

@@ -42,7 +42,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// <param name="PostingBehavior">Specifies whether to prepare or post the adjustment.</param>
     /// <param name="Reason">The reason code assigned to the adjustment line.</param>
     /// <returns>True if an adjustment line was created or posted; otherwise, false.</returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; PostingBehavior: Enum "Qlty. Item Adj. Post Behavior"; Reason: Code[10]) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; PostingBehavior: Enum "Qlty. Item Adj. Post Behavior"; Reason: Code[10]) DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
     begin
@@ -62,7 +62,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to adjust.</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions that define the quantity, source filters, posting behavior, and reason code.</param>
     /// <returns>True if an adjustment line was created or posted; otherwise, false.</returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;

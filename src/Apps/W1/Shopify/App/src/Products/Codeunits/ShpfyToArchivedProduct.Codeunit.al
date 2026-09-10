@@ -16,7 +16,7 @@ codeunit 30186 "Shpfy ToArchivedProduct" implements "Shpfy IRemoveProductAction"
     /// RemoveProductAction.
     /// </summary>
     /// <param name="Product">VAR Record "Shopify Product".</param>
-    procedure RemoveProductAction(var Product: Record "Shpfy Product")
+    internal procedure RemoveProductAction(var Product: Record "Shpfy Product")
     var
         ProductApi: Codeunit "Shpfy Product API";
     begin

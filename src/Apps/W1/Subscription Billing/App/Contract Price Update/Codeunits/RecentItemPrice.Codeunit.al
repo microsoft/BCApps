@@ -10,20 +10,20 @@ codeunit 8011 "Recent Item Price" implements "Contract Price Update"
         IncludeServiceCommitmentUpToDate: Date;
         PerformUpdateOnDate: Date;
 
-    procedure SetPriceUpdateParameters(NewPriceUpdateTemplate: Record "Price Update Template"; NewIncludeServiceCommitmentUpToDate: Date; NewPerformUpdateOnDate: Date)
+    internal procedure SetPriceUpdateParameters(NewPriceUpdateTemplate: Record "Price Update Template"; NewIncludeServiceCommitmentUpToDate: Date; NewPerformUpdateOnDate: Date)
     begin
         PriceUpdateTemplate := NewPriceUpdateTemplate;
         IncludeServiceCommitmentUpToDate := NewIncludeServiceCommitmentUpToDate;
         PerformUpdateOnDate := NewPerformUpdateOnDate;
     end;
 
-    procedure ApplyFilterOnServiceCommitments()
+    internal procedure ApplyFilterOnServiceCommitments()
     begin
         PriceUpdateManagement.TestIncludeServiceCommitmentUpToDate(IncludeServiceCommitmentUpToDate);
         PriceUpdateManagement.GetAndApplyFiltersOnServiceCommitment(ServiceCommitment, PriceUpdateTemplate, IncludeServiceCommitmentUpToDate);
     end;
 
-    procedure CreatePriceUpdateProposal()
+    internal procedure CreatePriceUpdateProposal()
     begin
         if ServiceCommitment.FindSet() then
             repeat
@@ -44,7 +44,7 @@ codeunit 8011 "Recent Item Price" implements "Contract Price Update"
             until ServiceCommitment.Next() = 0;
     end;
 
-    procedure CalculateNewPrice(UpdatePercentValue: Decimal; var NewContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
+    internal procedure CalculateNewPrice(UpdatePercentValue: Decimal; var NewContractPriceUpdateLine: Record "Sub. Contr. Price Update Line")
     begin
         NewContractPriceUpdateLine."New Calculation Base %" := NewContractPriceUpdateLine."Old Calculation Base %";
         NewContractPriceUpdateLine.CalculateNewCalculationBaseAmount();

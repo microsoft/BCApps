@@ -30,7 +30,7 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source bins, destination bin, quantities, and posting behavior.</param>
     /// <returns>True if at least one internal movement line was created; otherwise, false.</returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         InternalMovementHeader: Record "Internal Movement Header";
