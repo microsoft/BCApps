@@ -420,24 +420,24 @@ codeunit 8224 "Create Expense G/L Accounts"
 
     local procedure ModifyGLAccountCZ()
     var
-        GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
+        GLAccountCategory: Record "G/L Account Category";
         SubCategory: Text[80];
     begin
         AddGLAccountsCZ();
 
-        SubCategory := CopyStr(GLAccountCategoryMgt.GetCash(), 1, MaxStrLen(SubCategory));
+        SubCategory := Format(GLAccountCategory."Account Category"::Assets, 80);
         ContosoGLAccount.InsertGLAccount(CompanyCardExpensesPayableCZ(), CompanyCardExpensesPayableNameCZ(), "G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Assets, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
-        SubCategory := CopyStr(GLAccountCategoryMgt.GetPrepaidExpenses(), 1, MaxStrLen(SubCategory));
+        SubCategory := Format(GLAccountCategory."Account Category"::Assets, 80);
         ContosoGLAccount.InsertGLAccount(EmployeeExpenseAdvancesCZ(), EmployeeExpenseAdvancesNameCZ(), "G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Assets, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
-        SubCategory := TravelExpenseSubcategoryCZTok;
+        SubCategory := Format(GLAccountCategory."Account Category"::Expense);
         ContosoGLAccount.InsertGLAccount(MileageAllowanceCZ(), MileageAllowanceNameCZ(), "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::Purchase, '', '', true, false, false);
         ContosoGLAccount.InsertGLAccount(PerDiemAllowanceCZ(), PerDiemAllowanceNameCZ(), "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::Purchase, '', '', true, false, false);
         ContosoGLAccount.InsertGLAccount(CarRentalExpensesCZ(), CarRentalExpensesNameCZ(), "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::Purchase, '', '', true, false, false);
         ContosoGLAccount.InsertGLAccount(MealsAndHospitalityExpensesCZ(), MealsAndHospitalityExpensesNameCZ(), "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::Purchase, '', '', true, false, false);
 
-        SubCategory := IncomeSubcategoryCZTok;
+        SubCategory := '';
         ContosoGLAccount.InsertGLAccount(NonRefundableEmployeeExpensesCZ(), NonRefundableEmployeeExpensesNameCZ(), "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Income, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
         ContosoGLAccount.InsertGLAccount(ExpenseRoundingDifferencesCZ(), ExpenseRoundingDifferencesNameCZ(), "G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Income, SubCategory, Enum::"G/L Account Type"::Posting, '', '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
     end;
@@ -1435,8 +1435,6 @@ codeunit 8224 "Create Expense G/L Accounts"
         PerDiemAllowanceCHTok: Label 'Per Diem Allowance', MaxLength = 100;
         EntertainmentExpensesCHTok: Label 'Entertainment Expenses', MaxLength = 100;
         MealsAndHospitalityExpensesCHTok: Label 'Meals and Hospitality Expenses', MaxLength = 100;
-        TravelExpenseSubcategoryCZTok: Label 'A.3. Services', MaxLength = 80, Locked = true;
-        IncomeSubcategoryCZTok: Label 'III.3. Another Operating Revenues', MaxLength = 80, Locked = true;
         CompanyCardExpensesPayableCZTok: Label 'Company Card Expenses Payable', MaxLength = 100;
         EmployeeExpenseAdvancesCZTok: Label 'Employee Expense Advances', MaxLength = 100;
         MileageAllowanceCZTok: Label 'Mileage Allowance', MaxLength = 100;
