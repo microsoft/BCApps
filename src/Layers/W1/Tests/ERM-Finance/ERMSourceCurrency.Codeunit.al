@@ -2239,7 +2239,7 @@ codeunit 134897 "ERM Source Currency"
 
         // [GIVEN] A Purchase Invoice for a G/L Account.
         CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
-        CreatePurchaseInvoice(PurchaseHeader, VendorNo, GLAccount."No.", WithForeignCurrency);
+        CreatePurchaseInvoiceWithWorkDate(PurchaseHeader, VendorNo, GLAccount."No.", WithForeignCurrency);
         PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // [THEN] Both reverse charge entries preserve the original source VAT amount.
@@ -2264,6 +2264,25 @@ codeunit 134897 "ERM Source Currency"
         PurchaseLine: Record "Purchase Line";
     begin
         CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        if WithForeignCurrency then
+            PurchaseHeader.Validate("Currency Code", CreateCurrency());
+
+        CreatePurchaseInvoiceLine(
+            PurchaseHeader,
+            PurchaseLine.Type::"G/L Account",
+            GLAccountNo);
+
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify();
+    end;
+
+    local procedure CreatePurchaseInvoiceWithWorkDate(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        CreatePurchaseHeaderWithWorkDate(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
         if WithForeignCurrency then
             PurchaseHeader.Validate("Currency Code", CreateCurrency());
 
@@ -2342,6 +2361,23 @@ codeunit 134897 "ERM Source Currency"
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
         PurchaseHeader.Validate("Posting Date", LibraryFiscalYear.GetFirstPostingDate(false));
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader."Posting Description" := 'Test Purchase Invoice';
+        PurchaseHeader.Modify(true);
+
+        TempBlob.CreateOutStream().WriteText('TEST');
+        RecRef.GetTable(PurchaseHeader);
+        DocumentAttachment.SaveAttachment(RecRef, 'TEST', TempBlob);
+    end;
+
+    local procedure CreatePurchaseHeaderWithWorkDate(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; VendorNo: Code[20])
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        RecRef: RecordRef;
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
+        PurchaseHeader.Validate("Posting Date", WorkDate());
         PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
         PurchaseHeader."Posting Description" := 'Test Purchase Invoice';
         PurchaseHeader.Modify(true);
