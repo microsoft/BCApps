@@ -260,6 +260,7 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
                 Mock -ModuleName BuildOptimization git {
+                    $global:LASTEXITCODE = 0
                     if ($args -contains 'merge-base') {
                         return 'merge-base-sha'
                     }

@@ -17,6 +17,12 @@ $allApps = @(Join-Path $sourceCodeFolder "Apps")
 # any paths that do not exist to avoid Get-ChildItem failing on missing directories.
 [string[]] $w1OnlyPaths = @($baseFolders + $w1Apps + $w1Layers | Where-Object { Test-Path -Path $_ })
 [string[]] $allPaths = @($baseFolders + $allApps + $w1Layers | Where-Object { Test-Path -Path $_ })
+[string[]] $objectIdValidationPaths = @(
+    (Join-Path $sourceCodeFolder 'Layers\W1\BaseApp')
+    (Join-Path $sourceCodeFolder 'Business Foundation\App')
+    (Join-Path $sourceCodeFolder 'System Application\App')
+    $allApps
+) | Where-Object { Test-Path -Path $_ }
 
 # Define exceptions
 $AllowedDuplicateObjects = @(
@@ -97,9 +103,12 @@ if ($addedFiles.Count -eq 0) {
 else {
     $repositoryRoot = (Resolve-Path -Path (Get-BaseFolder)).Path
     $addedFilePaths = @($addedFiles | ForEach-Object { Join-Path -Path $repositoryRoot -ChildPath $_ })
-    $testFolderPaths = Get-ALGoTestFolders -ProjectsPath (Join-Path -Path $repositoryRoot -ChildPath 'build\projects')
+    $testFolderPaths = Get-ALGoTestFolders `
+        -ProjectsPath (Join-Path -Path $repositoryRoot -ChildPath 'build\projects') `
+        -ProjectsJsonPath (Join-Path -Path $repositoryRoot -ChildPath 'build\projects.json') `
+        -RepositoryRoot $repositoryRoot
     $allowedRangesText = ($AllowedObjectIdRanges | ForEach-Object { "$($_.From)..$($_.To)" }) -join ', '
     Write-Host "Validating object IDs in newly added production AL files (allowed ranges: $allowedRangesText)."
 
-    Test-ObjectIDsInAddedALFilesAreInAllowedRange -FilePaths $addedFilePaths -SourceCodePaths $allPaths -TestFolderPaths $testFolderPaths -AllowedRanges $AllowedObjectIdRanges
+    Test-ObjectIDsInAddedALFilesAreInAllowedRange -FilePaths $addedFilePaths -SourceCodePaths $objectIdValidationPaths -TestFolderPaths $testFolderPaths -AllowedRanges $AllowedObjectIdRanges
 }

@@ -26,11 +26,15 @@ Describe "AppObjectValidation" {
             $production = Join-Path $source 'Apps\W1\Example\App'
             $countryProduction = Join-Path $source 'Apps\GB\Example\App'
             $testApp = Join-Path $source 'Apps\W1\Example\Test'
+            $baseApp = Join-Path $source 'Layers\W1\BaseApp'
+            $businessFoundationApp = Join-Path $source 'Business Foundation\App'
+            $systemApplicationApp = Join-Path $source 'System Application\App'
 
-            New-Item -ItemType Directory -Path $production, $countryProduction, $testApp, $projects -Force | Out-Null
+            New-Item -ItemType Directory -Path $production, $countryProduction, $testApp, $baseApp, $businessFoundationApp, $systemApplicationApp, $projects -Force | Out-Null
             @{
                 testFolders = @('../../../src/Apps/W1/Example/Test')
             } | ConvertTo-Json | Set-Content -Path (Join-Path $projects 'settings.json') -Encoding UTF8
+            @{ projects = @{} } | ConvertTo-Json | Set-Content -Path (Join-Path $root 'build\projects.json') -Encoding UTF8
 
             return [PSCustomObject]@{
                 Root              = $root
@@ -38,7 +42,12 @@ Describe "AppObjectValidation" {
                 Production        = $production
                 CountryProduction = $countryProduction
                 TestApp           = $testApp
+                BaseApp           = $baseApp
+                BusinessFoundationApp = $businessFoundationApp
+                SystemApplicationApp  = $systemApplicationApp
                 Projects          = (Join-Path $root 'build\projects')
+                ProjectsJson      = (Join-Path $root 'build\projects.json')
+                ValidationRoots   = @($baseApp, $businessFoundationApp, $systemApplicationApp, (Join-Path $source 'Apps'))
             }
         }
 
@@ -48,8 +57,8 @@ Describe "AppObjectValidation" {
                 [Parameter(Mandatory = $true)] [string[]] $FilePaths
             )
 
-            $testFolders = Get-ALGoTestFolders -ProjectsPath $Layout.Projects
-            Test-ObjectIDsInAddedALFilesAreInAllowedRange -FilePaths $FilePaths -SourceCodePaths @($Layout.Source) -TestFolderPaths $testFolders -AllowedRanges $script:AllowedRanges
+            $testFolders = Get-ALGoTestFolders -ProjectsPath $Layout.Projects -ProjectsJsonPath $Layout.ProjectsJson -RepositoryRoot $Layout.Root
+            Test-ObjectIDsInAddedALFilesAreInAllowedRange -FilePaths $FilePaths -SourceCodePaths $Layout.ValidationRoots -TestFolderPaths $testFolders -AllowedRanges $script:AllowedRanges
         }
     }
 
@@ -103,6 +112,44 @@ Describe "AppObjectValidation" {
             $expected = Join-Path $layout.Source 'System Application\Test'
             $testFolders | Should -Contain ([System.IO.Path]::GetFullPath($expected))
         }
+
+        It "includes projects canonically marked as tests even when they are AL-Go app folders" {
+            $layout = New-ValidationLayout
+            $testUtility = Join-Path $layout.Source 'Apps\W1\LibraryNoTransactions\app'
+            New-Item -ItemType Directory -Path $testUtility -Force | Out-Null
+            @{
+                projects = @{
+                    'Library-NoTransactions' = @{
+                        projectPath = '$env:INETROOT\App\Apps\W1\LibraryNoTransactions\app'
+                        isTest      = $true
+                    }
+                }
+            } | ConvertTo-Json -Depth 5 | Set-Content -Path $layout.ProjectsJson -Encoding UTF8
+
+            $testFolders = Get-ALGoTestFolders -ProjectsPath $layout.Projects -ProjectsJsonPath $layout.ProjectsJson -RepositoryRoot $layout.Root
+
+            $testFolders | Should -Contain ([System.IO.Path]::GetFullPath($testUtility))
+        }
+
+        It "resolves test layer sources from canonical appJsonPath metadata" {
+            $layout = New-ValidationLayout
+            $layerTest = Join-Path $layout.Source 'Layers\W1\Tests\Bank'
+            New-Item -ItemType Directory -Path $layerTest -Force | Out-Null
+            '{}' | Set-Content -Path (Join-Path $layerTest 'app.json') -Encoding UTF8
+            @{
+                projects = @{
+                    'Tests-Bank' = @{
+                        projectPath = '$env:INETROOT\App\Views\$CountryCode\Tests\Bank'
+                        appJsonPath = '$env:INETROOT\App\Layers\W1\Tests\Bank\app.json'
+                        isTest      = $true
+                    }
+                }
+            } | ConvertTo-Json -Depth 5 | Set-Content -Path $layout.ProjectsJson -Encoding UTF8
+
+            $testFolders = Get-ALGoTestFolders -ProjectsPath $layout.Projects -ProjectsJsonPath $layout.ProjectsJson -RepositoryRoot $layout.Root
+
+            $testFolders | Should -Contain ([System.IO.Path]::GetFullPath($layerTest))
+        }
     }
 
     Context "Test-ObjectIDsInAddedALFilesAreInAllowedRange" {
@@ -126,6 +173,24 @@ Describe "AppObjectValidation" {
             $file = New-TestAlFile -Path (Join-Path $layout.CountryProduction 'Invalid.al') -Declaration 'pageextension 50000 "Invalid GB" extends "Customer Card"'
 
             { Invoke-AddedFileValidation -Layout $layout -FilePaths @($file) } | Should -Throw
+        }
+
+        It "checks newly added objects in BaseApp, Business Foundation, and System Application" {
+            $layout = New-ValidationLayout
+            $baseAppFile = New-TestAlFile -Path (Join-Path $layout.BaseApp 'Invalid.al') -Declaration 'table 50000 "Invalid BaseApp"'
+            $businessFoundationFile = New-TestAlFile -Path (Join-Path $layout.BusinessFoundationApp 'Invalid.al') -Declaration 'page 50001 "Invalid Business Foundation"'
+            $systemApplicationFile = New-TestAlFile -Path (Join-Path $layout.SystemApplicationApp 'Invalid.al') -Declaration 'codeunit 50002 "Invalid System Application"'
+
+            $errorRecord = $null
+            try {
+                Invoke-AddedFileValidation -Layout $layout -FilePaths @($baseAppFile, $businessFoundationFile, $systemApplicationFile)
+            }
+            catch {
+                $errorRecord = $_
+            }
+
+            $errorRecord | Should -Not -BeNullOrEmpty
+            $errorRecord.Exception.Message | Should -Match '3 object\(s\)'
         }
 
         It "excludes a table in a test app without relying on Subtype Test" {
@@ -157,11 +222,35 @@ Describe "AppObjectValidation" {
             { Invoke-AddedFileValidation -Layout $layout -FilePaths @($file) } | Should -Not -Throw
         }
 
-        It "ignores added files outside the configured source roots" {
+        It "excludes a test utility whose manifest name does not contain test" {
             $layout = New-ValidationLayout
-            $file = New-TestAlFile -Path (Join-Path $layout.Root 'samples\Invalid.al') -Declaration 'table 50000 "Sample"'
+            $testUtility = Join-Path $layout.Source 'Apps\W1\LibraryNoTransactions\app'
+            New-Item -ItemType Directory -Path $testUtility -Force | Out-Null
+            @{
+                projects = @{
+                    'Library-NoTransactions' = @{
+                        projectPath = '$env:INETROOT\App\Apps\W1\LibraryNoTransactions\app'
+                        isTest      = $true
+                    }
+                }
+            } | ConvertTo-Json -Depth 5 | Set-Content -Path $layout.ProjectsJson -Encoding UTF8
+            $file = New-TestAlFile -Path (Join-Path $testUtility 'NoTransactionsSubscriber.Codeunit.al') -Declaration 'codeunit 130630 "No Transactions Subscriber"'
 
             { Invoke-AddedFileValidation -Layout $layout -FilePaths @($file) } | Should -Not -Throw
+        }
+
+        It "ignores added files outside the configured source roots" {
+            $layout = New-ValidationLayout
+            $files = @(
+                (New-TestAlFile -Path (Join-Path $layout.Source 'Layers\W1\DemoTool\Invalid.al') -Declaration 'table 50000 "Demo Tool"')
+                (New-TestAlFile -Path (Join-Path $layout.Source 'Business Foundation\Test\Invalid.al') -Declaration 'table 50001 "Business Foundation Test"')
+                (New-TestAlFile -Path (Join-Path $layout.Source 'System Application\Test Library\Invalid.al') -Declaration 'table 50002 "System Application Test Library"')
+                (New-TestAlFile -Path (Join-Path $layout.Source 'Tools\Invalid.al') -Declaration 'table 50003 "Tool"')
+                (New-TestAlFile -Path (Join-Path $layout.Source 'GDL\Invalid.al') -Declaration 'table 50004 "GDL"')
+                (New-TestAlFile -Path (Join-Path $layout.Source 'DisabledTests\Invalid.al') -Declaration 'table 50005 "Disabled Test"')
+            )
+
+            { Invoke-AddedFileValidation -Layout $layout -FilePaths $files } | Should -Not -Throw
         }
 
         It "ignores non-AL files" {

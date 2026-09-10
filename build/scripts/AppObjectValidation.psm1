@@ -365,16 +365,23 @@ function Test-IsObjectIdInAllowedRange {
 
 <#
     .SYNOPSIS
-    Returns the test application folders configured by the AL-Go projects.
+    Returns the test application folders configured by AL-Go and the build metadata.
     .DESCRIPTION
-    Reads every build project settings.json and resolves its testFolders entries to absolute paths.
+    Reads every build project settings.json and resolves its testFolders entries to absolute paths. It also
+    includes projects marked isTest in projects.json, which covers test utilities listed as AL-Go appFolders.
     A trailing wildcard is treated as the containing test folder because every application below it is a test app.
     .PARAMETER ProjectsPath
     The directory containing the AL-Go build projects.
+    .PARAMETER ProjectsJsonPath
+    The build projects.json file containing canonical isTest metadata.
+    .PARAMETER RepositoryRoot
+    The standalone BCApps repository root used to remap build-system paths.
 #>
 function Get-ALGoTestFolders {
     param(
-        [Parameter(Mandatory = $true)] [string] $ProjectsPath
+        [Parameter(Mandatory = $true)] [string] $ProjectsPath,
+        [string] $ProjectsJsonPath,
+        [string] $RepositoryRoot
     )
 
     $testFolders = @()
@@ -386,6 +393,52 @@ function Get-ALGoTestFolders {
             $testFolderWithoutWildcard = $testFolder -replace '[\\/]\*$', ''
             $projectFolder = $settingsFile.Directory.Parent.FullName
             $testFolders += [System.IO.Path]::GetFullPath((Join-Path -Path $projectFolder -ChildPath $testFolderWithoutWildcard))
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ProjectsJsonPath)) {
+        if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
+            throw 'RepositoryRoot is required when ProjectsJsonPath is provided.'
+        }
+
+        $projects = (Get-Content -LiteralPath $ProjectsJsonPath -Raw | ConvertFrom-Json).projects
+        foreach ($project in $projects.PSObject.Properties) {
+            if ($project.Value.isTest -ne $true) {
+                continue
+            }
+
+            foreach ($buildPath in @($project.Value.appJsonPath, $project.Value.projectPath)) {
+                if ([string]::IsNullOrWhiteSpace($buildPath)) {
+                    continue
+                }
+
+                $normalizedBuildPath = $buildPath -replace '/', '\'
+                $relativePath = $null
+                $bcAppsPrefix = '$env:INETROOT\App\BCApps\'
+                $appsPrefix = '$env:INETROOT\App\Apps\'
+                $layersPrefix = '$env:INETROOT\App\Layers\'
+                if ($normalizedBuildPath.StartsWith($bcAppsPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativePath = $normalizedBuildPath.Substring($bcAppsPrefix.Length)
+                }
+                elseif ($normalizedBuildPath.StartsWith($appsPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativePath = Join-Path 'src\Apps' $normalizedBuildPath.Substring($appsPrefix.Length)
+                }
+                elseif ($normalizedBuildPath.StartsWith($layersPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativePath = Join-Path 'src\Layers' $normalizedBuildPath.Substring($layersPrefix.Length)
+                }
+
+                if ([string]::IsNullOrWhiteSpace($relativePath)) {
+                    continue
+                }
+
+                $candidatePath = Join-Path $RepositoryRoot ($relativePath -replace '\$CountryCode', '*')
+                foreach ($resolvedPath in @(Get-Item -Path $candidatePath -ErrorAction SilentlyContinue)) {
+                    if (-not $resolvedPath.PSIsContainer) {
+                        $resolvedPath = $resolvedPath.Directory
+                    }
+                    $testFolders += $resolvedPath.FullName
+                }
+            }
         }
     }
 
