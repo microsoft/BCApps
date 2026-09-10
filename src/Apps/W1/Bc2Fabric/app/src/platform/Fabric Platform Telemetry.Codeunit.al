@@ -23,7 +23,7 @@ codeunit 50108 "Fabric Platform Telemetry"
     /// <summary>Emits a diagnostic trace with custom dimensions to Application Insights.</summary>
     procedure LogEvent(EventId: Text; Message: Text; Dimensions: Dictionary of [Text, Text])
     begin
-        Dimensions.Add('Category', CategoryTok);
+        Dimensions.Set('Category', CategoryTok);
         Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 

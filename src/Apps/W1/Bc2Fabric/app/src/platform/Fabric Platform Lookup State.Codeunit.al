@@ -18,7 +18,10 @@ codeunit 50104 "Fabric Platform Lookup State"
     begin
         CachedFabricApiToken := Token;
         // Subtract 60 s safety margin so the token is refreshed before actual expiry.
-        FabricApiTokenExpiry := CurrentDateTime() + (ExpiresInSeconds - 60) * 1000;
+        if ExpiresInSeconds > 60 then
+            FabricApiTokenExpiry := CurrentDateTime() + (ExpiresInSeconds - 60) * 1000
+        else
+            FabricApiTokenExpiry := CurrentDateTime();
     end;
 
     [NonDebuggable]

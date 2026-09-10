@@ -23,6 +23,10 @@ codeunit 50102 "Fabric Config Package Mgt"
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
     begin
+        // LockTable before counting so a concurrent Activate/Deactivate cannot change
+        // Tenant Fabric Tables between the capacity check and the inserts below.
+        TenantFabricTables.LockTable();
+
         // Count lines not yet in the platform table
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
@@ -33,9 +37,6 @@ codeunit 50102 "Fabric Config Package Mgt"
 
         FabricPlatformMgt.EnsureCapacity(NewTableCount);
 
-        // LockTable prevents a concurrent Activate/Deactivate from inserting or deleting
-        // rows between the capacity check above and the inserts below.
-        TenantFabricTables.LockTable();
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
