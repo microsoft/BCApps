@@ -27,7 +27,6 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         ChangedTestConditionsUpdateTemplatesQst: Label 'You have changed default conditions on the test %2, there are %1 template lines with earlier conditions for this result. Do you want to update the templates?', Comment = '%1=the amount of template lines that have other conditions, %2=the test name';
         ChangedResultConditionsUpdateDefaultsOnTestsQst: Label 'You have changed default conditions on the result %1, there are %2 tests with earlier conditions for this result. Do you want to update these tests?', Comment = '%1=the amount of tests that have other conditions, %2=the result name';
         UpdateResultsOnTestsTemplatesInspectionsQst: Label 'This will insert new results and adjust evaluation sequence on existing results on all templates, tests, and inspections. Do you want to continue?';
-        TemplateLineDoesNotExistErr: Label 'The inspection template line %1 %2 does not exist.', Comment = '%1=the template code, %2=the line number';
         TemplateLinesTestCodeMismatchErr: Label 'Result conditions cannot be copied because the test code %1 of the template line %2 %3 differs from the test code %4 of the template line %5 %6.', Comment = '%1=the source test code, %2=the source template code, %3=the source line number, %4=the target test code, %5=the target template code, %6=the target line number';
 
     /// <summary>
@@ -178,10 +177,8 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         ToQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         CheckQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
-        if not CheckQltyInspectionTemplateLine.Get(FromQltyInspectionTemplateLine."Template Code", FromQltyInspectionTemplateLine."Line No.") then
-            Error(TemplateLineDoesNotExistErr, FromQltyInspectionTemplateLine."Template Code", FromQltyInspectionTemplateLine."Line No.");
-        if not CheckQltyInspectionTemplateLine.Get(TargetQltyInspectionTemplateLine."Template Code", TargetQltyInspectionTemplateLine."Line No.") then
-            Error(TemplateLineDoesNotExistErr, TargetQltyInspectionTemplateLine."Template Code", TargetQltyInspectionTemplateLine."Line No.");
+        CheckQltyInspectionTemplateLine.Get(FromQltyInspectionTemplateLine."Template Code", FromQltyInspectionTemplateLine."Line No.");
+        CheckQltyInspectionTemplateLine.Get(TargetQltyInspectionTemplateLine."Template Code", TargetQltyInspectionTemplateLine."Line No.");
         if FromQltyInspectionTemplateLine."Test Code" <> TargetQltyInspectionTemplateLine."Test Code" then
             Error(
                 TemplateLinesTestCodeMismatchErr,
