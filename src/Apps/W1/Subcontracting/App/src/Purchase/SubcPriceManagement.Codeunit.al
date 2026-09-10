@@ -548,6 +548,7 @@ codeunit 20508 "Subc. Price Management"
         if OrderDate = 0D then
             OrderDate := WorkDate();
 
+        ProdOrderRoutingLine.SetLoadFields("Standard Task Code");
         if not TryFindProdOrderRtngLine(
                 PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.",
                 PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine)
@@ -593,6 +594,9 @@ codeunit 20508 "Subc. Price Management"
                     GeneralLedgerSetup."Unit-Amount Rounding Precision"));
 
         ProdOrderLine.CalcFields("Total Exp. Oper. Output (Qty.)");
+        if ProdOrderLine."Total Exp. Oper. Output (Qty.)" = 0 then
+            exit(0);
+
         exit(
             Round(
                 (ProdOrderRoutingLine."Expected Operation Cost Amt." - ProdOrderRoutingLine."Expected Capacity Ovhd. Cost") /

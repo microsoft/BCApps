@@ -943,6 +943,68 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure NoMatchPriceListFallbackUsesCalculatedCostForUnitsAndTime()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        TimeDirectUnitCost: Decimal;
+        UnitsDirectUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] Direct purchase-line repricing without a matching price uses the
+        // standard subcontracting calculation for both unit- and time-based operations.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Units);
+        UnitsDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, UnitsDirectUnitCost, 'Test setup expects a nonzero Units Direct Unit Cost.');
+        PurchaseLine."Direct Unit Cost" := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            UnitsDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'The Units fallback must match the Direct Unit Cost calculated when the purchase line was created.');
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        TimeDirectUnitCost := PurchaseLine."Direct Unit Cost";
+        Assert.AreNotEqual(0, TimeDirectUnitCost, 'Test setup expects a nonzero Time Direct Unit Cost.');
+        Assert.AreNotEqual(UnitsDirectUnitCost, TimeDirectUnitCost, 'Test setup expects Units and Time calculations to produce different costs.');
+        PurchaseLine."Direct Unit Cost" := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            TimeDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'The Time fallback must match the Direct Unit Cost calculated when the purchase line was created.');
+    end;
+
+    [Test]
+    procedure NoMatchPriceListFallbackHandlesZeroExpectedOutputQuantity()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+        // [SCENARIO 648535] Time-based fallback pricing returns zero instead of dividing by
+        // zero when the production order has no expected operation output quantity.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        ProdOrderLine.Quantity := 0;
+        ProdOrderLine.Modify();
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            0, PurchaseLine."Direct Unit Cost",
+            'The no-price fallback must be zero when expected operation output quantity is zero.');
+    end;
+
+    [Test]
     procedure ManualWorksheetDirectUnitCostOverridePreservedOnCarryOut()
     var
         Item: Record Item;
@@ -1087,6 +1149,53 @@ codeunit 139982 "Subc. Pricing Test"
     begin
         SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
         FindSubcPurchLineForProdOrder(PurchaseLine, ItemNo, ProdOrderNo);
+    end;
+
+    local procedure CreateNoPriceSubcontractingPurchaseLine(var PurchaseLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line"; UnitCostCalculation: Enum "Unit Cost Calculation Type")
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+    begin
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
+        WorkCenter.Validate("Direct Unit Cost", 10);
+        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalculation);
+        WorkCenter.Modify(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Run Time", 5);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        SubcontractorPrice.SetRange("Vendor No.", Vendor."No.");
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenter."No.");
+        SubcontractorPrice.SetRange("Item No.", Item."No.");
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Test setup expects no subcontractor prices for the operation.');
+
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, Item, '', '', 1, WorkDate());
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProdOrderLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderLine.FindFirst();
     end;
 
 
