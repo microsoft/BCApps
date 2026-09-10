@@ -886,46 +886,12 @@ codeunit 134897 "ERM Source Currency"
 
     [Test]
     procedure PurchaseInvoiceNormalVATFCYPaymentLoss()
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchaseHeader: Record "Purchase Header";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        Currency: Record Currency;
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        VendorNo: Code[20];
-        PostedPurchaseInvoiceNo: Code[20];
-        ExchRateAdjmDocNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
-        AmountLCY: Decimal;
     begin
         exit;
     end;
 
     [Test]
     procedure PurchaseInvoiceNormalVATFCYPaymentGain()
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchaseHeader: Record "Purchase Header";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        Currency: Record Currency;
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        VendorNo: Code[20];
-        PostedPurchaseInvoiceNo: Code[20];
-        ExchRateAdjmDocNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
-        AmountLCY: Decimal;
     begin
         exit;
     end;
@@ -1581,43 +1547,11 @@ codeunit 134897 "ERM Source Currency"
         GenJournalLine.Modify(true);
     end;
 
-    local procedure CreateGeneralJournalLine(
-            var GenJournalLine: Record "Gen. Journal Line";
-            GenJournalDocumentType: Enum "Gen. Journal Document Type";
-            GenJournalAccountType: Enum "Gen. Journal Account Type";
-            AccountNo: Code[20];
-            CurrencyCode: Code[10];
-            Amount: Decimal;
-            AmountLCY: Decimal;
-            PostingDate: Date)
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-    begin
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalDocumentType,
-          GenJournalAccountType, AccountNo, Amount);
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
-        GenJournalLine.Validate("Amount (LCY)", AmountLCY);
-    end;
-
     local procedure GetGLEntries(var GLEntry: Record "G/L Entry"; DocumentNumber: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
     begin
         GLEntry.SetRange("Document No.", DocumentNumber);
         GLEntry.SetRange("Document Type", DocumentType);
         GLEntry.FindSet();
-    end;
-
-    local procedure UpdateExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; CurrencyCode: Code[10]; ExchRateAmount: Decimal)
-    begin
-        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
-        CurrencyExchangeRate.FindFirst();
-        CurrencyExchangeRate.Validate(
-          "Relational Exch. Rate Amount", CurrencyExchangeRate."Relational Exch. Rate Amount" + ExchRateAmount);
-        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", CurrencyExchangeRate."Relational Exch. Rate Amount");
-        CurrencyExchangeRate.Modify(true);
     end;
 
     local procedure CreateDeferralTemplate(var DeferralTemplate: Record "Deferral Template")
