@@ -288,9 +288,19 @@ table 20404 "Qlty. Inspection Gen. Rule"
     end;
 
     trigger OnModify()
+    var
+        PersistedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if xRec."Source Table No." <> 0 then
-            CheckSourceTableNoIsSet();
+        if Rec."Source Table No." = 0 then
+            if Rec.IsTemporary() then begin
+                if xRec."Source Table No." <> 0 then
+                    CheckSourceTableNoIsSet();
+            end else begin
+                PersistedQltyInspectionGenRule.SetLoadFields("Source Table No.");
+                if PersistedQltyInspectionGenRule.Get(Rec."Entry No.") then
+                    if PersistedQltyInspectionGenRule."Source Table No." <> 0 then
+                        CheckSourceTableNoIsSet();
+            end;
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
