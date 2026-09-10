@@ -853,6 +853,8 @@ codeunit 139018 "Job Queue Entry Tests"
         JobQueueEntry."System Task ID" := CreateGuid();
         JobQueueEntry."Earliest Start Date/Time" := CurrentDateTime() + 60000;
         JobQueueEntry.Modify();
+        // Capture the persisted DateTime precision before checking that scheduling preserves it.
+        JobQueueEntry.Get(JobQueueEntry.ID);
     end;
 
     local procedure VerifyRetentionContinuationRestartsJob(InitialStatus: Option)
