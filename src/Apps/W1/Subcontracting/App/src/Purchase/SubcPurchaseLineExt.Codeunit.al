@@ -362,7 +362,9 @@ codeunit 20534 "Subc. Purchase Line Ext"
     var
         PurchaseHeader: Record "Purchase Header";
     begin
-        if PurchaseLine."Prod. Order No." = '' then
+        if (PurchaseLine.Type <> PurchaseLine.Type::Item) or (PurchaseLine."No." = '') or
+           (PurchaseLine."Prod. Order No." = '') or (PurchaseLine."Operation No." = '')
+        then
             exit;
 
         // Preserve released-order scheduling: repricing a subcontracting line after release
