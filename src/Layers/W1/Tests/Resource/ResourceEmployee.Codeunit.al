@@ -747,6 +747,39 @@ codeunit 136400 "Resource Employee"
         Resource.TestField(City, PostCode.City);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure EditEmployeeRelativeLastName()
+    var
+        Employee: Record Employee;
+        EmployeeRelative: Record "Employee Relative";
+        EmployeeRelatives: TestPage "Employee Relatives";
+        LastName: Text[30];
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 649427] The last name of an employee relative can be edited on the Employee Relatives page.
+        Initialize();
+
+        // [GIVEN] An employee with a relative.
+        LibraryHumanResource.CreateEmployee(Employee);
+        EmployeeRelative."Employee No." := Employee."No.";
+        EmployeeRelative."Line No." := 10000;
+        EmployeeRelative.Insert();
+        LastName := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(EmployeeRelative."Last Name")), 1, MaxStrLen(EmployeeRelative."Last Name"));
+        Commit();
+
+        // [WHEN] The relative's last name is edited on the Employee Relatives page.
+        EmployeeRelatives.OpenEdit();
+        EmployeeRelatives.FILTER.SetFilter("Employee No.", Employee."No.");
+        EmployeeRelatives.GotoRecord(EmployeeRelative);
+        EmployeeRelatives."Last Name".SetValue(LastName);
+        EmployeeRelatives.Close();
+
+        // [THEN] The relative's last name is saved.
+        EmployeeRelative.Get(EmployeeRelative."Employee No.", EmployeeRelative."Line No.");
+        EmployeeRelative.TestField("Last Name", LastName);
+    end;
+
     [Normal]
     local procedure Initialize()
     var
