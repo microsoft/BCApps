@@ -2236,7 +2236,6 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] The originating entry preserves the source VAT amount despite the LCY rounding difference.
         GLEntry.SetRange("Document No.", PostedPurchaseInvoiceNo);
-        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
         GLEntry.SetRange("G/L Account No.", GLAccount."No.");
         GLEntry.FindFirst();
         Assert.AreEqual(
