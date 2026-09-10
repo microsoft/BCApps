@@ -1157,17 +1157,19 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         CurrencyExchangeRate.Modify(true);
     end;
 
-    local procedure VerifyVATSettlementSourceCurrencyAmounts(DocumentNo: Code[20])
+   local procedure VerifyVATSettlementSourceCurrencyAmounts(DocumentNo: Code[20])
     var
         GLEntry: Record "G/L Entry";
     begin
+        GLEntry.SetLoadFields("Document No.", "Gen. Posting Type", "Source Currency VAT Amount", Amount);
         GLEntry.SetRange("Document No.", DocumentNo);
-        GLEntry.SetRange("Gen. Posting Type", GLEntry."Gen. Posting Type"::Settlement);
-        GLEntry.FindSet();
-        repeat
-            if GLEntry."Source Currency VAT Amount" <> 0 then
-                Assert.AreEqual(GLEntry."Source Currency VAT Amount", GLEntry.Amount, SourceVATAmountMismatchErr);
-        until GLEntry.Next() = 0;
+        if GLEntry.FindSet() then
+            repeat
+                if GLEntry."Gen. Posting Type" = GLEntry."Gen. Posting Type"::Settlement then begin
+                    if GLEntry."Source Currency VAT Amount" <> 0 then
+                        Assert.AreEqual(GLEntry."Source Currency VAT Amount", GLEntry.Amount, SourceVATAmountMismatchErr);
+                end;
+            until GLEntry.Next() = 0;
     end;
 
     [RequestPageHandler]
