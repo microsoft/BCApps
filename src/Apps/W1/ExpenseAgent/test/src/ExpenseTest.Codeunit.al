@@ -4405,7 +4405,6 @@ codeunit 148305 "Expense Test"
     var
         Expense: Record Expense;
         DocumentAttachment: Record "Document Attachment";
-        ExpenseAttachmentFailureMock: Codeunit "Expense Attach. Failure Mock";
         RecRef: RecordRef;
     begin
         // [SCENARIO] Attachment writes are not blocked when best-effort content hashing cannot retrieve the attachment
@@ -4418,13 +4417,14 @@ codeunit 148305 "Expense Test"
         Assert.AreNotEqual('', DocumentAttachment."Content Hash", 'The attachment should have a content hash before retrieval fails.');
 
         // [GIVEN] Attachment retrieval fails during content-hash refresh
-        BindSubscription(ExpenseAttachmentFailureMock);
+        LibraryExpense.SetAttachmentRetrievalFailureEnabled(true);
+        BindSubscription(LibraryExpense);
 
         // [WHEN] The attachment is modified
         DocumentAttachment."Attached Date" := CurrentDateTime();
         DocumentAttachment.Modify(true);
 
-        UnbindSubscription(ExpenseAttachmentFailureMock);
+        UnbindSubscription(LibraryExpense);
 
         // [THEN] The modification succeeds and the stale content hash is cleared
         DocumentAttachment.Get(

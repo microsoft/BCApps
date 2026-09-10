@@ -20,6 +20,8 @@ using System.Security.User;
 
 codeunit 148300 "Library - Expense"
 {
+    EventSubscriberInstance = Manual;
+
     var
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
@@ -27,6 +29,20 @@ codeunit 148300 "Library - Expense"
         LibraryHumanResource: Codeunit "Library - Human Resource";
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
+        AttachmentRetrievalFailedErr: Label 'The attachment could not be retrieved.', Locked = true;
+        AttachmentRetrievalFailureEnabled: Boolean;
+
+    internal procedure SetAttachmentRetrievalFailureEnabled(Enabled: Boolean)
+    begin
+        AttachmentRetrievalFailureEnabled := Enabled;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeGetAsTempBlob, '', false, false)]
+    local procedure FailOnBeforeGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob"; var IsHandled: Boolean)
+    begin
+        if AttachmentRetrievalFailureEnabled then
+            Error(AttachmentRetrievalFailedErr);
+    end;
 
     /// <summary>
     /// Creates or reuses the Expense Agent and ensures that it is enabled for the current company.
