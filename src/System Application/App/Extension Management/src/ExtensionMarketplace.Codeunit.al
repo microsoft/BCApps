@@ -258,6 +258,7 @@ codeunit 2501 "Extension Marketplace"
     var
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
         MySessionSettings: SessionSettings;
         AppId: Guid;
     begin
@@ -270,6 +271,7 @@ codeunit 2501 "Extension Marketplace"
                 MySessionSettings.Init();
                 MySessionSettings.RequestSessionUpdate(false);
             end else begin
+                ExtensionOperationImpl.ShowInstallFailureStatus();
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
             end;
@@ -280,6 +282,7 @@ codeunit 2501 "Extension Marketplace"
     var
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
         MySessionSettings: SessionSettings;
     begin
         ExtensionInstallationImpl.CheckPermissions();
@@ -290,6 +293,7 @@ codeunit 2501 "Extension Marketplace"
                 MySessionSettings.Init();
                 MySessionSettings.RequestSessionUpdate(false);
             end else begin
+                ExtensionOperationImpl.ShowInstallFailureStatus();
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
             end;

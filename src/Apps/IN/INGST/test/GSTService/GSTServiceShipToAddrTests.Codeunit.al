@@ -566,15 +566,14 @@ codeunit 18480 "GST Service Ship To Addr Tests"
         WrongDocumentTypeErr: Label 'Document type not supported: %1';
     begin
         LibraryService.SetCorrDocNoService(ServiceHeader);
-        with ServiceHeader do
-            case "Document Type" of
-                "Document Type"::Invoice:
-                    NoSeriesCode := "Posting No. Series";  // posted service invoice.
-                "Document Type"::"Credit Memo":
-                    NoSeriesCode := "Posting No. Series";
-                else
-                    Assert.Fail(StrSubstNo(WrongDocumentTypeErr, "Document Type"));
-            end;
+        case ServiceHeader."Document Type" of
+            ServiceHeader."Document Type"::Invoice:
+                NoSeriesCode := ServiceHeader."Posting No. Series";  // posted service invoice.
+            ServiceHeader."Document Type"::"Credit Memo":
+                NoSeriesCode := ServiceHeader."Posting No. Series";
+            else
+                Assert.Fail(StrSubstNo(WrongDocumentTypeErr, ServiceHeader."Document Type"));
+        end;
 
         if ServiceHeader."Posting No." = '' then
             DocumentNo := NoSeries.PeekNextNo(NoSeriesCode, GetNextNoSeriesServiceDate(NoSeriesCode))

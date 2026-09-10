@@ -37,6 +37,7 @@ page 6842 "Spend Request Subform"
                 }
                 field("G/L Account No."; Rec."G/L Account No.")
                 {
+                    Visible = false;
                 }
             }
         }

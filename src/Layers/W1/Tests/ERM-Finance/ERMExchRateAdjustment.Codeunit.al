@@ -17,7 +17,9 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
+        AdjustmentAmountMismatchErr: Label 'Adjustment Amount %1 must equal Amount (LCY) %2 for detailed vendor ledger entry %3.', Comment = '%1 = Adjustment Amount, %2 = Amount (LCY), %3 = Detailed Vendor Ledger Entry No.';
         ExpectNoAdjustmentErr: Label 'Expect no adjustment for entries before %1';
         ExchangeRateAdjmtTxt: Label 'Exchange Rate Adjmt. of %1 %2';
 
@@ -169,6 +171,40 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
 
         // [THEN] Exchange Rate Adjustment Register amounts match sum of Exch. Rate Adjmt. Ledger Entry amounts
         VerifyExchRateAdjmtRegisterSync(CurrencyExchangeRate."Currency Code");
+    end;
+
+    [Test]
+    procedure VendorGainReversedToHigherLossLedgerAmountsMatchDetailedEntries()
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        Vendor: Record Vendor;
+        CurrencyCode: Code[10];
+        PostingDate: Date;
+    begin
+        // [FEATURE] [AI test 0.4] [Purchase]
+        // [SCENARIO 643352] When an unrealized gain reverses into a higher loss, each vendor ledger entry Adjustment Amount matches its own detailed ledger entry Amount (LCY).
+        Initialize();
+
+        // [GIVEN] Create Currency  with exchange rate and Vendor.
+        CreateCurrencyWithExchangeRate(CurrencyExchangeRate);
+        UpdateExchangeRate(CurrencyExchangeRate, 1, 1);
+        CurrencyCode := CurrencyExchangeRate."Currency Code";
+        PostingDate := WorkDate();
+        CreateVendorWithCurrency(Vendor, CurrencyCode);
+
+        // [GIVEN] Posted purchase invoice with exchange rate.
+        PostVendorInvoice(Vendor."No.", CurrencyCode, PostingDate, -1000);
+
+        // [GIVEN] Exchange rate lowered to create an unrealized gain and the adjustment is run.
+        UpdateExchangeRate(CurrencyExchangeRate, 1, 0.8);
+        RunExchRateAdjustmentForVendor(CurrencyCode, Vendor."No.");
+
+        // [WHEN] Exchange rate raised to reverse the gain into a higher loss and the adjustment is run again.
+        UpdateExchangeRate(CurrencyExchangeRate, 1, 1.4);
+        RunExchRateAdjustmentForVendor(CurrencyCode, Vendor."No.");
+
+        // [THEN] Verify Each ledger entry shows the amount of its own linked detailed ledger entry.
+        VerifyVendorAdjustmentAmountsMatchDetailedEntries(Vendor."No.");
     end;
 
     local procedure Initialize()
@@ -385,6 +421,63 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
                     StrSubstNo('Register %1 adjusted amount %2 does not match sum of ledger entries %3',
                         ExchRateAdjmtReg."No.", ExchRateAdjmtReg."Adjusted Amt. (LCY)", TotalLedgerAmount));
             until ExchRateAdjmtReg.Next() = 0;
+    end;
+
+    local procedure CreateVendorWithCurrency(var Vendor: Record Vendor; CurrencyCode: Code[10])
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Modify(true);
+    end;
+
+    local procedure PostVendorInvoice(VendorNo: Code[20]; CurrencyCode: Code[10]; PostingDate: Date; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, VendorNo, Amount);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure RunExchRateAdjustmentForVendor(CurrencyCode: Code[10]; VendorNo: Code[20])
+    var
+        Currency: Record Currency;
+        Vendor: Record Vendor;
+        ExchRateAdjustment: Report "Exch. Rate Adjustment";
+    begin
+        Currency.SetRange(Code, CurrencyCode);
+        Vendor.SetRange("No.", VendorNo);
+        ExchRateAdjustment.SetTableView(Currency);
+        ExchRateAdjustment.SetTableView(Vendor);
+        ExchRateAdjustment.InitializeRequest2(0D, WorkDate(), 'Test', WorkDate(), LibraryUtility.GenerateGUID(), true, false);
+        ExchRateAdjustment.UseRequestPage(false);
+        ExchRateAdjustment.SetHideUI(true);
+        ExchRateAdjustment.Run();
+    end;
+
+    local procedure VerifyVendorAdjustmentAmountsMatchDetailedEntries(VendorNo: Code[20])
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        ExchRateAdjmtLedgEntry: Record "Exch. Rate Adjmt. Ledg. Entry";
+    begin
+        ExchRateAdjmtLedgEntry.SetRange("Account Type", ExchRateAdjmtLedgEntry."Account Type"::Vendor);
+        ExchRateAdjmtLedgEntry.SetRange("Account No.", VendorNo);
+        Assert.IsTrue(ExchRateAdjmtLedgEntry.FindSet(), 'Expected exch. rate adjmt. ledger entries for the vendor.');
+        repeat
+            DetailedVendorLedgEntry.Get(ExchRateAdjmtLedgEntry."Detailed Ledger Entry No.");
+            Assert.AreEqual(
+                DetailedVendorLedgEntry."Amount (LCY)", ExchRateAdjmtLedgEntry."Adjustment Amount",
+                StrSubstNo(
+                    AdjustmentAmountMismatchErr, ExchRateAdjmtLedgEntry."Adjustment Amount",
+                    DetailedVendorLedgEntry."Amount (LCY)", DetailedVendorLedgEntry."Entry No."));
+        until ExchRateAdjmtLedgEntry.Next() = 0;
     end;
 
 }
