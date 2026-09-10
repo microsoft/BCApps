@@ -438,13 +438,19 @@ table 6101 "E-Document Purchase Line"
         ActivityLog: Codeunit "Activity Log Builder";
         VATPostingSetupRef: RecordRef;
         Reasoning: Text[250];
+        MultipleVATPostingSetupsReasonLbl: Label 'Multiple VAT Posting Setups match the extracted VAT rate %1%. You can continue. The VAT Product Posting Group will be taken from the item card.', Comment = '%1 = extracted VAT rate';
         VATRateMismatchReasonLbl: Label 'VAT rate %1% extracted from the document could not be matched to a VAT Posting Setup for vendor''s VAT Business Posting Group %2.', Comment = '%1 = extracted VAT rate %, %2 = VAT Bus. Posting Group code';
         VATRateMismatchTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
     begin
         EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
+        VATPostingSetup.SetRange("VAT %", VATRate);
+        if VATPostingSetup.Count() > 1 then
+            Reasoning := CopyStr(StrSubstNo(MultipleVATPostingSetupsReasonLbl, VATRate), 1, MaxStrLen(Reasoning))
+        else begin
+            VATPostingSetup.SetRange("VAT %");
+            Reasoning := CopyStr(StrSubstNo(VATRateMismatchReasonLbl, Rec."VAT Rate", VendVATBusPostingGroupCode), 1, MaxStrLen(Reasoning));
+        end;
         VATPostingSetupRef.GetTable(VATPostingSetup);
-
-        Reasoning := CopyStr(StrSubstNo(VATRateMismatchReasonLbl, Rec."VAT Rate", VendVATBusPostingGroupCode), 1, MaxStrLen(Reasoning));
 
         ActivityLog
             .Init(Database::"E-Document Purchase Line", Rec.FieldNo("[BC] VAT Prod. Posting Group"), Rec.SystemId)

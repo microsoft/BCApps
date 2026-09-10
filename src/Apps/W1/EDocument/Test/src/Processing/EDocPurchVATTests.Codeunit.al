@@ -399,6 +399,7 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         EDocument: Record "E-Document";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
         Vendor2: Record Vendor;
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATProductPostingGroup: Record "VAT Product Posting Group";
@@ -418,12 +419,11 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup2);
         CreateVATPostingSetup(VATPostingSetup2, VATBusinessPostingGroup.Code, VATProductPostingGroup2.Code, VATRate);
 
-        // [WHEN] The purchase draft with an unresolved VAT Product Posting Group is finished
-        PreparePurchaseDraftForItemFallback(EDocument, EDocumentPurchaseLine, Item);
-        FinishPurchaseDraft(EDocument);
+        // [WHEN] A purchase line is created from the draft with an unresolved VAT Product Posting Group
+        CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, Vendor2);
 
         // [THEN] The purchase line uses the VAT Product Posting Group from the item card
-        VerifyPurchaseLineUsesItemVATProductPostingGroup(EDocument, Item);
+        VerifyPurchaseLineUsesItemVATProductPostingGroup(PurchaseHeader, Item);
     end;
 
     [Test]
@@ -549,6 +549,7 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         EDocumentPurchaseLine."[BC] Purchase Line Type" := "Purchase Line Type"::Item;
         EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
         EDocumentPurchaseLine.Insert();
+        EDocumentPurchaseLine.Find();
     end;
 
     local procedure CreateVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusinessPostingGroupCode: Code[20]; VATProductPostingGroupCode: Code[20]; VATRate: Decimal)
@@ -558,55 +559,34 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATPostingSetup.Modify(true);
     end;
 
-    local procedure PreparePurchaseDraft(EDocument: Record "E-Document")
+    local procedure CreatePurchaseLineFromDraft(var PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; Vendor2: Record Vendor)
     var
-        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
-        EDocumentProcessing: Codeunit "E-Document Processing";
-        EDocImport: Codeunit "E-Doc. Import";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
     begin
-        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
-    end;
-
-    local procedure PreparePurchaseDraftForItemFallback(EDocument: Record "E-Document"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; Item: Record Item)
-    begin
-        PreparePurchaseDraft(EDocument);
-
-        EDocumentPurchaseLine.Find();
-        Assert.AreEqual('', EDocumentPurchaseLine."[BC] VAT Prod. Posting Group", 'The VAT Product Posting Group should remain unresolved when multiple VAT Posting Setups match.');
-        EDocumentPurchaseLine.Validate("[BC] Purchase Line Type", "Purchase Line Type"::Item);
-        EDocumentPurchaseLine.Validate("[BC] Purchase Type No.", Item."No.");
-        EDocumentPurchaseLine.Modify(true);
-    end;
-
-    local procedure FinishPurchaseDraft(EDocument: Record "E-Document")
-    var
-        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
-        EDocImport: Codeunit "E-Doc. Import";
-    begin
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
-        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters), 'The purchase draft should be processed.');
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor2."No.");
+        EDocPurchDocHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, false, 10000);
     end;
 
     local procedure VerifyActivityLogContains(EDocumentPurchaseLine: Record "E-Document Purchase Line"; ExpectedExplanation: Text)
     var
         ActivityLogBuilder: Codeunit "Activity Log Builder";
+        ActivityLogJsonObject: JsonObject;
+        FieldLogJsonObject: JsonObject;
+        JsonToken: JsonToken;
         ActivityLogJson: Text;
     begin
         ActivityLogJson := ActivityLogBuilder.Query(Database::"E-Document Purchase Line", EDocumentPurchaseLine.SystemId);
-        Assert.IsTrue(StrPos(ActivityLogJson, ExpectedExplanation) > 0, StrSubstNo('The activity log should contain: %1', ExpectedExplanation));
+        Assert.IsTrue(ActivityLogJsonObject.ReadFrom(ActivityLogJson), 'The activity log should contain valid JSON.');
+        Assert.IsTrue(ActivityLogJsonObject.Get(Format(EDocumentPurchaseLine.FieldNo("[BC] VAT Prod. Posting Group")), JsonToken), 'The activity log should contain the VAT Product Posting Group field.');
+        FieldLogJsonObject := JsonToken.AsObject();
+        Assert.IsTrue(FieldLogJsonObject.Get('Explanation', JsonToken), 'The activity log should contain an explanation.');
+        Assert.AreEqual(ExpectedExplanation, JsonToken.AsValue().AsText(), 'The activity log explanation is incorrect.');
     end;
 
-    local procedure VerifyPurchaseLineUsesItemVATProductPostingGroup(EDocument: Record "E-Document"; Item: Record Item)
+    local procedure VerifyPurchaseLineUsesItemVATProductPostingGroup(PurchaseHeader: Record "Purchase Header"; Item: Record Item)
     var
-        PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
     begin
-        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
-        PurchaseHeader.FindFirst();
-
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
