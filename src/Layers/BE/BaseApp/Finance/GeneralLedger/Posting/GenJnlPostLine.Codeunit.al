@@ -1054,7 +1054,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterCreateNormalVATGLEntries(GenJnlLine);
     end;
 
-     local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
+    local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
         FullVATAmountSrcCurr: Decimal;
         LastNextEntryNo: Integer;
