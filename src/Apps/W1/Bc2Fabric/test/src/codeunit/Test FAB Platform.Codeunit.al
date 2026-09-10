@@ -37,7 +37,7 @@ codeunit 150203 "Test FAB Platform"
         Initialize();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] EnsureSetup is called
         FabricPlatformMgt.EnsureSetup(TenantFabricSetup);
@@ -57,7 +57,7 @@ codeunit 150203 "Test FAB Platform"
         Initialize();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] A valid table is added
         FabricPlatformMgt.AddTable(Database::"Tenant Fabric Setup");
@@ -105,7 +105,7 @@ codeunit 150203 "Test FAB Platform"
         BindSubscription(PlatformTestSub);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] Enable is requested
         FabricPlatformMgt.EnableExport();
@@ -127,7 +127,7 @@ codeunit 150203 "Test FAB Platform"
         BindSubscription(PlatformTestSub);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] Start, Stop, and Disable are requested
         FabricPlatformMgt.StartExport();

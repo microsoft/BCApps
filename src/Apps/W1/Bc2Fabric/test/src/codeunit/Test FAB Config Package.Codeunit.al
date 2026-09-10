@@ -64,7 +64,7 @@ codeunit 150202 "Test FAB Config Package"
         TableIds.Add(27);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The package is registered
         FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIds);
@@ -91,7 +91,7 @@ codeunit 150202 "Test FAB Config Package"
         FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIds);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The same version is registered again
         FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIds);
@@ -116,7 +116,7 @@ codeunit 150202 "Test FAB Config Package"
         Pkg.Get('MS-STD');
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The package is activated
         FabricConfigPkgMgt.Activate(Pkg);
@@ -147,7 +147,7 @@ codeunit 150202 "Test FAB Config Package"
         Pkg.Get('MS-STD');
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The package is activated
         FabricConfigPkgMgt.Activate(Pkg);
@@ -173,7 +173,7 @@ codeunit 150202 "Test FAB Config Package"
         FabricConfigPkgMgt.Activate(Pkg);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The package is deactivated
         Pkg.Get('MS-STD');
@@ -206,7 +206,7 @@ codeunit 150202 "Test FAB Config Package"
         FabricConfigPkgMgt.Activate(OtherPkg);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] Package A is deactivated
         Pkg.Get('PKG-A');
@@ -238,7 +238,7 @@ codeunit 150202 "Test FAB Config Package"
         PackageLine.Insert(false);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] The package is reapplied
         Pkg.Get('MS-STD');
@@ -263,7 +263,7 @@ codeunit 150202 "Test FAB Config Package"
         FabricConfigPkgMgt.Activate(Pkg);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Plat Admin');
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
         //[WHEN] Deletion of the active package is attempted
         Pkg.Get('MS-STD');
