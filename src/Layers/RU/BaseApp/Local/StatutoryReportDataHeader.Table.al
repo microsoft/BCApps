@@ -101,6 +101,7 @@ table 26563 "Statutory Report Data Header"
                 TestField(Status, Status::Open);
             end;
         }
+#pragma warning disable AL0717 // Accepted: these FlowFields are populated by code; adding a CalcFormula would change behavior.
         field(32; "Requisites Quantity"; Integer)
         {
             Caption = 'Requisites Quantity';
@@ -111,6 +112,7 @@ table 26563 "Statutory Report Data Header"
             Caption = 'Set Requisites Quantity';
             FieldClass = FlowField;
         }
+#pragma warning restore AL0717
         field(34; Period; Text[30])
         {
             Caption = 'Period';

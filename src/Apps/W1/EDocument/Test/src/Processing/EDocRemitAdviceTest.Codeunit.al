@@ -614,12 +614,6 @@ codeunit 139547 "E-Doc. Remit. Advice Test"
         if BindSubscription(LibraryJobQueue) then;
         LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
 
-        GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
-            GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
-            GeneralLedgerSetup.Modify(false);
-        end;
-
         EDocumentService.DeleteAll();
 
         LibraryEDoc.SetupStandardVAT();
@@ -633,6 +627,14 @@ codeunit 139547 "E-Doc. Remit. Advice Test"
         Vendor.Modify(true);
 
         CreatePaymentJournalBatch();
+
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup.Modify(false);
+        end;
+
+        Commit();
 
         IsInitialized := true;
     end;
