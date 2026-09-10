@@ -1442,6 +1442,7 @@ page 6991 "Expense Agent Setup Wizard"
     var
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
+        ExpenseAgentEntraApp.VerifyCurrentUserCanManageExpenseAgent();
         if not Rec.ShowDeactivationAccessWarning() then
             exit(false);
         if not UnregisterErpConfiguration() then

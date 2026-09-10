@@ -8,6 +8,7 @@ using System.Agents;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 6913 "Expense Agent Entra App Mgt."
 {
@@ -19,7 +20,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     var
         AadApplication: Record "AAD Application";
     begin
-        EnsureCurrentUserCanManageExpenseAgent();
+        VerifyCurrentUserCanManageExpenseAgent();
         GetAadApplication(AadApplication);
 
         // Enabling creates the application user. Disable it again before changing permissions.
@@ -45,7 +46,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AadApplication: Record "AAD Application";
         HasOtherCompanyPermission: Boolean;
     begin
-        EnsureCurrentUserCanManageExpenseAgent();
+        VerifyCurrentUserCanManageExpenseAgent();
         GetAadApplication(AadApplication);
 
         HasOtherCompanyPermission := HasExpenseAgentPermissionForOtherCompany(AadApplication);
@@ -86,6 +87,17 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     internal procedure GetAadAppId(): Text
     begin
         exit(ExpenseAgentAadAppIdTxt);
+    end;
+
+    internal procedure VerifyCurrentUserCanManageExpenseAgent()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+            Error(NotAuthorizedToManageExpenseAgentErr);
+        if not UserPermissions.CanManageUsersOnTenant(UserSecurityId()) then
+            Error(SecurityPermissionRequiredErr);
     end;
 
     local procedure HasPermissionForCurrentCompany(AadApplication: Record "AAD Application"): Boolean
@@ -151,14 +163,6 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         exit(CopyStr(CompanyName(), 1, 30));
     end;
 
-    local procedure EnsureCurrentUserCanManageExpenseAgent()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-    begin
-        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
-            Error(NotAuthorizedToManageExpenseAgentErr);
-    end;
-
     local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set")
     var
         ExpenseAgentAppId: Guid;
@@ -185,4 +189,5 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AadApplicationMissingErr: Label 'The Expense Agent Microsoft Entra application is not configured.';
         ExpenseAgentPermissionSetMissingErr: Label 'The Expense Agent permission set is not available.';
         NotAuthorizedToManageExpenseAgentErr: Label 'You do not have permission to manage the Expense Agent.';
+        SecurityPermissionRequiredErr: Label 'You must be assigned either the SUPER permission set or the SECURITY permission set directly in the current company to manage the Expense Agent Microsoft Entra application.';
 }
