@@ -27,6 +27,8 @@ permissionset 1087 "Jobs - Read"
                   tabledata "Duplicate Price Line" = R,
                   tabledata Job = R,
                   tabledata "Job Archive" = R,
+                  tabledata "Job Assigned Resource" = R,
+                  tabledata "Job Assigned Resource Archive" = R,
                   tabledata "Job G/L Account Price" = R,
                   tabledata "Job Item Price" = R,
                   tabledata "Job Ledger Entry" = R,

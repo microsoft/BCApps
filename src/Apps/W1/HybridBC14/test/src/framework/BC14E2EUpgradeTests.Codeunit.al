@@ -619,18 +619,20 @@ codeunit 148901 "BC14 E2E & Upgrade Tests"
     end;
 
     [Test]
-    procedure TestMarkUpgradeFailed_IncludesMigrationErrorsInDetails()
+    procedure TestMarkUpgradeFailed_DoesNotWriteSummaryDetails()
     var
         HybridReplicationSummary: Record "Hybrid Replication Summary";
         BC14HandleUpgradeFailure: Codeunit "BC14 Migration Failure Handler";
         BC14MigrationErrorHandler: Codeunit "BC14 Migration Error Handler";
         DummyRecordId: RecordId;
-        DetailsInStream: InStream;
-        DetailsText: Text;
     begin
-        // [SCENARIO] MarkUpgradeFailed includes migration errors in the Details field.
+        // [SCENARIO] MarkUpgradeFailed does NOT write the Summary Details blob. The overall
+        // Status headline is written only at finalize (SetSummaryFailed /
+        // EvaluateAndSetFinalSummaryStatus); per-company failure diagnostics live on the
+        // Business Central 14 Migration Errors page. This prevents one company's failure from
+        // overwriting the overall Status while other companies are still migrating.
 
-        // [GIVEN] A Hybrid Replication Summary and migration errors exist
+        // [GIVEN] A Hybrid Replication Summary and a migration error exist
         ClearUpgradeTestData();
         CreateHybridCompanyStatus();
         CreateHybridReplicationSummary(HybridReplicationSummary);
@@ -641,25 +643,21 @@ codeunit 148901 "BC14 E2E & Upgrade Tests"
         // [WHEN] MarkUpgradeFailed is called
         BC14HandleUpgradeFailure.MarkUpgradeFailed(HybridReplicationSummary);
 
-        // [THEN] The Details field contains error information
+        // [THEN] The Details field is NOT populated
         HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
         HybridReplicationSummary.CalcFields(Details);
-        HybridReplicationSummary.Details.CreateInStream(DetailsInStream);
-        DetailsInStream.Read(DetailsText);
-        Assert.IsTrue(StrPos(DetailsText, 'Number of errors: 1') > 0, 'Details should contain error count summary');
+        Assert.IsFalse(HybridReplicationSummary.Details.HasValue(),
+            'MarkUpgradeFailed should not write the Summary Details blob');
     end;
 
     [Test]
-    procedure TestMarkUpgradeFailed_NoMigrationErrors_DetailsContainUnknownError()
+    procedure TestMarkUpgradeFailed_NoMigrationErrors_DoesNotWriteSummaryDetails()
     var
         HybridReplicationSummary: Record "Hybrid Replication Summary";
         BC14HandleUpgradeFailure: Codeunit "BC14 Migration Failure Handler";
-        DetailsInStream: InStream;
-        DetailsText: Text;
     begin
-        // [SCENARIO] When no DataMigrationError records exist, MarkUpgradeFailed writes
-        // a generic "unknown" upgrade error to the Summary's Details blob (instead of
-        // a count summary).
+        // [SCENARIO] Even with no DataMigrationError records, MarkUpgradeFailed does not
+        // write the Summary Details blob.
 
         // [GIVEN] A Replication Summary and Company Status, but no errors logged
         ClearUpgradeTestData();
@@ -669,17 +667,11 @@ codeunit 148901 "BC14 E2E & Upgrade Tests"
         // [WHEN] MarkUpgradeFailed runs
         BC14HandleUpgradeFailure.MarkUpgradeFailed(HybridReplicationSummary);
 
-        // [THEN] Details contain some text (not the per-error count format)
+        // [THEN] Details are not populated
         HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
         HybridReplicationSummary.CalcFields(Details);
-        Assert.IsTrue(HybridReplicationSummary.Details.HasValue(),
-            'Details blob should be populated even with no per-record errors');
-
-        HybridReplicationSummary.Details.CreateInStream(DetailsInStream);
-        DetailsInStream.Read(DetailsText);
-        Assert.IsTrue(StrLen(DetailsText) > 0, 'Details text should not be empty');
-        Assert.IsFalse(StrPos(DetailsText, 'Number of errors:') > 0,
-            'Details should not contain count summary when there are no per-record errors');
+        Assert.IsFalse(HybridReplicationSummary.Details.HasValue(),
+            'MarkUpgradeFailed should not write the Summary Details blob when there are no errors');
     end;
 
     // Note: A test for "AppendsToExistingDetails" was attempted but the source's

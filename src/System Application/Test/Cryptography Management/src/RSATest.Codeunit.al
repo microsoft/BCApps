@@ -52,6 +52,28 @@ codeunit 132617 "RSA Test"
     end;
 
     [Test]
+    procedure ImportPrivateKeyFromPem()
+    var
+        RSA: Codeunit RSA;
+        RSAImpl: Codeunit "RSA Impl.";
+        KeyXml: XmlDocument;
+        Root: XmlElement;
+        Node: XmlNode;
+        PrivateKeyPem: SecretText;
+        KeyXmlText: SecretText;
+    begin
+        RSAImpl.InitializeRSA(2048);
+        PrivateKeyPem := RSAImpl.ExportRSAPrivateKeyPem();
+
+        KeyXmlText := RSA.ToSecretXmlString(PrivateKeyPem, true);
+
+        LibraryAssert.IsTrue(XmlDocument.ReadFrom(GetXmlString(KeyXmlText), KeyXml), 'RSA key is not valid xml data.');
+        LibraryAssert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
+        LibraryAssert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
+        LibraryAssert.IsTrue(Root.SelectSingleNode('DQ', Node), 'Could not find <DQ> in key.');
+    end;
+
+    [Test]
     procedure TestSignDataAndVerifyDataWithMD5AndPSS()
     begin
         LibraryAssert.IsTrue(SignAndVerifyData(enum::"Hash Algorithm"::MD5, enum::"RSA Signature Padding"::Pss), 'Failed to verify signed data');

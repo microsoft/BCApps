@@ -92,6 +92,7 @@ codeunit 8367 DimPerspectiveDimension implements IDimensionPerspective
                 end;
                 TempDimPerspectiveLine.Insert();
             until DimValue.Next() = 0;
+        OnAfterPopulateLineBufferForReporting(DimPerspectiveName, TempDimPerspectiveLine);
     end;
 
     local procedure SetDimTotalingFilter(var DimTotaling: Text[80]; FilterText: Text)
@@ -266,5 +267,10 @@ codeunit 8367 DimPerspectiveDimension implements IDimensionPerspective
                         DimSelection.InsertDimSelBuf(false, AnalysisView."Dimension 4 Code", '');
             end;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPopulateLineBufferForReporting(DimPerspectiveName: Record "Dimension Perspective Name"; var TempDimPerspectiveLine: Record "Dimension Perspective Line")
+    begin
     end;
 }

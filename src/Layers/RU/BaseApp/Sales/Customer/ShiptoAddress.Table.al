@@ -391,13 +391,12 @@ table 222 "Ship-to Address"
     var
         Cust: Record Customer;
         AltCustVATRegFacade: Codeunit "Alt. Cust. VAT. Reg. Facade";
-
-    protected var
-        PostCode: Record "Post Code";
-
 #pragma warning disable AA0074
         Text000: Label 'untitled';
 #pragma warning restore AA0074
+
+    protected var
+        PostCode: Record "Post Code";
 
     /// <summary>
     /// Generates a caption text for the ship-to address including customer and address information.

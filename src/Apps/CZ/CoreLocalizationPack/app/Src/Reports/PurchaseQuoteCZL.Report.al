@@ -26,10 +26,10 @@ using System.Utilities;
 
 report 31184 "Purchase Quote CZL"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Src/Reports/PurchaseQuote.rdl';
     Caption = 'Purchase Quote';
     PreviewMode = PrintLayout;
+    DefaultRenderingLayout = "PurchaseQuote.rdl";
+    WordMergeDataItem = "Purchase Header";
 
     dataset
     {
@@ -165,6 +165,18 @@ report 31184 "Purchase Quote CZL"
             {
             }
             column(VATLbl; VATLbl)
+            {
+            }
+            column(GreetingLbl; GreetingLbl)
+            {
+            }
+            column(BodyLbl; BodyLbl)
+            {
+            }
+            column(ClosingLbl; ClosingLbl)
+            {
+            }
+            column(DocumentNoLbl; DocumentNoLbl)
             {
             }
             column(No_PurchaseHeader; "No.")
@@ -512,6 +524,24 @@ report 31184 "Purchase Quote CZL"
             LogInteractionEnable := LogInteraction;
         end;
     }
+    rendering
+    {
+        layout("PurchaseQuote.rdl")
+        {
+            Type = RDLC;
+            LayoutFile = './Src/Reports/PurchaseQuote.rdl';
+            Caption = 'Purchase Quote (RDL)';
+            Summary = 'The Purchase Quote (RDL) provides a detailed layout.';
+        }
+        layout("PurchaseQuoteEmail.docx")
+        {
+            Type = Word;
+            LayoutFile = './Src/Reports/PurchaseQuoteEmail.docx';
+            Caption = 'Purchase Quote Email (Word)';
+            Summary = 'The Purchase Quote Email (Word) provides an email body layout.';
+        }
+    }
+
     trigger OnInitReport()
     begin
         PurchasesPayablesSetup.Get();
@@ -549,6 +579,10 @@ report 31184 "Purchase Quote CZL"
         DiscPercentLbl: Label 'Discount %';
         TotalLbl: Label 'total';
         VATLbl: Label 'VAT';
+        GreetingLbl: Label 'Hello';
+        ClosingLbl: Label 'Sincerely';
+        BodyLbl: Label 'The purchase quote is attached to this message.';
+        DocumentNoLbl: Label 'No.';
 
     protected var
         PaymentMethod: Record "Payment Method";

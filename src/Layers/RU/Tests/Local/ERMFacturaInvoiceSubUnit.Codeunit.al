@@ -239,8 +239,10 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
 
     local procedure FacturaInvoiceExcelExport(SalesHeader: Record "Sales Header"; IsProforma: Boolean) FileName: Text
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         OrderFacturaInvoice: Report "Order Factura-Invoice (A)";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(SalesHeader."No.");
         FileName := LibraryReportValidation.GetFileName();
         Commit();
@@ -250,13 +252,16 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
         OrderFacturaInvoice.SetFileNameSilent(FileName);
         OrderFacturaInvoice.UseRequestPage(false);
         OrderFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PostedFacturaInvoiceExcelExport(DocumentNo: Code[20]) FileName: Text
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesInvHeader: Record "Sales Invoice Header";
         PostedFacturaInvoice: Report "Posted Factura-Invoice (A)";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(DocumentNo);
         FileName := LibraryReportValidation.GetFileName();
         Commit();
@@ -265,6 +270,7 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
         PostedFacturaInvoice.SetFileNameSilent(FileName);
         PostedFacturaInvoice.UseRequestPage(false);
         PostedFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateCustomerAndInvoice(var SalesHeader: Record "Sales Header"; var Customer: Record Customer; var ShipToAddress: Record "Ship-to Address")
@@ -326,15 +332,18 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
 
     local procedure VerifyAddressKPPCode(Customer: Record Customer; ShipToAddress: Record "Ship-to Address"; ShipToKPPCode: Code[10])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         LocalReportMgt: Codeunit "Local Report Management";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyFactura_ConsigneeAndAddress(
               FileName,
               LocalReportMgt.GetShipToAddrName(Customer."No.", ShipToAddress.Code, ShipToAddress.Name, ShipToAddress."Name 2") + '  ' +
               LocalReportMgt.GetFullAddr(ShipToAddress."Post Code", ShipToAddress.City, ShipToAddress.Address, ShipToAddress."Address 2", '', ShipToAddress.County));
         LibraryRUReports.VerifyFactura_BuyerINN(FileName, Customer."VAT Registration No." + ' / ' + ShipToKPPCode);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyVATLedgerKPPCode(VATLedgerCode: Code[20]; KPPCode: Code[20])
@@ -391,10 +400,12 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
 
     local procedure VerifyFacturaReportHeader(CustomerNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         CompanyInformation: Record "Company Information";
         LocalReportMgt: Codeunit "Local Report Management";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyFactura_SellerName(FileName, LocalReportMgt.GetCompanyName());
         LibraryRUReports.VerifyFactura_SellerAddress(FileName, LocalReportMgt.GetLegalAddress());
@@ -403,5 +414,6 @@ codeunit 144513 "ERM FacturaInvoiceSubUnit"
           FileName, CompanyInformation."VAT Registration No." + ' / ' + CompanyInformation."KPP Code");
         LibraryRUReports.VerifyFactura_BuyerName(FileName, LocalReportMgt.GetCustName(CustomerNo));
         LibraryRUReports.VerifyFactura_BuyerAddress(FileName, LibraryRUReports.GetCustomerFullAddress(CustomerNo));
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 }

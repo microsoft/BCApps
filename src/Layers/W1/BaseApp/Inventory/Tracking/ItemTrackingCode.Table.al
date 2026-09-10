@@ -56,7 +56,7 @@ table 6502 "Item Tracking Code"
         field(8; "Strict Expiration Posting"; Boolean)
         {
             Caption = 'Strict Expiration Posting';
-            ToolTip = 'Specifies if the expiration date is considered when you sell items. For example, you cannot post a sales order for an item that has passed its expiration date.';
+            ToolTip = 'Specifies if the expiration date is considered when you sell items. For example, you cannot post a sales order for an item that has passed its expiration date. For tracked items, this setting also uses the First-Expired-First-Out (FEFO) method to determine which items to pick, regardless of the Pick According to FEFO setting on the location.';
 
             trigger OnValidate()
             begin
@@ -770,4 +770,3 @@ table 6502 "Item Tracking Code"
     begin
     end;
 }
-

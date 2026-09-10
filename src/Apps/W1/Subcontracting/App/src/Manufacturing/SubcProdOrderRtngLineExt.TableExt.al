@@ -8,71 +8,44 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
 
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing Line"
+tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing Line"
 {
     fields
     {
         modify(Type)
         {
             trigger OnAfterValidate()
-#if not CLEAN29
-            var
-#pragma warning disable AL0432
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
             begin
-#if not CLEAN29
-#pragma warning disable AL0432
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-                    exit;
-#endif
-                if Type = xRec.Type then
-                    exit;
-
-                if Type <> "Capacity Type"::"Work Center" then
-                    "Transfer WIP Item" := false;
+                ClearTransferWIPItemForNonWorkCenter();
             end;
         }
         modify("No.")
         {
             trigger OnAfterValidate()
-            var
-                WorkCenter: Record "Work Center";
-#if not CLEAN29
-#pragma warning disable AL0432
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
             begin
-#if not CLEAN29
-#pragma warning disable AL0432
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-                    exit;
-#endif
-                if "No." = xRec."No." then
-                    exit;
-                if Type <> "Capacity Type"::"Work Center" then begin
-                    "Transfer WIP Item" := false;
-                    exit;
-                end;
-                if "No." = '' then begin
-                    "Transfer WIP Item" := false;
-                    exit;
-                end;
-                WorkCenter.SetLoadFields("Subcontractor No.");
-                WorkCenter.Get("No.");
-                if WorkCenter."Subcontractor No." = '' then
-                    "Transfer WIP Item" := false;
+                ClearTransferWIPItemForNonSubcontractingWorkCenter();
             end;
         }
-        field(99001550; "Vendor No. Subc. Price"; Code[20])
+        modify("Routing Link Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateLinkedComponentsAfterRoutingLinkCodeChange();
+            end;
+        }
+        modify("Standard Task Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateSubcPriceListAndTransferStandardTaskComments();
+            end;
+        }
+        field(20550; "Vendor No. Subc. Price"; Code[20])
         {
             AllowInCustomizations = AsReadOnly;
             Caption = 'Vendor No. Subcontracting Prices';
@@ -80,7 +53,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             Editable = false;
             TableRelation = Vendor;
         }
-        field(99001551; Subcontracting; Boolean)
+        field(20551; Subcontracting; Boolean)
         {
             AllowInCustomizations = AsReadOnly;
             CalcFormula = exist("Work Center" where("No." = field("Work Center No."),
@@ -90,7 +63,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             FieldClass = FlowField;
             ToolTip = 'Specifies whether the Work Center Group is set up with a Vendor for Subcontracting.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             AllowInCustomizations = AsReadWrite;
             Caption = 'Transfer WIP Item';
@@ -99,20 +72,17 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
 
             trigger OnValidate()
             begin
-                if "Transfer WIP Item" then begin
-                    CalcFields(Subcontracting);
-                    TestField(Subcontracting, true);
-                end;
+                ValidateTransferWIPItemForSubcontracting();
             end;
         }
-        field(99001561; "Transfer Description"; Text[100])
+        field(20561; "Transfer Description"; Text[100])
         {
             AllowInCustomizations = AsReadWrite;
             Caption = 'Transfer Description';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the operation-specific description used on transfer orders for the semi-finished item as it is shipped to the subcontracting location. If empty, the standard description is used.';
         }
-        field(99001562; "Transfer Description 2"; Text[50])
+        field(20562; "Transfer Description 2"; Text[50])
         {
             AllowInCustomizations = AsReadWrite;
             Caption = 'Transfer Description 2';
@@ -120,7 +90,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             ToolTip = 'Specifies an additional operation-specific description line used on transfer orders for the semi-finished item as it is shipped to the subcontracting location.';
         }
 #pragma warning disable AA0232
-        field(99001563; "WIP Qty. (Base) at Subc."; Decimal)
+        field(20563; "WIP Qty. (Base) at Subc."; Decimal)
 #pragma warning restore AA0232
         {
             AllowInCustomizations = AsReadOnly;
@@ -139,7 +109,7 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             FieldClass = FlowField;
             ToolTip = 'Specifies the total work-in-progress quantity (base) of the production order parent item currently held at the subcontractor location for this operation, as tracked by Subcontracting WIP Entries.';
         }
-        field(99001564; "WIP Qty. (Base) in Transit"; Decimal)
+        field(20564; "WIP Qty. (Base) in Transit"; Decimal)
         {
             AllowInCustomizations = AsReadOnly;
             AutoFormatType = 0;
@@ -156,14 +126,14 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
             FieldClass = FlowField;
             ToolTip = 'Specifies the outstanding quantity of the production order parent item on transfer orders that is currently in transit to the subcontractor for this operation.';
         }
-        field(99001534; "WIP Location Filter"; Code[10])
+        field(20534; "WIP Location Filter"; Code[10])
         {
             Caption = 'WIP Location Filter';
             FieldClass = FlowFilter;
             TableRelation = Location;
             ToolTip = 'Specifies the location filter used for FlowField calculations.';
         }
-        field(99001535; "Prod. Order Line Filter"; Integer)
+        field(20535; "Prod. Order Line Filter"; Integer)
         {
             Caption = 'Prod. Order Line Filter';
             FieldClass = FlowFilter;
@@ -181,6 +151,192 @@ tableextension 99001506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Rout
         Comment = '%1 = PurchaseLine Record Id, %2 = Production Order Routing Line Record Id, %3 = Purchase Line Type';
         PurchaseLineTypeMismatchNotLastOperationErr: Label 'There is at least one Purchase Line (%1) which is linked to Production Order Routing Line (%2). Because the Production Order Routing Line is the last operation after delete, the Purchase Line cannot be of type Not Last Operation. Please delete the Purchase line first before changing the Production Order Routing Line.',
         Comment = '%1 = PurchaseLine Record Id, %2 = Previous Production Order Routing Line Record Id';
+
+    local procedure ClearTransferWIPItemForNonWorkCenter()
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Type = xRec.Type then
+            exit;
+
+        if Type <> "Capacity Type"::"Work Center" then
+            "Transfer WIP Item" := false;
+    end;
+
+    local procedure ClearTransferWIPItemForNonSubcontractingWorkCenter()
+    var
+        WorkCenter: Record "Work Center";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if "No." = xRec."No." then
+            exit;
+        if Type <> "Capacity Type"::"Work Center" then begin
+            "Transfer WIP Item" := false;
+            exit;
+        end;
+        if "No." = '' then begin
+            "Transfer WIP Item" := false;
+            exit;
+        end;
+        WorkCenter.SetLoadFields("Subcontractor No.");
+        WorkCenter.Get("No.");
+        if WorkCenter."Subcontractor No." = '' then
+            "Transfer WIP Item" := false;
+    end;
+
+    local procedure UpdateLinkedComponentsAfterRoutingLinkCodeChange()
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        if Rec."Routing Link Code" <> xRec."Routing Link Code" then
+            if xRec."Routing Link Code" <> '' then begin
+                SubcontractingManagement.DelLocationLinkedComponents(xRec, true);
+                if Rec."Routing Link Code" <> '' then
+                    SubcontractingManagement.UpdLinkedComponents(Rec, false);
+            end else
+                if Rec."Routing Link Code" <> '' then
+                    SubcontractingManagement.UpdLinkedComponents(Rec, true);
+    end;
+
+    local procedure UpdateSubcPriceListAndTransferStandardTaskComments()
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary then
+            exit;
+        SubcPriceManagement.GetSubcPriceList(Rec);
+        if "Standard Task Code" = '' then
+            exit;
+
+        CalcFields(Subcontracting);
+        if not Subcontracting then
+            exit;
+
+        Rec.TransferStandardTaskComments("Standard Task Code");
+    end;
+
+    local procedure ValidateTransferWIPItemForSubcontracting()
+    begin
+        if "Transfer WIP Item" then begin
+            CalcFields(Subcontracting);
+            TestField(Subcontracting, true);
+            TestField(Type, Type::"Work Center");
+        end;
+    end;
+
+    /// <summary>
+    /// Replaces the dedicated production-order routing comments for the operation with the comments from the specified Routing Line.
+    /// </summary>
+    /// <param name="RoutingLine">The Routing Line whose dedicated comments are transferred.</param>
+    internal procedure TransferRoutingComments(RoutingLine: Record "Routing Line")
+    var
+        RoutingComment: Record "Subc. Routing Comment Line";
+        ProdOrderRoutingComment: Record "Subc. Prod. Rtng. Comment";
+        CommentExists: Boolean;
+    begin
+        ProdOrderRoutingComment.SetRange(Status, Rec.Status);
+        ProdOrderRoutingComment.SetRange("Prod. Order No.", Rec."Prod. Order No.");
+        ProdOrderRoutingComment.SetRange("Routing Reference No.", Rec."Routing Reference No.");
+        ProdOrderRoutingComment.SetRange("Routing No.", Rec."Routing No.");
+        ProdOrderRoutingComment.SetRange("Operation No.", Rec."Operation No.");
+
+        RoutingComment.SetRange("Routing No.", RoutingLine."Routing No.");
+        RoutingComment.SetRange("Version Code", RoutingLine."Version Code");
+        RoutingComment.SetRange("Operation No.", RoutingLine."Operation No.");
+        if RoutingComment.FindSet() then
+            repeat
+                ProdOrderRoutingComment.SetRange("Line No.", RoutingComment."Line No.");
+                CommentExists := not ProdOrderRoutingComment.IsEmpty();
+                ProdOrderRoutingComment.Init();
+                ProdOrderRoutingComment.Status := Rec.Status;
+                ProdOrderRoutingComment."Prod. Order No." := Rec."Prod. Order No.";
+                ProdOrderRoutingComment."Routing Reference No." := Rec."Routing Reference No.";
+                ProdOrderRoutingComment."Routing No." := Rec."Routing No.";
+                ProdOrderRoutingComment."Operation No." := Rec."Operation No.";
+                ProdOrderRoutingComment."Line No." := RoutingComment."Line No.";
+                ProdOrderRoutingComment.Description := RoutingComment.Description;
+                ProdOrderRoutingComment."Description 2" := RoutingComment."Description 2";
+                if CommentExists then
+                    ProdOrderRoutingComment.Modify()
+                else
+                    ProdOrderRoutingComment.Insert();
+            until RoutingComment.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Replaces the dedicated production-order routing comments for the operation with the comments defined for the specified Standard Task.
+    /// </summary>
+    /// <param name="StandardTaskCode">The Standard Task Code whose comments are transferred.</param>
+    internal procedure TransferStandardTaskComments(StandardTaskCode: Code[10])
+    var
+        StandardTaskComment: Record "Subc. Standard Task Comment";
+        ProdOrderRoutingComment: Record "Subc. Prod. Rtng. Comment";
+    begin
+        ProdOrderRoutingComment.SetRange(Status, Rec.Status);
+        ProdOrderRoutingComment.SetRange("Prod. Order No.", Rec."Prod. Order No.");
+        ProdOrderRoutingComment.SetRange("Routing Reference No.", Rec."Routing Reference No.");
+        ProdOrderRoutingComment.SetRange("Routing No.", Rec."Routing No.");
+        ProdOrderRoutingComment.SetRange("Operation No.", Rec."Operation No.");
+
+        StandardTaskComment.SetRange("Standard Task Code", StandardTaskCode);
+        if StandardTaskComment.FindSet() then
+            repeat
+                ProdOrderRoutingComment.Init();
+                ProdOrderRoutingComment.Status := Rec.Status;
+                ProdOrderRoutingComment."Prod. Order No." := Rec."Prod. Order No.";
+                ProdOrderRoutingComment."Routing Reference No." := Rec."Routing Reference No.";
+                ProdOrderRoutingComment."Routing No." := Rec."Routing No.";
+                ProdOrderRoutingComment."Operation No." := Rec."Operation No.";
+                ProdOrderRoutingComment."Line No." := StandardTaskComment."Line No.";
+                ProdOrderRoutingComment.Description := StandardTaskComment.Description;
+                ProdOrderRoutingComment."Description 2" := StandardTaskComment."Description 2";
+                ProdOrderRoutingComment.Insert();
+            until StandardTaskComment.Next() = 0;
+    end;
 
     /// <summary>
     /// Checks if the prod. order routing line has a linked purchase order line. In case of mismatching last operation or not last operation on changing

@@ -66,8 +66,11 @@ page 40017 "Custom Migration Mapping List"
                 Image = Add;
 
                 trigger OnAction()
+                var
+                    AddCustomMigrationMapping: Page "Add Custom Migration Mapping";
                 begin
-                    Page.RunModal(Page::"Add Custom Migration Mapping");
+                    AddCustomMigrationMapping.LookupMode(true);
+                    AddCustomMigrationMapping.RunModal();
                     Rec.LoadData();
                     CurrPage.Update(false);
                 end;

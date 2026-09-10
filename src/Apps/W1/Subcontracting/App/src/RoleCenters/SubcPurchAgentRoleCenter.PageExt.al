@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Purchases.RoleCenters;
 
-pageextension 99001541 "Subc. Purch. Agent Role Center" extends "Purchasing Agent Role Center"
+pageextension 20541 "Subc. Purch. Agent Role Center" extends "Purchasing Agent Role Center"
 {
     actions
     {

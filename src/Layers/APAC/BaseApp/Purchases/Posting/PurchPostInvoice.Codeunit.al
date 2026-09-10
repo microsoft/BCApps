@@ -384,6 +384,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         InvoicePostingBuffer."Dimension Set ID" := PurchLine."Dimension Set ID";
         InvoicePostingBuffer."Job No." := PurchLine."Job No.";
         InvoicePostingBuffer."VAT %" := PurchLine.GetVATPct();
+        InvoicePostingBuffer."Spend Request No." := PurchLine."Spend Request No.";
+        InvoicePostingBuffer."Spend Request Close" := PurchLine."Spend Request Close";
         NonDeductibleVAT.Copy(InvoicePostingBuffer, PurchLine);
         PurchHeader.Get(PurchLine."Document Type", PurchLine."Document No.");
         InvoicePostingBuffer.Adjustment := PurchHeader.Adjustment;
@@ -1041,6 +1043,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."WHT Business Posting Group" := PurchHeader."WHT Business Posting Group";
         GenJnlLine."Vendor Exchange Rate (ACY)" := PurchHeader."Vendor Exchange Rate (ACY)";
         GenJnlLine."System-Created Entry" := true;
+        GenJnlLine."Spend Request No." := PurchHeader."Spend Request No.";
+        GenJnlLine."Spend Request Close" := PurchHeader."Spend Request Close";
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);

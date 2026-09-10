@@ -21,5 +21,13 @@ tableextension 6617 "FS CRM Product" extends "CRM Product"
             OptionMembers = Inventory,Service,"Non-Inventory";
             DataClassification = SystemMetadata;
         }
+        field(12001; ConvertToCustomerAsset; Boolean)
+        {
+            Caption = 'Convert to Customer Asset';
+            Description = 'Indicates whether the product should generate a customer asset.';
+            ExternalName = 'msdyn_converttocustomerasset';
+            ExternalType = 'Boolean';
+            DataClassification = SystemMetadata;
+        }
     }
 }

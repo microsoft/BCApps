@@ -93,6 +93,11 @@
         "id":  "AW0017",
         "action":  "Warning",
         "justification": "MaskType is not yet implemented for repeater controls, but it does not break the UI. It is informational that the value will not be visible in the repeater."
-    }
+    },
+    {
+        "id": "AL1430",
+        "action": "Warning",
+        "justification": "TODO(#642602) - Recent bugfix uncovered violations that need to be addressed."
+    },
   ]
 }

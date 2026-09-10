@@ -7,8 +7,8 @@ page 6278 "Social Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Social Analysis';
-    AboutTitle = 'About Social Analysis';
+    Caption = 'Social Analysis (Power BI)';
+    AboutTitle = 'About Social Analysis (Power BI)';
     AboutText = 'The Social Analysis report displays employee details as part of Social reporting for ESG. ';
 
     layout

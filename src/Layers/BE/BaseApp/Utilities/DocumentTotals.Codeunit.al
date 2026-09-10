@@ -7,6 +7,7 @@ namespace Microsoft.Utilities;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -80,10 +81,11 @@ codeunit 57 "Document Totals"
         if IsHandled then
             exit;
 
+        NeedRefreshSalesLine := false;
+
         if TotalsUpToDate then
             exit;
         TotalsUpToDate := true;
-        NeedRefreshSalesLine := false;
 
         SalesSetup.GetRecordOnce();
         TotalSalesLine2.Copy(TotalSalesLine);
@@ -670,6 +672,8 @@ codeunit 57 "Document Totals"
         TotalPurchaseLine2: Record "Purchase Line";
         PurchaseLineWithReverseChargeVAT: Record "Purchase Line";
         VATAmountOfLinesWithRevChargeVAT: Decimal;
+        NonDeductibleVATAmount: Decimal;
+        GroupedVATAmount: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -746,12 +750,54 @@ codeunit 57 "Document Totals"
             repeat
                 TotalPurchaseLine2.Amount += PurchaseLine2.GetNonDeductibleVATAmount();
                 VATAmount -= PurchaseLine2.GetNonDeductibleVATAmount();
+                NonDeductibleVATAmount += PurchaseLine2.GetNonDeductibleVATAmount();
             until PurchaseLine2.Next() = 0;
+
+        if (VATAmountOfLinesWithRevChargeVAT = 0) and (NonDeductibleVATAmount = 0) then
+            if GetGroupedVATAmount(TotalPurchaseHeader, GroupedVATAmount) and (GroupedVATAmount <> VATAmount) then begin
+                VATAmount := GroupedVATAmount;
+                TotalPurchaseLine2."Amount Including VAT" := TotalPurchaseLine2.Amount + VATAmount;
+                TotalPurchaseLine."Amount Including VAT" := TotalPurchaseLine2."Amount Including VAT";
+            end;
 
         OnAfterCalculatePurchaseSubPageTotals(
           TotalPurchaseHeader, TotalPurchaseLine, VATAmount, InvoiceDiscountAmount, InvoiceDiscountPct, TotalPurchaseLine2);
 
         TotalPurchaseLine := TotalPurchaseLine2;
+    end;
+
+    local procedure GetGroupedVATAmount(var PurchHeader: Record "Purchase Header"; var GroupedVATAmount: Decimal): Boolean
+    var
+        PurchLine: Record "Purchase Line";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+    begin
+        if PurchHeader."No." = '' then
+            exit(false);
+
+        PurchasesPayablesSetup.GetRecordOnce();
+        if not PurchasesPayablesSetup."Allow VAT Difference" then
+            exit(false);
+
+        if PurchHeader."Tax Liable" then
+            exit(false);
+
+        // Only recompute grouped VAT when a manual VAT difference exists; otherwise keep the line-summed totals.
+        if not PurchaseLinesHaveVATDifference(PurchHeader) then
+            exit(false);
+
+        PurchLine.CalcVATAmountLines(0, PurchHeader, PurchLine, TempVATAmountLine);
+        GroupedVATAmount := TempVATAmountLine.GetTotalVATAmount();
+        exit(true);
+    end;
+
+    local procedure PurchaseLinesHaveVATDifference(var PurchHeader: Record "Purchase Header"): Boolean
+    var
+        PurchLine: Record "Purchase Line";
+    begin
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        PurchLine.SetFilter("VAT Difference", '<>0');
+        exit(not PurchLine.IsEmpty());
     end;
 
     procedure CalculatePostedPurchInvoiceTotals(var PurchInvHeader: Record "Purch. Inv. Header"; var VATAmount: Decimal; PurchInvLine: Record "Purch. Inv. Line")

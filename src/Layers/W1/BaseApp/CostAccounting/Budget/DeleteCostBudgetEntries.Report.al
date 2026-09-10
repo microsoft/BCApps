@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Budget;
 report 1139 "Delete Cost Budget Entries"
 {
     Caption = 'Delete Cost Budget Entries';
+    ToolTip = 'Delete posted cost budget entries and reverses allocations, for example when you simulate budget allocations by using different allocation codes, when you reverse cost budget allocations to include late entries in a combined entry as part of the same posting process, or when you cancel a cost budget entry in the register.';
     Permissions = TableData "G/L Budget Entry" = rm;
     ProcessingOnly = true;
 

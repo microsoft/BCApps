@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 table 6784 "Wthldg. Tax Bus. Post. Group"
 {
     Caption = 'Withholding Tax Bus. Post. Group';
@@ -19,6 +21,18 @@ table 6784 "Wthldg. Tax Bus. Post. Group"
         field(2; Description; Text[50])
         {
             Caption = 'Description';
+        }
+        field(100; "Party Applicability"; Enum "Withholding Party Type")
+        {
+            Caption = 'Party Applicability';
+        }
+        field(101; "Jurisdiction Code"; Code[20])
+        {
+            Caption = 'Jurisdiction Code';
+        }
+        field(102; "Default Certificate Type"; Code[20])
+        {
+            Caption = 'Default Certificate Type';
         }
     }
 

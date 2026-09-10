@@ -7,7 +7,9 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
@@ -39,7 +41,9 @@ permissionset 6102 "E-Doc. Core - Edit"
         tabledata "E-Doc. Order Match" = IMD,
         tabledata "Service Participant" = IMD,
         tabledata "E-Doc. Import Parameters" = IMD,
+#if not CLEAN29
         tabledata "E-Doc. PO Match Prop. Buffer" = IMD,
+#endif
         tabledata "E-Document Header Mapping" = IMD,
         tabledata "E-Document Line Mapping" = IMD,
         tabledata "E-Document Purchase Header" = IMD,

@@ -197,6 +197,41 @@ page 9802 "Permission Sets"
                     ToolTip = 'Set up or modify security groups as a fast way of giving users access to the functionality that is relevant to their work.';
                 }
             }
+            group(PermissionsOverviewGroup)
+            {
+                Caption = 'Permissions Overview';
+                Image = Permission;
+                action("Where-Used")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Where-Used';
+                    Image = Track;
+                    Scope = Repeater;
+                    ToolTip = 'View where the selected permission set is used, including which users and security groups have been assigned with it.';
+
+                    trigger OnAction()
+                    var
+                        PermissionsOverviewPage: Page "Permissions Overview";
+                    begin
+                        PermissionsOverviewPage.SetInitialRoleIDFilter(Rec."Role ID");
+                        PermissionsOverviewPage.Run();
+                    end;
+                }
+                action("Permissions Overview")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Permissions Overview';
+                    Image = Permission;
+                    ToolTip = 'View an overview of how permissions are distributed across permission sets, users, and security groups.';
+
+                    trigger OnAction()
+                    var
+                        PermissionsOverviewPage: Page "Permissions Overview";
+                    begin
+                        PermissionsOverviewPage.Run();
+                    end;
+                }
+            }
         }
         area(processing)
         {

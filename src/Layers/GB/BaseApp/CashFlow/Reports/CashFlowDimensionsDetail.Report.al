@@ -25,6 +25,7 @@ report 852 "Cash Flow Dimensions - Detail"
 #endif
     ApplicationArea = Dimensions;
     Caption = 'Cash Flow Dimensions - Detail';
+    ToolTip = 'Run the Cash Flow Dimensions - Detail report.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

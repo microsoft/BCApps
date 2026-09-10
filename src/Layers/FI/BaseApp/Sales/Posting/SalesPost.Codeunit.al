@@ -620,7 +620,7 @@ codeunit 80 "Sales-Post"
         TempSalesLineLocal.Modify();
         SalesLine.Get(TempSalesLineLocal.RecordId);
         OnModifyTempLineOnBeforeTransferFields(SalesLine, TempSalesLineLocal);
-        SalesLine.TransferFields(TempSalesLineLocal, false);
+        SalesLine.TransferFields(TempSalesLineLocal, false, true);
         OnModifyTempLineOnBeforeSalesLineModify(SalesLine);
         SalesLine.Modify();
         OnModifyTempLineOnAfterSalesLineModify(SalesLine);
@@ -930,7 +930,7 @@ codeunit 80 "Sales-Post"
             repeat
                 ErrorMessageMgt.PushContext(ErrorContextElement, TempSalesLineGlobal.RecordId(), 0, CheckSalesLineMsg);
                 TestSalesLine(SalesHeader, TempSalesLineGlobal);
-                if (SalesHeader.Ship or SalesHeader.Receive or SalesHeader.Invoice) and (TempSalesLineGlobal.Type = TempSalesLineGlobal.Type::Item) and (TempSalesLineGlobal."Qty. to Ship" <> 0) then 
+                if (SalesHeader.Ship or SalesHeader.Receive or SalesHeader.Invoice) and (TempSalesLineGlobal.Type = TempSalesLineGlobal.Type::Item) and (TempSalesLineGlobal."Qty. to Ship" <> 0) then
                     NoOfItemLines += 1;
             until TempSalesLineGlobal.Next() = 0;
         ErrorMessageMgt.PopContext(ErrorContextElement);
@@ -1890,12 +1890,15 @@ codeunit 80 "Sales-Post"
     procedure PostItemJnlLineWhseLine(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary)
     var
         TempWhseJnlLine2: Record "Warehouse Journal Line" temporary;
+        WMSMgt: Codeunit "WMS Management";
     begin
         OnBeforePostItemJournalLineWarehouseLine(TempWhseJnlLine, TempWhseTrackingSpecification);
         ItemTrackingMgt.SplitWhseJnlLine(TempWhseJnlLine, TempWhseJnlLine2, TempWhseTrackingSpecification, false);
         if TempWhseJnlLine2.FindSet() then
             repeat
                 OnPostItemJnlLineWhseLineOnBeforePostTempWhseJnlLine2(TempWhseJnlLine2, WhseShip, WhseReceive, InvtPickPutaway);
+                if TempWhseJnlLine2."Location Code" <> '' then
+                    WMSMgt.CheckWhseJnlLine(TempWhseJnlLine2, 1, 0, false);
                 WhseJnlPostLine.Run(TempWhseJnlLine2);
             until TempWhseJnlLine2.Next() = 0;
         TempWhseTrackingSpecification.DeleteAll();
@@ -6537,7 +6540,7 @@ codeunit 80 "Sales-Post"
             repeat
                 if TempSalesLine.AsmToOrderExists(AsmHeader) then
                     if AsmHeader.Status = AsmHeader.Status::Open then begin
-                        TempAsmHeader.TransferFields(AsmHeader);
+                        TempAsmHeader.TransferFields(AsmHeader, true, true);
                         TempAsmHeader.Insert();
                     end;
             until TempSalesLine.Next() = 0;
@@ -7100,7 +7103,7 @@ codeunit 80 "Sales-Post"
         SalesShptHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertShipmentHeaderOnBeforeTransferfieldsToSalesShptHeader(SalesHeader);
-        SalesShptHeader.TransferFields(SalesHeader);
+        SalesShptHeader.TransferFields(SalesHeader, true, true);
         OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader(SalesHeader, SalesShptHeader);
 
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesHeader."Shipping No.");
@@ -7162,7 +7165,7 @@ codeunit 80 "Sales-Post"
         if not IsHandled then begin
             ReturnRcptHeader.Init();
             OnInsertReturnReceiptHeaderOnBeforeReturnReceiptHeaderTransferFields(SalesHeader);
-            ReturnRcptHeader.TransferFields(SalesHeader);
+            ReturnRcptHeader.TransferFields(SalesHeader, true, true);
             AssignPostedDocumentNo(ReturnRcptHeader."No.", SalesHeader."Return Receipt No.");
             if SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order" then begin
                 ReturnRcptHeader."Return Order No. Series" := SalesHeader."No. Series";
@@ -7218,7 +7221,7 @@ codeunit 80 "Sales-Post"
         SalesInvHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertInvoiceHeaderOnBeforeSalesInvHeaderTransferFields(SalesHeader);
-        SalesInvHeader.TransferFields(SalesHeader);
+        SalesInvHeader.TransferFields(SalesHeader, true, true);
         OnInsertInvoiceHeaderOnAfterSalesInvHeaderTransferFields(SalesHeader, SalesInvHeader);
 
         AssignPostedDocumentNo(SalesInvHeader."No.", SalesHeader."Posting No.");
@@ -7279,7 +7282,7 @@ codeunit 80 "Sales-Post"
         SalesCrMemoHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertCrMemoHeaderOnBeforeSalesCrMemoHeaderTransferFields(SalesHeader);
-        SalesCrMemoHeader.TransferFields(SalesHeader);
+        SalesCrMemoHeader.TransferFields(SalesHeader, true, true);
         AssignPostedDocumentNo(SalesCrMemoHeader."No.", SalesHeader."No.");
         OnInsertCrMemoHeaderOnAfterSalesCrMemoHeaderTransferFields(SalesHeader, SalesCrMemoHeader);
 
@@ -7325,7 +7328,7 @@ codeunit 80 "Sales-Post"
         RunOnInsert: Boolean;
     begin
         PurchRcptHeader.Init();
-        PurchRcptHeader.TransferFields(PurchaseHeader);
+        PurchRcptHeader.TransferFields(PurchaseHeader, true, true);
         AssignPostedDocumentNo(PurchRcptHeader."No.", PurchaseHeader."Receiving No.");
         PurchRcptHeader."Order No." := PurchaseHeader."No.";
         PurchRcptHeader."Posting Date" := SalesHeader."Posting Date";
@@ -7342,7 +7345,7 @@ codeunit 80 "Sales-Post"
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchRcptLine.Init();
-        PurchRcptLine.TransferFields(PurchOrderLine);
+        PurchRcptLine.TransferFields(PurchOrderLine, true, true);
         PurchRcptLine."Posting Date" := PurchRcptHeader."Posting Date";
         PurchRcptLine."Document No." := PurchRcptHeader."No.";
         PurchRcptLine.Quantity := DropShptPostBuffer.Quantity;
@@ -8956,11 +8959,27 @@ codeunit 80 "Sales-Post"
     var
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeUpdateSalesOrderLineIfExist(DocumentNo, IsHandled);
+        if IsHandled then
+            exit;
+
         SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
         SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
         if SalesCreditMemoHeader.FindFirst() then
             CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+    end;
+
+    /// <summary>
+    /// Raised before updating a sales order line from a posted sales return order.
+    /// </summary>
+    /// <param name="DocumentNo">The number of the sales return order.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales order line update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSalesOrderLineIfExist(DocumentNo: Code[20]; var IsHandled: Boolean)
+    begin
     end;
 
     /// <summary>
@@ -11631,7 +11650,7 @@ codeunit 80 "Sales-Post"
                 DimensionMgt.GetCombinedDimensionSetID(DimSetID, ItemJnlLine2."Shortcut Dimension 1 Code", ItemJnlLine2."Shortcut Dimension 2 Code");
         end;
     end;
-    
+
     local procedure UpdateSalesLineDimSetIDFromAppliedEntry(var SalesLineToPost: Record "Sales Line"; SalesLine: Record "Sales Line")
     var
         ItemLedgEntry: Record "Item Ledger Entry";

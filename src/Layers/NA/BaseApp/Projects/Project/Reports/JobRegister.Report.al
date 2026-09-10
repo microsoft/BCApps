@@ -13,6 +13,7 @@ report 10217 "Job Register"
     AdditionalSearchTerms = 'Job Register';
     ApplicationArea = Jobs;
     Caption = 'Project Register';
+    ToolTip = 'View one or more selected project registers. By using a filter, you can select only those register entries that you want to see. If you do not set a filter, the report can be impractical because it can contain a large amount of information. On the project journal template, you can indicate that you want the report to print when you post.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -17,7 +17,10 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
         AKVGetPeriodsEndpointKeyTok: Label 'DKElecVAT-EndpointGetPeriods', Locked = true;
         AKVSubmitDraftEndpointKeyTok: Label 'DKElecVAT-SubmitDraftEndpoint', Locked = true;
         AKVGetStatusEndpointKeyTok: Label 'DKElecVAT-GetStatusEndpoint', Locked = true;
+        AKVReportingFrequencyEnabledTok: Label 'DKElecVAT-ReportingFrequencyEnabled', Locked = true;
         AVKCompanyCertTok: Label 'DKElecVAT-CompanyCert', Locked = true;
+        ReportingFrequencyConfigurationReadTxt: Label 'Reporting frequency configuration read', Locked = true;
+        InvalidReportingFrequencyConfigurationTxt: Label 'Reporting frequency configuration is invalid', Locked = true;
 
     [NonDebuggable]
     procedure GetClientCertificateBase64FromAKV() ClientCertificateBase64: Text
@@ -48,5 +51,36 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
             FeatureTelemetry.LogError('0000M7K', FeatureNameTxt, '', StrSubstNo(CannotGetSecretFromKeyVaultErr, KeyName));
             Error(CannotGetSecretFromKeyVaultErr, KeyName);
         end;
+    end;
+
+    [NonDebuggable]
+    procedure IsReportingFrequencyEnabled(): Boolean
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        CustomDimensions: Dictionary of [Text, Text];
+        SecretValue: Text;
+        ConfigurationStatus: Text;
+        Enabled: Boolean;
+    begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret(AKVReportingFrequencyEnabledTok, SecretValue) then begin
+            Enabled := true;
+            ConfigurationStatus := 'Missing';
+        end else
+            if Evaluate(Enabled, SecretValue.Trim()) then
+                ConfigurationStatus := 'Valid'
+            else begin
+                Enabled := true;
+                ConfigurationStatus := 'Invalid';
+            end;
+
+        CustomDimensions.Add('Enabled', Format(Enabled, 0, 9));
+        CustomDimensions.Add('ConfigurationStatus', ConfigurationStatus);
+        if ConfigurationStatus = 'Invalid' then
+            FeatureTelemetry.LogError(
+                '0000M7M', FeatureNameTxt, ReportingFrequencyConfigurationReadTxt, InvalidReportingFrequencyConfigurationTxt, '', CustomDimensions)
+        else
+            FeatureTelemetry.LogUsage('0000M7M', FeatureNameTxt, ReportingFrequencyConfigurationReadTxt, CustomDimensions);
+
+        exit(Enabled);
     end;
 }

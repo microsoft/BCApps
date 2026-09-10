@@ -40,6 +40,7 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 NotBlank = true;
                 ShowMandatory = true;
+                Editable = LayoutNameEditable;
                 Caption = 'Layout Name';
                 ToolTip = 'Specifies the name of the layout.';
 
@@ -74,16 +75,27 @@ page 9661 "Report Layout Edit Dialog"
 
                 trigger OnValidate()
                 begin
-                    if (CreateCopy) then
-                        AvailableInAllCompaniesEditable := true
-                    else
-                        if (IsLayoutOwnedByCurrentCompany) then begin
-                            AvailableInAllCompaniesEditable := true;
-                            AvailableInAllCompanies := false;
-                        end else begin
-                            AvailableInAllCompaniesEditable := false;
+                    if OverrideMode then begin
+                        LayoutNameEditable := CreateCopy;
+                        AvailableInAllCompaniesEditable := CreateCopy;
+                        IsObsoleteEditable := CreateCopy or (not ObsoleteInMetadata);
+                        if not CreateCopy then begin
+                            // Back to an in-place override: restore the values it will actually write,
+                            // so a locked field never displays something the write contradicts.
                             AvailableInAllCompanies := true;
+                            IsObsolete := ObsoleteInMetadata;
                         end;
+                    end else
+                        if CreateCopy then
+                            AvailableInAllCompaniesEditable := true
+                        else
+                            if IsLayoutOwnedByCurrentCompany then begin
+                                AvailableInAllCompaniesEditable := true;
+                                AvailableInAllCompanies := false;
+                            end else begin
+                                AvailableInAllCompaniesEditable := false;
+                                AvailableInAllCompanies := true;
+                            end;
                 end;
             }
             field(AvailableInAllCompanies; AvailableInAllCompanies)
@@ -98,7 +110,7 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Mark layout as obsolete';
                 ToolTip = 'Specifies whether the layout is obsolete.';
-                Editable = true;
+                Editable = IsObsoleteEditable;
             }
         }
     }
@@ -119,6 +131,10 @@ page 9661 "Report Layout Edit Dialog"
         AvailableInAllCompaniesEditable: Boolean;
         IsLayoutOwnedByCurrentCompany: Boolean;
         IsObsolete: Boolean;
+        LayoutNameEditable: Boolean;
+        IsObsoleteEditable: Boolean;
+        OverrideMode: Boolean;
+        ObsoleteInMetadata: Boolean;
 
     internal procedure SelectedLayoutDescription(): Text[250]
     begin
@@ -153,13 +169,20 @@ page 9661 "Report Layout Edit Dialog"
         OldLayoutName := ReportLayoutList."Caption";
         NewLayoutName := OldLayoutName;
         IsObsolete := ReportLayoutList.IsObsolete;
+        LayoutNameEditable := true;
+        IsObsoleteEditable := true;
+        OverrideMode := false;
 
         if not ReportLayoutList."User Defined" then begin
-            CreateCopy := true;
-            CreateCopyEditable := false;
-            AvailableInAllCompaniesEditable := true;
-            AvailableInAllCompanies := true;
+            OverrideMode := true;
+            ObsoleteInMetadata := ReportLayoutList.IsObsolete;
+            CreateCopy := false;
+            CreateCopyEditable := true;
+            LayoutNameEditable := false;
+            IsObsoleteEditable := not ObsoleteInMetadata;
 
+            AvailableInAllCompanies := true;
+            AvailableInAllCompaniesEditable := false;
         end else begin
             CreateCopy := false;
             CreateCopyEditable := true;

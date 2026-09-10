@@ -11,6 +11,7 @@ report 1101 "Resource - List"
 {
     ApplicationArea = Jobs;
     Caption = 'Resource - List';
+    ToolTip = 'View the list of resources.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

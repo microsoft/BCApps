@@ -36,6 +36,12 @@ page 99000810 "Routing Version"
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateRoutingLineParallelFieldsVisibility();
+                        CurrPage.Update(false);
+                    end;
                 }
                 field(Status; Rec.Status)
                 {
@@ -153,5 +159,15 @@ page 99000810 "Routing Version"
     var
         CopyFromRoutingQst: Label 'Copy from routing header?';
         CertifyQst: Label 'The %1 has not been certified. Are you sure you want to exit?', Comment = '%1 = page caption (Production BOM)';
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateRoutingLineParallelFieldsVisibility();
+    end;
+
+    local procedure UpdateRoutingLineParallelFieldsVisibility()
+    begin
+        CurrPage.RoutingLine.Page.SetParallelFieldsVisible(Rec.Type = Rec.Type::Parallel);
+    end;
 }
 

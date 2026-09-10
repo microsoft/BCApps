@@ -53,6 +53,7 @@ codeunit 30191 "Shpfy Shipping Charges"
         OrderShippingCharges: Record "Shpfy Order Shipping Charges";
         ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
         DataCapture: Record "Shpfy Data Capture";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         RecordRef: RecordRef;
         Id: BigInteger;
         JToken: JsonToken;
@@ -83,6 +84,7 @@ codeunit 30191 "Shpfy Shipping Charges"
             else
                 OrderShippingCharges.Modify();
             RecordRef.Close();
+            OrderTaxLine.ImportFromJson(OrderShippingCharges."Shopify Shipping Line Id", JsonHelper.GetJsonArray(JToken, 'taxLines'));
             DataCapture.Add(Database::"Shpfy Order Shipping Charges", OrderShippingCharges.SystemId, JToken);
             if not ShipmentMethodMapping.Get(OrderHeader."Shop Code", OrderShippingCharges.Title) then begin
                 Clear(ShipmentMethodMapping);

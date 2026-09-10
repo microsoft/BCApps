@@ -10,6 +10,7 @@ report 1195 "Adjust Resource Costs/Prices"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Adjust Resource Costs/Prices';
+    ToolTip = 'Adjust one or more fields on the resource card. For example, you can change the direct unit cost by 10 percent on all resources from a specific resource group. The changes are processed immediately after the batch job is started. The fields on the resource card that are dependent on the adjusted field are also changed.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

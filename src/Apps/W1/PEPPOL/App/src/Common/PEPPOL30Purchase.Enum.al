@@ -11,7 +11,8 @@ enum 37201 "PEPPOL 3.0 Purchase" implements "PEPPOL Purchase Attachment Provider
                                                     "PEPPOL Purchase Monetary Info Provider",
                                                     "PEPPOL Purchase Party Info Provider",
                                                     "PEPPOL Purchase Payment Info Provider",
-                                                    "PEPPOL Purchase Tax Info Provider"
+                                                    "PEPPOL Purchase Tax Info Provider",
+                                                    "PEPPOL Remit. Advice Info Provider"
 {
     DefaultImplementation = "PEPPOL Purchase Attachment Provider" = "PEPPOL30",
                             "PEPPOL Purchase Delivery Info Provider" = "PEPPOL30",
@@ -20,7 +21,17 @@ enum 37201 "PEPPOL 3.0 Purchase" implements "PEPPOL Purchase Attachment Provider
                             "PEPPOL Purchase Monetary Info Provider" = "PEPPOL30",
                             "PEPPOL Purchase Party Info Provider" = "PEPPOL30",
                             "PEPPOL Purchase Payment Info Provider" = "PEPPOL30",
-                            "PEPPOL Purchase Tax Info Provider" = "PEPPOL30";
+                            "PEPPOL Purchase Tax Info Provider" = "PEPPOL30",
+                            "PEPPOL Remit. Advice Info Provider" = "PEPPOL30";
+    UnknownValueImplementation = "PEPPOL Purchase Attachment Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Delivery Info Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Document Info Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Line Info Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Monetary Info Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Party Info Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Payment Info Provider" = "PEPPOL30",
+                                 "PEPPOL Purchase Tax Info Provider" = "PEPPOL30",
+                                 "PEPPOL Remit. Advice Info Provider" = "PEPPOL30";
     Extensible = true;
 
     value(0; "PEPPOL 3.0 - Purchase")

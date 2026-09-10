@@ -25,10 +25,10 @@ using System.Utilities;
 
 report 31191 "Sales Shipment CZL"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Src/Reports/SalesShipment.rdl';
     Caption = 'Sales Shipment';
     PreviewMode = PrintLayout;
+    DefaultRenderingLayout = "SalesShipment.rdl";
+    WordMergeDataItem = "Sales Shipment Header";
 
     dataset
     {
@@ -154,6 +154,18 @@ report 31191 "Sales Shipment CZL"
             {
             }
             column(VATLbl; VATLbl)
+            {
+            }
+            column(GreetingLbl; GreetingLbl)
+            {
+            }
+            column(BodyLbl; BodyLbl)
+            {
+            }
+            column(ClosingLbl; ClosingLbl)
+            {
+            }
+            column(DocumentNoLbl; DocumentNoLbl)
             {
             }
             column(No_SalesShipmentHeader; "No.")
@@ -528,6 +540,7 @@ report 31191 "Sales Shipment CZL"
                 }
             }
         }
+
         trigger OnInit()
         begin
             LogInteractionEnable := true;
@@ -539,6 +552,24 @@ report 31191 "Sales Shipment CZL"
             LogInteractionEnable := LogInteraction;
         end;
     }
+    rendering
+    {
+        layout("SalesShipment.rdl")
+        {
+            Type = RDLC;
+            LayoutFile = './Src/Reports/SalesShipment.rdl';
+            Caption = 'Sales Shipment (RDL)';
+            Summary = 'The Sales Shipment (RDL) provides a detailed layout.';
+        }
+        layout("SalesShipmentEmail.docx")
+        {
+            Type = Word;
+            LayoutFile = './Src/Reports/SalesShipmentEmail.docx';
+            Caption = 'Sales Shipment Email (Word)';
+            Summary = 'The Sales Shipment Email (Word) provides an email body layout.';
+        }
+    }
+
     trigger OnPreReport()
     begin
         if not CurrReport.UseRequestPage then
@@ -578,6 +609,10 @@ report 31191 "Sales Shipment CZL"
         DescriptionCaptionLbl: Label 'Description';
         NoCaptionLbl: Label 'No.';
         ExpirationDateLbl: Label 'Expiration Date';
+        GreetingLbl: Label 'Hello';
+        ClosingLbl: Label 'Sincerely';
+        BodyLbl: Label 'Thank you for your business. Your shipment is attached to this message.';
+        DocumentNoLbl: Label 'No.';
 
     protected var
         ShipmentMethod: Record "Shipment Method";

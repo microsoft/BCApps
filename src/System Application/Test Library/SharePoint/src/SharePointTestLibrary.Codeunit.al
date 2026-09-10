@@ -12,6 +12,9 @@ codeunit 132973 "SharePoint Test Library"
 {
     EventSubscriberInstance = Manual;
 
+    var
+        LastContextInfoRequestUri: Text;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
     local procedure RunOnBeforeSendRequest(HttpRequestMessage: HttpRequestMessage; var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; var IsHandled: Boolean; Method: Text)
     var
@@ -33,6 +36,7 @@ codeunit 132973 "SharePoint Test Library"
         Uri := LocalUri.UnescapeDataString(Uri);
 
         if Uri.EndsWith('/_api/contextinfo/') then begin
+            LastContextInfoRequestUri := Uri;
             GetContextDigestTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
             exit;
         end;
@@ -55,6 +59,11 @@ codeunit 132973 "SharePoint Test Library"
 
         if Uri.EndsWith('/_api/Web/Lists(guid''549F3387-C984-4969-95DE-4F405CCB4EA9'')/items/') then begin
             GetDetailedErrorResponse(SharePointOperationResponse);
+            exit;
+        end;
+
+        if Uri.EndsWith('/_api/Web/Lists(guid''7A1F0E2B-8C4D-4E6F-9A0B-1C2D3E4F5A6B'')/items/') then begin
+            GetVerboseErrorResponse(SharePointOperationResponse);
             exit;
         end;
 
@@ -107,6 +116,15 @@ codeunit 132973 "SharePoint Test Library"
             end;
 
         Error('No matching test response for %1', Uri);
+    end;
+
+    /// <summary>
+    /// Returns the full request URI of the last "_api/contextinfo" request digest call that was intercepted by this test library.
+    /// </summary>
+    /// <returns>The full, unescaped request URI, or an empty string if no request digest call has been made yet.</returns>
+    procedure GetLastContextInfoRequestUri(): Text
+    begin
+        exit(LastContextInfoRequestUri);
     end;
 
     local procedure GetContextDigestTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; BaseUrl: Text; ParentUrl: Text)
@@ -987,6 +1005,23 @@ codeunit 132973 "SharePoint Test Library"
         ResponseContent.Append('"error_description":"Invalid JWT token. The token is expired."');
         ResponseContent.Append('}');
         SharePointOperationResponse.SetHttpResponse(ResponseContent.ToText(), HttpHeaders, 401, false, 'Unauthorized');
+    end;
+
+    local procedure GetVerboseErrorResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+        ResponseContent: TextBuilder;
+    begin
+        ResponseContent.Append('{');
+        ResponseContent.Append('"error":{');
+        ResponseContent.Append('"code":"-2147024891, System.UnauthorizedAccessException",');
+        ResponseContent.Append('"message":{');
+        ResponseContent.Append('"lang":"en-US",');
+        ResponseContent.Append('"value":"Access denied. You do not have permission to perform this action."');
+        ResponseContent.Append('}');
+        ResponseContent.Append('}');
+        ResponseContent.Append('}');
+        SharePointOperationResponse.SetHttpResponse(ResponseContent.ToText(), HttpHeaders, 403, false, 'Forbidden');
     end;
 
     local procedure GetTooManyRequestsResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")

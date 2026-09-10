@@ -1,0 +1,180 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.MCP;
+
+page 8368 "MCP Server Feature List"
+{
+    Caption = 'Server Features';
+    ApplicationArea = All;
+    PageType = ListPart;
+    SourceTable = "MCP Server Feature";
+    SourceTableTemporary = true;
+    Editable = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
+    DeleteAllowed = false;
+    Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    layout
+    {
+        area(Content)
+        {
+            repeater(Features)
+            {
+                ShowCaption = false;
+                IndentationColumn = Rec.Indentation;
+                IndentationControls = Feature;
+                field(Feature; Rec.Feature)
+                {
+                    Caption = 'Name';
+                    ToolTip = 'Specifies the name of the server feature.';
+                    Width = 10;
+                }
+                field("Description"; Rec."Description")
+                {
+                    ToolTip = 'Specifies the description of the server feature.';
+                }
+                field("Status"; Rec."Status")
+                {
+                    ToolTip = 'Specifies whether the server feature is active or inactive.';
+                    StyleExpr = StatusStyleExpr;
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(Activate)
+            {
+                Caption = 'Activate';
+                ToolTip = 'Activate the selected server feature for this MCP configuration.';
+                Image = Start;
+                Visible = ActionsEnabled and (Rec.Status = Rec.Status::Inactive);
+                Scope = Repeater;
+
+                trigger OnAction()
+                begin
+                    SetActive(true);
+                end;
+            }
+            action(Deactivate)
+            {
+                Caption = 'Deactivate';
+                ToolTip = 'Deactivate the selected server feature for this MCP configuration.';
+                Image = Stop;
+                Visible = ActionsEnabled and (Rec.Status = Rec.Status::Active);
+                Scope = Repeater;
+
+                trigger OnAction()
+                begin
+                    SetActive(false);
+                end;
+            }
+            action(Configure)
+            {
+                Caption = 'Configure';
+                Ellipsis = true;
+                ToolTip = 'Open feature-specific settings for the selected server feature.';
+                Image = Setup;
+                Enabled = ActionsEnabled and (Rec.Status = Rec.Status::Active) and Rec.Configurable;
+                Scope = Repeater;
+
+                trigger OnAction()
+                begin
+                    OpenSettings();
+                end;
+            }
+        }
+    }
+
+    trigger OnAfterGetRecord()
+    begin
+        SetStatusStyle();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetStatusStyle();
+    end;
+
+    var
+        ParentSystemId: Guid;
+        ActionsEnabled: Boolean;
+        StatusStyleExpr: Text;
+
+    internal procedure Reload(ConfigSystemId: Guid; CanModify: Boolean)
+    var
+        ServerFeature: Enum "MCP Server Feature";
+        FeatureImplementations: List of [Integer];
+        FeatureImplementation: Integer;
+    begin
+        ParentSystemId := ConfigSystemId;
+        ActionsEnabled := CanModify;
+        Rec.Reset();
+        Rec.DeleteAll();
+        FeatureImplementations := ServerFeature.Ordinals();
+        foreach FeatureImplementation in FeatureImplementations do begin
+            ServerFeature := "MCP Server Feature".FromInteger(FeatureImplementation);
+            InsertRow(ServerFeature);
+        end;
+        if Rec.FindFirst() then;
+    end;
+
+    local procedure InsertRow(NewFeature: Enum "MCP Server Feature")
+    var
+        ServerFeature: Interface "MCP Server Features";
+        ParentFeature: Enum "MCP Server Feature";
+        Indentation: Integer;
+    begin
+        ServerFeature := NewFeature;
+        if ServerFeature.TryGetParentFeature(ParentFeature) then
+            Indentation := 1; // sub-feature: always shown, indented beneath its parent
+        Rec.Init();
+        Rec.Feature := NewFeature;
+        Rec.Description := ServerFeature.Description();
+        Rec.Indentation := Indentation;
+        if ServerFeature.IsActive(ParentSystemId) then
+            Rec.Status := Rec.Status::Active
+        else
+            Rec.Status := Rec.Status::Inactive;
+        Rec.Configurable := ServerFeature.HasSettings();
+        Rec.Insert();
+    end;
+
+    local procedure SetActive(NewActive: Boolean)
+    var
+        ServerFeature: Interface "MCP Server Features";
+    begin
+        ServerFeature := Rec.Feature;
+        ServerFeature.SetActive(ParentSystemId, NewActive);
+
+        // Reload so a cascaded change to another feature (disabling API Tools turns off
+        // Dynamic Tool Mode) is reflected on every row, not just the one toggled.
+        Reload(ParentSystemId, ActionsEnabled);
+        CurrPage.Update(false);
+    end;
+
+    local procedure SetStatusStyle()
+    begin
+        if Rec.Status = Rec.Status::Active then
+            StatusStyleExpr := 'Favorable'
+        else
+            StatusStyleExpr := '';
+    end;
+
+    local procedure OpenSettings()
+    var
+        ServerFeature: Interface "MCP Server Features";
+    begin
+        ServerFeature := Rec.Feature;
+        ServerFeature.OpenSettings(ParentSystemId);
+    end;
+}

@@ -49,6 +49,7 @@ codeunit 230 GenJnlManagement
         Text004: Label 'DEFAULT';
         Text005: Label 'Default Journal';
 #pragma warning restore AA0074
+        SpendRequestRequiredMsg: Label 'A spend request no. should be specified for G/L account no. %1', Comment = '%1 is an account no.';
 
     /// <summary>
     /// Manages template selection for journal pages based on page type and recurring journal requirements.
@@ -616,6 +617,21 @@ codeunit 230 GenJnlManagement
         OnAfterCalcBalance(GenJnlLine);
     end;
 
+    procedure CalcBatchTotal(var GenJnlLine: Record "Gen. Journal Line"; var BatchTotal: Decimal; var ShowBatchTotal: Boolean)
+    var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        TotalGenJnlLine: Record "Gen. Journal Line";
+    begin
+        BatchTotal := 0;
+        ShowBatchTotal := not (CurrentClientType in [CLIENTTYPE::SOAP, CLIENTTYPE::OData, CLIENTTYPE::ODataV4, CLIENTTYPE::Api]);
+        if not ShowBatchTotal then
+            exit;
+
+        TotalGenJnlLine.CopyFilters(GenJnlLine);
+        TotalGenJnlLine.CalcSums("Amount (LCY)");
+        BatchTotal := TotalGenJnlLine."Amount (LCY)";
+    end;
+
     /// <summary>
     /// Generates unique journal template names by checking for conflicts and incrementing names when needed.
     /// Ensures new template names are unique while maintaining meaningful naming based on template type.
@@ -686,6 +702,34 @@ codeunit 230 GenJnlManagement
         GenJnlTemplate.SetRange(Type, TemplateType);
         GenJnlTemplate.SetRange(Recurring, RecurringJnl);
         exit(FindTemplateFromSelection(GenJnlTemplate, TemplateType, RecurringJnl));
+    end;
+
+    /// <summary>
+    /// Used from journal pages and warns users of need to specify spend request no.
+    /// </summary>
+    /// <param name="GLAccountNo"></param>
+    /// <param name="NotificationID"></param>
+    internal procedure ShowNotificationIfSpendRequestIsRequired(GLAccountNo: Code[20]; SpendRequestNo: Code[20]; var NotificationID: Guid)
+    var
+        GLAccount: Record "G/L Account";
+        Notification: Notification;
+    begin
+        if not IsNullGuid(NotificationID) then begin
+            Notification.Id := NotificationID;
+            if Notification.Recall() then;
+            Clear(NotificationID);
+        end;
+        if SpendRequestNo <> '' then
+            exit;
+        GLAccount.SetLoadFields("Spend Request Required");
+        if not GLAccount.Get(GLAccountNo) then
+            exit;
+        if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::None then
+            exit;
+        NotificationID := CreateGuid();
+        Notification.Id := NotificationID;
+        Notification.Message := StrSubstNo(SpendRequestRequiredMsg, GLAccountNo);
+        Notification.Send();
     end;
 
     /// <summary>

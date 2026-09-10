@@ -194,18 +194,25 @@ codeunit 7251 "Bank Acc. Rec. Trans. to Acc."
     var
         BankRecAIMatchingImpl: Codeunit "Bank Rec. AI Matching Impl.";
         CompletionTaskTxt: SecretText;
-        CompletionTaskPartTxt: SecretText;
-        CompletionTaskBuildingFromKeyVaultFailed: Boolean;
+        SafetyClauseTxt: SecretText;
+        TaskPromptTxt: Text;
+        CompletionTaskBuildingFailed: Boolean;
     begin
-        if BankRecAIMatchingImpl.GetAzureKeyVaultSecret(CompletionTaskPartTxt, 'BankAccRecAITransToGLAccount1') then
-            CompletionTaskTxt := CompletionTaskPartTxt
+        if BankRecAIMatchingImpl.GetAzureKeyVaultSecret(SafetyClauseTxt, 'BankAccRecAITransToGLAccountSft') then
+            CompletionTaskTxt := SafetyClauseTxt
         else
-            CompletionTaskBuildingFromKeyVaultFailed := true;
+            CompletionTaskBuildingFailed := true;
 
-        if CompletionTaskBuildingFromKeyVaultFailed then begin
+        TaskPromptTxt := NavApp.GetResourceAsText('BankAccRecAITransToGLAccountTask.md', TextEncoding::UTF8);
+        if TaskPromptTxt = '' then
+            CompletionTaskBuildingFailed := true;
+
+        if CompletionTaskBuildingFailed then begin
             Session.LogMessage('0000LFI', TelemetryConstructingPromptFailedErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', BankRecAIMatchingImpl.FeatureName());
             Error(ConstructingPromptFailedErr);
         end;
+
+        CompletionTaskTxt := BankRecAIMatchingImpl.AddCompletionPromptLine(CompletionTaskTxt, TaskPromptTxt);
 
         exit(CompletionTaskTxt);
     end;

@@ -3,7 +3,7 @@
   "name": "Event Recorder",
   "publisher": "Microsoft",
   "description": "Event Recorder",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -13,13 +13,13 @@
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "10fcedfc-1400-4dde-b0dd-5cda709a5603",
       "name": "Object Selection",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],

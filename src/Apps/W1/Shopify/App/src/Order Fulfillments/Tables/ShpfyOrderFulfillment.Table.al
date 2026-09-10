@@ -28,12 +28,12 @@ table 30111 "Shpfy Order Fulfillment"
         }
         field(3; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(4; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(5; "Tracking Number"; Text[30])

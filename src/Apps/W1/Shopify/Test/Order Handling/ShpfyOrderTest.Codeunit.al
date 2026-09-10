@@ -233,6 +233,48 @@ codeunit 139609 "Shpfy Order Test"
         OrderHeader.Validate("Sell-to Contact No.", '');
     end;
 
+    [Test]
+    procedure TestManualSellToPreservedWhenBillToMappingFails()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        Customer: Record Customer;
+        OrderMapping: Codeunit "Shpfy Order Mapping";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        Result: Boolean;
+    begin
+        // [SCENARIO] Bug 642033: A manually set Sell-to Customer No. must not be cleared when the Bill-to customer cannot be mapped.
+        Initialize();
+
+        // [GIVEN] A shop that does not import/create customers and has no default customer
+        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Customer Import From Shopify" := Shop."Customer Import From Shopify"::None;
+        Shop."Default Customer No." := '';
+        Shop.Modify(false);
+        CommunicationMgt.SetShop(Shop);
+
+        // [GIVEN] A Shopify order with a manually selected Sell-to customer and no Bill-to mapping
+        LibrarySales.CreateCustomer(Customer);
+        CreateShopifyOrderHeader(OrderHeader);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader.B2B := false;
+        OrderHeader."Sell-to Customer No." := Customer."No.";
+        OrderHeader."Bill-to Customer No." := '';
+        OrderHeader.Modify();
+
+        // [WHEN] Mapping the order (as done by the Create Sales Document action)
+        Result := OrderMapping.DoMapping(OrderHeader);
+
+        // [THEN] The mapping succeeds
+        LibraryAssert.IsTrue(Result, 'Mapping should succeed when Sell-to is set manually');
+
+        // [THEN] The manual Sell-to selection is preserved and Bill-to falls back to it
+        OrderHeader.Get(OrderHeader."Shopify Order Id");
+        LibraryAssert.AreEqual(Customer."No.", OrderHeader."Sell-to Customer No.", 'Manual Sell-to Customer No. must be preserved');
+        LibraryAssert.AreEqual(Customer."No.", OrderHeader."Bill-to Customer No.", 'Bill-to Customer No. should fall back to Sell-to');
+    end;
+
     local procedure CreateShopifyOrderHeader(var OrderHeader: Record "Shpfy Order Header")
     begin
         OrderHeader.Init();

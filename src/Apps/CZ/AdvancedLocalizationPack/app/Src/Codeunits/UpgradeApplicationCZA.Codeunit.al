@@ -31,7 +31,9 @@ codeunit 31251 "Upgrade Application CZA"
                   tabledata "Posted Assembly Line" = m,
                   tabledata "Transfer Shipment Line" = m,
                   tabledata "Item Entry Relation" = m,
-                  tabledata "Standard Item Journal Line" = m;
+                  tabledata "Standard Item Journal Line" = m,
+                  tabledata "Default Dimension" = rmd,
+                  tabledata "Auto. Create Default Dim. CZA" = rim;
 
     var
         DataUpgradeMgt: Codeunit "Data Upgrade Mgt.";
@@ -52,6 +54,7 @@ codeunit 31251 "Upgrade Application CZA"
         UpgradeDefaultBusinessPostingGroup();
         UpgradePostedDefaultBusinessPostingGroup();
         UpgradeAutoCreateDefaultDimensionValuePosting();
+        UpgradeAutoCreateDefaultDimToTable();
         UnbindSubscription(InstallApplicationsCZA);
     end;
 
@@ -120,13 +123,44 @@ codeunit 31251 "Upgrade Application CZA"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZA.GetAutoCreateDefaultDimensionValuePostingUpgradeTag()) then
             exit;
 
+#pragma warning disable AL0432
         DefaultDimensionDataTransfer.SetTables(Database::"Default Dimension", Database::"Default Dimension");
         DefaultDimensionDataTransfer.AddSourceFilter(DefaultDimension.FieldNo("Automatic Create CZA"), '=%1', true);
         DefaultDimensionDataTransfer.AddConstantValue(DefaultDimensionValuePosting::" ", DefaultDimension.FieldNo("Value Posting"));
         DefaultDimensionDataTransfer.UpdateAuditFields := false;
         DefaultDimensionDataTransfer.CopyFields();
+#pragma warning restore AL0432
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZA.GetAutoCreateDefaultDimensionValuePostingUpgradeTag());
+    end;
+
+    local procedure UpgradeAutoCreateDefaultDimToTable()
+    var
+        DefaultDimension: Record "Default Dimension";
+        AutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZA.GetMigrateAutoCreateDefaultDimToTableUpgradeTag()) then
+            exit;
+
+#pragma warning disable AL0432
+        DefaultDimension.SetRange("Automatic Create CZA", true);
+        DefaultDimension.SetRange("No.", '');
+        if DefaultDimension.FindSet() then
+            repeat
+                if not AutoCreateDefaultDim.Get(DefaultDimension."Table ID", DefaultDimension."Dimension Code") then begin
+                    AutoCreateDefaultDim.Init();
+                    AutoCreateDefaultDim."Table ID" := DefaultDimension."Table ID";
+                    AutoCreateDefaultDim."Dimension Code" := DefaultDimension."Dimension Code";
+                    AutoCreateDefaultDim."Dim. Description Field ID" := DefaultDimension."Dim. Description Field ID CZA";
+                    AutoCreateDefaultDim."Dim. Description Update" := DefaultDimension."Dim. Description Update CZA";
+                    AutoCreateDefaultDim."Dim. Description Format" := DefaultDimension."Dim. Description Format CZA";
+                    AutoCreateDefaultDim."Auto. Create Value Posting" := DefaultDimension."Auto. Create Value Posting CZA";
+                    AutoCreateDefaultDim.Insert();
+                end;
+                DefaultDimension.Delete();
+            until DefaultDimension.Next() = 0;
+#pragma warning restore AL0432
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZA.GetMigrateAutoCreateDefaultDimToTableUpgradeTag());
     end;
 
     local procedure SetDatabaseUpgradeTags();

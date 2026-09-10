@@ -428,7 +428,7 @@ codeunit 136322 "Jobs - Assemble-to Order"
         LibraryWarehouse.CreateInvtPutPickMovement("Warehouse Request Source Document"::"Job Usage", Job."No.", false, true, false);
 
         // [THEN] Make sure 1 line is created
-        WarehouseActivityLinePick.SetRange("Source Type", Database::Job);
+        WarehouseActivityLinePick.SetRange("Source Type", Database::"Job Planning Line");
         WarehouseActivityLinePick.SetRange("Source Document", WarehouseActivityLinePick."Source Document"::"Job Usage");
         WarehouseActivityLinePick.SetRange("Source No.", Job."No.");
         Assert.RecordCount(WarehouseActivityLinePick, 1);

@@ -16,6 +16,7 @@ report 6661 "Delete Invd Purch. Ret. Orders"
     AccessByPermission = TableData "Purchase Header" = RD;
     ApplicationArea = PurchReturnOrder;
     Caption = 'Delete Invoiced Purchase Return Orders';
+    ToolTip = 'Delete return orders that were not automatically deleted after completion. For example, when several purchase return orders were completed by a single purchase credit memo.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

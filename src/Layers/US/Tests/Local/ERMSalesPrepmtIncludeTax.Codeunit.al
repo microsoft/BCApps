@@ -14,6 +14,7 @@
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
+        PrepmtAmountMustIncludeTaxErr: Label 'Posted prepayment amount on the Sales Prepayments Account must include tax.';
 
     [Test]
     [Scope('OnPrem')]
@@ -491,6 +492,57 @@
           CustomerPostingGroup."Receivables Account", GeneralPostingSetup."Sales Prepayments Account", PrepmtAmount / 2);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtInvoiceInclTaxWithInvoiceDiscount()
+    var
+        Customer: Record Customer;
+        GeneralPostingSetup: Record "General Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        TaxArea: Record "Tax Area";
+        TaxDetail: Record "Tax Detail";
+        TaxGroup: Record "Tax Group";
+        TaxPct: Decimal;
+        ExpectedPrepmtInclTax: Decimal;
+    begin
+        // [SCENARIO 638146] Posted prepayment invoice amount includes sales tax when "Prepmt. Include Tax" = TRUE and an invoice discount is applied.
+
+        // [GIVEN] Tax Details for tax jurisdiction with 5 %.
+        LibraryERM.CreateTaxArea(TaxArea);
+        LibraryERM.CreateTaxGroup(TaxGroup);
+        TaxPct := 5;
+        CreateTaxAreaSetupWithValues(TaxDetail, TaxArea.Code, TaxGroup.Code, TaxPct);
+
+        // [GIVEN] Customer with a 10 % invoice discount.
+        Customer.Get(CreateCustomerWithTaxArea(TaxArea.Code));
+        CreateInvoiceDiscountForCustomer(Customer."No.", 10);
+
+        // [GIVEN] Sales Order with "Prepmt. Include Tax" = TRUE and "Prepayment %" = 100.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prepayment %", 100);
+        SalesHeader.Validate("Prices Including VAT", false);
+        SalesHeader.Validate("Compress Prepayment", true);
+        SalesHeader.Validate("Prepmt. Include Tax", true);
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Sales Line with Unit Price = 289.60 and Quantity = 10 => Line Amount 2896, Inv. Discount 289.60, Net Amount 2606.40.
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, CreateItemWithTaxGroup(TaxGroup.Code), 10);
+        SalesLine.Validate("Unit Price", 289.6);
+        SalesLine.Modify(true);
+        CalcSalesInvoiceDiscount(SalesLine);
+        GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
+
+        // [WHEN] Post the prepayment invoice.
+        PostSalesPrepmtInvoice(SalesHeader);
+
+        // [THEN] The posted prepayment G/L Entry for the Sales Prepayments Account equals the discounted total including tax = (2896 - 289.60) * 1.05 = 2736.72.
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedPrepmtInclTax := Round(SalesHeader."Amount Including VAT" * SalesHeader."Prepayment %" / 100);
+        VerifyPrepmtGLEntryAmount(SalesHeader."Last Prepayment No.", GeneralPostingSetup."Sales Prepayments Account", -ExpectedPrepmtInclTax);
+    end;
+
     local procedure PrepareSOwithPostedPrepmtInv(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; NoOfLines: Integer; TaxAreaCode: Code[20]; ItemNo: Code[20]; PrepmtInclTax: Boolean)
     var
         i: Integer;
@@ -780,6 +832,34 @@
         GLEntry.SetFilter("G/L Account No.", GLAccFilter);
         GLEntry.CalcSums(Amount);
         GLEntry.TestField(Amount, ExpAmount);
+    end;
+
+    local procedure CreateInvoiceDiscountForCustomer(CustomerNo: Code[20]; DiscountPct: Decimal)
+    var
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+    begin
+        CustInvoiceDisc.Init();
+        CustInvoiceDisc.Validate(Code, CustomerNo);
+        CustInvoiceDisc.Validate("Minimum Amount", 0);
+        CustInvoiceDisc.Insert(true);
+        CustInvoiceDisc.Validate("Discount %", DiscountPct);
+        CustInvoiceDisc.Modify(true);
+    end;
+
+    local procedure CalcSalesInvoiceDiscount(var SalesLine: Record "Sales Line")
+    begin
+        CODEUNIT.Run(CODEUNIT::"Sales-Calc. Discount", SalesLine);
+        SalesLine.Find();
+    end;
+
+    local procedure VerifyPrepmtGLEntryAmount(DocumentNo: Code[20]; PrepaymentAcc: Code[20]; ExpAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", PrepaymentAcc);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(ExpAmount, GLEntry.Amount, PrepmtAmountMustIncludeTaxErr);
     end;
 }
 

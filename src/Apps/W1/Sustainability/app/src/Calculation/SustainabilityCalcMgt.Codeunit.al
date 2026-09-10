@@ -8,6 +8,8 @@ using Microsoft.Sustainability.Journal;
 codeunit 6218 "Sustainability Calc. Mgt."
 {
     var
+        EmissionScopeCache: Dictionary of [Code[20], Enum "Emission Scope"];
+        CalculationFoundationCache: Dictionary of [Code[20], Enum "Calculation Foundation"];
         FromToFilterLbl: Label '%1..%2', Locked = true;
 
     internal procedure CalculationEmissions(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
@@ -107,6 +109,105 @@ codeunit 6218 "Sustainability Calc. Mgt."
 
         if not SustainAccountCategory.N2O then
             PurchaseLine.Validate("Emission N2O", 0);
+    end;
+
+    internal procedure GetFormulaInputEditability(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        if SustainabilityJnlLine."Manual Input" then
+            exit;
+
+        GetFormulaInputEditability(SustainabilityJnlLine."Account Category", false, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
+    internal procedure GetFormulaInputEditability(PurchaseLine: Record "Purchase Line"; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        GetFormulaInputEditability(PurchaseLine."Sust. Account Category", true, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
+    local procedure GetFormulaInputEditability(AccountCategoryCode: Code[20]; PurchaseSurface: Boolean; var FuelElectricityEditable: Boolean; var DistanceEditable: Boolean; var CustomAmountEditable: Boolean; var InstallationMultiplierEditable: Boolean; var TimeFactorEditable: Boolean)
+    var
+        EmissionScope: Enum "Emission Scope";
+        CalculationFoundation: Enum "Calculation Foundation";
+    begin
+        Clear(FuelElectricityEditable);
+        Clear(DistanceEditable);
+        Clear(CustomAmountEditable);
+        Clear(InstallationMultiplierEditable);
+        Clear(TimeFactorEditable);
+
+        if not GetCalculationParameters(AccountCategoryCode, EmissionScope, CalculationFoundation) then
+            exit;
+
+        case EmissionScope of
+            Enum::"Emission Scope"::"Scope 1":
+                case CalculationFoundation of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Distance:
+                        DistanceEditable := true;
+                    Enum::"Calculation Foundation"::Installations:
+                        begin
+                            CustomAmountEditable := true;
+                            InstallationMultiplierEditable := true;
+                            TimeFactorEditable := true;
+                        end;
+                end;
+            Enum::"Emission Scope"::"Scope 2":
+                case CalculationFoundation of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Custom:
+                        CustomAmountEditable := true;
+                end;
+            Enum::"Emission Scope"::"Scope 3":
+                case CalculationFoundation of
+                    Enum::"Calculation Foundation"::"Fuel/Electricity":
+                        FuelElectricityEditable := true;
+                    Enum::"Calculation Foundation"::Distance:
+                        begin
+                            DistanceEditable := true;
+                            InstallationMultiplierEditable := true;
+                        end;
+                    Enum::"Calculation Foundation"::Custom:
+                        CustomAmountEditable := true;
+                end;
+            Enum::"Emission Scope"::"Water/Waste":
+                if (not PurchaseSurface) and (CalculationFoundation = Enum::"Calculation Foundation"::Custom) then
+                    CustomAmountEditable := true;
+        end;
+    end;
+
+    local procedure GetCalculationParameters(AccountCategoryCode: Code[20]; var EmissionScope: Enum "Emission Scope"; var CalculationFoundation: Enum "Calculation Foundation"): Boolean
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+    begin
+        if AccountCategoryCode = '' then
+            exit(false);
+
+        if EmissionScopeCache.Get(AccountCategoryCode, EmissionScope) and CalculationFoundationCache.Get(AccountCategoryCode, CalculationFoundation) then
+            exit(true);
+
+        SustainAccountCategory.SetLoadFields("Emission Scope", "Calculation Foundation");
+        if not SustainAccountCategory.Get(AccountCategoryCode) then
+            exit(false);
+
+        EmissionScope := SustainAccountCategory."Emission Scope";
+        CalculationFoundation := SustainAccountCategory."Calculation Foundation";
+        EmissionScopeCache.Set(AccountCategoryCode, EmissionScope);
+        CalculationFoundationCache.Set(AccountCategoryCode, CalculationFoundation);
+        exit(true);
     end;
 
     /// <summary>

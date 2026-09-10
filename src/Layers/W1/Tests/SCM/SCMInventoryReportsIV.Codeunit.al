@@ -569,6 +569,63 @@ codeunit 137351 "SCM Inventory Reports - IV"
     end;
 
     [Test]
+    [HandlerFunctions('ProductionJournalPageHandler,ConfirmHandler,MessageHandler,CostSharesBreakdownRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CostSharesBreakdownReportForWIPInventoryFiltersByItem()
+    var
+        ChildItem: Record Item;
+        ProdItem: Record Item;
+        OtherProdItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        OtherProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        OtherProductionOrder: Record "Production Order";
+        PrintCostShare: Option Sale,Inventory,"WIP Inventory";
+    begin
+        // [FEATURE] [Cost Shares Breakdown] [WIP]
+        // [SCENARIO 631472] Cost Shares Breakdown in WIP Inventory mode only reports the produced item that matches the request-page Item filter.
+        Initialize();
+
+        // [GIVEN] A component item with posted inventory
+        CreateItem(ChildItem, ChildItem."Replenishment System"::Purchase);
+        CreateAndPostItemJournalLine(ItemJournalLine, ChildItem."No.");
+
+        // [GIVEN] Two produced items, each with the component in its production BOM
+        CreateItem(ProdItem, ProdItem."Replenishment System"::"Prod. Order");
+        CreateAndCertifyProductionBOM(ProductionBOMHeader, ChildItem."No.", ProdItem."Base Unit of Measure", 1);
+        UpdateProductionBOMOnItem(ProdItem, ProductionBOMHeader."No.");
+
+        CreateItem(OtherProdItem, OtherProdItem."Replenishment System"::"Prod. Order");
+        CreateAndCertifyProductionBOM(OtherProductionBOMHeader, ChildItem."No.", OtherProdItem."Base Unit of Measure", 1);
+        UpdateProductionBOMOnItem(OtherProdItem, OtherProductionBOMHeader."No.");
+
+        // [GIVEN] A released production order is posted for each produced item, generating capacity entries
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ProdItem."No.", ItemJournalLine.Quantity / 4);
+        LibraryVariableStorage.Enqueue(PostingMessage);
+        LibraryVariableStorage.Enqueue(PostedLinesMessage);
+        CreateAndPostProductionJournal(ProductionOrder);
+
+        CreateAndRefreshProductionOrder(OtherProductionOrder, OtherProductionOrder.Status::Released, OtherProdItem."No.", ItemJournalLine.Quantity / 4);
+        LibraryVariableStorage.Enqueue(PostingMessage);
+        LibraryVariableStorage.Enqueue(PostedLinesMessage);
+        CreateAndPostProductionJournal(OtherProductionOrder);
+
+        // [WHEN] Running the report in WIP Inventory mode filtered on the first produced item
+        Commit();
+        RunCostSharesBreakdownReport(ProdItem."No.", PrintCostShare::"WIP Inventory", false);
+
+        // [THEN] The filtered item is reported and the other produced item is not
+        LibraryReportDataset.LoadDataSetFile();
+        Assert.IsTrue(
+            LibraryReportDataset.SearchForElementByValue('CostShareBufItemNo', ProdItem."No."),
+            'The filtered produced item must be reported in the Cost Shares Breakdown (WIP).');
+        Assert.IsFalse(
+            LibraryReportDataset.SearchForElementByValue('CostShareBufItemNo', OtherProdItem."No."),
+            'Cost Shares Breakdown (WIP) must not report items outside the request-page Item filter.');
+    end;
+
+    [Test]
     [HandlerFunctions('CostSharesBreakdownRequestPageHandler')]
     [Scope('OnPrem')]
     procedure CostSharesBreakdownReportInDetail()

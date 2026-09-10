@@ -2,7 +2,7 @@
   "id": "698cfedb-66b9-44a8-b5ae-1ec18bd32fa7",
   "name": "Agent Samples",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "A collection of sample agents to get started working with the agent design experience in Business Central.",
   "description": "This app provides a set of sample agents that demonstrate various capabilities and use cases within the agent design experience. These samples serve as a starting point for developers and users to explore and build custom agents tailored to their business needs.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -12,7 +12,7 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2344702",
   "logo": "ExtensionLogo.png",
   "screenshots": [],
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "platform": "29.0.0.0",
   "propagateDependencies": true,
   "dependencies": [
@@ -20,7 +20,7 @@
       "id": "00155c68-8cdd-4d60-a451-2034ad094223",
       "name": "Agent Design Experience",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "internalsVisibleTo": [

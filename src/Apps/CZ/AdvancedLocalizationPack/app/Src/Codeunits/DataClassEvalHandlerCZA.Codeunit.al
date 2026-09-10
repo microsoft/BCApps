@@ -33,7 +33,9 @@ codeunit 31252 "Data Class. Eval. Handler CZA"
         CopyItemBuffer: Record "Copy Item Buffer";
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
         DataExchFieldMapping: Record "Data Exch. Field Mapping";
+#if not CLEAN29
         DefaultDimension: Record "Default Dimension";
+#endif
         DirectTransHeader: Record "Direct Trans. Header";
         DirectTransLine: Record "Direct Trans. Line";
         GLEntry: Record "G/L Entry";
@@ -60,15 +62,20 @@ codeunit 31252 "Data Class. Eval. Handler CZA"
         Company.Get(CompanyName());
         if not Company."Evaluation Company" then
             exit;
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Auto. Create Default Dim. CZA");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Detailed G/L Entry CZA");
         DataClassificationMgt.SetFieldToNormal(Database::"Capacity Ledger Entry", CapacityLedgerEntry.FieldNo("User ID CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Copy Item Buffer", CopyItemBuffer.FieldNo("Auto Create Dimension CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Data Exch. Field Mapping", DataExchFieldMapping.FieldNo("Date Formula CZA"));
+#if not CLEAN29
+#pragma warning disable AL0432
         DataClassificationMgt.SetFieldToNormal(Database::"Default Dimension", DefaultDimension.FieldNo("Automatic Create CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Default Dimension", DefaultDimension.FieldNo("Dim. Description Field ID CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Default Dimension", DefaultDimension.FieldNo("Dim. Description Format CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Default Dimension", DefaultDimension.FieldNo("Dim. Description Update CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Default Dimension", DefaultDimension.FieldNo("Auto. Create Value Posting CZA"));
+#pragma warning restore AL0432
+#endif
         DataClassificationMgt.SetFieldToNormal(Database::"Direct Trans. Header", DirectTransHeader.FieldNo("Gen. Bus. Posting Group CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"Direct Trans. Line", DirectTransLine.FieldNo("Gen. Bus. Posting Group CZA"));
         DataClassificationMgt.SetFieldToNormal(Database::"G/L Entry", GLEntry.FieldNo("Closed at Date CZA"));

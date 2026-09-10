@@ -64,7 +64,7 @@
         Window.Open(DemoDataSetup."Progress Window Design");
         Window.Update(3, XBasisData);
         Steps := 0;
-        MaxSteps := 199; // Number of calls to RunCodeunit
+        MaxSteps := 198; // Number of calls to RunCodeunit
         RunCodeunit(CODEUNIT::"Create Price Calculation Setup");
         RunCodeunit(CODEUNIT::"Create Getting Started Data");
         RunCodeunit(CODEUNIT::"Create Profiles");
@@ -77,7 +77,6 @@
         RunCodeunit(CODEUNIT::"Create Finance Charge Text");
         RunCodeunit(CODEUNIT::"Create Reminder Terms");
         RunCodeunit(CODEUNIT::"Create Reminder Level");
-        RunCodeunit(CODEUNIT::"Create Reminder Text");
         RunCodeunit(Codeunit::"Create Reminder Automation");
         RunCodeunit(CODEUNIT::"Create Language");
         RunCodeunit(CODEUNIT::"Create Country/Region");
@@ -399,7 +398,8 @@
             PostFAJournalLines(PostingDate);
 
             // Post Tax Accounting Disposal
-            PostTaxAccountingDisposal(PostingDate);
+            if DemoDataSetup."Tax Accounting" then
+                PostTaxAccountingDisposal(PostingDate);
         end;
 
         // IF IsEndYearDate(PostingDate) THEN BEGIN
@@ -1240,4 +1240,3 @@
         RunCodeunit(Codeunit::"Create New Employee Template");
     end;
 }
-

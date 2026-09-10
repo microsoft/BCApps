@@ -16,7 +16,7 @@ function Invoke-MiSnapApp
     )
     begin {
         if(-not $Files) {
-            # Default: validate all files committed since origin/RepoBranchName
+            # Default: validate all files committed since the base branch (origin/HEAD)
             $Files = Get-MiappCommittedFiles
         }
     }
@@ -45,19 +45,19 @@ function Invoke-MiSnapApp
 
 <#
 .SYNOPSIS
-Returns files committed locally since origin/RepoBranchName, relative to the repo root.
+Returns files committed locally since the base branch (origin/HEAD), relative to the repo root.
 #>
 function Get-MiappCommittedFiles {
     [CmdletBinding()]
     [OutputType([string[]])]
     param()
 
-    if (-not (Initialize-MiappRepoBranchName)) {
-        Write-Host -ForegroundColor Yellow "RepoBranchName is not set and could not be inferred from origin/HEAD. Cannot determine committed files."
+    if (-not (Get-MiappBaseBranch)) {
+        Write-Host -ForegroundColor Yellow "Could not determine the base branch from origin/HEAD. Cannot determine committed files."
         return
     }
 
-    git diff --name-only "origin/$env:RepoBranchName...HEAD" | ? { $_ }
+    git diff --name-only "origin/$(Get-MiappBaseBranch)...HEAD" | ? { $_ }
 }
 
 function GetBranchedObjectFileNames {

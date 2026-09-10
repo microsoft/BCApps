@@ -116,7 +116,6 @@ page 5089 "Campaign Entries"
                     Caption = 'Delete Canceled Entries';
                     Image = Delete;
                     RunObject = Report "Delete Campaign Entries";
-                    ToolTip = 'Find and delete canceled campaign entries.';
                 }
             }
         }

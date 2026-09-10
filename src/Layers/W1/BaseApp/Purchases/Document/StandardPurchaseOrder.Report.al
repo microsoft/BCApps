@@ -466,6 +466,12 @@ report 1322 "Standard Purchase - Order"
             column(OrderDate_Lbl; OrderDateLbl)
             {
             }
+            column(SpendRequestNo_Lbl; FieldCaption("Spend Request No."))
+            {
+            }
+            column(SpendRequestNo; "Spend Request No.")
+            {
+            }
             column(VendorInvoiceNo_Lbl; VendorInvoiceNoLbl)
             {
             }
@@ -615,6 +621,12 @@ report 1322 "Standard Purchase - Order"
                 {
                 }
                 column(PurchLine_VATPct; "VAT %")
+                {
+                }
+                column(SpendRequestNo_PurchLine2_Lbl; FieldCaption("Spend Request No."))
+                {
+                }
+                column(SpendRequestNo_PurchLine; "Spend Request No.")
                 {
                 }
 

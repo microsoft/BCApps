@@ -6,11 +6,14 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.EServices.EDocument.OrderMatch;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6101 "E-Doc. Core - Read"
@@ -32,10 +35,13 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "E-Doc. Data Storage" = R,
         tabledata "E-Document Service Status" = R,
         tabledata "E-Document Integration Log" = R,
+        tabledata "E-Document Message" = R,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = R,
         tabledata "E-Doc. Order Match" = R,
+#if not CLEAN29
         tabledata "E-Doc. PO Match Prop. Buffer" = R,
+#endif
     #region Service
         tabledata "E-Document Service" = R,
         tabledata "E-Doc. Service Data Exch. Def." = R,

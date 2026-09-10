@@ -10,6 +10,7 @@ report 5059 "Team - Tasks"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Team Tasks';
+    ToolTip = 'View the list of marketing tasks that exist for the team.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

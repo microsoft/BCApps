@@ -26,13 +26,13 @@ table 30127 "Shpfy Product"
         }
         field(2; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = CustomerContent;
             Editable = false;
         }
         field(3; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
             Editable = false;
         }
@@ -166,6 +166,9 @@ table 30127 "Shpfy Product"
             Clustered = true;
         }
         key(Key2; "Shop Code", "Item SystemId")
+        {
+        }
+        key(Key3; "Item SystemId")
         {
         }
     }

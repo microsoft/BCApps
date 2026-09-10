@@ -29,6 +29,15 @@ param(
 
 $ErrorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
+Import-Module $PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1 -DisableNameChecking
+
+# Do not run automations on branches that are out of support (branches with the "Branch is out of support" ruleset).
+# This is a safety net that also covers manual (workflow_dispatch) runs, which bypass the GetGitBranches filtering.
+if (-not (Test-IsBranchInSupport -BranchName $TargetBranch -Repository $Repository)) {
+    Write-Host "::Notice::Skipping automations because branch '$TargetBranch' is out of support."
+    return
+}
+
 function RunAutomation {
     param(
         [Parameter(Mandatory=$true)]

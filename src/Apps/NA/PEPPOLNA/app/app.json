@@ -4,10 +4,10 @@
   "publisher": "Microsoft",
   "description": "North America-specific PEPPOL BIS 3.0 customizations for electronic invoicing, adapting unit of measure codes and tax handling for NA localization.",
   "brief": "PEPPOL BIS 3.0 NA localization.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2305711",
@@ -19,7 +19,7 @@
       "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
       "name": "PEPPOL",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "idRanges": [

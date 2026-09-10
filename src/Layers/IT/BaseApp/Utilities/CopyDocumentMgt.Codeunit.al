@@ -8473,6 +8473,7 @@ codeunit 6620 "Copy Document Mgt."
     begin
     end;
 
+
     /// <summary>
     /// Event triggered before handling zero-amount posted invoices during the sales document copy process.
     /// Subscribing to this event allows developers to override or extend the default behavior

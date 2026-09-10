@@ -16,6 +16,7 @@ report 320 "Vendor Item Catalog"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Item Catalog';
+    ToolTip = 'View a list of the items that your vendors supply.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

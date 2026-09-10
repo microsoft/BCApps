@@ -20,6 +20,12 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Item Reclassification';
 
+    /// <summary>
+    /// Creates and optionally posts item reclassification lines to move inspection inventory.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, quantity, and posting behavior.</param>
+    /// <returns>True if a reclassification line was created or posted; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -79,6 +85,13 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         OnAfterProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething);
     end;
 
+    /// <summary>
+    /// Creates an item reclassification journal line for the requested movement.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The movement source, destination, and quantity.</param>
+    /// <param name="BatchName">The item reclassification journal batch name.</param>
+    /// <param name="CreatedLineNo">The line number of the created journal line.</param>
     local procedure CreateItemReclassificationLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; BatchName: Code[10]; var CreatedLineNo: Integer)
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -106,10 +119,11 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     /// <summary>
     /// This allows extensions to override or replace the item reclassification event.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="BatchName"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The movement source, destination, and quantity.</param>
+    /// <param name="BatchName">The item reclassification journal batch name.</param>
+    /// <param name="ItemJournalLine">The item journal line being prepared.</param>
+    /// <param name="IsHandled">Set to true to skip the default line creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateItemReclassificationLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var BatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
@@ -118,10 +132,10 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     /// <summary>
     /// Occurs before the disposition has taken place, allowing the opportunity to extend or replace the functionality.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="Changed"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="Changed">Indicates whether a reclassification line was created or posted.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
@@ -130,14 +144,17 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
     /// <summary>
     /// Occurs after the disposition has taken place.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="Changed"></param>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="Changed">Indicates whether a reclassification line was created or posted.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an actionable error when the item reclassification batch is not configured.
+    /// </summary>
     local procedure ThrowMissingSetupError()
     var
         ErrorInfo: ErrorInfo;
@@ -148,6 +165,10 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         Error(ErrorInfo);
     end;
 
+    /// <summary>
+    /// Opens Quality Management Setup from the missing-setup error action.
+    /// </summary>
+    /// <param name="ErrorInfo">The error context supplied to the action callback.</param>
     procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";

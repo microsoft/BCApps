@@ -62,4 +62,9 @@ tableextension 31249 "FA Setup CZF" extends "FA Setup"
             DataClassification = CustomerContent;
         }
     }
+
+    internal procedure BonusDepreciationCorrectlySetupCZF(): Boolean
+    begin
+        exit((Rec."Bonus Depreciation %" > 0) and (Rec."Bonus Depr. Effective Date" <> 0D));
+    end;
 }

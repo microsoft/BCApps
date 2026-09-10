@@ -5105,5 +5105,4 @@ table 18 Customer
     local procedure OnAfterGetVATRegistrationNo(var Customer: Record Customer; var VATRegNo: Text[20]);
     begin
     end;
-
 }

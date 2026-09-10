@@ -152,7 +152,6 @@ page 5139 "Logged Segments"
                     Caption = 'Delete Canceled Segments';
                     Image = Delete;
                     RunObject = Report "Delete Logged Segments";
-                    ToolTip = 'Find and delete canceled log segments.';
                 }
             }
         }

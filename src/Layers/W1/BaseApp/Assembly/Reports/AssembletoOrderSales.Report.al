@@ -15,6 +15,7 @@ report 915 "Assemble to Order - Sales"
     AdditionalSearchTerms = 'kit to order,kit sale';
     ApplicationArea = Assembly;
     Caption = 'Assemble to Order - Sales';
+    ToolTip = 'View key sales figures for assembly components that may be sold either as part of assembly items in assemble-to-order sales or as separate items directly from inventory. Use this report to analyze the quantity, cost, sales, and profit figures of assembly components to support decisions, such as whether to price a kit differently or to stop or start using a particular item in assemblies.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

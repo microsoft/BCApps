@@ -87,7 +87,6 @@ page 1116 "Cost Budget Names"
                     Caption = 'Transfer Budget to Actual';
                     Image = CopyCostBudgettoCOA;
                     RunObject = Report "Transfer Budget to Actual";
-                    ToolTip = 'Transfer the budgeted costs to the actual costs of cost centers or cost objects. At the beginning of the year, some companies establish a cost budget and then transfer these budgeted costs to cost centers or cost objects. The budget entries can be transferred to a cost journal and posted as actual costs in the journal.';
                 }
             }
         }

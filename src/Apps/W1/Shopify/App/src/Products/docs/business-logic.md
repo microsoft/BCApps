@@ -37,9 +37,37 @@ option slots to find the matching UoM value before deciding create-vs-update. Th
 logic in `UpdateProductData` is intentionally exhaustive -- it checks Option 1,
 then Option 2, then Option 3 for the UoM match.
 
+Existing Shopify variants may map to child Items, not only to the parent Item
+behind the Shopify Product. After updating those existing variants,
+`UpdateProductData` re-fetches the parent Item by the product's `Item SystemId`
+before it scans BC Item Variants to create missing Shopify variants. Without that
+reset, the second half of export can accidentally continue with the last child
+Item loaded from the variant loop.
+
+*Updated: 2026-07-29 -- child-item variant handling now resets to the parent item before creating missing variants*
+
 Price-only mode (`OnlyUpdatePrice`) skips all non-price fields and attempts a bulk
-GraphQL mutation through `ShpfyBulkOperationMgt`. If bulk fails, it falls back to
-per-variant API calls and reverts any partially applied changes.
+GraphQL mutation through `ShpfyBulkOperationMgt`. The bulk decision uses the
+number of changed variant prices queued in `GraphQueryList`, not the total number
+of variants considered. If bulk cannot be sent, the connector falls back to
+per-variant API calls and reverts any failed variants from the request snapshot.
+When bulk is sent, request data is stored for rollback and, when all logging is
+enabled, the sent JSONL can be downloaded from Shopify Bulk Operations.
+
+```mermaid
+flowchart TD
+    A[Calculate variant prices] --> B{Any price, compare-at, or cost changed?}
+    B -- no --> C[Do not queue variant]
+    B -- yes --> D[Queue GraphQL call and JSONL row]
+    D --> E{Changed count >= bulk threshold?}
+    E -- yes --> F[Try SendBulkMutation]
+    F -- accepted --> G[Webhook completes and failed lines are reverted or logged]
+    F -- not accepted --> H[Send queued variants individually]
+    E -- no --> H
+    H --> I[Revert individual failures]
+```
+
+*Updated: 2026-07-29 -- bulk price threshold is based on changed prices and JSONL diagnostics are retained*
 
 ### Product creation
 
@@ -51,6 +79,25 @@ sales-blocked item variants are skipped with a logged reason. The 2048-variant
 Shopify limit is enforced upfront -- if the expected variant count exceeds it,
 the entire item is skipped.
 
+```mermaid
+flowchart TD
+    A[Read Shop Status for Created Products] --> B{Selected value}
+    B -- Active --> C[Set Product.Status = Active]
+    B -- Draft --> D[Set Product.Status = Draft]
+    B -- Unlisted --> E[Set Product.Status = Unlisted]
+    C --> F[Create Shopify product]
+    D --> F
+    E --> F
+```
+
+Unlisted is a creation status only when the shop setting chooses it. The
+connector sets the product enum value and sends it through the normal create
+payload; it does not add special local branching for Unlisted. Existing product
+removal still uses the separate "Action for Removed Products" interface, where
+blocked items can be archived, drafted, or left unchanged.
+
+*Updated: 2026-07-29 -- product creation can now choose Unlisted status*
+
 ### Price calculation
 
 `ShpfyProductPriceCalc` creates a temporary Sales Quote header using the Shop's
@@ -59,6 +106,14 @@ a temporary Sales Line for the item/variant/UoM combination and reads the
 calculated `Unit Price`, `Line Amount`, and `Unit Cost`. If ComparePrice is less
 than or equal to Price after calculation, ComparePrice is zeroed out. Events fire
 before and after to allow overrides.
+
+Because the codeunit is SingleInstance, the temporary Sales Quote is cached across
+calls. `SetShop` now also compares the cached quote's document date with
+`WorkDate()` before reusing it. This matters for unattended Sync Prices sessions:
+without that check, a long-lived session could keep calculating against an old
+document date after WorkDate changed.
+
+*Updated: 2026-07-29 -- price calculation cache is refreshed when WorkDate changes*
 
 Before any price calculation, `CalcPrice` validates the unit of measure via
 `IsValidUoM`. This checks that the UoM code exists in the `Unit of Measure`
@@ -80,7 +135,7 @@ images are handled separately -- they update Item Variant pictures when the
 variant maps to an Item Variant, or the Item picture when it maps to the Item
 itself.
 
-### Body HTML generation
+### Body html generation
 
 `CreateProductBody` in `ShpfyProductExport` assembles the Shopify product
 description from three optional sources: extended text lines, marketing text
@@ -106,12 +161,48 @@ flowchart TD
 Mapping in `ShpfyProductMapping.DoFindMapping` is SKU-strategy-driven. Based on
 the Shop's SKU Mapping setting, it tries to match the variant's SKU to an Item
 No., Vendor Item No., Variant Code, Item No.+Variant Code (split by separator),
-or Barcode. If SKU matching fails, it falls back to barcode matching as a last
-resort. The `OnBeforeFindProductMapping` event fires before any of this, allowing
-complete override.
+or Barcode. If the primary strategy fails, barcode matching runs only when the
+Shop's `Find Mapping by Barcode` setting is enabled. The `OnBeforeFindProductMapping`
+event fires before any of this, allowing complete override.
+
+```mermaid
+flowchart TD
+    A[Start mapping] --> B[Run OnBeforeFindProductMapping]
+    B --> C{Handled?}
+    C -- yes --> D[Use subscriber result]
+    C -- no --> E[Try selected SKU mapping]
+    E --> F{Found?}
+    F -- yes --> G[Write Item and Item Variant links]
+    F -- no --> H{Find Mapping by Barcode?}
+    H -- yes --> I[Try variant barcode lookup]
+    H -- no --> J[Remain unmapped]
+    I --> K{Found by barcode?}
+    K -- yes --> G
+    K -- no --> J
+```
+
+Disable the fallback when barcodes are not unique enough to be an identity key.
+The SKU strategy still runs first, so the setting only controls the last-chance
+barcode lookup.
+
+*Updated: 2026-07-29 -- barcode fallback is now controlled by a shop setting*
 
 Item creation in `ShpfyCreateItem` applies an Item Template (from Shop config or
 event override), sets description, prices (converted from shop currency if
 needed), vendor, and item category. For `Item No. + Variant Code` and `Variant
 Code` SKU mappings, it also creates Item Variants and cross-references
 (barcodes, vendor item references).
+
+When `"Sync HS Code and Country"` (captioned *Sync HS Code and Country of Origin*) is enabled, new Items copy the variant's
+HS code and country from Shopify. Existing Items are updated only when the
+Shopify value resolves to an existing BC Tariff Number or Country/Region, so an
+unknown or blank Shopify value does not clear a valid BC value.
+
+Product import first compares Shopify product IDs and timestamps. A product is
+retrieved only when Shopify's `Updated At` is newer than both the local product
+`Updated At` and `Last Updated by BC`, or when the product is new locally. If a
+product is skipped as stale, the importer never enters the variant retrieval path
+that deletes records for variants missing in Shopify. This preserves mapped
+variants when only the timestamp comparison is stale.
+
+*Updated: 2026-07-29 -- HS code/country import and stale-product variant preservation documented*

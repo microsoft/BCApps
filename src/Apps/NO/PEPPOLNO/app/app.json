@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "description": "Norway-specific PEPPOL BIS 3.0 customizations for electronic invoicing, including reminder and finance charge export, Norwegian tax scheme, and KID-based payment IDs.",
   "brief": "PEPPOL BIS 3.0 NO localization.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -17,7 +17,7 @@
       "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
       "name": "PEPPOL",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "internalsVisibleTo": [],
@@ -28,7 +28,7 @@
       "to": 37399
     }
   ],
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "features": [
     "NoImplicitWith",
     "TranslationFile"

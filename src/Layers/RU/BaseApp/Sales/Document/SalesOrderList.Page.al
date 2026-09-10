@@ -1127,7 +1127,7 @@ page 9305 "Sales Order List"
         view(Delayed)
         {
             Caption = 'Delayed';
-            Filters = where("Document Type" = const(Order), Status = const(Released), "Completely Shipped" = const(false), "Late Order Shipping" = const(true));
+            Filters = where("Document Type" = const(Order), Status = const(Released), "Completely Shipped" = const(false), "Date Filter" = filter(<= '%workdate'), "Late Order Shipping" = const(true));
         }
         view(Released)
         {

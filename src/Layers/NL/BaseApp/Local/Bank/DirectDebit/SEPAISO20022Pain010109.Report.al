@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using System.Telemetry;
 using System.Text;
+using System.Utilities;
 using System.Xml;
 
 report 11000014 "SEPA ISO20022 Pain 01.01.09"
@@ -102,12 +103,11 @@ report 11000014 "SEPA ISO20022 Pain 01.01.09"
         FileMgt: Codeunit "File Management";
         XMLDOMManagement: Codeunit "XML DOM Management";
         ReportChecksum: Codeunit "Report Checksum";
+        TempBlob: Codeunit "Temp Blob";
         XMLRootElement: DotNet XmlElement;
         XMLNodeCurr: DotNet XmlNode;
         XMLNewChild: DotNet XmlNode;
-        StreamWriter: DotNet StreamWriter;
-        UTF8Encoding: DotNet UTF8Encoding;
-        ServerTempFileName: Text;
+        BlobInStream: InStream;
         IsHandled: Boolean;
     begin
         XMLDOMManagement.LoadXMLDocumentFromText('<?xml version="1.0" encoding="UTF-8"?><Document></Document>', XMLDomDoc);
@@ -120,18 +120,27 @@ report 11000014 "SEPA ISO20022 Pain 01.01.09"
         ExportGroupHeader(XMLNewChild);
         ExportPaymentInformation(XMLNewChild);
 
-        ServerTempFileName := FileMgt.ServerTempFileName('xml');
-        StreamWriter := StreamWriter.StreamWriter(ServerTempFileName, false, UTF8Encoding.UTF8Encoding(false));
         OnBeforeXMLDomDocSave(XMLDomDoc);
-        XMLDomDoc.Save(StreamWriter);
-        StreamWriter.Close();
+        WriteXmlDocToTempBlob(TempBlob);
 
-        ReportChecksum.GenerateChecksum("Payment History", ServerTempFileName, ExportProtocolCode);
+        ReportChecksum.GenerateChecksumFromBlob("Payment History", TempBlob, ExportProtocolCode);
+
         IsHandled := false;
-        OnExportSEPAFileOnBeforeFileMgtDownloadHandler(ServerTempFileName, ExportFileName, IsHandled);
-        if not IsHandled then
-            FileMgt.DownloadHandler(ServerTempFileName, '', '', '', ExportFileName);
+        OnExportSEPAFileOnBeforeFileMgtDownloadHandler('', ExportFileName, IsHandled);
+        if not IsHandled then begin
+            TempBlob.CreateInStream(BlobInStream);
+            FileMgt.DownloadFromStreamHandler(BlobInStream, '', '', '', ExportFileName);
+        end;
+    end;
 
+    local procedure WriteXmlDocToTempBlob(var TempBlob: Codeunit "Temp Blob")
+    var
+        BlobOutStream: OutStream;
+        XMLDocText: Text;
+    begin
+        TempBlob.CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        XMLDocText := XMLDomDoc.OuterXml;
+        BlobOutStream.WriteText(XMLDocText);
         Clear(XMLDomDoc);
     end;
 

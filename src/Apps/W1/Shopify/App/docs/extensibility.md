@@ -18,7 +18,9 @@ The order processing flow in `ShpfyProcessOrder.Codeunit.al` and `ShpfyOrderMapp
 
 **Sales header creation** -- `OnBeforeCreateSalesHeader` gives you the Shopify Order Header and lets you set `IsHandled` to completely replace header creation logic. `OnAfterCreateSalesHeader` fires after the header is inserted and validated, giving you the Sales Header to modify.
 
-**Sales line creation** -- `OnBeforeCreateSalesLine` and `OnAfterCreateSalesLine` in `ShpfyProcessOrder.Codeunit.al` let you intercept line creation. This is where you would add custom line types, modify quantities, or insert additional lines.
+**Sales line creation** -- `OnBeforeCreateSalesLine` and `OnAfterCreateSalesLine` in `ShpfyProcessOrder.Codeunit.al` let you intercept line creation. This is where you would add custom line types, modify quantities, or insert additional lines. Shipping charge sales lines have separate hooks, `OnBeforeCreateShippingCostSalesLine` and `OnAfterCreateShippingCostSalesLine`, because they are staged as `Shpfy Order Shipping Charges` records before they become BC sales lines.
+
+*Updated: 2026-07-29 -- Shipping charge sales line events are separate from item line events*
 
 **Customer mapping override** -- `OnBeforeMapCustomer` on `ShpfyOrderEvents.Codeunit.al` fires before the customer mapping strategy runs. Set `Handled := true` and populate `"Sell-to Customer No."` on the Order Header to bypass the standard mapping entirely. `OnAfterMapCustomer` lets you adjust the result.
 
@@ -40,7 +42,9 @@ Product events live in `ShpfyProductEvents.Codeunit.al` and cover both import an
 
 **Price calculation** -- Events in `ShpfyProductPriceCalc.Codeunit.al` let you override how prices and compare-at prices are calculated during export.
 
-**Product status on creation** -- The `"Status for Created Products"` enum uses the `ICreateProductStatusValue` interface. Built-in values are Active and Draft. Extend the enum and implement the interface to add new initial statuses.
+**Product status on creation** -- The `"Status for Created Products"` enum uses the `ICreateProductStatusValue` interface. Built-in values are Active, Draft, and Unlisted. The enum is not extensible in the current app, so these are the supported creation statuses exposed by the base connector.
+
+*Updated: 2026-07-29 -- Unlisted added and enum extensibility verified*
 
 **Action for removed products** -- The `"Action for Removed Products"` enum uses `IRemoveProductAction`. Extend to control what happens to the Shopify product when the linked BC item is blocked or the product is deleted locally.
 

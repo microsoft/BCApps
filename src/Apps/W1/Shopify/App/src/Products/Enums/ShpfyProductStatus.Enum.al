@@ -25,5 +25,9 @@ enum 30130 "Shpfy Product Status"
     {
         Caption = 'Draft';
     }
+    value(3; Unlisted)
+    {
+        Caption = 'Unlisted';
+    }
 
 }

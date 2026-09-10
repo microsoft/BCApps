@@ -17,6 +17,7 @@ using System.IO;
 using System.Reflection;
 using System.Telemetry;
 using System.Threading;
+using System.Utilities;
 
 codeunit 7237 "Master Data Mgt. Subscribers"
 {
@@ -36,7 +37,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         UnsupportedKeyLengthErr: label 'Table %1 has a primary key that consists of %2 fields. Off-the page, synchronization engine doesn''t support renaming with primary key length of more than 10 fields.\\Subscribe to event OnRenameDestination in codeunit "Master Data Management" to implement the rename.', Comment = '%1 - a table caption, %2 - an integer';
         MappingDoesNotAllowDirectionErr: label 'The only supported direction for the data synchronization is %1.', Comment = '%1 - a text: From Integration Table';
         RunningFullSynchTelemetryTxt: Label 'Running full synch job for table mapping %1', Locked = true;
-        SetContactNoFromSourceCompanyTxt: Label 'For %1 %2, initialized company contact No. to be equal the No. of the company contact from the source company %3.', Locked = true;
+        SetContactNoFromSourceCompanyTxt: Label 'Initialized the %1 company contact number to match the source company contact.', Locked = true;
 
     [EventSubscriber(ObjectType::Table, Database::"Integration Table Mapping", 'OnAfterDeleteEvent', '', false, false)]
     local procedure HandleOnAfterDeleteIntegrationTableMapping(var Rec: Record "Integration Table Mapping"; RunTrigger: Boolean)
@@ -134,20 +135,24 @@ codeunit 7237 "Master Data Mgt. Subscribers"
 
         if IsJobQueueEntryDataSynchJob(Sender, IntegrationTableMapping) then begin
             MasterDataManagementSetup.Get();
-            if MasterDataManagementSetup."Is Enabled" then begin
-                MasterDataManagement.OnSetIntegrationTableFilter(IntegrationTableMapping, RecRef, IsHandled);
-                if not IsHandled then begin
-                    RecRef.Open(IntegrationTableMapping."Integration Table ID", false);
-                    MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                    if SourceCompanyName = '' then
-                        SourceCompanyName := MasterDataManagementSetup."Company Name";
-                    RecRef.ChangeCompany(SourceCompanyName);
-                    IntegrationTableMapping.SetIntRecordRefFilter(RecRef);
+            if MasterDataManagementSetup."Is Enabled" then
+                if MasterDataManagementSetup."Source Environment Name" <> '' then
+                    // Cross-environment: the change detector governs when this job is nudged; let it run and fetch the delta.
+                    Result := true
+                else begin
+                    MasterDataManagement.OnSetIntegrationTableFilter(IntegrationTableMapping, RecRef, IsHandled);
+                    if not IsHandled then begin
+                        RecRef.Open(IntegrationTableMapping."Integration Table ID", false);
+                        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
+                        if SourceCompanyName = '' then
+                            SourceCompanyName := MasterDataManagementSetup."Company Name";
+                        RecRef.ChangeCompany(SourceCompanyName);
+                        IntegrationTableMapping.SetIntRecordRefFilter(RecRef);
+                    end;
+                    if not RecRef.IsEmpty() then
+                        Result := true;
+                    RecRef.Close();
                 end;
-                if not RecRef.IsEmpty() then
-                    Result := true;
-                RecRef.Close();
-            end;
         end;
     end;
 
@@ -316,6 +321,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MediaUpdated: Boolean;
         SourceMediaName, DestinationMediaName : Text;
     begin
+        if IsCrossEnvironmentSync() then
+            exit(UpdateMediaCrossEnvironment(SourceFieldRef, DestinationFieldRef, NewValue));
+
         SourceTenantMedia.SetAutoCalcFields(Content);
         DestinationTenantMedia.SetAutoCalcFields(Content);
 
@@ -352,6 +360,70 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             end;
 
         exit(MediaUpdated);
+    end;
+
+    local procedure IsCrossEnvironmentSync(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit(false);
+        exit(MasterDataManagementSetup.IsCrossEnvironment());
+    end;
+
+    // Cross-env: the source Tenant Media lives in another environment, so the bytes arrive inline (per-batch
+    // cache) rather than via the source field's GUID. Build the destination Tenant Media from them, keeping the
+    // same length+name change check. Returns the new media id via NewValue during transfer -> single write.
+    local procedure UpdateMediaCrossEnvironment(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var NewValue: Variant): Boolean
+    var
+        DestinationTenantMedia: Record "Tenant Media";
+        InlineMedia: Codeunit "MDM Inline Media";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        SourceSystemId, DestinationMediaId, EmptyGuid : Guid;
+        MediaInStream: InStream;
+        MediaOutStream: OutStream;
+        FileName, MimeType, DestinationName : Text;
+        SourceLength, DestinationLength : Integer;
+    begin
+        SourceRecordRef := SourceFieldRef.Record();
+        SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+        // Source cleared the picture: mirror it by deleting the destination media and emptying the field.
+        if InlineMedia.IsCleared(SourceSystemId, SourceFieldRef.Number()) then begin
+            DestinationMediaId := DestinationFieldRef.Value();
+            if (DestinationMediaId <> EmptyGuid) and DestinationTenantMedia.Get(DestinationMediaId) then
+                DestinationTenantMedia.Delete();
+            NewValue := EmptyGuid;
+            exit(true);
+        end;
+        if not InlineMedia.TryGet(SourceSystemId, SourceFieldRef.Number(), FileName, MimeType, TempBlob) then
+            exit(false); // no inline bytes (over-cap skip or field not projected): leave the destination untouched
+        SourceLength := TempBlob.Length();
+
+        DestinationMediaId := DestinationFieldRef.Value();
+        DestinationTenantMedia.SetAutoCalcFields(Content);
+        if DestinationTenantMedia.Get(DestinationMediaId) then begin
+            DestinationLength := DestinationTenantMedia.Content.Length();
+            DestinationName := DestinationTenantMedia."File Name";
+        end;
+        if (SourceLength = DestinationLength) and (FileName = DestinationName) then
+            exit(false); // unchanged
+
+        if DestinationMediaId <> EmptyGuid then
+            if DestinationTenantMedia.Get(DestinationMediaId) then
+                DestinationTenantMedia.Delete();
+
+        Clear(DestinationTenantMedia);
+        DestinationTenantMedia.ID := CreateGuid();
+        DestinationTenantMedia."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(DestinationTenantMedia."Company Name"));
+        DestinationTenantMedia."File Name" := CopyStr(FileName, 1, MaxStrLen(DestinationTenantMedia."File Name"));
+        DestinationTenantMedia."Mime Type" := CopyStr(MimeType, 1, MaxStrLen(DestinationTenantMedia."Mime Type"));
+        TempBlob.CreateInStream(MediaInStream);
+        DestinationTenantMedia.Content.CreateOutStream(MediaOutStream);
+        CopyStream(MediaOutStream, MediaInStream);
+        DestinationTenantMedia.Insert();
+        NewValue := DestinationTenantMedia.ID;
+        exit(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnDetermineSynchDirection', '', false, false)]
@@ -501,7 +573,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagement: Codeunit "Master Data Management";
         BeforeRenameDestinationRecordRef: RecordRef;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
+        SourceSystemId: Guid;
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
@@ -512,11 +584,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagementSetup.Get();
         MasterDataManagement.OnGetIntegrationRecordRef(IntegrationTableMapping, SourceRecordRef, IsHandled);
         if not IsHandled then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            SourceRecordRef.ChangeCompany(SourceCompanyName);
-            SourceRecordRef.GetBySystemId(SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value());
+            // Route the source re-fetch: the record lives in the local company or another environment.
+            SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+            if MasterDataManagementSetup.GetDataSource().GetBySystemId(SourceRecordRef.Number(), SourceSystemId, SourceRecordRef) then;
         end;
         BeforeRenameDestinationRecordRef.Open(DestinationRecordRef.Number());
         BeforeRenameDestinationRecordRef.GetBySystemId(DestinationRecordRef.Field(DestinationRecordRef.SystemIdNo()).Value());
@@ -683,29 +753,41 @@ codeunit 7237 "Master Data Mgt. Subscribers"
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
+        SourceWatermark: Codeunit "MDM Source Watermark";
         IntegrationRecordRef: RecordRef;
-        ModifiedFieldRef: FieldRef;
         IsHandled: Boolean;
         IntRecSystemId: Guid;
-        SourceCompanyName: Text[30];
+        SourceSystemId: Guid;
+        SourceModifiedAt: DateTime;
     begin
         MasterDataManagementSetup.Get();
+        // Cross-environment: FromRecordRef is the source row materialized from the fetched batch. Its SystemModifiedAt
+        // can't be carried on a temp row (the platform ignores the write), so the real watermark rides a side cache;
+        // fall back to the row's own value on a cache miss.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then begin
+            SourceSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo()).Value();
+            if SourceWatermark.TryGet(SourceSystemId, SourceModifiedAt) then
+                exit(SourceModifiedAt);
+            exit(ModifiedOnFromRecordRef(IntegrationTableMapping, FromRecordRef));
+        end;
+
         IntegrationRecordRef.Open(FromRecordRef.Number, false);
         IntRecSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo).Value();
         MasterDataManagement.OnGetIntegrationRecordRefBySystemId(IntegrationTableMapping, IntegrationRecordRef, IntRecSystemId, IsHandled);
-        if not IsHandled then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            IntegrationRecordRef.GetBySystemId(IntRecSystemId);
-        end;
-        if FromRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then begin
-            ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.");
-            exit(ModifiedFieldRef.Value());
-        end;
+        if not IsHandled then
+            // Route the source re-fetch: the record lives in the local company or another environment.
+            if MasterDataManagementSetup.GetDataSource().GetBySystemId(FromRecordRef.Number, IntRecSystemId, IntegrationRecordRef) then;
+        exit(ModifiedOnFromRecordRef(IntegrationTableMapping, IntegrationRecordRef));
+    end;
 
-        ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationRecordRef.SystemModifiedAtNo());
+    local procedure ModifiedOnFromRecordRef(IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef): DateTime
+    var
+        ModifiedFieldRef: FieldRef;
+    begin
+        if SourceRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then
+            ModifiedFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.")
+        else
+            ModifiedFieldRef := SourceRecordRef.Field(SourceRecordRef.SystemModifiedAtNo());
         exit(ModifiedFieldRef.Value());
     end;
 
@@ -718,19 +800,14 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         LocalContact: Record Contact;
         IntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
         SourceCompanyName: Text[30];
+        SourceContactNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
 
         if not MasterDataManagementSetup.Get() then
-            exit;
-
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-
-        if not Company.Get(SourceCompanyName) then
             exit;
 
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -741,6 +818,24 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
+        if MasterDataManagementSetup.IsCrossEnvironment() then begin
+            // Contact business relations are not replicated locally; resolve the source contact number cross-env
+            // (bulk-prefetched for the whole run, or read per-record outside a run).
+            if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::Customer, Customer."No.", SourceContactNo) then
+                if not LocalContact.Get(SourceContactNo) then begin
+                    Contact."No." := SourceContactNo;
+                    Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    IsHandled := true;
+                end;
+            exit;
+        end;
+
+        // Same-environment reads the source company's relations directly via ChangeCompany.
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+        if SourceCompanyName = '' then
+            SourceCompanyName := MasterDataManagementSetup."Company Name";
+        if not Company.Get(SourceCompanyName) then
+            exit;
         if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
             exit;
 
@@ -749,7 +844,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if ContactBusinessRelation.FindFirst() then
             if not LocalContact.Get(ContactBusinessRelation."Contact No.") then begin
                 Contact."No." := ContactBusinessRelation."Contact No.";
-                Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption(), Customer.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                Session.LogMessage('0000JT4', StrSubstNo(SetContactNoFromSourceCompanyTxt, Customer.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 IsHandled := true;
             end;
     end;
@@ -763,19 +858,14 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         LocalContact: Record Contact;
         IntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
         SourceCompanyName: Text[30];
+        SourceContactNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
 
         if not MasterDataManagementSetup.Get() then
-            exit;
-
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-
-        if not Company.Get(SourceCompanyName) then
             exit;
 
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -786,6 +876,24 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
+        if MasterDataManagementSetup.IsCrossEnvironment() then begin
+            // Contact business relations are not replicated locally; resolve the source contact number cross-env
+            // (bulk-prefetched for the whole run, or read per-record outside a run).
+            if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::Vendor, Vendor."No.", SourceContactNo) then
+                if not LocalContact.Get(SourceContactNo) then begin
+                    Contact."No." := SourceContactNo;
+                    Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    IsHandled := true;
+                end;
+            exit;
+        end;
+
+        // Same-environment reads the source company's relations directly via ChangeCompany.
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+        if SourceCompanyName = '' then
+            SourceCompanyName := MasterDataManagementSetup."Company Name";
+        if not Company.Get(SourceCompanyName) then
+            exit;
         if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
             exit;
 
@@ -794,7 +902,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if ContactBusinessRelation.FindFirst() then
             if not LocalContact.Get(ContactBusinessRelation."Contact No.") then begin
                 Contact."No." := ContactBusinessRelation."Contact No.";
-                Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption(), Vendor.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                Session.LogMessage('0000JT5', StrSubstNo(SetContactNoFromSourceCompanyTxt, Vendor.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 IsHandled := true;
             end;
     end;
@@ -808,19 +916,14 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         LocalContact: Record Contact;
         IntegrationTableMapping: Record "Integration Table Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
         SourceCompanyName: Text[30];
+        SourceContactNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
 
         if not MasterDataManagementSetup.Get() then
-            exit;
-
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-
-        if not Company.Get(SourceCompanyName) then
             exit;
 
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -831,6 +934,24 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IntegrationTableMapping.IsEmpty() then
             exit;
 
+        if MasterDataManagementSetup.IsCrossEnvironment() then begin
+            // Contact business relations are not replicated locally; resolve the source contact number cross-env
+            // (bulk-prefetched for the whole run, or read per-record outside a run).
+            if ContactRelationCache.TryGetSourceContactNo("Contact Business Relation Link To Table"::"Bank Account", BankAccount."No.", SourceContactNo) then
+                if not LocalContact.Get(SourceContactNo) then begin
+                    Contact."No." := SourceContactNo;
+                    Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                    IsHandled := true;
+                end;
+            exit;
+        end;
+
+        // Same-environment reads the source company's relations directly via ChangeCompany.
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, Database::Contact);
+        if SourceCompanyName = '' then
+            SourceCompanyName := MasterDataManagementSetup."Company Name";
+        if not Company.Get(SourceCompanyName) then
+            exit;
         if not ContactBusinessRelation.ChangeCompany(SourceCompanyName) then
             exit;
 
@@ -839,7 +960,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if ContactBusinessRelation.FindFirst() then
             if not LocalContact.Get(ContactBusinessRelation."Contact No.") then begin
                 Contact."No." := ContactBusinessRelation."Contact No.";
-                Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption(), BankAccount.SystemId, MasterDataManagementSetup."Company Name"), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                Session.LogMessage('0000JT6', StrSubstNo(SetContactNoFromSourceCompanyTxt, BankAccount.TableCaption()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 IsHandled := true;
             end;
     end;
@@ -911,6 +1032,10 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit;
 
         if not MasterDataManagementSetup."Is Enabled" then
+            exit;
+
+        // Media synchronization is not supported cross-environment (deferred); skip so pictures are not cleared.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
             exit;
 
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -1085,67 +1210,109 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagement: Codeunit "Master Data Management";
         RecRef: RecordRef;
         RecordModifiedAfterLastSync: Boolean;
+        CrossEnvironment: Boolean;
         LinkType: Enum "Contact Business Relation Link To Table";
+        RelationNo: Code[20];
     begin
         if not MasterDataManagement.IsEnabled() then
             exit(false);
 
         MasterDataManagementSetup.Get();
+        // Cross-environment: the source's contact business relations are NOT replicated locally, so read the matching
+        // source relation over the wire to resolve the related customer/vendor (numbers are aligned by synchronization).
+        CrossEnvironment := MasterDataManagementSetup.IsCrossEnvironment();
         DestinationRecordRef.SetTable(Contact);
-        IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");
+        if not CrossEnvironment then
+            IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");
         SourceRecordRef.SetTable(IntegrationContact);
-        IntegrationContactBusinessRelation.ChangeCompany(MasterDataManagementSetup."Company Name");
+        if not CrossEnvironment then
+            IntegrationContactBusinessRelation.ChangeCompany(MasterDataManagementSetup."Company Name");
 
         case IntegrationContact."Contact Business Relation" of
             IntegrationContact."Contact Business Relation"::Customer:
                 begin
-                    IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
-                    if IntegrationContactBusinessRelation.FindByContact(LinkType::Customer, IntegrationContact."No.") then
-                        if IntegrationCustomer.Get(IntegrationContactBusinessRelation."No.") then
-                            if FindCustomerByIntegrationSystemId(IntegrationCustomer.SystemId, Customer) then
-                                if Customer."Primary Contact No." = '' then
-                                    if IntegrationTableMapping.FindMapping(Database::Customer, Database::Customer) then
-                                        if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
-                                            RecRef.GetTable(Customer);
-                                            RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
-                                            Customer.Validate("Primary Contact No.", Contact."No.");
-                                            Customer.Modify();
-                                            if not RecordModifiedAfterLastSync then begin
-                                                MasterDataMgtCoupling.SetRange("Local System ID", Customer.SystemId);
-                                                if MasterDataMgtCoupling.FindFirst() then begin
-                                                    MasterDataMgtCoupling."Last Synch. Modified On" := Customer.SystemModifiedAt;
-                                                    MasterDataMgtCoupling.Modify();
-                                                end;
+                    if not CrossEnvironment then
+                        IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
+                    if ResolveSourceRelationNo(CrossEnvironment, IntegrationContactBusinessRelation, LinkType::Customer, IntegrationContact."No.", RelationNo) then
+                        if ResolvePrimaryContactCustomer(CrossEnvironment, RelationNo, IntegrationCustomer, Customer) then
+                            if Customer."Primary Contact No." = '' then
+                                if IntegrationTableMapping.FindMapping(Database::Customer, Database::Customer) then
+                                    if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
+                                        RecRef.GetTable(Customer);
+                                        RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
+                                        Customer.Validate("Primary Contact No.", Contact."No.");
+                                        Customer.Modify();
+                                        if not RecordModifiedAfterLastSync then begin
+                                            MasterDataMgtCoupling.SetRange("Local System ID", Customer.SystemId);
+                                            if MasterDataMgtCoupling.FindFirst() then begin
+                                                MasterDataMgtCoupling."Last Synch. Modified On" := Customer.SystemModifiedAt;
+                                                MasterDataMgtCoupling.Modify();
                                             end;
-                                            exit(true);
                                         end;
+                                        exit(true);
+                                    end;
                 end;
             IntegrationContact."Contact Business Relation"::Vendor:
                 begin
-                    IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
-                    if IntegrationContactBusinessRelation.FindByContact(LinkType::Vendor, IntegrationContact."No.") then
-                        if IntegrationVendor.Get(IntegrationContactBusinessRelation."No.") then
-                            if FindVendorByIntegrationSystemId(IntegrationVendor.SystemId, Vendor) then
-                                if Vendor."Primary Contact No." = '' then
-                                    if IntegrationTableMapping.FindMapping(Database::Vendor, Database::Vendor) then
-                                        if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
-                                            RecRef.GetTable(Vendor);
-                                            RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
-                                            Vendor.Validate("Primary Contact No.", Contact."No.");
-                                            Vendor.Modify();
-                                            if not RecordModifiedAfterLastSync then begin
-                                                MasterDataMgtCoupling.SetRange("Local System ID", Vendor.SystemId);
-                                                if MasterDataMgtCoupling.FindFirst() then begin
-                                                    MasterDataMgtCoupling."Last Synch. Modified On" := Vendor.SystemModifiedAt;
-                                                    MasterDataMgtCoupling.Modify();
-                                                end;
+                    if not CrossEnvironment then
+                        IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
+                    if ResolveSourceRelationNo(CrossEnvironment, IntegrationContactBusinessRelation, LinkType::Vendor, IntegrationContact."No.", RelationNo) then
+                        if ResolvePrimaryContactVendor(CrossEnvironment, RelationNo, IntegrationVendor, Vendor) then
+                            if Vendor."Primary Contact No." = '' then
+                                if IntegrationTableMapping.FindMapping(Database::Vendor, Database::Vendor) then
+                                    if IntegrationTableMapping.Direction in [IntegrationTableMapping.Direction::Bidirectional, IntegrationTableMapping.Direction::FromIntegrationTable] then begin
+                                        RecRef.GetTable(Vendor);
+                                        RecordModifiedAfterLastSync := IntegrationRecSynchInvoke.WasModifiedAfterLastSynch(IntegrationTableMapping, RecRef);
+                                        Vendor.Validate("Primary Contact No.", Contact."No.");
+                                        Vendor.Modify();
+                                        if not RecordModifiedAfterLastSync then begin
+                                            MasterDataMgtCoupling.SetRange("Local System ID", Vendor.SystemId);
+                                            if MasterDataMgtCoupling.FindFirst() then begin
+                                                MasterDataMgtCoupling."Last Synch. Modified On" := Vendor.SystemModifiedAt;
+                                                MasterDataMgtCoupling.Modify();
                                             end;
-                                            exit(true);
                                         end;
+                                        exit(true);
+                                    end;
                 end;
             else
                 exit(false)
         end;
+    end;
+
+    // Same-environment maps the source customer to the destination via its source SystemId coupling; cross-environment
+    // resolves the destination customer directly by No. (numbers are aligned by synchronization).
+    local procedure ResolvePrimaryContactCustomer(CrossEnvironment: Boolean; CustomerNo: Code[20]; var IntegrationCustomer: Record Customer; var Customer: Record Customer): Boolean
+    begin
+        if CrossEnvironment then
+            exit(Customer.Get(CustomerNo));
+        if not IntegrationCustomer.Get(CustomerNo) then
+            exit(false);
+        exit(FindCustomerByIntegrationSystemId(IntegrationCustomer.SystemId, Customer));
+    end;
+
+    local procedure ResolvePrimaryContactVendor(CrossEnvironment: Boolean; VendorNo: Code[20]; var IntegrationVendor: Record Vendor; var Vendor: Record Vendor): Boolean
+    begin
+        if CrossEnvironment then
+            exit(Vendor.Get(VendorNo));
+        if not IntegrationVendor.Get(VendorNo) then
+            exit(false);
+        exit(FindVendorByIntegrationSystemId(IntegrationVendor.SystemId, Vendor));
+    end;
+
+    // Resolves the source contact business relation's "No." (the related customer/vendor number) for a given source
+    // contact. Same-environment reads the source company's relation via ChangeCompany; cross-environment reads the
+    // matching relation over the wire, since contact business relations are not replicated locally.
+    local procedure ResolveSourceRelationNo(CrossEnvironment: Boolean; var IntegrationContactBusinessRelation: Record "Contact Business Relation"; LinkToTable: Enum "Contact Business Relation Link To Table"; SourceContactNo: Code[20]; var RelationNo: Code[20]): Boolean
+    var
+        ContactRelationCache: Codeunit "MDM Contact Relation Cache";
+    begin
+        if CrossEnvironment then
+            exit(ContactRelationCache.TryGetSourceRelationNo(LinkToTable, SourceContactNo, RelationNo));
+        if not IntegrationContactBusinessRelation.FindByContact(LinkToTable, SourceContactNo) then
+            exit(false);
+        RelationNo := IntegrationContactBusinessRelation."No.";
+        exit(true);
     end;
 
     local procedure FindCustomerByIntegrationSystemId(IntegrationSystemId: Guid; var Customer: Record Customer): Boolean
@@ -1198,6 +1365,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit; // all contacts have parent company set
 
         MasterDataManagementSetup.Get();
+        // Cross-environment: related contact resolution reads the source company directly; deferred for now.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit;
         IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
         IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
         IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");

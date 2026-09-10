@@ -19,6 +19,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
@@ -1111,6 +1112,25 @@ table 181 "Posted Gen. Journal Line"
             if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         /// <summary>
+        /// Specifies the spend request that this journal line relates to.
+        /// </summary>
+        field(146; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this journal line relates to.';
+            TableRelation = "Spend Request";
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
+        /// Specifies that the spend request will be closed when the journal line is posted.
+        /// </summary>
+        field(147; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Job queue status for background processing and automated journal posting operations.
         /// </summary>
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
@@ -1793,7 +1813,7 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Source Posting Date';
             ObsoleteReason = 'The field is not used and will be obsoleted';
-			ObsoleteState = Removed;
+            ObsoleteState = Removed;
             ObsoleteTag = '26.0';
         }
 #endif
@@ -1803,7 +1823,7 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Auto. Acc. Group';
             TableRelation = "Automatic Acc. Header";
             ObsoleteReason = 'Moved to Automatic Account Codes app.';
-			ObsoleteState = Removed;
+            ObsoleteState = Removed;
             ObsoleteTag = '25.0';
         }
 #endif

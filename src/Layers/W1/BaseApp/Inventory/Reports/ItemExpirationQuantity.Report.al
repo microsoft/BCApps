@@ -14,6 +14,7 @@ report 5809 "Item Expiration - Quantity"
 {
     ApplicationArea = ItemTracking;
     Caption = 'Item Expiration - Quantity';
+    ToolTip = 'View an overview of the quantities of selected items in your inventory whose expiration dates fall within a certain period. The list shows the number of units of the selected item that will expire in a given time period. For each of the items that you specify when setting up the report, the printed document shows the number of units that will expire during each of three periods of equal length and the total inventory quantity of the selected item.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
 

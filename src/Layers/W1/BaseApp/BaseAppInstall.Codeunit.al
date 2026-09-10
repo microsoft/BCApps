@@ -9,12 +9,25 @@ using Microsoft.Upgrade;
 codeunit 5000 "BaseApp Install"
 {
     SubType = Install;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnInstallAppPerCompany()
     begin
         AddWordTemplateTables();
     end;
 
+    trigger OnInstallAppPerDatabase()
+    begin
+        SeedDefaultReportParts();
+    end;
+
+    local procedure SeedDefaultReportParts()
+    var
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+    begin
+        UpgradeCompositeReportParts.SeedShippedParts();
+    end;
 
     local procedure AddWordTemplateTables()
     var

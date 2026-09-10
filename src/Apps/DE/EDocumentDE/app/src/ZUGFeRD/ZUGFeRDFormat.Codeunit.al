@@ -91,6 +91,9 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
         if Rec."Document Format" <> Rec."Document Format"::ZUGFeRD then
             exit;
 
+        if Rec."Read into Draft Impl." = Rec."Read into Draft Impl."::Unspecified then
+            Rec."Read into Draft Impl." := Rec."Read into Draft Impl."::ZUGFeRD;
+
         EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
         if not EDocServiceSupportedType.IsEmpty() then
             exit;

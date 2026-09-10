@@ -60,19 +60,19 @@ codeunit 10753 "SII Job Upload Pending Docs."
         SIIDocUploadManagement.UploadPendingDocuments();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnCustomerLedgerEntryCreated(var Rec: Record "Cust. Ledger Entry"; RunTrigger: Boolean)
     begin
         CreateSIIRequestForCustLedgEntry(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnVendorLedgerEntryCreated(var Rec: Record "Vendor Ledger Entry"; RunTrigger: Boolean)
     begin
         CreateSIIRequestForVendLedgEntry(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', true, false)]
     local procedure OnAfterPostSalesDoc(var SalesHeader: Record "Sales Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; SalesShptHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesInvHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
     var
         SIISetup: Record "SII Setup";
@@ -95,7 +95,7 @@ codeunit 10753 "SII Job Upload Pending Docs."
         SIIJobManagement.RenewJobQueueEntry(JobType::HandlePending);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPostPurchaseDoc', '', true, false)]
     local procedure OnAfterPostPurchDoc(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PurchRcpHdrNo: Code[20]; RetShptHdrNo: Code[20]; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20])
     var
         SIISetup: Record "SII Setup";
@@ -152,13 +152,13 @@ codeunit 10753 "SII Job Upload Pending Docs."
             SIIJobManagement.RenewJobQueueEntry(JobType::HandlePending);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Detailed Vendor Ledg. Entry", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Detailed Vendor Ledg. Entry", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnDetailedVendorLedgerEntryCreated(var Rec: Record "Detailed Vendor Ledg. Entry"; RunTrigger: Boolean)
     begin
         CreateSIIRequestForDtldVendLedgEntry(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Detailed Cust. Ledg. Entry", 'OnAfterInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Detailed Cust. Ledg. Entry", 'OnAfterInsertEvent', '', true, false)]
     local procedure OnDetailedCustomerLedgerEntryCreated(var Rec: Record "Detailed Cust. Ledg. Entry"; RunTrigger: Boolean)
     begin
         CreateSIIRequestForDtldCustLedgEntry(Rec);

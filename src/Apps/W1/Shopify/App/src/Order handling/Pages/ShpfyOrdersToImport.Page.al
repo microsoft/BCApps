@@ -118,7 +118,7 @@ page 30121 "Shpfy Orders to Import"
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the order was last modified.';
+                    ToolTip = 'Specifies the date and time when the order was last modified in Shopify.';
                 }
                 field(Test; Rec.Test)
                 {

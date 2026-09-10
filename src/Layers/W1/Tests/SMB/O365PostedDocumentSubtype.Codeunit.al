@@ -135,7 +135,7 @@ codeunit 134652 "O365 Posted Document Subtype"
         // [WHEN] Line type is blank
         SalesShipmentLine.Type := SalesShipmentLine.Type::" ";
         // [THEN] Subtype is comment
-        VerifySubtypeOnSalesShipmentLine(SalesShipmentLine, SalesLine.FormatType());
+        VerifySubtypeOnSalesShipmentLine(SalesShipmentLine, SalesLine.FormatTypeAsText());
 
         // [WHEN] Line type is Item (and no item is specified)
         SalesShipmentLine.Type := SalesShipmentLine.Type::Item;
@@ -179,7 +179,7 @@ codeunit 134652 "O365 Posted Document Subtype"
         // [WHEN] Line type is blank
         SalesCrMemoLine.Type := SalesCrMemoLine.Type::" ";
         // [THEN] Subtype is comment
-        VerifySubtypeOnSalesCrMemoLine(SalesCrMemoLine, SalesLine.FormatType());
+        VerifySubtypeOnSalesCrMemoLine(SalesCrMemoLine, SalesLine.FormatTypeAsText());
 
         // [WHEN] Line type is Item (and no item is specified)
         SalesCrMemoLine.Type := SalesCrMemoLine.Type::Item;
@@ -223,7 +223,7 @@ codeunit 134652 "O365 Posted Document Subtype"
         // [WHEN] Line type is blank
         SalesInvoiceLine.Type := SalesInvoiceLine.Type::" ";
         // [THEN] Subtype is comment
-        VerifySubtypeOnSalesInvoiceLine(SalesInvoiceLine, SalesLine.FormatType());
+        VerifySubtypeOnSalesInvoiceLine(SalesInvoiceLine, SalesLine.FormatTypeAsText());
 
         // [WHEN] Line type is Item (and no item is specified)
         SalesInvoiceLine.Type := SalesInvoiceLine.Type::Item;
@@ -267,7 +267,7 @@ codeunit 134652 "O365 Posted Document Subtype"
         // [WHEN] Line type is blank
         PurchRcptLine.Type := PurchRcptLine.Type::" ";
         // [THEN] Subtype is comment
-        VerifySubtypeOnPurchRcptLine(PurchRcptLine, PurchaseLine.FormatType());
+        VerifySubtypeOnPurchRcptLine(PurchRcptLine, PurchaseLine.FormatTypeAsText());
 
         // [WHEN] Line type is Item (and no item is specified)
         PurchRcptLine.Type := PurchRcptLine.Type::Item;
@@ -311,7 +311,7 @@ codeunit 134652 "O365 Posted Document Subtype"
         // [WHEN] Line type is blank
         PurchInvLine.Type := PurchInvLine.Type::" ";
         // [THEN] Subtype is comment
-        VerifySubtypeOnPurchInvLine(PurchInvLine, PurchaseLine.FormatType());
+        VerifySubtypeOnPurchInvLine(PurchInvLine, PurchaseLine.FormatTypeAsText());
 
         // [WHEN] Line type is Item (and no item is specified)
         PurchInvLine.Type := PurchInvLine.Type::Item;
@@ -355,7 +355,7 @@ codeunit 134652 "O365 Posted Document Subtype"
         // [WHEN] Line type is blank
         PurchCrMemoLine.Type := PurchCrMemoLine.Type::" ";
         // [THEN] Subtype is comment
-        VerifySubtypeOnPurchCrMemoLine(PurchCrMemoLine, PurchaseLine.FormatType());
+        VerifySubtypeOnPurchCrMemoLine(PurchCrMemoLine, PurchaseLine.FormatTypeAsText());
 
         // [WHEN] Line type is Item (and no item is specified)
         PurchCrMemoLine.Type := PurchCrMemoLine.Type::Item;

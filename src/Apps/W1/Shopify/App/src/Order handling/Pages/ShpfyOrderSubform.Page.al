@@ -115,6 +115,12 @@ page 30122 "Shpfy Order Subform"
                     Editable = false;
                     ToolTip = 'Specifies the quantity available to fulfill.';
                 }
+                field("Is Exchange Item"; Rec."Is Exchange Item")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether this line was added as the new item in a return-with-exchange. Exchange items are not included in the BC sales document created from the Shopify order; their value is offset on the credit memo by a negative-quantity refund line.';
+                }
             }
         }
     }

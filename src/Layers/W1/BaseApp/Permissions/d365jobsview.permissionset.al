@@ -18,6 +18,8 @@ permissionset 448 "D365 JOBS, VIEW"
     Caption = 'Dynamics 365 View Projects';
     Permissions = tabledata Job = R,
                   tabledata "Job Archive" = R,
+                  tabledata "Job Assigned Resource" = R,
+                  tabledata "Job Assigned Resource Archive" = R,
                   tabledata "Job Cue" = R,
                   tabledata "Job Entry No." = R,
                   tabledata "Job G/L Account Price" = R,

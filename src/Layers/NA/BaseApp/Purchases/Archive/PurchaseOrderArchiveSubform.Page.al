@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -416,6 +416,11 @@ page 5168 "Purchase Order Archive Subform"
                     Visible = false;
                 }
                 field("Units per Parcel"; Rec."Units per Parcel")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;

@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Security.User;
@@ -139,7 +140,30 @@ codeunit 1720 "Deferral Utilities"
 
         if RedistributeDeferralSchedule then
             RedistributeDeferralLines(DeferralLine, DeferralLineAmount, DeferralHeader, TotalDeferralLineAmount);
+
+        RoundDeferralAmountFromSource(DeferralHeader);
+
         OnAfterCreateDeferralSchedule(DeferralHeader, DeferralLine, DeferralTemplate, CalcMethod);
+    end;
+
+    local procedure RoundDeferralAmountFromSource(var DeferralHeader: Record "Deferral Header")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        AmtToDefer: Decimal;
+        AmtToDeferLCY: Decimal;
+    begin
+        case DeferralHeader."Deferral Doc. Type" of
+            DeferralHeader."Deferral Doc. Type"::Purchase:
+                begin
+                    PurchaseHeader.SetLoadFields("Currency Factor", "Posting Date", "Currency Code");
+                    if not PurchaseHeader.Get(DeferralHeader."Document Type", DeferralHeader."Document No.") then
+                        exit;
+
+                    RoundDeferralAmount(
+                        DeferralHeader, DeferralHeader."Currency Code", PurchaseHeader."Currency Factor",
+                        PurchaseHeader."Posting Date", AmtToDefer, AmtToDeferLCY);
+                end;
+        end;
     end;
 
     local procedure SaveUserDefinedDeferralLineAmounts(DeferralDocType: Integer; GenJnlTemplateName: Code[10]; GenJnlBatchName: Code[10]; DocumentType: Integer; DocumentNo: Code[20]; LineNo: Integer; CalcMethod: Enum "Deferral Calculation Method"; var DeferralLineAmount: Dictionary of [RecordId, Decimal]; var TotalDeferralLineAmount: Decimal)

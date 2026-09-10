@@ -13,6 +13,7 @@ report 5194 "Create Conts. from Vendors"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Create Contacts from Vendors';
+    ToolTip = 'Create a contact card from information about the vendor''s contact person.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

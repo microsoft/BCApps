@@ -12,6 +12,7 @@ report 1127 "Cost Acctg. Analysis"
     RDLCLayout = './CostAccounting/Reports/CostAcctgAnalysis.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Acctg. Analysis';
+    ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

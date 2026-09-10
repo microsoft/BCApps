@@ -10,6 +10,7 @@ report 5062 "Sales Cycle - Analysis"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Sales Cycle - Analysis';
+    ToolTip = 'View information about your sales cycles. The report includes details about the sales cycle, such as the number of opportunities currently at that stage, the estimated and calculated current values of opportunities created using the sales cycle, and so on.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

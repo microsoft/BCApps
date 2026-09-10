@@ -7,8 +7,8 @@ page 6279 "Sust. Overview Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sustainability Overview';
-    AboutTitle = 'About Sustainability Overview';
+    Caption = 'Sustainability Overview (Power BI)';
+    AboutTitle = 'About Sustainability Overview (Power BI)';
     AboutText = 'The Sustainability Overview gives you a high-level view of all the key sustainability metrics.';
 
     layout

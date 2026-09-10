@@ -421,7 +421,8 @@ table 4 Currency
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                          "Initial Entry Due Date" = field("Date Filter"),
                                                                          "Posting Date" = field(upperlimit("Date Filter")),
-                                                                         "Currency Code" = field(Code)));
+                                                                         "Currency Code" = field(Code),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Customer Balance Due';
             ToolTip = 'Specifies the payment amount that the customer owes you for completed sales where the payment date is exceeded.';
             Editable = false;
@@ -510,7 +511,8 @@ table 4 Currency
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Initial Entry Due Date" = field("Date Filter"),
                                                                            "Posting Date" = field(upperlimit("Date Filter")),
-                                                                           "Currency Code" = field(Code)));
+                                                                           "Currency Code" = field(Code),
+                                                                           "Excluded from calculation" = const(false)));
             Caption = 'Vendor Balance Due';
             ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases where the payment date is exceeded.';
             Editable = false;
@@ -898,6 +900,30 @@ table 4 Currency
         "Invoice Rounding Type" := GLSetup."Inv. Rounding Type (LCY)";
 
         OnAfterInitRoundingPrecision(Rec, xRec, GLSetup);
+    end;
+
+    /// <summary>
+    /// Retrieves the most recent exchange rate for the actual currency, based on 1FCY.
+    /// If no exchange rate is specified, it returns 1
+    /// </summary>
+    /// <param name="ConversionDate"></param>
+    /// <returns></returns>
+    procedure GetExchangeRate(ConversionDate: Date): Decimal
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        if Rec.Code = '' then
+            exit(100);
+        CurrencyExchangeRate.SetRange("Currency Code", Rec.Code);
+        CurrencyExchangeRate.SetFilter("Starting Date", '<=%1', ConversionDate);
+        if not CurrencyExchangeRate.FindLast() then begin
+            CurrencyExchangeRate.SetRange("Starting Date");
+            if not CurrencyExchangeRate.FindLast() then
+                exit(1);
+        end;
+        if CurrencyExchangeRate."Exchange Rate Amount" <> 0 then
+            exit(Round(CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount", Rec."Amount Rounding Precision"));
+        exit(1);
     end;
 
     /// <summary>

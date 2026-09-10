@@ -26,6 +26,7 @@ codeunit 139601 "Shpfy Create Product Test"
         LibraryRandom: Codeunit "Library - Random";
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
         ExportIsInitialized: Boolean;
+        PriceUpdateHttpCallCount: Integer;
 
     [Test]
     procedure UnitTestCreateTempProductFromItem()
@@ -3144,6 +3145,68 @@ codeunit 139601 "Shpfy Create Product Test"
             0:
                 Error(UnexpectedAPICallsErr);
         end;
+        exit(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductPriceSyncHttpHandler')]
+    procedure UnitTestPriceUpdateBelowThresholdUsesIndividualSyncNotBulk()
+    var
+        Item: Record Item;
+        ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        BulkOperation: Record "Shpfy Bulk Operation";
+        ProductExport: Codeunit "Shpfy Product Export";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        NullGuid: Guid;
+        Index: Integer;
+        ChangedVariantCount: Integer;
+    begin
+        // [SCENARIO 640288] When the number of changed prices is below the bulk-operation threshold,
+        // [SCENARIO] the connector updates prices with individual synchronous mutations instead of a bulk operation.
+        InitializeProductExport();
+        ExportShop."UoM as Variant" := false;
+        ExportShop.Modify();
+        PriceUpdateHttpCallCount := 0;
+
+        // [GIVEN] No pre-existing Shopify products/variants for the shop, so only the ones created below are exported.
+        ShopifyVariant.SetRange("Shop Code", ExportShop.Code);
+        ShopifyVariant.DeleteAll(false);
+        ShopifyProduct.SetRange("Shop Code", ExportShop.Code);
+        ShopifyProduct.DeleteAll(false);
+
+        // [GIVEN] A few Shopify products mapped to BC items whose prices differ from Shopify (all will change).
+        ChangedVariantCount := 3;
+        for Index := 1 to ChangedVariantCount do begin
+            Item := ProductInitTest.CreateItem(ExportShop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 500, 2), false);
+            ShopifyProduct := CreateShopifyProductForExport(Item.SystemId);
+            CreateMappedShopifyVariantForExport(ShopifyProduct.Id, Item.SystemId, NullGuid);
+        end;
+
+        // [WHEN] The price-only product export runs for the shop.
+        ProductExport.SetShop(ExportShop);
+        ProductExport.SetOnlyUpdatePriceOn();
+        ExportShop.SetRange(Code, ExportShop.Code);
+        ProductExport.Run(ExportShop);
+        ExportShop.SetRange(Code);
+
+        // [THEN] Each changed variant was updated with its own synchronous mutation.
+        LibraryAssert.AreEqual(ChangedVariantCount, PriceUpdateHttpCallCount, 'Each changed variant should be updated with an individual synchronous mutation.');
+
+        // [THEN] No bulk operation was created, because the number of changed prices is below the threshold.
+        BulkOperation.SetRange("Shop Code", ExportShop.Code);
+        LibraryAssert.IsTrue(BulkOperation.IsEmpty(), 'No bulk operation should be created when the number of changed prices is below the threshold.');
+    end;
+
+    [HttpClientHandler]
+    internal procedure ProductPriceSyncHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ProductVariantsBulkUpdateResponseTok: Label 'Products/ProductVariantsBulkUpdateResponse.txt', Locked = true;
+    begin
+        if not ShpfyInitializeTest.VerifyRequestUrl(Request.Path, ExportShop."Shopify URL") then
+            exit(true);
+        PriceUpdateHttpCallCount += 1;
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ProductVariantsBulkUpdateResponseTok, TextEncoding::UTF8));
         exit(false);
     end;
 

@@ -157,6 +157,11 @@ page 5167 "Purchase Order Archive"
                 {
                     ApplicationArea = Suite;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Suite;
+                    Importance = Additional;
+                }
                 field("Order Address Code"; Rec."Order Address Code")
                 {
                     ApplicationArea = Suite;

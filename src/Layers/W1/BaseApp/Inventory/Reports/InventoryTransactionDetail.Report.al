@@ -12,6 +12,7 @@ report 704 "Inventory - Transaction Detail"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Transaction Detail';
+    ToolTip = 'View transaction details with entries for the selected items for a selected period. The report shows the inventory at the beginning of the period, all of the increase and decrease entries during the period with a running update of the inventory, and the inventory at the close of the period. The report can be used at the close of an accounting period, for example, or for an audit.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;
 

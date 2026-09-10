@@ -438,6 +438,7 @@ report 120 "Aged Accounts Receivable"
                                     CurrReport.Break();
 
                             CustLedgEntryEndingDate := TempCustLedgEntry;
+                            DetailedCustomerLedgerEntry.SetLoadFields("Entry Type", "Posting Date", Amount, "Amount (LCY)");
                             DetailedCustomerLedgerEntry.SetRange("Cust. Ledger Entry No.", CustLedgEntryEndingDate."Entry No.");
                             OnTempCustLedgEntryGetRecordOnAfterSetDetailedEntryFilters(DetailedCustomerLedgerEntry);
                             if DetailedCustomerLedgerEntry.FindSet(false) then

@@ -254,115 +254,232 @@ codeunit 139555 "Aged Accounts Excel Reports"
 
     [Test]
     [HandlerFunctions('EXRAgedAccountsRecExcelHandlerWorkdate')]
-    procedure AgedAccountsReceivableExcelReportExportsAsPerPeriodCount()
+    procedure AgedAccountsRecExcelReportIncludesNotYetDueEntries()
     var
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Variant: Variant;
         RequestPageXml: Text;
+        ReportDocumentNo: Text;
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 640052] Aged Accounts Receivable Excel report exports as per Period count.
+        // [SCENARIO] Aged Accounts Receivable Excel report includes open entries that are not yet due as of the Aged As Of date.
         InitializeAgingData();
 
-        // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
-        // Create customer directly to avoid VAT posting setup requirements in some localizations
+        // [GIVEN] Customer "C" with an open ledger entry posted on WorkDate and due 30 days later
         CreateMinimalCustomer(Customer);
         CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
         Commit();
 
-        // [WHEN] Running the Aged Accounts Receivable Excel report
+        // [WHEN] Running the report with Aged As Of = WorkDate, Period Count = 1 and Aging by = Due Date
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data does not exist.
+        // [THEN] The entry is still exported, even though its Due Date is after the Aged As Of date
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The not yet due entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(CustLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
     end;
 
     [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandlerWorkdate')]
-    procedure AgedAccountsPayableExcelReportExportsAsPerPeriodCount()
+    procedure AgedAccountsPayableExcelReportIncludesNotYetDueEntries()
     var
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Variant: Variant;
         RequestPageXml: Text;
+        ReportDocumentNo: Text;
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 640052] Aged Accounts Payable Excel report exports as per Period count.
+        // [SCENARIO] Aged Accounts Payable Excel report includes open entries that are not yet due as of the Aged As Of date.
         InitializeAgingData();
 
-        // [GIVEN] Vendor "V" with an open vendor ledger entry whose Due Date is after the selected period
+        // [GIVEN] Vendor "V" with an open ledger entry posted on WorkDate and due 30 days later
         CreateMinimalVendor(Vendor);
         CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
         Commit();
 
-        // [WHEN] Running the Aged Accounts Payable Excel report with Aged As Of = WorkDate() and Period Count = 1
+        // [WHEN] Running the report with Aged As Of = WorkDate, Period Count = 1 and Aging by = Due Date
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data does not include entries whose Due Date is outside the selected period
+        // [THEN] The entry is still exported, even though its Due Date is after the Aged As Of date
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The not yet due entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(VendorLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
     end;
 
     [Test]
     [HandlerFunctions('EXRAgedAccountsRecPostingDatePeriodCountHandler')]
-    procedure AgedAccountsRecExcelReportPostingDateRespectsPeriodCount()
+    procedure AgedAccountsRecExcelReportPutsOlderEntriesInCatchAllBucket()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        PeriodEndText: Text;
+        PeriodEnd: Date;
+    begin
+        // [SCENARIO] Entries older than the earliest period are exported into the open ended catch all bucket.
+        InitializeAgingData();
+
+        // [GIVEN] Customer "C" with an open ledger entry posted two months before the Aged As Of date
+        CreateMinimalCustomer(Customer);
+        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
+        MoveCustLedgerEntryToDate(CustLedgerEntry, CalcDate('<-2M>', WorkDate()));
+        Commit();
+
+        // [WHEN] Running the report with Aging By = Posting Date, Aged As Of = WorkDate and Period Count = 1
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
+
+        // [THEN] The entry is exported in the catch all bucket, which ends where the oldest requested period starts
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The entry older than the earliest period should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('PeriodEnd', Variant);
+        PeriodEndText := Variant;
+        Evaluate(PeriodEnd, PeriodEndText);
+        Assert.AreEqual(CalcDate('<-1M>', WorkDate()), PeriodEnd, 'The catch all bucket should end where the oldest requested period starts');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccPayablePostingDatePeriodCountHandler')]
+    procedure AgedAccountsPayableExcelReportPutsOlderEntriesInCatchAllBucket()
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        PeriodEndText: Text;
+        PeriodEnd: Date;
+    begin
+        // [SCENARIO] Entries older than the earliest period are exported into the open ended catch all bucket.
+        InitializeAgingData();
+
+        // [GIVEN] Vendor "V" with an open ledger entry posted two months before the Aged As Of date
+        CreateMinimalVendor(Vendor);
+        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
+        MoveVendorLedgerEntryToDate(VendorLedgerEntry, CalcDate('<-2M>', WorkDate()));
+        Commit();
+
+        // [WHEN] Running the report with Aging By = Posting Date, Aged As Of = WorkDate and Period Count = 1
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
+
+        // [THEN] The entry is exported in the catch all bucket, which ends where the oldest requested period starts
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The entry older than the earliest period should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('PeriodEnd', Variant);
+        PeriodEndText := Variant;
+        Evaluate(PeriodEnd, PeriodEndText);
+        Assert.AreEqual(CalcDate('<-1M>', WorkDate()), PeriodEnd, 'The catch all bucket should end where the oldest requested period starts');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccountsRecPostingDateThreePeriodsHandler')]
+    procedure AgedAccountsRecExcelPeriodStartAndEndComeFromSameBucket()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        PeriodStartText: Text;
+        PeriodEndText: Text;
+        PeriodStart: Date;
+        PeriodEnd: Date;
+        FirstPeriodStart: Date;
+        SecondPeriodStart: Date;
+    begin
+        // [SCENARIO] Period Start Date and Period End Date are always read from the same bucket.
+        InitializeAgingData();
+
+        // [GIVEN] The period boundaries the report builds for Period Length = -1M and Aged As Of = WorkDate
+        FirstPeriodStart := CalcDate('<-1M>', WorkDate());
+        SecondPeriodStart := CalcDate('<-1M>', FirstPeriodStart);
+
+        // [GIVEN] Customer "C" with an open ledger entry posted one day before the newest period starts
+        CreateMinimalCustomer(Customer);
+        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
+        MoveCustLedgerEntryToDate(CustLedgerEntry, FirstPeriodStart - 1);
+        Commit();
+
+        // [WHEN] Running the report with Aging By = Posting Date, Aged As Of = WorkDate and Period Count = 3
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
+
+        // [THEN] The entry is bucketed into the second period, and its end is that period's end, not the newest one
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('PeriodStart', Variant);
+        PeriodStartText := Variant;
+        Evaluate(PeriodStart, PeriodStartText);
+        Assert.AreEqual(SecondPeriodStart, PeriodStart, 'The entry should start in the second period');
+        LibraryReportDataset.FindCurrentRowValue('PeriodEnd', Variant);
+        PeriodEndText := Variant;
+        Evaluate(PeriodEnd, PeriodEndText);
+        Assert.AreEqual(FirstPeriodStart, PeriodEnd, 'The period end should belong to the same bucket as the period start');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccountsRecSkipZeroBalanceHandler')]
+    procedure AgedAccountsRecExcelSkipZeroBalanceKeepsCustomerWithOldOpenEntry()
     var
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Variant: Variant;
         RequestPageXml: Text;
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 640052] Aged Accounts Receivable Excel report, when Aging by = Posting Date, respects Period Count.
+        // [SCENARIO] Skip Customers with Zero Balance compares the balance as of the Aged As Of date, not the net change over the reported periods, so a customer whose only open entry predates those periods is still reported.
         InitializeAgingData();
 
-        // [GIVEN] Customer "C" with an open customer ledger entry whose Posting Date is before the earliest selected period
+        // [GIVEN] Customer "C" whose only open ledger entry was posted six months before the Aged As Of date
         CreateMinimalCustomer(Customer);
         CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
-        CustLedgerEntry."Posting Date" := CalcDate('<-2M>', WorkDate());
-        CustLedgerEntry.Modify();
+        MoveCustLedgerEntryToDate(CustLedgerEntry, CalcDate('<-6M>', WorkDate()));
         Commit();
 
-        // [WHEN] Running the Aged Accounts Receivable Excel report with Aging By = Posting Date and Period Count = 1
+        // [WHEN] Running the report with Skip Customers with Zero Balance enabled and Period Count = 1
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data does not include entries whose Posting Date is outside the selected period
+        // [THEN] The customer is not skipped, because the balance as of the Aged As Of date is not zero
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The customer with an outstanding balance should not be skipped');
     end;
 
     [Test]
-    [HandlerFunctions('EXRAgedAccPayablePostingDatePeriodCountHandler')]
-    procedure AgedAccountsPayableExcelReportPostingDateRespectsPeriodCount()
+    [HandlerFunctions('EXRAgedAccPayableSkipZeroBalanceHandler')]
+    procedure AgedAccountsPayableExcelSkipZeroBalanceKeepsVendorWithOldOpenEntry()
     var
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Variant: Variant;
         RequestPageXml: Text;
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 640052] Aged Accounts Payable Excel report, when Aging by = Posting Date, respects Period Count.
+        // [SCENARIO] Skip Vendors with Zero Balance compares the balance as of the Aged As Of date, not the net change over the reported periods.
         InitializeAgingData();
 
-        // [GIVEN] Vendor "V" with an open vendor ledger entry whose Posting Date is before the earliest selected period
+        // [GIVEN] Vendor "V" whose only open ledger entry was posted six months before the Aged As Of date
         CreateMinimalVendor(Vendor);
         CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
-        VendorLedgerEntry."Posting Date" := CalcDate('<-2M>', WorkDate());
-        VendorLedgerEntry.Modify();
+        MoveVendorLedgerEntryToDate(VendorLedgerEntry, CalcDate('<-6M>', WorkDate()));
         Commit();
 
-        // [WHEN] Running the Aged Accounts Payable Excel report with Aging By = Posting Date and Period Count = 1
+        // [WHEN] Running the report with Skip Vendors with Zero Balance enabled and Period Count = 1
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data does not include entries whose Posting Date is outside the selected period
+        // [THEN] The vendor is not skipped, because the balance as of the Aged As Of date is not zero
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The vendor with an outstanding balance should not be skipped');
     end;
 
     local procedure InitializeAgingData()
@@ -480,6 +597,32 @@ codeunit 139555 "Aged Accounts Excel Reports"
         DetailedCustLedgEntry.Insert();
     end;
 
+    local procedure MoveCustLedgerEntryToDate(var CustLedgerEntry: Record "Cust. Ledger Entry"; NewPostingDate: Date)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        CustLedgerEntry."Posting Date" := NewPostingDate;
+        CustLedgerEntry."Document Date" := NewPostingDate;
+        CustLedgerEntry."Due Date" := NewPostingDate + 30;
+        CustLedgerEntry.Modify();
+
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.ModifyAll("Posting Date", NewPostingDate);
+    end;
+
+    local procedure MoveVendorLedgerEntryToDate(var VendorLedgerEntry: Record "Vendor Ledger Entry"; NewPostingDate: Date)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        VendorLedgerEntry."Posting Date" := NewPostingDate;
+        VendorLedgerEntry."Document Date" := NewPostingDate;
+        VendorLedgerEntry."Due Date" := NewPostingDate + 30;
+        VendorLedgerEntry.Modify();
+
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntry."Entry No.");
+        DetailedVendorLedgEntry.ModifyAll("Posting Date", NewPostingDate);
+    end;
+
     [RequestPageHandler]
     procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
@@ -506,6 +649,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
     procedure EXRAgedAccountsRecExcelHandlerWorkdate(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
     begin
         EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.AgingbyOption.SetValue('Due Date');
         EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(1);
         EXRAgedAccountsRecExcel.OK().Invoke();
     end;
@@ -514,6 +658,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
     procedure EXRAgedAccPayableExcelHandlerWorkdate(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
         EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgingbyOption.SetValue('Due Date');
         EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
         EXRAgedAccPayableExcel.OK().Invoke();
     end;
@@ -533,6 +678,35 @@ codeunit 139555 "Aged Accounts Excel Reports"
         EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
         EXRAgedAccPayableExcel.AgingbyOption.SetValue('Posting Date');
         EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccountsRecPostingDateThreePeriodsHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.AgingbyOption.SetValue('Posting Date');
+        EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(3);
+        EXRAgedAccountsRecExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccountsRecSkipZeroBalanceHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.AgingbyOption.SetValue('Due Date');
+        EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccountsRecExcel."Skip Zero Balance Customers".SetValue(true);
+        EXRAgedAccountsRecExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccPayableSkipZeroBalanceHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
+    begin
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgingbyOption.SetValue('Due Date');
+        EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccPayableExcel."Skip Zero Balance Vendors".SetValue(true);
         EXRAgedAccPayableExcel.OK().Invoke();
     end;
 }

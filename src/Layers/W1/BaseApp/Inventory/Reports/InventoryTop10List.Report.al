@@ -11,6 +11,7 @@ report 711 "Inventory - Top 10 List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Top 10 List';
+    ToolTip = 'View information about the items with the highest or lowest sales within a selected period. You can also choose that items that are not on hand or have not been sold are not included in the report. The items are sorted by order size within the selected period. The list gives a quick overview of the items that have sold either best or worst, or the items that have the most or fewest units on inventory.';
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 

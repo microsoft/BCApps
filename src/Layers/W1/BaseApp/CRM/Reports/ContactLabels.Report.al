@@ -11,6 +11,7 @@ report 5056 "Contact - Labels"
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Contact Labels';
+    ToolTip = 'View mailing labels with names and addresses of your contacts. For example, you can use the report to review contact information before you send sales and marketing campaign letters.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
