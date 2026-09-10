@@ -12,12 +12,15 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
+using System.Log;
 using System.TestLibraries.Utilities;
 
 codeunit 135576 "E-Doc Purch. VAT Tests"
@@ -33,8 +36,13 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        MultipleVATPostingSetupsReasonLbl: Label 'Multiple VAT Posting Setups match the extracted VAT rate %1%. You can continue. The VAT Product Posting Group will be taken from the item card.', Comment = '%1 = extracted VAT rate';
+        VATRateMismatchReasonLbl: Label 'VAT rate %1% extracted from the document could not be matched to a VAT Posting Setup for vendor''s VAT Business Posting Group %2.', Comment = '%1 = extracted VAT rate, %2 = VAT Business Posting Group';
         IsInitialized: Boolean;
 
     [Test]
@@ -351,6 +359,106 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         VATProductPostingGroup.Delete();
     end;
 
+    [Test]
+    procedure PreparingPurchaseDraftLogsMultipleVATPostingSetupsReason()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        Vendor2: Record Vendor;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VATProductPostingGroup2: Record "VAT Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATRate: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649796] Multiple matching VAT Posting Setups are explained in the purchase draft infotip
+        Initialize();
+
+        // [GIVEN] A purchase draft line with two VAT Posting Setups matching its VAT rate
+        VATRate := 25;
+        CreateVATResolutionDraft(EDocument, EDocumentPurchaseLine, Vendor2, Item, VATBusinessPostingGroup, VATProductPostingGroup, VATRate);
+        CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code, VATRate);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup2);
+        CreateVATPostingSetup(VATPostingSetup2, VATBusinessPostingGroup.Code, VATProductPostingGroup2.Code, VATRate);
+
+        // [WHEN] The VAT rate mismatch is logged
+        EDocumentPurchaseLine.LogVATRateMismatch(VATBusinessPostingGroup.Code, VATRate);
+
+        // [THEN] The infotip explains that multiple VAT Posting Setups match
+        VerifyActivityLogContains(
+            EDocumentPurchaseLine,
+            StrSubstNo(MultipleVATPostingSetupsReasonLbl, VATRate));
+    end;
+
+    [Test]
+    procedure FinishingPurchaseDraftWithMultipleVATPostingSetupsUsesItemVATProductPostingGroup()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        Vendor2: Record Vendor;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VATProductPostingGroup2: Record "VAT Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATRate: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649796] Multiple matching VAT Posting Setups do not block purchase draft processing
+        Initialize();
+
+        // [GIVEN] An item purchase draft line with two VAT Posting Setups matching its VAT rate
+        VATRate := 25;
+        CreateVATResolutionDraft(EDocument, EDocumentPurchaseLine, Vendor2, Item, VATBusinessPostingGroup, VATProductPostingGroup, VATRate);
+        CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code, VATRate);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup2);
+        CreateVATPostingSetup(VATPostingSetup2, VATBusinessPostingGroup.Code, VATProductPostingGroup2.Code, VATRate);
+
+        // [WHEN] The purchase draft with an unresolved VAT Product Posting Group is finished
+        PreparePurchaseDraftForItemFallback(EDocument, EDocumentPurchaseLine, Item);
+        FinishPurchaseDraft(EDocument);
+
+        // [THEN] The purchase line uses the VAT Product Posting Group from the item card
+        VerifyPurchaseLineUsesItemVATProductPostingGroup(EDocument, Item);
+    end;
+
+    [Test]
+    procedure PreparingPurchaseDraftLogsNoMatchingVATPostingSetupReason()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        Vendor2: Record Vendor;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VATRate: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649796] No matching VAT Posting Setup keeps its distinct purchase draft explanation
+        Initialize();
+
+        // [GIVEN] A purchase draft line without a VAT Posting Setup matching its VAT rate
+        VATRate := 25;
+        CreateVATResolutionDraft(EDocument, EDocumentPurchaseLine, Vendor2, Item, VATBusinessPostingGroup, VATProductPostingGroup, VATRate);
+
+        // [WHEN] The VAT rate mismatch is logged
+        EDocumentPurchaseLine.LogVATRateMismatch(VATBusinessPostingGroup.Code, VATRate);
+
+        // [THEN] The infotip explains that no VAT Posting Setup could be matched
+        VerifyActivityLogContains(
+            EDocumentPurchaseLine,
+            StrSubstNo(VATRateMismatchReasonLbl, VATRate, VATBusinessPostingGroup.Code));
+    end;
+
+    local procedure Initialize()
+    begin
+        Initialize(Enum::"Service Integration"::"Mock");
+    end;
+
     local procedure Initialize(Integration: Enum "Service Integration")
     var
         TransformationRule: Record "Transformation Rule";
@@ -403,6 +511,109 @@ codeunit 135576 "E-Doc Purch. VAT Tests"
         LibrarySetupStorage.SavePurchasesSetup();
 
         IsInitialized := true;
+    end;
+
+    local procedure CreateVATResolutionDraft(var EDocument: Record "E-Document"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Vendor2: Record Vendor; var Item: Record Item; var VATBusinessPostingGroup: Record "VAT Business Posting Group"; var VATProductPostingGroup: Record "VAT Product Posting Group"; VATRate: Decimal)
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+
+        LibraryPurchase.CreateVendor(Vendor2);
+        Vendor2.Validate("VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        Vendor2.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        Item.Modify(true);
+
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
+        EDocument.Modify();
+
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor2."No.";
+        EDocumentPurchaseHeader."Sub Total" := 100;
+        EDocumentPurchaseHeader."Total VAT" := 25;
+        EDocumentPurchaseHeader.Total := 125;
+        EDocumentPurchaseHeader.Insert();
+
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."Line No." := 10000;
+        EDocumentPurchaseLine.Description := Item.Description;
+        EDocumentPurchaseLine.Quantity := 1;
+        EDocumentPurchaseLine."Unit Price" := 100;
+        EDocumentPurchaseLine."Sub Total" := 100;
+        EDocumentPurchaseLine."VAT Rate" := VATRate;
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := "Purchase Line Type"::Item;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine.Insert();
+    end;
+
+    local procedure CreateVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusinessPostingGroupCode: Code[20]; VATProductPostingGroupCode: Code[20]; VATRate: Decimal)
+    begin
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroupCode, VATProductPostingGroupCode);
+        VATPostingSetup.Validate("VAT %", VATRate);
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure PreparePurchaseDraft(EDocument: Record "E-Document")
+    var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+    end;
+
+    local procedure PreparePurchaseDraftForItemFallback(EDocument: Record "E-Document"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; Item: Record Item)
+    begin
+        PreparePurchaseDraft(EDocument);
+
+        EDocumentPurchaseLine.Find();
+        Assert.AreEqual('', EDocumentPurchaseLine."[BC] VAT Prod. Posting Group", 'The VAT Product Posting Group should remain unresolved when multiple VAT Posting Setups match.');
+        EDocumentPurchaseLine.Validate("[BC] Purchase Line Type", "Purchase Line Type"::Item);
+        EDocumentPurchaseLine.Validate("[BC] Purchase Type No.", Item."No.");
+        EDocumentPurchaseLine.Modify(true);
+    end;
+
+    local procedure FinishPurchaseDraft(EDocument: Record "E-Document")
+    var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters" temporary;
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters), 'The purchase draft should be processed.');
+    end;
+
+    local procedure VerifyActivityLogContains(EDocumentPurchaseLine: Record "E-Document Purchase Line"; ExpectedExplanation: Text)
+    var
+        ActivityLogBuilder: Codeunit "Activity Log Builder";
+        ActivityLogJson: Text;
+    begin
+        ActivityLogJson := ActivityLogBuilder.Query(Database::"E-Document Purchase Line", EDocumentPurchaseLine.SystemId);
+        Assert.IsTrue(StrPos(ActivityLogJson, ExpectedExplanation) > 0, StrSubstNo('The activity log should contain: %1', ExpectedExplanation));
+    end;
+
+    local procedure VerifyPurchaseLineUsesItemVATProductPostingGroup(EDocument: Record "E-Document"; Item: Record Item)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        PurchaseHeader.FindFirst();
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+
+        Assert.AreEqual(Item."VAT Prod. Posting Group", PurchaseLine."VAT Prod. Posting Group", 'The purchase line should use the VAT Product Posting Group from the item card.');
     end;
 
     local procedure SetResolveVATProductGroupInPurchSetup(NewResolveVATProductGroup: Boolean)
