@@ -258,6 +258,7 @@ table 6414 "ForNAV Peppol Setup"
 
     var
         CannotGetSetupErr: Label 'Cannot get setup from Peppol API. Contact your ForNAV partner.';
+        NonSaaSNotSupportedErr: Label 'Setting up the FORNAV Peppol connector is currently only supported in Business Central online.';
 
     local procedure ValidateEndpoint()
     var
@@ -339,6 +340,11 @@ table 6414 "ForNAV Peppol Setup"
             end;
 
         IsSaaS := EnvironmentInformation.IsSaaSInfrastructure();
+        // On-premises setup is not wired up yet (SendSetupRequest has no non-SaaS implementation)
+        // - fail fast with a clear message instead of failing deep in SendSetupRequest with the
+        // generic CannotGetSetupErr. This guard can be removed once on-premises setup is enabled.
+        if not IsSaaS then
+            Error(NonSaaSNotSupportedErr);
 
         Dlg.Open(DialogLbl);
         ResetForSetup();
