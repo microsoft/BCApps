@@ -365,16 +365,18 @@ codeunit 20508 "Subc. Price Management"
         PriceListQty := QtyBase / PriceListQtyPerUOM;
     end;
 
-    local procedure GetPriceByUOM(var SubcontractorPrice: Record "Subcontractor Price"; PriceListQty: Decimal; var PriceListCost: Decimal)
+    local procedure GetPriceByUOM(var SubcontractorPrice: Record "Subcontractor Price"; PriceListQty: Decimal; var PriceListCost: Decimal): Boolean
     begin
         SubcontractorPrice.SetRange("Minimum Quantity", 0, PriceListQty);
         SubcontractorPrice.SetRange("Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
-        if SubcontractorPrice.FindLast() then begin
-            PriceListCost := SubcontractorPrice."Direct Unit Cost";
-            if PriceListCost <> 0 then
-                if (PriceListCost * PriceListQty) < SubcontractorPrice."Minimum Amount" then
-                    PriceListCost := SubcontractorPrice."Minimum Amount" / PriceListQty;
-        end;
+        if not SubcontractorPrice.FindLast() then
+            exit(false);
+
+        PriceListCost := SubcontractorPrice."Direct Unit Cost";
+        if PriceListCost <> 0 then
+            if (PriceListCost * PriceListQty) < SubcontractorPrice."Minimum Amount" then
+                PriceListCost := SubcontractorPrice."Minimum Amount" / PriceListQty;
+        exit(true);
     end;
 
     procedure ConvertPriceToUOM(ProdUOM: Code[10]; ProdQtyPerUoM: Decimal; PriceListUOM: Code[10]; PriceListQtyPerUOM: Decimal; PriceListCost: Decimal; var DirectCost: Decimal)
@@ -571,7 +573,8 @@ codeunit 20508 "Subc. Price Management"
         if SubcontractorPrice."Unit of Measure Code" = PurchaseLine."Unit of Measure Code" then
             PriceListUOM := SubcontractorPrice."Unit of Measure Code";
         GetUOMPrice(PurchaseLine."No.", GetQuantityBase(PurchaseLine), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
-        GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost);
+        if not GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost) then
+            exit(false);
         if PriceListCost = 0 then
             exit(true);
 
