@@ -42,7 +42,7 @@ page 20441 "Qlty. Edit Large Text"
     /// </summary>
     /// <param name="ExistingText">The text to edit and update when the dialog is accepted.</param>
     /// <returns>The action used to close the modal page.</returns>
-    internal procedure RunModalWith(var ExistingText: Text) ResultAction: Action
+    procedure RunModalWith(var ExistingText: Text) ResultAction: Action
     begin
         ContentText := ExistingText;
         ResultAction := CurrPage.RunModal();
