@@ -75,6 +75,7 @@ codeunit 20533 "Subc. Purchase Header Ext"
     begin
         TransferOrderErrorInfo.Title := NoNewTransferLinesTitleLbl;
         TransferOrderErrorInfo.Message := CoveredTransferDemandErr;
+        TransferOrderErrorInfo.DataClassification := DataClassification::SystemMetadata;
         TransferOrderErrorInfo.RecordId := PurchaseHeader.RecordId();
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         TransferHeader.SetRange("Subc. Return Order", false);

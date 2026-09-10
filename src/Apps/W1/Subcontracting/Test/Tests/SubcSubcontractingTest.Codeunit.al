@@ -222,9 +222,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Existing documents alone must not cause the covered-demand message.
-        Assert.AreEqual(
-            'Nothing to create. No components or WIP to transfer for the specified subcontracting order.',
-            GetLastErrorText(), 'Zero demand must retain the generic error.');
+        Assert.ExpectedError(NothingToCreateErr);
         PurchaseOrder.Close();
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -267,9 +265,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Existing documents alone must not cause the covered-demand message.
-        Assert.AreEqual(
-            'Nothing to create. No components or WIP to transfer for the specified subcontracting order.',
-            GetLastErrorText(), 'Ineligible demand must retain the generic error.');
+        Assert.ExpectedError(NothingToCreateErr);
         PurchaseOrder.Close();
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -4447,6 +4443,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
         AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '|%1 = Transfer Order No.';
+        NothingToCreateErr: Label 'Nothing to create. No components or WIP to transfer for the specified subcontracting order.';
         PurchOrderRoutingErr: Label 'Purchase Order %1 should contain a line tied to Routing Reference No. %2', Comment = '%1 = Purchase Order No., %2 = Routing Reference No.';
 
 }
