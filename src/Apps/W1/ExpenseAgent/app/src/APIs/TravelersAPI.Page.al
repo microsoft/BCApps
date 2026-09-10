@@ -43,13 +43,20 @@ page 7103 "Travelers API"
                 {
                     Caption = 'Line No.';
                 }
-                field(expenseUserNo; Rec."Expense User No.")
+                field(employeeNumber; EmployeeNumber)
                 {
-                    Caption = 'Expense User No.';
-                }
-                field(expenseUserName; Rec."Expense User Name")
-                {
-                    Caption = 'Expense User Name';
+                    Caption = 'Employee Number';
+
+                    trigger OnValidate()
+                    var
+                        ExpenseUser: Record "Expense User";
+                    begin
+                        ExpenseUser.SetRange("Employee No.", EmployeeNumber);
+                        if not ExpenseUser.FindFirst() then
+                            Error(ExpenseUserNotFoundErr, EmployeeNumber);
+
+                        Rec.Validate("Expense User No.", ExpenseUser."No.");
+                    end;
                 }
             }
         }
@@ -61,4 +68,17 @@ page 7103 "Travelers API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnAfterGetRecord()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        Clear(EmployeeNumber);
+        if ExpenseUser.Get(Rec."Expense User No.") then
+            EmployeeNumber := ExpenseUser."Employee No.";
+    end;
+
+    var
+        EmployeeNumber: Code[20];
+        ExpenseUserNotFoundErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
 }

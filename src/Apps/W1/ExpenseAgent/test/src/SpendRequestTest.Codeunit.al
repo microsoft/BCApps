@@ -68,6 +68,8 @@ codeunit 148339 "Spend Request Test"
         CategoryLineOnlyErr: Label 'You can select an %1 only when %2 is %3.', Locked = true;
         AutomaticApprovalNotAllowedErr: Label 'Automatic travel request approval can be used only when the Expense Agent is disabled.', Locked = true;
         NotTravelRequestOwnerErr: Label 'did not create it', Locked = true;
+        TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.', Locked = true;
+        ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.', Locked = true;
         NotTravelRequestApproverErr: Label 'is not authorized', Locked = true;
         LinkedExpenseReportExistsErr: Label 'because it is linked to an expense report.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
@@ -767,6 +769,87 @@ codeunit 148339 "Spend Request Test"
         Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", 'The page action approval date and time should be recorded.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         Assert.RecordIsNotEmpty(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure CreateExpenseReportPageActionRecreatesDeletedReport()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] An approved travel request can recreate its deleted expense report through the API action.
+        Initialize();
+
+        // [GIVEN] An approved travel request whose automatically created report was deleted.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.Delete(true);
+        TravelRequestsAPI.SetRecord(SpendRequest);
+
+        // [WHEN] The create expense report action is invoked.
+        TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] A new linked report is returned for the requested Expense User.
+        Assert.AreEqual(WebServiceActionResultCode::Created, ActionContext.GetResultCode(), 'The action must return a created result.');
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.TestField("Expense User No.", ExpenseUser."No.");
+    end;
+
+    [Test]
+    procedure CreateExpenseReportPageActionRequiresApprovedTravelRequest()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] A report cannot be recreated before the travel request is approved.
+        Initialize();
+
+        // [GIVEN] An open travel request with a requested Expense User.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        TravelRequestsAPI.SetRecord(SpendRequest);
+
+        // [WHEN] The create expense report action is invoked.
+        asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] The action explains that approval is required.
+        Assert.ExpectedError(StrSubstNo(TravelRequestMustBeApprovedErr, SpendRequest."No."));
+    end;
+
+    [Test]
+    procedure CreateExpenseReportPageActionRejectsExistingLinkedReport()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] A second report cannot be created while one is already linked.
+        Initialize();
+
+        // [GIVEN] An approved travel request with an existing linked report.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        TravelRequestsAPI.SetRecord(SpendRequest);
+
+        // [WHEN] The create expense report action is invoked.
+        asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] The action identifies the Expense User, existing report, and travel request.
+        Assert.ExpectedError(
+            StrSubstNo(ExpenseReportAlreadyLinkedErr, ExpenseUser."No.", ExpenseReportHeader."No.", SpendRequest."No."));
     end;
 
     [Test]

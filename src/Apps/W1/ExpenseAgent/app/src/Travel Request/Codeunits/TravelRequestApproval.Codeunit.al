@@ -11,7 +11,8 @@ using System.Text;
 codeunit 7133 "Travel Request Approval"
 {
     Access = Internal;
-    Permissions = tabledata "Spend Request" = rm;
+    Permissions = tabledata "Spend Request" = rm,
+                  tabledata "Expense Report Header" = ri;
 
     internal procedure Submit(var SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20])
     var
@@ -73,6 +74,10 @@ codeunit 7133 "Travel Request Approval"
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
         ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
+        if ExpenseReportHeader.IsEmpty() then
+            Error(ExpenseReportWasNotCreatedErr, SpendRequest."No.", SpendRequest."Requested For");
     end;
 
     internal procedure Reject(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
@@ -223,4 +228,5 @@ codeunit 7133 "Travel Request Approval"
         NotTravelRequestOwnerErr: Label 'Expense user %1 cannot submit travel request %2 because the user did not create it.', Comment = '%1 = Expense user number, %2 = Travel request number';
         NotTravelRequestApproverErr: Label 'Expense user %1 is not authorized to approve or reject travel request %2.', Comment = '%1 = Expense user number, %2 = Travel request number';
         TooManyTravelRequestSubmittersErr: Label 'Expense user %1 is configured to approve too many travel request submitters. Refine the approval setup before listing pending travel requests.', Comment = '%1 = Expense user number';
+        ExpenseReportWasNotCreatedErr: Label 'Expense report creation failed for travel request %1 and expense user %2. The travel request was not approved.', Comment = '%1 = Travel Request No., %2 = Expense User No.';
 }

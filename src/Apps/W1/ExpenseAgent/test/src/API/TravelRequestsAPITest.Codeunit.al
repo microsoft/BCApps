@@ -8,6 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
+using Microsoft.HumanResources.Employee;
 
 // These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
 // Re-enable them after BCApps CI provisions an authenticated OData endpoint and a dedicated
@@ -35,6 +36,9 @@ codeunit 148347 "Travel Requests API Test"
 #endif
         ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
         TravelRequestsServiceNameTok: Label 'travelRequests', Locked = true;
+        TravelersServiceNameTok: Label 'travelers', Locked = true;
+        ApproveTravelRequestActionTok: Label 'Microsoft.NAV.approveTravelRequest', Locked = true;
+        CreateExpenseReportActionTok: Label 'Microsoft.NAV.createExpenseReport', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         TravelRequestDetailsServiceNameTok: Label 'travelRequestDetails', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400 (BadRequest).', Locked = true;
@@ -44,6 +48,151 @@ codeunit 148347 "Travel Requests API Test"
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
         StatusNotOpenErr: Label 'must have the status', Locked = true;
+
+    [Test]
+    procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
+    var
+        Employee: Record Employee;
+        OtherEmployee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Traveler: Record Traveler;
+        Request: JsonObject;
+        Response: JsonObject;
+        EmployeeNumber: JsonToken;
+        TargetURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] A traveler supplied as an employee is stored as the linked Expense User.
+        Initialize();
+
+        // [GIVEN] An Expense User linked to an employee and an open travel request.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        Request.Add('employeeNumber', ExpenseUser."Employee No.");
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The employee is added through the Travelers API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelersServiceNameTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
+
+        // [THEN] The Traveler stores the corresponding Expense User number.
+        Traveler.SetRange("Spend Request No.", TravelRequest."No.");
+        Traveler.FindFirst();
+        Traveler.TestField("Expense User No.", ExpenseUser."No.");
+
+        // [THEN] The API returns the employee mapping without exposing Expense User fields.
+        Response.ReadFrom(ResponseText);
+        Response.Get('employeeNumber', EmployeeNumber);
+        Assert.AreEqual(ExpenseUser."Employee No.", EmployeeNumber.AsValue().AsText(), 'The mapped employee number must be returned.');
+        Assert.IsFalse(Response.Contains('expenseUserNo'), 'The Expense User number must not be exposed.');
+        Assert.IsFalse(Response.Contains('expenseUserName'), 'The Expense User name must not be exposed.');
+
+        // [WHEN] The travel request is read with travelers and employees expanded.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        if StrPos(TargetURL, '?') <> 0 then
+            TargetURL += '&$expand=travelers,employees'
+        else
+            TargetURL += '?$expand=travelers,employees';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] Stored Expense Users are projected back as the request's full Employee entities.
+        Assert.AreNotEqual(
+            0, StrPos(ResponseText, '"employeeNumber":"' + ExpenseUser."Employee No." + '"'),
+            'Expanded travelers must return the mapped employee number.');
+        Assert.AreEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must not expose Expense User numbers.');
+        Assert.AreEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must not expose Expense User names.');
+        Employee.Get(ExpenseUser."Employee No.");
+        OtherEmployee.Get(OtherExpenseUser."Employee No.");
+        Assert.AreNotEqual(
+            0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(Employee.SystemId)))),
+            'The traveler Employee entity must be returned.');
+        Assert.AreEqual(
+            0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(OtherEmployee.SystemId)))),
+            'Employees who are not travelers must not be returned.');
+    end;
+
+    [Test]
+    procedure CreateExpenseReportActionRecreatesDeletedReport()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] The bound OData action recreates a deleted report for an approved travel request.
+        Initialize();
+
+        // [GIVEN] An approved request whose automatically created report was deleted.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", ExpenseUser."No.");
+        TravelRequest.Modify(true);
+        LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Approved);
+        ExpenseReportHeader.CreateFromApprovedTravelRequest(TravelRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.Delete(true);
+        Commit();
+
+        // [WHEN] The create expense report action is invoked through OData.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API",
+            TravelRequestsServiceNameTok, CreateExpenseReportActionTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, '{}', ResponseText, 201);
+
+        // [THEN] A new report is linked to the request and its Expense User.
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.TestField("Expense User No.", ExpenseUser."No.");
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestActionCreatesExpenseReport()
+    var
+        ApprovalSetup: Record "Expense Approval Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ApproverExpenseUser: Record "Expense User";
+        RequestedForExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        TargetURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Approving a travel request through its bound OData action creates the expense report.
+        Initialize();
+
+        // [GIVEN] A released travel request assigned to an approver.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        LibraryExpense.CreateExpenseUser(RequestedForExpenseUser);
+        CreateApprover(ApproverExpenseUser);
+        LibraryExpense.CreateExpenseApprovalSetup(
+            ApprovalSetup, RequestedForExpenseUser."No.", ApproverExpenseUser."No.");
+        CreatePendingTravelRequest(TravelRequest, RequestedForExpenseUser);
+        Commit();
+
+        // [WHEN] The approve travel request action is invoked through OData.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API",
+            TravelRequestsServiceNameTok, ApproveTravelRequestActionTok);
+        RequestBody := StrSubstNo('{"approverExpenseUserNo":"%1"}', ApproverExpenseUser."No.");
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The request is approved and a report is created for Requested For.
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField(Status, TravelRequest.Status::Approved);
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.TestField("Expense User No.", RequestedForExpenseUser."No.");
+    end;
 
     [Test]
     procedure TravelRequestsAPINormalizesCurrency()

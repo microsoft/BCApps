@@ -23,7 +23,8 @@ page 7134 "Travel Requests API"
     AboutText = 'Provides access to data from the Travel Request table';
     Permissions = tabledata "Spend Request" = rimd,
                   tabledata "Spend Request Detail" = rmd,
-                  tabledata "Spend Request To G/L Link" = rd;
+                  tabledata "Spend Request To G/L Link" = rd,
+                  tabledata "Expense Report Header" = ri;
 
     layout
     {
@@ -203,6 +204,13 @@ page 7134 "Travel Requests API"
                     EntitySetName = 'travelers';
                     SubPageLink = "Spend Request No." = field("No.");
                 }
+                part(employees; "Employees API")
+                {
+                    Caption = 'Employees';
+                    EntityName = 'employee';
+                    EntitySetName = 'employees';
+                    SubPageLink = "Travel Request No. Filter" = field("No.");
+                }
             }
         }
     }
@@ -267,6 +275,42 @@ page 7134 "Travel Requests API"
     begin
         TravelRequestApproval.Reject(Rec, ApproverExpenseUserNo, RejectReason);
         SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure CreateExpenseReport(var ActionContext: WebServiceActionContext)
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
+        if Rec.Status <> Rec.Status::Approved then
+            Error(TravelRequestMustBeApprovedErr, Rec."No.");
+        Rec.TestField("Requested For");
+
+        ExpenseReportHeader.LockTable();
+        ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", Rec."Requested For");
+        if ExpenseReportHeader.FindFirst() then
+            Error(
+                ExpenseReportAlreadyLinkedErr,
+                Rec."Requested For", ExpenseReportHeader."No.", Rec."No.");
+
+        ExpenseReportHeader.Reset();
+        ExpenseReportHeader.Init();
+        ExpenseReportHeader.Validate(Description, CopyStr(Rec.Purpose, 1, MaxStrLen(ExpenseReportHeader.Description)));
+        ExpenseReportHeader.ValidateExpenseUserFromApprovedTravelRequest(Rec."Requested For");
+        ExpenseReportHeader.Validate("Reimbursement Currency Code", Rec."Currency Code");
+        ExpenseReportHeader.SetHideValidationDialog(true);
+        ExpenseReportHeader.Validate("Spend Request No.", Rec."No.");
+        ExpenseReportHeader.Insert(true);
+        ExpenseReportHeader.Reset();
+        ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", Rec."Requested For");
+        ExpenseReportHeader.FindFirst();
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(ExpenseReportHeader.FieldNo(SystemId), ExpenseReportHeader.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -357,4 +401,6 @@ page 7134 "Travel Requests API"
         ExpectedEndDateProvided: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
+        TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
+        ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.';
 }

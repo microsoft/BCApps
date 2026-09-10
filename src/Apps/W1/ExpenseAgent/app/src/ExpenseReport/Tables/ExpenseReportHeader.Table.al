@@ -1354,6 +1354,7 @@ table 6906 "Expense Report Header"
         SpendRequest.TestField("Requested For");
 
         ExistingExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExistingExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
         if not ExistingExpenseReportHeader.IsEmpty() then
             exit;
 
