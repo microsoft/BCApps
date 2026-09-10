@@ -7,7 +7,6 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Customer Payments]
     end;
 
@@ -771,12 +770,14 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV1 - Customer Payments E2E");
 
-        if not isInitialized then
+        if not isInitialized then begin
+            LibraryGraphMgt.SetAuthenticationProvider(
+                Enum::"API Test Authentication"::"Microsoft Test Environment");
             isInitialized := true;
+        end;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"APIV1 - Customer Payments E2E");
     end;

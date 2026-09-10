@@ -9,7 +9,6 @@ codeunit 139709 "Sales Invoices E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 
@@ -52,6 +51,7 @@ codeunit 139709 "Sales Invoices E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
@@ -629,7 +629,6 @@ codeunit 139709 "Sales Invoices E2E"
         Initialize();
 
         // [GIVEN] 2 invoices, one posted and one unposted without totals assigned
-        LibraryApplicationArea.EnableFoundationSetup();
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
           SalesHeader, DiscountPct, SalesHeader."Document Type"::Invoice);
         SalesHeader.CALCFIELDS("Recalculate Invoice Disc.");

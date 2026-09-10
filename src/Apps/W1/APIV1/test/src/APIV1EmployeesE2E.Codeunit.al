@@ -8,7 +8,6 @@ codeunit 139722 "APIV1 - Employees E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Employee]
     end;
 
@@ -26,13 +25,15 @@ codeunit 139722 "APIV1 - Employees E2E"
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryApplicationArea.EnableBasicHRSetup();
 
         // Lazy Setup.
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryHumanResource.SetupEmployeeNumberSeries();
 

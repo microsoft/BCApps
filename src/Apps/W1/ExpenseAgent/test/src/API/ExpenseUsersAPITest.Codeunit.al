@@ -83,11 +83,12 @@ codeunit 148315 "Expense Users API Test"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Users API Test");
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Users API Test");
         if not ExpenseAgentSetup.Get() then begin
