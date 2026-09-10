@@ -4475,7 +4475,6 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
     [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
     procedure UndoDropShipmentWithBlankBinAtBinMandatoryLocation()
     var
-        // Bin: Record Bin;
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
         Location: Record Location;
@@ -4773,14 +4772,6 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
 
     local procedure CreateItemWithVendorNo(var Item: Record Item)
     begin
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
-        Item.Modify(true);
-    end;
-
-    local procedure CreateItemWithVendorNoAndPurchasingCode(var Item: Record Item)
-    begin
-
         LibraryInventory.CreateItem(Item);
         Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
         Item.Modify(true);
