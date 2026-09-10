@@ -2545,6 +2545,41 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         PurchaseInvoice.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeferralCodeCannotBeChangedOnReleasedPurchaseInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
+        GLAccount: Record "G/L Account";
+        DeferralTemplateCode: Code[10];
+    begin
+        // [FEATURE] [Deferral Code]
+        // [SCENARIO 649204] Deferral Code cannot be changed on a released Purchase Invoice
+        Initialize();
+
+        // [GIVEN] A Purchase Invoice with a deferral code on a G/L Account line
+        CreateGLAccount(GLAccount);
+        CreatePurchDocWithLine(
+          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
+          PurchaseLine.Type::"G/L Account", GLAccount."No.", WorkDate());
+        DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
+        PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] The Purchase Invoice is released
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [WHEN] Changing the Deferral Code on the Purchase Line
+        DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 3);
+        PurchaseLine2.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        asserterror PurchaseLine2.Validate("Deferral Code", DeferralTemplateCode);
+
+        // [THEN] The change is rejected because the Purchase Invoice is not open
+        Assert.ExpectedTestFieldError(PurchaseHeader.FieldCaption(Status), Format(PurchaseHeader.Status::Open));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2569,7 +2604,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"RED Test Unit for Purch Doc");
     end;
 
-    local procedure CreateDeferralCode(CalcMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date"; NumOfPeriods: Integer): Code[10]
+    local procedure CreateDeferralCode(CalcMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date";
+                                                       NumOfPeriods: Integer): Code[10]
     var
         DeferralTemplate: Record "Deferral Template";
     begin
@@ -2586,7 +2622,9 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         exit(DeferralTemplate."Deferral Code");
     end;
 
-    local procedure CreateDeferralTemplate(DeferralPercent: Decimal; DeferralCalculationMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date"; NumberOfPeriods: Integer; PeriodDescription: Text[100]): Code[10]
+    local procedure CreateDeferralTemplate(DeferralPercent: Decimal; DeferralCalculationMethod: Enum "Deferral Calculation Method"; StartDate: Enum "Deferral Calculation Start Date";
+                                                                                                    NumberOfPeriods: Integer;
+                                                                                                    PeriodDescription: Text[100]): Code[10]
     var
         DeferralTemplate: Record "Deferral Template";
     begin
@@ -2623,7 +2661,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
           LibraryRandom.RandDec(1000, 2));
     end;
 
-    local procedure CreateItemWithDefaultDeferralCode(var DefaultDeferralCode: Code[10]; var ItemNo: Code[20]; DefaultCalcMethod: Enum "Deferral Calculation Method"; DefaultStartDate: Enum "Deferral Calculation Start Date"; DefaultNoOfPeriods: Integer)
+    local procedure CreateItemWithDefaultDeferralCode(var DefaultDeferralCode: Code[10]; var ItemNo: Code[20]; DefaultCalcMethod: Enum "Deferral Calculation Method"; DefaultStartDate: Enum "Deferral Calculation Start Date";
+                                                                                                                                      DefaultNoOfPeriods: Integer)
     var
         Item: Record Item;
     begin
@@ -2635,7 +2674,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         ItemNo := Item."No.";
     end;
 
-    local procedure CreateGLAccountWithDefaultDeferralCode(var DefaultDeferralCode: Code[10]; var No: Code[20]; DefaultCalcMethod: Enum "Deferral Calculation Method"; DefaultStartDate: Enum "Deferral Calculation Start Date"; DefaultNoOfPeriods: Integer)
+    local procedure CreateGLAccountWithDefaultDeferralCode(var DefaultDeferralCode: Code[10]; var No: Code[20]; DefaultCalcMethod: Enum "Deferral Calculation Method"; DefaultStartDate: Enum "Deferral Calculation Start Date";
+                                                                                                                                       DefaultNoOfPeriods: Integer)
     var
         GLAccount: Record "G/L Account";
     begin
@@ -2655,7 +2695,9 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         GLAccount.Get(No);
     end;
 
-    local procedure CreatePurchDocWithLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; PurchLineType: Enum "Purchase Line Type"; No: Code[20]; PostingDate: Date)
+    local procedure CreatePurchDocWithLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; PurchLineType: Enum "Purchase Line Type";
+                                                                                                                                                     No: Code[20];
+                                                                                                                                                     PostingDate: Date)
     var
         Item: Record Item;
     begin
@@ -2682,7 +2724,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         end;
     end;
 
-    local procedure CreatePurchHeaderForVendor(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; PostingDate: Date; VendorCode: Code[20])
+    local procedure CreatePurchHeaderForVendor(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; PostingDate: Date;
+                                                                                                               VendorCode: Code[20])
     begin
         Clear(PurchaseHeader);
         PurchaseHeader.Init();
@@ -2739,7 +2782,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         GLAccountDeferral.Modify(true);
     end;
 
-    local procedure DeferralLineSetRange(var DeferralLine: Record "Deferral Line"; DocType: Enum "Purchase Document Type"; DocNo: Code[20]; LineNo: Integer)
+    local procedure DeferralLineSetRange(var DeferralLine: Record "Deferral Line"; DocType: Enum "Purchase Document Type"; DocNo: Code[20];
+                                                                                                LineNo: Integer)
     begin
         DeferralLine.SetRange("Deferral Doc. Type", "Deferral Document Type"::Purchase);
         DeferralLine.SetRange("Gen. Jnl. Template Name", '');
@@ -2749,7 +2793,12 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         DeferralLine.SetRange("Line No.", LineNo);
     end;
 
-    local procedure ValidateDeferralSchedule(DocType: Enum "Purchase Document Type"; DocNo: Code[20]; LineNo: Integer; DeferralTemplateCode: Code[10]; HeaderPostingDate: Date; HeaderAmountToDefer: Decimal; NoOfPeriods: Integer)
+    local procedure ValidateDeferralSchedule(DocType: Enum "Purchase Document Type"; DocNo: Code[20];
+                                                          LineNo: Integer;
+                                                          DeferralTemplateCode: Code[10];
+                                                          HeaderPostingDate: Date;
+                                                          HeaderAmountToDefer: Decimal;
+                                                          NoOfPeriods: Integer)
     var
         DeferralHeader: Record "Deferral Header";
         DeferralLine: Record "Deferral Line";
@@ -2780,7 +2829,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         DeferralHeader.TestField("Amount to Defer", DeferralAmount);
     end;
 
-    local procedure ValidateDeferralScheduleDoesNotExist(DocType: Enum "Purchase Document Type"; DocNo: Code[20]; LineNo: Integer)
+    local procedure ValidateDeferralScheduleDoesNotExist(DocType: Enum "Purchase Document Type"; DocNo: Code[20];
+                                                                      LineNo: Integer)
     var
         DeferralHeader: Record "Deferral Header";
         DeferralLine: Record "Deferral Line";
@@ -2791,7 +2841,9 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         asserterror DeferralLine.FindFirst();
     end;
 
-    local procedure CopyDoc(PurchaseHeader: Record "Purchase Header"; DocType: Enum "Purchase Document Type"; DocNo: Code[20]; IncludeHeader: Boolean; RecalculateLines: Boolean)
+    local procedure CopyDoc(PurchaseHeader: Record "Purchase Header"; DocType: Enum "Purchase Document Type"; DocNo: Code[20];
+                                                                                   IncludeHeader: Boolean;
+                                                                                   RecalculateLines: Boolean)
     var
         CopyPurchaseDoc: Report "Copy Purchase Document";
     begin
@@ -2824,7 +2876,10 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         end;
     end;
 
-    local procedure ValidateDeferralHeader(DeferralHeader: Record "Deferral Header"; DeferralCode: Code[10]; AmountToDefer: Decimal; CalcMethod: Enum "Deferral Calculation Method"; StartDate: Date; NoOfPeriods: Integer; ScheduleDesc: Text[100]; CurrencyCode: Code[10])
+    local procedure ValidateDeferralHeader(DeferralHeader: Record "Deferral Header"; DeferralCode: Code[10]; AmountToDefer: Decimal; CalcMethod: Enum "Deferral Calculation Method"; StartDate: Date;
+                                                                                                                                                     NoOfPeriods: Integer;
+                                                                                                                                                     ScheduleDesc: Text[100];
+                                                                                                                                                     CurrencyCode: Code[10])
     begin
         DeferralHeader.TestField("Deferral Code", DeferralCode);
         DeferralHeader.TestField("Amount to Defer", AmountToDefer);
@@ -2933,7 +2988,9 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         PostedDeferralLine.Find('-');
     end;
 
-    local procedure ModifyDeferral(PurchaseLine: Record "Purchase Line"; CalcMethod: Enum "Deferral Calculation Method"; NoOfPeriods: Integer; DeferralAmount: Decimal; StartDate: Date)
+    local procedure ModifyDeferral(PurchaseLine: Record "Purchase Line"; CalcMethod: Enum "Deferral Calculation Method"; NoOfPeriods: Integer;
+                                                                                         DeferralAmount: Decimal;
+                                                                                         StartDate: Date)
     var
         DeferralHeader: Record "Deferral Header";
         DeferralUtilities: Codeunit "Deferral Utilities";
@@ -3038,7 +3095,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         PurchHeaderArchive.FindFirst();
     end;
 
-    local procedure ValidateDeferralArchiveScheduleDoesNotExist(DocType: Enum "Purchase Document Type"; DocNo: Code[20]; LineNo: Integer)
+    local procedure ValidateDeferralArchiveScheduleDoesNotExist(DocType: Enum "Purchase Document Type"; DocNo: Code[20];
+                                                                             LineNo: Integer)
     var
         DeferralHeaderArchive: Record "Deferral Header Archive";
         DeferralLineArchive: Record "Deferral Line Archive";
@@ -3182,7 +3240,9 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         exit(CalcDate('<' + Expr + 'M>', PostingDate));
     end;
 
-    local procedure ValidateReturnsDeferralStartDate(DocType: Enum "Purchase Document Type"; DocNo: Code[20]; LineNo: Integer; ReturnsDeferralStartDate: Date; var DeferralAmount: Decimal)
+    local procedure ValidateReturnsDeferralStartDate(DocType: Enum "Purchase Document Type"; DocNo: Code[20];
+                                                                  LineNo: Integer;
+                                                                  ReturnsDeferralStartDate: Date; var DeferralAmount: Decimal)
     var
         DeferralLine: Record "Deferral Line";
         Period: Integer;
@@ -3247,7 +3307,9 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         exit(Currency.Code);
     end;
 
-    local procedure CreatePurchDocWithCurrencyAndLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; PurchLineType: Enum "Purchase Line Type"; No: Code[20]; PostingDate: Date)
+    local procedure CreatePurchDocWithCurrencyAndLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; DocumentType: Enum "Purchase Document Type"; PurchLineType: Enum "Purchase Line Type";
+                                                                                                                                                                No: Code[20];
+                                                                                                                                                                PostingDate: Date)
     var
         Item: Record Item;
     begin
