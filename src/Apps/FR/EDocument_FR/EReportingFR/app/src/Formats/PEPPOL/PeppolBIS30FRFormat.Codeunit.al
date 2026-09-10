@@ -295,7 +295,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             CustomizationIdNode.ReplaceWith(NewCustomizationIdNode);
         end;
 
-        IndexInvoiceLineNodes(XmlDoc, NamespaceMgr, InvoiceLineNodes);
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetLoadFields("Line No.", "Order Line No.", "Shipment No.");
         if SalesInvoiceLine.FindSet() then
@@ -377,13 +376,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         OrderLineReferenceElement: XmlElement;
         OrderReferenceElement: XmlElement;
         DeliveryElement: XmlElement;
-        LineID: Text;
         BuyerReference: Text;
         LineXPath: Text;
         ShipmentPostingDate: Date;
     begin
-        LineID := Format(SalesInvoiceLine."Line No.", 0, 9);
-        if not InvoiceLineNodes.Get(LineID, InvoiceLineNode) then
+        LineXPath := StrSubstNo(InvoiceLineXPathTok, Format(SalesInvoiceLine."Line No.", 0, 9));
+        if not XmlDoc.SelectSingleNode(LineXPath, NamespaceMgr, InvoiceLineNode) then
             exit;
         if not InvoiceLineNode.SelectSingleNode('cac:AllowanceCharge | cac:TaxTotal | cac:WithholdingTaxTotal | cac:Item', NamespaceMgr, LineContentAnchorNode) then
             exit;
@@ -870,6 +868,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         FranceCustomizationIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         ExtendedCTCFranceCustomizationIdTok: Label 'urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', Locked = true;
+        InvoiceLineXPathTok: Label '/*/cac:InvoiceLine[cbc:ID=''%1'']', Locked = true;
         RegulatoryCommentFormatTok: Label '#%1#%2', Comment = '%1 = Regulatory comment type, %2 = Comment text', Locked = true;
         BillingModeB1Tok: Label 'B1', Locked = true;
         BillingModeS1Tok: Label 'S1', Locked = true;
