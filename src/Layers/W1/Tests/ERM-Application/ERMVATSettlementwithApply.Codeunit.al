@@ -498,7 +498,6 @@ codeunit 134008 "ERM VAT Settlement with Apply"
     begin
         // [SCENARIO 648151] VAT settlement entries contain source currency amounts when no additional reporting currency is set.
         Initialize();
-        ModifyGeneralLedegerSetup('', false);
         CreateAndPostGenJournalLine(GenJournalLine);
         GLAccount.Get(GenJournalLine."Bal. Account No.");
         GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"LCY Only");
