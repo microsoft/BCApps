@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Document;
 using System.Telemetry;
-using System.Text;
 using System.Utilities;
 
 codeunit 6369 "Pagero Processing"

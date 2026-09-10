@@ -974,16 +974,14 @@ dotnet
         {
         }
 
+#if not CLEAN30
         type("Newtonsoft.Json.JsonTextReader"; "JsonTextReader")
         {
         }
 
-#if not CLEAN30
         type("Newtonsoft.Json.JsonTextWriter"; "JsonTextWriter")
         {
         }
-#endif
-
         type("Newtonsoft.Json.Linq.JArray"; "JArray")
         {
         }
@@ -999,8 +997,6 @@ dotnet
         type("Newtonsoft.Json.Linq.JToken"; "JToken")
         {
         }
-
-#if not CLEAN30
         type("Newtonsoft.Json.Linq.JValue"; "JValue")
         {
         }

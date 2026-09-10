@@ -5,11 +5,9 @@
 
 namespace Microsoft.DataMigration;
 
-using Microsoft.CRM.Outlook;
 using System.Environment;
 using System.Integration;
 using System.Telemetry;
-using System.Text;
 
 codeunit 4014 "Notification Handler"
 {

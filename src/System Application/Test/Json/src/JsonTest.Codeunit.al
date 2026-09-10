@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Text.Json;
+using System.Utilities;
 
 codeunit 139910 "Json Test"
 {

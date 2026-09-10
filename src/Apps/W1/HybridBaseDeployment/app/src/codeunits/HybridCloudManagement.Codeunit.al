@@ -17,7 +17,6 @@ using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.Telemetry;
-using System.Text;
 using System.Threading;
 using System.Upgrade;
 

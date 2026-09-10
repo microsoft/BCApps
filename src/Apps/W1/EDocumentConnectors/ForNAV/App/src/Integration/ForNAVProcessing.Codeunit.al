@@ -7,7 +7,6 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using Microsoft.EServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
-using System.Text;
 using System.Utilities;
 
 codeunit 6419 "ForNAV Processing"

@@ -18,9 +18,13 @@ codeunit 139210 "JSON Buffer Tests"
     var
         TempJSONBuffer: Record "JSON Buffer" temporary;
     begin
-        // [SCENARIO] Reading empty string does not cause errors
+        // [SCENARIO] Reading empty or whitespace JSON clears the buffer without causing errors
         LibraryLowerPermissions.SetO365Basic();
+        TempJSONBuffer.ReadFromText('{"value":1}');
         TempJSONBuffer.ReadFromText('');
+        Assert.RecordIsEmpty(TempJSONBuffer);
+        TempJSONBuffer.ReadFromText('   ');
+        Assert.RecordIsEmpty(TempJSONBuffer);
     end;
 
     [Test]
@@ -34,6 +38,7 @@ codeunit 139210 "JSON Buffer Tests"
         asserterror TempJSONBuffer.ReadFromText('Test');
         asserterror TempJSONBuffer.ReadFromText('{Test}');
         asserterror TempJSONBuffer.ReadFromText('{Test - 5}');
+        asserterror TempJSONBuffer.ReadFromText('true false');
     end;
 
     [Test]
@@ -87,6 +92,140 @@ codeunit 139210 "JSON Buffer Tests"
           TempResultArrayJSONBuffer.GetPropertyValue(PropertyValue, 'OtherVar'), 'could not find property value for OtherVar');
         Assert.AreEqual('TestValue', PropertyValue, '');
         Assert.IsTrue(TempResultArrayJSONBuffer.Next() = 0, 'There should not be any more elements');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadRootJSONArray()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+    begin
+        // [SCENARIO] JSON Buffer supports a JSON array at the root
+        LibraryLowerPermissions.SetO365Basic();
+
+        TempJSONBuffer.ReadFromText('[1,{"value":"x"},[]]');
+
+        Assert.AreEqual(9, TempJSONBuffer.Count(), 'Not all JSON elements were read');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 0, TempJSONBuffer."Token type"::"Start Array", '', '', '');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Integer, '1', 'System.Int64', '[0]');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Start Object", '', '', '[1]');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"Property Name", 'value', 'System.String', '[1].value');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::String, 'x', 'System.String', '[1].value');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"End Object", '', '', '[1]');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Start Array", '', '', '[2]');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"End Array", '', '', '[2]');
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::"End Array", '', '', '');
+        VerifyContiguousEntryNumbers(TempJSONBuffer);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadRootJSONScalars()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+    begin
+        // [SCENARIO] JSON Buffer supports each standard JSON scalar at the root
+        LibraryLowerPermissions.SetO365Basic();
+
+        TempJSONBuffer.ReadFromText('"root"');
+        Assert.AreEqual(1, TempJSONBuffer.Count(), 'A root string must create one row');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::String, 'root', 'System.String', '');
+
+        TempJSONBuffer.ReadFromText('42');
+        Assert.AreEqual(1, TempJSONBuffer.Count(), 'A root integer must replace the previous row');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::Integer, '42', 'System.Int64', '');
+
+        TempJSONBuffer.ReadFromText('2.5');
+        Assert.AreEqual(1, TempJSONBuffer.Count(), 'A root decimal must replace the previous row');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::Decimal, Format(2.5), 'System.Double', '');
+
+        TempJSONBuffer.ReadFromText('true');
+        Assert.AreEqual(1, TempJSONBuffer.Count(), 'A root Boolean must replace the previous row');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::Boolean, 'Yes', 'System.Boolean', '');
+
+        TempJSONBuffer.ReadFromText('false');
+        Assert.AreEqual(1, TempJSONBuffer.Count(), 'A root Boolean must replace the previous row');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::Boolean, 'No', 'System.Boolean', '');
+
+        TempJSONBuffer.ReadFromText('null');
+        Assert.AreEqual(1, TempJSONBuffer.Count(), 'A root null must replace the previous row');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::Null, '', '', '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadNestedJSONAndPunctuationPathsInPropertyOrder()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+    begin
+        // [SCENARIO] JSON Buffer preserves object order and native paths through nested and empty containers
+        LibraryLowerPermissions.SetO365Basic();
+
+        TempJSONBuffer.ReadFromText('{"z":1,"a.b":{"emptyArray":[],"nested":[{"flag":true}]},"a":null,"emptyObject":{}}');
+
+        Assert.AreEqual(22, TempJSONBuffer.Count(), 'Not all JSON elements were read');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 0, TempJSONBuffer."Token type"::"Start Object", '', '', '');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'z', 'System.String', 'z');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Integer, '1', 'System.Int64', 'z');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'a.b', 'System.String', '[''a.b'']');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Start Object", '', '', '[''a.b'']');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"Property Name", 'emptyArray', 'System.String', '[''a.b''].emptyArray');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"Start Array", '', '', '[''a.b''].emptyArray');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"End Array", '', '', '[''a.b''].emptyArray');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"Property Name", 'nested', 'System.String', '[''a.b''].nested');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"Start Array", '', '', '[''a.b''].nested');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 3, TempJSONBuffer."Token type"::"Start Object", '', '', '[''a.b''].nested[0]');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 4, TempJSONBuffer."Token type"::"Property Name", 'flag', 'System.String', '[''a.b''].nested[0].flag');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 4, TempJSONBuffer."Token type"::Boolean, 'Yes', 'System.Boolean', '[''a.b''].nested[0].flag');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 3, TempJSONBuffer."Token type"::"End Object", '', '', '[''a.b''].nested[0]');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 2, TempJSONBuffer."Token type"::"End Array", '', '', '[''a.b''].nested');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"End Object", '', '', '[''a.b'']');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'a', 'System.String', 'a');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Null, '', '', 'a');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'emptyObject', 'System.String', 'emptyObject');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Start Object", '', '', 'emptyObject');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"End Object", '', '', 'emptyObject');
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::"End Object", '', '', '');
+        VerifyContiguousEntryNumbers(TempJSONBuffer);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadJSONNumberTypes()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+        ExponentValue: Decimal;
+        LargeIntegerValue: BigInteger;
+    begin
+        // [SCENARIO] JSON Buffer distinguishes integer and floating-point JSON number syntax
+        LibraryLowerPermissions.SetO365Basic();
+        ExponentValue := 1000;
+        Evaluate(LargeIntegerValue, '3000000000');
+
+        TempJSONBuffer.ReadFromText('{"integer":42,"negative":-7,"largeInteger":3000000000,"decimal":2.3,"exponent":1e3}');
+
+        Assert.AreEqual(12, TempJSONBuffer.Count(), 'Not all JSON elements were read');
+        TempJSONBuffer.FindFirst();
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 0, TempJSONBuffer."Token type"::"Start Object", '', '', '');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'integer', 'System.String', 'integer');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Integer, '42', 'System.Int64', 'integer');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'negative', 'System.String', 'negative');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Integer, '-7', 'System.Int64', 'negative');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'largeInteger', 'System.String', 'largeInteger');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Integer, Format(LargeIntegerValue), 'System.Int64', 'largeInteger');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'decimal', 'System.String', 'decimal');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Decimal, Format(2.3), 'System.Double', 'decimal');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::"Property Name", 'exponent', 'System.String', 'exponent');
+        VerifyJSONBufferAndFindNext(TempJSONBuffer, 1, TempJSONBuffer."Token type"::Decimal, Format(ExponentValue), 'System.Double', 'exponent');
+        VerifyJSONBuffer(TempJSONBuffer, 0, TempJSONBuffer."Token type"::"End Object", '', '', '');
     end;
 
     [Test]
@@ -218,6 +357,67 @@ codeunit 139210 "JSON Buffer Tests"
         TempJSONBuffer.ReadFromText(StrSubstNo('{"Variable":"%1"}', LongString));
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.AreEqual(LongString, PropertyValue, 'Invalid string');
+        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::String);
+        TempJSONBuffer.FindFirst();
+        TempJSONBuffer.CalcFields("Value BLOB");
+        Assert.IsTrue(TempJSONBuffer."Value BLOB".HasValue(), 'The long value was not stored in the BLOB');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadJSONFromBlob()
+    var
+        SourceJSONBuffer: Record "JSON Buffer" temporary;
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+        BlobFieldRef: FieldRef;
+        SourceRecordRef: RecordRef;
+        OutStream: OutStream;
+        PropertyValue: Text;
+    begin
+        // [SCENARIO] JSON Buffer continues to support UTF-8 JSON stored in a BLOB field
+        LibraryLowerPermissions.SetO365Basic();
+        SourceJSONBuffer."Entry No." := 1;
+        SourceJSONBuffer."Value BLOB".CreateOutStream(OutStream, TEXTENCODING::UTF8);
+        OutStream.WriteText('{"fromBlob":true}');
+        SourceJSONBuffer.Insert();
+        SourceRecordRef.GetTable(SourceJSONBuffer);
+        BlobFieldRef := SourceRecordRef.Field(SourceJSONBuffer.FieldNo("Value BLOB"));
+
+        TempJSONBuffer.ReadFromBlob(BlobFieldRef);
+
+        Assert.AreEqual(4, TempJSONBuffer.Count(), 'Not all JSON elements were read from the BLOB');
+        Assert.IsTrue(TempJSONBuffer.GetPropertyValue(PropertyValue, 'fromBlob'), 'The BLOB property was not found');
+        Assert.AreEqual('Yes', PropertyValue, 'The BLOB property value is incorrect');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RejectJsonNetOnlyInput()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+    begin
+        // [SCENARIO] Native JSON parsing rejects Json.NET extensions that are not standard JSON
+        LibraryLowerPermissions.SetO365Basic();
+
+        asserterror TempJSONBuffer.ReadFromText('{"value":1/*comment*/}');
+        asserterror TempJSONBuffer.ReadFromText('new Date(123)');
+        asserterror TempJSONBuffer.ReadFromText('undefined');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadCommentMarkersInsideJSONString()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+        PropertyValue: Text;
+    begin
+        // [SCENARIO] Comment markers inside a JSON string are ordinary string content
+        LibraryLowerPermissions.SetO365Basic();
+
+        TempJSONBuffer.ReadFromText('{"url":"https://example.test/path/*segment*/"}');
+
+        Assert.IsTrue(TempJSONBuffer.GetPropertyValue(PropertyValue, 'url'), 'The URL property was not found');
+        Assert.AreEqual('https://example.test/path/*segment*/', PropertyValue, 'The URL property value is incorrect');
     end;
 
     [Test]
@@ -225,21 +425,22 @@ codeunit 139210 "JSON Buffer Tests"
     procedure FormatJSONDateTimeWithoutSeconds()
     var
         TempJSONBuffer: Record "JSON Buffer" temporary;
-        DateTime: DotNet DateTime;
-        CultureInfo: DotNet CultureInfo;
         DateTimeString: Text;
         PropertyValue: Text;
     begin
-        // [SCENARIO] JSON Buffer supports formatting DateTime containing no seconds and milliseconds
+        // [SCENARIO] A date-time-like string without seconds remains a string
         LibraryLowerPermissions.SetO365Basic();
 
         // [WHEN] A JSON string containing a DateTime without seconds or milliseconds is read
-        DateTimeString := DateTime.UtcNow.ToString('yyyy-MM-ddTHH:mm', CultureInfo.InvariantCulture);
+        DateTimeString := '2025-12-31T23:59';
         TempJSONBuffer.ReadFromText(StrSubstNo('{"Variable":"%1"}', DateTimeString));
 
-        // [THEN] JSON Buffer contains formatted DateTime without seconds or milliseconds
+        // [THEN] JSON Buffer preserves the value as a string without seconds or milliseconds
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.IsFalse(PropertyValue.Contains('.'), 'DateTime contains seconds and milliseconds');
+        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::String);
+        Assert.IsTrue(TempJSONBuffer.FindFirst(), 'The date-time-like value was not preserved as a string');
+        Assert.AreEqual('System.String', TempJSONBuffer."Value Type", 'The string value type is incorrect');
     end;
 
     [Test]
@@ -247,8 +448,6 @@ codeunit 139210 "JSON Buffer Tests"
     procedure FormatJSONDateTimeWithSeconds()
     var
         TempJSONBuffer: Record "JSON Buffer" temporary;
-        DateTime: DotNet DateTime;
-        CultureInfo: DotNet CultureInfo;
         DateTimeString: Text;
         PropertyValue: Text;
     begin
@@ -256,17 +455,30 @@ codeunit 139210 "JSON Buffer Tests"
         LibraryLowerPermissions.SetO365Basic();
 
         // [WHEN] A JSON string containing a DateTime with seconds and milliseconds is read
-        DateTimeString := DateTime.UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fff', CultureInfo.InvariantCulture);
-
-        // For unknown reasons, the DateTime.UtcNow.ToString method call above does not always return a string with seconds and milliseconds.
-        if not DateTimeString.Contains('.') then
-            DateTimeString := '2025-12-31T23:59:59.999';
-
+        DateTimeString := '2025-12-31T23:59:59.999';
         TempJSONBuffer.ReadFromText(StrSubstNo('{"Variable":"%1"}', DateTimeString));
 
         // [THEN] JSON Buffer contains formatted DateTime with seconds and milliseconds
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.IsTrue(PropertyValue.Contains('.'), StrSubstNo('DateTime does not contain seconds and milliseconds. DateTimeString: %1, PropertyValue: %2', DateTimeString, PropertyValue));
+        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::Date);
+        Assert.IsTrue(TempJSONBuffer.FindFirst(), 'The ISO DateTime was not recognized');
+        Assert.AreEqual('System.DateTime', TempJSONBuffer."Value Type", 'The DateTime value type is incorrect');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DateLikeNonDateRemainsString()
+    var
+        TempJSONBuffer: Record "JSON Buffer" temporary;
+    begin
+        // [SCENARIO] A date-like string is only classified as Date when it is a valid ISO DateTime
+        LibraryLowerPermissions.SetO365Basic();
+
+        TempJSONBuffer.ReadFromText('{"dateOnly":"2025-12-31","invalidDateTime":"2025-13-40T25:61"}');
+
+        TempJSONBuffer.SetRange("Token type", TempJSONBuffer."Token type"::String);
+        Assert.AreEqual(2, TempJSONBuffer.Count(), 'Date-like strings were classified as DateTime values');
     end;
 
     local procedure VerifyJSONBuffer(var TempJSONBuffer: Record "JSON Buffer" temporary; Depth: Integer; TokenType: Option; Value: Text; ValueType: Text[250]; Path: Text[250])
@@ -287,5 +499,16 @@ codeunit 139210 "JSON Buffer Tests"
         Assert.AreEqual(Path, TempJSONBuffer.Path, 'Incorrect JSON path');
         Assert.IsTrue(TempJSONBuffer.Next() <> 0, 'There are no more elements');
     end;
-}
 
+    local procedure VerifyContiguousEntryNumbers(var TempJSONBuffer: Record "JSON Buffer" temporary)
+    var
+        ExpectedEntryNo: Integer;
+    begin
+        TempJSONBuffer.Reset();
+        if TempJSONBuffer.FindSet() then
+            repeat
+                ExpectedEntryNo += 1;
+                Assert.AreEqual(ExpectedEntryNo, TempJSONBuffer."Entry No.", 'JSON buffer entry numbers are not contiguous');
+            until TempJSONBuffer.Next() = 0;
+    end;
+}

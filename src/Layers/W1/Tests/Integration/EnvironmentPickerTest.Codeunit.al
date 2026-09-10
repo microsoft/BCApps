@@ -19,6 +19,7 @@ codeunit 132677 "Environment Picker Test"
         MockLinkedEnvironmentLookup: Boolean;
         FailLinkedEnvironmentLookup: Boolean;
         ReturnEmptyEnvironmentResponse: Boolean;
+        MockEnvironmentResponse: Text;
 
     [Test]
     procedure CheckTheBasicBehaviour()
@@ -211,6 +212,105 @@ codeunit 132677 "Environment Picker Test"
     end;
 
     [Test]
+    procedure MalformedEnvironmentResponseFails()
+    var
+        TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary;
+        EnvironmentPickerTest: Codeunit "Environment Picker Test";
+    begin
+        EnvironmentPickerTest.SetEnvironmentResponse('{');
+        BindSubscription(EnvironmentPickerTest);
+
+        asserterror FlowServiceManagement.GetEnvironments(TempFlowUserEnvironmentBuffer);
+    end;
+
+    [Test]
+    procedure OnlySucceededEnvironmentsAreIncludedCaseInsensitively()
+    var
+        TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary;
+        EnvironmentPickerTest: Codeunit "Environment Picker Test";
+    begin
+        EnvironmentPickerTest.SetEnvironmentResponse(
+            '{"value":[' +
+            '{"name":"succeeded","properties":{"displayName":"Succeeded","provisioningState":"sUcCeEdEd","isDefault":false}},' +
+            '{"name":"failed","properties":{"displayName":"Failed","provisioningState":"Failed","isDefault":false}},' +
+            '{"name":"wrong-case","properties":{"displayName":"Wrong Case","ProvisioningState":"Succeeded","isDefault":false}}' +
+            ']}');
+        BindSubscription(EnvironmentPickerTest);
+
+        FlowServiceManagement.GetEnvironments(TempFlowUserEnvironmentBuffer);
+
+        LibraryAssert.AreEqual(1, TempFlowUserEnvironmentBuffer.Count(), 'Only environments with an exact provisioningState member set to succeeded must be included.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get('succeeded'), 'The succeeded environment was not included.');
+        LibraryAssert.AreEqual('Succeeded', TempFlowUserEnvironmentBuffer."Environment Display Name", 'The environment display name was parsed incorrectly.');
+    end;
+
+    [Test]
+    procedure BooleanAndTextDefaultValuesAreSupported()
+    var
+        TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary;
+        EnvironmentPickerTest: Codeunit "Environment Picker Test";
+    begin
+        EnvironmentPickerTest.SetEnvironmentResponse(
+            '{"value":[' +
+            '{"name":"boolean-true","properties":{"displayName":"Boolean True","provisioningState":"Succeeded","isDefault":true}},' +
+            '{"name":"text-true","properties":{"displayName":"Text True","provisioningState":"Succeeded","isDefault":"TrUe"}},' +
+            '{"name":"boolean-false","properties":{"displayName":"Boolean False","provisioningState":"Succeeded","isDefault":false}},' +
+            '{"name":"text-false","properties":{"displayName":"Text False","provisioningState":"Succeeded","isDefault":"false"}}' +
+            ']}');
+        BindSubscription(EnvironmentPickerTest);
+
+        FlowServiceManagement.GetEnvironments(TempFlowUserEnvironmentBuffer);
+
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get('boolean-true'), 'The Boolean default environment was not included.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Default, 'Boolean true was not parsed as the default environment.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get('text-true'), 'The text default environment was not included.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Default, 'Text true was not parsed case-insensitively as the default environment.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get('boolean-false'), 'The Boolean non-default environment was not included.');
+        LibraryAssert.IsFalse(TempFlowUserEnvironmentBuffer.Default, 'Boolean false was parsed as the default environment.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get('text-false'), 'The text non-default environment was not included.');
+        LibraryAssert.IsFalse(TempFlowUserEnvironmentBuffer.Default, 'Text false was parsed as the default environment.');
+    end;
+
+    [Test]
+    procedure MissingNullAndNonObjectPropertiesAreSkipped()
+    var
+        TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary;
+        EnvironmentPickerTest: Codeunit "Environment Picker Test";
+    begin
+        EnvironmentPickerTest.SetEnvironmentResponse(
+            '{"value":[' +
+            '{"name":"missing"},' +
+            '{"name":"null","properties":null},' +
+            '{"name":"text","properties":"not-an-object"},' +
+            '{"name":"wrong-case","Properties":{"displayName":"Wrong Case","provisioningState":"Succeeded","isDefault":false}},' +
+            '{"name":"valid","properties":{"displayName":"Valid","provisioningState":"Succeeded","isDefault":false}}' +
+            ']}');
+        BindSubscription(EnvironmentPickerTest);
+
+        FlowServiceManagement.GetEnvironments(TempFlowUserEnvironmentBuffer);
+
+        LibraryAssert.AreEqual(1, TempFlowUserEnvironmentBuffer.Count(), 'Environments without an exact object properties member must be skipped.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get('valid'), 'The valid environment was not included.');
+    end;
+
+    [Test]
+    procedure NullNameAndDisplayNameAreConvertedToBlankText()
+    var
+        TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary;
+        EnvironmentPickerTest: Codeunit "Environment Picker Test";
+    begin
+        EnvironmentPickerTest.SetEnvironmentResponse(
+            '{"value":[{"name":null,"properties":{"displayName":null,"provisioningState":"Succeeded","isDefault":false}}]}');
+        BindSubscription(EnvironmentPickerTest);
+
+        FlowServiceManagement.GetEnvironments(TempFlowUserEnvironmentBuffer);
+
+        LibraryAssert.AreEqual(1, TempFlowUserEnvironmentBuffer.Count(), 'The environment with null text members was not included.');
+        LibraryAssert.IsTrue(TempFlowUserEnvironmentBuffer.Get(''), 'A null environment name must be converted to a blank ID.');
+        LibraryAssert.AreEqual('', TempFlowUserEnvironmentBuffer."Environment Display Name", 'A null display name must be converted to blank text.');
+    end;
+
+    [Test]
     [HandlerFunctions('HandleSessionSettingsChange')]
     procedure AcceptViaAssistedSetup()
     var
@@ -329,6 +429,12 @@ codeunit 132677 "Environment Picker Test"
             exit;
         end;
 
+        if MockEnvironmentResponse <> '' then begin
+            ResponseText := MockEnvironmentResponse;
+            Handled := true;
+            exit;
+        end;
+
         ResponseText := '{"value":[{"location":"unitedstates","name":"environment-id","properties":{"displayName":"environment name","createdTime":"2022-07-13T11:45:41.6980238Z","createdBy":{"id":"SYSTEM","displayName":"SYSTEM","type":"NotSpecified"},"provisioningState":"Succeeded","environmentSku":"Default","isDefault":"false","clientUris":{"admin":"https://admin.powerplatform.microsoft.com/environments/environment/environment-id/hub","maker":"https://make.powerapps.com/environments/environment-id/home"},"retentionPeriod":"P7D","states":{"management":{"id":"Ready"},"runtime":{"id":"Enabled"}},"protectionStatus":{"keyManagedBy":"Microsoft"},"connectedGroups":[],"lifecycleOperationsEnforcement":{"allowedOperations":[{"type":{"id":"Edit"}},{"type":{"id":"Provision"}},{"type":{"id":"Enable"}},{"type":{"id":"Disable"}},{"type":{"id":"DisableGovernanceConfiguration"}}],"disallowedOperations":[{"type":{"id":"Backup"},"reason":{"message":"Backup cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"Copy"},"reason":{"message":"Copy cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"Promote"},"reason":{"message":"Promote cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"Reset"},"reason":{"message":"Reset cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"Restore"},"reason":{"message":"Restore cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"Unlock"},"reason":{"message":"Unlock cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"UpdateProtectionStatus"},"reason":{"message":"UpdateProtectionStatus cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"EnableGovernanceConfiguration"},"reason":{"message":"EnableGovernanceConfiguration cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"UpdateGovernanceConfiguration"},"reason":{"message":"UpdateGovernanceConfiguration cannot be performed because there is no linked CDS instance or the CDS instance version is not supported."}},{"type":{"id":"Convert"},"reason":{"message":"Convert cannot be performed on environment of type Default."}},{"type":{"id":"Delete"},"reason":{"message":"Delete cannot be performed on environment of type Default."}},{"type":{"id":"Recover"},"reason":{"message":"Recover cannot be performed on environment of type Default."}},{"type":{"id":"NewCustomerManagedKey"},"reason":{"message":"NewCustomerManagedKey cannot be performed on environment of type Default."}},{"type":{"id":"RotateCustomerManagedKey"},"reason":{"message":"RotateCustomerManagedKey cannot be performed on environment of type Default."}},{"type":{"id":"RevertToMicrosoftKey"},"reason":{"message":"RevertToMicrosoftKey cannot be performed on environment of type Default."}},{"type":{"id":"NewNetworkInjection"},"reason":{"message":"NewNetworkInjection cannot be performed on environment of type Default."}},{"type":{"id":"SwapNetworkInjection"},"reason":{"message":"SwapNetworkInjection cannot be performed on environment of type Default."}},{"type":{"id":"RevertNetworkInjection"},"reason":{"message":"RevertNetworkInjection cannot be performed on environment of type Default."}},{"type":{"id":"NewIdentity"},"reason":{"message":"NewIdentity cannot be performed on environment of type Default."}},{"type":{"id":"SwapIdentity"},"reason":{"message":"SwapIdentity cannot be performed on environment of type Default."}},{"type":{"id":"RevertIdentity"},"reason":{"message":"RevertIdentity cannot be performed on environment of type Default."}}]},"governanceConfiguration":{"protectionLevel":"Basic"}}}]}';
         Handled := true;
     end;
@@ -356,5 +462,10 @@ codeunit 132677 "Environment Picker Test"
     procedure SetEmptyEnvironmentResponse()
     begin
         ReturnEmptyEnvironmentResponse := true;
+    end;
+
+    procedure SetEnvironmentResponse(ResponseText: Text)
+    begin
+        MockEnvironmentResponse := ResponseText;
     end;
 }

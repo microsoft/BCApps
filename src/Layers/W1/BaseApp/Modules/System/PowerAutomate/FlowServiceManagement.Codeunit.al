@@ -1,6 +1,5 @@
 namespace System.Automation;
 
-using System;
 using System.Azure.Identity;
 using System.Environment;
 using System.Integration;
@@ -18,7 +17,6 @@ codeunit 6400 "Flow Service Management"
 
     var
         AzureAdMgt: Codeunit "Azure AD Mgt.";
-        JObject: DotNet JObject;
 
         FlowUrlProdTxt: Label 'https://make.powerautomate.com/', Locked = true;
         FlowUrlTip1Txt: Label 'https://make.test.powerautomate.com/', Locked = true;
@@ -166,61 +164,98 @@ codeunit 6400 "Flow Service Management"
     var
         FlowUserEnvironmentConfig: Record "Flow User Environment Config";
         EnvironmentInformation: Codeunit "Environment Information";
-        Current: DotNet GenericKeyValuePair2;
-        JObj: DotNet JObject;
-        JObjProp: DotNet JObject;
-        ObjectEnumerator: DotNet IEnumerator;
-        JArray: DotNet JArray;
-        ArrayEnumerator: DotNet IEnumerator;
-        JToken: DotNet JToken;
-        JProperty: DotNet JProperty;
+        RootJsonObject: JsonObject;
+        EnvironmentJsonObject: JsonObject;
+        PropertiesJsonObject: JsonObject;
+        EnvironmentsJsonArray: JsonArray;
+        JsonToken: JsonToken;
+        PropertiesJsonToken: JsonToken;
+        EnvironmentId: Text;
+        EnvironmentDisplayName: Text;
+        ProvisioningState: Text;
     begin
         // Parse the ResponseText from Flow environments api for a list of environments
-        ObjectEnumerator := JObject.Parse(ResponseText).GetEnumerator();
+        RootJsonObject.ReadFrom(ResponseText);
+        if not RootJsonObject.Get('value', JsonToken) then
+            exit;
 
-        while ObjectEnumerator.MoveNext() do begin
-            Current := ObjectEnumerator.Current;
+        EnvironmentsJsonArray := JsonToken.AsArray();
+        foreach JsonToken in EnvironmentsJsonArray do begin
+            EnvironmentJsonObject := JsonToken.AsObject();
+            if not EnvironmentJsonObject.Get('properties', PropertiesJsonToken) then
+                continue;
+            if not PropertiesJsonToken.IsObject() then
+                continue;
 
-            if Format(Current.Key) = 'value' then begin
-                JArray := Current.Value();
-                ArrayEnumerator := JArray.GetEnumerator();
+            PropertiesJsonObject := PropertiesJsonToken.AsObject();
+            if not TryGetJsonText(PropertiesJsonObject, 'provisioningState', ProvisioningState) then
+                continue;
+            if LowerCase(ProvisioningState) <> 'succeeded' then
+                continue;
 
-                while ArrayEnumerator.MoveNext() do begin
-                    JObj := ArrayEnumerator.Current;
-                    JObjProp := JObj.SelectToken('properties');
+            TryGetJsonText(EnvironmentJsonObject, 'name', EnvironmentId);
+            TryGetJsonText(PropertiesJsonObject, 'displayName', EnvironmentDisplayName);
 
-                    if not IsNull(JObjProp) then begin
-                        JProperty := JObjProp.Property('provisioningState');
+            TempFlowUserEnvironmentBuffer.Init();
+            TempFlowUserEnvironmentBuffer."Environment ID" := EnvironmentId;
+            TempFlowUserEnvironmentBuffer."Environment Display Name" := EnvironmentDisplayName;
 
-                        // only interested in those that succeeded
-                        if LowerCase(Format(JProperty.Value)) = 'succeeded' then begin
-                            JToken := JObj.SelectToken('name');
-                            JProperty := JObjProp.Property('displayName');
+            if EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId() = TempFlowUserEnvironmentBuffer."Environment Id" then
+                TempFlowUserEnvironmentBuffer.Linked := true;
 
-                            TempFlowUserEnvironmentBuffer.Init();
-                            TempFlowUserEnvironmentBuffer."Environment ID" := JToken.ToString();
-                            TempFlowUserEnvironmentBuffer."Environment Display Name" := Format(JProperty.Value);
+            // mark current environment as enabled/selected if it is currently the user selected environment
+            FlowUserEnvironmentConfig.Reset();
+            FlowUserEnvironmentConfig.SetRange("Environment ID", EnvironmentId);
+            FlowUserEnvironmentConfig.SetRange("User Security ID", UserSecurityId());
+            TempFlowUserEnvironmentBuffer.Enabled := FlowUserEnvironmentConfig.FindFirst();
 
-                            if EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId() = TempFlowUserEnvironmentBuffer."Environment Id" then
-                                TempFlowUserEnvironmentBuffer.Linked := true;
+            // check if environment is the default
+            TempFlowUserEnvironmentBuffer.Default := IsJsonTrue(PropertiesJsonObject, 'isDefault');
 
-                            // mark current environment as enabled/selected if it is currently the user selected environment
-                            FlowUserEnvironmentConfig.Reset();
-                            FlowUserEnvironmentConfig.SetRange("Environment ID", JToken.ToString());
-                            FlowUserEnvironmentConfig.SetRange("User Security ID", UserSecurityId());
-                            TempFlowUserEnvironmentBuffer.Enabled := FlowUserEnvironmentConfig.FindFirst();
-
-                            // check if environment is the default
-                            JProperty := JObjProp.Property('isDefault');
-                            if LowerCase(Format(JProperty.Value)) = 'true' then
-                                TempFlowUserEnvironmentBuffer.Default := true;
-
-                            TempFlowUserEnvironmentBuffer.Insert();
-                        end;
-                    end;
-                end;
-            end;
+            TempFlowUserEnvironmentBuffer.Insert();
         end;
+    end;
+
+    local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit(false);
+
+        if not JsonToken.IsValue() then begin
+            JsonToken.WriteTo(Value);
+            exit(true);
+        end;
+
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit(true);
+
+        Value := JsonToken.AsValue().AsText();
+        exit(true);
+    end;
+
+    local procedure IsJsonTrue(JsonObject: JsonObject; PropertyName: Text): Boolean
+    var
+        JsonToken: JsonToken;
+        JsonValue: JsonValue;
+        SerializedValue: Text;
+    begin
+        if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
+            exit(false);
+
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(false);
+
+        JsonToken.WriteTo(SerializedValue);
+        if SerializedValue = 'true' then
+            exit(true);
+        if not SerializedValue.StartsWith('"') then
+            exit(false);
+
+        exit(LowerCase(JsonValue.AsText()) = 'true');
     end;
 
     procedure SaveFlowUserEnvironmentSelection(var TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary)

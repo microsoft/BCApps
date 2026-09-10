@@ -7,7 +7,6 @@ namespace Microsoft.EServices.EDocumentConnector;
 using Microsoft.EServices.EDocument;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
-using System.Text;
 using System.Utilities;
 codeunit 6361 "Pagero Connection"
 {
