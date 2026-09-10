@@ -1,7 +1,10 @@
 codeunit 139028 "Test Workdate"
 {
     Subtype = Test;
-    TestPermissions = NonRestrictive;
+    TestPermissions = Disabled;
+
+    Permissions =
+        tabledata "G/L Entry" = rimd;
 
     trigger OnRun()
     begin
