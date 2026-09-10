@@ -904,7 +904,7 @@ page 6711 "OData Setup Wizard"
         AllObjWithCaption.SetRange("Object Type", Rec."Object Type");
         AllObjWithCaption.SetRange("Object ID", Rec."Object ID");
         if AllObjWithCaption.FindFirst() then
-            exit(AllObjWithCaption."Object Name");
+            exit(AllObjWithCaption.Name);
     end;
 
     local procedure CheckPermissions()

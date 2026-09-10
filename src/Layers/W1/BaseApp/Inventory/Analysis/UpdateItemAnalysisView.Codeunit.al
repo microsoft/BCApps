@@ -521,7 +521,7 @@ codeunit 7150 "Update Item Analysis View"
         WinTotalCounter := 0;
         AllObj.Get(AllObj."Object Type"::Table, TableID);
         Window.Update(1, ItemAnalysisView.Code);
-        Window.Update(2, AllObj."Object Name");
+        Window.Update(2, AllObj.Name);
         Window.Update(3, 0);
         Window.Update(4, 0);
         Window.Update(5, 0);

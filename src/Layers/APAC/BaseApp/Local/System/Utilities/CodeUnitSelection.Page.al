@@ -25,7 +25,7 @@ page 28001 "CodeUnit Selection"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the object.';
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the object.';

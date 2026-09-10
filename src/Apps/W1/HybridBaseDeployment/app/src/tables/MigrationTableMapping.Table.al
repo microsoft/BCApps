@@ -64,7 +64,7 @@ table 4009 "Migration Table Mapping"
             end;
         }
 
-        field(3; "Table Name"; Text[30])
+        field(3; "Table Name"; Text[100])
         {
             DataClassification = SystemMetadata;
             Description = 'Specifies the name of the table to map.';

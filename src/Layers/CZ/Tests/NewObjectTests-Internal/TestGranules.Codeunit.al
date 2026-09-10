@@ -106,7 +106,7 @@ codeunit 132532 "Test Granules"
             TempExpandedPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
             TempExpandedPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
             if TempExpandedPermission.IsEmpty() then
-                Errors.Add(StrSubstNo(TableDataNotInAnyPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                Errors.Add(StrSubstNo(TableDataNotInAnyPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj.Name));
         until TempTableDataAllObj.Next() = 0;
 
         if Errors.Count > 0 then
@@ -129,7 +129,7 @@ codeunit 132532 "Test Granules"
             repeat
                 TempAllLocalPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
                 TempAllLocalPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
-            // Assert.IsFalse(TempAllLocalPermission.IsEmpty, StrSubstNo(TableDataNotInLocalPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+            // Assert.IsFalse(TempAllLocalPermission.IsEmpty, StrSubstNo(TableDataNotInLocalPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj.Name));
             until TempTableDataAllObj.Next() = 0;
     end;
 
@@ -150,7 +150,7 @@ codeunit 132532 "Test Granules"
             repeat
                 TempAllLocalExpandedPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
                 TempAllLocalExpandedPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
-                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj.Name));
             until TempTableDataAllObj.Next() = 0;
     end;
 
@@ -171,7 +171,7 @@ codeunit 132532 "Test Granules"
             repeat
                 TempAllLocalExpandedPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
                 TempAllLocalExpandedPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
-                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj.Name));
             until TempTableDataAllObj.Next() = 0;
     end;
 
@@ -233,7 +233,7 @@ codeunit 132532 "Test Granules"
                                 IsO365PermissionSet := true;
                         until IsO365PermissionSet or (TempExpandedPermission.Next() = 0);
                     Assert.IsTrue(IsO365PermissionSet, StrSubstNo(TableDataOnlyInFullPermissionSetTxt,
-                        TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                        TempTableDataAllObj."Object ID", TempTableDataAllObj.Name));
                 end;
             until TempTableDataAllObj.Next() = 0;
     end;
@@ -545,7 +545,7 @@ codeunit 132532 "Test Granules"
                 AllObj.Get(BasePermissions."Object Type", BasePermissions."Object ID");
                 Error(PermissionNotInPSWithSufficientPermissionsErr,
                   BasePermissions."Object Type",
-                  AllObj."Object Name",
+                  AllObj.Name,
                   BasePermissions."Object ID",
                   BasePermissions."Role ID",
                   BasePermissions."Read Permission",

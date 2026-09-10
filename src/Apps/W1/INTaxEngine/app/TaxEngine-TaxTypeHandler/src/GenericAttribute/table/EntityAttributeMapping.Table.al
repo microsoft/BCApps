@@ -29,7 +29,7 @@ table 20232 "Entity Attribute Mapping"
             DataClassification = EndUserIdentifiableInformation;
             Caption = 'Attribute Name';
         }
-        field(4; "Entity Name"; Text[30])
+        field(4; "Entity Name"; Text[100])
         {
             DataClassification = SystemMetadata;
             Caption = 'Entity Name';

@@ -78,7 +78,7 @@ table 6230 "Sust. ESG Reporting Line"
                 if Rec."Table No." <> 0 then begin
                     AllObj.Get(AllObj."Object Type"::Table, Rec."Table No.");
 
-                    Rec.Validate(Source, AllObj."Object Name");
+                    Rec.Validate(Source, AllObj.Name);
                 end else begin
                     Rec.Validate("Field No.", 0);
                     Rec.Validate(Source, '');

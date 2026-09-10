@@ -62,7 +62,7 @@ page 20334 "Tax Insert Record Dialog"
         InsertRecord: Record "Tax Insert Record";
         AppObjectHelper: Codeunit "App Object Helper";
         ScriptSymbolsMgmt: Codeunit "Script Symbols Mgmt.";
-        IntoTableName: Text[30];
+        IntoTableName: Text;
 
     procedure SetCurrentRecord(var InsertRecord2: Record "Tax Insert Record");
     begin

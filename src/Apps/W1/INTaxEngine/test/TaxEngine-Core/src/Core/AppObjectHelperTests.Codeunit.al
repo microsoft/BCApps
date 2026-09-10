@@ -1,4 +1,4 @@
-codeunit 136700 "App Object Helper Tests"
+﻿codeunit 136700 "App Object Helper Tests"
 {
     Subtype = Test;
     TestPermissions = NonRestrictive;
@@ -19,7 +19,7 @@ codeunit 136700 "App Object Helper Tests"
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        ObjectName: Text[30];
+        ObjectName: Text;
     begin
         // [SCENARIO] Pass object type as table and Object ID of G/L Account and get the name of the object.
 
@@ -27,7 +27,7 @@ codeunit 136700 "App Object Helper Tests"
         AllObj.Get(AllObj."Object Type"::Table, Database::"G/L Account");
 
         // [WHEN] The function GetObjectName is called.
-        ObjectName := AllObj."Object Name";
+        ObjectName := AllObj.Name;
 
         // [THEN] it should return the object name of G/l Account Table.
         Assert.AreEqual(ObjectName, AppObjHelper.GetObjectName(ObjectType::Table, AllObj."Object ID"), 'Object name should be G/L Account');
@@ -293,7 +293,7 @@ codeunit 136700 "App Object Helper Tests"
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        ObjectName: Text[30];
+        ObjectName: Text;
         ObjectID: Integer;
     begin
         // [SCENARIO] Pass the type of object as table and ID as table id of G/l Account table.
@@ -306,7 +306,7 @@ codeunit 136700 "App Object Helper Tests"
         AppObjHelper.SearchObject(ObjectType::Table, ObjectID, ObjectName);
 
         // [THEN] it should update ObjectName variable with the Table name G/l Account.
-        Assert.AreEqual(AllObj."Object Name", ObjectName, StrSubstNo(ObjectNameLbl, AllObj."Object Name"));
+        Assert.AreEqual(AllObj.Name, ObjectName, StrSubstNo(ObjectNameLbl, AllObj.Name));
         Assert.AreEqual(AllObj."Object ID", ObjectID, StrSubstNo(ObjectIDLbl, AllObj."Object ID"));
     end;
 
@@ -315,23 +315,23 @@ codeunit 136700 "App Object Helper Tests"
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        ObjectName: Text[30];
+        ObjectName: Text;
         ObjectID: Integer;
     begin
         // [SCENARIO] Pass the type of object as table and Name as table name of G/l Account table.
 
         // [GIVEN] There should be a table exist with name G/L Account.
         AllObj.SetRange("Object Type", AllObj."Object Type"::Table);
-        AllObj.SetFilter("Object Name", '%1', 'G/L Account');
+        AllObj.SetFilter(Name, '%1', 'G/L Account');
         AllObj.FindFirst();
 
         // [WHEN] The function GetObjectID is called.
-        ObjectName := AllObj."Object Name";
+        ObjectName := AllObj.Name;
         ObjectID := AppObjHelper.GetObjectID(ObjectType::Table, ObjectName);
 
         // [THEN] it should update ObjectID variable with the Table ID name G/l Account.
         Assert.AreEqual(AllObj."Object ID", ObjectID, StrSubstNo(ObjectIDLbl, AllObj."Object ID"));
-        Assert.AreEqual(AllObj."Object Name", ObjectName, StrSubstNo(ObjectNameLbl, AllObj."Object Name"));
+        Assert.AreEqual(AllObj.Name, ObjectName, StrSubstNo(ObjectNameLbl, AllObj.Name));
     end;
 
     [Test]
@@ -339,23 +339,23 @@ codeunit 136700 "App Object Helper Tests"
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        ObjectName: Text[30];
+        ObjectName: Text;
         ObjectID: Integer;
     begin
         // [SCENARIO] Pass the type of object as page and Name as page name of G/L Account List.
 
         // [GIVEN] There should be a table exist with name G/L Account.
         AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
-        AllObj.SetFilter("Object Name", '%1', 'G/L Account List');
+        AllObj.SetFilter(Name, '%1', 'G/L Account List');
         AllObj.FindFirst();
 
         // [WHEN] The function GetObjectID is called.
-        ObjectName := AllObj."Object Name";
+        ObjectName := AllObj.Name;
         ObjectID := AppObjHelper.GetObjectID(ObjectType::Page, ObjectName);
 
         // [THEN] it should update ObjectID variable with the page Id of G/l Account List.
         Assert.AreEqual(ObjectID, AllObj."Object ID", StrSubstNo(ObjectIDLbl, AllObj."Object ID"));
-        Assert.AreEqual(ObjectName, AllObj."Object Name", StrSubstNo(ObjectNameLbl, AllObj."Object Name"));
+        Assert.AreEqual(ObjectName, AllObj.Name, StrSubstNo(ObjectNameLbl, AllObj.Name));
     end;
 
     [Test]
@@ -416,7 +416,7 @@ codeunit 136700 "App Object Helper Tests"
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        SearchObjectName, ObjectName : Text[30];
+        SearchObjectName, ObjectName : Text;
         ObjectID: Integer;
     begin
         // [SCENARIO] Pass the type of object as table and Name as table name of G/l Account table.
@@ -429,7 +429,7 @@ codeunit 136700 "App Object Helper Tests"
         AppObjHelper.OpenObjectLookup(ObjectType::Table, SearchObjectName, ObjectID, ObjectName);
 
         // [THEN] it should update ObjectID variable with the Table ID of G/l Account.
-        Assert.AreEqual(AllObj."Object Name", ObjectName, StrSubstNo(ObjectNameLbl, AllObj."Object Name"));
+        Assert.AreEqual(AllObj.Name, ObjectName, StrSubstNo(ObjectNameLbl, AllObj.Name));
         // [THEN] it should update ObjectName variable with the Table name of G/l Account.
         Assert.AreEqual(AllObj."Object ID", ObjectID, StrSubstNo(ObjectIDLbl, AllObj."Object ID"));
     end;

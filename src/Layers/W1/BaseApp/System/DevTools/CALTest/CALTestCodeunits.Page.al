@@ -22,7 +22,7 @@ page 130402 "CAL Test Codeunits"
                 {
                     ApplicationArea = All;
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = All;
                 }

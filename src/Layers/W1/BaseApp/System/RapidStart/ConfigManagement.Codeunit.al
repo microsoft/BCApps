@@ -590,7 +590,7 @@ codeunit 8616 "Config. Management"
         if AllObj.FindSet() then
             repeat
                 if not HideDialog then
-                    ConfigProgressBar.Update(AllObj."Object Name");
+                    ConfigProgressBar.Update(AllObj.Name);
                 Include := true;
                 if IncludeWithDataOnly then begin
                     Include := false;

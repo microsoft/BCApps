@@ -1042,7 +1042,7 @@ codeunit 8351 "MCP Config Implementation"
         end;
 
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
-            exit(CopyStr(AllObjWithCaption."Object Name", 1, 100));
+            exit(CopyStr(AllObjWithCaption.Name, 1, 100));
         exit('');
     end;
 

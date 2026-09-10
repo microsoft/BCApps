@@ -171,7 +171,7 @@ codeunit 130456 "Test Suite Mgt."
         AllObj.SetRange("Object ID", CodeunitTestMethodLine."Test Codeunit");
         AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
         if AllObj.FindFirst() then begin
-            CodeunitResultJson.Add('codeunitName', AllObj."Object Name");
+            CodeunitResultJson.Add('codeunitName', AllObj.Name);
             NavInstalledApp.SetRange("Package ID", AllObj."App Package ID");
             if NavInstalledApp.FindFirst() then begin
                 CodeunitResultJson.Add('applicationID', NavInstalledApp."App ID");
@@ -614,7 +614,7 @@ codeunit 130456 "Test Suite Mgt."
         TestMethodLine."Line No." := NextLineNo;
         TestMethodLine."Test Codeunit" := AllObjWithCaption."Object ID";
         TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::Codeunit);
-        TestMethodLine.Name := AllObjWithCaption."Object Name";
+        TestMethodLine.Name := AllObjWithCaption.Name;
         TestMethodLine.Insert(true);
 
         CODEUNIT.Run(CODEUNIT::"Test Runner - Get Methods", TestMethodLine);

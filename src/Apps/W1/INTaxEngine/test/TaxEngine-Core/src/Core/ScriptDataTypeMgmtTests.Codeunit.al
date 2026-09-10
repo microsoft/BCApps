@@ -396,8 +396,8 @@ codeunit 136702 "Script Data Type Mgmt. Tests"
         // [GIVEN] A Text as Variant
         RecRef.Open(Database::AllObj);
         RecRef.FindFirst();
-        VariantValue := RecRef.Field(AllObj.FieldNo("Object Name"));
-        FieldValue := RecRef.Field(AllObj.FieldNo("Object Name")).Value();
+        VariantValue := RecRef.Field(AllObj.FieldNo(Name));
+        FieldValue := RecRef.Field(AllObj.FieldNo(Name)).Value();
 
         // [WHEN] The function Variant2Text is called.
         Result := ScriptDataTypeMgmt.Variant2Text(VariantValue, '');

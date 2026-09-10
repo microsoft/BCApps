@@ -427,7 +427,7 @@ codeunit 40021 "Cloud Mig. Replicate Data Mgt."
 
         TableNameFilter := '';
         repeat
-            TableNameFilter += '|' + AllObj."Object Name";
+            TableNameFilter += '|' + AllObj.Name;
         until AllObj.Next() = 0;
 
         TableNameFilter := CopyStr(TableNameFilter, 2, StrLen(TableNameFilter) - 1);

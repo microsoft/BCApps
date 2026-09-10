@@ -1202,14 +1202,14 @@ codeunit 136755 "Script Serialization Tests"
         LibraryScriptTests.AddFieldFilter(CaseID, ScriptID, TableFilterID, Database::AllObj, AllObj.FieldNo("Object ID"), '3');
 
         StringLookupID := LibraryScriptSymbolLookup.CreateLookup(
-            CaseID, ScriptID, Database::AllObj, AllObj.FieldNo("Object Name"), "Symbol Type"::Table);
+            CaseID, ScriptID, Database::AllObj, AllObj.FieldNo(Name), "Symbol Type"::Table);
 
         ScriptSymbolLookup.Get(CaseID, ScriptID, StringLookupID);
         ScriptSymbolLookup."Table Method" := ScriptSymbolLookup."Table Method"::Last;
         ScriptSymbolLookup."Table Filter ID" := TableFilterID;
         ScriptSymbolLookup.Modify();
 
-        ExpectedText := 'last of "Object Name" from AllObj (where Object Type Equals ''Table'',Object ID Equals ''3.00'')';
+        ExpectedText := 'last of Name from AllObj (where Object Type Equals ''Table'',Object ID Equals ''3.00'')';
 
         Text := ScriptSerialization.LookupTableToString(ScriptSymbolLookup);
         UnbindSubscription(LibraryScriptSymbolLookup);

@@ -12,7 +12,7 @@ report 8614 "Get Config. Tables"
         dataitem(AllObj; AllObj)
         {
             DataItemTableView = where("Object Type" = const(Table), "Object ID" = filter(.. 99000999 | 2000000004 | 2000000005));
-            RequestFilterFields = "Object ID", "Object Name";
+            RequestFilterFields = "Object ID", Name;
 
             trigger OnPreDataItem()
             begin

@@ -373,7 +373,7 @@ codeunit 131305 "Library - ERM Country Data"
         FieldRef: FieldRef;
     begin
         AllObjects.SetRange("Object Type", AllObjects."Object Type"::Table);
-        AllObjects.SetRange("Object Name", 'VAT Period CZL');
+        AllObjects.SetRange(Name, 'VAT Period CZL');
         if AllObjects.IsEmpty() then
             exit;
 

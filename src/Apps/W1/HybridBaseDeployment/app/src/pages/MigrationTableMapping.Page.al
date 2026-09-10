@@ -103,7 +103,7 @@ page 4009 "Migration Table Mapping"
                             exit(false);
 
                         AllObjects.GetRecord(AllObj);
-                        Text := AllObj."Object Name";
+                        Text := AllObj.Name;
                         if (Rec."Table ID" <> AllObj."Object ID") and (Rec."Target Table Type" = Rec."Target Table Type"::"Table Extension") then
                             // Partners often have the table and table extension that have same ID and they need to map both
                             // Just the ID is the same, the table extended is different
