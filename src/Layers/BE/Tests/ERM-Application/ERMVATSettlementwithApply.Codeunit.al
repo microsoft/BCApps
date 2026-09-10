@@ -530,6 +530,7 @@ codeunit 134008 "ERM VAT Settlement with Apply"
     var
         GenJournalLine: Record "Gen. Journal Line";
         GLAccount: Record "G/L Account";
+        DocNo: Code[20];
     begin
         // [SCENARIO 648151] VAT settlement entries contain source currency amounts when no additional reporting currency is set.
         Initialize();
@@ -543,7 +544,7 @@ codeunit 134008 "ERM VAT Settlement with Apply"
         RunCalcAndPostVATSettlement(GenJournalLine, DocNo);
 
         // [THEN] Source Currency Amounts equal the entry amounts and a VAT entry contains a matching Source Currency VAT Amount.
-        VerifyVATSettlementSourceCurrencyAmounts(GenJournalLine."Document No.");
+        VerifyVATSettlementSourceCurrencyAmounts(DocNo);
     end;
 
     local procedure Initialize()
