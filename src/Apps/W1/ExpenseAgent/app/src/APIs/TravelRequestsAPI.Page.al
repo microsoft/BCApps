@@ -304,10 +304,6 @@ page 7134 "Travel Requests API"
         ExpenseReportHeader.SetHideValidationDialog(true);
         ExpenseReportHeader.Validate("Spend Request No.", Rec."No.");
         ExpenseReportHeader.Insert(true);
-        ExpenseReportHeader.Reset();
-        ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
-        ExpenseReportHeader.SetRange("Expense User No.", Rec."Requested For");
-        ExpenseReportHeader.FindFirst();
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
         ActionContext.AddEntityKey(ExpenseReportHeader.FieldNo(SystemId), ExpenseReportHeader.SystemId);

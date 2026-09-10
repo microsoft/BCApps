@@ -47,6 +47,7 @@ page 6917 "Employees API"
                 {
                     Caption = 'Is Expense User';
                     Editable = false;
+                    ToolTip = 'Specifies whether the employee is linked to an expense user.';
                 }
                 field(name; Rec.FullName())
                 {

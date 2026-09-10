@@ -595,6 +595,7 @@ table 6906 "Expense Report Header"
         }
         key(SpendRequestNo; "Spend Request No.", "Expense User No.")
         {
+            Unique = true;
         }
     }
 

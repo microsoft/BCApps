@@ -27,6 +27,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
@@ -48,6 +49,7 @@ codeunit 148347 "Travel Requests API Test"
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
+        ExpenseUserNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
         StatusNotOpenErr: Label 'must have the status', Locked = true;
 
     [Test]
@@ -118,6 +120,47 @@ codeunit 148347 "Travel Requests API Test"
         Assert.AreEqual(
             0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(OtherEmployee.SystemId)))),
             'Employees who are not travelers must not be returned.');
+    end;
+
+    [Test]
+    procedure TravelersAPIRejectsEmployeeWithoutExpenseUser()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
+        Request: JsonObject;
+        Response: JsonObject;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] A traveler must be linked to an Expense User.
+        Initialize();
+
+        // [GIVEN] An employee without an Expense User and an open travel request.
+        LibraryHumanResource.CreateEmployee(Employee);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        Request.Add('employeeNumber', Employee."No.");
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The employee is added through the Travelers API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelersServiceNameTok);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API identifies the employee without an Expense User.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        Assert.AreNotEqual(
+            0, StrPos(ErrorMessage.AsValue().AsText(), StrSubstNo(ExpenseUserNotLinkedErr, Employee."No.")),
+            'The response must identify the employee without an Expense User.');
     end;
 
     [Test]

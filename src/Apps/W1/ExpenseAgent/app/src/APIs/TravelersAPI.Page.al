@@ -47,6 +47,7 @@ page 7103 "Travelers API"
                 field(employeeNumber; EmployeeNumber)
                 {
                     Caption = 'Employee Number';
+                    ToolTip = 'Specifies the employee number of the traveler.';
 
                     trigger OnValidate()
                     var
