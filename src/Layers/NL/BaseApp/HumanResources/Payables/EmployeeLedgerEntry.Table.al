@@ -559,6 +559,12 @@ table 5222 "Employee Ledger Entry"
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
         }
+        key(ClosedByEntryNo; "Closed by Entry No.")
+        {
+        }
+        key(OpenTransactionModeCode; Open, "Transaction Mode Code")
+        {
+        }
     }
 
     fieldgroups

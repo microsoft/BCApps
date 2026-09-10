@@ -173,7 +173,7 @@ page 6998 "Posted Expense Report"
             part(Activity; "Expense Activity Log FactBox")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Activity Log';
+                Caption = 'History';
                 SubPageLink = "Source Table ID" = const(Database::"Posted Expense Report Header"),
                               "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';

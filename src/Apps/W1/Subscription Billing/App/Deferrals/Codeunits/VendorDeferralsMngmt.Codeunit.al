@@ -36,6 +36,8 @@ codeunit 8068 "Vendor Deferrals Mngmt."
             GeneralPostingSetup.TestField("Vend. Sub. Contr. Def. Account");
             SalesAccount := GeneralPostingSetup."Vend. Sub. Contr. Def. Account";
         end else begin
+            if PurchLine.Type = PurchLine.Type::"G/L Account" then
+                exit; // post directly to the G/L account selected on the contract line
             GeneralPostingSetup.TestField("Vend. Sub. Contract Account");
             SalesAccount := GeneralPostingSetup."Vend. Sub. Contract Account";
         end;

@@ -24,6 +24,9 @@ page 7099 "Spend Requests API"
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
     AboutText = 'Provides access to data from the Spend Request table';
+    Permissions = tabledata "Spend Request" = rimd,
+                  tabledata "Spend Request Detail" = rmd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     layout
     {
@@ -43,6 +46,7 @@ page 7099 "Spend Requests API"
                 field(requestedBy; Rec."Requested By")
                 {
                     Caption = 'Requested By';
+                    ToolTip = 'Specifies the employee who created the request. For travel requests, this value can be set only when creating the request.';
                 }
                 field(status; Rec.Status)
                 {
@@ -170,5 +174,19 @@ page 7099 "Spend Requests API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        // Protect travel request ownership while the legacy endpoint remains available before CLEAN30.
+        if (Rec."Document Type" = Rec."Document Type"::"Travel Request") and
+           (Rec."Requested By" <> xRec."Requested By")
+        then
+            Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
+
+        exit(true);
+    end;
+
+    var
+        RequestedByCannotBeChangedErr: Label 'cannot be changed';
 }
 #endif
