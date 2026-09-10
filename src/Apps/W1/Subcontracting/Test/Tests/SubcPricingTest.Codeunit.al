@@ -1020,10 +1020,10 @@ codeunit 139982 "Subc. Pricing Test"
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        NewLeadTime: DateFormula;
         EarlierPrice: Decimal;
         LaterPrice: Decimal;
         AlignedDate: Date;
-        NewLeadTime: DateFormula;
         OriginalPlannedReceiptDate: Date;
     begin
         // [SCENARIO 648535] A lead-time-only Order Date change reapplies date-effective pricing
