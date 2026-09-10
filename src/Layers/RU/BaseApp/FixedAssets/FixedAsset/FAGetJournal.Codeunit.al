@@ -190,7 +190,7 @@ codeunit 5639 "FA Get Journal"
            (BatchName = BatchName2) and
            (TemplateName = TemplateName2)
         then
-            Error(Text001, FAJnlSetup.TableName);
+            Error(Text001, FAJnlSetup.TableCaption);
     end;
 }
 

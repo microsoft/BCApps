@@ -49,11 +49,10 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
           $marker = "<!-- bc-extrequest-feedback-recorded:$env:COMMENT_ID -->"
-          $comments = gh api `
+          $comments = (gh api `
             "repos/$env:GITHUB_REPOSITORY/issues/${{ github.event.issue.number }}/comments" `
-            --paginate --slurp --jq 'add // [] | map(.body // "")' |
-            ConvertFrom-Json
-          if ($comments | Where-Object { $_.Contains($marker) }) {
+            --paginate --jq '.[].body // ""') -join "`n"
+          if ($comments.Contains($marker)) {
               Add-Content -Path $env:GITHUB_OUTPUT -Value 'process=false'
               Write-Host 'Feedback was already recorded for this comment.'
               exit 0
