@@ -1,9 +1,9 @@
 {
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "name": "BC2Fabric Tests",
+    "name": "Microsoft Fabric Export Tests",
     "publisher": "Microsoft",
-    "brief": "Test extension for BC2Fabric.",
-    "description": "AL test codeunits for the BC2Fabric export to Microsoft Fabric app.",
+    "brief": "Test extension for Microsoft Fabric Export.",
+    "description": "AL test codeunits for the Microsoft Fabric Export app.",
     "version": "1.0.0.0",
     "privacyStatement": "",
     "EULA": "",
@@ -13,9 +13,9 @@
     "dependencies": [
         {
             "id": "cafecafe-1111-4111-8111-cafecafe1111",
-            "publisher": "Microsoft",
-            "name": "BC2Fabric",
-            "version": "1.0.0.0"
+            "publisher": "4PS-Navida",
+            "name": "Microsoft Fabric Export",
+            "version": "1.0.0.1"
         },
         {
             "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",

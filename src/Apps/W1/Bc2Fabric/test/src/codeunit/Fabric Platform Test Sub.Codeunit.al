@@ -1,4 +1,4 @@
-namespace Microsoft.Bc2Fabric;
+namespace Microsoft.FabricExport;
 
 codeunit 150201 "Fabric Platform Test Sub"
 {
