@@ -11,6 +11,11 @@ $w1Apps = @(Join-Path $sourceCodeFolder "Apps\W1")
 $w1Layers = @(Join-Path $sourceCodeFolder "Layers\W1")
 # All Folders (For Apps)
 $allApps = @(Join-Path $sourceCodeFolder "Apps")
+$allBaseApps = @(
+    Get-ChildItem -Path (Join-Path $sourceCodeFolder 'Layers') -Directory |
+        ForEach-Object { Join-Path $_.FullName 'BaseApp' } |
+        Where-Object { Test-Path -Path $_ }
+)
 
 # Build path sets for different validations
 # Some folders (e.g. Layers) only exist on main and not on release branches, so filter out
@@ -18,7 +23,7 @@ $allApps = @(Join-Path $sourceCodeFolder "Apps")
 [string[]] $w1OnlyPaths = @($baseFolders + $w1Apps + $w1Layers | Where-Object { Test-Path -Path $_ })
 [string[]] $allPaths = @($baseFolders + $allApps + $w1Layers | Where-Object { Test-Path -Path $_ })
 [string[]] $objectIdValidationPaths = @(
-    (Join-Path $sourceCodeFolder 'Layers\W1\BaseApp')
+    $allBaseApps
     (Join-Path $sourceCodeFolder 'Business Foundation\App')
     (Join-Path $sourceCodeFolder 'System Application\App')
     $allApps

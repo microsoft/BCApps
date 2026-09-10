@@ -27,10 +27,11 @@ Describe "AppObjectValidation" {
             $countryProduction = Join-Path $source 'Apps\GB\Example\App'
             $testApp = Join-Path $source 'Apps\W1\Example\Test'
             $baseApp = Join-Path $source 'Layers\W1\BaseApp'
+            $countryBaseApp = Join-Path $source 'Layers\GB\BaseApp'
             $businessFoundationApp = Join-Path $source 'Business Foundation\App'
             $systemApplicationApp = Join-Path $source 'System Application\App'
 
-            New-Item -ItemType Directory -Path $production, $countryProduction, $testApp, $baseApp, $businessFoundationApp, $systemApplicationApp, $projects -Force | Out-Null
+            New-Item -ItemType Directory -Path $production, $countryProduction, $testApp, $baseApp, $countryBaseApp, $businessFoundationApp, $systemApplicationApp, $projects -Force | Out-Null
             @{
                 testFolders = @('../../../src/Apps/W1/Example/Test')
             } | ConvertTo-Json | Set-Content -Path (Join-Path $projects 'settings.json') -Encoding UTF8
@@ -43,11 +44,12 @@ Describe "AppObjectValidation" {
                 CountryProduction = $countryProduction
                 TestApp           = $testApp
                 BaseApp           = $baseApp
+                CountryBaseApp    = $countryBaseApp
                 BusinessFoundationApp = $businessFoundationApp
                 SystemApplicationApp  = $systemApplicationApp
                 Projects          = (Join-Path $root 'build\projects')
                 ProjectsJson      = (Join-Path $root 'build\projects.json')
-                ValidationRoots   = @($baseApp, $businessFoundationApp, $systemApplicationApp, (Join-Path $source 'Apps'))
+                ValidationRoots   = @($baseApp, $countryBaseApp, $businessFoundationApp, $systemApplicationApp, (Join-Path $source 'Apps'))
             }
         }
 
@@ -175,22 +177,23 @@ Describe "AppObjectValidation" {
             { Invoke-AddedFileValidation -Layout $layout -FilePaths @($file) } | Should -Throw
         }
 
-        It "checks newly added objects in BaseApp, Business Foundation, and System Application" {
+        It "checks newly added objects in all country BaseApps, Business Foundation, and System Application" {
             $layout = New-ValidationLayout
             $baseAppFile = New-TestAlFile -Path (Join-Path $layout.BaseApp 'Invalid.al') -Declaration 'table 50000 "Invalid BaseApp"'
+            $countryBaseAppFile = New-TestAlFile -Path (Join-Path $layout.CountryBaseApp 'Invalid.al') -Declaration 'tableextension 50001 "Invalid GB BaseApp" extends "Customer"'
             $businessFoundationFile = New-TestAlFile -Path (Join-Path $layout.BusinessFoundationApp 'Invalid.al') -Declaration 'page 50001 "Invalid Business Foundation"'
             $systemApplicationFile = New-TestAlFile -Path (Join-Path $layout.SystemApplicationApp 'Invalid.al') -Declaration 'codeunit 50002 "Invalid System Application"'
 
             $errorRecord = $null
             try {
-                Invoke-AddedFileValidation -Layout $layout -FilePaths @($baseAppFile, $businessFoundationFile, $systemApplicationFile)
+                Invoke-AddedFileValidation -Layout $layout -FilePaths @($baseAppFile, $countryBaseAppFile, $businessFoundationFile, $systemApplicationFile)
             }
             catch {
                 $errorRecord = $_
             }
 
             $errorRecord | Should -Not -BeNullOrEmpty
-            $errorRecord.Exception.Message | Should -Match '3 object\(s\)'
+            $errorRecord.Exception.Message | Should -Match '4 object\(s\)'
         }
 
         It "excludes a table in a test app without relying on Subtype Test" {
