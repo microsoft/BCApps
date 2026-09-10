@@ -2614,7 +2614,7 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     [Test]
-    [HandlerFunctions('WhseItemTrackingLinesAssignLotAndExpirationPageHandler,ItemTrackingLinesSelectEntriesPageHandler')]
+    [HandlerFunctions('ItemTrackingLinesSelectEntriesPageHandler,ItemTrackingSummaryPageHandler')]
     [Scope('OnPrem')]
     procedure LotTrackingFlowsToSecondPickAfterPartialWarehouseShipment()
     var
@@ -2644,11 +2644,13 @@ codeunit 137055 "SCM Warehouse Pick"
         Location.Modify(true);
         LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
         CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", false);
+        ItemTrackingCode.Modify(true);
         LotQty := LibraryRandom.RandIntInRange(10, 20);
         LotNo[1] := LibraryUtility.GenerateGUID();
         LotNo[2] := LibraryUtility.GenerateGUID();
-        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[1], CalcDate('<+5D>', WorkDate()));
-        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[2], CalcDate('<+15D>', WorkDate()));
+        UpdateInventoryInPickBinWithLotAndExpirationWithoutWarehouseTracking(Item, Location.Code, LotQty, LotNo[1], CalcDate('<+5D>', WorkDate()));
+        UpdateInventoryInPickBinWithLotAndExpirationWithoutWarehouseTracking(Item, Location.Code, LotQty, LotNo[2], CalcDate('<+15D>', WorkDate()));
 
         // [GIVEN] The first lot is picked and posted as a partial warehouse shipment.
         CreateSalesOrder(SalesHeader, Location.Code, Item."No.", 2 * LotQty);
@@ -2660,19 +2662,22 @@ codeunit 137055 "SCM Warehouse Pick"
         LibrarySales.ReleaseSalesDocument(SalesHeader);
         LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
         FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader."No.");
+        FilterWarehouseShipmentLine(WarehouseShipmentLine, SalesHeader."No.");
+        WarehouseShipmentLine.FindFirst();
+        LibraryVariableStorage.Enqueue(LotNo[1]);
+        LibraryVariableStorage.Enqueue(LotQty);
+        WarehouseShipmentLine.OpenItemTrackingLines();
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
         FindWarehouseActivityLine(
             WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, Location.Code, SalesHeader."No.",
             WarehouseActivityLine."Action Type"::Take);
-        WarehouseActivityLine.TestField("Lot No.", LotNo[1]);
         FindWarehouseActivityHeader(WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, Location.Code, SalesHeader."No.");
         WarehouseActivityLine.Reset();
         WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
         WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
-        WarehouseActivityLine.SetRange("Lot No.", LotNo[2]);
         WarehouseActivityLine.FindSet();
         repeat
-            WarehouseActivityLine.Validate("Qty. to Handle", 0);
+            WarehouseActivityLine.Validate("Qty. to Handle", LotQty);
             WarehouseActivityLine.Modify(true);
         until WarehouseActivityLine.Next() = 0;
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
@@ -2694,20 +2699,21 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseShipmentLine.FindFirst();
 
         // [WHEN] Select Entries assigns the remaining lot and a second pick is created.
+        LibraryVariableStorage.Enqueue(LotNo[2]);
+        LibraryVariableStorage.Enqueue(LotQty);
         WarehouseShipmentLine.OpenItemTrackingLines();
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
 
-        // [THEN] The remaining lot and quantity flow to both lines of the second pick.
+        // [THEN] The remaining lot stays assigned to the source and the quantity flows to both lines of the second pick.
+        VerifySalesLineLotTracking(SalesLine, LotNo[2], LotQty);
         WarehouseActivityLine.Reset();
         FindWarehouseActivityLine(
             WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, Location.Code, SalesHeader."No.",
             WarehouseActivityLine."Action Type"::Take);
-        WarehouseActivityLine.TestField("Lot No.", LotNo[2]);
         WarehouseActivityLine.TestField(Quantity, LotQty);
         FindWarehouseActivityLine(
             WarehouseActivityLine, WarehouseActivityLine."Activity Type"::Pick, Location.Code, SalesHeader."No.",
             WarehouseActivityLine."Action Type"::Place);
-        WarehouseActivityLine.TestField("Lot No.", LotNo[2]);
         WarehouseActivityLine.TestField(Quantity, LotQty);
 
         WorkDate(OriginalWorkDate);
@@ -2737,6 +2743,47 @@ codeunit 137055 "SCM Warehouse Pick"
         isInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Warehouse Pick");
+    end;
+
+    local procedure UpdateInventoryInPickBinWithLotAndExpirationWithoutWarehouseTracking(Item: Record Item; LocationCode: Code[10]; Quantity: Decimal; LotNo: Code[50]; ExpirationDate: Date)
+    var
+        Zone: Record Zone;
+        Bin: Record Bin;
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        EnsureGeneralPostingSetupForItem(Item);
+        LibraryWarehouse.FindZone(Zone, LocationCode, LibraryWarehouse.SelectBinType(false, false, true, true), false);
+        LibraryWarehouse.FindBin(Bin, LocationCode, Zone.Code, 1);
+        LibraryWarehouse.WarehouseJournalSetup(LocationCode, WarehouseJournalTemplate, WarehouseJournalBatch);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryWarehouse.CreateWhseJournalLine(
+          WarehouseJournalLine, WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name,
+          LocationCode, Zone.Code, Bin.Code,
+          WarehouseJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
+        LibraryWarehouse.RegisterWhseJournalLine(
+          WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name, LocationCode, true);
+        LibraryWarehouse.CalculateWhseAdjustment(Item, ItemJournalBatch);
+
+        ItemJournalLine.SetRange("Journal Template Name", ItemJournalBatch."Journal Template Name");
+        ItemJournalLine.SetRange("Journal Batch Name", ItemJournalBatch.Name);
+        ItemJournalLine.FindFirst();
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, Quantity);
+        ReservationEntry.Validate("Expiration Date", ExpirationDate);
+        ReservationEntry.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure VerifySalesLineLotTracking(SalesLine: Record "Sales Line"; LotNo: Code[50]; Quantity: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", true);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        ReservationEntry.FindFirst();
+        ReservationEntry.TestField("Quantity (Base)", -Quantity);
     end;
 
     local procedure CreateItemJournalLineWithLocationQtyAndUoM(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; UoM: Code[10])
@@ -3353,6 +3400,37 @@ codeunit 137055 "SCM Warehouse Pick"
         GeneralPostingSetup.Modify(true);
     end;
 
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemTrackingLinesSelectEntriesPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    begin
+        ItemTrackingLines."Select Entries".Invoke();
+        ItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemTrackingSummaryPageHandler(var ItemTrackingSummary: TestPage "Item Tracking Summary")
+    var
+        LotNo: Code[50];
+        Quantity: Decimal;
+    begin
+        LotNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(LotNo));
+        Quantity := LibraryVariableStorage.DequeueDecimal();
+
+        if ItemTrackingSummary.First() then
+            repeat
+                ItemTrackingSummary."Selected Quantity".SetValue(0);
+            until not ItemTrackingSummary.Next();
+
+        ItemTrackingSummary.Filter.SetFilter("Lot No.", LotNo);
+        ItemTrackingSummary.First();
+        ItemTrackingSummary."Selected Quantity".SetValue(Quantity);
+        ItemTrackingSummary."Lot No.".AssertEquals(LotNo);
+        ItemTrackingSummary."Selected Quantity".AssertEquals(Quantity);
+        ItemTrackingSummary.OK().Invoke();
+    end;
+
     local procedure UpdateShipmentBinOnWhseShipment(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; BinCode: Code[20])
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
@@ -3903,15 +3981,6 @@ codeunit 137055 "SCM Warehouse Pick"
         WhseItemTrackingLines.Quantity.SetValue(LibraryVariableStorage.DequeueDecimal());
         WhseItemTrackingLines.OK().Invoke();
     end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ItemTrackingLinesSelectEntriesPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
-    begin
-        ItemTrackingLines."Select Entries".Invoke();
-        ItemTrackingLines.OK().Invoke();
-    end;
-
 
     [ConfirmHandler]
     [Scope('OnPrem')]
