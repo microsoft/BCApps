@@ -68,6 +68,7 @@ permissionset 6904 "Expense Management - Objects"
         table "Expense Project Buf" = X,
         table "Expense Vehicle Type" = X,
         table "Mileage Rate Setup" = X,
+        query "Travel Request Employees" = X,
         page "EA Billing Overview" = X,
         page "EA Scheduler Tasks" = X,
         page "EA Outbox Emails" = X,
