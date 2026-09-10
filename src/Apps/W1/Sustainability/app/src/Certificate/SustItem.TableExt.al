@@ -414,6 +414,7 @@ tableextension 6220 "Sust. Item" extends Item
     local procedure AssignEUDRItemTrackingCode()
     var
         EUDRItemTrackingCode: Record "Item Tracking Code";
+        ItemTrackingCode: Record "Item Tracking Code";
         ItemTrackingCodes: Page "Item Tracking Codes";
     begin
         EUDRItemTrackingCode.SetRange("Lot Specific Tracking", true);
