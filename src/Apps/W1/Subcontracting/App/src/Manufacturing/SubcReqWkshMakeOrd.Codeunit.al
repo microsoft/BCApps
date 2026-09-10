@@ -33,7 +33,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";
-        ReqLineDatePriceListCost: Decimal;
+        AutomaticReqLineCost: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -44,11 +44,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
             exit;
 
-        if not SubcPriceManagement.TryGetSubcPriceListCostForPurchLine(
-             PurchOrderLine, RequisitionLine."Order Date", ReqLineDatePriceListCost)
-        then
-            exit;
-        if PurchOrderLine."Direct Unit Cost" <> ReqLineDatePriceListCost then
+        AutomaticReqLineCost := SubcPriceManagement.GetAutomaticSubcCostForReqLine(RequisitionLine);
+        if RequisitionLine."Direct Unit Cost" <> AutomaticReqLineCost then
             exit;
 
         SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine);
