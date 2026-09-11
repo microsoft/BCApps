@@ -884,7 +884,9 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
-        WorkDateSelectionVisible := Rec.IsEvaluationCompany() or CompanyInformationMgt.IsDemoCompany();
+        WorkDateSelectionVisible := Rec."Demo Company";
+        if not WorkDateSelectionVisible then
+            WorkDateSelectionVisible := Rec.IsEvaluationCompany();
         CustomWorkDateVisible := WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date");
 #if not CLEAN27
         HandleAddressLookupVisibility();

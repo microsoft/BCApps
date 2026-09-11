@@ -6,7 +6,7 @@ codeunit 139028 "Test Workdate"
     Permissions =
         tabledata Company = rm,
         tabledata "Company Information" = rm,
-        tabledata "G/L Entry" = rimd;
+        tabledata "G/L Entry" = ri;
 
     trigger OnRun()
     begin
