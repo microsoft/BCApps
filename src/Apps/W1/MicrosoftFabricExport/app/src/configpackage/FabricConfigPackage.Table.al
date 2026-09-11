@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-table 9102 "Fabric Config Package"
+table 9101 "Fabric Config Package"
 {
     Caption = 'Fabric Config Package';
     Access = Internal;

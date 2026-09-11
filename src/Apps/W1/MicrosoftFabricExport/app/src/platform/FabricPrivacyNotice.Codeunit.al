@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Privacy;
 
-codeunit 9110 "Fabric Privacy Notice"
+codeunit 9129 "Fabric Privacy Notice"
 {
     Access = Internal;
     InherentEntitlements = X;

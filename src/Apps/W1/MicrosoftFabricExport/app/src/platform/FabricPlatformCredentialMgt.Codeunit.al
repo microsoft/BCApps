@@ -4,7 +4,7 @@ using System.Azure.Identity;
 using System.Security.Authentication;
 using System.Security.Encryption;
 
-codeunit 9105 "Fabric Platform Credential Mgt"
+codeunit 9124 "Fabric Platform Credential Mgt"
 {
     Access = Internal;
 

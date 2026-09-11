@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-table 9101 "Fabric Config Package Line"
+table 9100 "Fabric Config Package Line"
 {
     Caption = 'Fabric Config Package Line';
     Access = Internal;

@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Environment.Configuration;
 using System.Media;
 
-codeunit 9103 "Fabric Install"
+codeunit 9122 "Fabric Install"
 {
     Subtype = Install;
     Access = Internal;

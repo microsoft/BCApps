@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-permissionset 9103 "Fabric Exp Activate"
+permissionset 9132 "Fabric Exp Activate"
 {
     Caption = 'Microsoft Fabric Export - Platform Activate';
     Assignable = true;
