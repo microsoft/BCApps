@@ -60,11 +60,17 @@ codeunit 148347 "Travel Requests API Test"
         OtherEmployee: Record Employee;
         ExpenseUser: Record "Expense User";
         OtherExpenseUser: Record "Expense User";
+        RequestedForExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         Traveler: Record Traveler;
+        RequestedForTraveler: Record Traveler;
         Request: JsonObject;
         Response: JsonObject;
-        EmployeeNumber: JsonToken;
+        ExpandedTravelers: JsonToken;
+        ExpandedTraveler: JsonToken;
+        ExpandedTravelerId: JsonToken;
+        ExpectedEmployeeNumbers: Dictionary of [Text, Code[20]];
+        ExpectedEmployeeNo: Code[20];
 #if not CLEAN30
         ExpenseUserNo: JsonToken;
         ExpenseUserName: JsonToken;
@@ -73,13 +79,21 @@ codeunit 148347 "Travel Requests API Test"
         RequestBody: Text;
         ResponseText: Text;
     begin
-        // [SCENARIO] A traveler supplied as an employee is stored as the linked Expense User.
+        // [SCENARIO] Direct and expanded reads return employee numbers for automatically and explicitly added travelers.
         Initialize();
 
-        // [GIVEN] An Expense User linked to an employee and an open travel request.
+        // [GIVEN] Requested For creates a traveler without writing employeeNumber through the Travelers API.
+        LibraryExpense.CreateExpenseUser(RequestedForExpenseUser);
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         LibraryExpense.CreateExpenseUser(OtherExpenseUser);
-        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        Assert.AreNotEqual(RequestedForExpenseUser."No.", RequestedForExpenseUser."Employee No.", 'The requested-for fixture must use distinct Expense User and Employee numbers.');
+        Assert.AreNotEqual(ExpenseUser."No.", ExpenseUser."Employee No.", 'The explicit traveler fixture must use distinct Expense User and Employee numbers.');
+        CreateTravelRequest(TravelRequest, RequestedForExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", RequestedForExpenseUser."No.");
+        TravelRequest.Modify(true);
+        RequestedForTraveler.SetRange("Spend Request No.", TravelRequest."No.");
+        RequestedForTraveler.FindFirst();
+        RequestedForTraveler.TestField("Expense User No.", RequestedForExpenseUser."No.");
         Request.Add('employeeNumber', ExpenseUser."Employee No.");
         Request.WriteTo(RequestBody);
         Commit();
@@ -92,13 +106,13 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] The Traveler stores the corresponding Expense User number.
         Traveler.SetRange("Spend Request No.", TravelRequest."No.");
+        Traveler.SetFilter("Line No.", '<>%1', RequestedForTraveler."Line No.");
         Traveler.FindFirst();
         Traveler.TestField("Expense User No.", ExpenseUser."No.");
 
         // [THEN] The API returns the employee mapping, retaining compatibility fields until removal.
         Response.ReadFrom(ResponseText);
-        Response.Get('employeeNumber', EmployeeNumber);
-        Assert.AreEqual(ExpenseUser."Employee No.", EmployeeNumber.AsValue().AsText(), 'The mapped employee number must be returned.');
+        AssertTravelerEmployeeNumber(Response, ExpenseUser."Employee No.");
 #if not CLEAN30
         Response.Get('expenseUserNo', ExpenseUserNo);
         Response.Get('expenseUserName', ExpenseUserName);
@@ -109,6 +123,10 @@ codeunit 148347 "Travel Requests API Test"
         Assert.IsFalse(Response.Contains('expenseUserName'), 'Removed Expense User names must not be returned.');
 #endif
 
+        // [THEN] Fresh direct GETs resolve both mappings independently of the POST input variable.
+        AssertTravelerGetEmployeeNumber(RequestedForTraveler.SystemId, RequestedForExpenseUser."Employee No.");
+        AssertTravelerGetEmployeeNumber(Traveler.SystemId, ExpenseUser."Employee No.");
+
         // [WHEN] The travel request is read with travelers and employees expanded.
         TargetURL := LibraryGraphMgt.CreateTargetURL(
             Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
@@ -118,10 +136,20 @@ codeunit 148347 "Travel Requests API Test"
             TargetURL += '?$expand=travelers,employees';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
-        // [THEN] Stored Expense Users are projected back as the request's full Employee entities.
-        Assert.AreNotEqual(
-            0, StrPos(ResponseText, '"employeeNumber":"' + ExpenseUser."Employee No." + '"'),
-            'Expanded travelers must return the mapped employee number.');
+        // [THEN] Each traveler itself returns the correct mapping, not just a nested employee entity.
+        ExpectedEmployeeNumbers.Add(LowerCase(LibraryGraphMgt.StripBrackets(Format(RequestedForTraveler.SystemId))), RequestedForExpenseUser."Employee No.");
+        ExpectedEmployeeNumbers.Add(LowerCase(LibraryGraphMgt.StripBrackets(Format(Traveler.SystemId))), ExpenseUser."Employee No.");
+        Response.ReadFrom(ResponseText);
+        Assert.IsTrue(Response.Get('travelers', ExpandedTravelers), 'The response must contain the travelers expansion.');
+        foreach ExpandedTraveler in ExpandedTravelers.AsArray() do begin
+            Assert.IsTrue(ExpandedTraveler.AsObject().Get('id', ExpandedTravelerId), 'Each expanded traveler must have an id.');
+            Assert.IsTrue(
+                ExpectedEmployeeNumbers.Get(LowerCase(ExpandedTravelerId.AsValue().AsText()), ExpectedEmployeeNo),
+                'The response must not contain unexpected or duplicate travelers.');
+            AssertTravelerEmployeeNumber(ExpandedTraveler.AsObject(), ExpectedEmployeeNo);
+            ExpectedEmployeeNumbers.Remove(LowerCase(ExpandedTravelerId.AsValue().AsText()));
+        end;
+        Assert.AreEqual(0, ExpectedEmployeeNumbers.Count(), 'The response must include both the requested-for and explicitly added travelers.');
 #if not CLEAN30
         Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must retain the obsolete Expense User number.');
         Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must retain the obsolete Expense User name.');
@@ -931,6 +959,27 @@ codeunit 148347 "Travel Requests API Test"
             exit(TargetURL + PathSuffix);
 
         exit(CopyStr(TargetURL, 1, QueryPosition - 1) + PathSuffix + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    local procedure AssertTravelerGetEmployeeNumber(TravelerSystemId: Guid; ExpectedEmployeeNo: Code[20])
+    var
+        Response: JsonObject;
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURL(Format(TravelerSystemId), Page::"Travelers API", TravelersServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Response.ReadFrom(ResponseText);
+        AssertTravelerEmployeeNumber(Response, ExpectedEmployeeNo);
+    end;
+
+    local procedure AssertTravelerEmployeeNumber(Response: JsonObject; ExpectedEmployeeNo: Code[20])
+    var
+        EmployeeNumber: JsonToken;
+    begin
+        Assert.AreNotEqual('', ExpectedEmployeeNo, 'The fixture must have a linked Employee number.');
+        Assert.IsTrue(Response.Get('employeeNumber', EmployeeNumber), 'The traveler response must contain employeeNumber.');
+        Assert.AreEqual(ExpectedEmployeeNo, EmployeeNumber.AsValue().AsText(), 'The traveler must return the Employee number linked to its Expense User.');
     end;
 
     local procedure AssertAPIDates(ResponseText: Text; StartDate: Date; EndDate: Date)

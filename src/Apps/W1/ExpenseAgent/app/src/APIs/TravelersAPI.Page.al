@@ -79,11 +79,12 @@ page 7103 "Travelers API"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-        Rec.SetAutoCalcFields("Employee No.");
     end;
 
     trigger OnAfterGetRecord()
     begin
+        // The variable-backed API control does not automatically calculate its source FlowField.
+        Rec.CalcFields("Employee No.");
         EmployeeNumber := Rec."Employee No.";
     end;
 
