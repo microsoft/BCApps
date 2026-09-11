@@ -7,6 +7,9 @@ param(
     [ValidateSet('all', 'Finance', 'SCM', 'Integrations')]
     [string] $Team,
 
+    [ValidateRange(1, 100)]
+    [int] $Limit = 5,
+
     [Parameter(Mandatory = $true)]
     [string] $OutputPath
 )
@@ -89,7 +92,7 @@ function Test-HasOpenPullRequest {
     return $false
 }
 
-function Test-StandaloneIssue {
+function Test-IssueEligible {
     param(
         [Parameter(Mandatory = $true)][object] $Issue,
         [Parameter(Mandatory = $true)][string] $ExpectedTeamLabel
@@ -124,16 +127,22 @@ foreach ($selectedTeam in $selectedTeams) {
         '--label', 'ext-ready-to-implement',
         '--label', $teamLabel,
         '--limit', '1000',
-        '--json', 'number,url,createdAt,labels,closedByPullRequestsReferences'
+        '--json', 'number,url,updatedAt,labels,closedByPullRequestsReferences'
     )
 
     foreach ($issue in @($response.Text | ConvertFrom-Json)) {
-        if (Test-StandaloneIssue -Issue $issue -ExpectedTeamLabel $teamLabel) {
+        if (Test-IssueEligible -Issue $issue -ExpectedTeamLabel $teamLabel) {
+            $requestType = [string](
+                $issue.labels |
+                    ForEach-Object { $_.name } |
+                    Where-Object { $_ -in $requestLabels } |
+                    Select-Object -First 1
+            )
             $matrix.Add(@{
                 issue_number = [long]$issue.number
                 issue_url = [string]$issue.url
-                created_at = [string]$issue.createdAt
-                request_type = [string](@($issue.labels | ForEach-Object { $_.name } | Where-Object { $_ -in $requestLabels })[0])
+                updated_at = [string]$issue.updatedAt
+                request_type = $requestType
                 team_label = $teamLabel
                 team = $selectedTeam
             })
@@ -141,7 +150,7 @@ foreach ($selectedTeam in $selectedTeams) {
     }
 }
 
-$selectedIssues = @($matrix | Sort-Object created_at | Select-Object -First 250)
+$selectedIssues = @($matrix | Sort-Object updated_at, issue_number | Select-Object -First $Limit)
 @{ include = $selectedIssues } |
     ConvertTo-Json -Depth 5 -Compress |
     Set-Content -Path $OutputPath -Encoding UTF8

@@ -87,6 +87,7 @@ jobs:
           ./.github/scripts/bc-extrequest-implement/find-standalone-team-issues.ps1 `
             -Repository $env:GITHUB_REPOSITORY `
             -Team $env:SELECTED_TEAM `
+            -Limit 5 `
             -OutputPath $matrixPath
           $matrix = Get-Content -Raw $matrixPath
           $issueCount = @((ConvertFrom-Json $matrix).include).Count
@@ -108,6 +109,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    concurrency:
+      group: extrequest-team-${{ matrix.slug }}
+      cancel-in-progress: false
 
     steps:
       - name: Check telemetry configuration
@@ -153,9 +157,7 @@ jobs:
       - name: Validate skill
         run: |
           $requiredFiles = @(
-            '.github/skills/bc-extrequest-implement/SKILL.md',
-            '.github/skills/bc-extrequest-implement/standalone-pr-template.md',
-            '.github/skills/bc-extrequest-implement/batch-pr-template.md'
+            '.github/skills/bc-extrequest-implement/SKILL.md'
           )
           $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path $_) })
           if ($missingFiles.Count -gt 0) {
@@ -193,7 +195,7 @@ jobs:
             -BatchDate $batchDate `
             -Repository $env:GITHUB_REPOSITORY `
             -StatePath $statePath `
-            -Limit 10 `
+            -Limit 5 `
             -Model 'gpt-5.6-sol' `
             -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')
           "has-work=$((Test-Path $statePath).ToString().ToLowerInvariant())" |
@@ -211,6 +213,7 @@ jobs:
         if: steps.implement.outputs.has-work == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           TEAM_SLUG: ${{ matrix.slug }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
           EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
@@ -275,24 +278,16 @@ jobs:
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'failure'
         run: Write-Warning 'Azure login failed. The implementation will continue without telemetry.'
 
-      - name: Mint token for BCApps
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
-          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate skill
         run: |
           $requiredFiles = @(
-            '.github/skills/bc-extrequest-implement/SKILL.md',
-            '.github/skills/bc-extrequest-implement/standalone-pr-template.md',
-            '.github/skills/bc-extrequest-implement/batch-pr-template.md'
+            '.github/skills/bc-extrequest-implement/SKILL.md'
           )
           $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path $_) })
           if ($missingFiles.Count -gt 0) {
@@ -307,10 +302,23 @@ jobs:
       - name: Install Copilot CLI
         run: npm install --global @github/copilot
 
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
+          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
+
+      - name: Configure GitHub App authentication
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: gh auth setup-git
+
       - name: Implement standalone request
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_NUMBER: ${{ matrix.issue_number }}
           ISSUE_URL: ${{ matrix.issue_url }}
           TEAM_LABEL: ${{ matrix.team_label }}

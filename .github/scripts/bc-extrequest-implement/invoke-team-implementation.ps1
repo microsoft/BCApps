@@ -23,7 +23,7 @@ param(
     [string] $StatePath,
 
     [ValidateRange(1, 100)]
-    [int] $Limit = 10,
+    [int] $Limit = 5,
 
     [string] $Model = 'gpt-5.6-sol',
     [bool] $TelemetryEnabled = $false
@@ -41,7 +41,7 @@ $batchRequestLabels = @('event-request', 'request-for-external')
 $workerRoot = Join-Path $env:RUNNER_TEMP "bc-extrequest-$batchId"
 $failedIssues = [System.Collections.Generic.List[object]]::new()
 $successfulIssues = [System.Collections.Generic.List[object]]::new()
-$noChangeIssues = [System.Collections.Generic.List[object]]::new()
+$issueOutcomes = [System.Collections.Generic.List[object]]::new()
 $skippedIssueCount = 0
 
 $expectedTeamLabel = "Team: $Team"
@@ -72,6 +72,22 @@ function Invoke-NativeText {
         ExitCode = $exitCode
         Text = $text
     }
+}
+
+function Get-ResultProperty {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object] $Result,
+        [Parameter(Mandatory = $true)]
+        [string] $Name
+    )
+
+    $property = $Result.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        return $null
+    }
+
+    return $property.Value
 }
 
 function Send-IssueTelemetry {
@@ -119,13 +135,18 @@ function Send-IssueTelemetry {
 function Get-IssueType {
     param([Parameter(Mandatory = $true)][long] $IssueNumber)
 
-    $parts = $Repository.Split('/', 2)
+    $parts = @($Repository -split '/', 2)
+    if ($parts.Count -ne 2) {
+        throw "Repository '$Repository' is not in owner/name format."
+    }
+    $owner = $parts | Select-Object -First 1
+    $repositoryName = $parts | Select-Object -Last 1
     $query = 'query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){issue(number:$number){issueType{name}}}}'
     $response = Invoke-NativeText -Command 'gh' -Arguments @(
         'api', 'graphql',
         '-f', "query=$query",
-        '-f', "owner=$($parts[0])",
-        '-f', "repo=$($parts[1])",
+        '-f', "owner=$owner",
+        '-f', "repo=$repositoryName",
         '-F', "number=$IssueNumber"
     )
     $issueType = (ConvertFrom-Json $response.Text).data.repository.issue.issueType
@@ -176,7 +197,8 @@ function Test-IssueEligible {
     }
 
     $assignedRequestLabels = @($labels | Where-Object { $_ -in $requestLabels })
-    if ($assignedRequestLabels.Count -ne 1 -or $assignedRequestLabels[0] -notin $batchRequestLabels) {
+    $assignedRequestLabel = $assignedRequestLabels | Select-Object -First 1
+    if ($assignedRequestLabels.Count -ne 1 -or $assignedRequestLabel -notin $batchRequestLabels) {
         return $false
     }
 
@@ -195,13 +217,13 @@ function Get-EligibleIssues {
         '--label', 'ext-ready-to-implement',
         '--label', $TeamLabel,
         '--limit', '1000',
-        '--json', 'number,title,url,state,createdAt,labels,closedByPullRequestsReferences'
+        '--json', 'number,title,url,state,updatedAt,labels,closedByPullRequestsReferences'
     )
 
     $issues = @($response.Text | ConvertFrom-Json)
     return @(
         $issues |
-            Sort-Object createdAt |
+            Sort-Object updatedAt, number |
             Where-Object { Test-IssueEligible -Issue $_ } |
             Select-Object -First $Limit
     )
@@ -224,6 +246,44 @@ function Add-JobSummary {
     if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_STEP_SUMMARY)) {
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $Text
     }
+}
+
+function Add-IssueOutcome {
+    param(
+        [Parameter(Mandatory = $true)][long] $IssueNumber,
+        [Parameter(Mandatory = $true)][string] $IssueUrl,
+        [Parameter(Mandatory = $true)][string] $IssueTitle,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('Implemented', 'No code change', 'Skipped', 'Failed')]
+        [string] $Status,
+        [Parameter(Mandatory = $true)][string] $Detail
+    )
+
+    $issueOutcomes.Add([pscustomobject]@{
+        issue_number = $IssueNumber
+        issue_url = $IssueUrl
+        issue_title = $IssueTitle
+        status = $Status
+        detail = $Detail
+    })
+}
+
+function Add-IssueOutcomeSummary {
+    $summary = [System.Text.StringBuilder]::new()
+    [void]$summary.AppendLine("## $Team")
+    [void]$summary.AppendLine()
+    [void]$summary.AppendLine('### Issue outcomes')
+    [void]$summary.AppendLine()
+
+    foreach ($outcome in $issueOutcomes) {
+        $title = ([regex]::Replace([string]$outcome.issue_title, '\s+', ' ')).Trim()
+        $detail = ([regex]::Replace([string]$outcome.detail, '\s+', ' ')).Trim()
+        [void]$summary.AppendLine(
+            "- [#$($outcome.issue_number)]($($outcome.issue_url)) - $title - **$($outcome.status)**: $detail"
+        )
+    }
+
+    Add-JobSummary $summary.ToString().Trim()
 }
 
 function Remove-Worker {
@@ -258,11 +318,28 @@ Invoke-NativeText -Command 'git' -Arguments @('fetch', 'origin', $defaultBranch)
 $remoteBranch = Invoke-NativeText -Command 'git' -Arguments @(
     'ls-remote', '--heads', 'origin', $branch
 ) -AllowFailure
+$openPrResponse = Invoke-NativeText -Command 'gh' -Arguments @(
+    'pr', 'list',
+    '--repo', $Repository,
+    '--head', $branch,
+    '--state', 'open',
+    '--limit', '1',
+    '--json', 'number'
+)
+$openPr = @(
+    $openPrResponse.Text | ConvertFrom-Json
+) | Select-Object -First 1
+$replaceRemoteBranch = $false
 if ([string]::IsNullOrWhiteSpace($remoteBranch.Text)) {
-    Invoke-NativeText -Command 'git' -Arguments @('switch', '-c', $branch, "origin/$defaultBranch") | Out-Null
-} else {
+    Invoke-NativeText -Command 'git' -Arguments @('switch', '-C', $branch, "origin/$defaultBranch") | Out-Null
+} elseif ($openPr) {
     Invoke-NativeText -Command 'git' -Arguments @('fetch', 'origin', $branch) | Out-Null
     Invoke-NativeText -Command 'git' -Arguments @('switch', '-C', $branch, "origin/$branch") | Out-Null
+} else {
+    Write-Warning "Resetting unpublished batch branch '$branch' to origin/$defaultBranch before retrying."
+    Invoke-NativeText -Command 'git' -Arguments @('fetch', 'origin', $branch) | Out-Null
+    Invoke-NativeText -Command 'git' -Arguments @('switch', '-C', $branch, "origin/$defaultBranch") | Out-Null
+    $replaceRemoteBranch = $true
 }
 
 New-Item -ItemType Directory -Path $workerRoot -Force | Out-Null
@@ -270,6 +347,7 @@ New-Item -ItemType Directory -Path $workerRoot -Force | Out-Null
 foreach ($discoveredIssue in $issues) {
     $issueNumber = [long]$discoveredIssue.number
     $issueUrl = [string]$discoveredIssue.url
+    $issueTitle = [string]$discoveredIssue.title
     $workerBranch = "bc-extrequest-worker/$batchId-$issueNumber-$env:GITHUB_RUN_ATTEMPT"
     $worktreePath = Join-Path $workerRoot "issue-$issueNumber"
     $resultPath = Join-Path $workerRoot "issue-$issueNumber-result.json"
@@ -278,6 +356,12 @@ foreach ($discoveredIssue in $issues) {
         $issue = Get-CurrentIssue -IssueNumber $issueNumber
         if (-not (Test-IssueEligible -Issue $issue)) {
             Write-Warning "Skipping issue #$issueNumber because it is no longer eligible."
+            Add-IssueOutcome `
+                -IssueNumber $issueNumber `
+                -IssueUrl $issueUrl `
+                -IssueTitle $issueTitle `
+                -Status 'Skipped' `
+                -Detail 'Issue was no longer eligible when processing started.'
             $skippedIssueCount++
             continue
         }
@@ -291,7 +375,6 @@ foreach ($discoveredIssue in $issues) {
 
         $previousMode = $env:EXT_REQ_SKILL_MODE
         $previousResultPath = $env:EXT_REQ_BATCH_RESULT_PATH
-        $copilotExitCode = 0
         try {
             $env:EXT_REQ_SKILL_MODE = 'batch-worker'
             $env:EXT_REQ_BATCH_RESULT_PATH = $resultPath
@@ -300,8 +383,8 @@ foreach ($discoveredIssue in $issues) {
                 $prompt = @(
                     "Use the /bc-extrequest-implement skill to implement GitHub issue #$issueNumber.",
                     "Execution mode is batch-worker. Follow the skill's batch-worker contract exactly.",
-                    "Always write the required JSON result to EXT_REQ_BATCH_RESULT_PATH.",
-                    "Create one issue commit only when the result outcome is implemented.",
+                    "Write the required JSON result to EXT_REQ_BATCH_RESULT_PATH with changed set to the JSON boolean true or false.",
+                    "Create one issue commit only when changed is true.",
                     "Do not push, create a pull request, or modify the issue."
                 ) -join ' '
                 $copilotArgs = @(
@@ -313,7 +396,9 @@ foreach ($discoveredIssue in $issues) {
                     '-p', $prompt
                 )
                 & copilot @copilotArgs
-                $copilotExitCode = $LASTEXITCODE
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Copilot CLI exited with code $LASTEXITCODE."
+                }
             } finally {
                 Pop-Location
             }
@@ -332,6 +417,18 @@ foreach ($discoveredIssue in $issues) {
         }
 
         $result = Get-Content -Raw $resultPath | ConvertFrom-Json
+        $resultChanged = Get-ResultProperty -Result $result -Name 'changed'
+        if ($resultChanged -isnot [bool]) {
+            throw "The batch-worker result must contain 'changed' as a JSON boolean."
+        }
+        $resultIssueNumber = Get-ResultProperty -Result $result -Name 'issue_number'
+        if ($null -eq $resultIssueNumber -or [long]$resultIssueNumber -ne $issueNumber) {
+            throw 'The batch-worker result does not match the implemented issue.'
+        }
+        $resultCommitSha = [string](Get-ResultProperty -Result $result -Name 'commit_sha')
+        $resultSummary = [string](Get-ResultProperty -Result $result -Name 'summary')
+        $resultChangesMade = @(Get-ResultProperty -Result $result -Name 'changes_made')
+
         $workerHead = (Invoke-NativeText -Command 'git' -Arguments @('-C', $worktreePath, 'rev-parse', 'HEAD')).Text
         $commitCount = [int](Invoke-NativeText -Command 'git' -Arguments @(
             '-C', $worktreePath, 'rev-list', '--count', "$batchHead..$workerHead"
@@ -339,15 +436,43 @@ foreach ($discoveredIssue in $issues) {
         $worktreeStatus = (Invoke-NativeText -Command 'git' -Arguments @(
             '-C', $worktreePath, 'status', '--porcelain'
         )).Text
-        if ([long]$result.issue_number -ne $issueNumber) {
-            throw 'The batch-worker result does not match the implemented issue.'
-        }
-        if ([string]::IsNullOrWhiteSpace([string]$result.outcome) -or
-            $result.outcome -notin @('implemented', 'already_implemented', 'blocked', 'failed')) {
-            throw "The batch-worker result has unsupported outcome '$($result.outcome)'."
-        }
         if (-not [string]::IsNullOrWhiteSpace($worktreeStatus)) {
             throw 'The batch worker left uncommitted changes in its worktree.'
+        }
+
+        if ($commitCount -eq 0) {
+            if ([string]::IsNullOrWhiteSpace($resultSummary)) {
+                throw 'A batch-worker result without an issue commit must contain a summary.'
+            }
+            if ($resultChangesMade.Count -ne 0) {
+                throw 'A batch-worker result without an issue commit must contain no changes.'
+            }
+            if ($resultChanged) {
+                Write-Warning "Issue #$issueNumber reported changed=true but created no commit; treating it as unchanged."
+            }
+
+            $skippedIssueCount++
+            Add-IssueOutcome `
+                -IssueNumber $issueNumber `
+                -IssueUrl $issueUrl `
+                -IssueTitle $issueTitle `
+                -Status 'No code change' `
+                -Detail $resultSummary
+            Write-Host "Skipped issue #$issueNumber (changed=false): $resultSummary"
+            continue
+        }
+
+        if ($commitCount -ne 1) {
+            throw "Expected exactly one issue commit, but found $commitCount."
+        }
+        if (-not $resultChanged) {
+            Write-Warning "Issue #$issueNumber reported changed=false but created one commit; using the Git history."
+        }
+        if ([string]::IsNullOrWhiteSpace($resultSummary) -or $resultChangesMade.Count -eq 0) {
+            throw 'The implemented batch-worker result does not contain a summary and changes.'
+        }
+        if (-not [string]::IsNullOrWhiteSpace($resultCommitSha) -and $resultCommitSha -ne $workerHead) {
+            Write-Warning "Issue #$issueNumber reported a stale commit SHA; using the worker HEAD."
         }
         $trustedLabels = @(
             $currentIssue.labels |
@@ -357,60 +482,7 @@ foreach ($discoveredIssue in $issues) {
         $result | Add-Member -NotePropertyName issue_title -NotePropertyValue $currentIssue.title -Force
         $result | Add-Member -NotePropertyName issue_url -NotePropertyValue $currentIssue.url -Force
         $result | Add-Member -NotePropertyName labels -NotePropertyValue $trustedLabels -Force
-
-        if ($result.outcome -ne 'implemented') {
-            if ($commitCount -ne 0) {
-                throw "Outcome '$($result.outcome)' must not create a commit, but found $commitCount."
-            }
-            if ($null -ne $result.commit_sha) {
-                throw "Outcome '$($result.outcome)' must set commit_sha to null."
-            }
-            if ([string]::IsNullOrWhiteSpace([string]$result.reason)) {
-                throw "Outcome '$($result.outcome)' must include a reason."
-            }
-            if ([string]::IsNullOrWhiteSpace([string]$result.summary) -or @($result.changes_made).Count -ne 0) {
-                throw "Outcome '$($result.outcome)' must include a summary and no changes."
-            }
-            if ($copilotExitCode -ne 0 -and $result.outcome -ne 'failed') {
-                throw "Copilot CLI exited with code $copilotExitCode but returned outcome '$($result.outcome)'."
-            }
-
-            if ($result.outcome -eq 'already_implemented') {
-                $noChangeIssues.Add($result)
-                Write-Host "Issue #$issueNumber requires no implementation: $($result.reason)"
-                continue
-            }
-
-            $failedIssues.Add([pscustomobject]@{
-                issue_number = $issueNumber
-                issue_url = $issueUrl
-                outcome = [string]$result.outcome
-                failure = [string]$result.reason
-            })
-            Send-IssueTelemetry `
-                -Tag ERROR `
-                -IssueNumber $issueNumber `
-                -IssueUrl $issueUrl `
-                -FailureMessage "$($result.outcome): $($result.reason)"
-            Write-Warning "Issue #$issueNumber returned $($result.outcome): $($result.reason)"
-            continue
-        }
-
-        if ($copilotExitCode -ne 0) {
-            throw "Copilot CLI exited with code $copilotExitCode after returning outcome 'implemented'."
-        }
-        if ($result.commit_sha -ne $workerHead) {
-            throw 'The batch-worker result commit does not match the implemented issue commit.'
-        }
-        if ($commitCount -ne 1) {
-            throw "Outcome 'implemented' requires exactly one issue commit, but found $commitCount."
-        }
-        if (-not [string]::IsNullOrWhiteSpace([string]$result.reason)) {
-            throw "Outcome 'implemented' must have an empty reason."
-        }
-        if ([string]::IsNullOrWhiteSpace([string]$result.summary) -or @($result.changes_made).Count -eq 0) {
-            throw "Outcome 'implemented' must include a summary and at least one change."
-        }
+        $result | Add-Member -NotePropertyName changed -NotePropertyValue $true -Force
 
         $changedFiles = @(
             (Invoke-NativeText -Command 'git' -Arguments @(
@@ -424,8 +496,16 @@ foreach ($discoveredIssue in $issues) {
         }
 
         Invoke-NativeText -Command 'git' -Arguments @('cherry-pick', $workerHead) | Out-Null
-        $result.commit_sha = (Invoke-NativeText -Command 'git' -Arguments @('rev-parse', 'HEAD')).Text
+        $result | Add-Member -NotePropertyName commit_sha `
+            -NotePropertyValue (Invoke-NativeText -Command 'git' -Arguments @('rev-parse', 'HEAD')).Text `
+            -Force
         $successfulIssues.Add($result)
+        Add-IssueOutcome `
+            -IssueNumber $issueNumber `
+            -IssueUrl $issueUrl `
+            -IssueTitle $issueTitle `
+            -Status 'Implemented' `
+            -Detail $resultSummary
         Write-Host "Implemented issue #$issueNumber."
     } catch {
         $message = $_.Exception.Message
@@ -440,6 +520,12 @@ foreach ($discoveredIssue in $issues) {
             issue_url = $issueUrl
             failure = $message
         })
+        Add-IssueOutcome `
+            -IssueNumber $issueNumber `
+            -IssueUrl $issueUrl `
+            -IssueTitle $issueTitle `
+            -Status 'Failed' `
+            -Detail $message
         Send-IssueTelemetry `
             -Tag ERROR `
             -IssueNumber $issueNumber `
@@ -452,43 +538,13 @@ foreach ($discoveredIssue in $issues) {
     }
 }
 
+Add-IssueOutcomeSummary
+
 if ($successfulIssues.Count -eq 0) {
-    if ($failedIssues.Count -eq 0 -and ($noChangeIssues.Count -gt 0 -or $skippedIssueCount -gt 0)) {
-        $summary = @(
-            "## $Team",
-            '',
-            'No pull request was created because no issue produced a code change.'
-        )
-        if ($noChangeIssues.Count -gt 0) {
-            $summary += ''
-            $summary += "Already implemented: $(@($noChangeIssues | ForEach-Object { "#$($_.issue_number)" }) -join ', ')"
-        }
-        if ($skippedIssueCount -gt 0) {
-            $summary += ''
-            $summary += "Issues that became ineligible: $skippedIssueCount"
-        }
-        Add-JobSummary ($summary -join "`n")
+    if ($failedIssues.Count -eq 0 -and $skippedIssueCount -gt 0) {
         $global:LASTEXITCODE = 0
         return
     }
-    $summary = @(
-        "## $Team",
-        '',
-        'No pull request was created because no issue implementation completed successfully.'
-    )
-    if ($noChangeIssues.Count -gt 0) {
-        $summary += ''
-        $summary += "Already implemented: $(@($noChangeIssues | ForEach-Object { "#$($_.issue_number)" }) -join ', ')"
-    }
-    if ($failedIssues.Count -gt 0) {
-        $summary += ''
-        $summary += "Failed or blocked: $(@($failedIssues | ForEach-Object { "#$($_.issue_number)" }) -join ', ')"
-    }
-    if ($skippedIssueCount -gt 0) {
-        $summary += ''
-        $summary += "Issues that became ineligible: $skippedIssueCount"
-    }
-    Add-JobSummary ($summary -join "`n")
     throw "No issue implementation completed successfully for $TeamLabel."
 }
 
@@ -502,8 +558,8 @@ $state = @{
     team = $Team
     team_label = $TeamLabel
     model = $Model
+    replace_remote_branch = $replaceRemoteBranch
     successful_issues = @($successfulIssues)
-    no_change_issues = @($noChangeIssues)
     failed_issues = @($failedIssues)
 }
 $state | ConvertTo-Json -Depth 10 | Set-Content -Path $StatePath -Encoding UTF8

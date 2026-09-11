@@ -3,7 +3,7 @@ name: bc-extrequest-implement
 description: >
   Fix a single GitHub extensibility issue end to end. Reads the issue and produces a
   guideline-aligned code fix. In standalone mode it opens a draft pull request; in batch-worker
-  mode it returns a machine-readable outcome and creates one issue commit only when implemented.
+  mode it returns a machine-readable implementation or no-change result to the calling workflow.
   The issue MUST carry the `ext-ready-to-implement` label, which acts as a guard.
   The issue, source code, and pull request live in the current GitHub repository.
   No tests, no build, and no BC container are involved - this skill only edits source and either
@@ -106,6 +106,10 @@ Determine `execution_mode`:
 - In batch-worker mode, environment variable `EXT_REQ_BATCH_RESULT_PATH` must be a non-empty
   absolute path outside the repository. If it is missing, relative, or points inside the
   repository, STOP before making changes.
+- After the issue passes the authorization guard, any batch-worker path that would otherwise STOP
+  because the request is already implemented or cannot be implemented under the guidelines must
+  first write a result with `changed` set to `false` as described in Step 7.5. This does not
+  override setup failures, an invalid result path, or an issue that fails the authorization guard.
 
 ---
 
@@ -420,10 +424,9 @@ git commit -m "Ext fix issue <issue_number>: <short description of the fix>"
 
 If there is nothing to commit (no file changes were produced):
 
+- In batch-worker mode, continue to Step 7.5 and return a result with `changed` set to `false`.
 - In standalone or coding-agent mode, STOP and report that the issue did not lead to any code
-  change, explaining why. Do not open an empty PR.
-- In batch-worker mode, continue to Step 7.5 and return an explicit non-implemented outcome. Do not
-  create an empty commit.
+  change, explaining why - do not open an empty PR.
 
 ---
 
@@ -432,30 +435,24 @@ If there is nothing to commit (no file changes were produced):
 Run this step only when `agent_mode == batch-worker`. Standalone and coding-agent executions skip
 it and continue to Step 8.
 
-Always write a result file before batch-worker mode stops, including when no code change is
-appropriate or implementation cannot be completed. A missing result file is a contract failure.
+After the issue is implemented or reaches an intentional no-change result:
 
-Use exactly one of these outcomes:
+1. Set `changed` to the JSON boolean `true` when one issue commit was created, or `false` when no
+   code change was made for any reason. Do not quote the boolean.
+   The orchestrator verifies this value against the worker branch and treats the actual Git commit
+   count as authoritative, so keep the result consistent with the repository state.
+2. When `changed` is `true`, resolve the commit SHA with `git rev-parse HEAD`.
+3. When `changed` is `true`, build the same issue-focused summary and `Changes Made` entries that
+   would have been used in the standalone PR body. When `changed` is `false`, write a concise
+   summary explaining why no code change was made and leave `changes_made` empty.
+4. Write one UTF-8 JSON object to the absolute path in `EXT_REQ_BATCH_RESULT_PATH`.
 
-- `implemented` - the requested change was made and committed.
-- `already_implemented` - the current code already provides the requested behavior.
-- `blocked` - a safe implementation requires clarification or violates a skill constraint.
-- `failed` - an unexpected implementation error prevented completion.
-
-After issue handling completes:
-
-1. For `implemented`, resolve the commit SHA with `git rev-parse HEAD`. For every other outcome,
-   set `commit_sha` to JSON `null`.
-2. Build the same issue-focused summary and `Changes Made` entries that would have been used in the
-   standalone PR body. For non-implemented outcomes, use a short summary and an empty
-   `changes_made` array.
-3. Write one UTF-8 JSON object to the absolute path in `EXT_REQ_BATCH_RESULT_PATH`:
+   A result with changes has this shape:
 
    ```json
    {
      "issue_number": 12345,
-     "outcome": "implemented",
-     "reason": "",
+     "changed": true,
      "issue_title": "Issue title",
      "issue_url": "https://github.com/owner/repository/issues/12345",
      "summary": "Two to four sentences describing the request and implementation.",
@@ -470,35 +467,32 @@ After issue handling completes:
    }
    ```
 
-   Example when no implementation is required:
+   A result without changes has this shape:
 
    ```json
    {
      "issue_number": 12345,
-     "outcome": "already_implemented",
-     "reason": "The requested procedure is already public.",
-     "issue_title": "Make the procedure public",
+     "changed": false,
+     "issue_title": "Issue title",
      "issue_url": "https://github.com/owner/repository/issues/12345",
-     "summary": "No implementation is required because the requested API is already available.",
+     "summary": "No code change was required because the requested extensibility point is already present.",
      "changes_made": [],
      "labels": [
        "Team: Finance",
        "request-for-external"
-     ],
-     "commit_sha": null
+     ]
    }
    ```
 
    `labels` must contain the issue labels prepared in Step 3.6, excluding
-   `ext-ready-to-implement`. For `implemented`, `changes_made` must contain at least one entry,
-   `reason` must be empty, and `commit_sha` must be the issue commit. For every other outcome,
-   `reason` must explain the outcome, `changes_made` must be empty, and `commit_sha` must be null.
-   Do not include Markdown bullet prefixes in array values.
-4. Do not write this result anywhere inside the repository.
-5. Do not push, create or edit a pull request, or modify the issue.
-6. If an unexpected error occurs in batch-worker mode, write a `failed` result when possible before
-   stopping. Do not disguise a missing or malformed result as success.
-7. Print a short completion message and STOP. Do not continue to Step 8.
+   `ext-ready-to-implement`. When `changed` is `true`, `changes_made` must contain at least one
+   entry and `commit_sha` must be the issue commit. When `changed` is `false`, `changes_made` must
+   be empty and `summary` must be non-empty. Do not include `commit_sha` when `changed` is `false`;
+   the orchestrator trusts the worker's actual Git history rather than commit metadata for that
+   result.
+5. Do not write this result anywhere inside the repository.
+6. Do not push, create or edit a pull request, or modify the issue.
+7. Print a short completion message and STOP successfully. Do not continue to Step 8.
 
 ---
 
@@ -525,30 +519,44 @@ exactly **one draft PR** whose title, body, and labels follow the formats below.
      git push
      ```
 
-2. **Build the PR body** by reading
-   `.github/skills/bc-extrequest-implement/standalone-pr-template.md`, replacing every placeholder,
-   and writing the rendered body to a temp file so `gh` reads it verbatim:
+2. **Build the PR body** using this exact structure and write it to a temp file so `gh` reads it
+   verbatim:
 
-   - Replace `{{SUMMARY}}` with the required 2-4 sentence summary. Describe the issue author's
-     intent, why the change is needed, and what they are trying to accomplish. Summarize the
-     problem in user terms first, then state how the PR addresses that goal.
-   - Replace `{{CHANGES_MADE}}` with the rendered Markdown bullet list.
-   - Replace `{{ISSUE_NUMBER}}` with `issue_number`.
-   - Confirm no `{{...}}` placeholder remains before creating or updating the PR.
+   ```markdown
+   ## Summary
+
+   <2-4 sentence summary>
+
+   ## Changes Made
+
+   - <object/procedure name> - <what changed and why>
+
+   Fixes #<issue_number>
+
+   > [!IMPORTANT]
+   > AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.
+   ```
+
+   Describe the issue author's intent, why the change is needed, and what they are trying to
+   accomplish. Summarize the problem in user terms first, then state how the PR addresses that
+   goal.
 
    ```powershell
    $prBodyPath = Join-Path $temp_dir "bc-extrequest-implement-pr-body-<issue_number>.md"
    Set-Content -Path $prBodyPath -Value $prBody -Encoding UTF8
    ```
 
-  `## Changes Made` formatting rules:
+   `## Changes Made` formatting rules:
 
-  - Use object-focused entries: `<object/procedure name> - <what changed and why>`.
-  - Do not list every propagated layer/counterpart file as separate bullets.
-  - If layer propagation happened, mention it once in the same object bullet in a short phrase.
-  - Do not add any `Note`, `Notes`, or extra sections beyond the template. Preserve the AI-generated content disclaimer.
+   - Use object-focused entries: `<object/procedure name> - <what changed and why>`.
+   - Do not list every propagated layer/counterpart file as separate bullets.
+   - If layer propagation happened, mention it once in the same object bullet in a short phrase.
+   - Do not add any `Note`, `Notes`, or extra sections beyond this structure. Preserve the
+     AI-generated content disclaimer.
 
 3. **Create or update exactly one draft PR**:
+
+   Use the exact GitHub issue title as `<issue_title>`; do not shorten, rewrite, or summarize it.
 
    - **`self-driven`** - find an existing pull request for
      `bc-extrequest-implement/ext_issue-<issue_number>`. Update it when found; otherwise create it:
@@ -563,12 +571,12 @@ exactly **one draft PR** whose title, body, and labels follow the formats below.
     if ($existingPr) {
       gh pr edit $existingPr `
         --repo <repository> `
-        --title "[Extensibility Request] issue <issue_number>: <short description>" `
+        --title "[Extensibility Request] issue <issue_number>: <issue_title>" `
         --body-file $prBodyPath
     } else {
       gh pr create `
         --repo <repository> `
-        --title "[Extensibility Request] issue <issue_number>: <short description>" `
+        --title "[Extensibility Request] issue <issue_number>: <issue_title>" `
         --body-file $prBodyPath `
         --base <default_branch> `
         --head bc-extrequest-implement/ext_issue-<issue_number> `
@@ -582,7 +590,7 @@ exactly **one draft PR** whose title, body, and labels follow the formats below.
 
      ```powershell
      gh pr edit <existing_pr_number_or_url> `
-       --title "[Extensibility Request] issue <issue_number>: <short description>" `
+       --title "[Extensibility Request] issue <issue_number>: <issue_title>" `
        --body-file $prBodyPath
      ```
 
