@@ -1582,7 +1582,6 @@ codeunit 139204 "FS Integration Test"
     var
         Item: Record Item;
         CRMProduct: Record "CRM Product";
-        IntegrationFieldMapping: Record "Integration Field Mapping";
         IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
@@ -1599,10 +1598,6 @@ codeunit 139204 "FS Integration Test"
         CRMProduct.ConvertToCustomerAsset := true;
         CRMProduct.Modify();
 
-        // [GIVEN] The constant field mapping is removed to isolate the custom synchronization callback.
-        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
-        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
-        IntegrationFieldMapping.DeleteAll();
         IntegrationTableMapping.Get('ITEM-PRODUCT');
 
         // [WHEN] The item is synchronized to the Field Service product.
