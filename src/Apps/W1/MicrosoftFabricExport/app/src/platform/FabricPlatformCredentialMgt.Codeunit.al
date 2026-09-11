@@ -57,7 +57,7 @@ codeunit 150005 "Fabric Platform Credential Mgt"
     end;
 
     [NonDebuggable]
-    procedure SetClientSecret(ClientSecret: SecretText)
+    internal procedure SetClientSecret(ClientSecret: SecretText)
     var
         CryptographyManagement: Codeunit "Cryptography Management";
     begin
@@ -73,13 +73,13 @@ codeunit 150005 "Fabric Platform Credential Mgt"
     end;
 
     [NonDebuggable]
-    procedure IsClientSecretSet(): Boolean
+    internal procedure IsClientSecretSet(): Boolean
     begin
         exit(not GetClientSecretSecure().IsEmpty());
     end;
 
     [NonDebuggable]
-    procedure GetClientSecret(): SecretText
+    internal procedure GetClientSecret(): SecretText
     begin
         exit(GetClientSecretSecure());
     end;

@@ -30,8 +30,6 @@ permissionset 150002 "Fabric Exp Read"
         page "Fabric Config Package Subform" = X,
         page "Fabric API Tables" = X,
         page "Fabric API Companies" = X,
-        page "Fabric API Config Packages" = X,
         page "Fabric API Export Summary" = X,
-        page "Fabric API Export Details" = X,
-        page "Fabric API Setup" = X;
+        page "Fabric API Export Details" = X;
 }

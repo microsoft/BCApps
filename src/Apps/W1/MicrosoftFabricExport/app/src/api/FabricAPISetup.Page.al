@@ -6,7 +6,7 @@ page 150015 "Fabric API Setup"
 {
     PageType = API;
     Caption = 'Fabric API Setup';
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricSetup';

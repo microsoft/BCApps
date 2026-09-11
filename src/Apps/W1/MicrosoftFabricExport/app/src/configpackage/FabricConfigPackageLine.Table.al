@@ -17,7 +17,6 @@ table 150001 "Fabric Config Package Line"
             DataClassification = SystemMetadata;
             NotBlank = true;
             TableRelation = "Fabric Config Package"."Code";
-            ValidateTableRelation = false;
         }
         field(2; "Table ID"; Integer)
         {

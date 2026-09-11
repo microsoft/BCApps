@@ -6,7 +6,7 @@ page 150013 "Fabric API Export Summary"
 {
     PageType = API;
     Caption = 'Fabric API Export Summary';
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricExportRun';
@@ -18,6 +18,7 @@ page 150013 "Fabric API Export Summary"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
+    DataAccessIntent = ReadOnly;
 
     layout
     {

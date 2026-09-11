@@ -177,14 +177,41 @@ page 150002 "Fabric Platform Export Details"
     begin
         Rec.MarkedOnly(false);
         if not ShowRowsWithNoChanges then begin
-            if Rec.FindSet() then
-                repeat
-                    if (Rec."Records Updated" <> 0) or (Rec."Records Inserted" <> 0) or (Rec."Records Deleted" <> 0) then
-                        Rec.Mark(true);
-                until Rec.Next() = 0;
+            MarkChangedRows();
             Rec.MarkedOnly(true);
         end;
         if not Rec.FindFirst() then;
+    end;
+
+    // Marks changed rows using three indexed filters instead of loading the
+    // full table and testing the predicate in AL for every row.
+    local procedure MarkChangedRows()
+    var
+        SavedView: Text;
+    begin
+        SavedView := Rec.GetView(false);
+
+        Rec.SetFilter("Records Updated", '<>%1', 0);
+        if Rec.FindSet() then
+            repeat
+                Rec.Mark(true);
+            until Rec.Next() = 0;
+
+        Rec.SetRange("Records Updated");
+        Rec.SetFilter("Records Inserted", '<>%1', 0);
+        if Rec.FindSet() then
+            repeat
+                Rec.Mark(true);
+            until Rec.Next() = 0;
+
+        Rec.SetRange("Records Inserted");
+        Rec.SetFilter("Records Deleted", '<>%1', 0);
+        if Rec.FindSet() then
+            repeat
+                Rec.Mark(true);
+            until Rec.Next() = 0;
+
+        Rec.SetView(SavedView);
     end;
 
     var

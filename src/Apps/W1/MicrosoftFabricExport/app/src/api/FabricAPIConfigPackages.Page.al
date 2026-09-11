@@ -4,7 +4,7 @@ page 150012 "Fabric API Config Packages"
 {
     PageType = API;
     Caption = 'Fabric API Config Packages';
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricConfigPackage';

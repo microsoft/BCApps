@@ -6,7 +6,7 @@ page 150011 "Fabric API Companies"
 {
     PageType = API;
     Caption = 'Fabric API Companies';
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricCompany';

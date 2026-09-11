@@ -6,7 +6,7 @@ page 150010 "Fabric API Tables"
 {
     PageType = API;
     Caption = 'Fabric API Tables';
-    APIPublisher = 'Microsoft';
+    APIPublisher = 'microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricTable';
