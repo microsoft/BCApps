@@ -4795,7 +4795,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseHeaderInvoice: Record "Purchase Header";
         PurchaseLineInvoice: Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
-        DetailedMatchedOrderLine: Record "Detailed Matched Order Line";
+        TempDetailedMatchedOrderLine: Record "Detailed Matched Order Line";
         Item: Record Item;
         Vendor: Record Vendor;
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
@@ -4829,11 +4829,11 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseLineInvoice.SetFilter("Receipt No.", '<>%1', '');
         PurchaseLineInvoice.FindFirst();
 
-        DetailedMatchedOrderLine.Init();
-        DetailedMatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        TempDetailedMatchedOrderLine.Init();
+        TempDetailedMatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
 
         // [WHEN] Getting order lines for that invoice line
-        asserterror MatchedOrderLineMgmt.GetOrderLines("Matched Order Line Source"::"Purchase Invoice", DetailedMatchedOrderLine);
+        asserterror MatchedOrderLineMgmt.GetOrderLines("Matched Order Line Source"::"Purchase Invoice", TempDetailedMatchedOrderLine);
 
         // [THEN] It is rejected because the combination is not supported
         Assert.ExpectedError('created with the Get Receipt Lines function');
