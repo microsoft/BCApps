@@ -97,10 +97,38 @@ table 1236 "JSON Buffer"
         if ContainsJSONComment(JSONText) then
             Error(InvalidJSONErr);
 
-        if not JSONToken.ReadFrom(JSONText) then
+        if not TryReadJSONToken(JSONText, JSONToken) then
             Error(InvalidJSONErr);
 
         ReadJSONToken(JSONToken, 0);
+    end;
+
+    local procedure TryReadJSONToken(JSONText: Text; var JSONToken: JsonToken): Boolean
+    var
+        JSONArray: JsonArray;
+        JSONObject: JsonObject;
+        JSONValue: JsonValue;
+    begin
+        case CopyStr(JSONText.Trim(), 1, 1) of
+            '{':
+                begin
+                    if not JSONObject.ReadFrom(JSONText) then
+                        exit(false);
+                    JSONToken := JSONObject.AsToken();
+                end;
+            '[':
+                begin
+                    if not JSONArray.ReadFrom(JSONText) then
+                        exit(false);
+                    JSONToken := JSONArray.AsToken();
+                end;
+            else begin
+                if not JSONValue.ReadFrom(JSONText) then
+                    exit(false);
+                JSONToken := JSONValue.AsToken();
+            end;
+        end;
+        exit(true);
     end;
 
     local procedure ReadJSONToken(JSONToken: JsonToken; TokenDepth: Integer)
