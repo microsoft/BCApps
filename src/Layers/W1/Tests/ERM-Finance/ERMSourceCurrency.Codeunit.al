@@ -2671,6 +2671,7 @@ codeunit 134897 "ERM Source Currency"
         PurchaseLine.Validate("Direct Unit Cost", 1788.27);
         PurchaseLine.Modify(true);
 
+        PurchaseHeader."Posting Date" := WorkDate;
         PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
         PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
         PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
