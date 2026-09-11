@@ -814,6 +814,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
 
         SAFTXMLHelper.AddNewXMLNode(ParentNodeName, '');
         GetCurrencyAmounts(CurrentAmount, CurrentAmountLCY, CurrencyCode, ExchangeRate, Amount, EntryAmount, EntryAmountLCY);
+        CurrentAmountLCY := Abs(CurrentAmountLCY);
+        CurrentAmount := Abs(CurrentAmount);
         SAFTXMLHelper.AppendXMLNode('Amount', FormatAmount(CurrentAmountLCY));
         SAFTXMLHelper.AppendXMLNode('CurrencyCode', CurrencyCode);
         SAFTXMLHelper.AppendXMLNode('CurrencyAmount', FormatAmount(CurrentAmount));
