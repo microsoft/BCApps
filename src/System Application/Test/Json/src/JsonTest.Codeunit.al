@@ -559,6 +559,20 @@ codeunit 139910 "Json Test"
     end;
 
     [Test]
+    procedure TestSelectedCollectionObjectReplacementPreservesOrder()
+    var
+        Json: Codeunit "Json";
+        SelectedObjectText: Text;
+    begin
+        Json.InitializeCollection('[{"id":"one","name":"first"},{"id":"two"}]');
+        Assert.IsTrue(Json.GetObjectFromCollectionByIndex(0, SelectedObjectText), 'The collection object was not selected.');
+
+        Json.ReplaceOrAddJPropertyInJObject('id', 'replacement');
+
+        Assert.AreEqual('[{"id":"replacement","name":"first"},{"id":"two"}]', Json.GetCollectionAsText(), 'Selected object replacement changed property order or collection state.');
+    end;
+
+    [Test]
     procedure TestReplacedCollectionObjectRemainsSelected()
     var
         Json: Codeunit "Json";

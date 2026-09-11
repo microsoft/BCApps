@@ -214,12 +214,39 @@ codeunit 5461 "Json Impl."
 
         if JsonObjectState.Get(PropertyName, OldJsonToken) then begin
             OldJsonToken.WriteTo(OldValueText);
-            JsonObjectState.Replace(PropertyName, NewJsonToken);
-            exit(OldValueText <> NewValueText);
+            if OldValueText = NewValueText then
+                exit(false);
+            ReplaceJsonPropertyPreservingOrder(PropertyName, NewJsonToken);
+            exit(true);
         end;
 
         JsonObjectState.Add(PropertyName, NewJsonToken);
         exit(true);
+    end;
+
+    local procedure ReplaceJsonPropertyPreservingOrder(PropertyName: Text; NewJsonToken: JsonToken)
+    var
+        RebuiltJsonObject: JsonObject;
+        PropertyJsonToken: JsonToken;
+        PropertyNames: List of [Text];
+        CurrentPropertyName: Text;
+    begin
+        PropertyNames := JsonObjectState.Keys();
+        foreach CurrentPropertyName in PropertyNames do
+            if CurrentPropertyName = PropertyName then
+                RebuiltJsonObject.Add(CurrentPropertyName, NewJsonToken.Clone())
+            else begin
+                JsonObjectState.Get(CurrentPropertyName, PropertyJsonToken);
+                RebuiltJsonObject.Add(CurrentPropertyName, PropertyJsonToken.Clone());
+            end;
+
+        foreach CurrentPropertyName in PropertyNames do
+            JsonObjectState.Remove(CurrentPropertyName);
+
+        foreach CurrentPropertyName in PropertyNames do begin
+            RebuiltJsonObject.Get(CurrentPropertyName, PropertyJsonToken);
+            JsonObjectState.Add(CurrentPropertyName, PropertyJsonToken.Clone());
+        end;
     end;
 
     procedure AddJObjectToCollection(JSONString: Text): Boolean
