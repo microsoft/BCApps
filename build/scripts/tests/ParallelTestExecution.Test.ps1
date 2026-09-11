@@ -221,8 +221,8 @@ Describe "ParallelTestExecution background-task profile" {
             $settings.PSObject.Properties.Name | Should -Not -Contain 'enableTaskScheduler'
             $profiles = @($settings.ConditionalSettings | Where-Object { $_.buildModes -contains 'UncategorizedTests' })
             $profiles.Count | Should -Be @($settings.buildModes | Where-Object { $_ -eq 'UncategorizedTests' }).Count
-            foreach ($profile in $profiles) {
-                $profile.settings.testType | Should -Be 'Uncategorized'
+            foreach ($testProfile in $profiles) {
+                $testProfile.settings.testType | Should -Be 'Uncategorized'
             }
             foreach ($rule in $settings.ConditionalSettings) {
                 $rule.settings.PSObject.Properties.Name | Should -Not -Contain 'enableTaskScheduler'
