@@ -288,9 +288,19 @@ table 20404 "Qlty. Inspection Gen. Rule"
     end;
 
     trigger OnModify()
+    var
+        PersistedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if xRec."Source Table No." <> 0 then
-            CheckSourceTableNoIsSet();
+        if Rec."Source Table No." = 0 then
+            if Rec.IsTemporary() then begin
+                if xRec."Source Table No." <> 0 then
+                    CheckSourceTableNoIsSet();
+            end else begin
+                PersistedQltyInspectionGenRule.SetLoadFields("Source Table No.");
+                if PersistedQltyInspectionGenRule.Get(Rec."Entry No.") then
+                    if PersistedQltyInspectionGenRule."Source Table No." <> 0 then
+                        CheckSourceTableNoIsSet();
+            end;
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
@@ -323,16 +333,19 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Assigns a sort order after the current highest value when the sort order is zero or one.
     /// </summary>
-    internal procedure UpdateSortOrder()
+    procedure UpdateSortOrder()
     var
-        FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if (Rec."Sort Order" = 0) or (Rec."Sort Order" = 1) then begin
-            FindHighestQltyInspectionGenRule.SetCurrentKey("Sort Order");
-            FindHighestQltyInspectionGenRule.Ascending(false);
-            if FindHighestQltyInspectionGenRule.FindFirst() then;
-            Rec."Sort Order" := FindHighestQltyInspectionGenRule."Sort Order" + 10;
-        end;
+        if not (Rec."Sort Order" in [0, 1]) then
+            exit;
+
+        ExistingQltyInspectionGenRule.SetCurrentKey("Sort Order");
+        ExistingQltyInspectionGenRule.SetLoadFields("Sort Order");
+        if ExistingQltyInspectionGenRule.FindLast() then
+            Rec."Sort Order" := ExistingQltyInspectionGenRule."Sort Order" + 10
+        else
+            Rec."Sort Order" := 10;
     end;
 
     /// <summary>

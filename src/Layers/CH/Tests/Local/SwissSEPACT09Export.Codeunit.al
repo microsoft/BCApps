@@ -937,6 +937,7 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
     procedure XMLExport_PaymentType3_Negative_BlankedSWIFT()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -4236,6 +4237,12 @@ codeunit 144354 "Swiss SEPA CT 09 Export"
     begin
         PostedPurchInvoiceUpdate."Payment Reference".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
 
