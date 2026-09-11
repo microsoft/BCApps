@@ -326,6 +326,8 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
         VATPostingSetup.Validate("VAT %", LibraryRandom.RandInt(10));
+        if VATPostingSetup."VAT Identifier" = '' then
+            VATPostingSetup.Validate("VAT Identifier", VATPostingSetup."VAT Prod. Posting Group");
         AssignDeductibleVATPct(VATPostingSetup, 0);
         VATPostingSetup.Validate("Purchase VAT Account", CreateSimpleGLAccount());
         VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", CreateSimpleGLAccount());

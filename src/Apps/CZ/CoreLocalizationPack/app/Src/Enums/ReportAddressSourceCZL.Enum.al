@@ -2,23 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Wizard;
+namespace Microsoft.Foundation.Address;
 
-enum 99001031 "Prod. Definition Save Target"
+enum 11704 "Report Address Source CZL"
 {
     Extensible = true;
-    AssignmentCompatibility = true;
 
-    value(0; Empty)
+    value(0; "Company Information")
     {
-        Caption = ' ', Locked = true;
+        Caption = 'Company Information';
     }
-    value(1; Item)
+    value(1; "Responsibility Center")
     {
-        Caption = 'Item';
-    }
-    value(2; StockkeepingUnit)
-    {
-        Caption = 'Stockkeeping Unit';
+        Caption = 'Responsibility Center';
     }
 }

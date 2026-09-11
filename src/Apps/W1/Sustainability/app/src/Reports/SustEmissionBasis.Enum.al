@@ -2,18 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Wizard;
+namespace Microsoft.Sustainability.Reports;
 
-enum 99001011 "Prod. Definition Mode"
+enum 6233 "Sust. Emission Basis"
 {
     Extensible = true;
 
-    value(0; DefineItemStructure)
+    value(0; Average)
     {
-        Caption = 'Define Item Structure';
+        Caption = 'Average';
     }
-    value(1; CreateProductionOrder)
+    value(1; "Details by Item Tracking")
     {
-        Caption = 'Create Production Order';
+        Caption = 'Details by Item Tracking';
     }
 }

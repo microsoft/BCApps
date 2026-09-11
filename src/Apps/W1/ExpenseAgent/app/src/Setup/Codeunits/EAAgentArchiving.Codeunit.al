@@ -2,21 +2,19 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Wizard;
 
-enum 99001028 "Prod. Definition Scenario"
+namespace Microsoft.ExpenseAgent;
+
+using System.Agents;
+
+codeunit 7104 "EA Agent Archiving" implements IAgentArchiving
 {
-    Extensible = true;
-    value(0; NothingAvailable)
-    {
-        Caption = 'Nothing Available';
-    }
-    value(1; PartiallyAvailable)
-    {
-        Caption = 'Partially Available';
-    }
-    value(2; BothAvailable)
-    {
-        Caption = 'Both Available';
-    }
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    procedure IsArchivingSupported(): Boolean
+    begin
+        exit(false);
+    end;
 }
