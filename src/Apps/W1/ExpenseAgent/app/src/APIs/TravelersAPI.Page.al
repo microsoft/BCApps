@@ -66,14 +66,14 @@ page 7103 "Travelers API"
                     Caption = 'Expense User No.';
                     ObsoleteReason = 'Use employeeNumber instead. Expense User identifiers are an internal implementation detail.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '99.9';
                 }
                 field(expenseUserName; Rec."Expense User Name")
                 {
                     Caption = 'Expense User Name';
                     ObsoleteReason = 'Use employeeNumber and the employees navigation instead.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '99.9';
                 }
             }
         }
