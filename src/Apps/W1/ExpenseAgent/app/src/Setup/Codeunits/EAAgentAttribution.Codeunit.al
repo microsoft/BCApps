@@ -17,7 +17,9 @@ codeunit 6922 "EA Agent Attribution"
     var
         Agent: Record Agent;
     begin
-        if Agent.Get(AgentUserSecurityId) then
+        if Agent.Get(AgentUserSecurityId) then begin
+            Agent."Display Name" := Agent."Display Name";
             Agent.Modify();
+        end;
     end;
 }
