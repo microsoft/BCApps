@@ -64,8 +64,10 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         Response: JsonObject;
         EmployeeNumber: JsonToken;
+#if not CLEAN30
         ExpenseUserNo: JsonToken;
         ExpenseUserName: JsonToken;
+#endif
         TargetURL: Text;
         RequestBody: Text;
         ResponseText: Text;
@@ -92,14 +94,19 @@ codeunit 148347 "Travel Requests API Test"
         Traveler.FindFirst();
         Traveler.TestField("Expense User No.", ExpenseUser."No.");
 
-        // [THEN] The API returns the employee mapping and retains the obsolete compatibility fields.
+        // [THEN] The API returns the employee mapping, retaining compatibility fields until removal.
         Response.ReadFrom(ResponseText);
         Response.Get('employeeNumber', EmployeeNumber);
+        Assert.AreEqual(ExpenseUser."Employee No.", EmployeeNumber.AsValue().AsText(), 'The mapped employee number must be returned.');
+#if not CLEAN30
         Response.Get('expenseUserNo', ExpenseUserNo);
         Response.Get('expenseUserName', ExpenseUserName);
-        Assert.AreEqual(ExpenseUser."Employee No.", EmployeeNumber.AsValue().AsText(), 'The mapped employee number must be returned.');
         Assert.AreEqual(ExpenseUser."No.", ExpenseUserNo.AsValue().AsText(), 'The obsolete Expense User number must remain compatible.');
         Assert.AreEqual(ExpenseUser.Name, ExpenseUserName.AsValue().AsText(), 'The obsolete Expense User name must remain compatible.');
+#else
+        Assert.IsFalse(Response.Contains('expenseUserNo'), 'Removed Expense User numbers must not be returned.');
+        Assert.IsFalse(Response.Contains('expenseUserName'), 'Removed Expense User names must not be returned.');
+#endif
 
         // [WHEN] The travel request is read with travelers and employees expanded.
         TargetURL := LibraryGraphMgt.CreateTargetURL(
@@ -114,8 +121,13 @@ codeunit 148347 "Travel Requests API Test"
         Assert.AreNotEqual(
             0, StrPos(ResponseText, '"employeeNumber":"' + ExpenseUser."Employee No." + '"'),
             'Expanded travelers must return the mapped employee number.');
+#if not CLEAN30
         Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must retain the obsolete Expense User number.');
         Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must retain the obsolete Expense User name.');
+#else
+        Assert.AreEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must not return removed Expense User numbers.');
+        Assert.AreEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must not return removed Expense User names.');
+#endif
         Employee.Get(ExpenseUser."Employee No.");
         OtherEmployee.Get(OtherExpenseUser."Employee No.");
         Assert.AreNotEqual(
