@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 
-codeunit 148347 EACorpCardTestLib
+codeunit 148357 EACorpCardTestLib
 {
     var
         Assert: Codeunit "Assert";
