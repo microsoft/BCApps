@@ -58,36 +58,43 @@ codeunit 3997 "Retention Policy JQ"
             exit;
         end;
 
-        RetentionPolicyLog.LogInfo(RetentionPolicyLogCategory::"Retention Policy - Schedule", RescheduleOnLimitExceededLbl);
-
-        ScheduleContinuation();
+        if ScheduleContinuation() then
+            RetentionPolicyLog.LogInfo(RetentionPolicyLogCategory::"Retention Policy - Schedule", RescheduleOnLimitExceededLbl);
         Handled := true;
     end;
 
-    internal procedure ScheduleContinuation()
+    internal procedure ScheduleContinuation(): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
         JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetFilter(Status, '%1|%2|%3', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Waiting);
-        if JobQueueEntry.FindFirst() then begin
-            // The dispatcher activates Waiting entries when their category is available.
-            if JobQueueEntry.Status = JobQueueEntry.Status::Waiting then
-                exit;
+        // The dispatcher activates Waiting entries when their category is available.
+        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
+        if JobQueueEntry.FindFirst() then
+            exit(false);
 
-            JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
-            if JobQueueEntry.FindFirst() then begin
-                if JobQueueEntry.Status <> JobQueueEntry.Status::Waiting then
-                    JobQueueEntry.Restart();
-                exit;
-            end;
+        JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold");
+        JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
+        if JobQueueEntry.FindFirst() then begin
+            if not (JobQueueEntry.Status in [JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold"]) then
+                exit(false);
+
+            JobQueueEntry.Restart();
+            exit(true);
         end;
 
-        // Clear any primary key retained from a match that disappeared before the locked re-read.
+        // A restartable entry may have become Waiting before the locked lookup.
+        JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
+        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
+        if JobQueueEntry.FindFirst() then
+            exit(false);
+
+        // Enqueue inserts only when no primary key is retained from a previous lookup.
         Clear(JobQueueEntry);
         JobQueueEntry.ScheduleJobQueueEntryForLater(Codeunit::"Retention Policy JQ", CurrentDateTime(), JobQueueCategoryTok, '');
+        exit(true);
     end;
 
     internal procedure SetSessionId(SessionId: Integer)
