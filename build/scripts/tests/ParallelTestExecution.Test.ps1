@@ -194,6 +194,55 @@ Describe "ParallelTestExecution app-name resolution" {
     }
 }
 
+Describe "ParallelTestExecution background-task profile" {
+    BeforeAll {
+        $script:profileRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        $script:repoSettings = Get-Content (Join-Path $script:profileRepoRoot '.github\AL-Go-Settings.json') -Raw |
+            ConvertFrom-Json
+    }
+
+    It "opts only UncategorizedTests into background task execution" {
+        $script:repoSettings.PSObject.Properties.Name | Should -Not -Contain 'enableTaskScheduler'
+        $rules = @($script:repoSettings.conditionalSettings | Where-Object {
+            $_.settings.PSObject.Properties.Name -contains 'enableTaskScheduler'
+        })
+        $rules.Count | Should -Be 1
+        @($rules[0].buildModes).Count | Should -Be 1
+        $rules[0].buildModes[0] | Should -Be 'UncategorizedTests'
+        $rules[0].settings.enableTaskScheduler | Should -BeTrue
+        $rules[0].PSObject.Properties.Name | Should -Not -Contain 'projects'
+    }
+
+    It "retains the profile for every country test project without scheduler overrides" {
+        $projects = @(Get-ChildItem (Join-Path $script:profileRepoRoot 'build\projects') -Directory -Filter 'Test Apps *')
+        $projects.Count | Should -BeGreaterThan 0
+        foreach ($project in $projects) {
+            $settings = Get-Content (Join-Path $project.FullName '.AL-Go\settings.json') -Raw | ConvertFrom-Json
+            $settings.PSObject.Properties.Name | Should -Not -Contain 'enableTaskScheduler'
+            $profiles = @($settings.ConditionalSettings | Where-Object { $_.buildModes -contains 'UncategorizedTests' })
+            $profiles.Count | Should -Be @($settings.buildModes | Where-Object { $_ -eq 'UncategorizedTests' }).Count
+            foreach ($profile in $profiles) {
+                $profile.settings.testType | Should -Be 'Uncategorized'
+            }
+            foreach ($rule in $settings.ConditionalSettings) {
+                $rule.settings.PSObject.Properties.Name | Should -Not -Contain 'enableTaskScheduler'
+            }
+        }
+    }
+
+    It "runs APIV<Version> RapidStart polling tests in the background-enabled profile" -ForEach @(
+        @{ Version = '1' }
+        @{ Version = '2' }
+    ) {
+        $path = Join-Path $script:profileRepoRoot "src\Apps\W1\APIV$Version\test\src\APIV${Version}AutomationRSPackage.Codeunit.al"
+        $source = Get-Content $path -Raw
+        $source | Should -Match 'TestType\s*=\s*Uncategorized\s*;'
+        $source | Should -Match 'procedure TestImportRSPackage\('
+        $source | Should -Match 'procedure TestImportWrongRSPackage\('
+        $source | Should -Match 'procedure TestApplyRSPackage\('
+    }
+}
+
 Describe "ParallelTestExecution transient retry scheduling" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
