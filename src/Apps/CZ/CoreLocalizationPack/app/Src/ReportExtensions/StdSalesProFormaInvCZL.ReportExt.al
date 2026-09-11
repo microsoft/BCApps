@@ -13,7 +13,6 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Security.User;
@@ -375,16 +374,22 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
 
     local procedure CalcVATAmountLinesCZL(SalesHeader: Record "Sales Header")
     var
+        SalesLine: Record "Sales Line";
         TempSalesLine: Record "Sales Line" temporary;
-        SalesPost: Codeunit "Sales-Post";
     begin
         VATAmountLineCZL.DeleteAll();
-        TempSalesLine.DeleteAll();
-        SalesPost.GetSalesLines(SalesHeader, TempSalesLine, 0, false);
-        TempSalesLine.SetFilter(Type, '<>%1', TempSalesLine.Type::Item);
-        TempSalesLine.DeleteAll(false);
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        if SalesLine.FindSet() then
+            repeat
+                TempSalesLine.Init();
+                TempSalesLine := SalesLine;
+                TempSalesLine.Insert(false);
+            until SalesLine.Next() = 0;
+
         TempSalesLine.CalcVATAmountLines(0, SalesHeader, TempSalesLine, VATAmountLineCZL);
-        TempSalesLine.UpdateVATOnLines(0, SalesHeader, TempSalesLine, VATAmountLineCZL);
     end;
 
     local procedure FormatShipToAddressCZL(SalesHeader: Record "Sales Header")
