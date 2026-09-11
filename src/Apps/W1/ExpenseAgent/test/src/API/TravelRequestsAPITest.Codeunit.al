@@ -13,8 +13,9 @@ using Microsoft.HumanResources.Employee;
 // These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
 // Re-enable them after BCApps CI provisions an authenticated OData endpoint and a dedicated
 // test company with committed fixtures and disabled test isolation, then remove the exclusions.
-// In-process lifecycle, date, and scope coverage in "Spend Request Test", and restrictive role
-// coverage in "Expense Permissions Test", remain enabled; only the HTTP scenarios are excluded.
+// In-process employee filtering, traveler mapping/navigation, lifecycle, date, and scope coverage
+// in "Spend Request Test", and restrictive role coverage in "Expense Permissions Test", remain enabled.
+// Only the HTTP scenarios are excluded.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;

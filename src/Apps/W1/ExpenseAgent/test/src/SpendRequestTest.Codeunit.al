@@ -75,6 +75,168 @@ codeunit 148339 "Spend Request Test"
         NotTravelRequestApproverErr: Label 'is not authorized', Locked = true;
         LinkedExpenseReportExistsErr: Label 'because it is linked to an expense report.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
+        EmployeeNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.', Locked = true;
+        DuplicateTravelerMappingErr: Label 'is already on this travel request', Locked = true;
+
+    [Test]
+    procedure EmployeeExpenseUserFilterIncludesOnlyLinkedEmployees()
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        UnlinkedEmployee: Record Employee;
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+    begin
+        // [SCENARIO] The API source field filters both linked and unlinked employees without HTTP.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryHumanResource.CreateEmployee(UnlinkedEmployee);
+
+        Employee.SetRange("Is Expense User", true);
+        Employee.SetRange("No.", ExpenseUser."Employee No.");
+        Assert.RecordIsNotEmpty(Employee);
+        Employee.SetRange("No.", UnlinkedEmployee."No.");
+        Assert.RecordIsEmpty(Employee);
+
+        Employee.SetRange("Is Expense User", false);
+        Assert.RecordIsNotEmpty(Employee);
+        Employee.SetRange("No.", ExpenseUser."Employee No.");
+        Assert.RecordIsEmpty(Employee);
+    end;
+
+    [Test]
+    procedure TravelerEmployeeNumberMapsToExpenseUser()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        Traveler: Record Traveler;
+    begin
+        // [SCENARIO] The same validation used by the API stores an Expense User and reads back an employee.
+        Initialize();
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        Assert.AreNotEqual(ExpenseUser."No.", ExpenseUser."Employee No.", 'The fixture must distinguish employee and Expense User identifiers.');
+        Traveler.Validate("Spend Request No.", SpendRequest."No.");
+        Traveler."Line No." := 10000;
+
+        Traveler.ValidateEmployeeNo(ExpenseUser."Employee No.");
+        Traveler.Insert(true);
+
+        Traveler.Get(SpendRequest."No.", 10000);
+        Traveler.TestField("Expense User No.", ExpenseUser."No.");
+        Traveler.CalcFields("Employee No.");
+        Traveler.TestField("Employee No.", ExpenseUser."Employee No.");
+    end;
+
+    [Test]
+    procedure TravelerEmployeeNumberRejectsUnlinkedEmployee()
+    var
+        SpendRequest: Record "Spend Request";
+        Employee: Record Employee;
+        Traveler: Record Traveler;
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+    begin
+        // [SCENARIO] An employee without an Expense User cannot be added as a traveler.
+        Initialize();
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryHumanResource.CreateEmployee(Employee);
+        Traveler.Validate("Spend Request No.", SpendRequest."No.");
+        Traveler."Line No." := 10000;
+
+        asserterror Traveler.ValidateEmployeeNo(Employee."No.");
+
+        Assert.ExpectedError(StrSubstNo(EmployeeNotLinkedErr, Employee."No."));
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordIsEmpty(Traveler);
+    end;
+
+    [Test]
+    procedure TravelerEmployeeNumberRejectsBlank()
+    var
+        SpendRequest: Record "Spend Request";
+        UnlinkedExpenseUser: Record "Expense User";
+        Traveler: Record Traveler;
+    begin
+        // [SCENARIO] A blank employee number must not resolve to an unlinked Expense User.
+        Initialize();
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateExpenseUser(UnlinkedExpenseUser);
+        UnlinkedExpenseUser.Validate("Employee No.", '');
+        UnlinkedExpenseUser.Modify(true);
+        Traveler.Validate("Spend Request No.", SpendRequest."No.");
+        Traveler."Line No." := 10000;
+
+        asserterror Traveler.ValidateEmployeeNo('');
+
+        Assert.ExpectedError(StrSubstNo(EmployeeNotLinkedErr, ''));
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordIsEmpty(Traveler);
+    end;
+
+    [Test]
+    procedure TravelerEmployeeNumberPreservesValidationRules()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        Traveler: Record Traveler;
+    begin
+        // [SCENARIO] Employee-based writes retain the duplicate-traveler and open-status guards.
+        Initialize();
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        Traveler.Validate("Spend Request No.", SpendRequest."No.");
+        Traveler."Line No." := 20000;
+
+        asserterror Traveler.ValidateEmployeeNo(ExpenseUser."Employee No.");
+        Assert.ExpectedError(DuplicateTravelerMappingErr);
+
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        asserterror Traveler.ValidateEmployeeNo(ExpenseUser."Employee No.");
+        Assert.ExpectedError(StatusNotOpenErr);
+
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordCount(Traveler, 1);
+    end;
+
+    [Test]
+    procedure TravelRequestEmployeeQueryReturnsOnlyItsTravelers()
+    var
+        SpendRequest: Record "Spend Request";
+        OtherSpendRequest: Record "Spend Request";
+        EmptySpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        AdditionalExpenseUser: Record "Expense User";
+        TravelRequestEmployees: Query "Travel Request Employees";
+        ExpectedEmployees: List of [Code[20]];
+    begin
+        // [SCENARIO] Employee navigation uses the request SystemId and excludes other requests' travelers.
+        Initialize();
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateReleasableSpendRequest(OtherSpendRequest, OtherExpenseUser);
+        LibraryExpense.CreateExpenseUser(AdditionalExpenseUser);
+        LibraryExpense.CreateTraveler(SpendRequest."No.", AdditionalExpenseUser."No.");
+        LibraryExpense.CreateSpendRequest(EmptySpendRequest);
+        ExpectedEmployees.Add(ExpenseUser."Employee No.");
+        ExpectedEmployees.Add(AdditionalExpenseUser."Employee No.");
+
+        TravelRequestEmployees.SetRange(travelRequestSystemId, SpendRequest.SystemId);
+        TravelRequestEmployees.Open();
+        while TravelRequestEmployees.Read() do
+            Assert.IsTrue(ExpectedEmployees.Remove(TravelRequestEmployees.employeeNo), 'Navigation must return each expected employee once and no unrelated employees.');
+        TravelRequestEmployees.Close();
+        Assert.AreEqual(0, ExpectedEmployees.Count(), 'Both travelers must be included in employee navigation.');
+
+        TravelRequestEmployees.SetRange(travelRequestSystemId, OtherSpendRequest.SystemId);
+        TravelRequestEmployees.Open();
+        Assert.IsTrue(TravelRequestEmployees.Read(), 'The other request must return its traveler.');
+        Assert.AreEqual(OtherExpenseUser."Employee No.", TravelRequestEmployees.employeeNo, 'Navigation must use the selected request SystemId.');
+        Assert.IsFalse(TravelRequestEmployees.Read(), 'The other request must not return the first request''s travelers.');
+        TravelRequestEmployees.Close();
+
+        TravelRequestEmployees.SetRange(travelRequestSystemId, EmptySpendRequest.SystemId);
+        TravelRequestEmployees.Open();
+        Assert.IsFalse(TravelRequestEmployees.Read(), 'A request without travelers must not return all employees.');
+        TravelRequestEmployees.Close();
+    end;
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -830,19 +992,32 @@ codeunit 148339 "Spend Request Test"
     procedure CreateExpenseReportPageActionRejectsExistingLinkedReport()
     var
         ExpenseReportHeader: Record "Expense Report Header";
+        UnrelatedExpenseReport: Record "Expense Report Header";
+        OtherTravelerExpenseReport: Record "Expense Report Header";
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
         TravelRequestsAPI: Page "Travel Requests API";
         ActionContext: WebServiceActionContext;
     begin
         // [SCENARIO] A second report cannot be created while one is already linked.
         Initialize();
 
-        // [GIVEN] An approved travel request with an existing linked report.
+        // [GIVEN] Earlier reports for another request and another traveler must not be used in the error.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        LibraryExpense.CreateTraveler(SpendRequest."No.", OtherExpenseUser."No.");
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        LibraryExpense.CreateExpenseReport(UnrelatedExpenseReport, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReport(OtherTravelerExpenseReport, OtherExpenseUser."No.", '', '');
+        OtherTravelerExpenseReport.SetHideValidationDialog(true);
+        OtherTravelerExpenseReport.Validate("Spend Request No.", SpendRequest."No.");
+        OtherTravelerExpenseReport.Modify(true);
+
+        // [GIVEN] The requested user also has a report linked to this request.
         ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
         ExpenseReportHeader.FindFirst();
         SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
 
@@ -2007,7 +2182,6 @@ codeunit 148339 "Spend Request Test"
 
     local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)
     var
-        ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         BalancingExpenseReportLine: Record "Expense Report Line";
@@ -2017,11 +2191,6 @@ codeunit 148339 "Spend Request Test"
             CreateAndPostExpenseReportWithSpendRequestAssignedOnHeader(ExpenseReportHeader, SpendRequest, 1)
         else
             CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
-
-        ExpenseUser.Get(ExpenseReportHeader."Expense User No.");
-        SpendRequest."Requested By" := ExpenseUser."Employee No.";
-        SpendRequest."Requested For" := ExpenseUser."No.";
-        SpendRequest.Modify();
 
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLine.FindFirst();
@@ -2051,16 +2220,14 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine: Record "Expense Report Line";
         Index: Integer;
     begin
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         Employee.Get(ExpenseUser."Employee No.");
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
 
         LibraryExpense.CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
-        LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
-        LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
@@ -2080,16 +2247,14 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine: Record "Expense Report Line";
         Index: Integer;
     begin
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         Employee.Get(ExpenseUser."Employee No.");
         LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
 
         LibraryExpense.CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
-        LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
-        LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');

@@ -94,6 +94,22 @@ table 6938 Traveler
 
     var
         DuplicateTravelerErr: Label 'Traveler %1 is already on this travel request. Each traveler can be added only once. Choose a different traveler or remove the existing line.', Comment = '%1 = Traveler No.';
+        ExpenseUserNotFoundErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
+
+    internal procedure ValidateEmployeeNo(EmployeeNo: Code[20])
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        if EmployeeNo = '' then
+            Error(ExpenseUserNotFoundErr, EmployeeNo);
+
+        ExpenseUser.SetLoadFields("No.");
+        ExpenseUser.SetRange("Employee No.", EmployeeNo);
+        if not ExpenseUser.FindFirst() then
+            Error(ExpenseUserNotFoundErr, EmployeeNo);
+
+        Rec.Validate("Expense User No.", ExpenseUser."No.");
+    end;
 
     local procedure TestStatusOpenOfSpendRequest()
     var

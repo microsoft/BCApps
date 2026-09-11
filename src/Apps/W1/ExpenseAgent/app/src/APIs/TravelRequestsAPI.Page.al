@@ -292,6 +292,8 @@ page 7134 "Travel Requests API"
         Rec.TestField("Requested For");
 
         if not ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(Rec) then begin
+            ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+            ExpenseReportHeader.SetRange("Expense User No.", Rec."Requested For");
             ExpenseReportHeader.SetLoadFields("No.");
             ExpenseReportHeader.FindFirst();
             Error(GetExpenseReportAlreadyLinkedError(ExpenseReportHeader, Rec));

@@ -50,15 +50,8 @@ page 7103 "Travelers API"
                     ToolTip = 'Specifies the employee number of the traveler.';
 
                     trigger OnValidate()
-                    var
-                        ExpenseUser: Record "Expense User";
                     begin
-                        ExpenseUser.SetLoadFields("No.");
-                        ExpenseUser.SetRange("Employee No.", EmployeeNumber);
-                        if not ExpenseUser.FindFirst() then
-                            Error(ExpenseUserNotFoundErr, EmployeeNumber);
-
-                        Rec.Validate("Expense User No.", ExpenseUser."No.");
+                        Rec.ValidateEmployeeNo(EmployeeNumber);
                     end;
                 }
 #if not CLEAN30
@@ -96,5 +89,4 @@ page 7103 "Travelers API"
 
     var
         EmployeeNumber: Code[20];
-        ExpenseUserNotFoundErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
 }
