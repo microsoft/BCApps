@@ -289,8 +289,11 @@ page 7134 "Travel Requests API"
             Error(TravelRequestMustBeApprovedErr, Rec."No.");
         Rec.TestField("Requested For");
 
-        if not ExpenseReportHeader.CreateFromApprovedTravelRequest(Rec) then
+        if not ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(Rec) then begin
+            ExpenseReportHeader.SetLoadFields("No.");
+            ExpenseReportHeader.FindFirst();
             Error(GetExpenseReportAlreadyLinkedError(ExpenseReportHeader, Rec));
+        end;
 
         LogCreateExpenseReport();
         ActionContext.SetObjectType(ObjectType::Page);

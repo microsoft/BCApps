@@ -1345,7 +1345,13 @@ table 6906 "Expense Report Header"
     end;
 
     [CommitBehavior(CommitBehavior::Ignore)]
-    internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"): Boolean
+    internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request")
+    begin
+        CreateFromApprovedTravelRequestIfMissing(SpendRequest);
+    end;
+
+    [CommitBehavior(CommitBehavior::Ignore)]
+    internal procedure CreateFromApprovedTravelRequestIfMissing(SpendRequest: Record "Spend Request"): Boolean
     begin
         SpendRequest.TestField("Document Type", SpendRequest."Document Type"::"Travel Request");
         SpendRequest.TestStatus(SpendRequest.Status::Approved);
@@ -1355,12 +1361,10 @@ table 6906 "Expense Report Header"
         Rec.LockTable();
         Rec.SetRange("Spend Request No.", SpendRequest."No.");
         Rec.SetRange("Expense User No.", SpendRequest."Requested For");
-        Rec.SetLoadFields("No.");
-        if Rec.FindFirst() then
+        if not Rec.IsEmpty() then
             exit(false);
 
         Rec.Reset();
-        Rec.SetLoadFields();
         Rec.Init();
         Rec.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(Rec.Description)));
         Rec.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
