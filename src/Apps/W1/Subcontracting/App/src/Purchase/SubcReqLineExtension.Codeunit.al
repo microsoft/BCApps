@@ -5,6 +5,8 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 20513 "Subc. Req.Line Extension"
 {
@@ -44,6 +46,34 @@ codeunit 20513 "Subc. Req.Line Extension"
             exit;
 
         SubcontractingManagement.UpdateSubcontractorPriceForRequisitionLine(Rec);
+        RestoreSubcontractingDescriptions(Rec);
+    end;
+
+    local procedure RestoreSubcontractingDescriptions(var RequisitionLine: Record "Requisition Line")
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        WorkCenter: Record "Work Center";
+    begin
+        if RequisitionLine."Ref. Order Type" <> RequisitionLine."Ref. Order Type"::"Prod. Order" then
+            exit;
+        if not WorkCenter.Get(RequisitionLine."Work Center No.") then
+            exit;
+
+        if ProdOrderRoutingLine.Get(
+             RequisitionLine."Ref. Order Status", RequisitionLine."Ref. Order No.", RequisitionLine."Routing Reference No.",
+             RequisitionLine."Routing No.", RequisitionLine."Operation No.") and
+           (ProdOrderRoutingLine."Work Center No." = RequisitionLine."Work Center No.")
+        then begin
+            RequisitionLine.Description := ProdOrderRoutingLine.Description;
+            if ProdOrderRoutingLine."Description 2" <> '' then
+                RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2"
+            else
+                RequisitionLine."Description 2" := WorkCenter."Name 2";
+            exit;
+        end;
+
+        RequisitionLine.Description := WorkCenter.Name;
+        RequisitionLine."Description 2" := WorkCenter."Name 2";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterValidateEvent, Quantity, false, false)]

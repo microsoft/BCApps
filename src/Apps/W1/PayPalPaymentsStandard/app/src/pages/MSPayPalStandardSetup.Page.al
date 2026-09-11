@@ -85,7 +85,9 @@ page 1070 "MS - PayPal Standard Setup"
                         end;
                     }
                 }
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                 field(Logo; MSPayPalStandardTemplate.Logo)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Logo';
