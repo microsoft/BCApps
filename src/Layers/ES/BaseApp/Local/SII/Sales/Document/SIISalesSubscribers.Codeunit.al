@@ -11,6 +11,7 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.RoleCenters;
 
+#pragma warning disable AS0088
 codeunit 7000027 "SII Sales Subscribers"
 {
     Access = Internal;

@@ -11,6 +11,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 
+#pragma warning disable AS0088
 codeunit 7000029 "SII VAT Subscribers"
 {
     Access = Internal;

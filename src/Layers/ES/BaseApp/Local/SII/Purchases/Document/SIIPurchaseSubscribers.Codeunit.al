@@ -12,6 +12,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
+#pragma warning disable AS0088
 codeunit 7000026 "SII Purchase Subscribers"
 {
     Access = Internal;
