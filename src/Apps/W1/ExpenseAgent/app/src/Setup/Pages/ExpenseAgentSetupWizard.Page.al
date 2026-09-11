@@ -1462,12 +1462,20 @@ page 6991 "Expense Agent Setup Wizard"
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
 
-        // Keep the platform attribution aligned with the administrator changing the lifecycle state.
-        if StateChanged() and not IsNullGuid(AgentSetupBuffer."User Security ID") then
-            AgentSetupBuffer."Values Updated" := true;
         AgentSetup.SaveChanges(AgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
+        UpdateAgentConfiguredByOnActivation();
+    end;
+
+    local procedure UpdateAgentConfiguredByOnActivation()
+    var
+        EAAgentAttribution: Codeunit "EA Agent Attribution";
+    begin
+        if not (AgentBeingEnabled() and StateChanged()) then
+            exit;
+
+        EAAgentAttribution.UpdateConfiguredBy(AgentSetupBuffer."User Security ID");
     end;
 
     local procedure ApplyScheduleChange()
