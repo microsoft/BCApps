@@ -12,8 +12,10 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 
-codeunit 7000126 "SII Purchase Subscribers"
+codeunit 7000026 "SII Purchase Subscribers"
 {
+    Access = Internal;
+
     var
         SIIDuplicateExtDocNoTxt: Label 'A posted %1 with external document number %2 already exists for vendor %3. Because SII is enabled, the Spanish Tax Authority may reject this document as a duplicate (Factura Duplicada).', Comment = '%1 = Vendor Ledger Entry Document Type; %2 = External Document No.; %3 = Vendor No.';
         ShowSIIDuplicateVendLedgEntryTxt: Label 'Show the posted document';

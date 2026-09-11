@@ -11,8 +11,10 @@ using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.RoleCenters;
 
-codeunit 7000127 "SII Sales Subscribers"
+codeunit 7000027 "SII Sales Subscribers"
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterValidateBillToCustomerNoOnSII', '', true, false)]
     local procedure SalesHeaderOnAfterValidateBillToCustomerNo(var SalesHeader: Record "Sales Header")
     var
