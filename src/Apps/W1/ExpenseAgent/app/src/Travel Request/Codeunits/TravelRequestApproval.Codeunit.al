@@ -12,7 +12,9 @@ codeunit 7133 "Travel Request Approval"
 {
     Access = Internal;
     Permissions = tabledata "Spend Request" = rm,
-                  tabledata "Expense Report Header" = ri;
+                  tabledata "Expense Report Header" = ri,
+                  tabledata "Posted Expense Report Header" = r,
+                  tabledata "Posted Expense Report Line" = r;
 
     internal procedure Submit(var SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20])
     var

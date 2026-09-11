@@ -25,7 +25,9 @@ page 7134 "Travel Requests API"
     Permissions = tabledata "Spend Request" = rimd,
                   tabledata "Spend Request Detail" = rmd,
                   tabledata "Spend Request To G/L Link" = rd,
-                  tabledata "Expense Report Header" = ri;
+                  tabledata "Expense Report Header" = ri,
+                  tabledata "Posted Expense Report Header" = r,
+                  tabledata "Posted Expense Report Line" = r;
 
     layout
     {
