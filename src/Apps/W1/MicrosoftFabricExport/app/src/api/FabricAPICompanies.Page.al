@@ -14,6 +14,8 @@ page 48503 "Fabric API Companies"
     ODataKeyFields = SystemId;
     DelayedInsert = true;
     SourceTable = "Tenant Fabric Companies";
+    InsertAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {
@@ -36,4 +38,20 @@ page 48503 "Fabric API Companies"
             }
         }
     }
+
+    [ServiceEnabled]
+    [Caption('Add a company to Fabric export')]
+    [Scope('Cloud')]
+    procedure addcompany(CompanyName: Text[30]; var ActionContext: WebServiceActionContext)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TenantFabricCompanies: Record "Tenant Fabric Companies";
+    begin
+        FabricPlatformMgt.AddCompany(CompanyName);
+        TenantFabricCompanies.Get(CompanyName);
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Companies");
+        ActionContext.AddEntityKey(TenantFabricCompanies.FieldNo(SystemId), TenantFabricCompanies.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
 }

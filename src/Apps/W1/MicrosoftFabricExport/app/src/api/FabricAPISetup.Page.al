@@ -14,6 +14,8 @@ page 48507 "Fabric API Setup"
     ODataKeyFields = SystemId;
     DelayedInsert = true;
     SourceTable = "Tenant Fabric Setup";
+    InsertAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {

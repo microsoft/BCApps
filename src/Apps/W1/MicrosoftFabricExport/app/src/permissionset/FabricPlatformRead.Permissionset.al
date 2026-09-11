@@ -21,8 +21,6 @@ permissionset 48531 "Fabric Exp Read"
         table "Fabric Config Package Line" = X,
         page "Fabric Platform Export Summary" = X,
         page "Fabric Platform Export Details" = X,
-        page "Fabric API Tables" = X,
-        page "Fabric API Companies" = X,
         page "Fabric API Export Summary" = X,
         page "Fabric API Export Details" = X;
 }

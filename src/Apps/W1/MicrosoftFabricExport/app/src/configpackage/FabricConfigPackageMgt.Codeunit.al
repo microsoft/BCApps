@@ -5,6 +5,8 @@ using System.Reflection;
 
 codeunit 48521 "Fabric Config Package Mgt"
 {
+    // Activate/Deactivate modify and delete Tenant Fabric Tables rows directly.
+    Permissions = tabledata "Tenant Fabric Tables" = RIMD;
 
     var
         TablesKeptByOtherPackageMsg: Label '%1 table(s) were not removed because they are also included in at least one other active package.', Comment = '%1 = number of tables retained';
@@ -184,9 +186,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         PackageLine.DeleteAll(true);
 
         foreach TableId in TableIds do begin
-            AllObj.SetRange("Object Type", AllObj."Object Type"::Table);
-            AllObj.SetRange("Object ID", TableId);
-            if AllObj.FindFirst() then begin
+            if AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
                 PackageLine.Init();
                 PackageLine."Package Code" := PackageCode;
                 PackageLine.Validate("Table ID", TableId);

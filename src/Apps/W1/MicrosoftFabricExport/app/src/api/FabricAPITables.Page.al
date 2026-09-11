@@ -14,6 +14,8 @@ page 48502 "Fabric API Tables"
     ODataKeyFields = SystemId;
     DelayedInsert = true;
     SourceTable = "Tenant Fabric Tables";
+    InsertAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {
@@ -26,7 +28,11 @@ page 48502 "Fabric API Tables"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(tableId; Rec."Table ID") { Caption = 'Table Id'; }
+                field(tableId; Rec."Table ID")
+                {
+                    Caption = 'Table Id';
+                    Editable = false;
+                }
                 field(tableName; Rec."Table Name")
                 {
                     Caption = 'Table Name';
@@ -47,4 +53,20 @@ page 48502 "Fabric API Tables"
             }
         }
     }
+
+    [ServiceEnabled]
+    [Caption('Add a table to Fabric export')]
+    [Scope('Cloud')]
+    procedure addtable(TableId: Integer; var ActionContext: WebServiceActionContext)
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+    begin
+        FabricPlatformMgt.AddTable(TableId);
+        TenantFabricTables.Get(TableId);
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Tables");
+        ActionContext.AddEntityKey(TenantFabricTables.FieldNo(SystemId), TenantFabricTables.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
 }

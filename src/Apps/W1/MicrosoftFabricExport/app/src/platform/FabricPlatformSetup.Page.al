@@ -208,6 +208,7 @@ page 48511 "Fabric Platform Setup"
                 {
                     Caption = 'Principal ID';
                     ApplicationArea = All;
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
 
                     trigger OnValidate()

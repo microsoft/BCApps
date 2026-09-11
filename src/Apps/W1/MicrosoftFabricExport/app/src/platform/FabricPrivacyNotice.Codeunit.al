@@ -30,6 +30,14 @@ codeunit 48529 "Fabric Privacy Notice"
         exit(PrivacyNotice.GetPrivacyNoticeApprovalState(PrivacyNoticeIdTok) = "Privacy Notice Approval State"::Agreed);
     end;
 
+    /// <summary>Marks the notice as approved. Used by tests to bypass the interactive consent dialog.</summary>
+    internal procedure Approve()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+    begin
+        PrivacyNotice.SetApprovalState(PrivacyNoticeIdTok, "Privacy Notice Approval State"::Agreed);
+    end;
+
     // Shows the consent dialog when GUI is available, then fails closed (with a navigation
     // action back to setup) if the notice still isn't approved — covers both the interactive
     // setup-page flow and non-interactive callers such as the service-enabled API actions.

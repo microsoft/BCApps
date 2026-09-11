@@ -1,6 +1,8 @@
 namespace Microsoft.FabricExport;
 
-codeunit 140010 "Fabric Platform Test Sub"
+using System.RestClient;
+
+codeunit 140010 "Fabric Platform Test Sub" implements "Http Client Handler"
 {
     SingleInstance = true;
     EventSubscriberInstance = Manual;
@@ -10,6 +12,10 @@ codeunit 140010 "Fabric Platform Test Sub"
         StartCalled: Boolean;
         StopCalled: Boolean;
         DisableCalled: Boolean;
+        TestConnectionCalled: Boolean;
+        MockStatusCode: Integer;
+        MockResponseBody: Text;
+        MockResponseConfigured: Boolean;
 
     procedure Reset()
     begin
@@ -17,6 +23,10 @@ codeunit 140010 "Fabric Platform Test Sub"
         StartCalled := false;
         StopCalled := false;
         DisableCalled := false;
+        TestConnectionCalled := false;
+        MockStatusCode := 0;
+        MockResponseBody := '';
+        MockResponseConfigured := false;
     end;
 
     procedure WasEnableCalled(): Boolean
@@ -37,6 +47,41 @@ codeunit 140010 "Fabric Platform Test Sub"
     procedure WasDisableCalled(): Boolean
     begin
         exit(DisableCalled);
+    end;
+
+    procedure WasTestConnectionCalled(): Boolean
+    begin
+        exit(TestConnectionCalled);
+    end;
+
+    /// <summary>Configures the mocked HTTP response returned to the next Fabric Platform Http Client caller.</summary>
+    procedure SetMockHttpResponse(StatusCode: Integer; ResponseBody: Text)
+    begin
+        MockStatusCode := StatusCode;
+        MockResponseBody := ResponseBody;
+        MockResponseConfigured := true;
+    end;
+
+    procedure Send(CurrHttpClientInstance: HttpClient; HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
+    var
+        MockContent: Codeunit "Http Content";
+    begin
+        HttpResponseMessage.SetHttpStatusCode(MockStatusCode);
+        HttpResponseMessage.SetIsSuccessStatusCode((MockStatusCode >= 200) and (MockStatusCode < 300));
+        if MockResponseBody <> '' then begin
+            MockContent := MockContent.Create(MockResponseBody, 'application/json');
+            HttpResponseMessage.SetContent(MockContent);
+        end;
+        exit(true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Fabric Platform Http Client", OnBeforeGetHttpClientHandler, '', false, false)]
+    local procedure OnBeforeGetHttpClientHandler(var HttpClientHandler: Interface "Http Client Handler"; var IsHandled: Boolean)
+    begin
+        if not MockResponseConfigured then
+            exit;
+        HttpClientHandler := this;
+        IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Fabric Platform Mgt", OnBeforeEnableExport, '', false, false)]
@@ -66,4 +111,13 @@ codeunit 140010 "Fabric Platform Test Sub"
         DisableCalled := true;
         IsHandled := true;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Fabric Platform Mgt", OnBeforeTestConnection, '', false, false)]
+    local procedure OnBeforeTestConnectionSub(var IsHandled: Boolean; var IsSuccess: Boolean)
+    begin
+        TestConnectionCalled := true;
+        IsHandled := true;
+        IsSuccess := true;
+    end;
 }
+

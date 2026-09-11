@@ -8,6 +8,10 @@ using System.Reflection;
 codeunit 48520 "Fabric Platform Mgt"
 {
     Access = Internal;
+    // Mediates writes to the platform selection tables (500-table cap, existence checks),
+    // so callers only need read access to these tables directly.
+    Permissions = tabledata "Tenant Fabric Tables" = RIMD,
+                  tabledata "Tenant Fabric Companies" = RIMD;
 
     var
         MaxTablesErr: Label 'A maximum of %1 tables can be exported to Microsoft Fabric. Remove a table before adding another.', Comment = '%1 = maximum number of tables';
@@ -84,20 +88,22 @@ codeunit 48520 "Fabric Platform Mgt"
     end;
 
     procedure AddTable(TableId: Integer)
+    begin
+        CheckCanAddTable();
+        InsertTable(TableId);
+    end;
+
+    local procedure InsertTable(TableId: Integer)
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
         AllObjWithCaption: Record AllObjWithCaption;
         TableMetadata: Record "Table Metadata";
     begin
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-        AllObjWithCaption.SetRange("Object ID", TableId);
-        if not AllObjWithCaption.FindFirst() then
+        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableId) then
             Error(TableInvalidErr, TableId);
 
         if TenantFabricTables.Get(TableId) then
             Error(TableExistsErr, TableId);
-
-        CheckCanAddTable();
 
         TenantFabricTables.Init();
         TenantFabricTables.Validate("Table ID", TableId);
@@ -115,6 +121,8 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
     begin
+        AllObjWithCaption.SetLoadFields("Object ID");
+
         if AllObjWithCaption.FindSet() then
             repeat
                 if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
@@ -126,7 +134,7 @@ codeunit 48520 "Fabric Platform Mgt"
         if AllObjWithCaption.FindSet() then
             repeat
                 if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
-                    AddTable(AllObjWithCaption."Object ID");
+                    InsertTable(AllObjWithCaption."Object ID");
             until AllObjWithCaption.Next() = 0;
     end;
 
@@ -169,10 +177,12 @@ codeunit 48520 "Fabric Platform Mgt"
         ClientIdText: Text;
         IsHandled: Boolean;
     begin
+        // Privacy approval is a compliance gate and must not be skippable via the seam below.
+        FabricPrivacyNotice.EnsureApproved();
+
         // Delegated auth overload: Microsoft first-party authentication is not yet available.
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then begin
-            FabricPrivacyNotice.EnsureApproved();
             ClientIdText := CredMgt.GetClientId();
             if ClientIdText = '' then
                 Error(CreateSetupErrorInfo(ClientIdRequiredErr));
@@ -202,11 +212,12 @@ codeunit 48520 "Fabric Platform Mgt"
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         IsHandled: Boolean;
     begin
+        // Privacy approval is a compliance gate and must not be skippable via the seam below.
+        FabricPrivacyNotice.EnsureApproved();
+
         OnBeforeStartExport(IsHandled);
-        if not IsHandled then begin
-            FabricPrivacyNotice.EnsureApproved();
+        if not IsHandled then
             FabricExportManager.StartFabricExport();
-        end;
         Telemetry.LogEvent('FAB-101', 'Fabric export start requested.');
         Telemetry.LogAudit('FAB-101-AUD', 'Microsoft Fabric Open Mirroring - export start requested.');
         if GuiAllowed() then
@@ -249,10 +260,16 @@ codeunit 48520 "Fabric Platform Mgt"
         Telemetry: Codeunit "Fabric Platform Telemetry";
         TempBuffer: Record "Name/Value Buffer" temporary;
         IsHandled: Boolean;
+        IsSuccess: Boolean;
     begin
-        OnBeforeTestConnection(IsHandled);
-        if not IsHandled then
+        OnBeforeTestConnection(IsHandled, IsSuccess);
+        if not IsHandled then begin
             AdminClient.GetWorkspaces(TempBuffer);
+            IsSuccess := true;
+        end;
+        // A subscriber must explicitly confirm success; skipping the probe no longer implies it.
+        if not IsSuccess then
+            exit;
         Telemetry.LogEvent('FAB-104', 'Fabric connection test succeeded.');
         if GuiAllowed() then
             Message(TestConnectionSuccessMsg);
@@ -279,7 +296,7 @@ codeunit 48520 "Fabric Platform Mgt"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTestConnection(var IsHandled: Boolean)
+    local procedure OnBeforeTestConnection(var IsHandled: Boolean; var IsSuccess: Boolean)
     begin
     end;
 }

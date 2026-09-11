@@ -1,5 +1,6 @@
 namespace Microsoft.FabricExport;
 
+using Microsoft.Utilities;
 using System.Fabric;
 using System.Reflection;
 
@@ -19,6 +20,7 @@ codeunit 140012 "Test FAB Platform"
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         DisableRequestedMsg: Label 'Disable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
 
     local procedure Initialize()
     var
@@ -108,12 +110,15 @@ codeunit 140012 "Test FAB Platform"
     procedure EnableUsesSeamWithoutCallingPlatform()
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
     begin
         //[SCENARIO] Enable routes through the lifecycle seam (Story 3)
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] The lifecycle subscriber is bound so no real ADF call happens
         BindSubscription(PlatformTestSub);
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -133,12 +138,15 @@ codeunit 140012 "Test FAB Platform"
     procedure StartStopDisableUseSeam()
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
     begin
         //[SCENARIO] Start, Stop, and Disable route through the lifecycle seam (Stories 4-5)
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] The lifecycle subscriber is bound
         BindSubscription(PlatformTestSub);
+        //[GIVEN] The privacy notice is approved so Start's mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -587,6 +595,91 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] No token is reported as present
         Assert.IsFalse(LookupState.HasFabricApiToken(), 'Expected the token cache to be cleared.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure TestConnectionUsesSeamWithoutCallingPlatform()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] TestConnection routes through the lifecycle seam
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The lifecycle subscriber is bound so no real Fabric probe happens
+        BindSubscription(PlatformTestSub);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected success notification
+        ExpectedMessages.Add(TestConnectionSuccessMsg);
+
+        //[WHEN] TestConnection is requested
+        FabricPlatformMgt.TestConnection();
+
+        //[THEN] The seam fired and the real workspace probe was bypassed
+        Assert.IsTrue(PlatformTestSub.WasTestConnectionCalled(), 'Expected the test-connection seam to fire.');
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure GetWorkspacesErrorsOnMalformedResponse()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        Token: SecretText;
+    begin
+        //[SCENARIO] GetWorkspaces treats a success response without a value array as malformed
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
+        CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
+        Token := SecretStrSubstNo('sample-token');
+        LookupState.SetFabricApiToken(Token, 3600);
+        //[GIVEN] The HTTP handler is mocked to return a success response without a value array
+        BindSubscription(PlatformTestSub);
+        PlatformTestSub.SetMockHttpResponse(200, '{}');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] GetWorkspaces is called
+        asserterror AdminClient.GetWorkspaces(TempBuffer);
+
+        //[THEN] The malformed response is rejected
+        Assert.ExpectedError('malformed');
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure GetMirroredDatabasesErrorsOnMalformedResponse()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        TempBuffer: Record "Name/Value Buffer" temporary;
+        Token: SecretText;
+    begin
+        //[SCENARIO] GetMirroredDatabases treats a success response without a value array as malformed
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
+        CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
+        Token := SecretStrSubstNo('sample-token');
+        LookupState.SetFabricApiToken(Token, 3600);
+        //[GIVEN] The HTTP handler is mocked to return a success response without a value array
+        BindSubscription(PlatformTestSub);
+        PlatformTestSub.SetMockHttpResponse(200, '{}');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] GetMirroredDatabases is called
+        asserterror AdminClient.GetMirroredDatabases('11111111-1111-1111-1111-111111111111', TempBuffer);
+
+        //[THEN] The malformed response is rejected
+        Assert.ExpectedError('malformed');
+        UnbindSubscription(PlatformTestSub);
     end;
 
     #region Handlers

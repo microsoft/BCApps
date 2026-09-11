@@ -10,9 +10,11 @@ codeunit 48526 "Fabric Platform Admin Client"
     var
         RetrieveWorkspacesTransportErr: Label 'Failed to retrieve workspaces: transport error.';
         RetrieveWorkspacesHttpErr: Label 'Failed to retrieve workspaces. HTTP %1.', Comment = '%1 = HTTP status code';
+        RetrieveWorkspacesMalformedErr: Label 'Failed to retrieve workspaces: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForMirroredDbErr: Label 'Select a workspace before choosing an Open Mirroring database.';
         RetrieveMirroredDbsTransportErr: Label 'Failed to retrieve Open Mirroring databases: transport error.';
         RetrieveMirroredDbsHttpErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
+        RetrieveMirroredDbsMalformedErr: Label 'Failed to retrieve Open Mirroring databases: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForSPErr: Label 'Select a workspace before adding the service principal.';
         PrincipalIdRequiredErr: Label 'Principal ID must be filled in before adding to the workspace.';
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
@@ -51,7 +53,7 @@ codeunit 48526 "Fabric Platform Admin Client"
 
         RootObj.ReadFrom(Resp.GetContent().AsText());
         if not RootObj.Get('value', ArrayToken) then
-            exit;
+            Error(RetrieveWorkspacesMalformedErr);
         JsonArr := ArrayToken.AsArray();
         for i := 0 to JsonArr.Count() - 1 do begin
             JsonArr.Get(i, ItemToken);
@@ -110,7 +112,7 @@ codeunit 48526 "Fabric Platform Admin Client"
 
         RootObj.ReadFrom(Resp.GetContent().AsText());
         if not RootObj.Get('value', ArrayToken) then
-            exit;
+            Error(RetrieveMirroredDbsMalformedErr);
         JsonArr := ArrayToken.AsArray();
         for i := 0 to JsonArr.Count() - 1 do begin
             JsonArr.Get(i, ItemToken);

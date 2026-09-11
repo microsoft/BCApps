@@ -15,12 +15,12 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
         OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
 
-    procedure SetClientId(ClientId: Text)
+    internal procedure SetClientId(ClientId: Text)
     begin
         IsolatedStorage.Set('FabricPlat.ClientId', ClientId, DataScope::Module);
     end;
 
-    procedure GetClientId(): Text
+    internal procedure GetClientId(): Text
     var
         Value: Text;
     begin
@@ -29,12 +29,12 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         exit('');
     end;
 
-    procedure SetPrincipalId(PrincipalId: Text)
+    internal procedure SetPrincipalId(PrincipalId: Text)
     begin
         IsolatedStorage.Set('FabricPlat.PrincipalId', PrincipalId, DataScope::Module);
     end;
 
-    procedure GetPrincipalId(): Text
+    internal procedure GetPrincipalId(): Text
     var
         Value: Text;
     begin
@@ -43,12 +43,12 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         exit('');
     end;
 
-    procedure SetOpenMirroringDatabaseName(OpenMirroringDatabaseName: Text)
+    internal procedure SetOpenMirroringDatabaseName(OpenMirroringDatabaseName: Text)
     begin
         IsolatedStorage.Set('FabricPlat.OpenMirroringDatabaseName', OpenMirroringDatabaseName, DataScope::Module);
     end;
 
-    procedure GetOpenMirroringDatabaseName(): Text
+    internal procedure GetOpenMirroringDatabaseName(): Text
     var
         Value: Text;
     begin

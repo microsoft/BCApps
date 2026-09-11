@@ -9,8 +9,8 @@ permissionset 48530 "Fabric Exp Admin"
 
     Permissions =
         tabledata "Tenant Fabric Setup" = RIMD,
-        tabledata "Tenant Fabric Tables" = RIMD,
-        tabledata "Tenant Fabric Companies" = RIMD,
+        tabledata "Tenant Fabric Tables" = R,
+        tabledata "Tenant Fabric Companies" = R,
         tabledata "Tenant Fabric Table Fields" = RIMD,
         tabledata "Tenant Fabric Enum Mapping" = R,
         tabledata "Tenant Fabric Export Summary" = R,
@@ -29,6 +29,8 @@ permissionset 48530 "Fabric Exp Admin"
         codeunit "Fabric Privacy Notice" = X,
         page "Fabric Platform Setup" = X,
         page "Fabric Platform Setup Wizard" = X,
+        page "Fabric Companies FactBox" = X,
+        page "Fabric Tables FactBox" = X,
         page "Fabric Platform Name Lookup" = X,
         page "Fabric Platform Tables" = X,
         page "Fabric Platform Companies" = X,

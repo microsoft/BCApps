@@ -34,7 +34,6 @@ codeunit 48527 "Fabric Platform Telemetry"
     begin
         Dimensions.Add('Category', CategoryTok);
         Dimensions.Add('AuditEvent', 'true');
-        Dimensions.Add('UserSecurityId', Format(UserSecurityId(), 0, 4));
         Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 }
