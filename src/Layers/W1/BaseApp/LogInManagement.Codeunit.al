@@ -209,7 +209,8 @@ codeunit 40 LogInManagement
                     exit(Today);
                 CompanyInformation."Evaluation Work Date"::"Specific Date":
                     begin
-                        CompanyInformation.TestField("Specific Work Date");
+                        if CompanyInformation."Specific Work Date" = 0D then
+                            exit(Today);
                         exit(CompanyInformation."Specific Work Date");
                     end;
             end;

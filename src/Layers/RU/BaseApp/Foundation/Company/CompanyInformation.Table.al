@@ -442,12 +442,23 @@ table 79 "Company Information"
             OptionCaption = 'Latest G/L Entry Posting Date,Today,Specific Date';
             OptionMembers = "Latest G/L Entry Posting Date",Today,"Specific Date";
             ToolTip = 'Specifies whether the work date is based on the latest G/L entry posting date, today, or a specific date.';
+
+            trigger OnValidate()
+            begin
+                if ("Evaluation Work Date" = "Evaluation Work Date"::"Specific Date") and ("Specific Work Date" = 0D) then
+                    Validate("Specific Work Date", Today);
+            end;
         }
         field(102; "Specific Work Date"; Date)
         {
             Caption = 'Specific Work Date';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the date to use as the work date when Evaluation Work Date is set to Specific Date.';
+
+            trigger OnValidate()
+            begin
+                TestField("Specific Work Date");
+            end;
         }
         field(200; "Alternative Language Code"; Code[10])
         {

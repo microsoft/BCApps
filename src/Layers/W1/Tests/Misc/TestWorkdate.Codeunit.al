@@ -63,6 +63,19 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
+    procedure EvaluationCompanyWithBlankSpecificWorkDateUsesToday()
+    var
+        CompanyInformation: Record "Company Information";
+        LogInManagement: Codeunit LogInManagement;
+    begin
+        // [SCENARIO] An evaluation company with an invalid blank specific work date safely uses today.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", 0D);
+
+        Assert.AreEqual(Today, LogInManagement.GetDefaultWorkDate(), 'Today should be used when the specific work date is blank.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NonEvaluationCompanyIgnoresEvaluationWorkDate()
     var
         CompanyInformation: Record "Company Information";
@@ -139,7 +152,7 @@ codeunit 139028 "Test Workdate"
         CompanyInformationPage."Evaluation Work Date".SetValue(CompanyInformation."Evaluation Work Date"::"Specific Date");
 
         Assert.IsTrue(CompanyInformationPage."Specific Work Date".Visible(), 'The specific date should be visible for the Specific Date option.');
-        CompanyInformationPage."Specific Work Date".SetValue(Today);
+        Assert.AreEqual(Today, CompanyInformationPage."Specific Work Date".AsDate(), 'The specific date should default to today.');
         CompanyInformationPage.Close();
     end;
 
@@ -148,17 +161,12 @@ codeunit 139028 "Test Workdate"
     procedure SpecificWorkDateIsRequired()
     var
         CompanyInformation: Record "Company Information";
-        CompanyInformationPage: TestPage "Company Information";
     begin
-        // [SCENARIO] A specific work date must be entered when Specific Date is selected.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", 0D);
+        // [SCENARIO] A specific work date cannot be cleared.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", Today);
 
-        CompanyInformationPage.OpenEdit();
-        asserterror CompanyInformationPage.Close();
-
+        asserterror CompanyInformation.Validate("Specific Work Date", 0D);
         Assert.ExpectedTestFieldError(CompanyInformation.FieldCaption("Specific Work Date"), '');
-        CompanyInformationPage."Specific Work Date".SetValue(Today);
-        CompanyInformationPage.Close();
     end;
 
     local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; IsDemoCompany: Boolean; EvaluationWorkDate: Option "Latest G/L Entry Posting Date",Today,"Specific Date"; SpecificWorkDate: Date)

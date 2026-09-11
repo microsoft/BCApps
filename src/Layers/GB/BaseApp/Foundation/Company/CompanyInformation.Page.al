@@ -891,13 +891,6 @@ page 1 "Company Information"
 #endif
     end;
 
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    begin
-        if WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Specific Date") then
-            Rec.TestField("Specific Work Date");
-        exit(true);
-    end;
-
     trigger OnClosePage()
     var
         AuditLog: Codeunit "Audit Log";
