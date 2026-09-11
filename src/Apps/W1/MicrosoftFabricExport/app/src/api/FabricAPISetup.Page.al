@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-page 150015 "Fabric API Setup"
+page 9115 "Fabric API Setup"
 {
     PageType = API;
     Caption = 'Fabric API Setup';

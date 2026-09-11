@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using Microsoft.Utilities;
 using System.Fabric;
 
-page 150004 "Fabric Platform Setup"
+page 9104 "Fabric Platform Setup"
 {
     Caption = 'Microsoft Fabric Export Setup';
     PageType = Card;

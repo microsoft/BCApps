@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-codeunit 150008 "Fabric Platform Telemetry"
+codeunit 9108 "Fabric Platform Telemetry"
 {
     Access = Internal;
 

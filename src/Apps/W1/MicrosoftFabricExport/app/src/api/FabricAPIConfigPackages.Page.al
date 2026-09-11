@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-page 150012 "Fabric API Config Packages"
+page 9112 "Fabric API Config Packages"
 {
     PageType = API;
     Caption = 'Fabric API Config Packages';

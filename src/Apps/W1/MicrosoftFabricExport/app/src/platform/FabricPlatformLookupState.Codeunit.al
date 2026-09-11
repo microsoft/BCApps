@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-codeunit 150004 "Fabric Platform Lookup State"
+codeunit 9104 "Fabric Platform Lookup State"
 {
     SingleInstance = true;
     Access = Internal;

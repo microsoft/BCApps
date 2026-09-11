@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Utilities;
 
-page 150008 "Fabric Config Packages"
+page 9108 "Fabric Config Packages"
 {
     Caption = 'Fabric Configuration Packages';
     PageType = List;

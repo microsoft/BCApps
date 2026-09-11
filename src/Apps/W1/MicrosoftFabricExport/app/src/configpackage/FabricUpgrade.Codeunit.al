@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-codeunit 150009 "Fabric Upgrade"
+codeunit 9109 "Fabric Upgrade"
 {
     Subtype = Upgrade;
     Access = Internal;

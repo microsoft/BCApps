@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-page 150005 "Fabric Platform Tables"
+page 9105 "Fabric Platform Tables"
 {
     Caption = 'Fabric Table Configuration';
     PageType = List;

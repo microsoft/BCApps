@@ -17,8 +17,8 @@
     "application": "30.0.0.0",
     "idRanges": [
         {
-            "from": 150001,
-            "to": 150200
+            "from": 9100,
+            "to": 9200
         }
     ],
     "target": "Cloud",

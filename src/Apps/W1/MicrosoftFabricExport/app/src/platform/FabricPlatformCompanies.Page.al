@@ -4,7 +4,7 @@ using Microsoft.Foundation.Company;
 using System.Environment;
 using System.Fabric;
 
-page 150001 "Fabric Platform Companies"
+page 9101 "Fabric Platform Companies"
 {
     Caption = 'Fabric Company Configuration';
     PageType = List;

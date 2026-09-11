@@ -4,7 +4,7 @@ using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Fabric;
 
-page 150018 "Fabric Platform Setup Wizard"
+page 9118 "Fabric Platform Setup Wizard"
 {
     Caption = 'Set Up Microsoft Fabric Export';
     PageType = NavigatePage;
