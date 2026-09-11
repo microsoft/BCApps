@@ -6245,6 +6245,285 @@ codeunit 134159 "Test Price Calculation - V16"
     end;
 
     [Test]
+    procedure SalesVariantZeroDiscountBeforeGenericDiscount()
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] Explicit variant 0% wins before generic 30% in primary-key order; clearing the variant restores 30%.
+        VerifySalesExplicitZeroDiscount(true, false);
+    end;
+
+    [Test]
+    procedure SalesVariantZeroDiscountAfterGenericDiscount()
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] Explicit variant 0% wins after generic 30% in primary-key order; clearing the variant restores 30%.
+        VerifySalesExplicitZeroDiscount(false, false);
+    end;
+
+    [Test]
+    procedure PurchVariantZeroDiscountBeforeGenericDiscount()
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] Explicit variant 0% wins before generic 30% in primary-key order; clearing the variant restores 30%.
+        VerifyPurchExplicitZeroDiscount(true, false);
+    end;
+
+    [Test]
+    procedure PurchVariantZeroDiscountAfterGenericDiscount()
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] Explicit variant 0% wins after generic 30% in primary-key order; clearing the variant restores 30%.
+        VerifyPurchExplicitZeroDiscount(false, false);
+    end;
+
+    [Test]
+    procedure SalesCurrencyZeroDiscountBeforeGenericDiscount()
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Currency] [Discount]
+        // [SCENARIO 649151] Explicit currency 0% wins before generic 30% in primary-key order without changing the price.
+        VerifySalesExplicitZeroDiscount(true, true);
+    end;
+
+    [Test]
+    procedure SalesCurrencyZeroDiscountAfterGenericDiscount()
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Currency] [Discount]
+        // [SCENARIO 649151] Explicit currency 0% wins after generic 30% in primary-key order without changing the price.
+        VerifySalesExplicitZeroDiscount(false, true);
+    end;
+
+    [Test]
+    procedure PurchCurrencyZeroDiscountBeforeGenericDiscount()
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Currency] [Discount]
+        // [SCENARIO 649151] Explicit currency 0% wins before generic 30% in primary-key order without changing the cost.
+        VerifyPurchExplicitZeroDiscount(true, true);
+    end;
+
+    [Test]
+    procedure PurchCurrencyZeroDiscountAfterGenericDiscount()
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Currency] [Discount]
+        // [SCENARIO 649151] Explicit currency 0% wins after generic 30% in primary-key order without changing the cost.
+        VerifyPurchExplicitZeroDiscount(false, true);
+    end;
+
+    [Test]
+    procedure HighestVariantDiscountWinsBetweenExplicitZeroDiscounts()
+    var
+        TempPriceListLine: Record "Price List Line" temporary;
+        PriceCalculationBufferMgt: Codeunit "Price Calculation Buffer Mgt.";
+        PriceCalculationV16: Codeunit "Price Calculation - V16";
+    begin
+        // [FEATURE] [UT] [Variant] [Discount]
+        // [SCENARIO 649151] Explicit zeros before and after positive discounts at the same specificity do not veto the highest discount.
+        Initialize();
+        MockBuffer("Price Type"::Purchase, '', 1, PriceCalculationBufferMgt);
+
+        // [GIVEN] One list in PK order: variant Discount 0, generic 30, variant 5, variant Any 10, variant Any 0, variant Discount 0.
+        AddDiscountCandidate(TempPriceListLine, 'V', "Price Amount Type"::Discount, 0);
+        AddDiscountCandidate(TempPriceListLine, '', "Price Amount Type"::Discount, 30);
+        AddDiscountCandidate(TempPriceListLine, 'V', "Price Amount Type"::Discount, 5);
+        AddDiscountCandidate(TempPriceListLine, 'V', "Price Amount Type"::Any, 10);
+        AddDiscountCandidate(TempPriceListLine, 'V', "Price Amount Type"::Any, 0);
+        AddDiscountCandidate(TempPriceListLine, 'V', "Price Amount Type"::Discount, 0);
+
+        // [WHEN] The shared production selector calculates the discount.
+        Assert.IsTrue(
+            PriceCalculationV16.CalcBestAmount("Price Amount Type"::Discount, PriceCalculationBufferMgt, TempPriceListLine),
+            'A real discount line must be selected.');
+
+        // [THEN] The highest variant discount wins, including when it is declared on an Any line.
+        TempPriceListLine.TestField("Line No.", 40000);
+        TempPriceListLine.TestField("Line Discount %", 10);
+    end;
+
+    local procedure VerifySalesExplicitZeroDiscount(ZeroDiscountFirst: Boolean; UseCurrency: Boolean)
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PriceListHeader: Record "Price List Header";
+        ZeroDiscountLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesLinePrice: Codeunit "Sales Line - Price";
+        CurrencyCode: Code[10];
+    begin
+        Initialize();
+
+        // [GIVEN] A customer-specific list with a separate Price 100, generic Discount 30 and explicit specific Discount 0.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        if UseCurrency then
+            CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1)
+        else
+            LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::Customer, Customer."No.");
+        CreateExplicitZeroDiscountPriceList(ZeroDiscountLine, PriceListHeader, Item."No.", ItemVariant.Code, CurrencyCode, ZeroDiscountFirst);
+
+        // [GIVEN] A sales quote with no variant in LCY has price 100 and discount 30%.
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1);
+        SalesLine.TestField("Line Discount %", 30);
+        SalesLine.TestField("Unit Price", 100);
+
+        // [WHEN] The variant is selected, or a new quote is created in the specific currency.
+        if UseCurrency then begin
+            Clear(SalesHeader);
+            Clear(SalesLine);
+            LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+            SalesHeader.Validate("Currency Code", CurrencyCode);
+            SalesHeader.Modify(true);
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1);
+        end else
+            SalesLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] The explicit zero is selected as a real winner, not an empty fallback, and the price is unchanged.
+        SalesLine.TestField("Line Discount %", 0);
+        SalesLine.TestField("Unit Price", 100);
+        SalesLinePrice.SetLine("Price Type"::Sale, SalesHeader, SalesLine);
+        VerifyExplicitZeroDiscountWinner(SalesLinePrice, ZeroDiscountLine, ZeroDiscountFirst);
+
+        if not UseCurrency then begin
+            // [WHEN] The variant is cleared on the same line.
+            SalesLine.Validate("Variant Code", '');
+            // [THEN] The generic discount returns without changing the price.
+            SalesLine.TestField("Line Discount %", 30);
+            SalesLine.TestField("Unit Price", 100);
+        end;
+    end;
+
+    local procedure VerifyPurchExplicitZeroDiscount(ZeroDiscountFirst: Boolean; UseCurrency: Boolean)
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PriceListHeader: Record "Price List Header";
+        ZeroDiscountLine: Record "Price List Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLinePrice: Codeunit "Purchase Line - Price";
+        CurrencyCode: Code[10];
+    begin
+        Initialize();
+
+        // [GIVEN] A vendor-specific list with a separate Price 100, generic Discount 30 and explicit specific Discount 0.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        if UseCurrency then
+            CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1)
+        else
+            LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Purchase, "Price Source Type"::Vendor, Vendor."No.");
+        CreateExplicitZeroDiscountPriceList(ZeroDiscountLine, PriceListHeader, Item."No.", ItemVariant.Code, CurrencyCode, ZeroDiscountFirst);
+
+        // [GIVEN] A purchase order with no variant in LCY has cost 100 and discount 30%.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine.TestField("Line Discount %", 30);
+        PurchaseLine.TestField("Direct Unit Cost", 100);
+
+        // [WHEN] The variant is selected, or a new order is created in the specific currency.
+        if UseCurrency then begin
+            Clear(PurchaseHeader);
+            Clear(PurchaseLine);
+            LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+            PurchaseHeader.Validate("Currency Code", CurrencyCode);
+            PurchaseHeader.Modify(true);
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        end else
+            PurchaseLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] The explicit zero is selected as a real winner, not an empty fallback, and the cost is unchanged.
+        PurchaseLine.TestField("Line Discount %", 0);
+        PurchaseLine.TestField("Direct Unit Cost", 100);
+        PurchaseLinePrice.SetLine("Price Type"::Purchase, PurchaseHeader, PurchaseLine);
+        VerifyExplicitZeroDiscountWinner(PurchaseLinePrice, ZeroDiscountLine, ZeroDiscountFirst);
+
+        if not UseCurrency then begin
+            // [WHEN] The variant is cleared on the same line.
+            PurchaseLine.Validate("Variant Code", '');
+            // [THEN] The generic discount returns without changing the cost.
+            PurchaseLine.TestField("Line Discount %", 30);
+            PurchaseLine.TestField("Direct Unit Cost", 100);
+        end;
+    end;
+
+    local procedure CreateExplicitZeroDiscountPriceList(var ZeroDiscountLine: Record "Price List Line"; PriceListHeader: Record "Price List Header"; ItemNo: Code[20]; VariantCode: Code[10]; CurrencyCode: Code[10]; ZeroDiscountFirst: Boolean)
+    var
+        PriceListLine: Record "Price List Line";
+    begin
+        PriceListHeader."Allow Updating Defaults" := true;
+        PriceListHeader.Modify();
+        LibraryPriceCalculation.CreatePriceListLine(PriceListLine, PriceListHeader, "Price Amount Type"::Price, "Price Asset Type"::Item, ItemNo);
+        case PriceListHeader."Price Type" of
+            "Price Type"::Sale:
+                PriceListLine.Validate("Unit Price", 100);
+            "Price Type"::Purchase:
+                PriceListLine.Validate("Direct Unit Cost", 100);
+        end;
+        PriceListLine.Validate("Allow Line Disc.", true);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+
+        // All candidates share one list code; AutoIncrement assigns increasing line numbers, which determine the selector's PK order.
+        if not ZeroDiscountFirst then
+            CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, ItemNo, '', '', 30);
+        CreateActiveItemDiscountLine(ZeroDiscountLine, PriceListHeader, ItemNo, VariantCode, CurrencyCode, 0);
+        if ZeroDiscountFirst then
+            CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, ItemNo, '', '', 30);
+        Assert.AreEqual(ZeroDiscountFirst, ZeroDiscountLine."Line No." < PriceListLine."Line No.", 'Unexpected discount primary-key order.');
+    end;
+
+    local procedure CreateActiveItemDiscountLine(var PriceListLine: Record "Price List Line"; PriceListHeader: Record "Price List Header"; ItemNo: Code[20]; VariantCode: Code[10]; CurrencyCode: Code[10]; DiscountPct: Decimal)
+    begin
+        Clear(PriceListLine);
+        LibraryPriceCalculation.CreatePriceListLine(PriceListLine, PriceListHeader, "Price Amount Type"::Discount, "Price Asset Type"::Item, ItemNo);
+        PriceListLine.Validate("Variant Code", VariantCode);
+        PriceListLine.Validate("Currency Code", CurrencyCode);
+        PriceListLine.Validate("Line Discount %", DiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+    end;
+
+    local procedure VerifyExplicitZeroDiscountWinner(LineWithPrice: Interface "Line With Price"; ZeroDiscountLine: Record "Price List Line"; ZeroDiscountFirst: Boolean)
+    var
+        TempPriceListLine: Record "Price List Line" temporary;
+        PriceCalculationBufferMgt: Codeunit "Price Calculation Buffer Mgt.";
+        PriceCalculationV16: Codeunit "Price Calculation - V16";
+    begin
+        Assert.IsTrue(LineWithPrice.CopyToBuffer(PriceCalculationBufferMgt), 'The document line must support price calculation.');
+        Assert.IsTrue(
+            PriceCalculationV16.FindLines("Price Amount Type"::Discount, TempPriceListLine, PriceCalculationBufferMgt, false),
+            'Both discount candidates must be found.');
+        Assert.RecordCount(TempPriceListLine, 2);
+
+        // FindLines resets the temporary buffer to the PK; verify actual candidate order, not just creation order.
+        TempPriceListLine.FindFirst();
+        TempPriceListLine.TestField("Price List Code", ZeroDiscountLine."Price List Code");
+        Assert.AreEqual(ZeroDiscountFirst, TempPriceListLine."Line No." = ZeroDiscountLine."Line No.", 'Unexpected first discount candidate.');
+        TempPriceListLine.FindLast();
+        Assert.AreEqual(not ZeroDiscountFirst, TempPriceListLine."Line No." = ZeroDiscountLine."Line No.", 'Unexpected last discount candidate.');
+
+        Assert.IsTrue(
+            PriceCalculationV16.CalcBestAmount("Price Amount Type"::Discount, PriceCalculationBufferMgt, TempPriceListLine),
+            'The explicit zero must be selected, not replaced with an empty fallback.');
+        TempPriceListLine.TestField("Price List Code", ZeroDiscountLine."Price List Code");
+        TempPriceListLine.TestField("Line No.", ZeroDiscountLine."Line No.");
+        TempPriceListLine.TestField("Amount Type", "Price Amount Type"::Discount);
+        TempPriceListLine.TestField("Line Discount %", 0);
+    end;
+
+    local procedure AddDiscountCandidate(var TempPriceListLine: Record "Price List Line" temporary; VariantCode: Code[10]; AmountType: Enum "Price Amount Type"; DiscountPct: Decimal)
+    begin
+        AddPriceLine(TempPriceListLine, "Price Type"::Purchase, '', VariantCode, 100);
+        TempPriceListLine."Amount Type" := AmountType;
+        TempPriceListLine."Line Discount %" := DiscountPct;
+        TempPriceListLine.Modify();
+    end;
+
+    [Test]
     procedure SalesLineResourceUnitCostWhenWorkTypeBeforeQuantity()
     var
         Customer: Record Customer;
