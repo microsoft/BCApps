@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Agents;
 
-codeunit 6913 "EA Agent Attribution"
+codeunit 6922 "EA Agent Attribution"
 {
     Access = Internal;
     InherentEntitlements = X;
