@@ -5879,174 +5879,93 @@ codeunit 137405 "SCM Item Tracking"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-    local procedure CreateOutboundLotReservationForSalesLine(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; SourceNo: Code[20]; SourceLineNo: Integer; Qty: Decimal)
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetAvailableLotQtyNetsProductionComponentReservationOnce()
     var
+        Item: Record Item;
+        Location: Record Location;
         ReservationEntry: Record "Reservation Entry";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TrackingSpecification: Record "Tracking Specification";
+        ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        LotNo: Code[50];
+        ProductionOrderNo: Code[20];
+        OnHandQty: Integer;
+        PickQty: Integer;
+        ProductionOrderLineNo: Integer;
+        ComponentLineNo: Integer;
         NextEntryNo: Integer;
     begin
+        // [Bug 638344] Production component source pointers must net the pick reservation once
+        // [SCENARIO] A production component reservation and its unregistered pick represent one allocation
+        Initialize();
+
+        OnHandQty := LibraryRandom.RandIntInRange(40, 60);
+        PickQty := LibraryRandom.RandIntInRange(10, 20);
+        LotNo := LibraryUtility.GenerateGUID();
+        ProductionOrderNo := LibraryUtility.GenerateGUID();
+        ProductionOrderLineNo := 10000;
+        ComponentLineNo := 20000;
+        CreateLotTrackedItemAtLocation(Item, Location);
+        CreateAndPostLotStockForPick(Item."No.", Location.Code, LotNo, OnHandQty);
+
         ReservationEntry.LockTable();
         if ReservationEntry.FindLast() then
             NextEntryNo := ReservationEntry."Entry No." + 1
         else
             NextEntryNo := 1;
-
         ReservationEntry.Init();
         ReservationEntry."Entry No." := NextEntryNo;
         ReservationEntry.Positive := false;
         ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Surplus;
-        ReservationEntry."Item No." := ItemNo;
-        ReservationEntry."Location Code" := LocationCode;
-        ReservationEntry."Quantity (Base)" := -Qty;
-        ReservationEntry.Quantity := -Qty;
-        ReservationEntry."Qty. to Handle (Base)" := -Qty;
-        ReservationEntry."Source Type" := Database::"Sales Line";
+        ReservationEntry."Item No." := Item."No.";
+        ReservationEntry."Location Code" := Location.Code;
+        ReservationEntry."Quantity (Base)" := -PickQty;
+        ReservationEntry.Quantity := -PickQty;
+        ReservationEntry."Qty. to Handle (Base)" := -PickQty;
+        ReservationEntry."Source Type" := Database::"Prod. Order Component";
         ReservationEntry."Source Subtype" := 1;
-        ReservationEntry."Source ID" := SourceNo;
-        ReservationEntry."Source Ref. No." := SourceLineNo;
+        ReservationEntry."Source ID" := ProductionOrderNo;
+        ReservationEntry."Source Prod. Order Line" := ProductionOrderLineNo;
+        ReservationEntry."Source Ref. No." := ComponentLineNo;
         ReservationEntry."Lot No." := LotNo;
         ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
         ReservationEntry.Insert(false);
-    end;
 
-    local procedure CreateLotTrackedItemAtLocation(var Item: Record Item; var Location: Record Location)
-    var
-        InventoryPostingSetup: Record "Inventory Posting Setup";
-        ItemTrackingCodeCode: Code[10];
-    begin
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Location.Validate("Require Pick", true);
-        Location.Validate("Require Shipment", true);
-        Location.Modify(true);
-
-        ItemTrackingCodeCode := CreateItemTrackingCodeLotSpecificWhseTracking(true);
-        CreateItem(Item, ItemTrackingCodeCode, '', LibraryUtility.GetGlobalNoSeriesCode());
-
-        if not InventoryPostingSetup.Get(Location.Code, Item."Inventory Posting Group") then
-            LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, Location.Code, Item."Inventory Posting Group");
-    end;
-
-    local procedure SetTrackingSpecItemLotLocation(var TrackingSpecification: Record "Tracking Specification"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50])
-    begin
-        Clear(TrackingSpecification);
-        TrackingSpecification."Item No." := ItemNo;
-        TrackingSpecification."Location Code" := LocationCode;
-        TrackingSpecification."Lot No." := LotNo;
-    end;
-
-    local procedure CreateUnregisteredWhsePickTakeLine(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseActivityLine: Record "Warehouse Activity Line"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer)
-    begin
         WarehouseActivityHeader.Init();
         WarehouseActivityHeader.Type := WarehouseActivityHeader.Type::Pick;
         WarehouseActivityHeader."No." := LibraryUtility.GenerateGUID();
-        WarehouseActivityHeader."Location Code" := LocationCode;
+        WarehouseActivityHeader."Location Code" := Location.Code;
         WarehouseActivityHeader.Insert(false);
-
         WarehouseActivityLine.Init();
         WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::Pick;
         WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
         WarehouseActivityLine."Line No." := 10000;
         WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
-        WarehouseActivityLine."Item No." := ItemNo;
-        WarehouseActivityLine."Location Code" := LocationCode;
+        WarehouseActivityLine."Item No." := Item."No.";
+        WarehouseActivityLine."Location Code" := Location.Code;
         WarehouseActivityLine."Lot No." := LotNo;
-        WarehouseActivityLine."Qty. Outstanding" := Qty;
-        WarehouseActivityLine."Qty. Outstanding (Base)" := Qty;
+        WarehouseActivityLine."Qty. Outstanding" := PickQty;
+        WarehouseActivityLine."Qty. Outstanding (Base)" := PickQty;
         WarehouseActivityLine."Breakbulk No." := 0;
-        WarehouseActivityLine."Source Type" := SourceType;
-        WarehouseActivityLine."Source Subtype" := SourceSubtype;
-        WarehouseActivityLine."Source No." := SourceNo;
-        WarehouseActivityLine."Source Line No." := SourceLineNo;
+        WarehouseActivityLine."Source Type" := Database::"Prod. Order Component";
+        WarehouseActivityLine."Source Subtype" := 1;
+        WarehouseActivityLine."Source No." := ProductionOrderNo;
+        WarehouseActivityLine."Source Line No." := ProductionOrderLineNo;
+        WarehouseActivityLine."Source Subline No." := ComponentLineNo;
         WarehouseActivityLine.Insert(false);
+
+        SetTrackingSpecItemLotLocation(TrackingSpecification, Item."No.", Location.Code, LotNo);
+
+        Assert.AreEqual(
+            OnHandQty - PickQty, ItemTrackingDataCollection.GetAvailableLotQty(TrackingSpecification),
+            'A production component reservation and its unregistered pick must be counted as one allocation.');
+
+        LibraryVariableStorage.AssertEmpty();
     end;
 
-    local procedure AddWhsePickTakeLine(WarehouseActivityHeader: Record "Warehouse Activity Header"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer; LineNo: Integer)
-    var
-        WarehouseActivityLine: Record "Warehouse Activity Line";
-    begin
-        WarehouseActivityLine.Init();
-        WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::Pick;
-        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
-        WarehouseActivityLine."Line No." := LineNo;
-        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
-        WarehouseActivityLine."Item No." := ItemNo;
-        WarehouseActivityLine."Location Code" := LocationCode;
-        WarehouseActivityLine."Lot No." := LotNo;
-        WarehouseActivityLine."Qty. Outstanding" := Qty;
-        WarehouseActivityLine."Qty. Outstanding (Base)" := Qty;
-        WarehouseActivityLine."Breakbulk No." := 0;
-        WarehouseActivityLine."Source Type" := SourceType;
-        WarehouseActivityLine."Source Subtype" := SourceSubtype;
-        WarehouseActivityLine."Source No." := SourceNo;
-        WarehouseActivityLine."Source Line No." := SourceLineNo;
-        WarehouseActivityLine.Insert(false);
-    end;
-
-    local procedure CreateUnregisteredInvtPickLine(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseActivityLine: Record "Warehouse Activity Line"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer)
-    begin
-        WarehouseActivityHeader.Init();
-        WarehouseActivityHeader.Type := WarehouseActivityHeader.Type::"Invt. Pick";
-        WarehouseActivityHeader."No." := LibraryUtility.GenerateGUID();
-        WarehouseActivityHeader."Location Code" := LocationCode;
-        WarehouseActivityHeader.Insert(false);
-
-        WarehouseActivityLine.Init();
-        WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::"Invt. Pick";
-        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
-        WarehouseActivityLine."Line No." := 10000;
-        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::" ";
-        WarehouseActivityLine."Item No." := ItemNo;
-        WarehouseActivityLine."Location Code" := LocationCode;
-        WarehouseActivityLine."Lot No." := LotNo;
-        WarehouseActivityLine."Qty. Outstanding" := Qty;
-        WarehouseActivityLine."Qty. Outstanding (Base)" := Qty;
-        WarehouseActivityLine."Breakbulk No." := 0;
-        WarehouseActivityLine."Source Type" := SourceType;
-        WarehouseActivityLine."Source Subtype" := SourceSubtype;
-        WarehouseActivityLine."Source No." := SourceNo;
-        WarehouseActivityLine."Source Line No." := SourceLineNo;
-        WarehouseActivityLine.Insert(false);
-    end;
-
-    local procedure CreateAndPostLotStockForPick(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Integer)
-    var
-        ItemJournalLine: Record "Item Journal Line";
-        ItemJournalLineToDelete: Record "Item Journal Line";
-    begin
-        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, '', Qty);
-        // Full codeunit runs can leave lines in the shared item journal batch; keep only this line.
-        ItemJournalLineToDelete.SetRange("Journal Template Name", ItemJournalLine."Journal Template Name");
-        ItemJournalLineToDelete.SetRange("Journal Batch Name", ItemJournalLine."Journal Batch Name");
-        ItemJournalLineToDelete.SetFilter("Line No.", '<>%1', ItemJournalLine."Line No.");
-        ItemJournalLineToDelete.DeleteAll(true);
-        EnqueueSNLotNoAndQtyToReserve('', LotNo, '', Qty);
-        ItemJournalLine.OpenItemTrackingLines(false);
-        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure DerivedLineTrackedQtyForLot(TransferOrderNo: Code[20]; var DerivedTransferLine: Record "Transfer Line"; LotNo: Code[50]): Decimal
-    var
-        ReservationEntry: Record "Reservation Entry";
-    begin
-        ReservationEntry.SetSourceFilter(
-            Database::"Transfer Line", 1, TransferOrderNo, DerivedTransferLine."Line No.", true);
-        ReservationEntry.SetSourceFilter('', DerivedTransferLine."Derived From Line No.");
-        ReservationEntry.SetRange("Lot No.", LotNo);
-        ReservationEntry.CalcSums("Quantity (Base)");
-        exit(Abs(ReservationEntry."Quantity (Base)"));
-    end;
-
-    local procedure ReceivedQtyForLot(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]): Decimal
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-    begin
-        ItemLedgerEntry.SetRange("Item No.", ItemNo);
-        ItemLedgerEntry.SetRange("Location Code", LocationCode);
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
-        ItemLedgerEntry.SetRange(Positive, true);
-        ItemLedgerEntry.SetRange("Lot No.", LotNo);
-        ItemLedgerEntry.CalcSums(Quantity);
-        exit(ItemLedgerEntry.Quantity);
-    end;
 
     local procedure Initialize()
     var

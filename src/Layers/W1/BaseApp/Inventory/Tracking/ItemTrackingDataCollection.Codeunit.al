@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
@@ -553,7 +554,13 @@ codeunit 6501 "Item Tracking Data Collection"
         if IsHandled then
             exit;
 
+        if TrackingSpecification.Positive then
+            exit;
         if TrackingSpecification."Item No." = '' then
+            exit;
+        if TrackingSpecification."Location Code" = '' then
+            exit;
+        if not LocationRequiresPick(TrackingSpecification."Location Code") then
             exit;
 
         WhseActivLine.SetCurrentKey(
@@ -598,8 +605,7 @@ codeunit 6501 "Item Tracking Data Collection"
         TempWhseActivLine.SetRange("Source Subtype", WhseActivLine."Source Subtype");
         TempWhseActivLine.SetRange("Source No.", WhseActivLine."Source No.");
         TempWhseActivLine.SetRange("Source Line No.", WhseActivLine."Source Line No.");
-        if WhseActivLine."Source Type" = 5407 then
-            TempWhseActivLine.SetRange("Source Subline No.", WhseActivLine."Source Subline No.");
+        TempWhseActivLine.SetRange("Source Subline No.", WhseActivLine."Source Subline No.");
         TempWhseActivLine.SetRange("Item No.", WhseActivLine."Item No.");
         TempWhseActivLine.SetRange("Variant Code", WhseActivLine."Variant Code");
         TempWhseActivLine.SetRange("Location Code", WhseActivLine."Location Code");
@@ -690,6 +696,15 @@ codeunit 6501 "Item Tracking Data Collection"
                 (WhseActivLine."Source Subline No." = TrackingSpecification."Source Ref. No."));
  
         exit(WhseActivLine."Source Line No." = TrackingSpecification."Source Ref. No.");
+    end;
+
+    local procedure LocationRequiresPick(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        if not Location.Get(LocationCode) then
+            exit(false);
+        exit(Location."Require Pick");
     end;
 
     local procedure CreateEntrySummary(TrackingSpecification: Record "Tracking Specification" temporary; TempReservEntry: Record "Reservation Entry" temporary)
