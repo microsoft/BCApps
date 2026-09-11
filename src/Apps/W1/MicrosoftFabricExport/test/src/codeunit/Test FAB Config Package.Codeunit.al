@@ -1,6 +1,7 @@
 namespace Microsoft.FabricExport;
 
 using System.Fabric;
+using System.Utilities;
 
 codeunit 150202 "Test FAB Config Package"
 {
@@ -271,5 +272,337 @@ codeunit 150202 "Test FAB Config Package"
 
         //[THEN] The deletion is blocked
         Assert.ExpectedError('active');
+    end;
+
+    [Test]
+    procedure RegisterPackageSkipsTableIdNotFoundInObjects()
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TableIds: List of [Integer];
+    begin
+        //[SCENARIO] RegisterPackage skips a table ID that does not exist as an object
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A list containing one valid and one non-existent table ID
+        TableIds.Add(18);
+        TableIds.Add(999999);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is registered
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIds);
+
+        //[THEN] Only the valid table produces a line
+        PackageLine.SetRange("Package Code", 'MS-STD');
+        Assert.AreEqual(1, PackageLine.Count(), 'Expected only the valid table id to produce a line.');
+        Assert.IsTrue(PackageLine.Get('MS-STD', 18), 'Expected table 18 to be registered.');
+    end;
+
+    [Test]
+    procedure RegisterPackageRebuildsLinesOnVersionBump()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TableIdsV1: List of [Integer];
+        TableIdsV2: List of [Integer];
+    begin
+        //[SCENARIO] Registering a new version rebuilds the package lines
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The package registered at v1.0 with two tables
+        TableIdsV1.Add(18);
+        TableIdsV1.Add(27);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIdsV1);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is re-registered at v2.0 with a single, different table
+        TableIdsV2.Add(36);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '2.0', TableIdsV2);
+
+        //[THEN] The version is updated and only the new line remains
+        Assert.IsTrue(Pkg.Get('MS-STD'), 'Expected the package header to exist.');
+        Assert.AreEqual('2.0', Pkg.Version, 'Expected the version to be updated.');
+        PackageLine.SetRange("Package Code", 'MS-STD');
+        Assert.AreEqual(1, PackageLine.Count(), 'Expected exactly one line after rebuild.');
+        Assert.IsTrue(PackageLine.Get('MS-STD', 36), 'Expected the new table to be the only line.');
+    end;
+
+    [Test]
+    procedure RegisterPackageReappliesWhenPackageIsAlreadyActive()
+    var
+        Pkg: Record "Fabric Config Package";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TableIdsV1: List of [Integer];
+        TableIdsV2: List of [Integer];
+    begin
+        //[SCENARIO] Re-registering an active package at a new version reapplies it automatically
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] An activated package at v1.0
+        TableIdsV1.Add(18);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIdsV1);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is re-registered at v2.0 with an additional table
+        TableIdsV2.Add(18);
+        TableIdsV2.Add(27);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '2.0', TableIdsV2);
+
+        //[THEN] The new table is added to the platform without a manual reapply
+        Assert.IsTrue(TenantFabricTables.Get(27), 'Expected the new v2.0 table to be applied automatically.');
+    end;
+
+    [Test]
+    procedure ActivateFailsWhenExceedingPlatformLimit()
+    var
+        Pkg: Record "Fabric Config Package";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        i: Integer;
+    begin
+        //[SCENARIO] Activation is blocked when it would exceed the platform table limit
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The platform table is already at its maximum capacity
+        for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
+            TenantFabricTables.Init();
+            TenantFabricTables."Table ID" := i;
+            TenantFabricTables.Insert(false);
+        end;
+        //[GIVEN] A registered package with two tables not yet selected
+        GivenPackage('MS-STD', 100000, 100001);
+        Pkg.Get('MS-STD');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is activated
+        asserterror FabricConfigPkgMgt.Activate(Pkg);
+
+        //[THEN] The activation is rejected
+        Assert.ExpectedError('maximum');
+    end;
+
+    [Test]
+    procedure IsReapplyAvailableIsTrueAfterVersionBump()
+    var
+        Pkg: Record "Fabric Config Package";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+    begin
+        //[SCENARIO] IsReapplyAvailable reports true once an active package's version differs from the last activated version
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] An activated package
+        GivenPackage('MS-STD', 18, 27);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        Pkg.Get('MS-STD');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package version is bumped
+        Pkg.Validate(Version, '2.0');
+        Pkg.Modify(true);
+
+        //[THEN] Reapply is reported as available
+        Assert.IsTrue(FabricConfigPkgMgt.IsReapplyAvailable(Pkg), 'Expected reapply to be available after a version bump.');
+    end;
+
+    [Test]
+    procedure IsReapplyAvailableIsFalseAfterReapply()
+    var
+        Pkg: Record "Fabric Config Package";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+    begin
+        //[SCENARIO] IsReapplyAvailable reports false once the package has been reapplied at the current version
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] An activated package whose version was bumped
+        GivenPackage('MS-STD', 18, 27);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        Pkg.Get('MS-STD');
+        Pkg.Validate(Version, '2.0');
+        Pkg.Modify(true);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is reapplied
+        FabricConfigPkgMgt.Reapply(Pkg);
+
+        //[THEN] Reapply is no longer reported as available
+        Pkg.Get('MS-STD');
+        Assert.IsFalse(FabricConfigPkgMgt.IsReapplyAvailable(Pkg), 'Expected reapply to be unavailable once the last activated version matches.');
+    end;
+
+    [Test]
+    procedure TableIdValidationSetsTableNameAndPerCompany()
+    var
+        PackageLine: Record "Fabric Config Package Line";
+    begin
+        //[SCENARIO] Validating Table ID looks up the table name and per-company flag
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A new package line
+        PackageLine.Init();
+        PackageLine."Package Code" := 'MS-STD';
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Table ID is validated with the Customer table
+        PackageLine.Validate("Table ID", 18); // 18 = Customer
+
+        //[THEN] The table name and per-company flag are populated from metadata
+        Assert.AreEqual('Customer', PackageLine."Table Name", 'Expected the table name to be looked up.');
+        Assert.IsTrue(PackageLine."Per Company", 'Expected Customer to be flagged per company.');
+    end;
+
+    [Test]
+    procedure TableIdValidationResetsFieldsWhenClearedToZero()
+    var
+        PackageLine: Record "Fabric Config Package Line";
+    begin
+        //[SCENARIO] Clearing Table ID back to zero resets the derived fields
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A package line with the table already validated
+        PackageLine.Init();
+        PackageLine."Package Code" := 'MS-STD';
+        PackageLine.Validate("Table ID", 18); // 18 = Customer
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Table ID is cleared back to zero
+        PackageLine.Validate("Table ID", 0);
+
+        //[THEN] The table name is cleared and per-company reverts to true
+        Assert.AreEqual('', PackageLine."Table Name", 'Expected the table name to be cleared.');
+        Assert.IsTrue(PackageLine."Per Company", 'Expected Per Company to revert to true.');
+    end;
+
+    [Test]
+    procedure DeleteInactivePackageRemovesItsLines()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+    begin
+        //[SCENARIO] Deleting an inactive package removes its lines
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] An inactive registered package with two lines
+        GivenPackage('MS-STD', 18, 27);
+        Pkg.Get('MS-STD');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is deleted
+        Pkg.Delete(true);
+
+        //[THEN] Its lines are removed as well
+        PackageLine.SetRange("Package Code", 'MS-STD');
+        Assert.AreEqual(0, PackageLine.Count(), 'Expected the package lines to be deleted along with the header.');
+    end;
+
+    [Test]
+    procedure ExportThenImportRoundTripsPackageDefinition()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        //[SCENARIO] A package exported to a stream can be re-imported unchanged
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A registered package with two tables
+        GivenPackage('MS-STD', 18, 27);
+        Pkg.Get('MS-STD');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] The package is exported to a stream
+        TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
+        FabricConfigPkgMgt.ExportPackageToStream(Pkg, OutStr);
+        //[GIVEN] The original package definition is removed so the import recreates it
+        Pkg.Delete(true);
+
+        //[WHEN] The stream is imported
+        TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
+        FabricConfigPkgMgt.ImportPackageFromStream(InStr);
+
+        //[THEN] The package header and lines are recreated
+        Assert.IsTrue(Pkg.Get('MS-STD'), 'Expected the package header to be recreated.');
+        PackageLine.SetRange("Package Code", 'MS-STD');
+        Assert.AreEqual(2, PackageLine.Count(), 'Expected two package lines after import.');
+    end;
+
+    [Test]
+    procedure ImportFailsWhenPackageCodeIsMissing()
+    var
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        //[SCENARIO] Import is rejected when the package file has no code
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A JSON payload without a code field
+        TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
+        OutStr.WriteText('{"description":"No Code","version":"1.0","tables":[18]}');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The stream is imported
+        TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
+        asserterror FabricConfigPkgMgt.ImportPackageFromStream(InStr);
+
+        //[THEN] The import is rejected
+        Assert.ExpectedError('package code');
+    end;
+
+    [Test]
+    procedure ImportFailsForInvalidJson()
+    var
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
+    begin
+        //[SCENARIO] Import is rejected when the file is not valid JSON
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] A non-JSON payload
+        TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
+        OutStr.WriteText('not valid json');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The stream is imported
+        TempBlob.CreateInStream(InStr, TextEncoding::UTF8);
+        asserterror FabricConfigPkgMgt.ImportPackageFromStream(InStr);
+
+        //[THEN] The import is rejected
+        Assert.ExpectedError('valid package definition');
     end;
 }
