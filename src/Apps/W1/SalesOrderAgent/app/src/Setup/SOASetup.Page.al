@@ -8,6 +8,7 @@
 
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using Microsoft.Inventory.Availability;
 using System.Agents;
 using System.AI;
 using System.Email;
@@ -258,6 +259,8 @@ page 4400 "SOA Setup"
                             Editable = OnlyAvailableItemsActive;
                             trigger OnValidate()
                             begin
+                                if Rec."Incl. Capable to Promise" then
+                                    VerifyOrderPromisingSetupExists();
                                 ConfigUpdated();
                             end;
                         }
@@ -688,6 +691,21 @@ page 4400 "SOA Setup"
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
     end;
 
+    local procedure VerifyOrderPromisingSetupExists()
+    var
+        OrderPromisingSetup: Record "Order Promising Setup";
+    begin
+        if not OrderPromisingSetup.IsEmpty() then
+            exit;
+
+        // Capable to Promise requires the Order Promising Setup; offer to create it so the agent does not fail later.
+        if Confirm(OrderPromisingSetupMissingQst, false) then
+            Page.RunModal(Page::"Order Promising Setup");
+
+        if OrderPromisingSetup.IsEmpty() then
+            Rec."Incl. Capable to Promise" := false;
+    end;
+
     local procedure EnabledAgentFirstConfig(): Boolean
     begin
         exit((TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled) and IsFirstConfig() and CheckIsValidConfig());
@@ -868,4 +886,5 @@ page 4400 "SOA Setup"
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
+        OrderPromisingSetupMissingQst: Label 'The Order Promising Setup does not exist and is required to include capable-to-promise items. Do you want to create it now?';
 }
