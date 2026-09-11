@@ -1485,13 +1485,15 @@ codeunit 138702 "Retention Policy Test"
         RetentionPolicyTestData3: Record "Retention Policy Test Data 3";
         ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
     begin
-        PermissionsMock.Set('Retention Pol. Admin');
         // Setup
+        // Enabled policy setup can schedule Base Application job queue entries.
+        PermissionsMock.Set('SUPER');
         RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, 0);
         InsertRetentionPolicySetupTable3(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData3.FieldNo("Datetime Field"));
+        PermissionsMock.Set('Retention Pol. Admin');
         InsertRetentionPolicyTestData('<-2M>');
         InsertRetentionPolicyTestData3('<-2M>');
 
@@ -1682,13 +1684,15 @@ codeunit 138702 "Retention Policy Test"
         RetentionPolicyTestLibrarySubs: Codeunit "Retention Policy Test Library";
         i: Integer;
     begin
-        PermissionsMock.Set('Retention Pol. Admin');
         // Setup
+        // Enabled policy setup can schedule Base Application job queue entries.
+        PermissionsMock.Set('SUPER');
         RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
         InsertRetentionPolicySetupTable3(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData3.FieldNo("Datetime Field"));
+        PermissionsMock.Set('Retention Pol. Admin');
         for i := 1 to RecordsTableOne do
             InsertRetentionPolicyTestData('<-2M>');
         InsertRetentionPolicyTestData3('<-2M>');
