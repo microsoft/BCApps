@@ -2056,6 +2056,150 @@ codeunit 148110 "SAF-T XML Tests 1.3"
             TempChildXMLBuffer, 'n1:Amount', SAFTTestHelper.FormatAmount(Abs(GenJournalLine."Amount (LCY)")));
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure AnalysisOmittedWhenAllDimensionsExcluded()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        Dimension: array[2] of Record Dimension;
+        DimensionValue: array[2] of Record "Dimension Value";
+        TempMasterXMLBuffer: Record "XML Buffer" temporary;
+        TempGLEntryXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0] [Dimension]
+        // [SCENARIO] Excluding every dimension omits analysis master data and all default and G/L dimension references.
+        Initialize();
+
+        // [GIVEN] Excluded dimensions "D1" and "D2" with values used by customer "C", vendor "V" and a G/L entry
+        CreateAnalysisExportFixture(SAFTExportHeader, Dimension, DimensionValue);
+
+        // [WHEN] Export SAF-T 1.30
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+        LoadAnalysisExportFiles(SAFTExportHeader, TempMasterXMLBuffer, TempGLEntryXMLBuffer);
+
+        // [THEN] Neither file contains analysis containers, entries or references
+        VerifyNoAnalysisOutput(TempMasterXMLBuffer);
+        VerifyNoAnalysisOutput(TempGLEntryXMLBuffer);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure AnalysisExportsOnlySelectedDimensions()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        Dimension: array[2] of Record Dimension;
+        DimensionValue: array[2] of Record "Dimension Value";
+        AdditionalDimensionValue: Record "Dimension Value";
+        TempMasterXMLBuffer: Record "XML Buffer" temporary;
+        TempGLEntryXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0] [Dimension]
+        // [SCENARIO] Mixed dimension selection preserves eligible master-data order and matching customer, supplier and G/L references.
+        Initialize();
+
+        // [GIVEN] Only dimension "D2" is selected, with two values, and references also contain excluded dimension "D1"
+        CreateAnalysisExportFixture(SAFTExportHeader, Dimension, DimensionValue);
+        Dimension[2].Validate("Export to SAF-T", true);
+        Dimension[2].Modify(true);
+        LibraryDimension.CreateDimensionValue(AdditionalDimensionValue, Dimension[2].Code);
+        AdditionalDimensionValue.Validate(Name, AdditionalDimensionValue.Code);
+        AdditionalDimensionValue.Modify(true);
+
+        // [WHEN] Export SAF-T 1.30
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+        LoadAnalysisExportFiles(SAFTExportHeader, TempMasterXMLBuffer, TempGLEntryXMLBuffer);
+
+        // [THEN] One analysis table contains both selected values in their original key order
+        VerifySelectedAnalysisTypeTable(TempMasterXMLBuffer, Dimension[2], 2);
+
+        // [THEN] Each party and G/L line references only the selected value, and no other analysis references exist
+        VerifyAnalysisReferences(
+            TempMasterXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:Customers/n1:Customer/n1:PartyInfo/n1:Analysis',
+            Dimension[2]."SAF-T Analysis Type", DimensionValue[2].Code, 1);
+        VerifyAnalysisReferences(
+            TempMasterXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:Suppliers/n1:Supplier/n1:PartyInfo/n1:Analysis',
+            Dimension[2]."SAF-T Analysis Type", DimensionValue[2].Code, 1);
+        VerifyAnalysisReferences(
+            TempMasterXMLBuffer, '/n1:Analysis', Dimension[2]."SAF-T Analysis Type", DimensionValue[2].Code, 2);
+        VerifyAnalysisReferences(
+            TempGLEntryXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:Analysis',
+            Dimension[2]."SAF-T Analysis Type", DimensionValue[2].Code, 1);
+        VerifyAnalysisReferences(
+            TempGLEntryXMLBuffer, '/n1:Analysis', Dimension[2]."SAF-T Analysis Type", DimensionValue[2].Code, 1);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure ExcludedDefaultDimensionsOmitPartyAnalysis()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        Dimension: array[2] of Record Dimension;
+        DimensionValue: array[2] of Record "Dimension Value";
+        TempMasterXMLBuffer: Record "XML Buffer" temporary;
+        TempGLEntryXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0] [Dimension]
+        // [SCENARIO] Customer and supplier PartyInfo retain non-analysis metadata but omit excluded default dimensions.
+        Initialize();
+
+        // [GIVEN] Customer "C" and vendor "V" have nonblank default dimension values, all excluded from SAF-T
+        CreateAnalysisExportFixture(SAFTExportHeader, Dimension, DimensionValue);
+
+        // [WHEN] Export SAF-T 1.30
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+        LoadAnalysisExportFiles(SAFTExportHeader, TempMasterXMLBuffer, TempGLEntryXMLBuffer);
+
+        // [THEN] Exported customer and supplier PartyInfo have no Analysis children
+        Assert.IsFalse(
+            TempMasterXMLBuffer.FindNodesByXPath(
+                TempMasterXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:Customers/n1:Customer/n1:PartyInfo/n1:Analysis'),
+            'Excluded customer default dimensions were exported.');
+        Assert.IsFalse(
+            TempMasterXMLBuffer.FindNodesByXPath(
+                TempMasterXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:Suppliers/n1:Supplier/n1:PartyInfo/n1:Analysis'),
+            'Excluded supplier default dimensions were exported.');
+        VerifyNoAnalysisOutput(TempMasterXMLBuffer);
+        VerifyNoAnalysisOutput(TempGLEntryXMLBuffer);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure SelectedDimensionWithoutValuesOmitsAnalysisTable()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        Dimension: array[2] of Record Dimension;
+        DimensionValue: array[2] of Record "Dimension Value";
+        EmptyDimension: Record Dimension;
+        TempMasterXMLBuffer: Record "XML Buffer" temporary;
+        TempGLEntryXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 1.0] [Dimension]
+        // [SCENARIO] A selected dimension without values cannot create an empty analysis table when excluded values exist.
+        Initialize();
+
+        // [GIVEN] Excluded dimensions with values and selected dimension "E" with no values
+        CreateAnalysisExportFixture(SAFTExportHeader, Dimension, DimensionValue);
+        LibraryDimension.CreateDimension(EmptyDimension);
+        EmptyDimension.Validate("Export to SAF-T", true);
+        EmptyDimension.Modify(true);
+
+        // [WHEN] Export SAF-T 1.30
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+        LoadAnalysisExportFiles(SAFTExportHeader, TempMasterXMLBuffer, TempGLEntryXMLBuffer);
+
+        // [THEN] No eligible value means no analysis container, entry or reference in either file
+        VerifyNoAnalysisOutput(TempMasterXMLBuffer);
+        VerifyNoAnalysisOutput(TempGLEntryXMLBuffer);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SAF-T XML Tests 1.3");
@@ -2404,6 +2548,123 @@ codeunit 148110 "SAF-T XML Tests 1.3"
                 TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
                 VATPostingSetup."VAT %", VATPostingSetup."Purch. VAT Reporting Code", false, 100);
         until VATPostingSetup.Next() = 0;
+    end;
+
+    local procedure CreateAnalysisExportFixture(var SAFTExportHeader: Record "SAF-T Export Header"; var Dimension: array[2] of Record Dimension; var DimensionValue: array[2] of Record "Dimension Value")
+    var
+        SAFTMappingRange: Record "SAF-T Mapping Range";
+        ExistingDimension: Record Dimension;
+        DefaultDimension: Record "Default Dimension";
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        GLAccount: Record "G/L Account";
+        DimensionSetID: Integer;
+        i: Integer;
+    begin
+        SAFTTestHelper.SetupSAFT(SAFTMappingRange, SAFTMappingType::"Four Digit Standard Account", 1);
+        SAFTTestHelper.MatchGLAccountsFourDigit(SAFTMappingRange.Code);
+        SAFTTestHelper.CreateSAFTExportHeader(SAFTExportHeader, SAFTMappingRange.Code, Enum::"SAF-T Version"::"1.30");
+        SAFTTestHelper.IncludesNoSourceCodeToTheFirstSAFTSourceCode();
+        ExistingDimension.ModifyAll("Export to SAF-T", false);
+
+        Customer.FindFirst();
+        Vendor.FindFirst();
+        for i := 1 to ArrayLen(Dimension) do begin
+            LibraryDimension.CreateDimension(Dimension[i]);
+            Dimension[i].Validate("Export to SAF-T", false);
+            Dimension[i].Modify(true);
+            LibraryDimension.CreateDimensionValue(DimensionValue[i], Dimension[i].Code);
+            DimensionValue[i].Validate(Name, DimensionValue[i].Code);
+            DimensionValue[i].Modify(true);
+            LibraryDimension.CreateDefaultDimensionCustomer(
+                DefaultDimension, Customer."No.", Dimension[i].Code, DimensionValue[i].Code);
+            LibraryDimension.CreateDefaultDimensionVendor(
+                DefaultDimension, Vendor."No.", Dimension[i].Code, DimensionValue[i].Code);
+            DimensionSetID := LibraryDimension.CreateDimSet(DimensionSetID, Dimension[i].Code, DimensionValue[i].Code);
+        end;
+
+        SAFTTestHelper.MockCustLedgEntry(SAFTExportHeader."Ending Date", Customer."No.", 100, 100, "Gen. Journal Document Type"::Invoice);
+        SAFTTestHelper.MockVendLedgEntry(SAFTExportHeader."Ending Date", Vendor."No.", -100, -100, "Gen. Journal Document Type"::Invoice);
+        GLAccount.FindFirst();
+        SAFTTestHelper.MockGLEntryNoVAT(
+            SAFTExportHeader."Ending Date", GLAccount."No.", GetLastUsedTransactionNo() + 1, DimensionSetID, 0, '', '', 100, 0);
+    end;
+
+    local procedure LoadAnalysisExportFiles(SAFTExportHeader: Record "SAF-T Export Header"; var TempMasterXMLBuffer: Record "XML Buffer" temporary; var TempGLEntryXMLBuffer: Record "XML Buffer" temporary)
+    var
+        SAFTExportLine: Record "SAF-T Export Line";
+    begin
+        SAFTExportLine.SetRange("Master Data", true);
+        SAFTExportLine.SetRange(Status, SAFTExportLine.Status::Completed);
+        SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, SAFTExportHeader.ID);
+        Assert.RecordCount(SAFTExportLine, 1);
+        SAFTTestHelper.LoadXMLBufferFromSAFTExportLine(TempMasterXMLBuffer, SAFTExportLine);
+        Assert.IsTrue(
+            TempMasterXMLBuffer.FindNodesByXPath(
+                TempMasterXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:Customers/n1:Customer/n1:PartyInfo/n1:CurrencyCode'),
+            'Customer PartyInfo metadata was not exported.');
+        Assert.RecordCount(TempMasterXMLBuffer, 1);
+        Assert.IsTrue(
+            TempMasterXMLBuffer.FindNodesByXPath(
+                TempMasterXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:Suppliers/n1:Supplier/n1:PartyInfo/n1:CurrencyCode'),
+            'Supplier PartyInfo metadata was not exported.');
+        Assert.RecordCount(TempMasterXMLBuffer, 1);
+
+        SAFTExportLine.SetRange("Master Data", false);
+        SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, SAFTExportHeader.ID);
+        Assert.RecordCount(SAFTExportLine, 1);
+        SAFTTestHelper.LoadXMLBufferFromSAFTExportLine(TempGLEntryXMLBuffer, SAFTExportLine);
+        Assert.IsTrue(
+            TempGLEntryXMLBuffer.FindNodesByXPath(
+                TempGLEntryXMLBuffer, '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line'),
+            'The G/L entry carrying dimensions was not exported.');
+        Assert.RecordCount(TempGLEntryXMLBuffer, 1);
+    end;
+
+    local procedure VerifyNoAnalysisOutput(var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetFilter(Name, 'AnalysisTypeTable|AnalysisTypeTableEntry|Analysis');
+        Assert.RecordCount(TempXMLBuffer, 0);
+        TempXMLBuffer.Reset();
+    end;
+
+    local procedure VerifySelectedAnalysisTypeTable(var TempXMLBuffer: Record "XML Buffer" temporary; Dimension: Record Dimension; ExpectedCount: Integer)
+    var
+        DimensionValue: Record "Dimension Value";
+        TempChildXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        Assert.IsTrue(
+            TempXMLBuffer.FindNodesByXPath(TempXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:AnalysisTypeTable'),
+            'Selected analysis table was not exported.');
+        Assert.RecordCount(TempXMLBuffer, 1);
+        TempXMLBuffer.FindChildElements(TempXMLBuffer);
+        Assert.RecordCount(TempXMLBuffer, ExpectedCount);
+        DimensionValue.SetRange("Dimension Code", Dimension.Code);
+        DimensionValue.FindSet();
+        repeat
+            SAFTTestHelper.AssertCurrentElementName(TempXMLBuffer, 'n1:AnalysisTypeTableEntry');
+            VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 4);
+            SAFTTestHelper.AssertCurrentElementValue(TempChildXMLBuffer, 'n1:AnalysisType', Dimension."SAF-T Analysis Type");
+            SAFTTestHelper.AssertElementValue(TempChildXMLBuffer, 'n1:AnalysisTypeDescription', Dimension.Name);
+            SAFTTestHelper.AssertElementValue(TempChildXMLBuffer, 'n1:AnalysisID', DimensionValue.Code);
+            SAFTTestHelper.AssertElementValue(TempChildXMLBuffer, 'n1:AnalysisIDDescription', DimensionValue.Name);
+            TempXMLBuffer.Next();
+        until DimensionValue.Next() = 0;
+    end;
+
+    local procedure VerifyAnalysisReferences(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text; AnalysisType: Code[9]; AnalysisID: Code[20]; ExpectedCount: Integer)
+    var
+        TempChildXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        Assert.IsTrue(TempXMLBuffer.FindNodesByXPath(TempXMLBuffer, XPath), 'Selected analysis references were not exported.');
+        Assert.RecordCount(TempXMLBuffer, ExpectedCount);
+        repeat
+            VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 2);
+            SAFTTestHelper.AssertCurrentElementValue(TempChildXMLBuffer, 'n1:AnalysisType', AnalysisType);
+            SAFTTestHelper.AssertElementValue(TempChildXMLBuffer, 'n1:AnalysisID', AnalysisID);
+        until TempXMLBuffer.Next() = 0;
     end;
 
     local procedure VerifyDimensions(var TempXMLBuffer: Record "XML Buffer" temporary)

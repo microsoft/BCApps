@@ -543,19 +543,23 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         Dimension: Record Dimension;
         DimensionValue: Record "Dimension Value";
         LastDimensionCode: Code[20];
+        AnalysisTypeTableOpened: Boolean;
     begin
         If not DimensionValue.FindSet() then
             exit;
 
         if GuiAllowed() then
             Window.Update(1, ExportingDimensionsTxt);
-        SAFTXMLHelper.AddNewXMLNode('AnalysisTypeTable', '');
         repeat
             if LastDimensionCode <> DimensionValue."Dimension Code" then begin
                 Dimension.Get(DimensionValue."Dimension Code");
                 LastDimensionCode := Dimension.Code;
             end;
             if Dimension."Export to SAF-T" then begin
+                if not AnalysisTypeTableOpened then begin
+                    SAFTXMLHelper.AddNewXMLNode('AnalysisTypeTable', '');
+                    AnalysisTypeTableOpened := true;
+                end;
                 SAFTXMLHelper.AddNewXMLNode('AnalysisTypeTableEntry', '');
                 SAFTXMLHelper.AppendXMLNode('AnalysisType', Dimension."SAF-T Analysis Type");
                 SAFTXMLHelper.AppendXMLNode('AnalysisTypeDescription', Dimension.Name);
@@ -564,7 +568,8 @@ codeunit 10692 "Generate SAF-T 1.3 File"
                 SAFTXMLHelper.FinalizeXMLNode();
             end;
         until DimensionValue.Next() = 0;
-        SAFTXMLHelper.FinalizeXMLNode();
+        if AnalysisTypeTableOpened then
+            SAFTXMLHelper.FinalizeXMLNode();
     end;
 
     local procedure ExportGeneralLedgerEntries(var GLEntry: Record "G/L Entry"; var SAFTExportLine: Record "SAF-T Export Line")
@@ -934,10 +939,12 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         if DefaultDimension.FindSet() then
             repeat
                 Dimension.get(DefaultDimension."Dimension Code");
-                TempDimIDBuffer."Parent ID" += 1;
-                TempDimIDBuffer."Dimension Code" := Dimension."SAF-T Analysis Type";
-                TempDimIDBuffer."Dimension Value" := DefaultDimension."Dimension Value Code";
-                TempDimIDBuffer.Insert();
+                if Dimension."Export to SAF-T" then begin
+                    TempDimIDBuffer."Parent ID" += 1;
+                    TempDimIDBuffer."Dimension Code" := Dimension."SAF-T Analysis Type";
+                    TempDimIDBuffer."Dimension Value" := DefaultDimension."Dimension Value Code";
+                    TempDimIDBuffer.Insert();
+                end;
             until DefaultDimension.next() = 0;
     end;
 
