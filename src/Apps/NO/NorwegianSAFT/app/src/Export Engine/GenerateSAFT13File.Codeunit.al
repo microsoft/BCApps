@@ -23,6 +23,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Environment;
 using System.Reflection;
 
 codeunit 10692 "Generate SAF-T 1.3 File"
@@ -94,13 +95,14 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInformation: Record "Company Information";
         CountryRegion: Record "Country/Region";
+        ApplicationSystemConstants: Codeunit "Application System Constants";
     begin
         SAFTXMLHelper.Initialize();
         if GuiAllowed() then
             Window.Update(1, GeneratingHeaderTxt);
         CompanyInformation.get();
         SAFTXMLHelper.AddNewXMLNode('Header', '');
-        SAFTXMLHelper.AppendXMLNode('AuditFileVersion', '1.3');
+        SAFTXMLHelper.AppendXMLNode('AuditFileVersion', '1.30');
         if CompanyInformation."Country/Region Code" <> '' then begin
             CountryRegion.Get(CompanyInformation."Country/Region Code");
             if CountryRegion."ISO Code" = '' then
@@ -111,7 +113,7 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SAFTXMLHelper.AppendXMLNode('AuditFileDateCreated', FormatDate(today()));
         SAFTXMLHelper.AppendXMLNode('SoftwareCompanyName', 'Microsoft');
         SAFTXMLHelper.AppendXMLNode('SoftwareID', 'Microsoft Dynamics 365 Business Central');
-        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', '14.0');
+        SAFTXMLHelper.AppendXMLNode('SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
         ExportCompanyInfo('Company');
         GeneralLedgerSetup.get();
         SAFTXMLHelper.AppendXMLNode('DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");

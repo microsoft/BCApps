@@ -27,6 +27,31 @@ codeunit 148110 "SAF-T XML Tests 1.3"
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
+    procedure HeaderContainsCorrectAuditFileAndSoftwareVersions()
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        SAFTExportLine: Record "SAF-T Export Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ApplicationSystemConstants: Codeunit "Application System Constants";
+    begin
+        Initialize();
+        BasicSAFTSetup(SAFTExportHeader);
+
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+
+        SAFTExportLine.SetRange("Master Data", true);
+        SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, SAFTExportHeader.ID);
+        SAFTTestHelper.LoadXMLBufferFromSAFTExportLine(TempXMLBuffer, SAFTExportLine);
+
+        SAFTTestHelper.AssertCurrentValue(TempXMLBuffer, '/n1:AuditFile/n1:Header/n1:AuditFileVersion', '1.30');
+        SAFTTestHelper.AssertCurrentValue(
+            TempXMLBuffer, '/n1:AuditFile/n1:Header/n1:SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure MasterFile()
     var
         SAFTExportHeader: Record "SAF-T Export Header";
@@ -1991,17 +2016,18 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         CompanyInformation: Record "Company Information";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SAFTExportHeader: Record "SAF-T Export Header";
+        ApplicationSystemConstants: Codeunit "Application System Constants";
 
     begin
         SAFTTestHelper.FindSAFTHeaderElement(TempXMLBuffer);
-        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AuditFileVersion', '1.3');
+        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AuditFileVersion', '1.30');
         CompanyInformation.Get();
         GeneralLedgerSetup.Get();
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AuditFileCountry', CompanyInformation."Country/Region Code");
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AuditFileDateCreated', SAFTTestHelper.FormatDate(Today()));
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareCompanyName', 'Microsoft');
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareID', 'Microsoft Dynamics 365 Business Central');
-        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareVersion', '14.0');
+        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:SoftwareVersion', ApplicationSystemConstants.ApplicationVersion());
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:Company');
         VerifyCompanyStructure(TempXMLBuffer, CompanyInformation);
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:DefaultCurrencyCode', GeneralLedgerSetup."LCY Code");
