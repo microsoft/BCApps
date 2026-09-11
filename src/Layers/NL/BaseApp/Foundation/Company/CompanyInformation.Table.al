@@ -513,17 +513,6 @@ table 79 "Company Information"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
-        field(11400; "Fiscal Entity No."; Text[20])
-        {
-            Caption = 'Fiscal Entity No.';
-
-            trigger OnValidate()
-            var
-                VATRegNoFormat: Record "VAT Registration No. Format";
-            begin
-                VATRegNoFormat.Test("Fiscal Entity No.", "Country/Region Code", '', DATABASE::"Company Information");
-            end;
-        }
     }
 
     keys
