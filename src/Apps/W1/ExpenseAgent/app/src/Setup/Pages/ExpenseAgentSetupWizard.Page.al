@@ -1439,15 +1439,11 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure DeactivateAgent(): Boolean
-    var
-        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        ExpenseAgentEntraApp.VerifyCanDisableAadApplicationForCurrentCompany();
         if not Rec.ShowDeactivationAccessWarning() then
             exit(false);
         if not UnregisterErpConfiguration() then
             exit(false);
-        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
         Rec.LogAgentDisabledTelemetry();
         exit(true);
     end;
