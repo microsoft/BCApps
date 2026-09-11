@@ -202,7 +202,7 @@ codeunit 148300 "Library - Expense"
         ExpenseLocation.Insert(true);
     end;
 
-    internal procedure CreateExpenseWithZeroVATPostingSetup(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[30]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
+    internal procedure CreateExpenseWithZeroVATPostingSetup(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[20]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
     var
         VATPostingSetup: Record "VAT Posting Setup";
     begin
@@ -214,7 +214,7 @@ codeunit 148300 "Library - Expense"
         Expense.Modify();
     end;
 
-    internal procedure CreateExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[30]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
+    internal procedure CreateExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[20]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
     begin
         Expense.Init();
         Expense.Validate(Description, LibraryUtility.GenerateRandomCode(Expense.FieldNo(Description), Database::"Expense"));

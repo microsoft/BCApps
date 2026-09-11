@@ -496,6 +496,34 @@ table 79 "Company Information"
             ToolTip = 'Specifies how dates based on calendar and calendar-related documents are calculated.';
             InitValue = '1Y';
         }
+        field(7610; "Power BI Workspace Id"; Guid)
+        {
+            Caption = 'Power BI Workspace Id';
+            ToolTip = 'Specifies the ID of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
+
+            trigger OnValidate()
+            begin
+                if IsNullGuid("Power BI Workspace Id") then
+                    Clear("Power BI Workspace Name");
+            end;
+        }
+        field(7611; "Power BI Workspace Name"; Text[200])
+        {
+            Caption = 'Power BI Workspace Name';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
+        }
+        field(11400; "Fiscal Entity No."; Text[20])
+        {
+            Caption = 'Fiscal Entity No.';
+
+            trigger OnValidate()
+            var
+                VATRegNoFormat: Record "VAT Registration No. Format";
+            begin
+                VATRegNoFormat.Test("Fiscal Entity No.", "Country/Region Code", '', DATABASE::"Company Information");
+            end;
+        }
     }
 
     keys
