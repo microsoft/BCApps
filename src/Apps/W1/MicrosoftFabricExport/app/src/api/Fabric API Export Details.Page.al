@@ -5,8 +5,8 @@ using System.Fabric;
 page 150014 "Fabric API Export Details"
 {
     PageType = API;
-    Caption = 'Fabric API Export Details', Locked = true;
-    APIPublisher = 'bc2fabric';
+    Caption = 'Fabric API Export Details';
+    APIPublisher = 'Microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricExportDetail';

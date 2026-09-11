@@ -3,8 +3,8 @@ namespace Microsoft.FabricExport;
 page 150012 "Fabric API Config Packages"
 {
     PageType = API;
-    Caption = 'Fabric API Config Packages', Locked = true;
-    APIPublisher = 'bc2fabric';
+    Caption = 'Fabric API Config Packages';
+    APIPublisher = 'Microsoft';
     APIGroup = 'fabric';
     APIVersion = 'v1.0';
     EntityName = 'fabricConfigPackage';
