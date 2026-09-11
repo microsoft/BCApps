@@ -10,7 +10,7 @@ The implementation automation supports two repository-configured modes through t
   and draft PR during the same scheduled run.
 - `disabled` disables both automatic implementation modes.
 
-The team workflow runs at 18:10 Europe/Copenhagen time on weekdays. For each team and run, it
+The team workflow runs every day at 18:10 Europe/Copenhagen time. For each team and run, it
 processes at most five combined requests. It also processes at most five standalone requests total
 across all selected teams. Each queue is ordered by oldest `updatedAt` timestamp first:
 
