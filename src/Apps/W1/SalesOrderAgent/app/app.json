@@ -12,7 +12,7 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=868966",
   "logo": "ExtensionLogo.png",
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "target": "OnPrem",
   "idRanges": [
