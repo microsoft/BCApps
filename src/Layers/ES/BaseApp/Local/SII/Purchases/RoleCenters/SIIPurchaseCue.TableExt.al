@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.RoleCenters;
 
-tableextension 7000145 "SII Purchase Cue" extends "Purchase Cue"
+tableextension 7000045 "SII Purchase Cue" extends "Purchase Cue"
 {
     fields
     {

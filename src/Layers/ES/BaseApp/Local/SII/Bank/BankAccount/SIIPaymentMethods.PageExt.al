@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Bank.BankAccount;
 
-pageextension 7000127 "SII Payment Methods" extends "Payment Methods"
+pageextension 7000027 "SII Payment Methods" extends "Payment Methods"
 {
     layout
     {

@@ -6,7 +6,7 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000132 "SII Account Manager Activities" extends "Account Manager Activities"
+pageextension 7000032 "SII Account Manager Activities" extends "Account Manager Activities"
 {
     layout
     {

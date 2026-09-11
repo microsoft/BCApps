@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
-pageextension 7000100 "SII Purchase Credit Memo" extends "Purchase Credit Memo"
+pageextension 7000000 "SII Purchase Credit Memo" extends "Purchase Credit Memo"
 {
     layout
     {

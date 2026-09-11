@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Receivables;
 
-tableextension 7000125 "SII Cust. Ledger Entry" extends "Cust. Ledger Entry"
+tableextension 7000025 "SII Cust. Ledger Entry" extends "Cust. Ledger Entry"
 {
     fields
     {

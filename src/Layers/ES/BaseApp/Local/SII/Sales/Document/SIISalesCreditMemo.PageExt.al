@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Document;
 
-pageextension 7000106 "SII Sales Credit Memo" extends "Sales Credit Memo"
+pageextension 7000006 "SII Sales Credit Memo" extends "Sales Credit Memo"
 {
     layout
     {

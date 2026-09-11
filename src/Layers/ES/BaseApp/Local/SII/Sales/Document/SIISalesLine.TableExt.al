@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Document;
 
-tableextension 7000120 "SII Sales Line" extends "Sales Line"
+tableextension 7000020 "SII Sales Line" extends "Sales Line"
 {
     fields
     {

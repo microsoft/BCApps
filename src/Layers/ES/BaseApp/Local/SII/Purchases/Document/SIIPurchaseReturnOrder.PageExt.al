@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
-pageextension 7000103 "SII Purchase Return Order" extends "Purchase Return Order"
+pageextension 7000003 "SII Purchase Return Order" extends "Purchase Return Order"
 {
     layout
     {

@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.History;
 
-tableextension 7000121 "SII Sales Inv. Header" extends "Sales Invoice Header"
+tableextension 7000021 "SII Sales Inv. Header" extends "Sales Invoice Header"
 {
     fields
     {

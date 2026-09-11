@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Document;
 
-pageextension 7000108 "SII Sales Order" extends "Sales Order"
+pageextension 7000008 "SII Sales Order" extends "Sales Order"
 {
     layout
     {

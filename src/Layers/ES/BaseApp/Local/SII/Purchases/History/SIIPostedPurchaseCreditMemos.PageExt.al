@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000142 "SII PostedPurchaseCreditMemos" extends "Posted Purchase Credit Memos"
+pageextension 7000042 "SII PostedPurchaseCreditMemos" extends "Posted Purchase Credit Memos"
 {
     layout
     {

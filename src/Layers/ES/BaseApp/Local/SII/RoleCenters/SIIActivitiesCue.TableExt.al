@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.RoleCenters;
 
-tableextension 7000143 "SII Activities Cue" extends "Activities Cue"
+tableextension 7000043 "SII Activities Cue" extends "Activities Cue"
 {
     fields
     {

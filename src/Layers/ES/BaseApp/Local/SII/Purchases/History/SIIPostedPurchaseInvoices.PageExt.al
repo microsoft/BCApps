@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.History;
 using Microsoft.EServices.EDocument;
 
 
-pageextension 7000143 "SII Posted Purchase Invoices" extends "Posted Purchase Invoices"
+pageextension 7000043 "SII Posted Purchase Invoices" extends "Posted Purchase Invoices"
 {
     layout
     {

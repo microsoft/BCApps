@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.History;
 
-pageextension 7000111 "SII Posted Sales Invoice" extends "Posted Sales Invoice"
+pageextension 7000011 "SII Posted Sales Invoice" extends "Posted Sales Invoice"
 {
     layout
     {

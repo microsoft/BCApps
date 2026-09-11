@@ -6,7 +6,7 @@ namespace Microsoft.Sales.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000149 "SII SO Processor Activities" extends "SO Processor Activities"
+pageextension 7000049 "SII SO Processor Activities" extends "SO Processor Activities"
 {
     layout
     {

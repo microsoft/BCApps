@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.History;
 
-tableextension 7000115 "SII Purch. Inv. Line" extends "Purch. Inv. Line"
+tableextension 7000015 "SII Purch. Inv. Line" extends "Purch. Inv. Line"
 {
     fields
     {

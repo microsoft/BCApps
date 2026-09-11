@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.History;
 
-tableextension 7000116 "SII Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
+tableextension 7000016 "SII Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
 {
     fields
     {

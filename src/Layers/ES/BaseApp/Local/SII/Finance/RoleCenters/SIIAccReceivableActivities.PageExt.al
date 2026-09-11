@@ -6,7 +6,7 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000135 "SII Acc. Receivable Activities" extends "Acc. Receivable Activities"
+pageextension 7000035 "SII Acc. Receivable Activities" extends "Acc. Receivable Activities"
 {
     layout
     {

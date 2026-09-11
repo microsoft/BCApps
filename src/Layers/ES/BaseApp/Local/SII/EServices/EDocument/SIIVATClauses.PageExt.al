@@ -6,7 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.VAT.Clause;
 
-pageextension 7000136 "SII VAT Clauses" extends "VAT Clauses"
+pageextension 7000036 "SII VAT Clauses" extends "VAT Clauses"
 {
     layout
     {

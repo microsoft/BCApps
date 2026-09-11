@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.RoleCenters;
 
-tableextension 7000146 "SII Sales Cue" extends "Sales Cue"
+tableextension 7000046 "SII Sales Cue" extends "Sales Cue"
 {
     fields
     {
