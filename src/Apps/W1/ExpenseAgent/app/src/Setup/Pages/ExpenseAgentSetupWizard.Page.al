@@ -879,6 +879,7 @@ page 6991 "Expense Agent Setup Wizard"
     trigger OnOpenPage()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
+        EASetupMgt: Codeunit "EA Setup Mgt.";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         EAHttpClient: Codeunit "EA Http Client";
@@ -897,7 +898,7 @@ page 6991 "Expense Agent Setup Wizard"
         ShowExpenseDashboardLink := ExpenseDashboardUrl <> '';
         CanaryToggleVisible := Rec."Use Canary Endpoint" or EAHttpClient.IsTenantOnCanaryAllowlist();
 
-        AgentUserSecurityID := ResolveAgentUserSecurityID();
+        AgentUserSecurityID := EASetupMgt.ResolveAgentUserSecurityID();
         CurrPage.AgentSetupPart.Page.Initialize(AgentUserSecurityID, "Agent Metadata Provider"::"Expense Agent", AgentUserName(), AgentDisplayNameLbl, AgentSummaryLbl);
         UpdateAgentSetupBuffer();
 
@@ -908,9 +909,10 @@ page 6991 "Expense Agent Setup Wizard"
     trigger OnAfterGetCurrRecord()
     var
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
+        EASetupMgt: Codeunit "EA Setup Mgt.";
     begin
         UpdateAgentSetupBuffer();
-        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(AgentSetupBuffer);
+        IsConfigUpdated := IsConfigUpdated or EASetupMgt.GetAgentSetupChangesMade(AgentSetupBuffer);
         EnableSendingEmailWithReceipts := EnableSendingEmailWithReceipts or (Rec."Email Address" <> '');
         if Rec."Default Mileage UOM" = '' then
             Rec."Default Mileage UOM" := CreateExpenseAgentSetup.GetDefaultMileageUOM();
@@ -949,7 +951,6 @@ page 6991 "Expense Agent Setup Wizard"
 
     var
         AgentSetupBuffer: Record "Agent Setup Buffer";
-        AgentSetup: Codeunit "Agent Setup";
         InitialState: Option;
         EnableMailboxChanged: Boolean;
         IsConfigUpdated: Boolean;
@@ -1148,44 +1149,6 @@ page 6991 "Expense Agent Setup Wizard"
         if not IsNullGuid(AgentSetupBuffer."User Security ID") then
             ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
         ExpenseAgentSetup.Modify(true);
-    end;
-
-    local procedure ResolveAgentUserSecurityID(): Guid
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        Agent: Record Agent;
-        AgentUserSecurityID: Guid;
-    begin
-        if ExpenseAgentSetup.Get() then
-            AgentUserSecurityID := ExpenseAgentSetup."User Security ID";
-
-        if not IsNullGuid(AgentUserSecurityID) then
-            if Agent.Get(AgentUserSecurityID) then
-                exit(AgentUserSecurityID);
-
-        // The per-company Setup pointer is missing or stale, but the Agent table is
-        // system-wide and this company may already have an agent (e.g. the pointer was
-        // lost, or a concurrent setup created one). Recover it so a save reuses that
-        // agent instead of provisioning a duplicate.
-        exit(FindCompanyAgentUserSecurityID());
-    end;
-
-    local procedure FindCompanyAgentUserSecurityID(): Guid
-    var
-        Agent: Record Agent;
-        TempUserSettings: Record "User Settings" temporary;
-        AgentCU: Codeunit Agent;
-    begin
-        // Only reuse the agent this company provisioned; the agent's originating company
-        // is stored in its user settings, never another company's Expense Agent.
-        Agent.SetRange("Agent Metadata Provider", "Agent Metadata Provider"::"Expense Agent");
-        if Agent.FindSet() then
-            repeat
-                Clear(TempUserSettings);
-                AgentCU.GetUserSettings(Agent."User Security ID", TempUserSettings);
-                if TempUserSettings.Company = CopyStr(CompanyName(), 1, MaxStrLen(TempUserSettings.Company)) then
-                    exit(Agent."User Security ID");
-            until Agent.Next() = 0;
     end;
 
     local procedure AgentUserName(): Code[50]
@@ -1451,6 +1414,7 @@ page 6991 "Expense Agent Setup Wizard"
     local procedure PersistAgentState()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        EASetupMgt: Codeunit "EA Setup Mgt.";
     begin
         Rec."Enable Agent" := AgentBeingEnabled();
 
@@ -1460,22 +1424,13 @@ page 6991 "Expense Agent Setup Wizard"
         ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if ExpenseAgentSetup.Get() then;
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
-            AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
+            AgentSetupBuffer."User Security ID" := EASetupMgt.ResolveAgentUserSecurityID();
 
-        AgentSetup.SaveChanges(AgentSetupBuffer);
+        EASetupMgt.SaveAgentSetup(AgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
-        UpdateAgentConfiguredByOnActivation();
-    end;
-
-    local procedure UpdateAgentConfiguredByOnActivation()
-    var
-        EAAgentAttribution: Codeunit "EA Agent Attribution";
-    begin
-        if not (AgentBeingEnabled() and StateChanged()) then
-            exit;
-
-        EAAgentAttribution.UpdateConfiguredBy(AgentSetupBuffer."User Security ID");
+        if AgentBeingEnabled() and StateChanged() then
+            EASetupMgt.UpdateActivatorAttribution(AgentSetupBuffer."User Security ID");
     end;
 
     local procedure ApplyScheduleChange()
