@@ -17,16 +17,22 @@ codeunit 20414 "Qlty. Attachment Integration"
     InherentPermissions = X;
 
     /// <summary>
-    /// Used for taking pictures and attaching documents to a Quality Inspection.
+    /// Applies quality-record key filters when retrieving document attachments for a record reference.
     /// </summary>
-    /// <param name="DocumentAttachment"></param>
-    /// <param name="RecRef"></param>
+    /// <param name="DocumentAttachment">The document attachment record to filter.</param>
+    /// <param name="RecRef">The quality record whose attachments are being retrieved.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterSetDocumentAttachmentFiltersForRecRef', '', true, true)]
     local procedure HandleOnAfterSetDocumentAttachmentFiltersForRecRef(var DocumentAttachment: Record "Document Attachment"; RecRef: RecordRef)
     begin
         FilterDocumentAttachment(DocumentAttachment, RecRef);
     end;
 
+    /// <summary>
+    /// Identifies the number-field primary key used by supported quality tables for attachments.
+    /// </summary>
+    /// <param name="TableNo">The table number to inspect.</param>
+    /// <param name="Result">Set to true when the table has a supported number-field primary key.</param>
+    /// <param name="FieldNo">The field number of the supported primary-key field.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasNumberFieldPrimaryKey', '', true, true)]
     local procedure HandleOnAfterTableHasNumberFieldPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     var
@@ -65,6 +71,12 @@ codeunit 20414 "Qlty. Attachment Integration"
         end;
     end;
 
+    /// <summary>
+    /// Identifies the line-number primary key used by supported quality line tables for attachments.
+    /// </summary>
+    /// <param name="TableNo">The table number to inspect.</param>
+    /// <param name="Result">Set to true when the table has a supported line-number primary key.</param>
+    /// <param name="FieldNo">The field number of the supported line-number field.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterTableHasLineNumberPrimaryKey', '', true, true)]
     local procedure HandleOnAfterTableHasLineNumberPrimaryKey(TableNo: Integer; var Result: Boolean; var FieldNo: Integer)
     var
@@ -86,10 +98,10 @@ codeunit 20414 "Qlty. Attachment Integration"
     end;
 
     /// <summary>
-    /// Used for taking pictures and attaching documents to a Quality Inspection.
+    /// Assigns attachment key fields from the referenced quality record before insertion.
     /// </summary>
-    /// <param name="DocumentAttachment"></param>
-    /// <param name="RecRef"></param>
+    /// <param name="DocumentAttachment">The attachment whose key fields are assigned.</param>
+    /// <param name="RecRef">The referenced quality record.</param>
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", 'OnBeforeInsertAttachment', '', true, true)]
     local procedure HandleOnBeforeInsertAttachment(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
     var
@@ -139,18 +151,33 @@ codeunit 20414 "Qlty. Attachment Integration"
         end;
     end;
 
+    /// <summary>
+    /// Applies quality-record key filters when the attachment details page opens for a record reference.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to filter.</param>
+    /// <param name="RecRef">The quality record whose attachments are being opened.</param>
     [EventSubscriber(ObjectType::Page, Page::"Document Attachment Details", 'OnAfterOpenForRecRef', '', true, true)]
     local procedure HandleOnAfterOpenForRecRef(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef);
     begin
         FilterDocumentAttachment(DocumentAttachment, RecRef);
     end;
 
+    /// <summary>
+    /// Resolves a supported quality record reference from a document attachment.
+    /// </summary>
+    /// <param name="RecRef">The record reference populated when the attachment identifies a quality record.</param>
+    /// <param name="DocumentAttachment">The attachment containing the quality record keys.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterGetRefTable', '', true, true)]
     local procedure HandleOnAfterGetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment")
     begin
         GetQltyInspectionRecordRefFromDocumentAttachment(DocumentAttachment, RecRef);
     end;
 
+    /// <summary>
+    /// Filters document attachments by the key fields of a supported quality record.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to filter.</param>
+    /// <param name="RecordRef">The quality record that supplies the filter values.</param>
     local procedure FilterDocumentAttachment(var DocumentAttachment: Record "Document Attachment"; RecordRef: RecordRef)
     var
         TempQltyTest: Record "Qlty. Test" temporary;
@@ -199,6 +226,12 @@ codeunit 20414 "Qlty. Attachment Integration"
         end;
     end;
 
+    /// <summary>
+    /// Resolves the supported quality record identified by a document attachment.
+    /// </summary>
+    /// <param name="DocumentAttachment">The attachment containing the quality record table and key values.</param>
+    /// <param name="FoundRecordRef">The resolved quality record reference.</param>
+    /// <returns>True if a matching supported quality record was found; otherwise, false.</returns>
     local procedure GetQltyInspectionRecordRefFromDocumentAttachment(DocumentAttachment: Record "Document Attachment"; var FoundRecordRef: RecordRef) DidGetRecord: Boolean
     var
         QltyTest: Record "Qlty. Test";

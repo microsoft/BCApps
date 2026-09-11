@@ -35,6 +35,7 @@ page 4350 "Custom Agent Setup"
             {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
+                Editable = not AgentIsArchived;
             }
             group(AgentDetails)
             {
@@ -187,6 +188,8 @@ page 4350 "Custom Agent Setup"
                         begin
                             CustomAgentInstructionsDialog.SetIsTemporary(true);
                             CustomAgentInstructionsDialog.SetUserSecurityId(Rec."User Security ID");
+                            if AgentIsArchived then
+                                CustomAgentInstructionsDialog.SetReadOnlyMode(true);
                             if (NewInstructionsTxt <> '') then
                                 CustomAgentInstructionsDialog.SetInstructions(NewInstructionsTxt)
                             else begin
@@ -239,6 +242,7 @@ page 4350 "Custom Agent Setup"
                         ShowCaption = false;
                         ToolTip = 'Updates the configuration and opens the test agent page.';
                         Editable = false;
+                        Enabled = not AgentIsArchived;
 
                         trigger OnDrillDown()
                         begin
@@ -263,7 +267,7 @@ page 4350 "Custom Agent Setup"
             {
                 Caption = 'Update';
                 ToolTip = 'Apply the changes to the agent setup.';
-                Enabled = IsUpdated;
+                Enabled = IsUpdated and not AgentIsArchived;
             }
 
             systemaction(Cancel)
@@ -300,6 +304,7 @@ page 4350 "Custom Agent Setup"
 
         IsUpdated := false;
         UpdateControls();
+        CurrPage.Editable(not AgentIsArchived);
     end;
 
     trigger OnAfterGetRecord()
@@ -323,6 +328,9 @@ page 4350 "Custom Agent Setup"
         CustomAgentSetup: Codeunit "Custom Agent Setup";
     begin
         if (CloseAction = CloseAction::Cancel) and (not OpenEditInstructionsPage) then
+            exit(true);
+
+        if AgentIsArchived then
             exit(true);
 
         if AgentName = '' then
@@ -471,11 +479,17 @@ page 4350 "Custom Agent Setup"
 
     local procedure UpdateControls()
     var
+        Agent: Codeunit Agent;
         CustomAgentSetup: Codeunit "Custom Agent Setup";
         AgentSetup: Codeunit "Agent Setup";
         UserSettings: Codeunit "User Settings";
     begin
         IsFirstTimeSetup := IsNullGuid(Rec."User Security ID");
+
+        if not IsFirstTimeSetup then
+            AgentIsArchived := Agent.IsArchived(Rec."User Security ID")
+        else
+            AgentIsArchived := false;
 
         if Rec.IsEmpty() then begin
             if not IsFirstTimeSetup then begin
@@ -578,6 +592,7 @@ page 4350 "Custom Agent Setup"
         WasAgentActiveOnOpen: Boolean;
         OpenEditInstructionsPage: Boolean;
         IsAccessControlUpdated: Boolean;
+        AgentIsArchived: Boolean;
         AutoLbl: Label 'Auto';
         AutoLookupModelIdTok: Label 'AUTO', Locked = true;
         CustomAgentIsNotEnabledInCopilotCapabilitiesErr: Label 'The custom agent capability is not enabled in Copilot capabilities.\\Please enable the capability before setting up the agent.';

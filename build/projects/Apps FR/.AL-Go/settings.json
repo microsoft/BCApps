@@ -1,13 +1,11 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/b97c03d40c6f3d32a1e12a54a316c9a0d68c6261/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps FR",
     "country":  "FR",
     "appFolders":  [
                        "../../../src/Apps/FR/ContosoCoffeeDemoDatasetFR/app",
                        "../../../src/Apps/FR/EDocument_FR/demo data",
                        "../../../src/Apps/FR/EDocument_FR/EReportingFR/app",
-                       "../../../src/Apps/FR/ExpenseAgent_FR/app",
-                       "../../../src/Apps/FR/ExpenseAgent_FR/demo data",
                        "../../../src/Apps/FR/FAReportsFR/app",
                        "../../../src/Apps/FR/FECAuditFile/app",
                        "../../../src/Apps/FR/HybridBCLast_FR/app",

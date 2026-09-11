@@ -227,7 +227,9 @@ codeunit 131337 "Library - XPath XML Reader"
     var
         Node: DotNet XmlNode;
     begin
+        #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
         asserterror GetNodeByElementName(ElementName, Node);
+        #pragma warning restore AA0161, AS0058, PTE0007
         Assert.ExpectedError('Element is missing!');
     end;
 

@@ -22,6 +22,9 @@ codeunit 20401 "Qlty. Assisted Setup"
         AssistedSetUpAssistantNameTxt: Label 'Quality Management';
         AssistedSetupDescriptionTxt: Label 'Manage inspection processes to support consistent product quality.';
 
+    /// <summary>
+    /// Registers the Quality Management assisted setup when its application area is enabled.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterAssistedSetup', '', true, true)]
     local procedure HandleOnRegisterAssistedSetup()
     var

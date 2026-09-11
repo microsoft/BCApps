@@ -42,6 +42,7 @@ codeunit 4589 "SOA Upgrade"
         SetMarkEmailAsRead();
         UpgradeOwnerUserSecurityID();
         UpgradeAgentIdentity();
+        ResetReplyAttempts();
 #if not CLEAN29
         UpgradeSOAKPIToPerAgent();
 #endif
@@ -144,10 +145,12 @@ codeunit 4589 "SOA Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetSetDailyEmailLimitTag()) then begin
-            if SOASetup.FindFirst() then begin
-                SOASetup."Message Limit" := SOASetup.GetDefaultMessageLimit();
-                SOASetup.Modify();
-            end;
+            // Every agent gets the limit, because the tag is set afterwards and this never runs again.
+            if SOASetup.FindSet() then
+                repeat
+                    SOASetup."Message Limit" := SOASetup.GetDefaultMessageLimit();
+                    SOASetup.Modify();
+                until SOASetup.Next() = 0;
 
             UpgradeTag.SetUpgradeTag(GetSetDailyEmailLimitTag());
         end;
@@ -159,10 +162,12 @@ codeunit 4589 "SOA Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetSetMarkEmailAsReadTag()) then begin
-            if SOASetup.FindFirst() then begin
-                SOASetup."Mark Email As Read" := true;
-                SOASetup.Modify();
-            end;
+            // Every agent is upgraded, because the tag is set afterwards and this never runs again.
+            if SOASetup.FindSet() then
+                repeat
+                    SOASetup."Mark Email As Read" := true;
+                    SOASetup.Modify();
+                until SOASetup.Next() = 0;
 
             UpgradeTag.SetUpgradeTag(GetSetMarkEmailAsReadTag());
         end;
@@ -299,6 +304,22 @@ codeunit 4589 "SOA Upgrade"
     end;
 #endif
 
+    // Attempt counts recorded before the Failed status existed represented terminal state on their own, and messages
+    // that had used up their budget were skipped indefinitely while still sitting in Reviewed. Clearing the counters
+    // lets those messages be attempted again and reach the real Failed status, instead of migrating a private flag.
+    local procedure ResetReplyAttempts()
+    var
+        SOAReplyAttempt: Record "SOA Reply Attempt";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetResetReplyAttemptsTag()) then
+            exit;
+
+        SOAReplyAttempt.DeleteAll();
+
+        UpgradeTag.SetUpgradeTag(GetResetReplyAttemptsTag());
+    end;
+
     internal procedure GetRegisterSalesOrderAgentCapabilityTag(): Code[250]
     begin
         exit('MS-539550-SalesOrderAgentCapability-20240802');
@@ -341,6 +362,11 @@ codeunit 4589 "SOA Upgrade"
         exit('MS-635860-OwnerUserSecurityID-20260617');
     end;
 
+    internal procedure GetResetReplyAttemptsTag(): Code[250]
+    begin
+        exit('MS-647024-ResetReplyAttempts-20260819');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
@@ -354,6 +380,7 @@ codeunit 4589 "SOA Upgrade"
         PerCompanyUpgradeTags.Add(GetSetMarkEmailAsReadTag());
         PerCompanyUpgradeTags.Add(GetOwnerUserSecurityIDTag());
         PerCompanyUpgradeTags.Add(GetAgentIdentityTag());
+        PerCompanyUpgradeTags.Add(GetResetReplyAttemptsTag());
 #if not CLEAN29
         PerCompanyUpgradeTags.Add(GetSOAKPIPerAgentTag());
 #endif

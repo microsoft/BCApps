@@ -54,41 +54,46 @@ codeunit 6325 "Power BI Report Synchronizer"
                 Session.LogMessage('0000DZ1', StrSubstNo(UploadingReportTelemetryMsg, Report.GetReportKey()), Verbosity::Normal,
                     DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
 
-                StepIterations := 0;
-                repeat
-                    StepIterations += 1;
-                    if StepIterations > 20 then begin
-                        UploadTracker.Fail('Upload exceeded maximum number of steps.', '');
-                        UploadTracker.Save();
-                        break;
-                    end;
+                if not TargetWorkspaceIsValid(Report.GetTargetWorkspaceId()) then begin
+                    UploadTracker.Fail(WorkspaceNotFoundErr, '');
+                    UploadTracker.Save();
+                end else begin
+                    StepIterations := 0;
+                    repeat
+                        StepIterations += 1;
+                        if StepIterations > 20 then begin
+                            UploadTracker.Fail('Upload exceeded maximum number of steps.', '');
+                            UploadTracker.Save();
+                            break;
+                        end;
 
-                    UploadStepRunner.Configure(Report, UploadTracker, PageId);
-                    Commit();
-                    ClearLastError();
+                        UploadStepRunner.Configure(Report, UploadTracker, PageId);
+                        Commit();
+                        ClearLastError();
 
-                    if not UploadStepRunner.Run() then begin
-                        LastErrorText := GetLastErrorText();
-                        Clear(CustomDimensions);
-                        CustomDimensions.Add('Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
-                        CustomDimensions.Add('ReportKey', Report.GetReportKey());
-                        CustomDimensions.Add('CurrentStatus', Format(UploadTracker.GetStatus()));
-                        Session.LogMessage('0000SEP', UploadStepFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+                        if not UploadStepRunner.Run() then begin
+                            LastErrorText := GetLastErrorText();
+                            Clear(CustomDimensions);
+                            CustomDimensions.Add('Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
+                            CustomDimensions.Add('ReportKey', Report.GetReportKey());
+                            CustomDimensions.Add('CurrentStatus', Format(UploadTracker.GetStatus()));
+                            Session.LogMessage('0000SEP', UploadStepFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
 
-                        UploadTracker.Load(Report.GetReportKey());
-                        UploadTracker.Fail(LastErrorText, GetLastErrorCallStack());
-                        UploadTracker.Save();
-                        break;
-                    end;
+                            UploadTracker.Load(Report.GetReportKey());
+                            UploadTracker.Fail(LastErrorText, GetLastErrorCallStack());
+                            UploadTracker.Save();
+                            break;
+                        end;
 
-                    CurrentStatus := UploadTracker.GetStatus();
-                until (CurrentStatus in [Enum::"Power BI Upload Status"::Completed, Enum::"Power BI Upload Status"::Failed]) or UploadTracker.HasScheduledRetry();
+                        CurrentStatus := UploadTracker.GetStatus();
+                    until (CurrentStatus in [Enum::"Power BI Upload Status"::Completed, Enum::"Power BI Upload Status"::Failed]) or UploadTracker.HasScheduledRetry();
 
-                if IsLastAttempt then
-                    if not (UploadTracker.GetStatus() in [Enum::"Power BI Upload Status"::Completed, Enum::"Power BI Upload Status"::Failed]) then begin
-                        UploadTracker.Fail('The report upload did not complete within the maximum number of attempts.', '');
-                        UploadTracker.Save();
-                    end;
+                    if IsLastAttempt then
+                        if not (UploadTracker.GetStatus() in [Enum::"Power BI Upload Status"::Completed, Enum::"Power BI Upload Status"::Failed]) then begin
+                            UploadTracker.Fail('The report upload did not complete within the maximum number of attempts.', '');
+                            UploadTracker.Save();
+                        end;
+                end;
 
             end;
 
@@ -159,10 +164,33 @@ codeunit 6325 "Power BI Report Synchronizer"
         exit(EnvironmentInformation.IsSaaSInfrastructure());
     end;
 
+    local procedure TargetWorkspaceIsValid(WorkspaceId: Guid): Boolean
+    begin
+        if IsNullGuid(WorkspaceId) then
+            exit(true);
+
+        if ValidWorkspaceIds.Contains(WorkspaceId) then
+            exit(true);
+        if InvalidWorkspaceIds.Contains(WorkspaceId) then
+            exit(false);
+
+        if PowerBIWorkspaceMgt.WorkspaceExists(WorkspaceId) then begin
+            ValidWorkspaceIds.Add(WorkspaceId);
+            exit(true);
+        end;
+
+        InvalidWorkspaceIds.Add(WorkspaceId);
+        exit(false);
+    end;
+
     var
         PowerBIServiceMgt: Codeunit "Power BI Service Mgt.";
         EnvironmentInformation: Codeunit "Environment Information";
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+        ValidWorkspaceIds: List of [Guid];
+        InvalidWorkspaceIds: List of [Guid];
         StillNeedToSynchronizeErr: Label 'The synchronization of your Power BI reports did not complete. We will retry automatically, and this typically fixes the issue.';
+        WorkspaceNotFoundErr: Label 'The Power BI workspace configured for this report no longer exists or you no longer have access to it. Update the Power BI workspace in Company Information and deploy again.';
         ReportUploadStartingMsg: Label 'Starting to upload %1 Power BI Reports.', Locked = true;
         UploadingReportTelemetryMsg: Label 'Uploading report with internal blob ID: %1.', Locked = true;
         UploadStepFailedTelemetryMsg: Label 'Upload step runner failed for a Power BI report.', Locked = true;

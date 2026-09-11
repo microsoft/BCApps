@@ -26,6 +26,9 @@ codeunit 6984 "Release Exp. Report Document"
         ApprovalProcessMustBeCancelledErr: Label 'The approval process must be cancelled or completed to reopen this document.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
         CannotReleaseDocumentWithNothingToRefundErr: Label 'Cannot release the Expense Report No. %1 because there is nothing to refund for this Line No. %2.', Comment = '%1 - Expense No. , %2 - Line No.';
+        PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and approve again.';
+        PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
+        ReimbursementErr: Label 'Reimbursement type must be set to a value in expense report %1, line %2 with description %3.', Comment = '%1 - Expense No. , %2 - Line No., %3 - description';
 
     local procedure ReleaseExpenseReport()
     var
@@ -73,7 +76,8 @@ codeunit 6984 "Release Exp. Report Document"
             ExpenseSubCategory.TestField(Inactive, false);
 
         ExpenseReportLine.TestField(Description);
-        ExpenseReportLine.TestField("Reimbursement Type");
+        if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::" " then
+            Error(ReimbursementErr, ExpenseReportLine."Expense No.", ExpenseReportLine."Line No.", ExpenseReportLine.Description);
 
         if ExpenseReportLine."Job No." <> '' then
             ExpenseReportLine.TestField("Job Task No.");
@@ -140,7 +144,7 @@ codeunit 6984 "Release Exp. Report Document"
 
     local procedure CheckReopenStatus(ExpReportHeader: Record "Expense Report Header")
     begin
-        if ExpReportHeader.Status = ExpReportHeader.Status::"Pending Approval" then
+        if ExpReportHeader.Status in [ExpReportHeader.Status::"Pending Approval", ExpReportHeader.Status::"Interim Approved"] then
             Error(ApprovalProcessMustBeCancelledErr);
     end;
 
@@ -154,6 +158,11 @@ codeunit 6984 "Release Exp. Report Document"
     end;
 
     procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    begin
+        PerformManualReleaseAndPendingApproval(ExpReportHeader, SubmitterExpenseUserNo, '');
+    end;
+
+    procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -162,7 +171,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.Get(ExpReportHeader."No.");
 
         CheckPendingApprovalStatus(ExpReportHeader);
-        ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo);
+        ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     local procedure CheckPendingApprovalStatus(var ExpReportHeader: Record "Expense Report Header")
@@ -175,23 +184,57 @@ codeunit 6984 "Release Exp. Report Document"
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
     end;
 
+    local procedure CheckPoliciesUpToDate(ExpReportHeader: Record "Expense Report Header")
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        PolicyEvaluationNotCurrentMsg: Text;
+    begin
+        // Re-check policy currency in the approval transaction unless the caller explicitly overrides it.
+        // Submission remains available so a report can enter approval while policy evaluation is pending.
+        ExpenseAgentSetup.GetRecordOnce();
+        if not ExpenseAgentSetup."Evaluate Policies" then
+            exit;
+
+        // Build the message before raising it: the human-readable label stays translatable while the
+        // machine-detectable marker stays locked, and Error receives a single value (no inline
+        // concatenation in the Error call).
+        PolicyEvaluationNotCurrentMsg := PolicyEvaluationNotCurrentErr + PolicyEvaluationNotCurrentCodeTok;
+
+        ExpenseReportLine.SetRange("Document No.", ExpReportHeader."No.");
+        ExpenseReportLine.SetLoadFields("Expense Category", "Policies Evaluated At", "Policy Eval Version", "Evaluated Policy Version");
+        if ExpenseReportLine.FindSet() then
+            repeat
+                if ExpenseReportLine.GetPolicyStatus() in
+                    ["Expense Policy Status"::Stale, "Expense Policy Status"::"Not Evaluated"]
+                then
+                    Error(PolicyEvaluationNotCurrentMsg);
+            until ExpenseReportLine.Next() = 0;
+    end;
+
     procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
+    begin
+        PerformManualApproved(ExpReportHeader, ApproverExpenseUserNo, false);
+    end;
+
+    procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
-        CheckApprovedStatus(ExpReportHeader);
+        CheckApprovedStatus(ExpReportHeader, SkipPolicyValidation);
 
         ExpenseReportApprovalMgmt.Approve(ExpReportHeader, ApproverExpenseUserNo);
     end;
 
-    local procedure CheckApprovedStatus(var ExpReportHeader: Record "Expense Report Header")
+    local procedure CheckApprovedStatus(var ExpReportHeader: Record "Expense Report Header"; SkipPolicyValidation: Boolean)
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        ExpReportHeader.TestField(Status, ExpReportHeader.Status::"Pending Approval");
+        ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
+        if not SkipPolicyValidation then
+            CheckPoliciesUpToDate(ExpReportHeader);
     end;
 
     procedure PerformManualRejected(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
@@ -217,7 +260,7 @@ codeunit 6984 "Release Exp. Report Document"
 
     local procedure CheckRejectedStatus(var ExpReportHeader: Record "Expense Report Header")
     begin
-        ExpReportHeader.TestField(Status, ExpReportHeader.Status::"Pending Approval");
+        ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
     end;
 

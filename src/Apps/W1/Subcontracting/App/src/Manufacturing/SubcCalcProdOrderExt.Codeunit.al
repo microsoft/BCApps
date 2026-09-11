@@ -32,6 +32,8 @@ codeunit 20517 "Subc. Calc. Prod. Order Ext."
         SubcontractingManagement.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
 
         SubcPriceManagement.ApplySubcontractorPricingToProdOrderRouting(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
+
+        ProdOrderRoutingLine.TransferRoutingComments(RoutingLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferBOMComponent, '', false, false)]

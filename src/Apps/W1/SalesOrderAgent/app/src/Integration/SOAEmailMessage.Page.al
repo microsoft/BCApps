@@ -96,8 +96,13 @@ page 4404 "SOA Email Message"
                             field(ContactName; GlobalContact.Name)
                             {
                                 Caption = 'Contact';
-                                ToolTip = 'Specifies the contact name.';
+                                ToolTip = 'Specifies the contact name. Use the assist-edit button to select another contact.';
                                 Editable = false;
+
+                                trigger OnAssistEdit()
+                                begin
+                                    ManageContactMapping();
+                                end;
 
                                 trigger OnDrillDown()
                                 begin
@@ -182,20 +187,21 @@ page 4404 "SOA Email Message"
                                 {
                                     Caption = 'Status';
                                     Editable = false;
+                                    StyleExpr = StatusStyleTxt;
                                 }
                             }
 
-                            group(SendingStatusGroup)
+                            group(StatusReasonGroup)
                             {
                                 ShowCaption = false;
-                                Visible = RetrySendingVisible;
+                                Visible = StatusReasonVisible;
 
-                                field(SendingStatus; SendingStatusTxt)
+                                field(StatusReason; Rec."Status Reason")
                                 {
-                                    ApplicationArea = All;
-                                    Caption = 'Sending status';
-                                    ToolTip = 'Specifies that the reply could not be sent after all retry attempts.';
+                                    Caption = 'Status reason';
+                                    ToolTip = 'Specifies why the message has its current status.';
                                     Editable = false;
+                                    MultiLine = true;
                                     Style = Unfavorable;
                                 }
                             }
@@ -269,7 +275,7 @@ page 4404 "SOA Email Message"
                 ApplicationArea = All;
                 Caption = 'Retry sending';
                 Image = Refresh;
-                ToolTip = 'Reset the failed sending attempts so the reply is retried during the next agent run.';
+                ToolTip = 'Set the failed reply back to reviewed so it is sent again during the next agent run.';
                 Visible = RetrySendingVisible;
 
                 trigger OnAction()
@@ -279,9 +285,11 @@ page 4404 "SOA Email Message"
                     if not Confirm(RetrySendingQst) then
                         exit;
 
-                    SOAReplyRetryMgt.ResetAttempts(Rec."Task ID", Rec.ID);
+                    SOAReplyRetryMgt.RetrySending(Rec."Task ID", Rec.ID);
+                    Rec.Get(Rec."Task ID", Rec.ID);
                     Message(RetrySendingScheduledMsg);
                     UpdateControls();
+                    CurrPage.Update(false);
                 end;
             }
         }
@@ -310,17 +318,17 @@ page 4404 "SOA Email Message"
 
     local procedure UpdateControls()
     var
-        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
         EmailAddress: Text;
     begin
         UpdatePageCaption();
         UpdateEmailFields(EmailAddress);
         UpdateContactInformation(EmailAddress);
-        RetrySendingVisible := (Rec.Type = Rec.Type::Output) and (Rec.Status = Rec.Status::Reviewed) and SOAReplyRetryMgt.IsExhausted(Rec."Task ID", Rec.ID);
-        if RetrySendingVisible then
-            SendingStatusTxt := SendingFailedTxt
+        RetrySendingVisible := (Rec.Type = Rec.Type::Output) and (Rec.Status = Rec.Status::Failed);
+        StatusReasonVisible := (Rec.Status = Rec.Status::Failed) and (Rec."Status Reason" <> '');
+        if Rec.Status = Rec.Status::Failed then
+            StatusStyleTxt := UnfavorableStyleTxt
         else
-            Clear(SendingStatusTxt);
+            Clear(StatusStyleTxt);
         CurrPage.Attachments.Page.LoadRecords(Rec);
     end;
 
@@ -376,6 +384,7 @@ page 4404 "SOA Email Message"
         ContactCount: Integer;
     begin
         ContactVisible := false;
+        ContactOverrideActive := false;
         CustomerVisible := false;
         Clear(GlobalContact);
         Clear(GlobalCustomer);
@@ -386,17 +395,17 @@ page 4404 "SOA Email Message"
             BlockedStatusVisible := GlobalCustomer.Blocked <> GlobalCustomer.Blocked::" ";
         end;
 
-        if CustomerVisible then
+        if CustomerVisible and (not ContactOverrideActive) then
             if GlobalContact.Name = GlobalCustomer.Name then
                 ContactVisible := false;
 
         if (not ContactVisible) and (not CustomerVisible) then
-            SOAFiltersImpl.ShowMissingContactNotification(EmailAddress, SOAEmail."Sender Name", Rec."Task ID", Rec.ID)
+            SOAFiltersImpl.ShowMissingContactNotification(EmailAddress, SOAEmail."Sender Name", Rec."Task ID", GetInputTaskMessageID())
         else
             SOAFiltersImpl.RecallMissingContactNotification();
 
         if ContactCount >= 2 then
-            SOAFiltersImpl.ShowDuplicateContactNotification(EmailAddress, ContactCount)
+            SOAFiltersImpl.ShowDuplicateContactNotification(EmailAddress, ContactCount, Rec."Task ID", GetInputTaskMessageID())
         else
             SOAFiltersImpl.RecallDuplicateContactNotification();
     end;
@@ -405,16 +414,11 @@ page 4404 "SOA Email Message"
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
-        TaskMessageID: Guid;
     begin
-        if Rec.Type = Rec.Type::Output then
-            TaskMessageID := Rec."Input Message ID"
-        else
-            TaskMessageID := Rec.ID;
-
-        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
+        if SOATaskContactOverride.Get(Rec."Task ID", GetInputTaskMessageID()) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then
                 if Contact.Get(SOATaskContactOverride."Contact No.") then begin
+                    ContactOverrideActive := true;
                     ContactCount := 1;
                     exit(true);
                 end;
@@ -432,15 +436,40 @@ page 4404 "SOA Email Message"
     local procedure InvokeContactLinkFlow()
     var
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
-        TaskMessageID: Guid;
     begin
         Commit();
-        if Rec.Type = Rec.Type::Output then
-            TaskMessageID := Rec."Input Message ID"
-        else
-            TaskMessageID := Rec.ID;
-        SOAFiltersImpl.InvokeContactLinkFlow(GetContactEmail(), SOAEmail."Sender Name", Rec."Task ID", TaskMessageID);
+        SOAFiltersImpl.InvokeContactLinkFlow(GetContactEmail(), SOAEmail."Sender Name", Rec."Task ID", GetInputTaskMessageID());
         CurrPage.Update(false);
+    end;
+
+    local procedure ManageContactMapping()
+    var
+        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
+        Choice: Integer;
+        MappingChanged: Boolean;
+    begin
+        Commit();
+        if ContactOverrideActive then begin
+            Choice := StrMenu(ContactMappingActionsQst, 0, ContactMappingActionsInstructionQst);
+            case Choice of
+                1:
+                    MappingChanged := SOAFiltersImpl.SelectContactAndSetOverride(Rec."Task ID", GetInputTaskMessageID());
+                2:
+                    MappingChanged := SOAFiltersImpl.ClearContactOverride(Rec."Task ID", GetInputTaskMessageID());
+            end;
+        end else
+            MappingChanged := SOAFiltersImpl.SelectContactAndSetOverride(Rec."Task ID", GetInputTaskMessageID());
+
+        if MappingChanged then
+            CurrPage.Update(false);
+    end;
+
+    local procedure GetInputTaskMessageID(): Guid
+    begin
+        if Rec.Type = Rec.Type::Output then
+            exit(Rec."Input Message ID");
+
+        exit(Rec.ID);
     end;
 
     local procedure GetContactEmail(): Text
@@ -463,6 +492,7 @@ page 4404 "SOA Email Message"
         GlobalContact: Record Contact;
         GlobalCustomer: Record Customer;
         SOAEmail: Record "SOA Email";
+        ContactOverrideActive: Boolean;
         ContactVisible: Boolean;
         CustomerVisible: Boolean;
         FromGroupVisible: Boolean;
@@ -478,12 +508,15 @@ page 4404 "SOA Email Message"
         AttachmentsVisible: Boolean;
         BlockedStatusVisible: Boolean;
         RetrySendingVisible: Boolean;
-        SendingStatusTxt: Text;
+        StatusReasonVisible: Boolean;
+        StatusStyleTxt: Text;
         OutgoingMessageTxt: Label 'Outgoing email';
         IncomingMessageTxt: Label 'Incoming email';
+        ContactMappingActionsQst: Label 'Select another contact,Use automatically matched contact', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
+        ContactMappingActionsInstructionQst: Label 'Choose how to update the contact for this message:';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ShowAttachmentLbl: Label 'Show attachments (%1)', Comment = '%1 = Attachment count';
-        SendingFailedTxt: Label 'Failed to send';
+        UnfavorableStyleTxt: Label 'Unfavorable', Locked = true;
         RetrySendingQst: Label 'Do you want to retry sending this reply?';
         RetrySendingScheduledMsg: Label 'The reply will be retried during the next agent run.';
 }

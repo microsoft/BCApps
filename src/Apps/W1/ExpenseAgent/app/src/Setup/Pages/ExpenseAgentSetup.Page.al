@@ -189,6 +189,25 @@ page 6996 "Expense Agent Setup"
                 field("Use Rules"; Rec."Use Rules")
                 {
                 }
+                field("Evaluate Policies"; Rec."Evaluate Policies")
+                {
+                    ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
+
+                    trigger OnValidate()
+                    var
+                        ExpensePoliciesPage: Page "Expense Policies";
+                    begin
+                        if Rec."Evaluate Policies" and (not xRec."Evaluate Policies") then begin
+                            if not Confirm(ActivatePolicyEvalQst, false) then
+                                Error('');
+                            ExpensePoliciesPage.Editable(true);
+                            ExpensePoliciesPage.Run();
+                        end;
+                    end;
+                }
+                field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                {
+                }
                 field("Do Not Allow Expenses Older Than"; Rec."Do Not Allow Exp. Older Than")
                 {
                 }
@@ -357,6 +376,22 @@ page 6996 "Expense Agent Setup"
                     RunObject = Page "Expense Users";
                     ToolTip = 'Opens the page to set up expense users.';
                 }
+                action("Expense Locations")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Locations';
+                    Image = CountryRegion;
+                    RunObject = Page "Expense Locations";
+                    ToolTip = 'Opens the page to set up expense locations.';
+                }
+                action("Expense Management Rules")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Management Rules';
+                    Image = Administration;
+                    RunObject = Page "Expense Management Rules";
+                    ToolTip = 'Opens the page to set up expense management rules.';
+                }
                 action("Expense Posting Groups")
                 {
                     ApplicationArea = Basic, Suite;
@@ -372,6 +407,14 @@ page 6996 "Expense Agent Setup"
                     Image = VATPostingSetup;
                     RunObject = Page "VAT Posting Setup";
                     ToolTip = 'Opens the page to define reduced VAT rates for expense management.';
+                }
+                action("Mileage Rate Setup")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Mileage Rate Setup';
+                    Image = CalculateConsumption;
+                    RunObject = Page "Mileage Rate Setup";
+                    ToolTip = 'Opens the page to set up time-valid mileage rates that apply based on the transaction date.';
                 }
                 action("Apply Default Settings")
                 {
@@ -405,6 +448,12 @@ page 6996 "Expense Agent Setup"
             actionref("Expense Categories_Promoted"; "Expense Categories")
             {
             }
+            actionref("Expense_Locations_Promoted"; "Expense Locations")
+            {
+            }
+            actionref("Expense_Management_Rules_Promoted"; "Expense Management Rules")
+            {
+            }
             actionref("Expense Posting Groups_Promoted"; "Expense Posting Groups")
             {
             }
@@ -435,6 +484,7 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
+        ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 
     local procedure ValidateSelectedMailboxExists()
     var

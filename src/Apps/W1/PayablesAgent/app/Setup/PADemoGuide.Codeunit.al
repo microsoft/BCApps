@@ -35,10 +35,11 @@ codeunit 3309 "PA Demo Guide"
     /// <summary>
     /// Opens the demo guide page.
     /// </summary>
-    procedure OpenGuidePage()
+    procedure OpenGuidePage(PASetupConfiguration: Codeunit "PA Setup Configuration")
     var
         PADemoGuidePage: Page "PA Demo Guide";
     begin
+        PADemoGuidePage.SetSetupConfiguration(PASetupConfiguration);
         PADemoGuidePage.Run();
     end;
 
@@ -53,22 +54,24 @@ codeunit 3309 "PA Demo Guide"
 #endif
 
     /// <summary>
-    /// Sends a demo email using the active PA setup configuration.
+    /// Sends the sample invoices by email if the agent is active, otherwise flags them to be sent at activation.
     /// </summary>
-    procedure SendDemoEmail()
+    /// <param name="PASetupConfiguration">The setup configuration to send with.</param>
+    /// <returns>True if the sample invoices were sent.</returns>
+    procedure SendDemoInvoicesByEmail(PASetupConfiguration: Codeunit "PA Setup Configuration"): Boolean
     var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
+        EDocSamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
     begin
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        SendDemoEmail(PASetupConfiguration);
+        EDocSamplePurchInvFile.ModifyAll("Send By Email", true);
+        exit(SendDemoEmail(PASetupConfiguration));
     end;
 
     /// <summary>
     /// Sends a demo email using the provided PA setup configuration.
     /// </summary>
     /// <param name="PASetupConfiguration">An email account to send a demo email</param>
-    procedure SendDemoEmail(PASetupConfiguration: Codeunit "PA Setup Configuration");
+    /// <returns>True if the demo email was sent.</returns>
+    procedure SendDemoEmail(PASetupConfiguration: Codeunit "PA Setup Configuration"): Boolean
     var
         EDocSamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
         TempEmailAccount: Record "Email Account";
@@ -82,12 +85,14 @@ codeunit 3309 "PA Demo Guide"
         BodyTextTxt: Label 'This is a sample email from Payables Agent.', MaxLength = 255, Comment = 'Payables Agent is a term, and should not be translated.';
     begin
         if not DemoExperienceAvailable() then
-            exit;
-        if not CanSendDemoEmail(PASetupConfiguration) then
-            exit;
+            exit(false);
+        if not IsEmailConfiguredForDemoEmail(PASetupConfiguration) then
+            exit(false);
+        if PASetupConfiguration.GetAgentSetupBuffer().State = PASetupConfiguration.GetAgentSetupBuffer().State::Disabled then
+            exit(false);
         EDocSamplePurchInvFile.SetRange("Send By Email", true);
         if EDocSamplePurchInvFile.IsEmpty() then
-            exit;
+            exit(false);
         TempEmailAccount := PASetupConfiguration.GetEmailAccount();
 
         EmailMessage.Create(TempEmailAccount."Email Address", SubjectTxt, BodyTextTxt, true);
@@ -105,18 +110,16 @@ codeunit 3309 "PA Demo Guide"
         end;
         EDocSamplePurchInvFile.SetRange("Send By Email");
         EDocSamplePurchInvFile.ModifyAll("Send By Email", false);
+        exit(true);
     end;
 
     /// <summary>
     /// Returns True if an email account is configured so that demo invoices can be sent by email.
     /// </summary>
+    /// <param name="PASetupConfiguration">The setup configuration to evaluate. It does not have to be persisted yet.</param>
     /// <returns>True if an email account is configured and email monitoring is enabled.</returns>
-    procedure IsEmailConfiguredForDemoEmail(): Boolean
-    var
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        PASetupConfiguration: Codeunit "PA Setup Configuration";
+    procedure IsEmailConfiguredForDemoEmail(PASetupConfiguration: Codeunit "PA Setup Configuration"): Boolean
     begin
-        PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
         if not PASetupConfiguration.GetPayablesAgentSetup()."Monitor Outlook" then
             exit(false);
         if IsNullGuid(PASetupConfiguration.GetEmailAccount()."Account Id") then
@@ -155,15 +158,4 @@ codeunit 3309 "PA Demo Guide"
     end;
 #pragma warning restore AL0432
 #endif
-
-    local procedure CanSendDemoEmail(PASetupConfiguration: Codeunit "PA Setup Configuration"): Boolean
-    begin
-        if PASetupConfiguration.GetAgentSetupBuffer().State = PASetupConfiguration.GetAgentSetupBuffer().State::Disabled then
-            exit(false);
-        if not PASetupConfiguration.GetPayablesAgentSetup()."Monitor Outlook" then
-            exit(false);
-        if IsNullGuid(PASetupConfiguration.GetEmailAccount()."Account Id") then
-            exit(false);
-        exit(true);
-    end;
 }

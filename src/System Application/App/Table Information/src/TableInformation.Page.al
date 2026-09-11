@@ -58,11 +58,8 @@ page 8700 "Table Information"
                     ToolTip = 'Specifies the ID of the table.';
 
                     trigger OnDrillDown()
-                    var
-                        TableMetadata: Record "Table Metadata";
                     begin
-                        TableMetadata.SetRange(ID, Rec."Table No.");
-                        Page.Run(Page::"Table Information Card", TableMetadata);
+                        OpenTableDataManagement();
                     end;
                 }
 
@@ -116,6 +113,31 @@ page 8700 "Table Information"
 
     actions
     {
+        area(Processing)
+        {
+            action("Manage Indexes")
+            {
+                ApplicationArea = All;
+                Caption = 'Manage Indexes';
+                Image = "Table";
+                Scope = Repeater;
+                ToolTip = 'Manage indexes on the selected table. You can investigate index cost and usage, and turn indexes on/off.';
+
+                trigger OnAction()
+                begin
+                    OpenTableDataManagement();
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(ManageIndexesPromoted; "Manage Indexes")
+                {
+                }
+            }
+        }
         area(Navigation)
         {
             action("View Table Permissions")
@@ -146,5 +168,13 @@ page 8700 "Table Information"
         else
             Rec.SetFilter("Company Name", '%1|%2', '', CompanyName);
         Rec.FilterGroup(0);
+    end;
+
+    local procedure OpenTableDataManagement()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        TableMetadata.SetRange(ID, Rec."Table No.");
+        Page.Run(Page::"Table Information Card", TableMetadata);
     end;
 }

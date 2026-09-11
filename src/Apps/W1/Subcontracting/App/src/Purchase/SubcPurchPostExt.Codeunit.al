@@ -122,6 +122,7 @@ codeunit 20535 "Subc. Purch. Post Ext"
         SetQuantityBaseOnSubcontractingServiceLine(PurchLine, PurchRcptLine);
     end;
 
+    ///Preserves receipt context for subcontracting item charges, except tracked last-operation receipts that use base item-ledger handling.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePostItemChargePerRcpt, '', false, false)]
     local procedure StorePurchRcptLineForItemCharge(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     var
@@ -139,9 +140,19 @@ codeunit 20535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
-        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+        if PurchRcptLineIsLastOperation(PurchRcptLine) and ItemIsTracked(PurchRcptLine."No.") then
             exit;
         SubcSessionState.SetRecordID('PurchRcptLineForItemCharge', PurchRcptLine.RecordId);
+    end;
+
+    local procedure ItemIsTracked(ItemNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Item Tracking Code");
+        if not Item.Get(ItemNo) then
+            exit(false);
+        exit(Item."Item Tracking Code" <> '');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]
