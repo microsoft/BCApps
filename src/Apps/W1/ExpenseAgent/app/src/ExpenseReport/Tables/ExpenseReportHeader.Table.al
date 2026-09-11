@@ -1359,6 +1359,7 @@ table 6906 "Expense Report Header"
             exit(false);
 
         Rec.Reset();
+        Rec.SetLoadFields();
         Rec.Init();
         Rec.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(Rec.Description)));
         Rec.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
