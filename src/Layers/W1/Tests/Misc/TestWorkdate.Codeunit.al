@@ -47,31 +47,31 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
-    procedure EvaluationCompanyCanUseSpecificWorkDate()
+    procedure EvaluationCompanyCanUseCustomWorkDate()
     var
         CompanyInformation: Record "Company Information";
         LogInManagement: Codeunit LogInManagement;
-        SpecificWorkDate: Date;
+        CustomWorkDate: Date;
     begin
-        // [SCENARIO] An evaluation company can use a specific work date.
-        SpecificWorkDate := CalcDate('<-1M>', Today);
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", SpecificWorkDate);
+        // [SCENARIO] An evaluation company can use a custom work date.
+        CustomWorkDate := CalcDate('<-1M>', Today);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", CustomWorkDate);
         CreateLatestGLEntry();
 
-        Assert.AreEqual(SpecificWorkDate, LogInManagement.GetDefaultWorkDate(), 'The specific date should be used as the work date.');
+        Assert.AreEqual(CustomWorkDate, LogInManagement.GetDefaultWorkDate(), 'The custom date should be used as the work date.');
     end;
 
     [Test]
     [Scope('OnPrem')]
-    procedure EvaluationCompanyWithBlankSpecificWorkDateUsesToday()
+    procedure EvaluationCompanyWithBlankCustomWorkDateUsesToday()
     var
         CompanyInformation: Record "Company Information";
         LogInManagement: Codeunit LogInManagement;
     begin
-        // [SCENARIO] An evaluation company with an invalid blank specific work date safely uses today.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", 0D);
+        // [SCENARIO] An evaluation company with an invalid blank custom work date safely uses today.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", 0D);
 
-        Assert.AreEqual(Today, LogInManagement.GetDefaultWorkDate(), 'Today should be used when the specific work date is blank.');
+        Assert.AreEqual(Today, LogInManagement.GetDefaultWorkDate(), 'Today should be used when the custom work date is blank.');
     end;
 
     [Test]
@@ -138,38 +138,38 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SpecificWorkDateVisibilityChangesWithSelection()
+    procedure CustomWorkDateVisibilityChangesWithSelection()
     var
         CompanyInformation: Record "Company Information";
         CompanyInformationPage: TestPage "Company Information";
     begin
-        // [SCENARIO] The specific date is shown only when Specific Date is selected.
+        // [SCENARIO] The custom date is shown only when Custom Date is selected.
         SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
 
         CompanyInformationPage.OpenEdit();
-        Assert.IsFalse(CompanyInformationPage."Specific Work Date".Visible(), 'The specific date should initially be hidden.');
+        Assert.IsFalse(CompanyInformationPage."Custom Work Date".Visible(), 'The custom date should initially be hidden.');
 
-        CompanyInformationPage."Evaluation Work Date".SetValue(CompanyInformation."Evaluation Work Date"::"Specific Date");
+        CompanyInformationPage."Evaluation Work Date".SetValue(CompanyInformation."Evaluation Work Date"::"Custom Date");
 
-        Assert.IsTrue(CompanyInformationPage."Specific Work Date".Visible(), 'The specific date should be visible for the Specific Date option.');
-        Assert.AreEqual(Today, CompanyInformationPage."Specific Work Date".AsDate(), 'The specific date should default to today.');
+        Assert.IsTrue(CompanyInformationPage."Custom Work Date".Visible(), 'The custom date should be visible for the Custom Date option.');
+        Assert.AreEqual(Today, CompanyInformationPage."Custom Work Date".AsDate(), 'The custom date should default to today.');
         CompanyInformationPage.Close();
     end;
 
     [Test]
     [Scope('OnPrem')]
-    procedure SpecificWorkDateIsRequired()
+    procedure CustomWorkDateIsRequired()
     var
         CompanyInformation: Record "Company Information";
     begin
-        // [SCENARIO] A specific work date cannot be cleared.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", Today);
+        // [SCENARIO] A custom work date cannot be cleared.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", Today);
 
-        asserterror CompanyInformation.Validate("Specific Work Date", 0D);
-        Assert.ExpectedTestFieldError(CompanyInformation.FieldCaption("Specific Work Date"), '');
+        asserterror CompanyInformation.Validate("Custom Work Date", 0D);
+        Assert.ExpectedTestFieldError(CompanyInformation.FieldCaption("Custom Work Date"), '');
     end;
 
-    local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; IsDemoCompany: Boolean; EvaluationWorkDate: Option "Latest G/L Entry Posting Date",Today,"Specific Date"; SpecificWorkDate: Date)
+    local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; IsDemoCompany: Boolean; EvaluationWorkDate: Option "Latest G/L Entry Posting Date",Today,"Custom Date"; CustomWorkDate: Date)
     var
         Company: Record Company;
     begin
@@ -180,7 +180,7 @@ codeunit 139028 "Test Workdate"
         CompanyInformation.Get();
         CompanyInformation."Demo Company" := IsDemoCompany;
         CompanyInformation."Evaluation Work Date" := EvaluationWorkDate;
-        CompanyInformation."Specific Work Date" := SpecificWorkDate;
+        CompanyInformation."Custom Work Date" := CustomWorkDate;
         CompanyInformation.Modify();
     end;
 

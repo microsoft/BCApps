@@ -413,16 +413,16 @@ page 1 "Company Information"
 
                         trigger OnValidate()
                         begin
-                            SpecificWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Specific Date";
+                            CustomWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date";
                             CurrPage.Update(false);
                         end;
                     }
                 }
-                group(SpecificWorkDate)
+                group(CustomWorkDate)
                 {
                     ShowCaption = false;
-                    Visible = SpecificWorkDateVisible;
-                    field("Specific Work Date"; Rec."Specific Work Date")
+                    Visible = CustomWorkDateVisible;
+                    field("Custom Work Date"; Rec."Custom Work Date")
                     {
                         ApplicationArea = Basic, Suite;
                     }
@@ -728,7 +728,7 @@ page 1 "Company Information"
     begin
         UpdateSystemIndicator();
         WorkDateSelectionVisible := Rec.IsEvaluationCompany() or CompanyInformationMgt.IsDemoCompany();
-        SpecificWorkDateVisible := WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Specific Date");
+        CustomWorkDateVisible := WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date");
     end;
 
     trigger OnClosePage()
@@ -784,7 +784,7 @@ page 1 "Company Information"
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
         WorkDateSelectionVisible: Boolean;
-        SpecificWorkDateVisible: Boolean;
+        CustomWorkDateVisible: Boolean;
         BankBranchNoOrAccountNoMissing: Boolean;
         BankAcctPostingGroup: Code[20];
         CountyVisible: Boolean;

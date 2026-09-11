@@ -199,7 +199,7 @@ codeunit 40 LogInManagement
         GLEntry: Record "G/L Entry";
         ChangeWorkDate: Boolean;
     begin
-        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Specific Work Date");
+        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
         if CompanyInformation.Get() then;
         ChangeWorkDate := CompanyInformation."Demo Company";
         ChangeWorkDate := ChangeWorkDate or CompanyInformation.IsEvaluationCompany();
@@ -207,11 +207,11 @@ codeunit 40 LogInManagement
             case CompanyInformation."Evaluation Work Date" of
                 CompanyInformation."Evaluation Work Date"::Today:
                     exit(Today);
-                CompanyInformation."Evaluation Work Date"::"Specific Date":
+                CompanyInformation."Evaluation Work Date"::"Custom Date":
                     begin
-                        if CompanyInformation."Specific Work Date" = 0D then
+                        if CompanyInformation."Custom Work Date" = 0D then
                             exit(Today);
-                        exit(CompanyInformation."Specific Work Date");
+                        exit(CompanyInformation."Custom Work Date");
                     end;
             end;
 
