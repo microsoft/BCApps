@@ -28,18 +28,18 @@ page 150013 "Fabric API Export Summary"
             {
                 field(id; Rec.SystemId)
                 {
-                    Caption = 'id';
+                    Caption = 'Id';
                     Editable = false;
                 }
-                field(runId; Rec."Run ID") { Caption = 'runId'; }
-                field(runType; Rec."Type") { Caption = 'runType'; }
-                field(state; Rec.State) { Caption = 'state'; }
-                field(startTime; Rec."Start Time") { Caption = 'startTime'; }
-                field(endTime; Rec."End Time") { Caption = 'endTime'; }
-                field(errorMessage; Rec."Error Message") { Caption = 'errorMessage'; }
+                field(runId; Rec."Run ID") { Caption = 'Run Id'; }
+                field(runType; Rec."Type") { Caption = 'Run Type'; }
+                field(state; Rec.State) { Caption = 'State'; }
+                field(startTime; Rec."Start Time") { Caption = 'Start Time'; }
+                field(endTime; Rec."End Time") { Caption = 'End Time'; }
+                field(errorMessage; Rec."Error Message") { Caption = 'Error Message'; }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
-                    Caption = 'lastModifiedDateTime';
+                    Caption = 'Last Modified Date';
                     Editable = false;
                 }
             }

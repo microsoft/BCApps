@@ -252,13 +252,15 @@ codeunit 150002 "Fabric Config Package Mgt"
         PackageCode: Code[20];
         Description: Text[100];
         Version: Code[10];
+        JsonTextBuilder: TextBuilder;
         JsonText: Text;
         Line: Text;
     begin
         while not InStream.EOS() do begin
             InStream.ReadText(Line);
-            JsonText += Line;
+            JsonTextBuilder.Append(Line);
         end;
+        JsonText := JsonTextBuilder.ToText();
         if not JsonObj.ReadFrom(JsonText) then
             Error(InvalidPackageFileErr);
         if JsonObj.Get('code', FieldToken) then

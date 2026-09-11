@@ -23,14 +23,14 @@ page 150011 "Fabric API Companies"
             {
                 field(id; Rec.SystemId)
                 {
-                    Caption = 'id';
+                    Caption = 'Id';
                     Editable = false;
                 }
-                field(companyName; Rec."Company Name") { Caption = 'companyName'; }
-                field(enabled; Rec.Enabled) { Caption = 'enabled'; }
+                field(companyName; Rec."Company Name") { Caption = 'Company Name'; }
+                field(enabled; Rec.Enabled) { Caption = 'Enabled'; }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
-                    Caption = 'lastModifiedDateTime';
+                    Caption = 'Last Modified Date';
                     Editable = false;
                 }
             }

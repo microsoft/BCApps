@@ -25,18 +25,18 @@ page 150012 "Fabric API Config Packages"
             {
                 field(id; Rec.SystemId)
                 {
-                    Caption = 'id';
+                    Caption = 'Id';
                     Editable = false;
                 }
-                field(code; Rec."Code") { Caption = 'code'; }
-                field(description; Rec.Description) { Caption = 'description'; }
-                field(version; Rec.Version) { Caption = 'version'; }
-                field(active; Rec.Active) { Caption = 'active'; }
-                field(activatedOn; Rec."Activated On") { Caption = 'activatedOn'; }
-                field(activatedBy; Rec."Activated By") { Caption = 'activatedBy'; }
+                field(code; Rec."Code") { Caption = 'Code'; }
+                field(description; Rec.Description) { Caption = 'Description'; }
+                field(version; Rec.Version) { Caption = 'Version'; }
+                field(active; Rec.Active) { Caption = 'Active'; }
+                field(activatedOn; Rec."Activated On") { Caption = 'Activated On'; }
+                field(activatedBy; Rec."Activated By") { Caption = 'Activated By'; }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
-                    Caption = 'lastModifiedDateTime';
+                    Caption = 'Last Modified Date';
                     Editable = false;
                 }
             }

@@ -25,6 +25,7 @@ page 150006 "Fabric Config Package Card"
                 {
                     ApplicationArea = All;
                     Editable = IsNew;
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the unique code for the configuration package.';
                 }
                 field(Description; Rec.Description)

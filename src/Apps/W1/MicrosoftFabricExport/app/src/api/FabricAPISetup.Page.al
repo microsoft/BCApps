@@ -23,34 +23,34 @@ page 150015 "Fabric API Setup"
             {
                 field(id; Rec.SystemId)
                 {
-                    Caption = 'id';
+                    Caption = 'Id';
                     Editable = false;
                 }
-                field(fabricWorkspaceId; Rec."Fabric Workspace ID") { Caption = 'fabricWorkspaceId'; }
-                field(fabricWorkspaceName; Rec."Fabric Workspace Name") { Caption = 'fabricWorkspaceName'; }
-                field(fabricLakehouseId; Rec."Fabric Lakehouse ID") { Caption = 'fabricLakehouseId'; }
-                field(fabricDataNamespace; Rec."Fabric Data Namespace") { Caption = 'fabricDataNamespace'; }
-                field(fabricLoggingNamespace; Rec."Fabric Logging Namespace") { Caption = 'fabricLoggingNamespace'; }
-                field(minutesBetweenExports; Rec."Minutes Between Exports") { Caption = 'minutesBetweenExports'; }
+                field(fabricWorkspaceId; Rec."Fabric Workspace ID") { Caption = 'Fabric Workspace Id'; }
+                field(fabricWorkspaceName; Rec."Fabric Workspace Name") { Caption = 'Fabric Workspace Name'; }
+                field(fabricLakehouseId; Rec."Fabric Lakehouse ID") { Caption = 'Fabric Lakehouse Id'; }
+                field(fabricDataNamespace; Rec."Fabric Data Namespace") { Caption = 'Fabric Data Namespace'; }
+                field(fabricLoggingNamespace; Rec."Fabric Logging Namespace") { Caption = 'Fabric Logging Namespace'; }
+                field(minutesBetweenExports; Rec."Minutes Between Exports") { Caption = 'Minutes Between Exports'; }
                 field(maxConsecutiveFailedRuns; Rec."Max Consecutive Failed Runs")
                 {
-                    Caption = 'maxConsecutiveFailedRuns';
+                    Caption = 'Max Consecutive Failed Runs';
                     MinValue = 1;
                     MaxValue = 5;
                 }
                 field(setupComplete; Rec."Setup Complete")
                 {
-                    Caption = 'setupComplete';
+                    Caption = 'Setup Complete';
                     Editable = false;
                 }
                 field(exportEnabled; Rec."Export Enabled")
                 {
-                    Caption = 'exportEnabled';
+                    Caption = 'Export Enabled';
                     Editable = false;
                 }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
-                    Caption = 'lastModifiedDateTime';
+                    Caption = 'Last Modified Date';
                     Editable = false;
                 }
             }

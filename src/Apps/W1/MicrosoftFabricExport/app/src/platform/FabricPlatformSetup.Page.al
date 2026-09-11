@@ -48,7 +48,7 @@ page 150004 "Fabric Platform Setup"
                         if LookupPage.RunModal() = Action::LookupOK then begin
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(WorkspaceId, TempBuffer.Value) then
-                                Error(WorkspaceIdInvalidErr, TempBuffer.Value);
+                                Error(CreateFabricDataErrorInfo(StrSubstNo(WorkspaceIdInvalidErr, TempBuffer.Value)));
                             Rec."Fabric Workspace ID" := WorkspaceId;
                             Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
                             Clear(Rec."Fabric Lakehouse ID");
@@ -92,7 +92,7 @@ page 150004 "Fabric Platform Setup"
                         if LookupPage.RunModal() = Action::LookupOK then begin
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(MirroredDatabaseId, TempBuffer.Value) then
-                                Error(MirroredDatabaseIdInvalidErr, TempBuffer.Value);
+                                Error(CreateFabricDataErrorInfo(StrSubstNo(MirroredDatabaseIdInvalidErr, TempBuffer.Value)));
                             Rec."Fabric Lakehouse ID" := MirroredDatabaseId;
                             Rec.Modify(true);
                             OpenMirroringNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(OpenMirroringNameValue));
@@ -170,6 +170,7 @@ page 150004 "Fabric Platform Setup"
                 {
                     Caption = 'Client ID';
                     ApplicationArea = All;
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
                     trigger OnValidate()
@@ -186,6 +187,7 @@ page 150004 "Fabric Platform Setup"
                 {
                     Caption = 'Client Secret';
                     ApplicationArea = All;
+                    ShowMandatory = true;
                     ExtendedDatatype = Masked;
                     ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
 
@@ -464,6 +466,14 @@ page 150004 "Fabric Platform Setup"
             Message(ValuePickedUpOnNextRunMsg);
     end;
 
+    local procedure CreateFabricDataErrorInfo(DetailedMessage: Text) ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message := FabricDataInvalidErr;
+        ErrInfo.DetailedMessage := DetailedMessage;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata;
+        ErrInfo.ErrorType := ErrorType::Internal;
+    end;
+
     var
         NamespaceEditable: Boolean;
         EnableActionEnabled: Boolean;
@@ -478,6 +488,7 @@ page 150004 "Fabric Platform Setup"
         NoMirroredDatabasesFoundErr: Label 'No Open Mirroring databases found in the selected workspace.';
         WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
         MirroredDatabaseIdInvalidErr: Label 'Fabric returned an invalid Open Mirroring database ID: %1.', Comment = '%1 = Open Mirroring database ID';
+        FabricDataInvalidErr: Label 'Microsoft Fabric returned unexpected data. Contact your administrator or Microsoft support if this continues.';
         CannotChangeWhileExportEnabledErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while export is enabled. Disable export first.';
         SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
         ValuePickedUpOnNextRunMsg: Label 'This change will take effect starting with the next export run.';

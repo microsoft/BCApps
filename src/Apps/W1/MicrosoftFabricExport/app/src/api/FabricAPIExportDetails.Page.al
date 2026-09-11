@@ -28,23 +28,23 @@ page 150014 "Fabric API Export Details"
             {
                 field(id; Rec.SystemId)
                 {
-                    Caption = 'id';
+                    Caption = 'Id';
                     Editable = false;
                 }
-                field(companyName; Rec."Company Name") { Caption = 'companyName'; }
-                field(tableName; Rec."Table Name") { Caption = 'tableName'; }
-                field(fabricEntityName; Rec."Fabric Entity Name") { Caption = 'fabricEntityName'; }
-                field(state; Rec.State) { Caption = 'state'; }
-                field(exportType; Rec."Export Type") { Caption = 'exportType'; }
-                field(recordsUpdated; Rec."Records Updated") { Caption = 'recordsUpdated'; }
-                field(recordsInserted; Rec."Records Inserted") { Caption = 'recordsInserted'; }
-                field(recordsDeleted; Rec."Records Deleted") { Caption = 'recordsDeleted'; }
-                field(startWatermark; Rec."Start Watermark") { Caption = 'startWatermark'; }
-                field(endWatermark; Rec."End Watermark") { Caption = 'endWatermark'; }
-                field(errorMessage; Rec."Error Message") { Caption = 'errorMessage'; }
+                field(companyName; Rec."Company Name") { Caption = 'Company Name'; }
+                field(tableName; Rec."Table Name") { Caption = 'Table Name'; }
+                field(fabricEntityName; Rec."Fabric Entity Name") { Caption = 'Fabric Entity Name'; }
+                field(state; Rec.State) { Caption = 'State'; }
+                field(exportType; Rec."Export Type") { Caption = 'Export Type'; }
+                field(recordsUpdated; Rec."Records Updated") { Caption = 'Records Updated'; }
+                field(recordsInserted; Rec."Records Inserted") { Caption = 'Records Inserted'; }
+                field(recordsDeleted; Rec."Records Deleted") { Caption = 'Records Deleted'; }
+                field(startWatermark; Rec."Start Watermark") { Caption = 'Start Watermark'; }
+                field(endWatermark; Rec."End Watermark") { Caption = 'End Watermark'; }
+                field(errorMessage; Rec."Error Message") { Caption = 'Error Message'; }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
-                    Caption = 'lastModifiedDateTime';
+                    Caption = 'Last Modified Date';
                     Editable = false;
                 }
             }

@@ -23,25 +23,25 @@ page 150010 "Fabric API Tables"
             {
                 field(id; Rec.SystemId)
                 {
-                    Caption = 'id';
+                    Caption = 'Id';
                     Editable = false;
                 }
-                field(tableId; Rec."Table ID") { Caption = 'tableId'; }
+                field(tableId; Rec."Table ID") { Caption = 'Table Id'; }
                 field(tableName; Rec."Table Name")
                 {
-                    Caption = 'tableName';
+                    Caption = 'Table Name';
                     Editable = false;
                 }
                 field(perCompany; Rec."Per Company")
                 {
-                    Caption = 'perCompany';
+                    Caption = 'Per Company';
                     Editable = false;
                 }
-                field(fabricEntityName; Rec."Fabric Entity Name") { Caption = 'fabricEntityName'; }
-                field(fabricSchemaType; Rec."Fabric Schema Type") { Caption = 'fabricSchemaType'; }
+                field(fabricEntityName; Rec."Fabric Entity Name") { Caption = 'Fabric Entity Name'; }
+                field(fabricSchemaType; Rec."Fabric Schema Type") { Caption = 'Fabric Schema Type'; }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
-                    Caption = 'lastModifiedDateTime';
+                    Caption = 'Last Modified Date';
                     Editable = false;
                 }
             }

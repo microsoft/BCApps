@@ -19,6 +19,7 @@ page 150007 "Fabric Config Package Subform"
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = All;
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the ID of the table included in this configuration package.';
                 }
                 field("Table Name"; Rec."Table Name")
