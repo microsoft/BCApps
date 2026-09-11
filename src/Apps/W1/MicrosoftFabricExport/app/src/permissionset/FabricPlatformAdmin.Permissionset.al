@@ -25,6 +25,8 @@ permissionset 150001 "Fabric Exp Admin"
         codeunit "Fabric Platform Telemetry" = X,
         codeunit "Fabric Config Package Mgt" = X,
         codeunit "Fabric Install" = X,
+        codeunit "Fabric Upgrade" = X,
+        codeunit "Fabric Privacy Notice" = X,
         page "Fabric Platform Setup" = X,
         page "Fabric Platform Setup Wizard" = X,
         page "Fabric Platform Name Lookup" = X,

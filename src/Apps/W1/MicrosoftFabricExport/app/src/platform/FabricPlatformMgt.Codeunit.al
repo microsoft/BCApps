@@ -164,6 +164,7 @@ codeunit 150001 "Fabric Platform Mgt"
         FabricExportManager: Codeunit "Fabric Export Manager";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         ClientId: Guid;
         ClientIdText: Text;
         IsHandled: Boolean;
@@ -171,6 +172,7 @@ codeunit 150001 "Fabric Platform Mgt"
         // Delegated auth overload: Microsoft first-party authentication is not yet available.
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then begin
+            FabricPrivacyNotice.EnsureApproved();
             ClientIdText := CredMgt.GetClientId();
             if ClientIdText = '' then
                 Error(CreateSetupErrorInfo(ClientIdRequiredErr));
@@ -197,11 +199,14 @@ codeunit 150001 "Fabric Platform Mgt"
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         IsHandled: Boolean;
     begin
         OnBeforeStartExport(IsHandled);
-        if not IsHandled then
+        if not IsHandled then begin
+            FabricPrivacyNotice.EnsureApproved();
             FabricExportManager.StartFabricExport();
+        end;
         Telemetry.LogEvent('FAB-101', 'Fabric export start requested.');
         Telemetry.LogAudit('FAB-101-AUD', 'Microsoft Fabric Open Mirroring - export start requested.');
         if GuiAllowed() then

@@ -23,7 +23,7 @@ codeunit 150003 "Fabric Install"
             ObjectType::Page, Page::"Fabric Platform Setup Wizard", AssistedSetupGroup::Connect, '', VideoCategory::Connect, '');
     end;
 
-    local procedure EnsureMsStdPackage()
+    internal procedure EnsureMsStdPackage()
     var
         FabricConfigPackageMgt: Codeunit "Fabric Config Package Mgt";
         TableIds: List of [Integer];
