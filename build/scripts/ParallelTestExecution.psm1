@@ -408,7 +408,7 @@ function New-BcTestTenantTemplate {
 
 <#
 .SYNOPSIS
-    Replaces a tenant database with a copy of the immutable test template.
+    Replaces a tenant database with a copy of an idle source database.
 .PARAMETER ContainerName
     Name of the BC container.
 .PARAMETER Tenant
@@ -416,7 +416,7 @@ function New-BcTestTenantTemplate {
 .PARAMETER TenantDatabaseName
     Database currently mounted for the tenant.
 .PARAMETER TemplateDatabaseName
-    Immutable source database copied before the next test codeunit.
+    Immutable test template, or the untouched primary database used to restore discovery.
 #>
 function Reset-BcTestTenant {
     param(
@@ -490,50 +490,6 @@ function Remove-BcTestTenantTemplate {
             Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
         }
     } -argumentList $TemplateDatabaseName
-}
-
-function Set-BcTestTaskScheduler {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$ContainerName,
-        [Parameter(Mandatory=$true)]
-        [bool]$Enabled
-    )
-
-    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($enabled)
-        $state = if ($enabled) { "Enabling" } else { "Disabling" }
-        $value = if ($enabled) { "true" } else { "false" }
-        Write-Host "$state Task Scheduler for clean RequiredTestIsolation=Disabled execution..."
-        Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName "EnableTaskScheduler" -KeyValue $value -WarningAction SilentlyContinue
-        Set-NAVServerInstance -ServerInstance $ServerInstance -Restart
-
-        $maxWaitSeconds = 300
-        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-        while (Get-NAVTenant $ServerInstance | Where-Object { $_.State -eq "Mounting" }) {
-            if ($stopwatch.Elapsed.TotalSeconds -ge $maxWaitSeconds) {
-                throw "Tenants did not finish mounting within $maxWaitSeconds seconds after changing Task Scheduler state."
-            }
-            Start-Sleep -Milliseconds 250
-        }
-    } -argumentList $Enabled
-}
-
-function Enable-BcTestTaskScheduler {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$ContainerName
-    )
-
-    Set-BcTestTaskScheduler -ContainerName $ContainerName -Enabled $true
-}
-
-function Disable-BcTestTaskScheduler {
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$ContainerName
-    )
-
-    Set-BcTestTaskScheduler -ContainerName $ContainerName -Enabled $false
 }
 
 <#
@@ -1384,14 +1340,44 @@ function Invoke-ParallelTestExecution {
         Where-Object { $_.IsInstalled } |
         ForEach-Object { $appIdByName[$_.Name] = $_.AppId }
 
-    $requiredDisabledWorkItems = @(
-        Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
-            -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
-    )
     $cleanTenantInfo = @(
         $tenantInfo |
             Where-Object { $_.Id -ne $parameters.tenant }
     )
+    if ($testType -ne 'Legacy' -and $tenantInfo.Count -gt 1) {
+        $sourceTenantInfo = @($tenantInfo | Where-Object { $_.Id -eq $parameters.tenant })
+        if ($sourceTenantInfo.Count -ne 1 -or [string]::IsNullOrWhiteSpace($sourceTenantInfo[0].DatabaseName)) {
+            throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
+        }
+        if (@($tenantInfo | Where-Object {
+            [string]::IsNullOrWhiteSpace($_.Id) -or [string]::IsNullOrWhiteSpace($_.DatabaseName)
+        }).Count -gt 0 -or
+            @($tenantInfo.Id | Sort-Object -Unique).Count -ne $tenantInfo.Count -or
+            @($tenantInfo.DatabaseName | Sort-Object -Unique).Count -ne $tenantInfo.Count) {
+            throw "Discovery requires non-empty, unique tenant IDs and database names."
+        }
+
+        # Discovery executes OnRun triggers. Keep the primary fixture untouched and restore
+        # the discovery worker before any template copy or test dispatch can observe its writes.
+        $discoveryTenant = $cleanTenantInfo[0]
+        $discoveryParameters = $parameters.Clone()
+        $discoveryParameters["tenant"] = $discoveryTenant.Id
+        try {
+            $requiredDisabledWorkItems = @(
+                Get-RequiredDisabledWorkItems -Parameters $discoveryParameters -TestType $testType `
+                    -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+            )
+        }
+        finally {
+            Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $discoveryTenant.Id `
+                -TenantDatabaseName $discoveryTenant.DatabaseName -TemplateDatabaseName $sourceTenantInfo[0].DatabaseName
+        }
+    } else {
+        $requiredDisabledWorkItems = @(
+            Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
+                -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
+        )
+    }
     $templateDatabaseName = ""
     try {
         if ($requiredDisabledWorkItems.Count -gt 0) {
@@ -1416,7 +1402,6 @@ function Invoke-ParallelTestExecution {
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
     if ($requiredDisabledWorkItems.Count -gt 0) {
-        Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
         try {
             $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
                 -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
@@ -1426,14 +1411,9 @@ function Invoke-ParallelTestExecution {
             }
         }
         finally {
-            try {
-                Disable-BcTestTaskScheduler -ContainerName $parameters.containerName
-            }
-            finally {
-                foreach ($cleanTenant in $cleanTenantInfo) {
-                    Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $cleanTenant.Id `
-                        -TenantDatabaseName $cleanTenant.DatabaseName -TemplateDatabaseName $templateDatabaseName
-                }
+            foreach ($cleanTenant in $cleanTenantInfo) {
+                Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $cleanTenant.Id `
+                    -TenantDatabaseName $cleanTenant.DatabaseName -TemplateDatabaseName $templateDatabaseName
             }
         }
     }
