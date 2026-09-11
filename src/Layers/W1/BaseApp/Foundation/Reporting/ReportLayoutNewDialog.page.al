@@ -139,7 +139,7 @@ page 9662 "Report Layout New Dialog"
     }
 
     trigger OnOpenPage()
-#if not CLEAN29
+#if not CLEAN30
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
@@ -148,7 +148,7 @@ page 9662 "Report Layout New Dialog"
         ExcelMultipleDataSheets := "Excel Sheet Configuration"::Default;
         LayoutName := '';
         AvailableInAllCompanies := true;
-#if not CLEAN29
+#if not CLEAN30
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
 #endif
         if ImpliedSubtypeSet then
@@ -185,7 +185,7 @@ page 9662 "Report Layout New Dialog"
         PartSubtypeVisible: Boolean;
         BodySubtypeVisible: Boolean;
         ImpliedSubtypeSet: Boolean;
-#if not CLEAN29
+#if not CLEAN30
         DocumentReportExperienceEnabled: Boolean;
 #endif
         ExcelMultipleDataSheets: enum "Excel Sheet Configuration";
@@ -266,12 +266,12 @@ page 9662 "Report Layout New Dialog"
 
     local procedure UpdateSubtypeVisibility()
     begin
-#if not CLEAN29
+#if not CLEAN30
         PartSubtypeVisible := DocumentReportExperienceEnabled and ImpliedSubtypeSet;
 #else
         PartSubtypeVisible := ImpliedSubtypeSet;
 #endif
-#if not CLEAN29
+#if not CLEAN30
         BodySubtypeVisible := DocumentReportExperienceEnabled and (not ImpliedSubtypeSet);
 #else
         BodySubtypeVisible := (not ImpliedSubtypeSet);

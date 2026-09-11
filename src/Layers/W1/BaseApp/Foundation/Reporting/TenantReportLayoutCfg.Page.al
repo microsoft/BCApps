@@ -227,12 +227,12 @@ page 9663 "Tenant Report Layout Cfg"
     }
 
     trigger OnOpenPage()
-#if not CLEAN29
+#if not CLEAN30
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 #endif
@@ -412,7 +412,7 @@ page 9663 "Tenant Report Layout Cfg"
         LayoutNameDisplay: Text;
         LayoutScopeSet: Boolean;
         ReportNameDisplay: Text;
-#if not CLEAN29
+#if not CLEAN30
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
 #endif
         GlobalWildcardCannotHaveLayoutNameErr: Label 'When Report ID is 0, the row applies to every report, so Layout Name must be empty.';

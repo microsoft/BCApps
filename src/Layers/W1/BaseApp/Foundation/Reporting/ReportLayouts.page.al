@@ -127,7 +127,7 @@ page 9660 "Report Layouts"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-#if not CLEAN29
+#if not CLEAN30
                     Visible = DocumentReportExperienceEnabled;
 #endif
                     Caption = 'Subtype';
@@ -192,7 +192,7 @@ page 9660 "Report Layouts"
                 SubPageLink = "Report ID" = field("Report ID"),
                               Name = field(Name),
                               "Application ID" = field("Application ID");
-#if not CLEAN29
+#if not CLEAN30
                 Visible = DocumentReportExperienceEnabled and BodyLayoutSelected;
 #else
                 Visible = BodyLayoutSelected;
@@ -418,7 +418,7 @@ page 9660 "Report Layouts"
             {
                 Caption = 'Composite layout';
                 Image = Document;
-#if not CLEAN29
+#if not CLEAN30
                 Visible = DocumentReportExperienceEnabled;
 #endif
                 // The assignment page and lookup helper declare RIMD on Tenant Report Layout Cfg (indirect
@@ -644,7 +644,7 @@ page 9660 "Report Layouts"
             group(CompositeLayout)
             {
                 Caption = 'Composite layout';
-#if not CLEAN29
+#if not CLEAN30
                 Visible = DocumentReportExperienceEnabled;
 #endif
 
@@ -702,7 +702,7 @@ page 9660 "Report Layouts"
     }
 
     trigger OnOpenPage()
-#if not CLEAN29
+#if not CLEAN30
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
@@ -710,7 +710,7 @@ page 9660 "Report Layouts"
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
         if CurrPage.LookupMode and (not IncludeUnapproved) then
             Rec.SetRange("Layout Status", Enum::"Report Layout Status"::Approved);
-#if not CLEAN29
+#if not CLEAN30
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
         if DocumentReportExperienceEnabled and (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
 #else
@@ -807,7 +807,7 @@ page 9660 "Report Layouts"
         ShareOptionsVisible: Boolean;
         ShareOptionsEnabled: Boolean;
         CanModifyStatus: Boolean;
-#if not CLEAN29
+#if not CLEAN30
         DocumentReportExperienceEnabled: Boolean;
 #endif
         WordLayoutSelected: Boolean;

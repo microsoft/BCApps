@@ -98,11 +98,11 @@ page 9667 "Header/Footer Theme Assignment"
     trigger OnOpenPage()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
-#if not CLEAN29
+#if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 #endif
@@ -244,7 +244,7 @@ page 9667 "Header/Footer Theme Assignment"
         CompanyOverrideExists: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
-#if not CLEAN29
+#if not CLEAN30
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
 #endif
         NotBodyLayoutErr: Label 'A theme and header/footer can only be set on a body layout, and "%1" is not one. They are merged onto a body layout when the report renders, so there is nothing to merge them onto here.', Comment = '%1 = layout name';

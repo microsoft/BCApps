@@ -58,7 +58,7 @@ page 9664 "Tenant Report Layout Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Header/Footer Part';
-#if not CLEAN29
+#if not CLEAN30
                     Visible = DocumentReportExperienceEnabled;
 #endif
                     ToolTip = 'Specifies the header/footer layout part composed on top of the body layout when this report is rendered. Configured via the Tenant Report Layout Configuration page.';
@@ -67,7 +67,7 @@ page 9664 "Tenant Report Layout Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Theme Part';
-#if not CLEAN29
+#if not CLEAN30
                     Visible = DocumentReportExperienceEnabled;
 #endif
                     ToolTip = 'Specifies the theme layout part whose styles override the merged result when this report is rendered. Configured via the Tenant Report Layout Configuration page.';
@@ -85,7 +85,7 @@ page 9664 "Tenant Report Layout Selection"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Test composite render';
                 Image = TestReport;
-#if not CLEAN29
+#if not CLEAN30
                 Visible = DocumentReportExperienceEnabled;
 #endif
                 ToolTip = 'Runs the selected report so the Composite Layout Merge can be verified end-to-end against the configured Header/Footer and Theme parts.';
@@ -116,19 +116,19 @@ page 9664 "Tenant Report Layout Selection"
     end;
 
     trigger OnOpenPage()
-#if not CLEAN29
+#if not CLEAN30
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
 #endif
     end;
 
     var
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
-#if not CLEAN29
+#if not CLEAN30
         DocumentReportExperienceEnabled: Boolean;
 #endif
         HeaderPartDisplay: Text;
