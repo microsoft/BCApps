@@ -595,7 +595,6 @@ table 6906 "Expense Report Header"
         }
         key(SpendRequestNo; "Spend Request No.", "Expense User No.")
         {
-            Unique = true;
         }
     }
 
@@ -1345,27 +1344,31 @@ table 6906 "Expense Report Header"
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
     end;
 
-    internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request")
-    var
-        ExistingExpenseReportHeader: Record "Expense Report Header";
-        NewExpenseReportHeader: Record "Expense Report Header";
+    internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"): Boolean
     begin
         SpendRequest.TestField("Document Type", SpendRequest."Document Type"::"Travel Request");
         SpendRequest.TestStatus(SpendRequest.Status::Approved);
         SpendRequest.TestField("Requested For");
 
-        ExistingExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
-        ExistingExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
-        if not ExistingExpenseReportHeader.IsEmpty() then
-            exit;
+        Rec.Reset();
+        Rec.LockTable();
+        Rec.SetRange("Spend Request No.", SpendRequest."No.");
+        Rec.SetRange("Expense User No.", SpendRequest."Requested For");
+        Rec.SetLoadFields("No.");
+        if Rec.FindFirst() then
+            exit(false);
 
-        NewExpenseReportHeader.Init();
-        NewExpenseReportHeader.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(NewExpenseReportHeader.Description)));
-        NewExpenseReportHeader.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
-        NewExpenseReportHeader.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
-        NewExpenseReportHeader.SetHideValidationDialog(true);
-        NewExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
-        NewExpenseReportHeader.Insert(true);
+        Rec.Reset();
+        Rec.Init();
+        Rec.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(Rec.Description)));
+        Rec.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
+        Rec.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
+        Rec.SetHideValidationDialog(true);
+        Rec.Validate("Spend Request No.", SpendRequest."No.");
+        OnBeforeCreateFromApprovedTravelRequest(SpendRequest, Rec);
+        Rec.Insert(true);
+        OnAfterCreateFromApprovedTravelRequest(SpendRequest, Rec);
+        exit(true);
     end;
 
     internal procedure ValidateExpenseUserFromApprovedTravelRequest(ExpenseUserNo: Code[20])
@@ -1389,6 +1392,16 @@ table 6906 "Expense Report Header"
 
     [IntegrationEvent(true, false)]
     local procedure OnCheckExpenseReportPostRestrictions()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"; var ExpenseReportHeader: Record "Expense Report Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"; var ExpenseReportHeader: Record "Expense Report Header")
     begin
     end;
 }

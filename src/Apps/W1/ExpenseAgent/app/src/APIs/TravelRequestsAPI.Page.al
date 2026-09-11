@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
+using System.Telemetry;
 
 page 7134 "Travel Requests API"
 {
@@ -288,26 +289,38 @@ page 7134 "Travel Requests API"
             Error(TravelRequestMustBeApprovedErr, Rec."No.");
         Rec.TestField("Requested For");
 
-        ExpenseReportHeader.LockTable();
-        ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
-        ExpenseReportHeader.SetRange("Expense User No.", Rec."Requested For");
-        if ExpenseReportHeader.FindFirst() then
-            Error(
-                ExpenseReportAlreadyLinkedErr,
-                Rec."Requested For", ExpenseReportHeader."No.", Rec."No.");
+        if not ExpenseReportHeader.CreateFromApprovedTravelRequest(Rec) then
+            Error(GetExpenseReportAlreadyLinkedError(ExpenseReportHeader, Rec));
 
-        ExpenseReportHeader.Reset();
-        ExpenseReportHeader.Init();
-        ExpenseReportHeader.Validate(Description, CopyStr(Rec.Purpose, 1, MaxStrLen(ExpenseReportHeader.Description)));
-        ExpenseReportHeader.ValidateExpenseUserFromApprovedTravelRequest(Rec."Requested For");
-        ExpenseReportHeader.Validate("Reimbursement Currency Code", Rec."Currency Code");
-        ExpenseReportHeader.SetHideValidationDialog(true);
-        ExpenseReportHeader.Validate("Spend Request No.", Rec."No.");
-        ExpenseReportHeader.Insert(true);
+        LogCreateExpenseReport();
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
         ActionContext.AddEntityKey(ExpenseReportHeader.FieldNo(SystemId), ExpenseReportHeader.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
+    local procedure GetExpenseReportAlreadyLinkedError(ExpenseReportHeader: Record "Expense Report Header"; TravelRequest: Record "Spend Request"): ErrorInfo
+    var
+        ExpenseReportAlreadyLinkedError: ErrorInfo;
+    begin
+        ExpenseReportAlreadyLinkedError.Message := StrSubstNo(
+            ExpenseReportAlreadyLinkedErr, TravelRequest."Requested For", ExpenseReportHeader."No.", TravelRequest."No.");
+        ExpenseReportAlreadyLinkedError.Title := ExpenseReportAlreadyLinkedTitleErr;
+        ExpenseReportAlreadyLinkedError.DetailedMessage := ExpenseReportAlreadyLinkedDetailsErr;
+        ExpenseReportAlreadyLinkedError.DataClassification := DataClassification::EndUserIdentifiableInformation;
+        ExpenseReportAlreadyLinkedError.ErrorType := ErrorType::Client;
+        ExpenseReportAlreadyLinkedError.RecordId := ExpenseReportHeader.RecordId;
+        ExpenseReportAlreadyLinkedError.PageNo := Page::"Expense Report";
+        ExpenseReportAlreadyLinkedError.AddNavigationAction(ShowItLbl);
+        exit(ExpenseReportAlreadyLinkedError);
+    end;
+
+    local procedure LogCreateExpenseReport()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUsage('EA-TR-CREATEREPORT', ExpenseAgentSetup.GetFeatureName(), ExpenseReportCreatedLbl);
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -410,5 +423,9 @@ page 7134 "Travel Requests API"
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
         TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
         ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.';
+        ExpenseReportAlreadyLinkedTitleErr: Label 'Expense report already exists';
+        ExpenseReportAlreadyLinkedDetailsErr: Label 'Open the existing expense report linked to this travel request.';
+        ExpenseReportCreatedLbl: Label 'Expense report created from approved travel request', Locked = true;
+        ShowItLbl: Label 'Show it';
         OwnerScopeRequiredErr: Label 'The create expense report action must be invoked through the owning expense user.';
 }

@@ -58,6 +58,13 @@ table 6938 Traveler
                 TestStatusOpenOfSpendRequest();
             end;
         }
+        field(6; "Employee No."; Code[20])
+        {
+            Caption = 'Employee No.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User"."Employee No." where("No." = field("Expense User No.")));
+            ToolTip = 'Specifies the employee number linked to the expense user who is traveling.';
+        }
     }
 
     keys

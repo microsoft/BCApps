@@ -877,6 +877,56 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure CreateExpenseReportPageActionRequiresRequestedFor()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] A report cannot be created without a requested Expense User.
+        Initialize();
+
+        // [GIVEN] An approved owner-scoped travel request without Requested For.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        SpendRequest."Requested For" := '';
+        SpendRequest.Modify();
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
+
+        // [WHEN] The create expense report action is invoked.
+        asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] The action requires Requested For.
+        Assert.ExpectedError(FieldRequiredErr);
+    end;
+
+    [Test]
+    procedure CreateExpenseReportPageActionRejectsDifferentOwnerScope()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        DifferentExpenseUser: Record "Expense User";
+        TravelRequestsAPI: Page "Travel Requests API";
+        ActionContext: WebServiceActionContext;
+    begin
+        // [SCENARIO] A report cannot be created through another Expense User's route.
+        Initialize();
+
+        // [GIVEN] An approved travel request scoped through a different Expense User.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateExpenseUser(DifferentExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, DifferentExpenseUser.SystemId);
+
+        // [WHEN] The create expense report action is invoked.
+        asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
+
+        // [THEN] The action rejects the mismatched owner.
+        Assert.ExpectedError(DifferentExpenseUser."Employee No.");
+    end;
+
+    [Test]
     procedure SubmitTravelRequestPageAction()
     var
         SpendRequest: Record "Spend Request";
