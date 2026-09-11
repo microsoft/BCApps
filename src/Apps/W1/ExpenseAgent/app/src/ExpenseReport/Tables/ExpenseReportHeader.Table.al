@@ -1344,6 +1344,7 @@ table 6906 "Expense Report Header"
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"): Boolean
     begin
         SpendRequest.TestField("Document Type", SpendRequest."Document Type"::"Travel Request");
