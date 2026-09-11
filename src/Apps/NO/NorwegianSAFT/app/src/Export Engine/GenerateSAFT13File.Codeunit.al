@@ -572,13 +572,84 @@ codeunit 10692 "Generate SAF-T 1.3 File"
             SAFTXMLHelper.FinalizeXMLNode();
     end;
 
+    internal procedure CountTransactions(SAFTExportHeader: Record "SAF-T Export Header") NumberOfTransactions: Integer
+    var
+        SAFTSourceCode: Record "SAF-T Source Code";
+        TempSourceCode: Record "Source Code" temporary;
+        GLEntry: Record "G/L Entry";
+        SourceCodeFilter: Text;
+        CurrentTransactionID: Text;
+        PreviousTransactionID: Text;
+    begin
+        if not SAFTSourceCode.FindSet() then
+            SAFTSourceCode.Init();
+        repeat
+            PopulateSourceCodeBuffer(TempSourceCode, SAFTSourceCode);
+            SourceCodeFilter := GetSourceCodeFilter(TempSourceCode);
+            PreviousTransactionID := '';
+            GLEntry.Reset();
+            GLEntry.SetCurrentKey("Document No.", "Posting Date");
+            GLEntry.SetRange("Posting Date", SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+            if SourceCodeFilter <> '' then begin
+                GLEntry.SetFilter("Source Code", SourceCodeFilter);
+                if GLEntry.FindSet() then
+                    repeat
+                        CurrentTransactionID := GetSAFTTransactionIDFromGLEntry(GLEntry);
+                        if CurrentTransactionID <> PreviousTransactionID then begin
+                            NumberOfTransactions += 1;
+                            PreviousTransactionID := CurrentTransactionID;
+                        end;
+                    until GLEntry.Next() = 0;
+            end;
+        until SAFTSourceCode.Next() = 0;
+    end;
+
+    local procedure PopulateSourceCodeBuffer(var TempSourceCode: Record "Source Code" temporary; var SAFTSourceCode: Record "SAF-T Source Code")
+    var
+        SourceCode: Record "Source Code";
+        SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
+    begin
+        SourceCode.Reset();
+        TempSourceCode.Reset();
+        TempSourceCode.DeleteAll();
+        if SAFTSourceCode.Code = '' then begin
+            SAFTSourceCode.Init();
+            SAFTSourceCode.Code := SAFTMappingHelper.GetARSAFTSourceCode();
+            SAFTSourceCode.Description := SAFTMappingHelper.GetASAFTSourceCodeDescription();
+        end else
+            SourceCode.SetRange("SAF-T Source Code", SAFTSourceCode.Code);
+        if SourceCode.FindSet() then
+            repeat
+                TempSourceCode := SourceCode;
+                TempSourceCode.Insert();
+            until SourceCode.Next() = 0;
+        if SAFTSourceCode."Includes No Source Code" then begin
+            TempSourceCode.Init();
+            TempSourceCode.Code := '';
+            TempSourceCode.Insert();
+        end;
+    end;
+
+    local procedure GetSourceCodeFilter(var TempSourceCode: Record "Source Code" temporary) SourceCodeFilter: Text
+    begin
+        TempSourceCode.Reset();
+        if not TempSourceCode.FindSet() then
+            exit('');
+        repeat
+            if SourceCodeFilter <> '' then
+                SourceCodeFilter += '|';
+            if TempSourceCode.Code = '' then
+                SourceCodeFilter += ''' '''
+            else
+                SourceCodeFilter += TempSourceCode.Code;
+        until TempSourceCode.Next() = 0;
+    end;
+
     local procedure ExportGeneralLedgerEntries(var GLEntry: Record "G/L Entry"; var SAFTExportLine: Record "SAF-T Export Line")
     var
         SAFTSourceCode: Record "SAF-T Source Code";
         TempSourceCode: Record "Source Code" temporary;
-        SourceCode: Record "Source Code";
         SAFTExportHeader: Record "SAF-T Export Header";
-        SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
         GLEntryProgressStep: Decimal;
         GLEntryProgress: Decimal;
     begin
@@ -599,24 +670,10 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         else
             GLEntryProgressStep := 10000;
         repeat
-            TempSourceCode.Reset();
-            TempSourceCode.DeleteAll();
-            if SAFTSourceCode.Code = '' then begin
-                SAFTSourceCode.Init();
-                SAFTSourceCode.Code := SAFTMappingHelper.GetARSAFTSourceCode();
-                SAFTSourceCode.Description := SAFTMappingHelper.GetASAFTSourceCodeDescription();
-            end else
-                SourceCode.SetRange("SAF-T Source Code", SAFTSourceCode.Code);
-            if SourceCode.FindSet() then
-                repeat
-                    TempSourceCode := SourceCode;
-                    TempSourceCode.Insert();
-                until SourceCode.Next() = 0;
-            if SAFTSourceCode."Includes No Source Code" then begin
-                TempSourceCode.Init();
-                TempSourceCode.Code := '';
-                TempSourceCode.Insert();
-            end;
+            PopulateSourceCodeBuffer(TempSourceCode, SAFTSourceCode);
+            GLEntry.Reset();
+            GLEntry.SetCurrentKey("Document No.", "Posting Date");
+            GLEntry.SetRange("Posting Date", SAFTExportLine."Starting Date", SAFTExportLine."Ending Date");
             GLEntryProgress += GLEntryProgressStep;
             if GuiAllowed() then
                 Window.Update(2, GLEntryProgress);
@@ -636,17 +693,9 @@ codeunit 10692 "Generate SAF-T 1.3 File"
         SourceCodeFilter: Text;
         GLEntriesExists: Boolean;
     begin
-        If not TempSourceCode.FindSet() then
+        SourceCodeFilter := GetSourceCodeFilter(TempSourceCode);
+        if SourceCodeFilter = '' then
             exit(false);
-
-        repeat
-            if SourceCodeFilter <> '' then
-                SourceCodeFilter += '|';
-            if TempSourceCode.Code = '' then
-                SourceCodeFilter += ''' '''
-            else
-                SourceCodeFilter += TempSourceCode.Code;
-        until TempSourceCode.Next() = 0;
         GLEntry.SetFilter("Source Code", SourceCodeFilter);
         GLEntriesExists := GLEntry.FindSet();
         if not GLEntriesExists then
