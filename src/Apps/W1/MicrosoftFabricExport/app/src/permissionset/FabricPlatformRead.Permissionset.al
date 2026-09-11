@@ -10,6 +10,7 @@ permissionset 48531 "Fabric Exp Read"
     Permissions =
         tabledata "Tenant Fabric Setup" = R,
         tabledata "Tenant Fabric Tables" = R,
+        tabledata "Fabric Table Claim" = R,
         tabledata "Tenant Fabric Companies" = R,
         tabledata "Tenant Fabric Table Fields" = R,
         tabledata "Tenant Fabric Enum Mapping" = R,

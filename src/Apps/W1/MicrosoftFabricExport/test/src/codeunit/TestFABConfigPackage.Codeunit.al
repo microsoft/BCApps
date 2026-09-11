@@ -20,10 +20,12 @@ codeunit 140011 "Test FAB Config Package"
         TenantFabricTables: Record "Tenant Fabric Tables";
         Pkg: Record "Fabric Config Package";
         PackageLine: Record "Fabric Config Package Line";
+        FabricTableClaim: Record "Fabric Table Claim";
     begin
         TenantFabricTables.DeleteAll(false);
         PackageLine.DeleteAll(false);
         Pkg.DeleteAll(false);
+        FabricTableClaim.DeleteAll(false);
         if IsInitialized then
             exit;
         IsInitialized := true;
@@ -220,6 +222,39 @@ codeunit 140011 "Test FAB Config Package"
 
         //[THEN] Table 18 remains (still owned by active PKG-B), table 27 is removed
         Assert.IsTrue(TenantFabricTables.Get(18), 'Expected shared table 18 to remain.');
+        Assert.IsFalse(TenantFabricTables.Get(27), 'Expected exclusive table 27 to be removed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure DeactivateKeepsManuallyAddedTable()
+    var
+        Pkg: Record "Fabric Config Package";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] A manually-added table is never removed by deactivating a package that also lists it
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Table 18 is added manually, outside of any package
+        FabricPlatformMgt.AddTable(18);
+        //[GIVEN] A package that also lists table 18, then activated
+        GivenPackage('MS-STD', 18, 27);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected kept-table notification
+        ExpectedMessage := TableKeptMsg;
+
+        //[WHEN] The package is deactivated
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Deactivate(Pkg);
+
+        //[THEN] The manually-added table 18 remains, exclusive table 27 is removed
+        Assert.IsTrue(TenantFabricTables.Get(18), 'Expected the manually-added table to remain.');
         Assert.IsFalse(TenantFabricTables.Get(27), 'Expected exclusive table 27 to be removed.');
     end;
 

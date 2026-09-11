@@ -5,7 +5,8 @@ using System.Reflection;
 
 codeunit 48521 "Fabric Config Package Mgt"
 {
-    // Activate/Deactivate modify and delete Tenant Fabric Tables rows directly.
+    // Activate/Deactivate go through Fabric Platform Mgt's claim API; schema-type sync
+    // still writes Tenant Fabric Tables directly.
     Permissions = tabledata "Tenant Fabric Tables" = RIMD;
 
     var
@@ -21,6 +22,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
+        WasNew: Boolean;
     begin
         // LockTable before counting so a concurrent Activate/Deactivate cannot change
         // Tenant Fabric Tables between the capacity check and the inserts below.
@@ -39,8 +41,9 @@ codeunit 48521 "Fabric Config Package Mgt"
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
-                if not TenantFabricTables.Get(PackageLine."Table ID") then begin
-                    FabricPlatformMgt.AddTable(PackageLine."Table ID");
+                WasNew := not TenantFabricTables.Get(PackageLine."Table ID");
+                FabricPlatformMgt.ClaimTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code");
+                if WasNew then begin
                     TenantFabricTables.Get(PackageLine."Table ID");
                     TenantFabricTables.Validate("Fabric Schema Type", PackageLine."Fabric Schema Type");
                     TenantFabricTables.Modify(true);
@@ -59,23 +62,19 @@ codeunit 48521 "Fabric Config Package Mgt"
 
     internal procedure Deactivate(var Pkg: Record "Fabric Config Package")
     var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
         PackageLine: Record "Fabric Config Package Line";
-        TenantFabricTables: Record "Tenant Fabric Tables";
-        OtherPackageCode: Code[20];
         KeptTableCount: Integer;
     begin
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
-                // Remove the table only when no other active package still needs it.
-                // The platform Tenant Fabric Tables has no ownership column, so a table that
-                // also matches a manually-added selection cannot be distinguished here.
-                if not FindOtherActivePackage(PackageLine."Table ID", Pkg."Code", OtherPackageCode) then begin
-                    if TenantFabricTables.Get(PackageLine."Table ID") then
-                        TenantFabricTables.Delete(true);
-                end else
+                // Release this package's claim; the platform row is only deleted when no
+                // other claim (manual or another package) remains.
+                if FabricPlatformMgt.IsClaimedByOthers(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code") then
                     KeptTableCount += 1;
+                FabricPlatformMgt.ReleaseTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code");
             until PackageLine.Next() = 0;
 
         Pkg.Active := false;
@@ -90,24 +89,6 @@ codeunit 48521 "Fabric Config Package Mgt"
             Message(TablesKeptByOtherPackageMsg, KeptTableCount);
     end;
 
-    local procedure FindOtherActivePackage(TableId: Integer; ExcludePackageCode: Code[20]; var OtherPackageCode: Code[20]): Boolean
-    var
-        PackageLine: Record "Fabric Config Package Line";
-        OtherPkg: Record "Fabric Config Package";
-    begin
-        PackageLine.SetRange("Table ID", TableId);
-        PackageLine.SetFilter("Package Code", '<>%1', ExcludePackageCode);
-        if PackageLine.FindSet() then
-            repeat
-                if OtherPkg.Get(PackageLine."Package Code") then
-                    if OtherPkg.Active then begin
-                        OtherPackageCode := OtherPkg."Code";
-                        exit(true);
-                    end;
-            until PackageLine.Next() = 0;
-        exit(false);
-    end;
-
     internal procedure Reapply(var Pkg: Record "Fabric Config Package")
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
@@ -115,9 +96,10 @@ codeunit 48521 "Fabric Config Package Mgt"
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
+        WasNew: Boolean;
     begin
-        // Add any missing package tables. Rows are not removed on reapply because the
-        // platform table has no ownership column to identify stale package rows.
+        // Add any missing package tables. Existing rows are left untouched — Reapply
+        // never removes rows, so stale tables require an explicit Deactivate/Activate.
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
@@ -130,8 +112,9 @@ codeunit 48521 "Fabric Config Package Mgt"
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
-                if not TenantFabricTables.Get(PackageLine."Table ID") then begin
-                    FabricPlatformMgt.AddTable(PackageLine."Table ID");
+                WasNew := not TenantFabricTables.Get(PackageLine."Table ID");
+                FabricPlatformMgt.ClaimTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code");
+                if WasNew then begin
                     TenantFabricTables.Get(PackageLine."Table ID");
                     TenantFabricTables.Validate("Fabric Schema Type", PackageLine."Fabric Schema Type");
                     TenantFabricTables.Modify(true);
@@ -181,7 +164,8 @@ codeunit 48521 "Fabric Config Package Mgt"
             Pkg.Modify(true);
         end;
 
-        // Rebuild lines
+        // Rebuild lines. Ownership lives in the platform claims (keyed by package code),
+        // so it is unaffected by rebuilding the line rows here.
         PackageLine.SetRange("Package Code", PackageCode);
         PackageLine.DeleteAll(true);
 

@@ -11,7 +11,8 @@ codeunit 48520 "Fabric Platform Mgt"
     // Mediates writes to the platform selection tables (500-table cap, existence checks),
     // so callers only need read access to these tables directly.
     Permissions = tabledata "Tenant Fabric Tables" = RIMD,
-                  tabledata "Tenant Fabric Companies" = RIMD;
+                  tabledata "Tenant Fabric Companies" = RIMD,
+                  tabledata "Fabric Table Claim" = RIMD;
 
     var
         MaxTablesErr: Label 'A maximum of %1 tables can be exported to Microsoft Fabric. Remove a table before adding another.', Comment = '%1 = maximum number of tables';
@@ -91,6 +92,7 @@ codeunit 48520 "Fabric Platform Mgt"
     begin
         CheckCanAddTable();
         InsertTable(TableId);
+        InsertClaim(TableId, "Fabric Table Claim Source"::Manual, '');
     end;
 
     local procedure InsertTable(TableId: Integer)
@@ -133,9 +135,84 @@ codeunit 48520 "Fabric Platform Mgt"
 
         if AllObjWithCaption.FindSet() then
             repeat
-                if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
+                if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then begin
                     InsertTable(AllObjWithCaption."Object ID");
+                    InsertClaim(AllObjWithCaption."Object ID", "Fabric Table Claim Source"::Manual, '');
+                end;
             until AllObjWithCaption.Next() = 0;
+    end;
+
+    // -------------------------------------------------------------------------
+    // Table selection ownership (claims)
+    // A Tenant Fabric Tables row is kept while any claim exists and is removed only
+    // when its last claim is released, so a manual selection is never deleted by
+    // package deactivation. Coordination is limited to claims recorded through this
+    // app; see docs/PlatformRequest-TableOwnership.md for the platform-level design.
+    // -------------------------------------------------------------------------
+
+    procedure ClaimTable(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+    begin
+        if TenantFabricTables.Get(TableId) then begin
+            // Adopt a pre-existing (manually added) selection so a later package
+            // release cannot delete it.
+            if not HasAnyClaim(TableId) then
+                InsertClaim(TableId, "Fabric Table Claim Source"::Manual, '');
+        end else begin
+            CheckCanAddTable();
+            InsertTable(TableId);
+        end;
+
+        InsertClaim(TableId, SourceType, PackageCode);
+    end;
+
+    procedure ReleaseTable(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        Claim: Record "Fabric Table Claim";
+    begin
+        if Claim.Get(TableId, SourceType, PackageCode) then
+            Claim.Delete(true);
+
+        if not HasAnyClaim(TableId) then
+            if TenantFabricTables.Get(TableId) then
+                TenantFabricTables.Delete(true);
+    end;
+
+    procedure IsClaimedByOthers(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20]): Boolean
+    var
+        Claim: Record "Fabric Table Claim";
+    begin
+        Claim.SetRange("Table ID", TableId);
+        Claim.SetFilter("Source Type", '<>%1', SourceType);
+        if not Claim.IsEmpty() then
+            exit(true);
+
+        Claim.SetRange("Source Type", SourceType);
+        Claim.SetFilter("Package Code", '<>%1', PackageCode);
+        exit(not Claim.IsEmpty());
+    end;
+
+    local procedure HasAnyClaim(TableId: Integer): Boolean
+    var
+        Claim: Record "Fabric Table Claim";
+    begin
+        Claim.SetRange("Table ID", TableId);
+        exit(not Claim.IsEmpty());
+    end;
+
+    local procedure InsertClaim(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
+    var
+        Claim: Record "Fabric Table Claim";
+    begin
+        if Claim.Get(TableId, SourceType, PackageCode) then
+            exit;
+        Claim.Init();
+        Claim."Table ID" := TableId;
+        Claim."Source Type" := SourceType;
+        Claim."Package Code" := PackageCode;
+        Claim.Insert(true);
     end;
 
     // -------------------------------------------------------------------------

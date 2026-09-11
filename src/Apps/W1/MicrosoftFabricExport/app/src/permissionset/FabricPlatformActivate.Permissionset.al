@@ -10,6 +10,7 @@ permissionset 48532 "Fabric Exp Activate"
     Permissions =
         tabledata "Tenant Fabric Setup" = R,
         tabledata "Tenant Fabric Tables" = RIM,
+        tabledata "Fabric Table Claim" = R,
         tabledata "Tenant Fabric Table Fields" = R,
         tabledata "Tenant Fabric Enum Mapping" = R,
         tabledata "Tenant Fabric Export Summary" = R,

@@ -10,6 +10,7 @@ permissionset 48530 "Fabric Exp Admin"
     Permissions =
         tabledata "Tenant Fabric Setup" = RIMD,
         tabledata "Tenant Fabric Tables" = R,
+        tabledata "Fabric Table Claim" = R,
         tabledata "Tenant Fabric Companies" = R,
         tabledata "Tenant Fabric Table Fields" = RIMD,
         tabledata "Tenant Fabric Enum Mapping" = R,

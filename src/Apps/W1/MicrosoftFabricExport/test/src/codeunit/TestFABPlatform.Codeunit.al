@@ -27,10 +27,12 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricSetup: Record "Tenant Fabric Setup";
         TenantFabricTables: Record "Tenant Fabric Tables";
         TenantFabricCompanies: Record "Tenant Fabric Companies";
+        FabricTableClaim: Record "Fabric Table Claim";
     begin
         TenantFabricTables.DeleteAll(false);
         TenantFabricSetup.DeleteAll(false);
         TenantFabricCompanies.DeleteAll(false);
+        FabricTableClaim.DeleteAll(false);
         PlatformTestSub.Reset();
         LookupState.ClearFabricApiToken();
         if IsInitialized then
@@ -680,6 +682,124 @@ codeunit 140012 "Test FAB Platform"
         //[THEN] The malformed response is rejected
         Assert.ExpectedError('malformed');
         UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure ClaimTableCreatesRowAndClaimForNewTable()
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricTableClaim: Record "Fabric Table Claim";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Claiming an unclaimed table creates the platform row and a claim
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] A package claims a table not yet selected
+        FabricPlatformMgt.ClaimTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+
+        //[THEN] The platform row and the claim both exist
+        Assert.IsTrue(TenantFabricTables.Get(Database::"Tenant Fabric Setup"), 'Expected the platform row to be created.');
+        Assert.IsTrue(FabricTableClaim.Get(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A'), 'Expected the package claim to exist.');
+    end;
+
+    [Test]
+    procedure ClaimTableAdoptsPreExistingRowAsManual()
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricTableClaim: Record "Fabric Table Claim";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Claiming a table that already exists without any claim adopts it as Manual first
+        //[GIVEN] The table is already selected outside of any claim (e.g. legacy data)
+        Initialize();
+        TenantFabricTables.Init();
+        TenantFabricTables."Table ID" := Database::"Tenant Fabric Setup";
+        TenantFabricTables.Insert(false);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] A package claims that same table
+        FabricPlatformMgt.ClaimTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+
+        //[THEN] Both a Manual claim and the package claim exist
+        Assert.IsTrue(FabricTableClaim.Get(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Manual, ''), 'Expected the pre-existing row to be adopted as a Manual claim.');
+        Assert.IsTrue(FabricTableClaim.Get(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A'), 'Expected the package claim to exist.');
+    end;
+
+    [Test]
+    procedure ReleaseTableRemovesRowWhenLastClaimIsReleased()
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Releasing the only claim on a table removes its platform row
+        //[GIVEN] A table claimed by a single package
+        Initialize();
+        FabricPlatformMgt.ClaimTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] That package releases its claim
+        FabricPlatformMgt.ReleaseTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+
+        //[THEN] The platform row is removed
+        Assert.IsFalse(TenantFabricTables.Get(Database::"Tenant Fabric Setup"), 'Expected the platform row to be removed after the last claim is released.');
+    end;
+
+    [Test]
+    procedure ReleaseTableKeepsRowWhenAnotherClaimRemains()
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricTableClaim: Record "Fabric Table Claim";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Releasing one of several claims keeps the platform row while other claims remain
+        //[GIVEN] A table claimed both manually and by a package
+        Initialize();
+        FabricPlatformMgt.AddTable(Database::"Tenant Fabric Setup");
+        FabricPlatformMgt.ClaimTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package claim is released
+        FabricPlatformMgt.ReleaseTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+
+        //[THEN] The platform row and the Manual claim both remain
+        Assert.IsTrue(TenantFabricTables.Get(Database::"Tenant Fabric Setup"), 'Expected the platform row to remain while the Manual claim exists.');
+        Assert.IsTrue(FabricTableClaim.Get(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Manual, ''), 'Expected the Manual claim to remain.');
+    end;
+
+    [Test]
+    procedure IsClaimedByOthersReflectsRemainingClaims()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] IsClaimedByOthers reports true only while a different claim exists
+        //[GIVEN] A table claimed both manually and by a package
+        Initialize();
+        FabricPlatformMgt.AddTable(Database::"Tenant Fabric Setup");
+        FabricPlatformMgt.ClaimTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Checked before and after the Manual claim is released
+
+        //[THEN] It reports true while the Manual claim exists, false once it is the only claim left
+        Assert.IsTrue(
+            FabricPlatformMgt.IsClaimedByOthers(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A'),
+            'Expected the Manual claim to count as another claimant.');
+        FabricPlatformMgt.ReleaseTable(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Manual, '');
+        Assert.IsFalse(
+            FabricPlatformMgt.IsClaimedByOthers(Database::"Tenant Fabric Setup", "Fabric Table Claim Source"::Package, 'PKG-A'),
+            'Expected no other claimant once the Manual claim is gone.');
     end;
 
     #region Handlers
