@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.Sustainability;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
@@ -858,6 +859,8 @@ codeunit 148223 "EUDR Certificate Capture Test"
         LibraryItemTracking.CreateLotNoInformation(LotNoInformation, Item."No.", '', LotNo);
         LotNoInformation.Validate("EUDR Certificate No.", LibraryUtility.GenerateGUID());
         LotNoInformation.Modify(true);
+
+        EnsureGeneralPostingSetupForItem(Item);
         LibraryItemTracking.PostPositiveAdjustmentWithItemTracking(
           Item, '', '', LibraryRandom.RandIntInRange(10, 20), WorkDate(), '', LotNo);
 
@@ -929,6 +932,7 @@ codeunit 148223 "EUDR Certificate Capture Test"
     local procedure CreateEUDRItemWithLotInventory(var Item: Record Item; var LotNoInformation: Record "Lot No. Information")
     begin
         CreateEUDRItemWithLotInformation(Item, LotNoInformation);
+        EnsureGeneralPostingSetupForItem(Item);
         LibraryItemTracking.PostPositiveAdjustmentWithItemTracking(
           Item, '', '', LibraryRandom.RandIntInRange(10, 20), WorkDate(), '', LotNoInformation."Lot No.");
     end;
@@ -1027,6 +1031,29 @@ codeunit 148223 "EUDR Certificate Capture Test"
         Assert.AreEqual(CountryRegionCode, LotNoInformation."Country/Region of Prod. Code", CountryRegionOfProdErr);
         Assert.AreEqual(DDSReferenceNo, LotNoInformation."DDS Reference Number", DDSReferenceNoErr);
         Assert.AreEqual(DDSVerificationNo, LotNoInformation."DDS Verification No.", DDSVerificationNoErr);
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     [ConfirmHandler]
