@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Bank.BankAccount;
 
+#pragma warning disable AS0088
 pageextension 7000027 "SII Payment Methods" extends "Payment Methods"
 {
     layout

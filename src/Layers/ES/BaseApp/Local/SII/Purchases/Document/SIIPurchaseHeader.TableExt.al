@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0088
 tableextension 7000012 "SII Purchase Header" extends "Purchase Header"
 {
     fields

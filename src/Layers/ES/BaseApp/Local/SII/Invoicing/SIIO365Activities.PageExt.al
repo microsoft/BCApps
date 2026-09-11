@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
+#pragma warning disable AS0088
 pageextension 7000030 "SII O365 Activities" extends "O365 Activities"
 {
     layout

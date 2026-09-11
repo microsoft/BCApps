@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Document;
 
+#pragma warning disable AS0088
 pageextension 7000007 "SII Sales Invoice" extends "Sales Invoice"
 {
     layout

@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Document;
 
+#pragma warning disable AS0088
 tableextension 7000019 "SII Sales Header" extends "Sales Header"
 {
     fields

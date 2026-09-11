@@ -9,6 +9,7 @@ using Microsoft.EServices.EDocument;
 /// <summary>
 /// Provides editing capabilities for specific fields on posted sales credit memos that can be modified after posting.
 /// </summary>
+#pragma warning disable AS0088
 pageextension 7000048 "SII Pstd. Sales Cr.Memo Update" extends "Pstd. Sales Cr. Memo - Update"
 {
     layout

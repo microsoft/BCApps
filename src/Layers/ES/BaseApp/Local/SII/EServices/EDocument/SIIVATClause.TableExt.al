@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.VAT.Clause;
 
+#pragma warning disable AS0088
 tableextension 7000029 "SII VAT Clause" extends "VAT Clause"
 {
     fields

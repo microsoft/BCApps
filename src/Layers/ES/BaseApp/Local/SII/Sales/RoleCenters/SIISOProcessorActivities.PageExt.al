@@ -6,6 +6,7 @@ namespace Microsoft.Sales.RoleCenters;
 
 using Microsoft.EServices.EDocument;
 
+#pragma warning disable AS0088
 pageextension 7000049 "SII SO Processor Activities" extends "SO Processor Activities"
 {
     layout

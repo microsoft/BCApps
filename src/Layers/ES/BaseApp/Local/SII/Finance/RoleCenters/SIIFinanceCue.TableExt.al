@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.RoleCenters;
 
+#pragma warning disable AS0088
 tableextension 7000031 "SII Finance Cue" extends "Finance Cue"
 {
     fields

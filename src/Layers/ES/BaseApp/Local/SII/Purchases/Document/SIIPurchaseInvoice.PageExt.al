@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0088
 pageextension 7000001 "SII Purchase Invoice" extends "Purchase Invoice"
 {
     layout

@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.Document;
 
+#pragma warning disable AS0088
 pageextension 7000009 "SII Sales Return Order" extends "Sales Return Order"
 {
     layout

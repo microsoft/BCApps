@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.History;
 
+#pragma warning disable AS0088
 tableextension 7000022 "SII Sales Inv. Line" extends "Sales Invoice Line"
 {
     fields

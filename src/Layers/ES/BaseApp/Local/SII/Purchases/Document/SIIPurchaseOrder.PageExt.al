@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0088
 pageextension 7000002 "SII Purchase Order" extends "Purchase Order"
 {
     layout

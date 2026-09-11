@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0088
 pageextension 7000000 "SII Purchase Credit Memo" extends "Purchase Credit Memo"
 {
     layout

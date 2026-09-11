@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.History;
 
+#pragma warning disable AS0088
 pageextension 7000005 "SII Posted Purchase Invoice" extends "Posted Purchase Invoice"
 {
     layout

@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.History;
 
+#pragma warning disable AS0088
 tableextension 7000016 "SII Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
 {
     fields

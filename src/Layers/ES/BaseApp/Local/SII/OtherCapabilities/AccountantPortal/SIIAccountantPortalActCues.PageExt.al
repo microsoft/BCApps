@@ -2,6 +2,7 @@ namespace Microsoft.AccountantPortal;
 
 using Microsoft.EServices.EDocument;
 
+#pragma warning disable AS0088
 pageextension 7000041 "SII AccountantPortal Act. Cues" extends "AccountantPortal Activity Cues"
 {
     layout

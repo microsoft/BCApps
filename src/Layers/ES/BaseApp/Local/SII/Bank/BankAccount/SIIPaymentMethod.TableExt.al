@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Bank.BankAccount;
 
+#pragma warning disable AS0088
 tableextension 7000026 "SII Payment Method" extends "Payment Method"
 {
     fields

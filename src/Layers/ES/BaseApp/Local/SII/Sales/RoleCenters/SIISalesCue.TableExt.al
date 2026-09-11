@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.RoleCenters;
 
+#pragma warning disable AS0088
 tableextension 7000046 "SII Sales Cue" extends "Sales Cue"
 {
     fields

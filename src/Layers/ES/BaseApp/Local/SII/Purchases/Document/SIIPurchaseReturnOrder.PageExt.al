@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
+#pragma warning disable AS0088
 pageextension 7000003 "SII Purchase Return Order" extends "Purchase Return Order"
 {
     layout

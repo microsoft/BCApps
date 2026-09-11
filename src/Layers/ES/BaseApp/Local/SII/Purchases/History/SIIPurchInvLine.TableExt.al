@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.History;
 
+#pragma warning disable AS0088
 tableextension 7000015 "SII Purch. Inv. Line" extends "Purch. Inv. Line"
 {
     fields

@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.Setup;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.VAT.Clause;
 
+#pragma warning disable AS0088
 tableextension 7000030 "SII VAT Posting Setup" extends "VAT Posting Setup"
 {
     fields
