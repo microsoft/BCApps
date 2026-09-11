@@ -16,7 +16,11 @@ codeunit 139025 "Test Email Logging on Exchange"
         Assert: Codeunit Assert;
 
     local procedure TryInitializeEWS(var ExchangeWebServicesClient: Codeunit "Exchange Web Services Client"): Boolean
+    var
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
     begin
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         // This function returns TRUE, only if the current test environment allows for successful EWS autodetection with the email address below
         exit(ExchangeWebServicesClient.InitializeOnClient('vlabtest@microsoft.com', 'https://outlook.office365.com/EWS/Exchange.asmx'));
     end;
@@ -104,4 +108,3 @@ codeunit 139025 "Test Email Logging on Exchange"
         Assert.ExpectedError('Connection to the Exchange server failed.');
     end;
 }
-
