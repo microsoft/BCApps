@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-codeunit 150203 "Test FAB Platform"
+codeunit 140012 "Test FAB Platform"
 {
     Subtype = Test;
     TestPermissions = Restrictive;

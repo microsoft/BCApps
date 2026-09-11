@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Utilities;
 
-codeunit 150202 "Test FAB Config Package"
+codeunit 140011 "Test FAB Config Package"
 {
     Subtype = Test;
     TestPermissions = Restrictive;

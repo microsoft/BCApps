@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-codeunit 150201 "Fabric Platform Test Sub"
+codeunit 140010 "Fabric Platform Test Sub"
 {
     SingleInstance = true;
     EventSubscriberInstance = Manual;
