@@ -222,7 +222,13 @@ codeunit 6060 "Hybrid Deployment"
 
         for i := 0 to ErrorsArray.Count() - 1 do begin
             ErrorsArray.Get(i, ErrorToken);
-            ErrorToken.WriteTo(TempError);
+            if ErrorToken.IsValue() then begin
+                if ErrorToken.AsValue().IsNull() or ErrorToken.AsValue().IsUndefined() then
+                    TempError := ''
+                else
+                    TempError := ErrorToken.AsValue().AsText();
+            end else
+                ErrorToken.WriteTo(TempError);
 
             // Check if the error contains an error code and fetch the message
             TempMessage := GetErrorMessage(TempError);
