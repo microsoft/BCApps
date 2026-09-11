@@ -11092,9 +11092,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."Source Currency Code" = '' then begin
             if GenJnlLine."System-Created Entry" then
                 exit(GenJnlLine."Source Currency Amount" + WHTAmountLCY);
-            exit(GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY);
+
+            if (GenJnlLine."Source Currency Amount" <> (GenJnlLine.Amount - GenJnlLine."VAT Amount")) and
+               (GenJnlLine."Source Currency Amount" <> 0)
+            then
+                exit(GenJnlLine."Source Currency Amount" + WHTAmountLCY)
+            else
+                exit(GenJnlLine.Amount - GenJnlLine."VAT Amount" + WHTAmountLCY);
         end;
-    
+
         exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY));
     end;
 
