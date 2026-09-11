@@ -18,6 +18,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 3.0
+$expectedTeamLabelForRun = $ExpectedTeamLabel
+$expectedRequestTypeForRun = $ExpectedRequestType
+$rejectOpenPullRequestForRun = [bool]$RejectOpenPullRequest
 
 $runId = "$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
 $branch = "bc-extrequest-implement/ext_issue-$IssueNumber"
@@ -41,16 +44,16 @@ function Test-IssueEligibility {
     if ($issue.state -ne 'OPEN' -or $labels -notcontains 'ext-ready-to-implement') {
         throw "Issue #$IssueNumber is no longer open and ready to implement."
     }
-    if (-not [string]::IsNullOrWhiteSpace($ExpectedTeamLabel)) {
+    if (-not [string]::IsNullOrWhiteSpace($expectedTeamLabelForRun)) {
         $assignedTeamLabels = @($labels | Where-Object { $_ -in $knownTeamLabels })
-        if ($assignedTeamLabels.Count -ne 1 -or $assignedTeamLabels[0] -ne $ExpectedTeamLabel) {
-            throw "Issue #$IssueNumber no longer has only expected team label '$ExpectedTeamLabel'."
+        if ($assignedTeamLabels.Count -ne 1 -or $assignedTeamLabels[0] -ne $expectedTeamLabelForRun) {
+            throw "Issue #$IssueNumber no longer has only expected team label '$expectedTeamLabelForRun'."
         }
     }
-    if (-not [string]::IsNullOrWhiteSpace($ExpectedRequestType)) {
+    if (-not [string]::IsNullOrWhiteSpace($expectedRequestTypeForRun)) {
         $assignedRequestTypes = @($labels | Where-Object { $_ -in $knownRequestTypes })
-        if ($assignedRequestTypes.Count -ne 1 -or $assignedRequestTypes[0] -ne $ExpectedRequestType) {
-            throw "Issue #$IssueNumber no longer has only expected request type '$ExpectedRequestType'."
+        if ($assignedRequestTypes.Count -ne 1 -or $assignedRequestTypes[0] -ne $expectedRequestTypeForRun) {
+            throw "Issue #$IssueNumber no longer has only expected request type '$expectedRequestTypeForRun'."
         }
 
         $repositoryParts = $Repository.Split('/', 2)
@@ -69,7 +72,7 @@ function Test-IssueEligibility {
         }
     }
 
-    if ($RejectOpenPullRequest) {
+    if ($rejectOpenPullRequestForRun) {
         foreach ($reference in @($issue.closedByPullRequestsReferences)) {
             $referenceRepository = "$($reference.repository.owner.login)/$($reference.repository.name)"
             $prState = gh pr view $reference.number `

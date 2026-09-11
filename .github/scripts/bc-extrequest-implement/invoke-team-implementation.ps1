@@ -31,6 +31,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 3.0
+$issueLimit = $Limit
+$telemetryEnabledForRun = $TelemetryEnabled
 
 $batchId = "$TeamSlug-$BatchDate"
 $branch = "bc-extrequest-implement/team-$batchId"
@@ -108,7 +110,7 @@ function Send-IssueTelemetry {
         [string] $FailureMessage = ''
     )
 
-    if (-not $TelemetryEnabled) {
+    if (-not $telemetryEnabledForRun) {
         return
     }
 
@@ -225,7 +227,7 @@ function Get-EligibleIssues {
         $issues |
             Sort-Object updatedAt, number |
             Where-Object { Test-IssueEligible -Issue $_ } |
-            Select-Object -First $Limit
+            Select-Object -First $issueLimit
     )
 }
 

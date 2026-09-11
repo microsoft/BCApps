@@ -8,6 +8,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 3.0
+$telemetryEnabledForRun = $TelemetryEnabled
 
 if (-not (Test-Path $StatePath)) {
     throw "Team implementation state '$StatePath' was not found."
@@ -80,7 +81,7 @@ function Send-IssueTelemetry {
         [object] $PullRequest
     )
 
-    if (-not $TelemetryEnabled) {
+    if (-not $telemetryEnabledForRun) {
         return
     }
 
