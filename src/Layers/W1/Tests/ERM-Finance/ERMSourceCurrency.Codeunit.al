@@ -2655,7 +2655,11 @@ codeunit 134897 "ERM Source Currency"
         PurchaseLine: Record "Purchase Line";
         CurrencyCode: Code[10];
     begin
-        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Posting Date", WorkDate());
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader."Posting Description" := 'Test Purchase Invoice';
+        PurchaseHeader.Modify(true);
         CurrencyCode := CreateCurrency();
         CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
         CurrencyExchangeRate.FindLast();
@@ -2671,7 +2675,6 @@ codeunit 134897 "ERM Source Currency"
         PurchaseLine.Validate("Direct Unit Cost", 1788.27);
         PurchaseLine.Modify(true);
 
-        PurchaseHeader."Posting Date" := WorkDate;
         PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
         PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
         PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
