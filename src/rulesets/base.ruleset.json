@@ -34,10 +34,6 @@
       "justification": "Use of implicit 'with' will be removed in the future. Qualify with 'Rec'."
     },
     {
-      "id": "AL0606",
-      "action": "Warning"
-    },
-    {
       "id": "AL0667",
       "action": "Warning",
       "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future release."
@@ -92,11 +88,6 @@
       "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
     },
     {
-      "id": "AS0099",
-      "action": "Warning",
-      "justification": "The ID '0' for the EnumValue 'Marketing Text' is not valid. It should be within the range '[1..2147483647]', which is allocated to the application, and outside the range '[50000..99999]', which is allocated to per-tenant customizations."
-    },
-    {
       "id": "AS0103",
       "action": "Warning",
       "justification": "Table is missing a matching permission set."
@@ -110,11 +101,6 @@
       "id": "AA0022",
       "action": "Warning",
       "justification": "Substitute the IF THEN ELSE structure with a CASE."
-    },
-    {
-      "id": "AA0052",
-      "action": "Warning",
-      "justification": "The permission set should not be included through a permission set extension because it includes permissions for objects defined in another application."
     },
     {
       "id": "AA0073",
@@ -149,11 +135,6 @@
     {
       "id": "AA0150",
       "action": "Warning"
-    },
-    {
-      "id": "AA0161",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
     },
     {
       "id": "AA0175",
@@ -266,11 +247,6 @@
       "justification": "The name of the parameter is identical to a field, method, or action in the same scope."
     },
     {
-      "id": "AA0448",
-      "action": "Warning",
-      "justification": "Use FieldCaption instead of FieldName and TableCaption instead of TableName in methods that display messages."
-    },
-    {
       "id": "AA0462",
       "action": "Warning"
     },
@@ -295,11 +271,6 @@
       "justification": "Action should have a value for the Image property."
     },
     {
-      "id": "AW0009",
-      "action": "Warning",
-      "justification": "Using a Blob with subtype Bitmap on a page field is deprecated. "
-    },
-    {
       "id": "AW0011",
       "action": "Warning",
       "justification": "Group 'Processing' only contains promoted actions that are not set to PromotedOnly='true'."
@@ -318,10 +289,6 @@
       "id": "PTE0008",
       "action": "Warning",
       "justification": "Action must have a value for the ApplicationArea property so that they are visible to users. From runtime 11.0, you can specify on the application object level the ApplicationArea to use as default for all its controls and actions."
-    },
-    {
-      "id": "PTE0018",
-      "action": "Warning"
     },
     {
       "id": "AL0603",

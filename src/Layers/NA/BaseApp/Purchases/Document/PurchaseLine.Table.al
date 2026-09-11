@@ -2726,6 +2726,7 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
+                TestStatusOpen();
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
@@ -9884,7 +9885,7 @@ table 39 "Purchase Line"
             CheckPrepmtAmounts();
     end;
 
-    local procedure CalculateOutstandingAmountExclTax(): Decimal
+    procedure CalculateOutstandingAmountExclTax(): Decimal
     var
         OutstandingAmount: Decimal;
         QuantityNotInvoiced: Decimal;

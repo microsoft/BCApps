@@ -1626,7 +1626,7 @@ table 8059 "Subscription Line"
             "Service Partner"::Customer:
                 begin
                     ContractsItemManagement.CreateTempSalesHeader(TempSalesHeader, TempSalesHeader."Document Type"::Order, ServiceObject."End-User Customer No.", ServiceObject."Bill-to Customer No.", Rec."Subscription Line Start Date", Rec."Currency Code");
-                    ContractsItemManagement.CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, Rec."Subscription Line Start Date", ServiceObject."Variant Code");
+                    ContractsItemManagement.CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject, Rec."Subscription Line Start Date");
                     Rec."Calculation Base Amount" := ContractsItemManagement.CalculateUnitPrice(TempSalesHeader, TempSalesLine);
                 end;
             "Service Partner"::Vendor:
