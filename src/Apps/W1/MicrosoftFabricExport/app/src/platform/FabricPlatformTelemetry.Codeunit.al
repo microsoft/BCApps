@@ -5,7 +5,7 @@ codeunit 150008 "Fabric Platform Telemetry"
     Access = Internal;
 
     var
-        CategoryTok: Label 'BC2Fabric', Locked = true;
+        CategoryTok: Label 'MicrosoftFabricExport', Locked = true;
 
     /// <summary>Emits a diagnostic trace to Application Insights (publisher telemetry).</summary>
     procedure LogEvent(EventId: Text; Message: Text)

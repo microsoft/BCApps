@@ -23,6 +23,7 @@ codeunit 150001 "Fabric Platform Mgt"
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling export.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling export.';
+        OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
 
     procedure MaxTableCount(): Integer
     begin
@@ -172,17 +173,24 @@ codeunit 150001 "Fabric Platform Mgt"
         if not IsHandled then begin
             ClientIdText := CredMgt.GetClientId();
             if ClientIdText = '' then
-                Error(ClientIdRequiredErr);
+                Error(CreateSetupErrorInfo(ClientIdRequiredErr));
             if not Evaluate(ClientId, ClientIdText) then
                 Error(ClientIdInvalidErr, ClientIdText);
             if not CredMgt.IsClientSecretSet() then
-                Error(ClientSecretRequiredErr);
+                Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
         end;
         Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
         Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then
             Message(EnableRequestedMsg);
+    end;
+
+    local procedure CreateSetupErrorInfo(ErrorMessage: Text) SetupErrorInfo: ErrorInfo
+    begin
+        SetupErrorInfo := ErrorInfo.Create(ErrorMessage);
+        SetupErrorInfo.PageNo := Page::"Fabric Platform Setup";
+        SetupErrorInfo.AddNavigationAction(OpenFabricSetupLbl);
     end;
 
     procedure StartExport()

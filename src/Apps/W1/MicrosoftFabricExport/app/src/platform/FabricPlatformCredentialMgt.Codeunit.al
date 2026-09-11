@@ -12,7 +12,8 @@ codeunit 150005 "Fabric Platform Credential Mgt"
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
         TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
         FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
-        EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment. An administrator must enable it first: search for ''Data Encryption Management'' and choose ''Activate Encryption''.';
+        EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
+        OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
 
     procedure SetClientId(ClientId: Text)
     begin
@@ -60,6 +61,7 @@ codeunit 150005 "Fabric Platform Credential Mgt"
     internal procedure SetClientSecret(ClientSecret: SecretText)
     var
         CryptographyManagement: Codeunit "Cryptography Management";
+        EncryptionNotEnabledErrorInfo: ErrorInfo;
     begin
         if IsolatedStorage.Contains('FabricPlat.ClientSecret', DataScope::Module) then
             IsolatedStorage.Delete('FabricPlat.ClientSecret', DataScope::Module);
@@ -69,7 +71,10 @@ codeunit 150005 "Fabric Platform Credential Mgt"
             exit;
         end;
 
-        Error(EncryptionNotEnabledErr);
+        EncryptionNotEnabledErrorInfo := ErrorInfo.Create(EncryptionNotEnabledErr);
+        EncryptionNotEnabledErrorInfo.PageNo := Page::"Data Encryption Management";
+        EncryptionNotEnabledErrorInfo.AddNavigationAction(OpenDataEncryptionMgtLbl);
+        Error(EncryptionNotEnabledErrorInfo);
     end;
 
     [NonDebuggable]
