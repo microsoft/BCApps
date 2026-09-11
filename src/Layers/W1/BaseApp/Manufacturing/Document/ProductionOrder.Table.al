@@ -1655,9 +1655,28 @@ table 5405 "Production Order"
         ProdOrderComponent.SetRange("Prod. Order No.", "No.");
         if ProdOrderComponent.FindSet() then
             repeat
-                if (ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)" then
+                if ((ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)") and
+                   IsPickedQtyStillInOperationArea(ProdOrderComponent)
+                then
                     Error(CannotDeleteWithPickedQtyErr);
             until ProdOrderComponent.Next() = 0;
+    end;
+
+    local procedure IsPickedQtyStillInOperationArea(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        BinContent: Record "Bin Content";
+    begin
+        if ProdOrderComponent."Bin Code" = '' then
+            exit(true);
+
+        if not BinContent.Get(
+            ProdOrderComponent."Location Code", ProdOrderComponent."Bin Code",
+            ProdOrderComponent."Item No.", ProdOrderComponent."Variant Code", ProdOrderComponent."Unit of Measure Code")
+        then
+            exit(false);
+
+        BinContent.CalcFields("Quantity (Base)");
+        exit(BinContent."Quantity (Base)" > 0);
     end;
 
     local procedure ValidateWarehousePutAwayLocation(ProductionOrder: Record "Production Order")
