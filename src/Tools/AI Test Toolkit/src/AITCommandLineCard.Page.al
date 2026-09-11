@@ -43,6 +43,7 @@ page 149042 "AIT CommandLine Card"
                         if AITCode <> xRec."Test Suite Code" then
                             Clear(LineNoFilter);
 
+                        Clear(AgentTaskLogs);
                         UpdateAITestMethodLines();
                     end;
                 }
@@ -76,6 +77,7 @@ page 149042 "AIT CommandLine Card"
 
                     trigger OnValidate()
                     begin
+                        Clear(AgentTaskLogs);
                         UpdateAITestMethodLines();
                     end;
                 }
@@ -157,6 +159,18 @@ page 149042 "AIT CommandLine Card"
                         if not XmlPort.Import(XmlPort::"AIT Test Suite Import/Export", SuiteDefinitionInStream) then
                             Error(SuiteImportErr);
                     end;
+                }
+            }
+            group(AgentTaskLogGroup)
+            {
+                Caption = 'Agent Task Logs';
+
+                field("Agent Task Logs"; AgentTaskLogs)
+                {
+                    Caption = 'Agent Task Logs';
+                    Editable = false;
+                    MultiLine = true;
+                    ToolTip = 'Specifies the troubleshooting JSON for agent tasks associated with the latest eval suite version.';
                 }
             }
             group("Test Method Lines Group")
@@ -243,6 +257,17 @@ page 149042 "AIT CommandLine Card"
                     UpdateAITestMethodLines();
                 end;
             }
+            action(LoadAgentTaskLogs)
+            {
+                Caption = 'Load Agent Task Logs';
+                Image = Refresh;
+                ToolTip = 'Loads troubleshooting JSON for agent tasks associated with the latest eval suite version.';
+
+                trigger OnAction()
+                begin
+                    LoadAgentTaskLogsForLatestVersion();
+                end;
+            }
 
         }
         area(Navigation)
@@ -278,6 +303,9 @@ page 149042 "AIT CommandLine Card"
                 actionref(ClearTestStatus_Promoted; ResetTestSuite)
                 {
                 }
+                actionref(LoadAgentTaskLogs_Promoted; LoadAgentTaskLogs)
+                {
+                }
             }
         }
     }
@@ -300,6 +328,7 @@ page 149042 "AIT CommandLine Card"
         InputDataset: Text;
         SuiteDefinition: Text;
         InputDatasetFilename: Text;
+        AgentTaskLogs: Text;
 
     local procedure StartAITSuite()
     var
@@ -360,6 +389,28 @@ page 149042 "AIT CommandLine Card"
     begin
         SetFilterOnTestLines(Rec);
         RefreshNoOfPendingTests();
+        CurrPage.Update(false);
+    end;
+
+    local procedure LoadAgentTaskLogsForLatestVersion()
+    var
+        AITLogEntry: Record "AIT Log Entry";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        Version: Integer;
+        NoLogEntriesFoundErr: Label 'No eval log entries were found for eval suite %1.', Comment = '%1 = Eval Suite Code';
+    begin
+        VerifyTestSuiteCode();
+        Clear(AgentTaskLogs);
+        AITLogEntry.SetRange("Test Suite Code", AITCode);
+        AITLogEntry.SetCurrentKey(Version);
+        if not AITLogEntry.FindLast() then
+            Error(NoLogEntriesFoundErr, AITCode);
+
+        Version := AITLogEntry.Version;
+        AITLogEntry.SetRange(Version, Version);
+        if LineNoFilter > 0 then
+            AITLogEntry.SetRange("Test Method Line No.", LineNoFilter);
+        AgentTaskLogs := AgentTestContextImpl.GetAgentTaskLogs(AITLogEntry);
         CurrPage.Update(false);
     end;
 
