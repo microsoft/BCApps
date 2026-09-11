@@ -14,6 +14,11 @@ codeunit 140012 "Test FAB Platform"
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         LookupState: Codeunit "Fabric Platform Lookup State";
         IsInitialized: Boolean;
+        ExpectedMessages: List of [Text];
+        EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        DisableRequestedMsg: Label 'Disable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
 
     local procedure Initialize()
     var
@@ -99,6 +104,7 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure EnableUsesSeamWithoutCallingPlatform()
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
@@ -111,6 +117,8 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected requested-action notification
+        ExpectedMessages.Add(EnableRequestedMsg);
 
         //[WHEN] Enable is requested
         FabricPlatformMgt.EnableExport();
@@ -121,6 +129,7 @@ codeunit 140012 "Test FAB Platform"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure StartStopDisableUseSeam()
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
@@ -133,6 +142,10 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected requested-action notifications, in call order
+        ExpectedMessages.Add(StartRequestedMsg);
+        ExpectedMessages.Add(StopRequestedMsg);
+        ExpectedMessages.Add(DisableRequestedMsg);
 
         //[WHEN] Start, Stop, and Disable are requested
         FabricPlatformMgt.StartExport();
@@ -575,4 +588,18 @@ codeunit 140012 "Test FAB Platform"
         //[THEN] No token is reported as present
         Assert.IsFalse(LookupState.HasFabricApiToken(), 'Expected the token cache to be cleared.');
     end;
+
+    #region Handlers
+
+    [MessageHandler]
+    procedure MessageHandler(Message: Text[1024])
+    var
+        ExpectedMessage: Text;
+    begin
+        ExpectedMessage := ExpectedMessages.Get(1);
+        ExpectedMessages.RemoveAt(1);
+        Assert.ExpectedMessage(ExpectedMessage, Message);
+    end;
+
+    #endregion Handlers
 }

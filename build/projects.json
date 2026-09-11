@@ -5149,7 +5149,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\MicrosoftFabricExport\\app",
       "dvdFolder": "Applications\\Microsoft Fabric Export\\Source",
       "hasTranslations": true,
-      "installOnEnvironmentUpdate": true,
+      "installOnEnvironmentUpdate": false,
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",

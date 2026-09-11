@@ -4,24 +4,23 @@
     "publisher": "Microsoft",
     "brief": "Export data from Business Central to Microsoft Fabric using Open Mirroring.",
     "description": "Export data from Business Central to Microsoft Fabric using Open Mirroring technology. Supports table selection, category-based export ordering, multi-company sync.",
-    "version": "1.0.0.0",
-    "privacyStatement": "",
-    "EULA": "",
-    "help": "",
-    "url": "",
+    "version": "30.0.0.0",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+    "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
     "logo": "ExtensionLogo.png",
     "dependencies": [
     ],
     "screenshots": [],
-    "platform": "29.0.0.0",
-    "application": "29.0.0.0",
+    "platform": "30.0.0.0",
+    "application": "30.0.0.0",
     "idRanges": [
         {
             "from": 150001,
             "to": 150200
         }
     ],
-    "runtime": "18.0",
     "target": "Cloud",
     "internalsVisibleTo": [
         {

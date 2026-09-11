@@ -12,6 +12,8 @@ codeunit 140011 "Test FAB Config Package"
         Assert: Codeunit "Assert";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;
+        ExpectedMessage: Text[1024];
+        TableKeptMsg: Label '1 table(s) were not removed because they are also included in at least one other active package.';
 
     local procedure Initialize()
     var
@@ -188,6 +190,7 @@ codeunit 140011 "Test FAB Config Package"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure DeactivateKeepsTableSharedWithOtherActivePackage()
     var
         Pkg: Record "Fabric Config Package";
@@ -208,6 +211,8 @@ codeunit 140011 "Test FAB Config Package"
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected kept-table notification
+        ExpectedMessage := TableKeptMsg;
 
         //[WHEN] Package A is deactivated
         Pkg.Get('PKG-A');
@@ -605,4 +610,14 @@ codeunit 140011 "Test FAB Config Package"
         //[THEN] The import is rejected
         Assert.ExpectedError('valid package definition');
     end;
+
+    #region Handlers
+
+    [MessageHandler]
+    procedure MessageHandler(Message: Text[1024])
+    begin
+        Assert.ExpectedMessage(ExpectedMessage, Message);
+    end;
+
+    #endregion Handlers
 }
