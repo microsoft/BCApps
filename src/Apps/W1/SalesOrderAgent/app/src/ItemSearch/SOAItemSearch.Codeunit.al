@@ -161,7 +161,8 @@ codeunit 4591 "SOA Item Search"
 
         Msg := StrSubstNo(NotificationMsg, Item.Description);
 
-        if SOASetup."Incl. Capable to Promise" then begin
+        // Capable to Promise reads the Order Promising Setup and errors if it is missing, so skip it when the setup is not configured.
+        if SOASetup."Incl. Capable to Promise" and OrderPromisingSetupExists() then begin
             SOAShipmentDateMgt.SetParamenters(Item."No.", SalesLine."Variant Code", SalesLine."Location Code", SalesLine."Unit of Measure Code", SalesLine."Shipment Date", SalesLine.Quantity);
             SOAShipmentDateMgt.Run();
             if SOAShipmentDateMgt.GetEarliestShipmentDate() <= SalesLine."Shipment Date" then
@@ -174,6 +175,13 @@ codeunit 4591 "SOA Item Search"
         QuoteAvailabilityCheckNotification.Message(Msg);
         QuoteAvailabilityCheckNotification.Scope(NotificationScope::LocalScope);
         NotificationLifecycleMgt.SendNotificationWithAdditionalContext(QuoteAvailabilityCheckNotification, SalesLine.RecordId, GetQuoteItemAvailabilityNotificationId());
+    end;
+
+    local procedure OrderPromisingSetupExists(): Boolean
+    var
+        OrderPromisingSetup: Record "Order Promising Setup";
+    begin
+        exit(not OrderPromisingSetup.IsEmpty());
     end;
 
     local procedure GetQuoteItemAvailabilityNotificationId(): Guid
