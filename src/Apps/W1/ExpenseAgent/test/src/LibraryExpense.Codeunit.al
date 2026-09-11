@@ -17,6 +17,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
 using System.Security.User;
+using System.Utilities;
 
 codeunit 148300 "Library - Expense"
 {
