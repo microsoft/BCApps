@@ -3,11 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-#if not PTE
 codeunit 150002 "Fabric Config Package Mgt"
-#else
-codeunit 50102 "Fabric Config Package Mgt"
-#endif
 {
 
     var

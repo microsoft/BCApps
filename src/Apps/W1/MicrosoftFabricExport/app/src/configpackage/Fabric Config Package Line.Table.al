@@ -3,11 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-#if not PTE
 table 150001 "Fabric Config Package Line"
-#else
-table 50101 "Fabric Config Package Line"
-#endif
 {
     Caption = 'Fabric Config Package Line';
     Access = Internal;

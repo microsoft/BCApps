@@ -4,11 +4,7 @@ using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Fabric;
 
-#if not PTE
 page 150018 "Fabric Platform Setup Wizard"
-#else
-page 50118 "Fabric Platform Setup Wizard"
-#endif
 {
     Caption = 'Set Up Microsoft Fabric Export';
     PageType = NavigatePage;

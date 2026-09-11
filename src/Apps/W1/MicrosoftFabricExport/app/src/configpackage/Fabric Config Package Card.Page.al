@@ -2,11 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Utilities;
 
-#if not PTE
 page 150006 "Fabric Config Package Card"
-#else
-page 50106 "Fabric Config Package Card"
-#endif
 {
     Caption = 'Fabric Config Package';
     PageType = Card;

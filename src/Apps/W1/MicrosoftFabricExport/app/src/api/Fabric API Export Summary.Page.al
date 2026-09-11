@@ -2,11 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-#if not PTE
 page 150013 "Fabric API Export Summary"
-#else
-page 50113 "Fabric API Export Summary"
-#endif
 {
     PageType = API;
     Caption = 'Fabric API Export Summary', Locked = true;

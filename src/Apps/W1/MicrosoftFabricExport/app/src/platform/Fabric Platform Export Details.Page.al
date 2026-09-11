@@ -2,11 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-#if not PTE
 page 150002 "Fabric Platform Export Details"
-#else
-page 50102 "Fabric Platform Export Details"
-#endif
 {
     Caption = 'Fabric Synchronization Details';
     PageType = List;

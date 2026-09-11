@@ -3,11 +3,7 @@ namespace Microsoft.FabricExport;
 using Microsoft.Utilities;
 using System.Fabric;
 
-#if not PTE
 page 150004 "Fabric Platform Setup"
-#else
-page 50104 "Fabric Platform Setup"
-#endif
 {
     Caption = 'Microsoft Fabric Export Setup';
     PageType = Card;

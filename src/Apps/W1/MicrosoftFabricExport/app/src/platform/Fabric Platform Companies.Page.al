@@ -4,11 +4,7 @@ using Microsoft.Foundation.Company;
 using System.Environment;
 using System.Fabric;
 
-#if not PTE
 page 150001 "Fabric Platform Companies"
-#else
-page 50101 "Fabric Platform Companies"
-#endif
 {
     Caption = 'Fabric Company Configuration';
     PageType = List;

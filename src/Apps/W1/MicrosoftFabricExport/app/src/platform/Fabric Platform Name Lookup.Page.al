@@ -2,11 +2,7 @@ namespace Microsoft.FabricExport;
 
 using Microsoft.Utilities;
 
-#if not PTE
 page 150009 "Fabric Platform Name Lookup"
-#else
-page 50109 "Fabric Platform Name Lookup"
-#endif
 {
     Caption = 'Select';
     PageType = List;

@@ -4,11 +4,7 @@ using System.Azure.Identity;
 using System.Security.Authentication;
 using System.Security.Encryption;
 
-#if not PTE
 codeunit 150005 "Fabric Platform Credential Mgt"
-#else
-codeunit 50105 "Fabric Platform Credential Mgt"
-#endif
 {
     Access = Internal;
 

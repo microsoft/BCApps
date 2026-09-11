@@ -3,11 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-#if not PTE
 page 150005 "Fabric Platform Tables"
-#else
-page 50105 "Fabric Platform Tables"
-#endif
 {
     Caption = 'Fabric Table Configuration';
     PageType = List;

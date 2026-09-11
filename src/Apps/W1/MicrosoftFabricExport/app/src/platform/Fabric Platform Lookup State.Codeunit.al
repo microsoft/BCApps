@@ -1,10 +1,6 @@
 namespace Microsoft.FabricExport;
 
-#if not PTE
 codeunit 150004 "Fabric Platform Lookup State"
-#else
-codeunit 50104 "Fabric Platform Lookup State"
-#endif
 {
     SingleInstance = true;
     Access = Internal;

@@ -1,10 +1,6 @@
 namespace Microsoft.FabricExport;
 
-#if not PTE
 page 150007 "Fabric Config Package Subform"
-#else
-page 50107 "Fabric Config Package Subform"
-#endif
 {
     Caption = 'Fabric Config Package Lines';
     PageType = ListPart;

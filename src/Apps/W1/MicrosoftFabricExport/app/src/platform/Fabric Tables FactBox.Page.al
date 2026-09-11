@@ -2,11 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-#if not PTE
 page 150017 "Fabric Tables FactBox"
-#else
-page 50117 "Fabric Tables FactBox"
-#endif
 {
     Caption = 'Tables to Synchronize';
     PageType = ListPart;
