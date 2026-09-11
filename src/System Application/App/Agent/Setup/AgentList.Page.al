@@ -99,6 +99,9 @@ page 4316 "Agent List"
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
 
+                    if not Agent.IsArchivingSupported(Rec."User Security ID") then
+                        Error(ArchivingNotSupportedErr, Rec."Agent Metadata Provider");
+
                     if Agent.IsActive(Rec."User Security ID") then
                         Error(DeactivateBeforeArchivingErr);
 
@@ -302,4 +305,5 @@ page 4316 "Agent List"
         AgentIsArchived: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
+        ArchivingNotSupportedErr: Label 'Archiving agents of type ''%1'' is not supported.', Comment = '%1 = the type of the agent.';
 }

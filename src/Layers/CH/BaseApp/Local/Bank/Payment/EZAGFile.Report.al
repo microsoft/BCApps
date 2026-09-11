@@ -24,7 +24,9 @@ report 3010542 "EZAG File"
     {
         dataitem("Gen. Journal Line"; "Gen. Journal Line")
         {
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
             DataItemTableView = sorting("Journal Template Name", "Journal Batch Name", "Posting Date", Clearing, "Debit Bank");
+#pragma warning restore AL0254
 
             trigger OnAfterGetRecord()
             begin
