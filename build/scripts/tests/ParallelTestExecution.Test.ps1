@@ -172,8 +172,6 @@ Describe "ParallelTestExecution app-name resolution" {
                     TestCount = 2
                 })
             }
-            Mock Enable-BcTestTaskScheduler { }
-            Mock Disable-BcTestTaskScheduler { }
             Mock New-BcTestTenantTemplate { 'default-test-template' }
             Mock Invoke-RequiredDisabledTestExecution { $true }
             Mock Reset-BcTestTenant { }
@@ -343,6 +341,15 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
 Describe "ParallelTestExecution clean tenant scheduling" {
     BeforeAll {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    BeforeEach {
+        Mock -ModuleName ParallelTestExecution Invoke-ScriptInBcContainer {
+            throw 'Unexpected unmocked container access.'
+        }
+        Mock -ModuleName ParallelTestExecution Reset-BcTestTenant {
+            throw 'Tenant resets require an explicit test mock.'
+        }
     }
 
     It "writes and reads cached state without temp environment variables" {
@@ -792,8 +799,13 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
-    It "creates one template and invokes clean-tenant execution when codeunits require Disabled isolation" {
-        InModuleScope ParallelTestExecution {
+    It "preserves configured Task Scheduler state <Enabled> during clean and ordinary execution" -ForEach @(
+        @{ Enabled = $false }
+        @{ Enabled = $true }
+    ) {
+        InModuleScope ParallelTestExecution -Parameters @{ Enabled = $Enabled } {
+            param($Enabled)
+
             Mock Get-AvailableBcTenantInfo {
                 @(
                     [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
@@ -813,23 +825,22 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     TestCount = 2
                 })
             }
-            $script:taskSchedulerEnabled = $false
+            $script:taskSchedulerEnabled = $Enabled
+            $script:expectedTaskSchedulerEnabled = $Enabled
             Mock New-BcTestTenantTemplate { 'default-test-template' }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Start-TestAppDispatch {
-                $script:taskSchedulerEnabled | Should -BeFalse
+                $script:taskSchedulerEnabled | Should -Be $script:expectedTaskSchedulerEnabled
             }
             Mock Wait-ForAllTestJobs { $true }
             Mock Invoke-RequiredDisabledTestExecution {
-                $script:taskSchedulerEnabled | Should -BeTrue
+                $script:taskSchedulerEnabled | Should -Be $script:expectedTaskSchedulerEnabled
                 $true
             }
             Mock Reset-BcTestTenant {
-                $script:taskSchedulerEnabled | Should -BeFalse
+                $script:taskSchedulerEnabled | Should -Be $script:expectedTaskSchedulerEnabled
             }
             Mock Remove-BcTestTenantTemplate { }
-            Mock Enable-BcTestTaskScheduler { $script:taskSchedulerEnabled = $true }
-            Mock Disable-BcTestTaskScheduler { $script:taskSchedulerEnabled = $false }
             Mock Merge-TenantTestResults { }
 
             $result = Invoke-ParallelTestExecution -parameters @{
@@ -844,8 +855,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Should -Invoke New-BcTestTenantTemplate -Times 1 -ParameterFilter {
                 $SourceDatabaseName -eq 'default'
             }
-            Should -Invoke Enable-BcTestTaskScheduler -Times 1
-            Should -Invoke Disable-BcTestTaskScheduler -Times 1
+            Should -Invoke Invoke-ScriptInBcContainer -Times 0
+            Should -Invoke Reset-BcTestTenant -Times 1 -Exactly -ParameterFilter {
+                $Tenant -eq 'tenant2' -and
+                $TenantDatabaseName -eq 'tenant2' -and
+                $TemplateDatabaseName -eq 'default'
+            }
             Should -Invoke Reset-BcTestTenant -Times 1 -ParameterFilter {
                 $Tenant -eq 'tenant2' -and
                 $TenantDatabaseName -eq 'tenant2' -and
@@ -861,6 +876,304 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 $TemplateDatabaseName -eq 'default-test-template'
             }
         }
+    }
+
+    Context "discovery fixture preservation" {
+        BeforeEach {
+            InModuleScope ParallelTestExecution {
+                $script:fixtureEvents = [System.Collections.Generic.List[string]]::new()
+                $script:fixtureTenants = @(
+                    [PSCustomObject]@{ Id = 'worker-a'; DatabaseName = 'worker-a-db' }
+                    [PSCustomObject]@{ Id = 'primary'; DatabaseName = 'primary-db' }
+                    [PSCustomObject]@{ Id = 'worker-b'; DatabaseName = 'worker-b-db' }
+                )
+                $script:fixtures = @{
+                    'primary-db' = 'pristine'
+                    'worker-a-db' = 'pristine'
+                    'worker-b-db' = 'pristine'
+                }
+                $script:fixtureParameters = @{
+                    containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                    tenant = 'primary'
+                    extensionId = 'caller-app-id'
+                    testSuite = 'CALLER'
+                    disabledTests = @([PSCustomObject]@{ codeunitId = 999; method = 'Excluded' })
+                }
+                $script:originalFixtureParameters = $script:fixtureParameters | ConvertTo-Json -Depth 5
+                $script:fixtureWorkItems = @([PSCustomObject]@{
+                    Key = 'Tests::500'; AppName = 'Tests'; AppId = 'tests-id'
+                    CodeunitId = '500'; CodeunitName = 'API E2E'; TestCount = 2
+                })
+                $script:discoveryThrows = $false
+                $script:cleanThrows = $false
+                $script:cleanPassed = $true
+                Mock Get-AvailableBcTenantInfo { $script:fixtureTenants }
+                Mock Get-BcContainerAppInfo {
+                    @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+                }
+                Mock Get-RequiredDisabledWorkItems {
+                    $script:fixtureEvents.Add("discover:$($Parameters.tenant)")
+                    [object]::ReferenceEquals($Parameters, $script:fixtureParameters) | Should -BeFalse
+                    $expected = $script:fixtureParameters.Clone()
+                    $expected.tenant = 'worker-a'
+                    ($Parameters | ConvertTo-Json -Depth 5) | Should -Be ($expected | ConvertTo-Json -Depth 5)
+                    $discoveryDatabase = ($script:fixtureTenants |
+                        Where-Object Id -eq $Parameters.tenant).DatabaseName
+                    $script:fixtures[$discoveryDatabase] = 'discovery-dirty'
+                    if ($script:discoveryThrows) {
+                        throw 'discovery failed'
+                    }
+                    $script:fixtureWorkItems
+                }
+                Mock Reset-BcTestTenant {
+                    $Tenant | Should -Not -Be 'primary'
+                    $TenantDatabaseName | Should -Not -Be 'primary-db'
+                    $script:fixtureEvents.Add("restore:${Tenant}:$TemplateDatabaseName")
+                    $script:fixtures[$TenantDatabaseName] = $script:fixtures[$TemplateDatabaseName]
+                }
+                Mock New-BcTestTenantTemplate {
+                    $SourceDatabaseName | Should -Be 'primary-db'
+                    $script:fixtures['primary-db'] | Should -Be 'pristine'
+                    $script:fixtures['worker-a-db'] | Should -Be 'pristine'
+                    $script:fixtureEvents.Add("template:$SourceDatabaseName")
+                    $script:fixtures['template-db'] = $script:fixtures[$SourceDatabaseName]
+                    'template-db'
+                }
+                Mock Invoke-RequiredDisabledTestExecution {
+                    $script:fixtureEvents.Add('clean')
+                    $script:fixtures['primary-db'] | Should -Be 'pristine'
+                    foreach ($worker in $TenantInfo) {
+                        $script:fixtures[$worker.DatabaseName] = 'clean-dirty'
+                    }
+                    if ($script:cleanThrows) {
+                        throw 'clean execution failed'
+                    }
+                    $script:cleanPassed
+                }
+                Mock Invoke-WarmupDispatch {
+                    $script:fixtureEvents.Add('warmup')
+                    @($Pending)
+                }
+                Mock Get-AppRerunBudget { 0 }
+                Mock Wait-ForFreeTenant { 'primary' }
+                Mock Start-TestAppDispatch {
+                    $script:fixtureEvents.Add("ordinary:$Tenant")
+                    foreach ($info in $script:fixtureTenants) {
+                        $script:fixtures[$info.DatabaseName] | Should -Be 'pristine'
+                    }
+                }
+                Mock Wait-ForAllTestJobs { $true }
+                Mock Merge-TenantTestResults { }
+                Mock Remove-BcTestTenantTemplate {
+                    $script:fixtureEvents.Add('remove-template')
+                }
+            }
+        }
+
+        It "restores secondary discovery before copying the pristine primary and dispatching tests" {
+            InModuleScope ParallelTestExecution {
+                Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                    -testType 'UnitTest' -appNamesToTest @('Tests') | Should -BeTrue
+
+                $script:fixtureEvents | Should -Be @(
+                    'discover:worker-a', 'restore:worker-a:primary-db', 'template:primary-db', 'clean',
+                    'restore:worker-a:template-db', 'restore:worker-b:template-db',
+                    'warmup', 'ordinary:primary', 'remove-template'
+                )
+                $script:fixtures['template-db'] | Should -Be 'pristine'
+                ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+                Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+                    $Parameters.tenant -eq 'worker-a' -and $TestType -eq 'UnitTest' -and
+                    $AppNamesToTest.Count -eq 1 -and $AppIdByName.Tests -eq 'tests-id'
+                }
+                Should -Invoke Invoke-ScriptInBcContainer -Times 0
+            }
+        }
+
+        It "restores discovery even when there are no clean work items without creating a template" {
+            InModuleScope ParallelTestExecution {
+                $script:fixtureWorkItems = @()
+                Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                    -testType 'IntegrationTest' -appNamesToTest @('Tests') | Should -BeTrue
+
+                $script:fixtureEvents | Should -Be @(
+                    'discover:worker-a', 'restore:worker-a:primary-db', 'warmup', 'ordinary:primary'
+                )
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-RequiredDisabledTestExecution -Times 0
+                ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+            }
+        }
+
+        It "restores discovery after an exception without copying or dispatching tainted fixtures" {
+            InModuleScope ParallelTestExecution {
+                $script:discoveryThrows = $true
+                {
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'IntegrationTest' -appNamesToTest @('Tests')
+                } | Should -Throw '*discovery failed*'
+
+                $script:fixtureEvents | Should -Be @('discover:worker-a', 'restore:worker-a:primary-db')
+                $script:fixtures['primary-db'] | Should -Be 'pristine'
+                $script:fixtures['worker-a-db'] | Should -Be 'pristine'
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-RequiredDisabledTestExecution -Times 0
+                Should -Invoke Invoke-WarmupDispatch -Times 0
+                ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+            }
+        }
+
+        It "stops before template creation or dispatch when restoring discovery fails" {
+            InModuleScope ParallelTestExecution {
+                Mock Reset-BcTestTenant { throw 'discovery restore failed' }
+                {
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'IntegrationTest' -appNamesToTest @('Tests')
+                } | Should -Throw '*discovery restore failed*'
+
+                Should -Invoke Reset-BcTestTenant -Times 1 -Exactly
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-RequiredDisabledTestExecution -Times 0
+                Should -Invoke Invoke-WarmupDispatch -Times 0
+                ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+            }
+        }
+
+        It "restores every clean worker and removes the template when clean execution throws" {
+            InModuleScope ParallelTestExecution {
+                $script:cleanThrows = $true
+                {
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'IntegrationTest' -appNamesToTest @('Tests')
+                } | Should -Throw '*clean execution failed*'
+
+                $script:fixtureEvents | Should -Be @(
+                    'discover:worker-a', 'restore:worker-a:primary-db', 'template:primary-db', 'clean',
+                    'restore:worker-a:template-db', 'restore:worker-b:template-db', 'remove-template'
+                )
+                $script:fixtures['worker-a-db'] | Should -Be 'pristine'
+                $script:fixtures['worker-b-db'] | Should -Be 'pristine'
+                Should -Invoke Invoke-WarmupDispatch -Times 0
+                Should -Invoke Invoke-ScriptInBcContainer -Times 0
+            }
+        }
+
+        It "restores every clean worker while retaining a failed test result" {
+            InModuleScope ParallelTestExecution {
+                $script:cleanPassed = $false
+                Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                    -testType 'IntegrationTest' -appNamesToTest @('Tests') | Should -BeFalse
+
+                $script:fixtures['worker-a-db'] | Should -Be 'pristine'
+                $script:fixtures['worker-b-db'] | Should -Be 'pristine'
+                $script:fixtureEvents.IndexOf('ordinary:primary') |
+                    Should -BeGreaterThan $script:fixtureEvents.IndexOf('restore:worker-b:template-db')
+                Should -Invoke Remove-BcTestTenantTemplate -Times 1 -Exactly
+            }
+        }
+
+        It "keeps Legacy discovery on the original parameters without copying or resetting tenants" {
+            InModuleScope ParallelTestExecution {
+                Mock Get-RequiredDisabledWorkItems {
+                    [object]::ReferenceEquals($Parameters, $script:fixtureParameters) | Should -BeTrue
+                    $TestType | Should -Be 'Legacy'
+                    @()
+                }
+                Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                    -testType 'Legacy' -appNamesToTest @('Tests') | Should -BeTrue
+
+                Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly
+                Should -Invoke Reset-BcTestTenant -Times 0
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-RequiredDisabledTestExecution -Times 0
+                ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+            }
+        }
+
+        It "preserves single-tenant discovery and ordinary execution without clean work items" {
+            InModuleScope ParallelTestExecution {
+                $script:fixtureTenants = @($script:fixtureTenants | Where-Object Id -eq 'primary')
+                Mock Get-RequiredDisabledWorkItems {
+                    [object]::ReferenceEquals($Parameters, $script:fixtureParameters) | Should -BeTrue
+                    @()
+                }
+                Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                    -testType 'IntegrationTest' -appNamesToTest @('Tests') | Should -BeTrue
+
+                Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly
+                Should -Invoke Reset-BcTestTenant -Times 0
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Start-TestAppDispatch -Times 1 -Exactly
+            }
+        }
+
+        It "retains the single-tenant error when clean work items are discovered" {
+            InModuleScope ParallelTestExecution {
+                $script:fixtureTenants = @($script:fixtureTenants | Where-Object Id -eq 'primary')
+                Mock Get-RequiredDisabledWorkItems { $script:fixtureWorkItems }
+                {
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'IntegrationTest' -appNamesToTest @('Tests')
+                } | Should -Throw '*at least one secondary tenant*'
+
+                Should -Invoke Reset-BcTestTenant -Times 0
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-WarmupDispatch -Times 0
+            }
+        }
+
+        It "rejects unsafe tenant metadata before discovery: <Fault>" -ForEach @(
+            @{ Fault = 'missing primary'; MessagePattern = '*source tenant*' }
+            @{ Fault = 'blank primary database'; MessagePattern = '*source tenant*' }
+            @{ Fault = 'blank worker ID'; MessagePattern = '*unique tenant IDs and database names*' }
+            @{ Fault = 'blank worker database'; MessagePattern = '*unique tenant IDs and database names*' }
+            @{ Fault = 'duplicate worker ID'; MessagePattern = '*unique tenant IDs and database names*' }
+            @{ Fault = 'duplicate worker database'; MessagePattern = '*unique tenant IDs and database names*' }
+            @{ Fault = 'worker aliases primary database'; MessagePattern = '*unique tenant IDs and database names*' }
+            @{ Fault = 'duplicate primary ID'; MessagePattern = '*source tenant*' }
+        ) {
+            InModuleScope ParallelTestExecution -Parameters @{ Fault = $Fault; ExpectedError = $MessagePattern } {
+                param($Fault, $ExpectedError)
+
+                switch ($Fault) {
+                    'missing primary' { $script:fixtureParameters.tenant = 'missing' }
+                    'blank primary database' { $script:fixtureTenants[1].DatabaseName = ' ' }
+                    'blank worker ID' { $script:fixtureTenants[0].Id = ' ' }
+                    'blank worker database' { $script:fixtureTenants[0].DatabaseName = ' ' }
+                    'duplicate worker ID' { $script:fixtureTenants[2].Id = 'WORKER-A' }
+                    'duplicate worker database' { $script:fixtureTenants[2].DatabaseName = 'WORKER-A-DB' }
+                    'worker aliases primary database' { $script:fixtureTenants[0].DatabaseName = 'PRIMARY-DB' }
+                    'duplicate primary ID' { $script:fixtureTenants[2].Id = 'PRIMARY' }
+                }
+                {
+                    Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                        -testType 'IntegrationTest' -appNamesToTest @('Tests')
+                } | Should -Throw $ExpectedError
+
+                Should -Invoke Get-RequiredDisabledWorkItems -Times 0
+                Should -Invoke Reset-BcTestTenant -Times 0
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-WarmupDispatch -Times 0
+                Should -Invoke Invoke-ScriptInBcContainer -Times 0
+            }
+        }
+    }
+
+    It "contains no Task Scheduler override or server restart commands" {
+        $tokens = $null
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+            (Get-Module ParallelTestExecution).Path, [ref]$tokens, [ref]$parseErrors)
+        $parseErrors.Count | Should -Be 0
+        $overrides = @($ast.FindAll({
+            param($node)
+            $node -is [System.Management.Automation.Language.CommandAst] -and
+            $node.GetCommandName() -in @(
+                'Set-NAVServerConfiguration', 'Set-NAVServerInstance',
+                'Set-BcTestTaskScheduler', 'Enable-BcTestTaskScheduler', 'Disable-BcTestTaskScheduler'
+            )
+        }, $true))
+        $overrides.Count | Should -Be 0
     }
 }
 
