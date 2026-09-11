@@ -249,7 +249,6 @@ codeunit 139566 "Shpfy Payments Test"
     local procedure CreateOtherShop(var OtherShop: Record "Shpfy Shop")
     begin
         OtherShop.Code := CopyStr(Shop.Code + '2', 1, MaxStrLen(OtherShop.Code));
-        OtherShop."Shopify URL" := StrSubstNo('https://%1.myshopify.com', LowerCase(OtherShop.Code));
         OtherShop.Insert(false);
     end;
 
