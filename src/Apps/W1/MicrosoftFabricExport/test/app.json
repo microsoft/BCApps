@@ -13,21 +13,21 @@
     "dependencies": [
         {
             "id": "cafecafe-1111-4111-8111-cafecafe1111",
-            "publisher": "4PS-Navida",
+            "publisher": "Microsoft",
             "name": "Microsoft Fabric Export",
-            "version": "1.0.0.1"
+            "version": "1.0.0.0"
         },
         {
             "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
             "publisher": "Microsoft",
             "name": "Tests-TestLibraries",
-            "version": "28.0.0.0"
+            "version": "29.0.0.0"
         },
         {
-            "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
+            "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
             "publisher": "Microsoft",
             "name": "Application Test Library",
-            "version": "28.0.0.0"
+            "version": "29.0.0.0"
         }
     ],
     "screenshots": [],
