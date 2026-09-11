@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using System.Fabric;
 using System.Reflection;
 
-codeunit 9121 "Fabric Config Package Mgt"
+codeunit 48521 "Fabric Config Package Mgt"
 {
 
     var

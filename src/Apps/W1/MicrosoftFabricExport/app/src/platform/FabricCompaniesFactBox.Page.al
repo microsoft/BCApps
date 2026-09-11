@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-page 9117 "Fabric Companies FactBox"
+page 48517 "Fabric Companies FactBox"
 {
     Caption = 'Companies to Synchronize';
     PageType = ListPart;

@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-page 9109 "Fabric Platform Export Details"
+page 48509 "Fabric Platform Export Details"
 {
     Caption = 'Fabric Synchronization Details';
     PageType = List;

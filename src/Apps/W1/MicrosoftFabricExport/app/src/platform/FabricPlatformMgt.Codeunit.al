@@ -5,7 +5,7 @@ using System.Environment;
 using System.Fabric;
 using System.Reflection;
 
-codeunit 9120 "Fabric Platform Mgt"
+codeunit 48520 "Fabric Platform Mgt"
 {
     Access = Internal;
 

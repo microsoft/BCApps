@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using Microsoft.Utilities;
 
-page 9116 "Fabric Platform Name Lookup"
+page 48516 "Fabric Platform Name Lookup"
 {
     Caption = 'Select';
     PageType = List;

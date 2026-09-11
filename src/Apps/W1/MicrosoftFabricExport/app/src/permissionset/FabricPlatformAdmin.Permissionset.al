@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-permissionset 9130 "Fabric Exp Admin"
+permissionset 48530 "Fabric Exp Admin"
 {
     Caption = 'Microsoft Fabric Export - Platform Admin';
     Assignable = true;

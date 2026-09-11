@@ -1,6 +1,6 @@
 namespace Microsoft.FabricExport;
 
-page 9114 "Fabric Config Package Subform"
+page 48514 "Fabric Config Package Subform"
 {
     Caption = 'Fabric Config Package Lines';
     PageType = ListPart;

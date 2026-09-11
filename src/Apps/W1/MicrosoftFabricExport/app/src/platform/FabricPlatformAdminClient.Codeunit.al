@@ -3,7 +3,7 @@ namespace Microsoft.FabricExport;
 using Microsoft.Utilities;
 using System.RestClient;
 
-codeunit 9126 "Fabric Platform Admin Client"
+codeunit 48526 "Fabric Platform Admin Client"
 {
     Access = Internal;
 

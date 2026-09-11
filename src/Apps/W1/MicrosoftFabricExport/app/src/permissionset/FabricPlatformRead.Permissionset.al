@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-permissionset 9131 "Fabric Exp Read"
+permissionset 48531 "Fabric Exp Read"
 {
     Caption = 'Microsoft Fabric Export - Platform Read';
     Assignable = true;

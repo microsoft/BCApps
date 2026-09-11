@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.RestClient;
 
-codeunit 9125 "Fabric Platform Http Client"
+codeunit 48525 "Fabric Platform Http Client"
 {
     Access = Internal;
 
