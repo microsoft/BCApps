@@ -119,12 +119,6 @@ codeunit 1306 "Company Information Mgt."
         CompanyInformation: Record "Company Information";
     begin
         CompanyInformation.SetLoadFields("Demo Company");
-        exit(IsDemoCompany(CompanyInformation));
-    end;
-
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Company Information", 'r')]
-    internal procedure IsDemoCompany(var CompanyInformation: Record "Company Information"): Boolean
-    begin
         if CompanyInformation.Get() then;
         exit(CompanyInformation."Demo Company");
     end;

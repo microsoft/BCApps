@@ -4,6 +4,8 @@ codeunit 139028 "Test Workdate"
     TestPermissions = Disabled;
 
     Permissions =
+        tabledata Company = rm,
+        tabledata "Company Information" = rm,
         tabledata "G/L Entry" = rimd;
 
     trigger OnRun()
@@ -23,7 +25,7 @@ codeunit 139028 "Test Workdate"
         LatestPostingDate: Date;
     begin
         // [SCENARIO] An evaluation company uses the latest G/L entry posting date by default.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
         LatestPostingDate := CreateLatestGLEntry();
 
         Assert.AreEqual(LatestPostingDate, LogInManagement.GetDefaultWorkDate(), 'The latest G/L entry posting date should be used.');
@@ -37,7 +39,7 @@ codeunit 139028 "Test Workdate"
         LogInManagement: Codeunit LogInManagement;
     begin
         // [SCENARIO] An evaluation company can use today instead of the latest G/L entry posting date.
-        SetCompanyWorkDateSettings(CompanyInformation, true, true);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
         CreateLatestGLEntry();
 
         Assert.AreEqual(Today, LogInManagement.GetDefaultWorkDate(), 'Today should be used as the work date.');
@@ -45,13 +47,29 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
-    procedure NonEvaluationCompanyIgnoresUseTodayAsWorkDate()
+    procedure EvaluationCompanyCanUseSpecificWorkDate()
+    var
+        CompanyInformation: Record "Company Information";
+        LogInManagement: Codeunit LogInManagement;
+        SpecificWorkDate: Date;
+    begin
+        // [SCENARIO] An evaluation company can use a specific work date.
+        SpecificWorkDate := CalcDate('<-1M>', Today);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", SpecificWorkDate);
+        CreateLatestGLEntry();
+
+        Assert.AreEqual(SpecificWorkDate, LogInManagement.GetDefaultWorkDate(), 'The specific date should be used as the work date.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NonEvaluationCompanyIgnoresEvaluationWorkDate()
     var
         CompanyInformation: Record "Company Information";
         LogInManagement: Codeunit LogInManagement;
     begin
         // [SCENARIO] The evaluation-company setting does not affect a regular company.
-        SetCompanyWorkDateSettings(CompanyInformation, false, true);
+        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
         CreateLatestGLEntry();
 
         Assert.AreEqual(WorkDate(), LogInManagement.GetDefaultWorkDate(), 'The current work date should remain unchanged.');
@@ -59,15 +77,13 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
-    procedure UseTodayAsWorkDateIsVisibleForEvaluationCompany()
+    procedure EvaluationWorkDateIsVisibleForEvaluationCompany()
     var
         CompanyInformation: Record "Company Information";
         CompanyInformationPage: TestPage "Company Information";
     begin
         // [SCENARIO] The work date setting is visible for an evaluation company.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false);
-        CompanyInformation."Demo Company" := false;
-        CompanyInformation.Modify();
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
 
         CompanyInformationPage.OpenEdit();
 
@@ -77,13 +93,13 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
-    procedure UseTodayAsWorkDateIsHiddenForRegularCompany()
+    procedure EvaluationWorkDateIsHiddenForRegularCompany()
     var
         CompanyInformation: Record "Company Information";
         CompanyInformationPage: TestPage "Company Information";
     begin
         // [SCENARIO] The work date setting is hidden for a regular company.
-        SetCompanyWorkDateSettings(CompanyInformation, false, false);
+        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
 
         CompanyInformationPage.OpenEdit();
 
@@ -93,15 +109,13 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
-    procedure UseTodayAsWorkDateIsVisibleForDemoCompany()
+    procedure EvaluationWorkDateIsVisibleForDemoCompany()
     var
         CompanyInformation: Record "Company Information";
         CompanyInformationPage: TestPage "Company Information";
     begin
         // [SCENARIO] The work date setting remains visible for a legacy demo company.
-        SetCompanyWorkDateSettings(CompanyInformation, false, false);
-        CompanyInformation."Demo Company" := true;
-        CompanyInformation.Modify();
+        SetCompanyWorkDateSettings(CompanyInformation, false, true, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
 
         CompanyInformationPage.OpenEdit();
 
@@ -109,7 +123,45 @@ codeunit 139028 "Test Workdate"
         CompanyInformationPage.Close();
     end;
 
-    local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; UseTodayAsWorkDate: Boolean)
+    [Test]
+    [Scope('OnPrem')]
+    procedure SpecificWorkDateVisibilityChangesWithSelection()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyInformationPage: TestPage "Company Information";
+    begin
+        // [SCENARIO] The specific date is shown only when Specific Date is selected.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
+
+        CompanyInformationPage.OpenEdit();
+        Assert.IsFalse(CompanyInformationPage."Specific Work Date".Visible(), 'The specific date should initially be hidden.');
+
+        CompanyInformationPage."Evaluation Work Date".SetValue(CompanyInformation."Evaluation Work Date"::"Specific Date");
+
+        Assert.IsTrue(CompanyInformationPage."Specific Work Date".Visible(), 'The specific date should be visible for the Specific Date option.');
+        CompanyInformationPage."Specific Work Date".SetValue(Today);
+        CompanyInformationPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SpecificWorkDateIsRequired()
+    var
+        CompanyInformation: Record "Company Information";
+        CompanyInformationPage: TestPage "Company Information";
+    begin
+        // [SCENARIO] A specific work date must be entered when Specific Date is selected.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Specific Date", 0D);
+
+        CompanyInformationPage.OpenEdit();
+        asserterror CompanyInformationPage.Close();
+
+        Assert.ExpectedTestFieldError(CompanyInformation.FieldCaption("Specific Work Date"), '');
+        CompanyInformationPage."Specific Work Date".SetValue(Today);
+        CompanyInformationPage.Close();
+    end;
+
+    local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; IsDemoCompany: Boolean; EvaluationWorkDate: Option "Latest G/L Entry Posting Date",Today,"Specific Date"; SpecificWorkDate: Date)
     var
         Company: Record Company;
     begin
@@ -118,11 +170,9 @@ codeunit 139028 "Test Workdate"
         Company.Modify();
 
         CompanyInformation.Get();
-        CompanyInformation."Demo Company" := IsEvaluationCompany;
-        if UseTodayAsWorkDate then
-            CompanyInformation."Evaluation Work Date" := CompanyInformation."Evaluation Work Date"::Today
-        else
-            CompanyInformation."Evaluation Work Date" := CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date";
+        CompanyInformation."Demo Company" := IsDemoCompany;
+        CompanyInformation."Evaluation Work Date" := EvaluationWorkDate;
+        CompanyInformation."Specific Work Date" := SpecificWorkDate;
         CompanyInformation.Modify();
     end;
 

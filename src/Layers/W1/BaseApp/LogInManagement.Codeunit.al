@@ -192,19 +192,27 @@ codeunit 40 LogInManagement
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Company Information", 'r')]
     procedure GetDefaultWorkDate(): Date
     var
         CompanyInformation: Record "Company Information";
         GLEntry: Record "G/L Entry";
-        CompanyInformationMgt: Codeunit "Company Information Mgt.";
         ChangeWorkDate: Boolean;
     begin
-        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date");
-        ChangeWorkDate := CompanyInformationMgt.IsDemoCompany(CompanyInformation);
+        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Specific Work Date");
+        if CompanyInformation.Get() then;
+        ChangeWorkDate := CompanyInformation."Demo Company";
         ChangeWorkDate := ChangeWorkDate or CompanyInformation.IsEvaluationCompany();
         if ChangeWorkDate then begin
-            if CompanyInformation."Evaluation Work Date" = CompanyInformation."Evaluation Work Date"::Today then
-                exit(Today);
+            case CompanyInformation."Evaluation Work Date" of
+                CompanyInformation."Evaluation Work Date"::Today:
+                    exit(Today);
+                CompanyInformation."Evaluation Work Date"::"Specific Date":
+                    begin
+                        CompanyInformation.TestField("Specific Work Date");
+                        exit(CompanyInformation."Specific Work Date");
+                    end;
+            end;
 
             GLEntry.SetCurrentKey("Posting Date");
             GLEntry.SecurityFiltering(SecurityFilter::Ignored);

@@ -400,6 +400,21 @@ page 1 "Company Information"
                     field("Evaluation Work Date"; Rec."Evaluation Work Date")
                     {
                         ApplicationArea = Basic, Suite;
+
+                        trigger OnValidate()
+                        begin
+                            SpecificWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Specific Date";
+                            CurrPage.Update(false);
+                        end;
+                    }
+                }
+                group(SpecificWorkDate)
+                {
+                    ShowCaption = false;
+                    Visible = SpecificWorkDateVisible;
+                    field("Specific Work Date"; Rec."Specific Work Date")
+                    {
+                        ApplicationArea = Basic, Suite;
                     }
                 }
             }
@@ -702,7 +717,15 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
-        WorkDateSelectionVisible := Rec.IsEvaluationCompany() or CompanyInformationMgt.IsDemoCompany(Rec);
+        WorkDateSelectionVisible := Rec.IsEvaluationCompany() or CompanyInformationMgt.IsDemoCompany();
+        SpecificWorkDateVisible := WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Specific Date");
+    end;
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Specific Date") then
+            Rec.TestField("Specific Work Date");
+        exit(true);
     end;
 
     trigger OnClosePage()
@@ -758,6 +781,7 @@ page 1 "Company Information"
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
         WorkDateSelectionVisible: Boolean;
+        SpecificWorkDateVisible: Boolean;
         BankBranchNoOrAccountNoMissing: Boolean;
         BankAcctPostingGroup: Code[20];
         CountyVisible: Boolean;

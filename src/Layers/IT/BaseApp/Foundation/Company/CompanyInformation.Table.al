@@ -451,9 +451,16 @@ table 79 "Company Information"
         field(101; "Evaluation Work Date"; Option)
         {
             Caption = 'Evaluation Work Date';
-            OptionCaption = 'Latest G/L Entry Posting Date,Today';
-            OptionMembers = "Latest G/L Entry Posting Date",Today;
-            ToolTip = 'Specifies whether the work date is based on the latest G/L entry posting date or today.';
+            DataClassification = SystemMetadata;
+            OptionCaption = 'Latest G/L Entry Posting Date,Today,Specific Date';
+            OptionMembers = "Latest G/L Entry Posting Date",Today,"Specific Date";
+            ToolTip = 'Specifies whether the work date is based on the latest G/L entry posting date, today, or a specific date.';
+        }
+        field(102; "Specific Work Date"; Date)
+        {
+            Caption = 'Specific Work Date';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the date to use as the work date when Evaluation Work Date is set to Specific Date.';
         }
         field(200; "Alternative Language Code"; Code[10])
         {
@@ -869,7 +876,7 @@ table 79 "Company Information"
     var
         Company: Record Company;
     begin
-        if Company.Get(CompanyName()) then
+        if Company.Get(CurrentCompany()) then
             exit(Company."Evaluation Company");
 
         exit(false);
