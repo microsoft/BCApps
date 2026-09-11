@@ -1,0 +1,30 @@
+{
+  "id": "57277244-daa0-406a-9be4-4d1088ac1ff3",
+  "name": "BCLE Snapshot Debugging",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "brief": "Reproduces temporary-record scoping behavior for snapshot debugging.",
+  "description": "Reproduces temporary-record scoping behavior for snapshot debugging.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://learn.microsoft.com/dynamics365/business-central/",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
+  "application": "30.0.0.0",
+  "platform": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 99999,
+      "to": 99999
+    }
+  ],
+  "target": "Cloud",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith"
+  ]
+}

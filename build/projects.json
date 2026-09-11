@@ -1887,6 +1887,20 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "BCLE Snapshot Debugging": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\BCLESnapshotDebugging\\app",
+      "isInternal": true,
+      "supportedCountries": "All",
+      "isTest": false,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "skipInstallOnPrem": true,
+      "allowedEnvironmentTypes": [
+        "Sandbox"
+      ]
+    },
     "Basic Experience": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\BasicExperience\\app",
       "dvdFolder": "Applications\\BasicExperience\\Source",
