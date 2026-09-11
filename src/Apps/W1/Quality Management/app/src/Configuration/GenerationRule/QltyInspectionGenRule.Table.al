@@ -333,16 +333,19 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Assigns a sort order after the current highest value when the sort order is zero or one.
     /// </summary>
-    internal procedure UpdateSortOrder()
+    procedure UpdateSortOrder()
     var
-        FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if (Rec."Sort Order" = 0) or (Rec."Sort Order" = 1) then begin
-            FindHighestQltyInspectionGenRule.SetCurrentKey("Sort Order");
-            FindHighestQltyInspectionGenRule.Ascending(false);
-            if FindHighestQltyInspectionGenRule.FindFirst() then;
-            Rec."Sort Order" := FindHighestQltyInspectionGenRule."Sort Order" + 10;
-        end;
+        if not (Rec."Sort Order" in [0, 1]) then
+            exit;
+
+        ExistingQltyInspectionGenRule.SetCurrentKey("Sort Order");
+        ExistingQltyInspectionGenRule.SetLoadFields("Sort Order");
+        if ExistingQltyInspectionGenRule.FindLast() then
+            Rec."Sort Order" := ExistingQltyInspectionGenRule."Sort Order" + 10
+        else
+            Rec."Sort Order" := 10;
     end;
 
     /// <summary>
@@ -441,48 +444,45 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Sets the default automatic inspection creation triggers for generation rules based on the values set in Quality Management Setup
     /// </summary>
-    internal procedure SetIntentAndDefaultTriggerValuesFromSetup()
+    procedure SetIntentAndDefaultTriggerValuesFromSetup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        InferredIntent: Enum "Qlty. Gen. Rule Intent";
-        Certainty: Enum "Qlty. Certainty";
+        InferredQltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent";
+        InferredQltyCertainty: Enum "Qlty. Certainty";
     begin
-        if not TryInferGenerationRuleIntent(InferredIntent, Certainty) then
+        if not TryInferGenerationRuleIntent(InferredQltyGenRuleIntent, InferredQltyCertainty) then
             exit;
 
-        if (InferredIntent = InferredIntent::Unknown) or (InferredIntent = Rec.Intent) then
+        if InferredQltyGenRuleIntent in [InferredQltyGenRuleIntent::Unknown, Rec.Intent] then
+            exit;
+
+        if InferredQltyCertainty <> InferredQltyCertainty::Yes then
             exit;
 
         if not QltyManagementSetup.Get() then
             exit;
-        if Certainty = Certainty::Yes then begin
-            Rec.Intent := InferredIntent;
-            SetDefaultTriggerValuesToNoTrigger();
-            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
-                Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
-                Rec."Production Order Trigger" := Rec."Production Order Trigger"::NoTrigger;
-                Rec."Purchase Order Trigger" := Rec."Purchase Order Trigger"::NoTrigger;
-                Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
-                Rec."Transfer Order Trigger" := Rec."Transfer Order Trigger"::NoTrigger;
-                Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
-                Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
-                case InferredIntent of
-                    InferredIntent::Assembly:
-                        Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
-                    InferredIntent::Production:
-                        Rec."Production Order Trigger" := QltyManagementSetup."Production Order Trigger";
-                    InferredIntent::Purchase:
-                        Rec."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger";
-                    InferredIntent::"Sales Return":
-                        Rec."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger";
-                    InferredIntent::Transfer:
-                        Rec."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger";
-                    InferredIntent::"Warehouse Movement":
-                        Rec."Warehouse Movement Trigger" := QltyManagementSetup."Warehouse Trigger";
-                    InferredIntent::"Warehouse Receipt":
-                        Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
-                end;
-            end;
+
+        Rec.Intent := InferredQltyGenRuleIntent;
+        SetDefaultTriggerValuesToNoTrigger();
+
+        if not (Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"]) then
+            exit;
+
+        case InferredQltyGenRuleIntent of
+            InferredQltyGenRuleIntent::Assembly:
+                Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
+            InferredQltyGenRuleIntent::Production:
+                Rec."Production Order Trigger" := QltyManagementSetup."Production Order Trigger";
+            InferredQltyGenRuleIntent::Purchase:
+                Rec."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger";
+            InferredQltyGenRuleIntent::"Sales Return":
+                Rec."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger";
+            InferredQltyGenRuleIntent::Transfer:
+                Rec."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger";
+            InferredQltyGenRuleIntent::"Warehouse Movement":
+                Rec."Warehouse Movement Trigger" := QltyManagementSetup."Warehouse Trigger";
+            InferredQltyGenRuleIntent::"Warehouse Receipt":
+                Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
         end;
     end;
 
