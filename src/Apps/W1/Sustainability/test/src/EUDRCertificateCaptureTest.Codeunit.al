@@ -6,6 +6,7 @@ namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
@@ -877,6 +878,7 @@ codeunit 148223 "EUDR Certificate Capture Test"
 
     local procedure Initialize()
     var
+        CompanyInformation: Record "Company Information";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"EUDR Certificate Capture Test");
@@ -895,6 +897,12 @@ codeunit 148223 "EUDR Certificate Capture Test"
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateLocalData();
         LibrarySales.SetExtDocNo(false);
+
+        CompanyInformation.Get();
+        CompanyInformation."Allow Blank Payment Info." := true;
+        CompanyInformation.Modify(false);
+
+        LibraryERMCountryData.CompanyInfoSetVATRegistrationNo();
         IsInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"EUDR Certificate Capture Test");
