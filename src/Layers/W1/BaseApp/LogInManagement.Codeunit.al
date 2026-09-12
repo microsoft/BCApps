@@ -70,7 +70,7 @@ codeunit 40 LogInManagement
         if GuiAllowed and (CurrentClientType <> ClientType::Background) then
             LogInStart()
         else begin
-            ApplyWorkDateToAllSessions := GetDefaultWorkDateForAllSessions(DefaultWorkDate);
+            ApplyWorkDateToAllSessions := GetDefaultWorkDateForAllSessions(CurrentClientType, DefaultWorkDate);
             if ApplyWorkDateToAllSessions then
                 WorkDate := DefaultWorkDate;
         end;
@@ -220,7 +220,7 @@ codeunit 40 LogInManagement
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Company Information", 'r')]
-    internal procedure GetDefaultWorkDateForAllSessions(var DefaultWorkDate: Date): Boolean
+    internal procedure GetDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var DefaultWorkDate: Date): Boolean
     var
         CompanyInformation: Record "Company Information";
     begin
@@ -235,6 +235,14 @@ codeunit 40 LogInManagement
         if not CompanyInformation."Demo Company" then
             if not CompanyInformation.IsEvaluationCompany() then
                 exit(false);
+
+        if (CompanyInformation."Evaluation Work Date" = CompanyInformation."Evaluation Work Date"::Today) and
+           (CurrentClientType in [ClientType::Api, ClientType::ODataV4])
+        then begin
+            if not GetCurrentDateInUserTimeZone(DefaultWorkDate) then
+                DefaultWorkDate := Today;
+            exit(true);
+        end;
 
         DefaultWorkDate := GetDefaultWorkDate(CompanyInformation);
         exit(true);

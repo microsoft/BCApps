@@ -102,10 +102,31 @@ codeunit 139028 "Test Workdate"
         CustomWorkDate := CalcDate('<-1M>', Today);
         SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", CustomWorkDate, true);
 
-        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(DefaultWorkDate);
+        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
 
         Assert.AreEqual(CustomWorkDate, DefaultWorkDate, 'The custom work date should be used.');
         Assert.IsTrue(ApplyWorkDateToAllSessions, 'The work date should be applied to all sessions.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EvaluationCompanyAppliesTodayInUserTimeZoneToApiSessions()
+    var
+        CompanyInformation: Record "Company Information";
+        LogInManagement: Codeunit LogInManagement;
+        TypeHelper: Codeunit "Type Helper";
+        DefaultWorkDate: Date;
+        ExpectedWorkDate: Date;
+        ApplyWorkDateToAllSessions: Boolean;
+    begin
+        // [SCENARIO] An API session uses today in the user's time zone when the work date applies to all sessions.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
+        ExpectedWorkDate := DT2Date(TypeHelper.GetCurrentDateTimeInUserTimeZone());
+
+        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Api, DefaultWorkDate);
+
+        Assert.IsTrue(ApplyWorkDateToAllSessions, 'The work date should be applied to all sessions.');
+        Assert.AreEqual(ExpectedWorkDate, DefaultWorkDate, 'The API session should use today in the user''s time zone.');
     end;
 
     [Test]
@@ -120,7 +141,7 @@ codeunit 139028 "Test Workdate"
         // [SCENARIO] A regular company cannot apply the evaluation work date to all session types.
         SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
 
-        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(DefaultWorkDate);
+        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
 
         Assert.AreEqual(WorkDate(), DefaultWorkDate, 'The current work date should remain unchanged.');
         Assert.IsFalse(ApplyWorkDateToAllSessions, 'The work date should not be applied to all sessions.');
