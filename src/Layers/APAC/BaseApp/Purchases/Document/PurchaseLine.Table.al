@@ -7446,6 +7446,11 @@ table 39 "Purchase Line"
                                     NewAmount := 0;
                                     NewAmountACY := 0;
                                     NewVATBaseAmount := 0;
+                                    if VATAmountLine.CalcLineAmount() = 0 then
+                                        NonDedVATAmount := 0
+                                    else
+                                        NonDedVATAmount :=
+                                            NonDeductibleVAT.GetNonDedVATAmountFromVATAmountLine(TempVATAmountLineRemainder, VATAmountLine, Currency, PurchLine.CalcLineAmount(), VATAmountLine.CalcLineAmount());
                                     NewVATBaseAmountACY := 0;
                                 end else begin
                                     NewAmount := PurchLine.CalcLineAmount();
