@@ -10,6 +10,7 @@ using Microsoft.Sustainability.Emission;
 using Microsoft.Sustainability.Energy;
 using Microsoft.Sustainability.EPR;
 using Microsoft.Sustainability.ESGReporting;
+using Microsoft.Sustainability.EUDR;
 using Microsoft.Sustainability.ExciseTax;
 using Microsoft.Sustainability.FinancialReporting;
 using Microsoft.Sustainability.Journal;
@@ -197,6 +198,7 @@ permissionset 6210 "Sustainability - Objects"
         codeunit "Sust. Item Mat. Comp.-Copy" = X,
         codeunit "Sust. Workflow Event Handling" = X,
         codeunit "Sustainability Excise Post Mgt" = X,
+        codeunit "EUDR Lot Info. Tracking Mgmt" = X,
         report "Emission By Category" = X,
         report "Emission Per Facility" = X,
         report "Total Emissions" = X,
@@ -207,5 +209,6 @@ permissionset 6210 "Sustainability - Objects"
         report "Sust. Resource Calculate CO2e" = X,
         report "Sust. Routing Calculate CO2e" = X,
         report "Sust. CSRD Preparation" = X,
-        report "Sust. Track Item of Concern" = X;
+        report "Sust. Track Item of Concern" = X,
+        report "EUDR Sales Invoice" = X;
 }
