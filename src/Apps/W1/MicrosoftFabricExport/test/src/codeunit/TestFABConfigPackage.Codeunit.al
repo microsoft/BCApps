@@ -403,6 +403,71 @@ codeunit 140011 "Test FAB Config Package"
     end;
 
     [Test]
+    procedure RegisterPackageReleasesClaimForTableDroppedFromActivePackage()
+    var
+        Pkg: Record "Fabric Config Package";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TableIdsV1: List of [Integer];
+        TableIdsV2: List of [Integer];
+    begin
+        //[SCENARIO] Re-registering an active package with a smaller table set releases the dropped table's claim
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] An activated package at v1.0 with two tables
+        TableIdsV1.Add(18);
+        TableIdsV1.Add(27);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIdsV1);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is re-registered at v2.0 without table 27
+        TableIdsV2.Add(18);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '2.0', TableIdsV2);
+
+        //[THEN] The dropped table's claim is released and it is removed from the platform
+        Assert.IsTrue(TenantFabricTables.Get(18), 'Expected table 18 to remain.');
+        Assert.IsFalse(TenantFabricTables.Get(27), 'Expected dropped table 27 to be removed, not left with a stale claim.');
+    end;
+
+    [Test]
+    procedure RegisterPackageKeepsTableDroppedFromActivePackageWhenSharedWithAnotherActivePackage()
+    var
+        Pkg: Record "Fabric Config Package";
+        OtherPkg: Record "Fabric Config Package";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        TableIdsV1: List of [Integer];
+        TableIdsV2: List of [Integer];
+    begin
+        //[SCENARIO] A table dropped from a re-registered package stays exported while another active package still claims it
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Two active packages, both selecting table 27
+        TableIdsV1.Add(18);
+        TableIdsV1.Add(27);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIdsV1);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        GivenPackage('PKG-B', 27, 36);
+        OtherPkg.Get('PKG-B');
+        FabricConfigPkgMgt.Activate(OtherPkg);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] MS-STD is re-registered at v2.0 without table 27
+        TableIdsV2.Add(18);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '2.0', TableIdsV2);
+
+        //[THEN] Table 27 remains because PKG-B still claims it
+        Assert.IsTrue(TenantFabricTables.Get(27), 'Expected table 27 to remain claimed by PKG-B.');
+    end;
+
+    [Test]
     procedure ActivateFailsWhenExceedingPlatformLimit()
     var
         Pkg: Record "Fabric Config Package";

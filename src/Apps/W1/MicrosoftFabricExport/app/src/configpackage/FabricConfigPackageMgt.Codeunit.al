@@ -148,6 +148,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg: Record "Fabric Config Package";
         PackageLine: Record "Fabric Config Package Line";
         AllObj: Record AllObjWithCaption;
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        RemovedTableIds: List of [Integer];
         TableId: Integer;
     begin
         if not Pkg.Get(PackageCode) then begin
@@ -164,9 +166,15 @@ codeunit 48521 "Fabric Config Package Mgt"
             Pkg.Modify(true);
         end;
 
-        // Rebuild lines. Ownership lives in the platform claims (keyed by package code),
-        // so it is unaffected by rebuilding the line rows here.
+        // Rebuild lines. Record table IDs dropped from the new set so their package
+        // claim can be released below — otherwise a table removed from the package
+        // keeps its stale claim and stays exported forever.
         PackageLine.SetRange("Package Code", PackageCode);
+        if PackageLine.FindSet() then
+            repeat
+                if not TableIds.Contains(PackageLine."Table ID") then
+                    RemovedTableIds.Add(PackageLine."Table ID");
+            until PackageLine.Next() = 0;
         PackageLine.DeleteAll(true);
 
         foreach TableId in TableIds do begin
@@ -179,9 +187,13 @@ codeunit 48521 "Fabric Config Package Mgt"
                 LogSkippedTableWarning(PackageCode, TableId);
         end;
 
-        // If it was already active, reapply so the platform tables stay in sync
-        if Pkg.Active then
+        // If it was already active, release claims on dropped tables and reapply so
+        // the platform tables stay aligned with the current package definition.
+        if Pkg.Active then begin
+            foreach TableId in RemovedTableIds do
+                FabricPlatformMgt.ReleaseTable(TableId, "Fabric Table Claim Source"::Package, PackageCode);
             Reapply(Pkg);
+        end;
 
         LogPackageEvent('FAB-155', StrSubstNo('Config package v%1 registered via code.', Version), PackageCode);
     end;
