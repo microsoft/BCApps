@@ -523,9 +523,12 @@ codeunit 30166 "Shpfy Process Order"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader', '', false, false)]
-    local procedure TransferShopifyOrderNoToShipmentHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
+    local procedure TransferShopifyValuesToShipmentHeader(SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
     begin
         SalesShptHeader."Shpfy Order No." := SalesHeader."Shpfy Order No.";
+        // Refund and fulfillment IDs share field 30103 across the source and posted headers.
+        if (SalesHeader."Shpfy Refund Id" <> 0) and (SalesShptHeader."Shpfy Fulfillment Id" = SalesHeader."Shpfy Refund Id") then
+            Clear(SalesShptHeader."Shpfy Fulfillment Id");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnBeforeSalesLineInsert', '', false, false)]
@@ -537,6 +540,5 @@ codeunit 30166 "Shpfy Process Order"
         SalesLine."Shpfy Refund Line Id" := TempSalesLine."Shpfy Refund Line Id";
     end;
 }
-
 
 
