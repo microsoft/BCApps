@@ -71,6 +71,7 @@ table 1236 "JSON Buffer"
         SystemDoubleTxt: Label 'System.Double', Locked = true;
         SystemInt64Txt: Label 'System.Int64', Locked = true;
         SystemStringTxt: Label 'System.String', Locked = true;
+        StrictJSONScalarPatternTxt: Label '^(?:"(?:\\["\\/bfnrt]|\\u[0-9A-Fa-f]{4}|[^"\\\x00-\x1F])*"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|true|false|null)$', Locked = true;
 
     procedure ReadFromBlob(BlobFieldRef: FieldRef)
     var
@@ -123,12 +124,21 @@ table 1236 "JSON Buffer"
                     JSONToken := JSONArray.AsToken();
                 end;
             else begin
+                if not IsStrictJSONScalar(JSONText) then
+                    exit(false);
                 if not JSONValue.ReadFrom(JSONText) then
                     exit(false);
                 JSONToken := JSONValue.AsToken();
             end;
         end;
         exit(true);
+    end;
+
+    local procedure IsStrictJSONScalar(JSONText: Text): Boolean
+    var
+        Regex: Codeunit Regex;
+    begin
+        exit(Regex.IsMatch(JSONText.Trim(), StrictJSONScalarPatternTxt));
     end;
 
     local procedure ReadJSONToken(JSONToken: JsonToken; TokenDepth: Integer)
