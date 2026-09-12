@@ -247,8 +247,14 @@ codeunit 139566 "Shpfy Payments Test"
     end;
 
     local procedure CreateOtherShop(var OtherShop: Record "Shpfy Shop")
+    var
+        OtherShopCode: Code[20];
     begin
-        OtherShop.Code := CopyStr(Shop.Code + '2', 1, MaxStrLen(OtherShop.Code));
+        OtherShopCode := CopyStr(Shop.Code + '2', 1, MaxStrLen(OtherShop.Code));
+        if OtherShop.Get(OtherShopCode) then
+            exit;
+
+        OtherShop.Code := OtherShopCode;
         OtherShop.Insert(false);
     end;
 
