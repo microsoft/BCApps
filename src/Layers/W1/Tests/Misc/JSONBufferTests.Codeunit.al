@@ -11,7 +11,9 @@ codeunit 139210 "JSON Buffer Tests"
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         Assert: Codeunit Assert;
         DevMsgNotTemporaryErr: Label 'This function can only be used when the record is temporary.';
+        DateTimeDetailsErr: Label 'DateTime does not contain seconds and milliseconds. DateTimeString: %1, PropertyValue: %2', Comment = '%1 - Source DateTime text, %2 - Parsed JSON Buffer value';
         InvalidJSONErr: Label 'The JSON text is invalid.';
+        JSONVariableTxt: Label '{"Variable":"%1"}', Locked = true, Comment = '%1 - JSON property value';
 
     [Test]
     [Scope('OnPrem')]
@@ -354,7 +356,7 @@ codeunit 139210 "JSON Buffer Tests"
         LongString := 'ABCDEFGHIJKLMOPQRTSTUVWXYZÆØÅ1234567890+´!#¤%&/()=?`,.-;:_@£${[]}<>abcdefghijklmnopqrstuvwxyzæøå½§';
         for i := 1 to 1000 do
             LongString += 'fillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfillfill';
-        TempJSONBuffer.ReadFromTextStrict(StrSubstNo('{"Variable":"%1"}', LongString));
+        TempJSONBuffer.ReadFromTextStrict(StrSubstNo(JSONVariableTxt, LongString));
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
         Assert.AreEqual(LongString, PropertyValue, 'Invalid string');
         Assert.IsTrue(FindTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::String), 'The string value was not found');
@@ -450,7 +452,7 @@ codeunit 139210 "JSON Buffer Tests"
 
         // [WHEN] A JSON string containing a DateTime without seconds or milliseconds is read
         DateTimeString := '2025-12-31T23:59';
-        TempJSONBuffer.ReadFromTextStrict(StrSubstNo('{"Variable":"%1"}', DateTimeString));
+        TempJSONBuffer.ReadFromTextStrict(StrSubstNo(JSONVariableTxt, DateTimeString));
 
         // [THEN] JSON Buffer preserves the value as a string without seconds or milliseconds
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
@@ -472,11 +474,11 @@ codeunit 139210 "JSON Buffer Tests"
 
         // [WHEN] A JSON string containing a DateTime with seconds and milliseconds is read
         DateTimeString := '2025-12-31T23:59:59.999';
-        TempJSONBuffer.ReadFromTextStrict(StrSubstNo('{"Variable":"%1"}', DateTimeString));
+        TempJSONBuffer.ReadFromTextStrict(StrSubstNo(JSONVariableTxt, DateTimeString));
 
         // [THEN] JSON Buffer contains formatted DateTime with seconds and milliseconds
         TempJSONBuffer.GetPropertyValue(PropertyValue, 'Variable');
-        Assert.IsTrue(PropertyValue.Contains('.'), StrSubstNo('DateTime does not contain seconds and milliseconds. DateTimeString: %1, PropertyValue: %2', DateTimeString, PropertyValue));
+        Assert.IsTrue(PropertyValue.Contains('.'), StrSubstNo(DateTimeDetailsErr, DateTimeString, PropertyValue));
         Assert.IsTrue(FindTokenType(TempJSONBuffer, TempJSONBuffer."Token type"::Date), 'The ISO DateTime was not recognized');
         Assert.AreEqual('System.DateTime', TempJSONBuffer."Value Type", 'The DateTime value type is incorrect');
     end;
