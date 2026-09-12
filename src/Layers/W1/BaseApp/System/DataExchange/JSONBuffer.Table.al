@@ -94,7 +94,7 @@ table 1236 "JSON Buffer"
         if JSONText.Trim() = '' then
             exit;
 
-        if ContainsJSONComment(JSONText) then
+        if ContainsJSONComment(JSONText) or ContainsUnquotedPropertyName(JSONText) then
             Error(InvalidJSONErr);
 
         if not TryReadJSONToken(JSONText, JSONToken) then
@@ -298,6 +298,57 @@ table 1236 "JSON Buffer"
         end;
     end;
 
+    local procedure ContainsUnquotedPropertyName(JSONText: Text): Boolean
+    var
+        Character: Text[1];
+        ContainerStack: Text;
+        CurrentContainer: Text[1];
+        PreviousCharacter: Text[1];
+        CharacterIndex: Integer;
+        EscapedCharacter: Boolean;
+        InString: Boolean;
+    begin
+        for CharacterIndex := 1 to StrLen(JSONText) do begin
+            Character := CopyStr(JSONText, CharacterIndex, 1);
+            if InString then begin
+                if EscapedCharacter then
+                    EscapedCharacter := false
+                else
+                    case Character of
+                        '\':
+                            EscapedCharacter := true;
+                        '"':
+                            InString := false;
+                    end;
+                continue;
+            end;
+
+            if Character.Trim() = '' then
+                continue;
+
+            Clear(CurrentContainer);
+            if ContainerStack <> '' then
+                CurrentContainer := CopyStr(ContainerStack, StrLen(ContainerStack), 1);
+            if CurrentContainer = '{' then
+                if (PreviousCharacter = '{') or (PreviousCharacter = ',') then
+                    if not (Character in ['"', '}']) then
+                        exit(true);
+
+            case Character of
+                '"':
+                    InString := true;
+                '{',
+                '[':
+                    ContainerStack += Character;
+                '}',
+                ']':
+                    if ContainerStack <> '' then
+                        ContainerStack := DelStr(ContainerStack, StrLen(ContainerStack), 1);
+            end;
+            PreviousCharacter := Character;
+        end;
+    end;
+
     procedure FindArray(var TempJSONBuffer: Record "JSON Buffer" temporary; ArrayName: Text): Boolean
     begin
         TempJSONBuffer.Copy(Rec, true);
@@ -383,7 +434,7 @@ table 1236 "JSON Buffer"
         if not "Value BLOB".HasValue() then
             exit(Value);
 
-        "Value BLOB".CreateInStream(InStream, TEXTENCODING::Windows);
+        "Value BLOB".CreateInStream(InStream, TEXTENCODING::UTF8);
         exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
     end;
 
@@ -404,7 +455,7 @@ table 1236 "JSON Buffer"
         if NewValue = '' then
             exit;
 
-        "Value BLOB".CreateOutStream(OutStream, TEXTENCODING::Windows);
+        "Value BLOB".CreateOutStream(OutStream, TEXTENCODING::UTF8);
         OutStream.Write(NewValue);
     end;
 }
