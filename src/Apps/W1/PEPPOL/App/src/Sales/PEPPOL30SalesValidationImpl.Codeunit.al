@@ -42,6 +42,8 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         Customer: Record Customer;
         GLSetup: Record "General Ledger Setup";
         ResponsibilityCenter: Record "Responsibility Center";
+        PEPPOL30SalesValEvents: Codeunit "PEPPOL30 Sales Val. Events";
+        IsHandled: Boolean;
     begin
         CompanyInfo.Get();
         GLSetup.Get();
@@ -75,11 +77,14 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         SalesHeader.TestField("Bill-to Country/Region Code");
         CheckCountryRegionCode(SalesHeader."Bill-to Country/Region Code");
 
-        if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
-           Customer.Get(SalesHeader."Bill-to Customer No.")
-        then
-            if (Customer.GLN + Customer."VAT Registration No.") = '' then
-                Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
+        IsHandled := false;
+        PEPPOL30SalesValEvents.OnCheckSalesDocumentOnBeforeCheckCustomerVATRegNo(SalesHeader, Customer, IsHandled);
+        if not IsHandled then
+            if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
+               Customer.Get(SalesHeader."Bill-to Customer No.")
+            then
+                if (Customer.GLN + Customer."VAT Registration No.") = '' then
+                    Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
 
         if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then
             if SalesHeader."Applies-to Doc. Type" = SalesHeader."Applies-to Doc. Type"::Invoice then
@@ -88,7 +93,10 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         if SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order] then
             SalesHeader.TestField("Shipment Date");
 
-        SalesHeader.TestField("Your Reference");
+        IsHandled := false;
+        PEPPOL30SalesValEvents.OnCheckSalesDocumentOnBeforeCheckYourReference(SalesHeader, IsHandled);
+        if not IsHandled then
+            SalesHeader.TestField("Your Reference");
 
         CheckShipToAddress(SalesHeader);
         SalesHeader.TestField("Due Date");
@@ -97,6 +105,8 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             CompanyInfo.TestField("Bank Account No.");
         CompanyInfo.TestField("Bank Branch No.");
         CompanyInfo.TestField("SWIFT Code");
+
+        PEPPOL30SalesValEvents.OnAfterCheckSalesDocument(SalesHeader, CompanyInfo);
     end;
 
     procedure CheckSalesDocumentLines(SalesHeader: Record "Sales Header")
