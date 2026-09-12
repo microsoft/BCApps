@@ -17,11 +17,12 @@ codeunit 30101 "Shpfy Background Syncs"
 
     var
         SyncDescriptionTxt: Label 'Shopify Sync of %1 for shop(s) %2', Comment = '%1 = Synchronization Tyep, %2 = Synchronization Code';
-        InventorySyncTypeTxt: Label 'Inventory';
         OrderSyncTypeTxt: Label 'Order';
         PayoutsSyncTypeTxt: Label 'Payouts';
         ProductImagesSyncTypeTxt: Label 'Product Images';
-        ProductsSyncTypeTxt: Label 'Products';
+        ProductSyncDescriptionTxt: Label 'Shopify product sync for shop(s) %1', Comment = '%1 = Shopify shop code filter';
+        PriceSyncDescriptionTxt: Label 'Shopify price sync for shop(s) %1', Comment = '%1 = Shopify shop code filter';
+        InventorySyncDescriptionTxt: Label 'Shopify inventory sync for shop(s) %1', Comment = '%1 = Shopify shop code filter';
         JobQueueCategoryLbl: Label 'SHPFY', Locked = true;
         NothingToSyncErr: Label 'You need to add items to Shopify first, do you want to do it now?';
 
@@ -231,7 +232,7 @@ codeunit 30101 "Shpfy Background Syncs"
         Shop.SetRange("Allow Background Syncs", true);
         if not Shop.IsEmpty then begin
             Parameters := StrSubstNo(InventoryParametersTxt, Shop.GetView());
-            EnqueueJobEntry(Report::"Shpfy Sync Stock to Shopify", Parameters, StrSubstNo(SyncDescriptionTxt, InventorySyncTypeTxt, Shop.GetFilter(Code)), true, true);
+            EnqueueJobEntry(Report::"Shpfy Sync Stock to Shopify", Parameters, StrSubstNo(InventorySyncDescriptionTxt, Shop.GetFilter(Code)), true, true);
         end;
         Shop.SetRange("Allow Background Syncs", false);
         if not Shop.IsEmpty then begin
@@ -530,7 +531,7 @@ codeunit 30101 "Shpfy Background Syncs"
             Shop.SetRange("Allow Background Syncs", true);
             if not Shop.IsEmpty() then begin
                 Parameters := StrSubstNo(ProductParmatersTxt, format(false, 0, 9), Shop.GetView(), NumberOfRecords);
-                JobQueueId := EnqueueJobEntry(Report::"Shpfy Sync Products", Parameters, StrSubstNo(SyncDescriptionTxt, ProductsSyncTypeTxt, Shop.GetFilter(Code)), true, false);
+                JobQueueId := EnqueueJobEntry(Report::"Shpfy Sync Products", Parameters, StrSubstNo(ProductSyncDescriptionTxt, Shop.GetFilter(Code)), true, false);
             end;
         end;
 
@@ -554,13 +555,21 @@ codeunit 30101 "Shpfy Background Syncs"
         Shop.SetRange("Allow Background Syncs", true);
         if not Shop.IsEmpty then begin
             Parameters := StrSubstNo(ProductParmatersTxt, format(PricesOnly, 0, 9), Shop.GetView());
-            EnqueueJobEntry(Report::"Shpfy Sync Products", Parameters, StrSubstNo(SyncDescriptionTxt, ProductsSyncTypeTxt, Shop.GetFilter(Code)), true, true);
+            EnqueueJobEntry(Report::"Shpfy Sync Products", Parameters, GetProductSyncDescription(PricesOnly, Shop.GetFilter(Code)), true, true);
         end;
         Shop.SetRange("Allow Background Syncs", false);
         if not Shop.IsEmpty then begin
             Parameters := StrSubstNo(ProductParmatersTxt, format(PricesOnly, 0, 9), Shop.GetView());
-            EnqueueJobEntry(Report::"Shpfy Sync Products", Parameters, StrSubstNo(SyncDescriptionTxt, ProductsSyncTypeTxt, Shop.GetFilter(Code)), false, true);
+            EnqueueJobEntry(Report::"Shpfy Sync Products", Parameters, GetProductSyncDescription(PricesOnly, Shop.GetFilter(Code)), false, true);
         end;
+    end;
+
+    local procedure GetProductSyncDescription(PricesOnly: Boolean; ShopCodeFilter: Text): Text
+    begin
+        if PricesOnly then
+            exit(StrSubstNo(PriceSyncDescriptionTxt, ShopCodeFilter));
+
+        exit(StrSubstNo(ProductSyncDescriptionTxt, ShopCodeFilter));
     end;
 
     /// <summary> 

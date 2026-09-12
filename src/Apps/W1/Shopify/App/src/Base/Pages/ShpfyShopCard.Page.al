@@ -845,6 +845,32 @@ page 30101 "Shpfy Shop Card"
                 ToolTip = 'View a list of Shopify Staff Members for the shop.';
                 Visible = Rec."Advanced Shopify Plan";
             }
+            action(PaymentTransactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Payment Transactions';
+                Image = Transactions;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = page "Shpfy Payment Transactions";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View the Shopify payment transactions for this shop.';
+            }
+            action(Payouts)
+            {
+                ApplicationArea = All;
+                Caption = 'Payouts';
+                Image = PaymentHistory;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = page "Shpfy Payouts";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View the Shopify payouts for this shop.';
+            }
         }
         area(Processing)
         {
