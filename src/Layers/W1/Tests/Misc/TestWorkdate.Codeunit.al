@@ -90,6 +90,44 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
+    procedure EvaluationCompanyCanApplyWorkDateToAllSessions()
+    var
+        CompanyInformation: Record "Company Information";
+        LogInManagement: Codeunit LogInManagement;
+        CustomWorkDate: Date;
+        DefaultWorkDate: Date;
+        ApplyWorkDateToAllSessions: Boolean;
+    begin
+        // [SCENARIO] An evaluation company can apply its work date to all session types.
+        CustomWorkDate := CalcDate('<-1M>', Today);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", CustomWorkDate, true);
+
+        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(DefaultWorkDate);
+
+        Assert.AreEqual(CustomWorkDate, DefaultWorkDate, 'The custom work date should be used.');
+        Assert.IsTrue(ApplyWorkDateToAllSessions, 'The work date should be applied to all sessions.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegularCompanyCannotApplyWorkDateToAllSessions()
+    var
+        CompanyInformation: Record "Company Information";
+        LogInManagement: Codeunit LogInManagement;
+        DefaultWorkDate: Date;
+        ApplyWorkDateToAllSessions: Boolean;
+    begin
+        // [SCENARIO] A regular company cannot apply the evaluation work date to all session types.
+        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
+
+        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(DefaultWorkDate);
+
+        Assert.AreEqual(WorkDate(), DefaultWorkDate, 'The current work date should remain unchanged.');
+        Assert.IsFalse(ApplyWorkDateToAllSessions, 'The work date should not be applied to all sessions.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure EvaluationWorkDateIsVisibleForEvaluationCompany()
     var
         CompanyInformation: Record "Company Information";
@@ -101,6 +139,7 @@ codeunit 139028 "Test Workdate"
         CompanyInformationPage.OpenEdit();
 
         Assert.IsTrue(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be visible for an evaluation company.');
+        Assert.IsTrue(CompanyInformationPage."Apply Work Date to Sessions".Visible(), 'The all sessions field should be visible for an evaluation company.');
         CompanyInformationPage.Close();
     end;
 
@@ -117,6 +156,7 @@ codeunit 139028 "Test Workdate"
         CompanyInformationPage.OpenEdit();
 
         Assert.IsFalse(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be hidden for a regular company.');
+        Assert.IsFalse(CompanyInformationPage."Apply Work Date to Sessions".Visible(), 'The all sessions field should be hidden for a regular company.');
         CompanyInformationPage.Close();
     end;
 
@@ -170,6 +210,11 @@ codeunit 139028 "Test Workdate"
     end;
 
     local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; IsDemoCompany: Boolean; EvaluationWorkDate: Option "Latest G/L Entry Posting Date",Today,"Custom Date"; CustomWorkDate: Date)
+    begin
+        SetCompanyWorkDateSettings(CompanyInformation, IsEvaluationCompany, IsDemoCompany, EvaluationWorkDate, CustomWorkDate, false);
+    end;
+
+    local procedure SetCompanyWorkDateSettings(var CompanyInformation: Record "Company Information"; IsEvaluationCompany: Boolean; IsDemoCompany: Boolean; EvaluationWorkDate: Option "Latest G/L Entry Posting Date",Today,"Custom Date"; CustomWorkDate: Date; ApplyWorkDateToAllSessions: Boolean)
     var
         Company: Record Company;
     begin
@@ -181,6 +226,7 @@ codeunit 139028 "Test Workdate"
         CompanyInformation."Demo Company" := IsDemoCompany;
         CompanyInformation."Evaluation Work Date" := EvaluationWorkDate;
         CompanyInformation."Custom Work Date" := CustomWorkDate;
+        CompanyInformation."Apply Work Date to Sessions" := ApplyWorkDateToAllSessions;
         CompanyInformation.Modify();
     end;
 

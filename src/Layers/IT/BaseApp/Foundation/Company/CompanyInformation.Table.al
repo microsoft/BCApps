@@ -473,6 +473,12 @@ table 79 "Company Information"
                 TestField("Custom Work Date");
             end;
         }
+        field(103; "Apply Work Date to Sessions"; Boolean)
+        {
+            Caption = 'Apply Work Date to All Sessions';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the evaluation work date applies to all new sessions, including background, API, and OData sessions.';
+        }
         field(200; "Alternative Language Code"; Code[10])
         {
             Caption = 'Alternative Language Code';

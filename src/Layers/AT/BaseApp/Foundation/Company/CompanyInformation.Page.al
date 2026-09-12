@@ -544,6 +544,10 @@ page 1 "Company Information"
                             CurrPage.Update(false);
                         end;
                     }
+                    field("Apply Work Date to Sessions"; Rec."Apply Work Date to Sessions")
+                    {
+                        ApplicationArea = Basic, Suite;
+                    }
                 }
                 group(CustomWorkDate)
                 {
