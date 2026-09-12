@@ -8709,8 +8709,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             else
                 exit(GenJnlLine."Source Currency Amount");
         end else
-            if (GenJnlLine."Source Currency amount" <> (GenJnlLine.Amount - GenJnlLine."VAT Amount")) and (GenJnlLine."Source Currency Amount" <> 0) then
-                exit(GenJnlLine."Source Currency amount")
+            if (GenJnlLine."Source Currency Amount" <> (GenJnlLine.Amount - GenJnlLine."VAT Amount")) and (GenJnlLine."Source Currency Amount" <> 0) then
+                exit(GenJnlLine."Source Currency Amount")
             else
                 exit(GenJnlLine.Amount - GenJnlLine."VAT Amount");
     end;
