@@ -1547,6 +1547,79 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         VerifyTaxTotalAmounts(0, VatPer, 0, 0);
     end;
 
+    [Test]
+    procedure ValidateSalesDocumentRequiresCustomerIdentifier()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Generic PEPPOL validation requires a customer GLN or VAT registration no.
+        Initialize();
+
+        // [GIVEN] Sales Invoice "SI" without customer GLN or VAT registration no.
+        Customer.Get(CreateCustomerWithAddressAndVATRegNo());
+        Customer.GLN := '';
+        Customer."VAT Registration No." := '';
+        Customer.Modify(true);
+        CreateSalesDoc(SalesHeader, SalesLine, Customer."No.", "Sales Document Type"::Invoice, '');
+
+        // [WHEN] CU 37216 validates the sales invoice without German binding
+        asserterror PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] Customer GLN or VAT Registration No. is required
+        Assert.ExpectedError('You must specify either GLN or VAT Registration No. for Customer');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ValidateSalesDocumentRequiresYourReference()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Generic PEPPOL validation requires Your Reference
+        Initialize();
+
+        // [GIVEN] Otherwise valid Sales Invoice "SI" without Your Reference
+        CreateSalesDoc(SalesHeader, SalesLine, CreateCustomerWithAddressAndVATRegNo(), "Sales Document Type"::Invoice, '');
+        SalesHeader.Validate("Your Reference", '');
+        SalesHeader.Modify(true);
+
+        // [WHEN] CU 37216 validates the sales invoice without German binding
+        asserterror PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] Your Reference is required
+        Assert.ExpectedError(SalesHeader.FieldCaption("Your Reference"));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ValidateSalesDocumentDoesNotRequireSellToEmail()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Generic PEPPOL validation permits blank Sell-to E-Mail
+        Initialize();
+
+        // [GIVEN] Otherwise valid Sales Invoice "SI" without Sell-to E-Mail
+        CreateSalesDoc(SalesHeader, SalesLine, CreateCustomerWithAddressAndVATRegNo(), "Sales Document Type"::Invoice, '');
+        SalesHeader.Validate("Sell-to E-Mail", '');
+        SalesHeader.Modify(true);
+
+        // [WHEN] CU 37216 validates the sales invoice without German binding
+        PEPPOL30SalesValidation.ValidateDocument(SalesHeader);
+
+        // [THEN] The sales invoice passes validation
+    end;
+
     local procedure Initialize()
     var
         CompanyInfo: Record "Company Information";
