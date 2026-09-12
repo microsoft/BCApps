@@ -137,6 +137,8 @@
 /src/Apps/W1/OnboardingSignals/ @microsoft/d365-bc-integrations
 /src/Apps/W1/PEPPOL/ @microsoft/d365-bc-integrations
 /src/Apps/W1/PayPalPaymentsStandard/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/MicrosoftFabricExport/ @microsoft/d365-bc-integrations
+/src/Apps/W1/MSWalletPayments/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PayablesAgent/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PaymentPractices/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PlanConfiguration/ @microsoft/d365-bc-integrations
