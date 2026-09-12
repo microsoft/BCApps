@@ -278,3 +278,4 @@ page 99000765 "Routing Lines"
         UnitCostPerEditable := Rec.Type = Enum::"Capacity Type Routing"::"Work Center";
     end;
 }
+

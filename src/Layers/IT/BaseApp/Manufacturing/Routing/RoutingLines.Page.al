@@ -325,3 +325,4 @@ page 99000765 "Routing Lines"
         UnitCostPerEditable := Rec.Type = "Capacity Type Routing"::"Work Center";
     end;
 }
+
