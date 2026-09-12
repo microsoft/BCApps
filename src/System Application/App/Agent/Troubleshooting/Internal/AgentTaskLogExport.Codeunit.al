@@ -88,21 +88,12 @@ codeunit 4313 "Agent Task Log Export"
 
     procedure ExportTaskToJson(AgentTaskID: BigInteger; var ExportOutStream: OutStream)
     var
-        ExportRoot: JsonObject;
-    begin
-        ExportTaskToJson(AgentTaskID, ExportRoot);
-        ExportRoot.WriteTo(ExportOutStream);
-    end;
-
-    procedure ExportTaskToJson(AgentTaskID: BigInteger; var ExportJson: JsonObject)
-    var
         AgentTaskLogEntry: Record "Agent Task Log Entry";
         AgentTaskMemoryEntry: Record "Agent Task Memory Entry";
     begin
-        Clear(ExportJson);
         AgentTaskLogEntry.SetRange("Task ID", AgentTaskID);
         AgentTaskMemoryEntry.SetRange("Task ID", AgentTaskID);
-        ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, true, ExportJson);
+        ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, ExportOutStream);
     end;
 
     procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry")

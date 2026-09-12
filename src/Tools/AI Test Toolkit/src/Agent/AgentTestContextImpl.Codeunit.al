@@ -75,37 +75,18 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetCommaSeparatedAgentTaskIDs(AgentTestTaskLog));
     end;
 
-    procedure GetAgentTaskLogs(var AITLogEntry: Record "AIT Log Entry"): Text
+    procedure GetAgentTaskLog(AgentTaskID: BigInteger): Text
     var
-        AgentTaskLog: Record "Agent Task Log";
         AgentTaskLogExport: Codeunit "Agent Task Log Export";
-        ExportJson: JsonObject;
-        TaskJson: JsonObject;
-        TaskLogs: JsonArray;
-        ResultJson: JsonObject;
+        TempBlob: Codeunit "Temp Blob";
+        ExportInStream: InStream;
+        ExportOutStream: OutStream;
         ResultText: Text;
     begin
-        if not AITLogEntry.FindSet() then
-            exit;
-
-        ResultJson.Add(TestSuiteCodeLbl, AITLogEntry."Test Suite Code");
-        ResultJson.Add(VersionLbl, AITLogEntry.Version);
-        repeat
-            AgentTaskLog.SetRange("Test Log Entry ID", AITLogEntry."Entry No.");
-            if AgentTaskLog.FindSet() then
-                repeat
-                    Clear(TaskJson);
-                    Clear(ExportJson);
-                    AgentTaskLogExport.ExportTaskToJson(AgentTaskLog."Agent Task ID", ExportJson);
-                    TaskJson.Add(TestLogEntryIdLbl, AITLogEntry."Entry No.");
-                    TaskJson.Add(AgentTaskIdLbl, Format(AgentTaskLog."Agent Task ID", 0, 9));
-                    TaskJson.Add(TaskLogLbl, ExportJson);
-                    TaskLogs.Add(TaskJson);
-                until AgentTaskLog.Next() = 0;
-        until AITLogEntry.Next() = 0;
-
-        ResultJson.Add(TasksLbl, TaskLogs);
-        ResultJson.WriteTo(ResultText);
+        TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
+        AgentTaskLogExport.ExportTaskToJson(AgentTaskID, ExportOutStream);
+        TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
+        ExportInStream.ReadText(ResultText);
         exit(ResultText);
     end;
 
@@ -311,10 +292,4 @@ codeunit 149049 "Agent Test Context Impl."
         AgentTaskList: List of [BigInteger];
         GlobalAgentUserSecurityID: Guid;
         AgentIsNotActiveErr: Label 'Agent %1 set on suite %2 is not active.', Comment = '%1 = Agent ID, %2 = Suite Code';
-        AgentTaskIdLbl: Label 'agentTaskId', Locked = true;
-        TaskLogLbl: Label 'taskLog', Locked = true;
-        TasksLbl: Label 'tasks', Locked = true;
-        TestLogEntryIdLbl: Label 'testLogEntryId', Locked = true;
-        TestSuiteCodeLbl: Label 'testSuiteCode', Locked = true;
-        VersionLbl: Label 'version', Locked = true;
 }

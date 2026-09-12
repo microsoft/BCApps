@@ -383,27 +383,24 @@ function Export-AgentTaskLogs {
 
     Write-HostWithTimestamp "Loading Agent Task logs for suite $SuiteCode"
     $LoadAgentTaskLogsAction = $ClientContext.GetActionByName($Form, "LoadAgentTaskLogs")
-    $ClientContext.InvokeAction($LoadAgentTaskLogsAction)
-
-    $AgentTaskLogsControl = $ClientContext.GetControlByName($Form, "Agent Task Logs")
-    $AgentTaskLogsText = $AgentTaskLogsControl.StringValue
-    if ([string]::IsNullOrWhiteSpace($AgentTaskLogsText)) {
-        Write-HostWithTimestamp "No Agent Task logs were returned for suite $SuiteCode"
-        return
-    }
-
-    $AgentTaskLogs = $AgentTaskLogsText | ConvertFrom-Json
-    if (-not $AgentTaskLogs.tasks) {
-        Write-HostWithTimestamp "No Agent Tasks were associated with suite $SuiteCode version $($AgentTaskLogs.version)"
-        return
-    }
-
     New-Item -ItemType Directory -Force -Path $AgentTaskLogFolder | Out-Null
-    foreach ($AgentTask in $AgentTaskLogs.tasks) {
+    while ($true) {
+        $ClientContext.InvokeAction($LoadAgentTaskLogsAction)
+        $AgentTaskLogText = $ClientContext.GetControlByName($Form, "Agent Task Log").StringValue
+        if ($AgentTaskLogText -eq 'No more Agent Task logs.') {
+            break
+        }
+        if ([string]::IsNullOrWhiteSpace($AgentTaskLogText)) {
+            throw "The Agent Task Log field is empty."
+        }
+
+        $Version = $ClientContext.GetControlByName($Form, "Agent Task Log Version").StringValue
+        $TestLogEntryId = $ClientContext.GetControlByName($Form, "Agent Task Log Entry ID").StringValue
+        $AgentTaskId = $ClientContext.GetControlByName($Form, "Agent Task ID").StringValue
         $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
-        $FileName = '{0}_v{1}_log{2}_task{3}.json' -f $SafeSuiteCode, $AgentTaskLogs.version, $AgentTask.testLogEntryId, $AgentTask.agentTaskId
+        $FileName = '{0}_v{1}_log{2}_task{3}.json' -f $SafeSuiteCode, $Version, $TestLogEntryId, $AgentTaskId
         $FilePath = Join-Path $AgentTaskLogFolder $FileName
-        $AgentTask.taskLog | ConvertTo-Json -Depth 100 | Set-Content -Path $FilePath -Encoding UTF8
+        [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, [System.Text.UTF8Encoding]::new($false))
         Write-HostWithTimestamp "Exported Agent Task log to $FilePath"
     }
 }

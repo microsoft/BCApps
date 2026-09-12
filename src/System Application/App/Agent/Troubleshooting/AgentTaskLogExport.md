@@ -17,12 +17,6 @@ AgentTaskLogExport.ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
 AgentTaskLogExport.ExportTaskToJson(AgentTaskID, ExportOutStream);
 ```
 
-The complete task export is also available as a native `JsonObject` for internal consumers:
-
-```al
-AgentTaskLogExport.ExportTaskToJson(AgentTaskID, ExportJson);
-```
-
 File-download variants are also available:
 
 ```al
@@ -55,4 +49,4 @@ Serialized page content is sensitive and is included only when the current user 
 - Shared calculations were extracted from the Agent Task Log Entry page into codeunit `"Agent Task Log Entry"` so the page and JSON export use the same values.
 - Temporary log records avoid persistent task, memory, message, and related-entry lookups where those relationships are unavailable.
 - Tests cover chronological ordering, separation of log and memory entries, native memory JSON, English captions with language restoration, real task context, and redacted troubleshooting context.
-- The AI Test Toolkit command-line page can load the authoritative troubleshooting JSON for every Agent Task associated with the latest eval suite version.
+- The AI Test Toolkit command-line page can load one authoritative Agent Task troubleshooting JSON document at a time for the latest eval suite version.

@@ -357,25 +357,6 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.AreEqual(1036, LanguageAfterExport, 'The export should restore the caller''s global language.');
     end;
 
-    [Test]
-    procedure TestExportTaskToJson_ReturnsNativeJsonAndClearsTarget()
-    var
-        AgentTaskLogExport: Codeunit "Agent Task Log Export";
-        ExportJson: JsonObject;
-    begin
-        // [GIVEN] A target object that already contains data
-        ExportJson.Add('staleValue', true);
-
-        // [WHEN] A task is exported to the native JSON API
-        AgentTaskLogExport.ExportTaskToJson(0, ExportJson);
-
-        // [THEN] The target contains only the task export
-        Assert.IsFalse(ExportJson.Contains('staleValue'), 'The native export should clear the target JSON object.');
-        Assert.AreEqual('0', ExportJson.GetObject('taskContext').GetText('taskId'), 'The task context should contain the requested task ID.');
-        Assert.AreEqual(0, ExportJson.GetArray('logEntries').Count(), 'The task should not contain log entries.');
-        Assert.AreEqual(0, ExportJson.GetArray('memoryEntries').Count(), 'The task should not contain memory entries.');
-    end;
-
     local procedure CreateTempLogEntryWithContext(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; EntryID: Integer; ContextTxt: Text)
     var
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
