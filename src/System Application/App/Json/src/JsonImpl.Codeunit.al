@@ -73,11 +73,8 @@ codeunit 5461 "Json Impl."
     end;
 
     procedure GetCollection() JsonArray: JsonArray
-    var
-        JsonText: Text;
     begin
-        JsonArrayState.WriteTo(JsonText);
-        JsonArray.ReadFrom(JsonText);
+        exit(JsonArrayState.Clone().AsArray());
     end;
 
     procedure GetObjectAsText() Value: Text
@@ -86,11 +83,8 @@ codeunit 5461 "Json Impl."
     end;
 
     procedure GetObject() JsonObject: JsonObject
-    var
-        JsonText: Text;
     begin
-        JsonObjectState.WriteTo(JsonText);
-        JsonObject.ReadFrom(JsonText);
+        exit(JsonObjectState.Clone().AsObject());
     end;
 
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
@@ -110,7 +104,25 @@ codeunit 5461 "Json Impl."
         exit(GetPropertyValueFromJObjectByPathSetToFieldRef(PropertyPath, FieldRef));
     end;
 
+#if not CLEAN30
     procedure GetPropertyValueFromJObjectByName(PropertyName: Text; var Value: Variant): Boolean
+    var
+        JTokenDotNet: DotNet JToken;
+        JsonToken: JsonToken;
+        JsonText: Text;
+    begin
+        Clear(Value);
+        if not JsonObjectState.Get(PropertyName, JsonToken) then
+            exit(false);
+
+        JsonToken.WriteTo(JsonText);
+        JTokenDotNet := JTokenDotNet.Parse(JsonText);
+        Value := JTokenDotNet;
+        exit(true);
+    end;
+#endif
+
+    procedure GetNativePropertyValueFromJObjectByName(PropertyName: Text; var Value: Variant): Boolean
     var
         JsonToken: JsonToken;
     begin
@@ -597,13 +609,8 @@ codeunit 5461 "Json Impl."
     end;
 
     local procedure AddJObjectToCollection()
-    var
-        JsonObjectClone: JsonObject;
-        JsonText: Text;
     begin
-        JsonObjectState.WriteTo(JsonText);
-        JsonObjectClone.ReadFrom(JsonText);
-        JsonArrayState.Add(JsonObjectClone);
+        JsonArrayState.Add(JsonObjectState.Clone().AsObject());
     end;
 
     local procedure SetObjectStateFromString(JSONString: Text)

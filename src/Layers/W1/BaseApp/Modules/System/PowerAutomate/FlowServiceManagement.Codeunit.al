@@ -36,6 +36,7 @@ codeunit 6400 "Flow Service Management"
         PowerAutomatePickerTelemetryCategoryLbl: Label 'AL Power Automate Environment Picker', Locked = true;
         MicrosoftPowerAutomatePrivacyIdTxt: Label 'Power Automate', Locked = true;
         PowerPlatformTenantNotConfiguredErr: Label 'Power Automate cannot connect because this Business Central environment is not linked to a Power Platform tenant. Contact your system administrator to configure the Power Platform environment link.';
+        InvalidEnvironmentResponseErr: Label 'The Power Automate environments response is not valid JSON.';
 
 
     procedure GetFlowUrl(): Text
@@ -175,7 +176,8 @@ codeunit 6400 "Flow Service Management"
         ProvisioningState: Text;
     begin
         // Parse the ResponseText from Flow environments api for a list of environments
-        RootJsonObject.ReadFrom(ResponseText);
+        if not RootJsonObject.ReadFrom(ResponseText) then
+            Error(InvalidEnvironmentResponseErr);
         if not RootJsonObject.Get('value', JsonToken) then
             exit;
 

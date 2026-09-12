@@ -22,7 +22,9 @@ codeunit 1234 "Json Text Reader/Writer"
 
     procedure ReadJSonToJSonBuffer(Json: Text; var JsonBuffer: Record "JSON Buffer")
     begin
+#pragma warning disable AL0432
         JsonBuffer.ReadFromText(Json);
+#pragma warning restore AL0432
     end;
 
     local procedure InitializeWriter()

@@ -1,5 +1,8 @@
 namespace System.IO;
 
+#if not CLEAN30
+using System;
+#endif
 using System.Reflection;
 using System.Utilities;
 
@@ -73,6 +76,8 @@ table 1236 "JSON Buffer"
         SystemStringTxt: Label 'System.String', Locked = true;
         StrictJSONScalarPatternTxt: Label '^(?:"(?:\\["\\/bfnrt]|\\u[0-9A-Fa-f]{4}|[^"\\\x00-\x1F])*"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|true|false|null)$', Locked = true;
 
+#if not CLEAN30
+    [Obsolete('Use ReadFromBlobStrict for standard JSON. Json.NET-only syntax is not supported by the strict parser.', '30.0')]
     procedure ReadFromBlob(BlobFieldRef: FieldRef)
     var
         TypeHelper: Codeunit "Type Helper";
@@ -81,10 +86,62 @@ table 1236 "JSON Buffer"
     begin
         TempBlob.FromRecordRef(BlobFieldRef.Record(), BlobFieldRef.Number);
         TempBlob.CreateInStream(InStream, TEXTENCODING::UTF8);
+#pragma warning disable AL0432
         ReadFromText(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator()));
+#pragma warning restore AL0432
     end;
 
+    [Obsolete('Use ReadFromTextStrict for standard JSON. Json.NET-only syntax is not supported by the strict parser.', '30.0')]
     procedure ReadFromText(JSONText: Text)
+    var
+        JSONTextReader: DotNet JsonTextReader;
+        StringReader: DotNet StringReader;
+        TokenType: Integer;
+        FormatValue: Integer;
+    begin
+        if not IsTemporary then
+            Error(DevMsgNotTemporaryErr);
+        DeleteAll();
+        JSONTextReader := JSONTextReader.JsonTextReader(StringReader.StringReader(JSONText));
+        if JSONTextReader.Read() then
+            repeat
+                Init();
+                "Entry No." += 1;
+                Depth := JSONTextReader.Depth;
+                TokenType := JSONTextReader.TokenType;
+                "Token type" := TokenType;
+                if IsNull(JSONTextReader.Value) then
+                    Value := ''
+                else begin
+                    if JSONTextReader.ValueType.ToString() = 'System.DateTime' then
+                        FormatValue := 1
+                    else
+                        FormatValue := 0;
+                    SetValueWithoutModifying(Format(JSONTextReader.Value, 0, FormatValue));
+                end;
+
+                if IsNull(JSONTextReader.ValueType) then
+                    "Value Type" := ''
+                else
+                    "Value Type" := Format(JSONTextReader.ValueType);
+                Path := JSONTextReader.Path;
+                Insert();
+            until not JSONTextReader.Read();
+    end;
+#endif
+
+    procedure ReadFromBlobStrict(BlobFieldRef: FieldRef)
+    var
+        TypeHelper: Codeunit "Type Helper";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+    begin
+        TempBlob.FromRecordRef(BlobFieldRef.Record(), BlobFieldRef.Number);
+        TempBlob.CreateInStream(InStream, TEXTENCODING::UTF8);
+        ReadFromTextStrict(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator()));
+    end;
+
+    procedure ReadFromTextStrict(JSONText: Text)
     var
         JSONToken: JsonToken;
     begin

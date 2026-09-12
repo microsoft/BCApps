@@ -107,6 +107,18 @@ codeunit 134631 "Graph Collect Mgt Customer"
         VerifyMatchingPostalAddress(PostalAddressJSON, Customer);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestEmptyDimensionsJSON()
+    var
+        GraphMgtComplexTypes: Codeunit "Graph Mgt - Complex Types";
+        NewDimensionSetId: Integer;
+    begin
+        GraphMgtComplexTypes.GetDimensionSetFromJSON('', 0, NewDimensionSetId);
+
+        Assert.AreEqual(0, NewDimensionSetId, 'Blank dimensions JSON must produce an empty dimension set.');
+    end;
+
     local procedure FindCustomerWithAddress(var Customer: Record Customer)
     var
         CountryRegion: Record "Country/Region";
@@ -146,4 +158,3 @@ codeunit 134631 "Graph Collect Mgt Customer"
         Customer.TestField("Post Code", TempCustomer."Post Code");
     end;
 }
-

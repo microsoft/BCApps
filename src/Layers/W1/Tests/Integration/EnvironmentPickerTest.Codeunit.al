@@ -15,6 +15,7 @@ codeunit 132677 "Environment Picker Test"
         EnvironmentIdTxt: Label 'environment-id', Locked = true;
         EnvironmentNameTxt: Label 'environment name', Locked = true;
         MockEnvironmentLookupErr: Label 'The linked Power Platform environment lookup failed.', Locked = true;
+        InvalidEnvironmentResponseErr: Label 'The Power Automate environments response is not valid JSON.';
         MockLinkedEnvironmentId: Text;
         MockLinkedEnvironmentLookup: Boolean;
         FailLinkedEnvironmentLookup: Boolean;
@@ -221,6 +222,7 @@ codeunit 132677 "Environment Picker Test"
         BindSubscription(EnvironmentPickerTest);
 
         asserterror FlowServiceManagement.GetEnvironments(TempFlowUserEnvironmentBuffer);
+        LibraryAssert.ExpectedError(InvalidEnvironmentResponseErr);
     end;
 
     [Test]

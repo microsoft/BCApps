@@ -339,10 +339,13 @@ table 469 "Workflow Webhook Subscription"
     local procedure AddEventConditionsWrapper(ConditionsPropertyName: Text; ConditionsObject: JsonObject; SourcePageNo: Integer; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer)
     var
         ConditionsCollection: JsonToken;
+        ErrorText: Text;
     begin
         if ConditionsObject.Get(ConditionsPropertyName, ConditionsCollection) then begin
-            if not ConditionsCollection.IsArray() then
-                SendAndLogError(GetLastErrorText, StrSubstNo(UnableToParseJsonArrayErr, ConditionsPropertyName));
+            if not ConditionsCollection.IsArray() then begin
+                ErrorText := StrSubstNo(UnableToParseJsonArrayErr, ConditionsPropertyName);
+                SendAndLogError(ErrorText, ErrorText);
+            end;
             AddEventConditions(ConditionsCollection.AsArray(), EventConditions, SourcePageNo, ConditionsCount);
             ConditionsCount := ConditionsCount + 1;
         end;
@@ -412,8 +415,7 @@ table 469 "Workflow Webhook Subscription"
         Clear(ConditionsArray);
         if ConditionsTxt = '' then
             exit;
-        if not ConditionsArray.ReadFrom(ConditionsTxt) then
-            Error('');
+        ConditionsArray.ReadFrom(ConditionsTxt);
     end;
 
     [TryFunction]

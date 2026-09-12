@@ -19,6 +19,8 @@ codeunit 139910 "Json Test"
 
     var
         Assert: Codeunit "Library Assert";
+        InvalidJsonArrayErr: Label 'The value is not a valid JSON array.';
+        InvalidJsonObjectErr: Label 'The value is not a valid JSON object.';
 
     [Test]
     procedure TestGetCollectionCount()
@@ -111,6 +113,7 @@ codeunit 139910 "Json Test"
         Assert.AreEqual('Test Name', Printer.Name, 'The Name field was not set correctly.');
     end;
 
+#if not CLEAN30
     [Test]
     procedure TestGetPropertyValueByName()
     var
@@ -123,11 +126,21 @@ codeunit 139910 "Json Test"
         Json.InitializeObject(JsonObjectText);
 
         // [WHEN] Retrieve a value from the JSON object
+#pragma warning disable AL0432
         Json.GetPropertyValueByName('id', Value);
 
         // [THEN] The retrieved value matches the expected value
+        Assert.IsTrue(Value.IsDotNet, 'The legacy property getter must return a DotNet JSON token.');
         Assert.AreEqual('ABC123', Format(Value), 'The retrieved value does not match the expected value.');
+
+        Json.InitializeObject('{"object":{"id":1},"array":[1,2]}');
+        Assert.IsTrue(Json.GetPropertyValueByName('object', Value), 'The object property was not found.');
+        Assert.IsTrue(Value.IsDotNet, 'The legacy object property must return a DotNet JSON token.');
+        Assert.IsTrue(Json.GetPropertyValueByName('array', Value), 'The array property was not found.');
+        Assert.IsTrue(Value.IsDotNet, 'The legacy array property must return a DotNet JSON token.');
+#pragma warning restore AL0432
     end;
+#endif
 
     [Test]
     procedure TestGetStringPropertyValueByName()
@@ -356,6 +369,7 @@ codeunit 139910 "Json Test"
         Json: Codeunit "Json";
     begin
         asserterror Json.XMLTextToJSONText('<!DOCTYPE root [<!ENTITY value "test">]><root>&value;</root>');
+        Assert.ExpectedError('DTD');
     end;
 
     [Test]
@@ -475,16 +489,20 @@ codeunit 139910 "Json Test"
         Json: Codeunit "Json";
     begin
         asserterror Json.InitializeCollection('not json');
+        Assert.ExpectedError(InvalidJsonArrayErr);
         asserterror Json.InitializeObject('not json');
+        Assert.ExpectedError(InvalidJsonObjectErr);
 
         Json.InitializeCollection('[]');
         asserterror Json.AddJObjectToCollection('not json');
+        Assert.ExpectedError(InvalidJsonObjectErr);
         Assert.AreEqual('[]', Json.GetCollectionAsText(), 'Invalid object input changed the collection.');
         Assert.AreEqual('[]', Json.GetCollectionAsText(true), 'Invalid object input changed the indented collection.');
         Assert.AreEqual(0, Json.GetCollectionCount(), 'Invalid object input changed the collection count.');
 
         Json.InitializeCollection('[{}]');
         asserterror Json.ReplaceJObjectInCollection(0, 'not json');
+        Assert.ExpectedError(InvalidJsonObjectErr);
         Assert.AreEqual('[{}]', Json.GetCollectionAsText(), 'Invalid replacement input changed the collection.');
         Assert.AreEqual(1, Json.GetCollectionCount(), 'Invalid replacement input changed the collection count.');
     end;
@@ -652,34 +670,34 @@ codeunit 139910 "Json Test"
         Json.InitializeObject('{"text":"value","integer":42,"decimal":12.5,"boolean":true,"null":null,"object":{"id":1},"array":[1,2]}');
 
         // [WHEN] Scalar values are requested as variants
-        Assert.IsTrue(Json.GetPropertyValueByName('text', Value), 'Text property was not found.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('text', Value), 'Text property was not found.');
         Assert.IsTrue(Value.IsText(), 'Text JSON value was not returned as AL Text.');
         TextValue := Value;
         Assert.AreEqual('value', TextValue, 'Text variant value is incorrect.');
 
-        Assert.IsTrue(Json.GetPropertyValueByName('integer', Value), 'Integer property was not found.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('integer', Value), 'Integer property was not found.');
         Assert.IsTrue(Value.IsInteger(), 'Integer JSON value was not returned as AL Integer.');
         IntegerValue := Value;
         Assert.AreEqual(42, IntegerValue, 'Integer variant value is incorrect.');
 
-        Assert.IsTrue(Json.GetPropertyValueByName('decimal', Value), 'Decimal property was not found.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('decimal', Value), 'Decimal property was not found.');
         Assert.IsTrue(Value.IsDecimal(), 'Decimal JSON value was not returned as AL Decimal.');
         DecimalValue := Value;
         Assert.AreEqual(12.5, DecimalValue, 'Decimal variant value is incorrect.');
 
-        Assert.IsTrue(Json.GetPropertyValueByName('boolean', Value), 'Boolean property was not found.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('boolean', Value), 'Boolean property was not found.');
         Assert.IsTrue(Value.IsBoolean(), 'Boolean JSON value was not returned as AL Boolean.');
         BooleanValue := Value;
         Assert.IsTrue(BooleanValue, 'Boolean variant value is incorrect.');
 
         // [THEN] Native object and array values are carried directly by Variant
-        Assert.IsTrue(Json.GetPropertyValueByName('object', Value), 'Object property was not found.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('object', Value), 'Object property was not found.');
         Assert.IsTrue(Value.IsJsonObject(), 'Object JSON value was not returned as a native JsonObject.');
         ObjectValue := Value;
         ObjectValue.WriteTo(TextValue);
         Assert.AreEqual('{"id":1}', TextValue, 'Object variant value is incorrect.');
 
-        Assert.IsTrue(Json.GetPropertyValueByName('array', Value), 'Array property was not found.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('array', Value), 'Array property was not found.');
         Assert.IsTrue(Value.IsJsonArray(), 'Array JSON value was not returned as a native JsonArray.');
         ArrayValue := Value;
         ArrayValue.WriteTo(TextValue);
@@ -699,7 +717,7 @@ codeunit 139910 "Json Test"
 
         // [WHEN] The null property is requested
         Value := 'not cleared';
-        Assert.IsTrue(Json.GetPropertyValueByName('null', Value), 'An existing null property was reported as missing.');
+        Assert.IsTrue(Json.GetNativePropertyValueByName('null', Value), 'An existing null property was reported as missing.');
 
         // [THEN] JSON null is represented by a cleared Variant
         Assert.AreEqual('', Format(Value), 'JSON null did not clear the Variant value.');
@@ -709,7 +727,7 @@ codeunit 139910 "Json Test"
         Value := 'not cleared';
 
         // [THEN] The call returns false and still clears the output Variant
-        Assert.IsFalse(Json.GetPropertyValueByName('missing', Value), 'A missing property was reported as present.');
+        Assert.IsFalse(Json.GetNativePropertyValueByName('missing', Value), 'A missing property was reported as present.');
         Assert.AreEqual('', Format(Value), 'A missing property did not clear the Variant value.');
 
         // [THEN] String null is empty, while a typed null is rejected

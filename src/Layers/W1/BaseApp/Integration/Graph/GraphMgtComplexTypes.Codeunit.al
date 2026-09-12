@@ -298,6 +298,11 @@ codeunit 5468 "Graph Mgt - Complex Types"
         "Code": Code[20];
         Value: Code[20];
     begin
+        if DimensionsJSON = '' then begin
+            NewDimensionSetId := DimensionManagement.GetDimensionSetID(TempDimensionSetEntry);
+            exit;
+        end;
+
         DimensionsJsonArray.ReadFrom(DimensionsJSON);
         NumberOfLines := DimensionsJsonArray.Count();
         for I := 1 to NumberOfLines do begin
