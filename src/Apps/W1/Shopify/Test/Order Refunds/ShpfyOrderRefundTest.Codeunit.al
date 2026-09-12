@@ -10,6 +10,7 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
 using Microsoft.Utilities;
 using System.TestLibraries.Utilities;
 
@@ -1098,6 +1099,93 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.IsFalse(DocLinkToBCDoc.IsEmpty(), 'The exchange invoice must be linked to the Shopify order.');
 
         // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestExchangeOrderShipmentClearsRefundIdFromFulfillmentId()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        CreditMemoHeader: Record "Sales Header";
+        SalesOrderHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ReleaseSalesDocument: Codeunit "Release Sales Document";
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        LibrarySales: Codeunit "Library - Sales";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        OrderId: BigInteger;
+        OriginalOrderLineId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        ReturnId: BigInteger;
+        RefundId: BigInteger;
+        OriginalAmount: Decimal;
+        ExchangeAmount: Decimal;
+        ShopifyOrderNo: Code[50];
+        ShipmentNo: Code[20];
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+    begin
+        // [SCENARIO] A shipment posted from an exchange-refund order is eligible for Shopify synchronization.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        OriginalAmount := 200;
+        ExchangeAmount := 50;
+        ShopifyOrderNo := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(ShopifyOrderNo));
+
+        // [GIVEN] A processed Shopify order with an exchange refund turned into a credit memo.
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Shopify Order No." := ShopifyOrderNo;
+        OrderHeader."Total Amount" := OriginalAmount;
+        OrderHeader."Subtotal Amount" := OriginalAmount;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader."Presentment Total Amount" := OriginalAmount;
+        OrderHeader."Presentment Subtotal Amount" := OriginalAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader.Modify(false);
+        OriginalOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), OriginalAmount);
+        ExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 20000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), ExchangeAmount);
+        OrderRefundsHelper.MarkOrderLineAsExchangeItem(OrderId, ExchangeOrderLineId);
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+        ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
+        OrderRefundsHelper.CreateReturnLine(ReturnId, OriginalOrderLineId, 'DEFECTIVE');
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, OriginalAmount - ExchangeAmount, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineForReturnedItem(RefundId, OriginalOrderLineId, 1, OriginalAmount);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, ExchangeOrderLineId, 1, ExchangeAmount);
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        CreditMemoHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+        ReleaseSalesDocument.Reopen(CreditMemoHeader);
+
+        // [GIVEN] The negative exchange line is moved to a sales order.
+        CopyDocumentMgt.SetProperties(true, false, true, true, true, false, false);
+        SalesOrderHeader."Document Type" := SalesOrderHeader."Document Type"::Order;
+        CopyDocumentMgt.CopySalesDoc(Enum::"Sales Document Type From"::"Credit Memo", CreditMemoHeader."No.", SalesOrderHeader);
+        SalesOrderHeader.Get(SalesOrderHeader."Document Type"::Order, SalesOrderHeader."No.");
+        LibraryAssert.AreEqual(RefundId, SalesOrderHeader."Shpfy Refund Id", 'The exchange order must retain the refund ID before posting.');
+
+        // [WHEN] The order is posted as shipment only.
+        ShipmentNo := LibrarySales.PostSalesDocument(SalesOrderHeader, true, false);
+
+        // [THEN] The refund ID is not transferred as a fulfillment ID.
+        SalesShipmentHeader.Get(ShipmentNo);
+        LibraryAssert.AreEqual(0, SalesShipmentHeader."Shpfy Fulfillment Id", 'The posted shipment must be eligible for Shopify synchronization.');
+        LibraryAssert.AreEqual(OrderHeader."Shopify Order Id", SalesShipmentHeader."Shpfy Order Id", 'The posted shipment must keep the Shopify Order Id.');
+        LibraryAssert.AreEqual(ShopifyOrderNo, SalesShipmentHeader."Shpfy Order No.", 'The posted shipment must keep the Shopify Order No.');
+
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
+        SalesShipmentLine.SetRange("Shpfy Order Line Id", ExchangeOrderLineId);
+        LibraryAssert.IsTrue(SalesShipmentLine.FindFirst(), 'The posted shipment line must keep the Shopify Order Line Id.');
+        LibraryAssert.AreEqual(ShopifyOrderNo, SalesShipmentLine."Shpfy Order No.", 'The posted shipment line must keep the Shopify Order No.');
+
         ResetProcessOnRefund(RefundId);
     end;
 
