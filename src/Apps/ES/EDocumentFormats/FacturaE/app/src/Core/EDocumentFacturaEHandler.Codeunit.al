@@ -36,7 +36,7 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
     /// <param name="EDocument">The E-Document record containing the document information.</param>
     /// <param name="TempBlob">The temporary blob containing the XML content to be processed.</param>
     /// <returns>Returns the type of draft document that was created (Purchase Document).</returns>
-    internal procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         FacturaEXML: XmlDocument;
@@ -74,7 +74,7 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
     /// </summary>
     /// <param name="EDocument">The E-Document record to be displayed.</param>
     /// <param name="TempBlob">The temporary blob containing the document content (not used in this implementation).</param>
-    internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
+    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
