@@ -111,7 +111,7 @@ codeunit 1306 "Company Information Mgt."
     var
         CompanyInformation: Record "Company Information";
     begin
-        Companyinformation.SetLoadFields("Demo Company");
+        CompanyInformation.SetLoadFields("Demo Company");
         if CompanyInformation.Get() then;
         exit(CompanyInformation."Demo Company");
     end;

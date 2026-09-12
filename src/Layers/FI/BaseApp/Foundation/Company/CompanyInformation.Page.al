@@ -403,6 +403,34 @@ page 1 "Company Information"
                         ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
                     end;
                 }
+                group(WorkDate)
+                {
+                    ShowCaption = false;
+                    Visible = WorkDateSelectionVisible;
+                    field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                    {
+                        ApplicationArea = Basic, Suite;
+
+                        trigger OnValidate()
+                        begin
+                            CustomWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date";
+                            CurrPage.Update(false);
+                        end;
+                    }
+                    field("Apply Work Date to Sessions"; Rec."Apply Work Date to Sessions")
+                    {
+                        ApplicationArea = Basic, Suite;
+                    }
+                }
+                group(CustomWorkDate)
+                {
+                    ShowCaption = false;
+                    Visible = CustomWorkDateVisible;
+                    field("Custom Work Date"; Rec."Custom Work Date")
+                    {
+                        ApplicationArea = Basic, Suite;
+                    }
+                }
             }
             group(Reporting)
             {
@@ -726,6 +754,10 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        WorkDateSelectionVisible := Rec."Demo Company";
+        if not WorkDateSelectionVisible then
+            WorkDateSelectionVisible := Rec.IsEvaluationCompany();
+        CustomWorkDateVisible := WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date");
     end;
 
     trigger OnClosePage()
@@ -780,6 +812,8 @@ page 1 "Company Information"
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
+        WorkDateSelectionVisible: Boolean;
+        CustomWorkDateVisible: Boolean;
         BankBranchNoOrAccountNoMissing: Boolean;
         BankAcctPostingGroup: Code[20];
         CountyVisible: Boolean;
@@ -832,4 +866,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-

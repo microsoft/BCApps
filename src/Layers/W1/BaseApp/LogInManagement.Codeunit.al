@@ -59,14 +59,23 @@ codeunit 40 LogInManagement
         ClientTypeManagement: Codeunit "Client Type Management";
         AzureADPlan: Codeunit "Azure AD Plan";
         ExperienceTier: Codeunit "Experience Tier";
+        CurrentClientType: ClientType;
         CurrentDate: Date;
+        DefaultWorkDate: Date;
+        ApplyWorkDateToAllSessions: Boolean;
     begin
         OnShowTermsAndConditions();
 
-        if GuiAllowed and (ClientTypeManagement.GetCurrentClientType() <> ClientType::Background) then
-            LogInStart();
+        CurrentClientType := ClientTypeManagement.GetCurrentClientType();
+        if GuiAllowed and (CurrentClientType <> ClientType::Background) then
+            LogInStart()
+        else begin
+            ApplyWorkDateToAllSessions := GetDefaultWorkDateForAllSessions(CurrentClientType, DefaultWorkDate);
+            if ApplyWorkDateToAllSessions then
+                WorkDate := DefaultWorkDate;
+        end;
 
-        if ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::ODataV4] then
+        if (CurrentClientType in [ClientType::Api, ClientType::ODataV4]) and not ApplyWorkDateToAllSessions then
             if GetCurrentDateInUserTimeZone(CurrentDate) then
                 WorkDate := CurrentDate;
 
@@ -192,18 +201,73 @@ codeunit 40 LogInManagement
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Company Information", 'r')]
     procedure GetDefaultWorkDate(): Date
     var
-        GLEntry: Record "G/L Entry";
-        CompanyInformationMgt: Codeunit "Company Information Mgt.";
+        CompanyInformation: Record "Company Information";
+        ChangeWorkDate: Boolean;
     begin
-        if CompanyInformationMgt.IsDemoCompany() then begin
-            GLEntry.SetCurrentKey("Posting Date");
-            GLEntry.SecurityFiltering(SecurityFilter::Ignored);
-            if GLEntry.FindLast() then begin
-                LogInWorkDate := NormalDate(GLEntry."Posting Date");
-                exit(NormalDate(GLEntry."Posting Date"));
-            end;
+        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
+        if CompanyInformation.Get() then;
+        ChangeWorkDate := CompanyInformation."Demo Company";
+        if not ChangeWorkDate then
+            ChangeWorkDate := CompanyInformation.IsEvaluationCompany();
+        if ChangeWorkDate then
+            exit(GetDefaultWorkDate(CompanyInformation));
+
+        exit(WorkDate());
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Company Information", 'r')]
+    internal procedure GetDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var DefaultWorkDate: Date): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.SetLoadFields("Apply Work Date to Sessions");
+        if not CompanyInformation.Get() then
+            exit(false);
+
+        if not CompanyInformation."Apply Work Date to Sessions" then
+            exit(false);
+
+        CompanyInformation.LoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
+        if not CompanyInformation."Demo Company" then
+            if not CompanyInformation.IsEvaluationCompany() then
+                exit(false);
+
+        if (CompanyInformation."Evaluation Work Date" = CompanyInformation."Evaluation Work Date"::Today) and
+           (CurrentClientType in [ClientType::Api, ClientType::ODataV4])
+        then begin
+            if not GetCurrentDateInUserTimeZone(DefaultWorkDate) then
+                DefaultWorkDate := Today;
+            exit(true);
+        end;
+
+        DefaultWorkDate := GetDefaultWorkDate(CompanyInformation);
+        exit(true);
+    end;
+
+    local procedure GetDefaultWorkDate(CompanyInformation: Record "Company Information"): Date
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        case CompanyInformation."Evaluation Work Date" of
+            CompanyInformation."Evaluation Work Date"::Today:
+                exit(Today);
+            CompanyInformation."Evaluation Work Date"::"Custom Date":
+                begin
+                    if CompanyInformation."Custom Work Date" = 0D then
+                        exit(Today);
+                    exit(CompanyInformation."Custom Work Date");
+                end;
+        end;
+
+        GLEntry.SetCurrentKey("Posting Date");
+        GLEntry.SecurityFiltering(SecurityFilter::Ignored);
+        if GLEntry.FindLast() then begin
+            LogInWorkDate := NormalDate(GLEntry."Posting Date");
+            exit(NormalDate(GLEntry."Posting Date"));
         end;
 
         exit(WorkDate());
