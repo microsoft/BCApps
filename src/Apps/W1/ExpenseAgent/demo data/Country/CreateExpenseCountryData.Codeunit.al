@@ -122,6 +122,9 @@ codeunit 8222 "Create Expense Country Data"
     begin
         CountryCode := GetCountryCode();
 
+        if CountryCode = 'ES' then
+            Codeunit.Run(Codeunit::"Update Employee ES");
+
         Codeunit.Run(Codeunit::"Create Expense Location");
         Codeunit.Run(Codeunit::"Create Expense Categories DM");
         Codeunit.Run(Codeunit::"Create Expense Subcategories");
@@ -130,12 +133,7 @@ codeunit 8222 "Create Expense Country Data"
         Codeunit.Run(Codeunit::"Create Expense User");
 
         case CountryCode of
-            'ES':
-                begin
-                    Codeunit.Run(Codeunit::"Update Employee ES");
-                    CreateCountryMasterData(CountryCode);
-                end;
-            'AT', 'AU', 'BE', 'CA', 'CH', 'CZ', 'DE', 'DK', 'FI', 'FR', 'GB', 'IT', 'NL', 'NO', 'NZ', 'US':
+            'AT', 'AU', 'BE', 'CA', 'CH', 'CZ', 'DE', 'DK', 'ES', 'FI', 'FR', 'GB', 'IT', 'NL', 'NO', 'NZ', 'US':
                 CreateCountryMasterData(CountryCode);
         end;
     end;
