@@ -223,9 +223,11 @@ page 6996 "Expense Agent Setup"
                 }
                 field("Enable Approval Workflow"; Rec."Enable Approval Workflow")
                 {
+                    Importance = Additional;
                 }
                 field(DefaultApprover; Rec."Default Approver Name")
                 {
+                    Importance = Additional;
                     DrillDown = false;
 
                     trigger OnAssistEdit()
