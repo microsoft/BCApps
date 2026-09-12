@@ -273,9 +273,8 @@ page 99000765 "Routing Lines"
         PAGE.Run(PAGE::"Routing Quality Measures", RtngQltyMeasure);
     end;
 
-    local procedure SetEditable()
+    procedure SetEditable()
     begin
         UnitCostPerEditable := Rec.Type = Enum::"Capacity Type Routing"::"Work Center";
     end;
 }
-

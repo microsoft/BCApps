@@ -320,9 +320,8 @@ page 99000765 "Routing Lines"
     end;
 #endif
 
-    local procedure SetEditable()
+    procedure SetEditable()
     begin
         UnitCostPerEditable := Rec.Type = "Capacity Type Routing"::"Work Center";
     end;
 }
-
