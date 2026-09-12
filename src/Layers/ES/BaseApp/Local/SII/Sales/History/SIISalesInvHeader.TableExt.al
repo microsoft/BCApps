@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Sales.History;
 
-tableextension 7000121 "SII Sales Inv. Header" extends "Sales Invoice Header"
+#pragma warning disable AS0088
+tableextension 7000021 "SII Sales Inv. Header" extends "Sales Invoice Header"
 {
     fields
     {

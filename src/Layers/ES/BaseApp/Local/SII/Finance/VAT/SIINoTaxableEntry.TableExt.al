@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Ledger;
 
-tableextension 7000140 "SII No Taxable Entry" extends "No Taxable Entry"
+#pragma warning disable AS0088
+tableextension 7000040 "SII No Taxable Entry" extends "No Taxable Entry"
 {
     fields
     {

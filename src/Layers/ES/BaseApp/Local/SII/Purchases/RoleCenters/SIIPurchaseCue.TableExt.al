@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.RoleCenters;
 
-tableextension 7000145 "SII Purchase Cue" extends "Purchase Cue"
+#pragma warning disable AS0088
+tableextension 7000045 "SII Purchase Cue" extends "Purchase Cue"
 {
     fields
     {

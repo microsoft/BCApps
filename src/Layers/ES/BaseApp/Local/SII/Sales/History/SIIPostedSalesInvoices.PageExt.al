@@ -6,7 +6,8 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000147 "SII Posted Sales Invoices" extends "Posted Sales Invoices"
+#pragma warning disable AS0088
+pageextension 7000047 "SII Posted Sales Invoices" extends "Posted Sales Invoices"
 {
     layout
     {

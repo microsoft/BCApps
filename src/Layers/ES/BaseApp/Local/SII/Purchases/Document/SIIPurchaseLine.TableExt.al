@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Document;
 
-tableextension 7000113 "SII Purchase Line" extends "Purchase Line"
+#pragma warning disable AS0088
+tableextension 7000013 "SII Purchase Line" extends "Purchase Line"
 {
     fields
     {
