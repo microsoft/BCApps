@@ -2336,7 +2336,6 @@ codeunit 134897 "ERM Source Currency"
         PaymentMethod: Record "Payment Method";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        SalesPost: Codeunit "Sales-Post";
         BalancingGLAccountNo: Code[20];
         ExpectedSourceCurrencyAmount: Decimal;
         PostedDocumentNo: Code[20];
