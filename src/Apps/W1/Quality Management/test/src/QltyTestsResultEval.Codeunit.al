@@ -267,7 +267,7 @@ codeunit 139963 "Qlty. Tests - Result Eval."
 
         TestValue := OriginalTestValue;
         LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '', true), 'Date basic no condition 1');
-        LibraryAssert.AreEqual(TestValue, format(Date, 0, '<Year4>-<Month,2>-<Day,2>'), 'Back and forth date - should change');
+        LibraryAssert.AreEqual(TestValue, OriginalTestValue, 'Back and forth date - no change expected');
 
         LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '1' + GetDateSeparator() + '1..2' + GetDateSeparator() + '2', false), 'Date basic date range 1');
         LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, StrSubstNo('1' + GetDateSeparator() + '1' + GetDateSeparator() + '%1..2' + GetDateSeparator() + '2' + GetDateSeparator() + '%1', YearAsString), false), 'Date basic date range 2');
@@ -277,17 +277,17 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         if IsDayMonthYearLocal() then begin
             LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '28' + GetDateSeparator() + '1', false),
                 'Date basic NO CONVERT');
-            LibraryAssert.AreNotEqual('28-1' + YearAsString, TestValue, 'date basic NO CONVERT');
+            LibraryAssert.AreEqual(TestValue, OriginalTestValue, 'date basic NO CONVERT');
 
             LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '28-1', true), 'Date basic convert');
         end else begin
             LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '1' + GetDateSeparator() + '28', false), 'Date basic NO CONVERT');
-            LibraryAssert.AreNotEqual('1/28/' + YearAsString, TestValue, 'date basic NO CONVERT');
+            LibraryAssert.AreEqual(TestValue, OriginalTestValue, 'date basic NO CONVERT');
 
             LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '1/28', true), 'Date basic convert');
         end;
 
-        LibraryAssert.AreEqual(YearAsString + '-01-28', TestValue, 'date basic convert 1');
+        LibraryAssert.AreEqual(OriginalTestValue, TestValue, 'date basic convert 1');
 
         TestValue := '2023-12-31';
         Date := DMY2Date(31, 12, 2023);
@@ -372,6 +372,68 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         TestValue := '';
         // [THEN] Blank datetime fails validation
         LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsDateTime(TestValue, format(Date, 0, 9), true), 'blank input date with valid acceptable date' + DateFailureSuffixDetails);
+    end;
+
+    [Test]
+    procedure ValueDate_NonIsoInput_NotSilentlyRewritten()
+    var
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        TestValue: Text[250];
+        OriginalValue: Text[250];
+        TestDate: Date;
+        YearAsString: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When CheckIfValueIsDate is called with a non-ISO locale date string and AdjustValueIfGood=true,
+        //            the original user input must not be silently overwritten with the ISO (format 9) representation.
+
+        // [GIVEN] A valid date expressed in the regional locale format (non-ISO)
+        TestDate := DMY2Date(15, 1, 2025);
+        YearAsString := Format(Date2DMY(TestDate, 3), 0, 9);
+        if IsDayMonthYearLocal() then
+            TestValue := '15' + GetDateSeparator() + '1' + GetDateSeparator() + YearAsString
+        else
+            TestValue := '1' + GetDateSeparator() + '15' + GetDateSeparator() + YearAsString;
+        OriginalValue := TestValue;
+
+        // [WHEN] CheckIfValueIsDate is called with AdjustValueIfGood=true and a matching condition
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDate(TestValue, '', true), 'Non-ISO date should pass validation');
+
+        // [THEN] The value must equal the original user input - not silently rewritten to ISO format
+        LibraryAssert.AreEqual(OriginalValue, TestValue, 'User-entered non-ISO date must not be silently rewritten to ISO format');
+    end;
+
+    [Test]
+    procedure ValueDateTime_NonIsoInput_NotSilentlyRewritten()
+    var
+        QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
+        TestValue: Text[250];
+        OriginalValue: Text[250];
+        TestDateTime: DateTime;
+        TestDate: Date;
+        IsoValue: Text[250];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When CheckIfValueIsDateTime is called with a non-ISO datetime string and AdjustValueIfGood=true,
+        //            the original user input must not be silently overwritten with the ISO (format 9) representation.
+
+        // [GIVEN] A valid datetime expressed in a locale format - build it from a known date so the non-ISO string
+        //         differs from the format-9 representation
+        TestDate := DMY2Date(15, 1, 2025);
+        TestDateTime := CreateDateTime(TestDate, 143000T);
+        IsoValue := Format(TestDateTime, 0, 9);
+        // Use the locale default format (format 0) which differs from ISO format 9 on most sessions
+        TestValue := Format(TestDateTime, 0, 1);
+        // Guard: if for some reason format 1 == format 9, skip the test to avoid a false baseline
+        if TestValue = IsoValue then
+            TestValue := '01/15/2025 14:30:00';
+        OriginalValue := TestValue;
+
+        // [WHEN] CheckIfValueIsDateTime is called with AdjustValueIfGood=true and no condition
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsDateTime(TestValue, '', true), 'Non-ISO datetime should pass validation');
+
+        // [THEN] The value must equal the original user input - not silently rewritten to ISO format
+        LibraryAssert.AreEqual(OriginalValue, TestValue, 'User-entered non-ISO datetime must not be silently rewritten to ISO format');
     end;
 
     [Test]

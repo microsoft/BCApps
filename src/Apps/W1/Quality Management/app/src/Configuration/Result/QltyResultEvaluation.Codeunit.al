@@ -694,6 +694,8 @@ codeunit 20410 "Qlty. Result Evaluation"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         ValueAsDateTime: DateTime;
     begin
+        if AdjustValueIfGood then;
+
         if ValueToCheck = '' then
             ValueAsDateTime := 0DT
         else
@@ -702,9 +704,6 @@ codeunit 20410 "Qlty. Result Evaluation"
         if IsAnythingExceptEmptyCondition(AcceptableValue) then
             if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustValueIfGood then
-                    ValueToCheck := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(ValueToCheck));
-
                 exit(IsGood);
             end else begin
                 IsGood := false;
@@ -714,9 +713,6 @@ codeunit 20410 "Qlty. Result Evaluation"
         if IsBlankOrEmptyCondition(AcceptableValue) then
             if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustValueIfGood then
-                    ValueToCheck := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(ValueToCheck));
-
                 exit(IsGood);
             end else begin
                 IsGood := true;
@@ -727,8 +723,6 @@ codeunit 20410 "Qlty. Result Evaluation"
         TempQltyInspectionHeader.Insert();
         TempQltyInspectionHeader.SetFilter("Finished Date", AcceptableValue);
         IsGood := not TempQltyInspectionHeader.IsEmpty();
-        if IsGood and AdjustValueIfGood then
-            ValueToCheck := CopyStr(Format(ValueAsDateTime, 0, 9), 1, MaxStrLen(ValueToCheck));
 
         exit(IsGood);
     end;
@@ -745,6 +739,8 @@ codeunit 20410 "Qlty. Result Evaluation"
         TempDateLookupBuffer: Record "Date Lookup Buffer" temporary;
         ValueAsDate: Date;
     begin
+        if AdjustValueIfGood then;
+
         if ValueToCheck = '' then
             ValueAsDate := 0D
         else
@@ -753,9 +749,6 @@ codeunit 20410 "Qlty. Result Evaluation"
         if IsAnythingExceptEmptyCondition(AcceptableValue) then
             if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustValueIfGood then
-                    ValueToCheck := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(ValueToCheck));
-
                 exit(IsGood);
             end else begin
                 IsGood := false;
@@ -765,9 +758,6 @@ codeunit 20410 "Qlty. Result Evaluation"
         if IsBlankOrEmptyCondition(AcceptableValue) then
             if ValueToCheck <> '' then begin
                 IsGood := true;
-                if AdjustValueIfGood then
-                    ValueToCheck := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(ValueToCheck));
-
                 exit(IsGood);
             end else begin
                 IsGood := true;
@@ -778,8 +768,6 @@ codeunit 20410 "Qlty. Result Evaluation"
         TempDateLookupBuffer.Insert();
         TempDateLookupBuffer.SetFilter("Period Start", AcceptableValue);
         IsGood := not TempDateLookupBuffer.IsEmpty();
-        if IsGood and AdjustValueIfGood then
-            ValueToCheck := CopyStr(Format(ValueAsDate, 0, 9), 1, MaxStrLen(ValueToCheck));
 
         exit(IsGood);
     end;
