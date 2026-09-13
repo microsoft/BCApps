@@ -1232,7 +1232,7 @@ codeunit 4400 "SOA Setup"
         SOAContactInterventionSuggestionCodeLbl: Label 'SOA-CONTACT-ADDED', Locked = true;
         SOAContactInterventionSuggestionSummaryLbl: Label 'I have added the contact', MaxLength = 100;
         SOAContactInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the contact information. Rerun the contact information check', Locked = true, MaxLength = 1024;
-        SOAContactInterventionSuggestionInstructionsLbl: Label 'I have updated the contact information. Rerun the contact information check on the contact list page and proceed further.', Locked = true, MaxLength = 1024;
+        SOAContactInterventionSuggestionInstructionsLbl: Label 'I have updated the contact information. Navigate to the contact list page and search for the contact again. If the contact is found, proceed with it, and only search the customer list if the contact is still not found.', Locked = true, MaxLength = 1024;
         NewEmailsSinceDeactivationLbl: Label 'New e-mails (%1) have arrived since %2 but haven''t been processed yet. Should Sales Order Agent also process these?', Comment = '%1 - Number of emails, %2 - Date and time of deactivation.';
         SOAAttemptedConnectionFailedErr: Label 'The agent can''t be activated because the connection to the selected Microsoft 365 mailbox failed. Ask your Microsoft 365 administrator to check if the user configuring the agent has permission to access the mailbox.';
         SOAAttemptedConnectionHttpRequestFailedErr: Label 'The agent can''t be activated because its settings don''t allow Http Requests. Ask your administrator to update this setting and try again.';
