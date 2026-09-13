@@ -189,6 +189,53 @@ codeunit 136603 "ERM RS Package Operations"
         TableAutoIncrementOutOfPK.TestField(ID, LastID - 1);
     end;
 
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportAndApplyPackageWithBlobFieldWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        SalesHeader: Record "Sales Header";
+        FilePath: Text;
+        OriginalWorkDescription: Text;
+    begin
+        // [FEATURE] [Config Package]
+        // [SCENARIO] Blob field can be exported, imported and applied
+        Initialize();
+
+        // [GIVEN] Sales Header with non-blank "Work Description" field exists
+        CreateSalesOrderWithWorkDescription(SalesHeader);
+        OriginalWorkDescription := SalesHeader.GetWorkDescription();
+
+        // [GIVEN] Package for Sales Header with the work description field included
+        CreatePackageWithBlobField(ConfigPackage, SalesHeader);
+
+        // [WHEN] The package is exported
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // [WHEN] The work description is set to empty value in system
+        SalesHeader.Find(); // Reload SalesHeader
+        SalesHeader.SetWorkDescription('');
+        SalesHeader.Modify();
+
+        // [WHEN] The package is exported back to system
+        ImportPackageXML(ConfigPackage.Code, FilePath);
+        Erase(FilePath);
+
+        // [THEN] The work description is still blank
+        SalesHeader.Find(); // Reload SalesHeader
+        Assert.AreEqual('', SalesHeader.GetWorkDescription(), SalesHeader.FieldCaption("Work Description"));
+
+        // [WHEN] The package is applied
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] The work description is set to the value from the excel package
+        SalesHeader.Find(); // Reload SalesHeader
+        Assert.AreEqual(OriginalWorkDescription, SalesHeader.GetWorkDescription(), SalesHeader.FieldCaption("Work Description"));
+    end;
+#endif
+
     [Test]
     [Scope('OnPrem')]
     procedure ExportImportAndApplyPackageWithBlobField()
@@ -214,23 +261,23 @@ codeunit 136603 "ERM RS Package Operations"
         ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
 
         // [WHEN] The work description is set to empty value in system    
-        SalesHeader.FindFirst();
+        SalesHeader.Find(); // Reload SalesHeader
         SalesHeader.SetWorkDescription('');
         SalesHeader.Modify();
 
         // [WHEN] The package is exported back to system
-        ImportPackageXML(ConfigPackage.Code, FilePath);
+        ImportPackageXMLNew(ConfigPackage.Code, FilePath);
         Erase(FilePath);
 
         // [THEN] The work description is still blank
-        SalesHeader.FindFirst();
+        SalesHeader.Find(); // Reload SalesHeader
         Assert.AreEqual('', SalesHeader.GetWorkDescription(), SalesHeader.FieldCaption("Work Description"));
 
         // [WHEN] The package is applied
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
         // [THEN] The work description is set to the value from the excel package
-        SalesHeader.FindFirst();
+        SalesHeader.Find(); // Reload SalesHeader
         Assert.AreEqual(OriginalWorkDescription, SalesHeader.GetWorkDescription(), SalesHeader.FieldCaption("Work Description"));
     end;
 
@@ -295,9 +342,10 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(OriginalWorkDescription, SalesHeader.GetWorkDescription(), SalesHeader.FieldCaption("Work Description"));
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
-    procedure ApplyDependentTableWithEmpyParentTableID()
+    procedure ApplyDependentTableWithEmptyParentTableIDWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
@@ -326,7 +374,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ApplyDependentTableWithFilledParentTableID()
+    procedure ApplyDependentTableWithFilledParentTableIDWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
@@ -343,6 +391,63 @@ codeunit 136603 "ERM RS Package Operations"
 
         DeleteCustomerRelatedData(CustomerNo);
         ImportPackageXML(ConfigPackage.Code, FilePath);
+        Erase(FilePath);
+
+        // [WHEN] Apply the package
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        // [THEN] The package is applied without errors
+        VerifyNoConfigPackageErrors(ConfigPackage.Code);
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyDependentTableWithEmptyParentTableID()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        SalesHeader: Record "Sales Header";
+        CustomerNo: Code[20];
+        FilePath: Text;
+    begin
+        // [FEATURE] [Config Package]
+        // [SCENARIO 158249] Dependent table with empty 'Parent Table ID' should not be applied due to a confirmation request
+        Initialize();
+        // [GIVEN] Imported a package with 3 tables: Customer, Sales Header, Sales Line
+        // [GIVEN] The dependent table Sales Line has 'Parent Table ID' = 0
+        CustomerNo := CreateSalesInvPackage(ConfigPackage, 0);
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        DeleteCustomerRelatedData(CustomerNo);
+        ImportPackageXMLNew(ConfigPackage.Code, FilePath);
+        Erase(FilePath);
+
+        // [WHEN] Apply the package
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] The package application interrupted by a request for user confirmation
+        VerifyConfigPackageError(ConfigPackage.Code, 36, SalesHeader.FieldNo("Sell-to Customer No."), UnhandledConfirmErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyDependentTableWithFilledParentTableID()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        CustomerNo: Code[20];
+        FilePath: Text;
+    begin
+        // [FEATURE] [Config Package]
+        // [SCENARIO 158249] Dependent table with filled 'Parent Table ID' should be applied without errors
+        Initialize();
+        // [GIVEN] Imported a package with 3 tables: Customer, Sales Header, Sales Line
+        // [GIVEN] The dependent table Sales Line has 'Parent Table ID' = 36
+        CustomerNo := CreateSalesInvPackage(ConfigPackage, DATABASE::"Sales Header");
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        DeleteCustomerRelatedData(CustomerNo);
+        ImportPackageXMLNew(ConfigPackage.Code, FilePath);
         Erase(FilePath);
 
         // [WHEN] Apply the package
@@ -395,6 +500,493 @@ codeunit 136603 "ERM RS Package Operations"
 
         Erase(FilePath);
     end;
+
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageFromXMLWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO 122579] The new Package can be imported from XML.
+        Initialize();
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        Assert.IsTrue(ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer), NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CannotApplyPackageWithIntegrationTableMappingWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        ConfigPackageError: Record "Config. Package Error";
+        IntegrationTableMappingRecordCount: Integer;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] A package can be created, exported and imported with integration table mappings, but not applied.
+        Initialize();
+        InitializeCRM();
+
+        // [GIVEN] Integration table mappings
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, Database::"Integration Table Mapping");
+        Assert.RecordIsNotEmpty(IntegrationTableMapping);
+        IntegrationTableMappingRecordCount := IntegrationTableMapping.Count();
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        Assert.IsTrue(ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"Integration Table Mapping"), NoDataAfterImportErr);
+        IntegrationTableMapping.DeleteAll();
+        Assert.RecordIsEmpty(IntegrationTableMapping);
+
+        // [WHEN] Attempting to apply the package
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] No integration table mapping records are imported and an error message is logged for each record in the package.
+        Assert.RecordIsEmpty(IntegrationTableMapping);
+        ConfigPackageError.SetRange("Package Code", ConfigPackage.Code);
+        ConfigPackageError.SetRange("Table ID", DATABASE::"Integration Table Mapping");
+        ConfigPackageError.SetRange("Error Text", StrSubstNo(ImportNotAllowedErr, IntegrationTableMapping.TableCaption()));
+        Assert.RecordCount(ConfigPackageError, IntegrationTableMappingRecordCount);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CannotApplyPackageWithIntegrationFieldMappingWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        ConfigPackageError: Record "Config. Package Error";
+        IntegrationFieldMappingRecordCount: Integer;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] A package can be created, exported and imported with integration field mappings, but not applied.
+        Initialize();
+        InitializeCRM();
+
+        // [GIVEN] Integration field mappings
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, Database::"Integration Field Mapping");
+        Assert.RecordIsNotEmpty(IntegrationFieldMapping);
+        IntegrationFieldMappingRecordCount := IntegrationFieldMapping.Count();
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        Assert.IsTrue(ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"Integration Field Mapping"), NoDataAfterImportErr);
+        IntegrationFieldMapping.DeleteAll();
+        Assert.RecordIsEmpty(IntegrationFieldMapping);
+
+        // [WHEN] Attempting to apply the package
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] No integration field mapping records are imported and an error message is loggee for each record in the package.
+        Assert.RecordIsEmpty(IntegrationFieldMapping);
+        ConfigPackageError.SetRange("Package Code", ConfigPackage.Code);
+        ConfigPackageError.SetRange("Table ID", DATABASE::"Integration Field Mapping");
+        ConfigPackageError.SetRange("Error Text", StrSubstNo(ImportNotAllowedErr, IntegrationFieldMapping.TableCaption()));
+        Assert.RecordCount(ConfigPackageError, IntegrationFieldMappingRecordCount);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportLocalizedPackageToXMLWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        PackageXML: DotNet XmlDocument;
+        XMLNode: DotNet XmlNode;
+        XMLAttributes: DotNet XmlNodeList;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] localization attributes are exported to XML
+        Initialize();
+
+        // [GIVEN] Generated a localized package
+        CreateConfigPackage(ConfigPackage);
+        ConfigPackage.Validate("Language ID", FindFirstLanguage());
+        ConfigPackage.Modify(true);
+
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, FindRandomTableID(100));
+        SetLocalizeFields(ConfigPackage.Code, ConfigPackageTable."Table ID");
+
+        // [WHEN] Export Package to XML
+        PackageXML := PackageXML.XmlDocument();
+        ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
+        ConfigXMLExchange.ExportPackageXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, true);
+
+        // [THEN] '_locDefinition' node and '_loc' attributes have been generated in XML document
+        XMLNode := PackageXML.SelectSingleNode('//_locDefinition');
+        XMLAttributes := PackageXML.SelectNodes('//@_loc');
+
+        Assert.IsTrue((XMLNode.InnerXml <> '') and (XMLAttributes.Count <> 0), XMLGeneratedIncorrectlyErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithPageID_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        RandomPageId: Integer;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] 'Page ID' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Page ID' = "X"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        RandomPageId := LibraryRandom.RandInt(1000);
+        ConfigPackageTable."Page ID" := RandomPageId;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Page ID' = "X"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(RandomPageId, ConfigPackageTable."Page ID", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithPackageProcessingOrder_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        RandomId: Integer;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] 'Package Processing Order' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Package Processing Order' = "X"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        RandomId := LibraryRandom.RandInt(1000);
+        ConfigPackageTable."Package Processing Order" := RandomId;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Package Processing Order' = "X"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(RandomId, ConfigPackageTable."Package Processing Order", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithParentTableID_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO 158249] Filled 'Parent Table ID' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Table ID' = 37, 'Parent Table ID' = 36
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"Sales Line");
+
+        ConfigPackageTable."Parent Table ID" := DATABASE::"Sales Header";
+        ConfigPackageTable.Modify();
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Table ID' = 37, 'Parent Table ID' = 36
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"Sales Line");
+        Assert.AreEqual(DATABASE::"Sales Header", ConfigPackageTable."Parent Table ID", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithDeleteRecsBeforeProcessing_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Filled 'Delete Recs Before Processing' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Delete Recs Before Processing' = "Yes"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        ConfigPackageTable."Delete Recs Before Processing" := true;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Delete Recs Before Processing' = "Yes"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(true, ConfigPackageTable."Delete Recs Before Processing", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithProcessingOrder_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        RandomId: Integer;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO 158249] Filled 'Processing Order' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Processing Order' = "X"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        RandomId := LibraryRandom.RandInt(1000);
+        ConfigPackageTable."Processing Order" := RandomId;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Processing Order' = "X"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(RandomId, ConfigPackageTable."Processing Order", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithDataTemplate_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        RandomCode: Code[10];
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Filled 'Data Template' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Data Template' = "X"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        RandomCode := LibraryUtility.GenerateRandomCode(ConfigPackageTable.FieldNo("Data Template"), DATABASE::"Config. Package Table");
+        ConfigPackageTable."Data Template" := RandomCode;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Data Template' = "X"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(RandomCode, ConfigPackageTable."Data Template", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithComments_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        RandomCode: Code[10];
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Filled 'Comments' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Comments' = "X"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        RandomCode := LibraryUtility.GenerateRandomCode(ConfigPackageTable.FieldNo(Comments), DATABASE::"Config. Package Table");
+        ConfigPackageTable.Comments := RandomCode;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Comments' = "X"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(RandomCode, ConfigPackageTable.Comments, NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithCreatedByUser_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        RandomCode: Code[10];
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Filled 'Created by User ID' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Created by User ID' = "X"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        RandomCode :=
+          LibraryUtility.GenerateRandomCode(ConfigPackageTable.FieldNo("Created by User ID"), DATABASE::"Config. Package Table");
+        ConfigPackageTable."Created by User ID" := RandomCode;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Created by User ID' = "X"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(RandomCode, ConfigPackageTable."Created by User ID", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithSkipTableTriggers_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Filled 'Skip Table Triggers' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Skip Table Triggers' = "Yes"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        ConfigPackageTable."Skip Table Triggers" := true;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Skip Table Triggers' = "Yes"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(true, ConfigPackageTable."Skip Table Triggers", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithDimensionsAsColumns_DataImportedWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+    begin
+        // [FEATURE] [Dimension] [XML]
+        // [SCENARIO] Filled 'Dimensions as Columns' field can be stored to and restored from XML
+        Initialize();
+        // [GIVEN] Package with Table, where 'Dimensions as Columns' = "Yes"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        ConfigPackageTable."Dimensions as Columns" := true;
+        ConfigPackageTable.Modify();
+
+        // [GIVEN] Package exported to an XML file
+        // [WHEN] Import Package from the XML file
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Package contains Table, where 'Dimensions as Columns' = "Yes"
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(true, ConfigPackageTable."Dimensions as Columns", NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithBLOBFieldWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        GLAccFilter: Text[250];
+    begin
+        // [SCENARIO] Pass BLOB (binary files) via RapidStart package
+        Initialize();
+        // [GIVEN] Two G/L Accounts, first one has a picture (BLOB value)
+        CreateTwoGLAccountsFirstWithBLOB(GLAccFilter);
+        // [GIVEN] Config. Package with 'G/L Account' table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"G/L Account");
+        // [GIVEN] Set all fields excluded except PK and Picture to decrease package processing time
+        IncludeGLAccountPictureConfigPackageField(ConfigPackage.Code);
+        // [GIVEN] Set filter for two Contacts to decrease package processing time
+        SetContactConfigPackageFilter(ConfigPackage.Code, GLAccFilter);
+        // [WHEN] Export and then import package
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+        // [THEN] "Config. Package Data"."BLOB Value" = Contact.Picture per each Contact
+        VerifyConfigPackageDataBLOBValues(ConfigPackage.Code, GLAccFilter);
+        Assert.IsTrue(ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"G/L Account"), NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackage_ExportPackageTableWithMediaSetFieldWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        TempConfigMediaBuffer: Record "Config. Media Buffer" temporary;
+        ItemFilter: Text[250];
+        FilePath: Text;
+    begin
+        // [SCENARIO] Pass MediaSet (binary files) via RapidStart package
+        Initialize();
+        // [GIVEN] Two Items, first item has a picture (MediaSet value)
+        CreateTwoItemsFirstWithMediaSet(ItemFilter);
+        // [GIVEN] Config. Package with Item table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Item);
+        // [GIVEN] Set all fields excluded except PK and Picture to decrease package processing time
+        IncludeItemPictureConfigPackageField(ConfigPackage.Code);
+        // [GIVEN] Set filter for two items to decrease package processing time
+        SetItemConfigPackageFilter(ConfigPackage.Code, ItemFilter);
+
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+        GetExpectedMediaSet(TempConfigMediaBuffer);
+
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+        ConfigXMLExchange.ImportPackageXML(FilePath);
+        Erase(FilePath);
+
+        // [WHEN] Export and then import package
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+        // [THEN] "Config. Package Data"."BLOB Value" = Item.Picture per each item
+        VerifyConfigPackageDataMediaSetValues(ConfigPackage.Code, ItemFilter, TempConfigMediaBuffer);
+        Assert.IsTrue(ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Item), NoDataAfterImportErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackages_ExportOneOfTwoPackage_ImpordDoNotSpoiledExistingDataWithDotNet()
+    var
+        ConfigPackage1: Record "Config. Package";
+        ConfigPackage2: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Imported package should not affect existing equal package
+        Initialize();
+        // [GIVEN] Two equal packages: "A" and "B"
+        CreateSimplePackage(ConfigPackage1);
+        CreateSimplePackage(ConfigPackage2);
+        // [GIVEN] Package "A" is exported to XML
+        ExportToXML(ConfigPackage1.Code, ConfigPackageTable, FilePath);
+        // [WHEN] Import Package "A" from XML
+        ConfigXMLExchange.ImportPackageXML(FilePath);
+        Erase(FilePath);
+        // [THEN] Package "B" is not affected
+        Assert.IsTrue(IsPackageDataExists(ConfigPackage2.Code, false), ExportImportWrongPackageErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackages_ImportOneOfTwoPackage_RequiredPackageProcessedWithDotNet()
+    var
+        ConfigPackage1: Record "Config. Package";
+        ConfigPackage2: Record "Config. Package";
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] Deleted package should not contains data, while there is equal package
+        Initialize();
+        // [GIVEN] Two equal packages: "A" and "B"
+        CreateSimplePackage(ConfigPackage1);
+        CreateSimplePackage(ConfigPackage2);
+
+        // [GIVEN] Package "A" is exported, removed, and imported back
+        ExportImportXMLWithDotNet(ConfigPackage1.Code);
+        // [WHEN] remove Package "B"
+        LibraryRapidStart.CleanUp(ConfigPackage2.Code);
+
+        // [THEN] Package "A" contains data, Package "B" does not.
+        Assert.IsTrue(
+          IsPackageDataExists(ConfigPackage1.Code, false) and not IsPackageDataExists(ConfigPackage2.Code, true),
+          ExportImportInterfereErr);
+    end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -478,7 +1070,7 @@ codeunit 136603 "ERM RS Package Operations"
         // [WHEN] Attempting to apply the package
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
-        // [THEN] No integration field mapping records are imported and an error message is loggee for each record in the package.
+        // [THEN] No integration field mapping records are imported and an error message is logged for each record in the package.
         Assert.RecordIsEmpty(IntegrationFieldMapping);
         ConfigPackageError.SetRange("Package Code", ConfigPackage.Code);
         ConfigPackageError.SetRange("Table ID", DATABASE::"Integration Field Mapping");
@@ -492,9 +1084,9 @@ codeunit 136603 "ERM RS Package Operations"
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
-        PackageXML: DotNet XmlDocument;
-        XMLNode: DotNet XmlNode;
-        XMLAttributes: DotNet XmlNodeList;
+        PackageXML: XmlDocument;
+        XMLNode: XmlNode;
+        XMLAttributes: XmlNodeList;
     begin
         // [FEATURE] [XML]
         // [SCENARIO] localization attributes are exported to XML
@@ -509,15 +1101,15 @@ codeunit 136603 "ERM RS Package Operations"
         SetLocalizeFields(ConfigPackage.Code, ConfigPackageTable."Table ID");
 
         // [WHEN] Export Package to XML
-        PackageXML := PackageXML.XmlDocument();
+        PackageXML := XmlDocument.Create();
         ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
-        ConfigXMLExchange.ExportPackageXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, true);
+        ConfigXMLExchange.ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, true);
 
         // [THEN] '_locDefinition' node and '_loc' attributes have been generated in XML document
-        XMLNode := PackageXML.SelectSingleNode('//_locDefinition');
-        XMLAttributes := PackageXML.SelectNodes('//@_loc');
+        PackageXML.SelectSingleNode('//_locDefinition', XMLNode);
+        PackageXML.SelectNodes('//@_loc', XMLAttributes);
 
-        Assert.IsTrue((XMLNode.InnerXml <> '') and (XMLAttributes.Count <> 0), XMLGeneratedIncorrectlyErr);
+        Assert.IsTrue((XMLNode.AsXmlElement().InnerXml() <> '') and (XMLAttributes.Count <> 0), XMLGeneratedIncorrectlyErr);
     end;
 
     [Test]
@@ -823,7 +1415,7 @@ codeunit 136603 "ERM RS Package Operations"
         GetExpectedMediaSet(TempConfigMediaBuffer);
 
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         Erase(FilePath);
 
         // [WHEN] Export and then import package
@@ -851,7 +1443,7 @@ codeunit 136603 "ERM RS Package Operations"
         // [GIVEN] Package "A" is exported to XML
         ExportToXML(ConfigPackage1.Code, ConfigPackageTable, FilePath);
         // [WHEN] Import Package "A" from XML
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         Erase(FilePath);
         // [THEN] Package "B" is not affected
         Assert.IsTrue(IsPackageDataExists(ConfigPackage2.Code, false), ExportImportWrongPackageErr);
@@ -936,9 +1528,10 @@ codeunit 136603 "ERM RS Package Operations"
           DecompressWrongResultErr);
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
-    procedure ImportPackageFromXMLMultiple()
+    procedure ImportPackageFromXMLMultipleWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
@@ -986,7 +1579,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ImportPackageFromXMLValidate()
+    procedure ImportPackageFromXMLValidateWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
@@ -1023,7 +1616,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ImportPackageFromXMLApply()
+    procedure ImportPackageFromXMLApplyWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         Country: Record "Country/Region";
@@ -1035,6 +1628,116 @@ codeunit 136603 "ERM RS Package Operations"
         Initialize();
         // [GIVEN] Import Package from XML, that contains records: Country "C", and Location "L" linked to "C"
         ImportFromXML(ConfigPackage, CountryCode, LocationCode);
+
+        // [GIVEN] Apply Package
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] Country 'C' and Location 'L' exist in database
+        Assert.IsTrue(Country.Get(CountryCode) and Location.Get(LocationCode), ApplyErr);
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageFromXMLMultiple()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+        PackageCode: Code[20];
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO] the new Package can be imported from XML for related tables.
+        Initialize();
+        // [GIVEN] Package with 7 tables
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"VAT Product Posting Group");
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"VAT Business Posting Group");
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"VAT Posting Setup");
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Business Posting Group");
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Product Posting Group");
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"General Posting Setup");
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"G/L Account");
+        // [GIVEN] Package exported to XML
+        FilePath := FileMgt.ServerTempFileName('xml');
+        ConfigPackageTable.SetRange("Package Code", ConfigPackage.Code);
+        if ConfigPackageTable.FindSet() then
+            repeat
+                ConfigXMLExchange.ExportPackageXML(ConfigPackageTable, FilePath);
+            until ConfigPackageTable.Next() = 0;
+
+        PackageCode := ConfigPackage.Code;
+        LibraryRapidStart.CleanUp(PackageCode);
+
+        // [WHEN] Import package from XML
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
+        // [THEN] Package contains 7 tables
+        ConfigPackage.Get(PackageCode);
+        Assert.IsTrue(
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"VAT Product Posting Group") and
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"VAT Business Posting Group") and
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"VAT Posting Setup") and
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"Gen. Business Posting Group") and
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"Gen. Product Posting Group") and
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"General Posting Setup") and
+          ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::"G/L Account"),
+          PackageDataErr);
+
+        Erase(FilePath);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageFromXMLValidate()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageError: Record "Config. Package Error";
+        Customer: Record Customer;
+        ConfigPackageField: Record "Config. Package Field";
+        RecRef: RecordRef;
+        PackageXML: XmlDocument;
+        DocumentElement: XmlElement;
+        DocumentNode: XmlNode;
+        XmlText: Text;
+    begin
+        // [SCENARIO] the new Package can be validated with function Validate Table Relation.
+        Initialize();
+        // [GIVEN] XML file contains Customer data
+        XmlText := '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList></DataList>';
+        XmlDocument.ReadFrom(XmlText, PackageXML);
+        PackageXML.GetRoot(DocumentElement);
+        DocumentNode := DocumentElement.AsXmlNode();
+
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        ConfigPackageMgt.SelectAllPackageFields(ConfigPackageField, false);
+        ConfigPackageTable.CalcFields("Table Name");
+
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.GetTable(Customer);
+        AddConfigPackageTableToXML(DocumentNode, ConfigPackageTable, RecRef);
+        // [GIVEN] PAckage is imported from XML
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
+
+        // [WHEN] Validate table relation
+        LibraryRapidStart.ValidatePackage(ConfigPackage, false);
+        // [THEN] Config Package Error table is empty
+        Assert.IsTrue(ConfigPackageError.IsEmpty, PackageDataErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageFromXMLApply()
+    var
+        ConfigPackage: Record "Config. Package";
+        Country: Record "Country/Region";
+        Location: Record Location;
+        CountryCode: Code[10];
+        LocationCode: Code[10];
+    begin
+        // [SCENARIO] Records of package tables imported from XML should be inserted by Apply package
+        Initialize();
+        // [GIVEN] Import Package from XML, that contains records: Country "C", and Location "L" linked to "C"
+        ImportFromXMLNew(ConfigPackage, CountryCode, LocationCode);
 
         // [GIVEN] Apply Package
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
@@ -1081,6 +1784,172 @@ codeunit 136603 "ERM RS Package Operations"
         Erase(CompressedServerFileName);
     end;
 
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageFromXMLKeyApplyWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        GenBusPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GenProductPostingGroupCode: Code[20];
+        GenBusPostingGroupCode: Code[20];
+    begin
+        Initialize();
+        ImportFromXMLKey(ConfigPackage, GenProductPostingGroupCode, GenBusPostingGroupCode);
+
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        Assert.IsTrue(
+          GenBusPostingGroup.Get(GenBusPostingGroupCode) and
+          GenProductPostingGroup.Get(GenProductPostingGroupCode) and
+          GeneralPostingSetup.Get(GenBusPostingGroupCode, GenProductPostingGroupCode),
+          ApplyErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportDataFromXMLValidatedYesWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        Location: Record Location;
+        PostCode: Record "Post Code";
+        LocationCode: Code[20];
+        PostCode2: Code[20];
+        City2: Text[30];
+        FilePath: Text;
+    begin
+        Initialize();
+
+        // Create new location
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryERM.CreatePostCode(PostCode);
+        Location.City := PostCode.City;
+        Location."Post Code" := PostCode.Code;
+        Location.Modify();
+        LocationCode := Location.Code;
+        PostCode2 := Location."Post Code";
+        City2 := Location.City;
+
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Location);
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo(Name), true);
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo("Name 2"), true);
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo(City), true);
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo("Post Code"), true);
+
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+        PostCode.Delete();
+        Location.Delete();
+
+        ConfigXMLExchange.ImportPackageXML(FilePath);
+        LibraryRapidStart.SetValidateOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo(City), false);
+        LibraryRapidStart.SetValidateOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo("Post Code"), false);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        Location.Get(LocationCode);
+        Assert.IsTrue(
+          (City2 = Location.City) and
+          (PostCode2 = Location."Post Code"),
+          ErrorInApplyingWithoutValidationFlagErr);
+
+        Erase(FilePath);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportNormalFieldsOnlyWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageField: Record "Config. Package Field";
+        AvailableFields: Integer;
+    begin
+        // [SCENARIO] no FlowFields or FlowFilters are created after import
+        Initialize();
+
+        // Package Table Fields are automatically initialized here and contain only normal field class fields and no blobs
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+        // Export all package table fields
+        ConfigPackageField.SetRange("Package Code", ConfigPackage.Code);
+        ConfigPackageField.SetRange("Table ID", DATABASE::Customer);
+        ConfigPackageMgt.SelectAllPackageFields(ConfigPackageField, true);
+        AvailableFields := GetNoOfAvailableFields(ConfigPackageTable);
+
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // Check number of available fields after import
+        ConfigPackageTable.Get(ConfigPackage.Code, DATABASE::Customer);
+        Assert.AreEqual(AvailableFields, GetNoOfAvailableFields(ConfigPackageTable), FlowFieldAppearedInDataErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportGenJnlLineAndPostWithDotNet()
+    var
+        GenJnlLine: Record "Gen. Journal Line";
+        ConfigPackage: Record "Config. Package";
+        GLAccount: Record "G/L Account";
+        PaymentMethod: Record "Payment Method";
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        VendorPostingGroup: Record "Vendor Posting Group";
+        PaymentTerms: Record "Payment Terms";
+        DocumentNo: Code[20];
+        Amount: Decimal;
+        FilePath: Text;
+    begin
+        Initialize();
+
+        // Init general setup
+        CreateGenJnlLineSetup(
+          GLAccount,
+          PaymentMethod,
+          GenBusinessPostingGroup,
+          GenProductPostingGroup,
+          GeneralPostingSetup,
+          VATBusinessPostingGroup,
+          VATProductPostingGroup,
+          VendorPostingGroup,
+          PaymentTerms);
+
+        CreateGenJnlLines(GenJnlLine, Amount, GLAccount."No.", DocumentNo);
+        // Export data to XML
+        CreateAndExportPackageDataForGenJnlLine(ConfigPackage, FilePath);
+
+        // Delete the created line before import
+        GenJnlLine.Delete(true);
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+        // Import created file
+        ConfigXMLExchange.ImportPackageXML(FilePath);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        PostGenJnlLines(GLAccount."No.", DocumentNo);
+
+        // Verification
+        VerifyGenJnlLineAmount(GenJnlLine."Document Type"::Invoice, DocumentNo, GLAccount."No.", Amount);
+
+        Erase(FilePath);
+        CleanupGenJnlSetupData(
+          PaymentMethod,
+          GenBusinessPostingGroup,
+          GenProductPostingGroup,
+          GeneralPostingSetup,
+          VATBusinessPostingGroup,
+          VATProductPostingGroup,
+          VendorPostingGroup,
+          PaymentTerms);
+    end;
+#endif
+
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageFromXMLKeyApply()
@@ -1093,7 +1962,7 @@ codeunit 136603 "ERM RS Package Operations"
         GenBusPostingGroupCode: Code[20];
     begin
         Initialize();
-        ImportFromXMLKey(ConfigPackage, GenProductPostingGroupCode, GenBusPostingGroupCode);
+        ImportFromXMLKeyNew(ConfigPackage, GenProductPostingGroupCode, GenBusPostingGroupCode);
 
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
@@ -1143,7 +2012,7 @@ codeunit 136603 "ERM RS Package Operations"
         PostCode.Delete();
         Location.Delete();
 
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         LibraryRapidStart.SetValidateOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo(City), false);
         LibraryRapidStart.SetValidateOneField(ConfigPackage.Code, DATABASE::Location, Location.FieldNo("Post Code"), false);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
@@ -1225,7 +2094,7 @@ codeunit 136603 "ERM RS Package Operations"
         GenJnlLine.Delete(true);
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
         // Import created file
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
         PostGenJnlLines(GLAccount."No.", DocumentNo);
@@ -1245,8 +2114,9 @@ codeunit 136603 "ERM RS Package Operations"
           PaymentTerms);
     end;
 
+#if not CLEAN29
     [Test]
-    procedure TestExportPackageXMLToStream()
+    procedure TestExportPackageXMLToStreamWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         DummyRSTable: Record DummyRSTable;
@@ -1264,9 +2134,112 @@ codeunit 136603 "ERM RS Package Operations"
         // [GIVEN] A record of DummyRSTable in the database
         DummyRSTable.DeleteAll();
         DummyRSTable."Entry No." := 1;
+        DummyRSTable."Code Field" := 'TEST';
         DummyRSTable."Decimal Field" := 3.21;
         DummyRSTable."Date Field" := 20180325D;
         DummyRSTable."Text Field" := 'Lorem ipsum dolor sit amet';
+        DummyRSTable."Long Text Field" := 'Lorem ipsum dolor sit amet';
+        DummyRSTable.Insert();
+
+        // [GIVEN] Rapidstart package is created from DummyRSTable table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::DummyRSTable);
+
+        // [GIVEN] No other tables are included in the package
+        ConfigPackage."Exclude Config. Tables" := true;
+        ConfigPackage.Modify();
+
+        // [WHEN] The package is exported
+        TempBlob.CreateOutStream(PackageOutStream);
+        ConfigXMLExchange.ExportPackageXMLToStreamLegacy(ConfigPackage, PackageOutStream);
+
+        // [THEN] The content corresponds to the package that was exported
+        TempBlob.CreateInStream(TempBlobInStream);
+        Assert.AreEqual(1674, TempBlob.Length(), 'Wrong length of the exported package.');
+        while not TempBlobInStream.EOS do begin
+            TempBlobInStream.Read(SingleLine);
+            PackageOutput += SingleLine;
+        end;
+        Assert.IsSubstring(PackageOutput, '<TableID>136607</TableID>');
+        Assert.IsSubstring(PackageOutput, 'Lorem ipsum dolor sit amet');
+    end;
+
+    [Test]
+    procedure TestImportTextFieldsWith2048CharactersWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        DummyRSTable: Record DummyRSTable;
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        TempBlob: Codeunit "Temp Blob";
+        TempBlobInStream: InStream;
+        PackageOutStream: OutStream;
+    begin
+        // [SCENARIO] Text fields larger than 250 characters are not truncated on import.
+        Initialize();
+
+        // [GIVEN] A record of DummyRSTable in the database
+        DummyRSTable.DeleteAll();
+        DummyRSTable."Entry No." := 1;
+        DummyRSTable."Decimal Field" := 3.21;
+        DummyRSTable."Date Field" := 20180325D;
+        DummyRSTable."Text Field" := 'Lorem ipsum dolor sit amet';
+        DummyRSTable."Long Text Field" := GetLongText();
+        DummyRSTable.Insert();
+
+        // [GIVEN] Rapidstart package is created from DummyRSTable table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::DummyRSTable);
+
+        // [GIVEN] No other tables are included in the package
+        ConfigPackage."Exclude Config. Tables" := true;
+        ConfigPackage.Modify();
+
+        // [GIVEN] The package is exported
+        TempBlob.CreateOutStream(PackageOutStream);
+        ConfigXMLExchange.ExportPackageXMLToStream(ConfigPackage, PackageOutStream);
+
+        // Cleanup before import
+        DummyRSTable.DeleteAll();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        // [WHEN] the rapidstart package is imported and applied
+        TempBlob.CreateInStream(TempBlobInStream);
+        ConfigXMLExchange.ImportPackageXMLFromStream(TempBlobInStream);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] DummyRSTable records are properly applied
+        VerifyDummyRSTableRecords(DummyRSTable);
+        // [THEN] The text field with 2048 characters is filled properly
+        DummyRSTable.FindFirst();
+        Assert.AreEqual(GetLongText(), DummyRSTable."Long Text Field", 'Incorrect content of the long text field.');
+    end;
+#endif
+
+    [Test]
+    procedure TestExportPackageXMLToStream()
+    var
+        ConfigPackage: Record "Config. Package";
+        DummyRSTable: Record DummyRSTable;
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        TempBlob: Codeunit "Temp Blob";
+        TempBlobOld: Codeunit "Temp Blob";
+        TempBlobInStream: InStream;
+        PackageOutStream: OutStream;
+        PackageOutput: Text;
+        PackageOutputOld: Text;
+        SingleLine: Text;
+    begin
+        // [SCENARIO] Exporting a package to an OutStream.
+        Initialize();
+
+        // [GIVEN] A record of DummyRSTable in the database
+        DummyRSTable.DeleteAll();
+        DummyRSTable."Entry No." := 1;
+        DummyRSTable."Code Field" := 'TEST';
+        DummyRSTable."Decimal Field" := 3.21;
+        DummyRSTable."Date Field" := 20180325D;
+        DummyRSTable."Text Field" := 'Lorem ipsum dolor sit amet';
+        DummyRSTable."Long Text Field" := 'Lorem ipsum dolor sit amet';
         DummyRSTable.Insert();
 
         // [GIVEN] Rapidstart package is created from DummyRSTable table
@@ -1282,7 +2255,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         // [THEN] The content corresponds to the package that was exported
         TempBlob.CreateInStream(TempBlobInStream);
-        Assert.AreEqual(1646, TempBlob.Length(), 'Wrong length of the exported package.');
+        Assert.AreEqual(1674, TempBlob.Length(), 'Wrong length of the exported package.');
         while not TempBlobInStream.EOS do begin
             TempBlobInStream.Read(SingleLine);
             PackageOutput += SingleLine;
@@ -1331,7 +2304,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         // [WHEN] the rapidstart package is imported and applied
         TempBlob.CreateInStream(TempBlobInStream);
-        ConfigXMLExchange.ImportPackageXMLFromStream(TempBlobInStream);
+        ConfigXMLExchange.ImportPackageXML(TempBlobInStream);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
         // [THEN] DummyRSTable records are properly applied
@@ -1373,6 +2346,68 @@ codeunit 136603 "ERM RS Package Operations"
         // [THEN] Validate field show correct data
         Assert.AreEqual(NoOfFields, ConfigPackageTable."No. of Fields Included", Text101Err);
     end;
+
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure PackageOverviewPage_DatabaseDataActionWithDotNet()
+    var
+        ConfigPackageCard: TestPage "Config. Package Card";
+        VendorList: TestPage "Vendor List";
+    begin
+        // Preparation
+        Initialize();
+        InitializePackageCardWithDotNet(ConfigPackageCard, false);
+
+        // [THEN] Check page Vendor List is opened by Database Records
+        VendorList.Trap();
+        ConfigPackageCard.Control10.DatabaseRecords.Invoke();
+        VendorList.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('PackageRecordsPageHandler')]
+    [Scope('OnPrem')]
+    procedure PackageOverviewPage_PackageDataActionWithDotNet()
+    var
+        ConfigPackageCard: TestPage "Config. Package Card";
+    begin
+        Initialize();
+        InitializePackageCardWithDotNet(ConfigPackageCard, true);
+
+        // [WHEN] Package Records page open
+        ConfigPackageCard.Control10.PackageRecords.Invoke();
+    end;
+
+    [Test]
+    [HandlerFunctions('PackageFieldsPageHandler')]
+    [Scope('OnPrem')]
+    procedure PackageOverviewPage_PackageFieldsActionWithDotNet()
+    var
+        ConfigPackageCard: TestPage "Config. Package Card";
+    begin
+        Initialize();
+        InitializePackageCardWithDotNet(ConfigPackageCard, true);
+
+        // [WHEN] Package Fields page open
+        ConfigPackageCard.Control10.PackageFields.Invoke();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure PackageOverviewPage_ValidateRelationsActionWithDotNet()
+    var
+        ConfigPackageCard: TestPage "Config. Package Card";
+    begin
+        Initialize();
+        InitializePackageCardWithDotNet(ConfigPackageCard, true);
+
+        // [WHEN] Validate relations
+        ConfigPackageCard.Control10.ValidateRelations.Invoke();
+    end;
+#endif
+
 
     [Test]
     [Scope('OnPrem')]
@@ -1733,6 +2768,106 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.AreEqual(GetTableName(TableID), ConfigPackageCard.Control10."Table Name".Value, TableNotValidatedErr);
     end;
 
+#if not CLEAN29
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    [Scope('OnPrem')]
+    procedure ExportImportStructuredPackageWithDimAsColWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigLine: Record "Config. Line";
+        PackageCode: Code[20];
+    begin
+        // [SCENARIO 333276] Export/Import package with structured config. lines with Dim As Columns in additional area
+        HideDialog();
+
+        CreateConfigPackage(ConfigPackage);
+        PackageCode := ConfigPackage.Code;
+
+        FillInWorksheet(PackageCode);
+
+        // EXECUTE
+        ExportImportXMLWithDotNet(PackageCode);
+
+        // VERIFY that last config line has correct Table ID value
+        ConfigLine.SetRange("Package Code", PackageCode);
+        ConfigLine.FindLast();
+        Assert.AreEqual(DATABASE::Customer, ConfigLine."Table ID", StrSubstNo(ValueIsIncorrectErr, ConfigLine.FieldName("Table ID")));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportPackageWithMultilineConfigTemplateWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigTemplateHeaderCode: Code[10];
+    begin
+        // [SCENARIO 101422] TestHierarchy function of Config Template should work successfully when importing multiple lines from package.
+
+        // [GIVEN] Create package with multiline configuration template.
+        Initialize();
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"Config. Template Line");
+        ConfigTemplateHeaderCode := CreateConfigTemplateWithMultipleLines();
+
+        // [WHEN] Export package, cleanup all packages and templates and import package?
+        ExportImportXMLWithPackageAndTemplateCleanup(ConfigPackage.Code, ConfigTemplateHeaderCode);
+
+        // [THEN] Check that there are no errors of import.
+        ConfigPackage.CalcFields("No. of Errors");
+        Assert.AreEqual(0, ConfigPackage."No. of Errors", StrSubstNo(PackageErr, ConfigPackage.Code));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure ExportImportPackageWithAutoIncrementFieldMarkedAsPKWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageField: Record "Config. Package Field";
+        ConfigPackageTable: Record "Config. Package Table";
+        DimensionSetTreeNode: array[2] of Record "Dimension Set Tree Node";
+    begin
+        // [FEATURE] [Apply] [Primary Key] [AutoIncrement]
+        // [SCENARIO] The exported AutoIncrement field marked as "Primary Key" member should be imported and applied
+        Initialize();
+        // [GIVEN] Dimension Set Tree Node, where (AutoIncrement) "Dimension Set ID"  = 3
+        DimensionSetTreeNode[1].DeleteAll();
+        DimensionSetTreeNode[1].Init();
+        DimensionSetTreeNode[1]."Parent Dimension Set ID" := 1;
+        DimensionSetTreeNode[1]."Dimension Value ID" := 2;
+        DimensionSetTreeNode[1]."Dimension Set ID" := 3;
+        DimensionSetTreeNode[1]."In Use" := true;
+        DimensionSetTreeNode[1].Insert();
+
+        // [GIVEN] Config package for table 481 "Dimension Set Tree Node"
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"Dimension Set Tree Node");
+        ConfigPackage."Exclude Config. Tables" := true;
+        ConfigPackage.Modify();
+        // [GIVEN] Field "Dimension Set ID" is marked as "Primary Key" (though it is not in PK actually)
+        ConfigPackageField.Get(
+          ConfigPackage.Code, DATABASE::"Dimension Set Tree Node", DimensionSetTreeNode[1].FieldNo("Dimension Set ID"));
+        ConfigPackageField."Primary Key" := true;
+        ConfigPackageField.Modify();
+
+        // [GIVEN] Export/Import the package
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+        // [GIVEN] Dimension Set Tree Node is deleted
+        DimensionSetTreeNode[2].DeleteAll();
+
+        // [WHEN] Apply the package
+        LibraryRapidStart.ApplyPackage(ConfigPackage, false);
+
+        // [THEN] Dimension Set Tree Node is restored, without errors
+        Assert.RecordCount(DimensionSetTreeNode[2], 1);
+        DimensionSetTreeNode[2].FindFirst();
+        DimensionSetTreeNode[2].TestField("Parent Dimension Set ID", DimensionSetTreeNode[1]."Parent Dimension Set ID");
+        DimensionSetTreeNode[2].TestField("Dimension Value ID", DimensionSetTreeNode[1]."Dimension Value ID");
+        DimensionSetTreeNode[2].TestField("Dimension Set ID", DimensionSetTreeNode[1]."Dimension Set ID");
+        DimensionSetTreeNode[2].TestField("In Use", DimensionSetTreeNode[1]."In Use");
+    end;
+#endif
+
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     [Scope('OnPrem')]
@@ -1775,7 +2910,7 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigTemplateHeaderCode := CreateConfigTemplateWithMultipleLines();
 
         // [WHEN] Export package, cleanup all packages and templates and import package?
-        ExportImportXMLWithPackageAndTemplateCleanup(ConfigPackage.Code, ConfigTemplateHeaderCode);
+        ExportImportXMLWithPackageAndTemplateCleanupNew(ConfigPackage.Code, ConfigTemplateHeaderCode);
 
         // [THEN] Check that there are no errors of import.
         ConfigPackage.CalcFields("No. of Errors");
@@ -2287,9 +3422,10 @@ codeunit 136603 "ERM RS Package Operations"
             until SalesHeader.Next() = 0;
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
-    procedure ImportPackageWithNonExistingTable()
+    procedure ImportPackageWithNonExistingTableWithDotNet()
     var
         ConfigPackageError: Record "Config. Package Error";
         XMLDOMManagement: Codeunit "XML DOM Management";
@@ -2318,6 +3454,43 @@ codeunit 136603 "ERM RS Package Operations"
         // [WHEN] Importing "PACK01"
         // [THEN] Package imported
         ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, '');
+
+        // [THEN] A config. package error is created for "PACK01" informing that table "-452" does not exists
+        ConfigPackageError.SetRange("Package Code", PackageCode);
+        ConfigPackageError.FindFirst();
+        ConfigPackageError.TestField("Table ID", TableID);
+        ConfigPackageError.TestField("Error Text", StrSubstNo(PackageImportErr, TableID));
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageWithNonExistingTable()
+    var
+        ConfigPackageError: Record "Config. Package Error";
+        PackageXML: XmlDocument;
+        TableID: Integer;
+        TextXMLPackage: Text;
+        PackageCode: Code[20];
+    begin
+        // [SCENARIO 380200] Importing of Package with non existing table does not break import process, but creates Package Error
+        // [FEATURE] [UT]
+
+        // [GIVEN] Package "PACK01" with non existing table "-452"
+        PackageCode := 'PACK01';
+        TableID := -452;
+        TextXMLPackage :=
+          StrSubstNo(
+            '<?xml version="1.0" encoding="UTF-16" standalone="yes"?>' +
+            '<DataList LanguageID="1033" ProductVersion="NAV 7.1" PackageName="Tables" Code="%1">' +
+            '<ApprovalSetupList><TableID>%2</TableID></ApprovalSetupList></DataList>',
+            PackageCode,
+            TableID);
+        XmlDocument.ReadFrom(TextXMLPackage, PackageXML);
+
+        // [WHEN] Importing "PACK01"
+        // [THEN] Package imported
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
 
         // [THEN] A config. package error is created for "PACK01" informing that table "-452" does not exists
         ConfigPackageError.SetRange("Package Code", PackageCode);
@@ -2385,6 +3558,49 @@ codeunit 136603 "ERM RS Package Operations"
         ProcedureResult := ConfigPackageTable.GetNoOfDatabaseRecords();
         Assert.AreEqual(0, ProcedureResult, 'GetNoOfDatabaseRecords result must be 0');
     end;
+
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackage_ImportCreateMissingCodesValueInFieldPackageWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageField: Record "Config. Package Field";
+        Customer: Record Customer;
+        FieldNo1: Integer;
+        FieldNo2: Integer;
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 382272] Import Config Package should save the "Create Missing Codes" package field value
+        Initialize();
+
+        // [GIVEN] Config Package for Customer
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::Customer);
+
+        // [GIVEN] Config Package Field setup for Customer.City and Customer."Territory Code"
+        FieldNo1 := Customer.FieldNo(City);
+        FieldNo2 := Customer.FieldNo("Territory Code");
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, DATABASE::Customer, FieldNo1, true);
+        LibraryRapidStart.SetIncludeOneField(ConfigPackage.Code, DATABASE::Customer, FieldNo2, true);
+
+        // [GIVEN] Customer.City field setup "Create Missing Codes" set to TRUE
+        LibraryRapidStart.SetCreateMissingCodesForField(ConfigPackage.Code, DATABASE::Customer, FieldNo1, true);
+        // [GIVEN] Customer."Territory Code" field setup "Create Missing Codes" set to FALSE
+        LibraryRapidStart.SetCreateMissingCodesForField(ConfigPackage.Code, DATABASE::Customer, FieldNo2, false);
+
+        // [WHEN] Import Config Package
+        ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // [THEN] Customer.City field setup "Create Missing Codes" is TRUE
+        ConfigPackageField.Get(ConfigPackage.Code, DATABASE::Customer, FieldNo1);
+        ConfigPackageField.TestField("Create Missing Codes", true);
+
+        // [THEN] Customer."Territory Code" field setup "Create Missing Codes" is FALSE
+        ConfigPackageField.Get(ConfigPackage.Code, DATABASE::Customer, FieldNo2);
+        ConfigPackageField.TestField("Create Missing Codes", false);
+    end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -2580,9 +3796,10 @@ codeunit 136603 "ERM RS Package Operations"
         Assert.RecordCount(ConfigPackageTable, 2);
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
-    procedure ImportPackageWithOptionsAndEnums()
+    procedure ImportPackageWithOptionsAndEnumsWithDotNet()
     var
         OptionAndEnumRS: Record OptionAndEnumRS;
         ConfigPackage: Record "Config. Package";
@@ -2616,7 +3833,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ImportPackageWithTranslatedOptionsAndEnums()
+    procedure ImportPackageWithTranslatedOptionsAndEnumsWithDotNet()
     var
         OptionAndEnumRS: Record OptionAndEnumRS;
         ConfigPackage: Record "Config. Package";
@@ -2657,7 +3874,7 @@ codeunit 136603 "ERM RS Package Operations"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ExportImportConfigPackageWithPercentInColumn()
+    procedure ExportImportConfigPackageWithPercentInColumnWithDotNet()
     var
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
@@ -2686,6 +3903,169 @@ codeunit 136603 "ERM RS Package Operations"
         // [WHEN] Package "A" is imported from XML
         // [THEN] No error message appears 
         ImportPackageXML(ConfigPackage.Code, FilePath);
+        Erase(FilePath);
+
+        // [WHEN] Apply the package 
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] The package is applied without errors
+        // [THEN] "Inventory Adjmt. Entry Order" has original values of "Indirect Cost %" and "Indirect Cost" 
+        VerifyNoConfigPackageErrors(ConfigPackage.Code);
+        VerifyInventoryAdjmtEntryOrderLines(3);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportConfigPackageWithDecimalRoundingWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        BaseUnitOfMeasure: Record "Unit of Measure";
+        OtherUnitOfMeasure: Record "Unit of Measure";
+        FilePath: Text;
+    begin
+        // [SCENARIO 453468] Export and import of Config. Package with Qty. per Unit of Measure require rounding to 5 decimals
+        Initialize();
+
+        // [GIVEN] Create Item with 2 units of measure and Qty. per Unit of Measure with more than 5 decimals
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateUnitOfMeasureCode(BaseUnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", BaseUnitOfMeasure.Code, 1);
+        LibraryInventory.CreateUnitOfMeasureCode(OtherUnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", OtherUnitOfMeasure.Code, 1.23456789);
+
+        // [GIVEN] Create Package with Item Unit Of Measure table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"Item Unit of Measure");
+
+        // [GIVEN] Config. Package is exported to XML
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // [GIVEN] Delete created other unit of measure
+        ItemUnitOfMeasure.Delete();
+
+        // [WHEN] Package is imported from XML
+        // [THEN] No error message appears 
+        ImportPackageXML(ConfigPackage.Code, FilePath);
+        Erase(FilePath);
+
+        // [WHEN] Apply the package 
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] The package is applied without errors
+        // [THEN] and Qty. per Unit of Measure" rounded to 5 decimals
+        ItemUnitOfMeasure.Get(Item."No.", OtherUnitOfMeasure.Code);
+        Assert.AreEqual(ItemUnitOfMeasure."Qty. per Unit of Measure", 1.23457, 'value should be rounded to 5 decimals.');
+    end;
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageWithOptionsAndEnums()
+    var
+        OptionAndEnumRS: Record OptionAndEnumRS;
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+    begin
+        // Init
+        Initialize();
+        OptionAndEnumRS.DeleteAll();
+
+        // [GIVEN] that we have tables with both enums and options
+        InsertOptionAndEnumRs(0, OptionAndEnumRS.OptionField::Zero, OptionAndEnumRS.EnumField::Eight);
+        InsertOptionAndEnumRs(1, OptionAndEnumRS.OptionField::One, OptionAndEnumRS.EnumField::Nine);
+        InsertOptionAndEnumRs(2, OptionAndEnumRS.OptionField::Two, OptionAndEnumRS.EnumField::Ten);
+
+        // [GIVEN] a rapidstart package is create from that table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::OptionAndEnumRS);
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // Cleanup before import
+        OptionAndEnumRS.DeleteAll();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        // [WHEN] the rapidstart package is imported and applied
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] the options and enums are properly applied
+        VerifyEnumsAndOptionsAfterApplyingPackage()
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageWithTranslatedOptionsAndEnums()
+    var
+        OptionAndEnumRS: Record OptionAndEnumRS;
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+        LanguageId: Integer;
+    begin
+        // Init
+        Initialize();
+        OptionAndEnumRS.DeleteAll();
+
+        // [GIVEN] that the system is running in a different language
+        LanguageId := GlobalLanguage();
+        // Change to DAN
+        GlobalLanguage(1030);
+
+        // [GIVEN] that we have tables with both enums and options
+        InsertOptionAndEnumRs(0, OptionAndEnumRS.OptionField::Zero, OptionAndEnumRS.EnumField::Eight);
+        InsertOptionAndEnumRs(1, OptionAndEnumRS.OptionField::One, OptionAndEnumRS.EnumField::Nine);
+        InsertOptionAndEnumRs(2, OptionAndEnumRS.OptionField::Two, OptionAndEnumRS.EnumField::Ten);
+
+        // [GIVEN] a rapidstart package is create from that table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::OptionAndEnumRS);
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // Cleanup before import
+        OptionAndEnumRS.DeleteAll();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        // [WHEN] the rapidstart package is imported and applied
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] the option and enums are properly applied
+        VerifyEnumsAndOptionsAfterApplyingPackage();
+        GlobalLanguage(LanguageId);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportConfigPackageWithPercentInColumn()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        FilePath: Text;
+    begin
+        // [SCENARIO 390268] Export and import of Config. Package with record that has similar columns differ by % symbol
+        Initialize();
+
+        // [GIVEN] 3 "Inventory Adjmt. Entry Order" lines
+        // 1st Line "Indirect Cost %" = 0, Indirect Cost = 1;
+        // 2nd Line "Indirect Cost %" = 0, Indirect Cost = 2;
+        // 3rd Line "Indirect Cost %" = 0, Indirect Cost = 3;
+        InventoryAdjmtEntryOrder.DeleteAll();
+        MockInventoryAdjmtEntryOrderLines(3);
+
+        // [GIVEN] Config. Package with Inventory Adjmt. Entry Order table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::"Inventory Adjmt. Entry (Order)");
+
+        // [GIVEN] Package "A" is exported to XML
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // [GIVEN] All Inventory Adjmt. Entry Order records are deleted;
+        InventoryAdjmtEntryOrder.DeleteAll();
+
+        // [WHEN] Package "A" is imported from XML
+        // [THEN] No error message appears 
+        ImportPackageXMLNew(ConfigPackage.Code, FilePath);
         Erase(FilePath);
 
         // [WHEN] Apply the package 
@@ -2730,7 +4110,7 @@ codeunit 136603 "ERM RS Package Operations"
 
         // [WHEN] Package is imported from XML
         // [THEN] No error message appears 
-        ImportPackageXML(ConfigPackage.Code, FilePath);
+        ImportPackageXMLNew(ConfigPackage.Code, FilePath);
         Erase(FilePath);
 
         // [WHEN] Apply the package 
@@ -2741,6 +4121,41 @@ codeunit 136603 "ERM RS Package Operations"
         ItemUnitOfMeasure.Get(Item."No.", OtherUnitOfMeasure.Code);
         Assert.AreEqual(ItemUnitOfMeasure."Qty. per Unit of Measure", 1.23457, 'value should be rounded to 5 decimals.');
     end;
+
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageWithDuplicatedXMLFieldsWithDotNet()
+    var
+        DuplicatedXMLFields: Record DuplicatedXMLFields;
+        TempDuplicatedXMLFields: Record DuplicatedXMLFields temporary;
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+    begin
+        // [SCENARIO 390268] Table with duplicated XML field names can be imported with XML package
+        Initialize();
+        DuplicatedXMLFields.DeleteAll();
+
+        // [GIVEN] Create several records of DuplicatedXMLFields table
+        InsertDuplicatedXMLFieldsRecords(LibraryRandom.RandIntInRange(5, 10), TempDuplicatedXMLFields);
+
+        // [GIVEN] Rapidstart package is created from DuplicatedXMLFields table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::DuplicatedXMLFields);
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // Cleanup before import
+        DuplicatedXMLFields.DeleteAll();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        // [WHEN] the rapidstart package is imported and applied
+        ConfigXMLExchange.ImportPackageXML(FilePath);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] DuplicatedXMLFields records are properly applied
+        VerifyDuplicatedXMLFieldsRecords(TempDuplicatedXMLFields);
+    end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -2768,7 +4183,7 @@ codeunit 136603 "ERM RS Package Operations"
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
 
         // [WHEN] the rapidstart package is imported and applied
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
         // [THEN] DuplicatedXMLFields records are properly applied
@@ -2841,6 +4256,46 @@ codeunit 136603 "ERM RS Package Operations"
         VerifyDuplicatedXMLFieldsRecords(TempDuplicatedXMLFields);
     end;
 
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageWithEmptyXMLFieldNamesWithDotNet()
+    var
+        DummyRSTable: Record DummyRSTable;
+        TempDummyRSTable: Record DummyRSTable temporary;
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageField: Record "Config. Package Field";
+        FilePath: Text;
+    begin
+        // [SCENARIO 390268] Package can be imported with empty "XML Field Name" fields in the "Config. Package Field" table (old package import scenario)
+        Initialize();
+        DummyRSTable.DeleteAll();
+
+        // [GIVEN] Create several records of DummyRSTable table
+        InsertDummyRSTableRecords(LibraryRandom.RandIntInRange(5, 10), TempDummyRSTable);
+
+        // [GIVEN] Rapidstart package "P" is created from DummyRSTable table
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, DATABASE::DummyRSTable);
+        ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
+
+        // [GIVEN] Make "XML Field Name" empty for all "Config. Package Field" records of package "P"
+        ConfigPackageField.SetRange("Package Code", ConfigPackage.Code);
+        ConfigPackageField.ModifyAll("XML Field Name", '');
+
+        // Cleanup before import
+        DummyRSTable.DeleteAll();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        // [WHEN] the rapidstart package is imported and applied
+        ConfigXMLExchange.ImportPackageXML(FilePath);
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+
+        // [THEN] DummyRSTable records are properly applied
+        VerifyDummyRSTableRecords(TempDummyRSTable);
+    end;
+#endif
+
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithEmptyXMLFieldNames()
@@ -2872,7 +4327,7 @@ codeunit 136603 "ERM RS Package Operations"
         LibraryRapidStart.CleanUp(ConfigPackage.Code);
 
         // [WHEN] the rapidstart package is imported and applied
-        ConfigXMLExchange.ImportPackageXML(FilePath);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         LibraryRapidStart.ApplyPackage(ConfigPackage, true);
 
         // [THEN] DummyRSTable records are properly applied
@@ -3152,6 +4607,7 @@ codeunit 136603 "ERM RS Package Operations"
         ConfigPackageField."Field ID" := Field."No.";
     end;
 
+#if not CLEAN29
     local procedure ImportFromXML(var ConfigPackage: Record "Config. Package"; var CountryCode: Code[10]; var LocationCode: Code[10])
     var
         ConfigPackageTable: Record "Config. Package Table";
@@ -3285,6 +4741,147 @@ codeunit 136603 "ERM RS Package Operations"
             repeat
                 FieldRef := RecRef.Field(ConfigPackageField."Field ID");
                 AddXMLNode(XMLDocument, RecordNode, FieldNode, CopyStr(FieldRef.Name(), 1, 250), Format(FieldRef.Value()));
+            until ConfigPackageField.Next() = 0;
+    end;
+#endif
+
+    local procedure ImportFromXMLNew(var ConfigPackage: Record "Config. Package"; var CountryCode: Code[10]; var LocationCode: Code[10])
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        Country: Record "Country/Region";
+        Location: Record Location;
+        RecRef: RecordRef;
+        PackageXML: XmlDocument;
+        DocumentElement: XmlElement;
+        DocumentNode: XmlNode;
+        XmlText: Text;
+    begin
+        LibraryERM.CreateCountryRegion(Country);
+        CountryCode := Country.Code;
+
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Country/Region Code" := CountryCode;
+        Location.Modify();
+        LocationCode := Location.Code;
+
+        CreateConfigPackage(ConfigPackage);
+        XmlText := '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList Code="' + ConfigPackage.Code + '"></DataList>';
+        XmlDocument.ReadFrom(XmlText, PackageXML);
+        PackageXML.GetRoot(DocumentElement);
+        DocumentNode := DocumentElement.AsXmlNode();
+
+        // Add CountryRegionList
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Country/Region");
+        IncludeField(ConfigPackageTable, 0, false);
+        IncludeField(ConfigPackageTable, Country.FieldNo(Code), true);
+        RecRef.GetTable(Country);
+        AddConfigPackageTableToXML(DocumentNode, ConfigPackageTable, RecRef);
+        // Add LocationList
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::Location);
+        IncludeField(ConfigPackageTable, 0, false);
+        IncludeField(ConfigPackageTable, Location.FieldNo(Code), true);
+        IncludeField(ConfigPackageTable, Location.FieldNo("Country/Region Code"), true);
+        RecRef.GetTable(Location);
+        AddConfigPackageTableToXML(DocumentNode, ConfigPackageTable, RecRef);
+
+        Country.Delete();
+        Location.Delete();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
+    end;
+
+    local procedure ImportPackageXMLNew(PackageCode: Code[20]; XMLDataFile: text)
+    var
+        XMLDOMManagement: Codeunit "XML DOM Management";
+        XMLDocument: XmlDocument;
+    begin
+        XMLDOMManagement.LoadXMLDocumentFromFile(XMLDataFile, XMLDocument);
+        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, PackageCode);
+    end;
+
+
+    local procedure ImportFromXMLKeyNew(var ConfigPackage: Record "Config. Package"; var GenProductPostingGroupCode: Code[20]; var GenBusPostingGroupCode: Code[20])
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        GeneralPostingSetup: Record "General Posting Setup";
+        GenBusPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        RecRef: RecordRef;
+        PackageXML: XmlDocument;
+        DocumentElement: XmlElement;
+        DocumentNode: XmlNode;
+        XmlText: Text;
+    begin
+        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
+        GenProductPostingGroupCode := GenProductPostingGroup.Code;
+        LibraryERM.CreateGenBusPostingGroup(GenBusPostingGroup);
+        GenBusPostingGroupCode := GenBusPostingGroup.Code;
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup.Code, GenProductPostingGroup.Code);
+
+        CreateConfigPackage(ConfigPackage);
+        XmlText := '<?xml version="1.0" encoding="UTF-16" standalone="yes"?><DataList Code="' + ConfigPackage.Code + '"></DataList>';
+        XmlDocument.ReadFrom(XmlText, PackageXML);
+        PackageXML.GetRoot(DocumentElement);
+        DocumentNode := DocumentElement.AsXmlNode();
+
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"General Posting Setup");
+        RecRef.GetTable(GeneralPostingSetup);
+        AddConfigPackageTableToXML(DocumentNode, ConfigPackageTable, RecRef);
+
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Business Posting Group");
+        RecRef.GetTable(GenBusPostingGroup);
+        AddConfigPackageTableToXML(DocumentNode, ConfigPackageTable, RecRef);
+
+        LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Gen. Product Posting Group");
+        RecRef.GetTable(GenProductPostingGroup);
+        AddConfigPackageTableToXML(DocumentNode, ConfigPackageTable, RecRef);
+
+        GenProductPostingGroup.Delete();
+        GenBusPostingGroup.Delete();
+        GeneralPostingSetup.Delete();
+        LibraryRapidStart.CleanUp(ConfigPackage.Code);
+
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
+    end;
+
+    local procedure AddXMLNode(var ParentNode: XmlNode; FieldName: Text[250]; FieldText: Text[250])
+    var
+        FieldXmlElement: XmlElement;
+    begin
+        FieldXmlElement := XmlElement.Create(ConfigXMLExchange.GetElementName(FieldName));
+        if FieldText <> '' then
+            FieldXmlElement.Add(XmlText.Create(Format(FieldText)));
+        ParentNode.AsXmlElement().Add(FieldXmlElement);
+    end;
+
+    local procedure AddConfigPackageTableToXML(var DocumentElement: XmlNode; ConfigPackageTable: Record "Config. Package Table"; RecRef: RecordRef)
+    var
+        ConfigPackageField: Record "Config. Package Field";
+        FieldRef: FieldRef;
+        TableNode: XmlNode;
+        RecordNode: XmlNode;
+    begin
+        ConfigPackageTable.CalcFields("Table Name");
+
+        TableNode := XmlElement.Create(ConfigXMLExchange.GetElementName(CopyStr(ConfigPackageTable."Table Name" + 'List', 1, 250))).AsXmlNode();
+        DocumentElement.AsXmlElement().Add(TableNode);
+
+        AddXMLNode(TableNode, CopyStr(ConfigPackageTable.FieldName("Table ID"), 1, 250), Format(ConfigPackageTable."Table ID"));
+        AddXMLNode(TableNode, CopyStr(ConfigPackageTable.FieldName("Page ID"), 1, 250), Format(ConfigPackageTable."Page ID"));
+        AddXMLNode(TableNode, CopyStr(ConfigPackageTable.FieldName("Processing Order"), 1, 250), Format(ConfigPackageTable."Processing Order"));
+
+        RecordNode := XmlElement.Create(ConfigXMLExchange.GetElementName(ConfigPackageTable."Table Name")).AsXmlNode();
+        TableNode.AsXmlElement().Add(RecordNode);
+
+        ConfigPackageField.Reset();
+        ConfigPackageField.SetRange("Package Code", ConfigPackageTable."Package Code");
+        ConfigPackageField.SetRange("Table ID", ConfigPackageTable."Table ID");
+        ConfigPackageField.SetRange("Include Field", true);
+        if ConfigPackageField.FindSet() then
+            repeat
+                FieldRef := RecRef.Field(ConfigPackageField."Field ID");
+                AddXMLNode(RecordNode, CopyStr(FieldRef.Name(), 1, 250), Format(FieldRef.Value()));
             until ConfigPackageField.Next() = 0;
     end;
 
@@ -3688,7 +5285,8 @@ codeunit 136603 "ERM RS Package Operations"
                 LibraryERM.PostGeneralJnlLine(GenJnlLine);
     end;
 
-    local procedure ExportImportXML(PackageCode: Code[20])
+#if not CLEAN29
+    local procedure ExportImportXMLWithDotNet(PackageCode: Code[20])
     var
         ConfigPackageTable: Record "Config. Package Table";
         FilePath: Text;
@@ -3707,6 +5305,29 @@ codeunit 136603 "ERM RS Package Operations"
         ExportToXML(PackageCode, ConfigPackageTable, FilePath);
         CleanupPackageAndTemplate(PackageCode, ConfigTemplateHeaderCode);
         ConfigXMLExchange.ImportPackageXML(FilePath);
+        Erase(FilePath);
+    end;
+#endif
+
+    local procedure ExportImportXML(PackageCode: Code[20])
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+    begin
+        ExportToXML(PackageCode, ConfigPackageTable, FilePath);
+        LibraryRapidStart.CleanUp(PackageCode);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
+        Erase(FilePath);
+    end;
+
+    local procedure ExportImportXMLWithPackageAndTemplateCleanupNew(PackageCode: Code[20]; ConfigTemplateHeaderCode: Code[10])
+    var
+        ConfigPackageTable: Record "Config. Package Table";
+        FilePath: Text;
+    begin
+        ExportToXML(PackageCode, ConfigPackageTable, FilePath);
+        CleanupPackageAndTemplate(PackageCode, ConfigTemplateHeaderCode);
+        ConfigXMLExchange.ImportPackageXMLFromFile(FilePath);
         Erase(FilePath);
     end;
 
@@ -3854,6 +5475,27 @@ codeunit 136603 "ERM RS Package Operations"
         CompressedServerFileName := FileMgt.ServerTempFileName('');
         ConfigPckgCompressionMgt.ServersideCompress(ServerFileName, CompressedServerFileName);
     end;
+
+#if not CLEAN29
+    local procedure InitializePackageCardWithDotNet(var ConfigPackageCard: TestPage "Config. Package Card"; FillPackageData: Boolean)
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        TableID: Integer;
+    begin
+        // Create package
+        TableID := DATABASE::Vendor;
+
+        CreatePackageWithTable(ConfigPackage, ConfigPackageTable, TableID);
+        // Export and import data to fill package tables
+        if FillPackageData then
+            ExportImportXMLWithDotNet(ConfigPackage.Code);
+
+        // Open Package Card page and add table
+        ConfigPackageCard.OpenEdit();
+        ConfigPackageCard.GotoRecord(ConfigPackage);
+    end;
+#endif
 
     local procedure InitializePackageCard(var ConfigPackageCard: TestPage "Config. Package Card"; FillPackageData: Boolean)
     var

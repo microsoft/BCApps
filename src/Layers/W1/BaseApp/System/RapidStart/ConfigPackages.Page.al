@@ -153,7 +153,7 @@ page 8615 "Config. Packages"
                         TempBlob.FromRecord(ConfigurationPackageFile, ConfigurationPackageFile.FieldNo(Package));
                         ConfigXMLExchange.DecompressPackageToBlob(TempBlob, TempBlobUncompressed);
                         TempBlobUncompressed.CreateInStream(InStream);
-                        ConfigXMLExchange.ImportPackageXMLFromStream(InStream);
+                        ConfigXMLExchange.ImportPackageXML(InStream);
                     end;
                 }
                 action(ExportToExcel)

@@ -1,6 +1,5 @@
 namespace System.IO;
 
-using System;
 using System.Threading;
 
 codeunit 8626 "Config. Import Table in Backgr"
@@ -11,9 +10,9 @@ codeunit 8626 "Config. Import Table in Backgr"
     var
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
         MemoryMappedFile: Codeunit "Memory Mapped File";
-        PackageXML: DotNet XmlDocument;
-        DocumentElement: DotNet XmlElement;
-        TableNode: DotNet XmlNode;
+        PackageXML: XmlDocument;
+        DocumentElement: XmlElement;
+        TableNode: XmlNode;
         nodetext: Text;
         PackageCode: Code[20];
     begin
@@ -26,18 +25,26 @@ codeunit 8626 "Config. Import Table in Backgr"
         MemoryMappedFile.ReadTextWithSeparatorsFromMemoryMappedFile(nodetext);
         MemoryMappedFile.Dispose();
 
-        PackageXML := PackageXML.XmlDocument();
-        PackageXML.LoadXml(nodetext);
-        if IsNull(PackageXML) then
+        if not XmlDocument.ReadFrom(nodetext, PackageXML) then
             exit;
-        DocumentElement := PackageXML.DocumentElement;
-        if IsNull(DocumentElement) then
+
+        if not PackageXML.GetRoot(DocumentElement) then
             exit;
-        TableNode := DocumentElement.FirstChild;
-        if IsNull(TableNode) then
+
+        if not GetFirstChildNode(DocumentElement.AsXmlNode(), TableNode) then
             exit;
+
         ConfigXMLExchange.SetHideDialog(true);
         ConfigXMLExchange.ImportTableFromXMLNode(TableNode, PackageCode);
     end;
-}
 
+    local procedure GetFirstChildNode(ParentNode: XmlNode; var FirstChild: XmlNode): Boolean
+    var
+        ChildNodes: XmlNodeList;
+    begin
+        ChildNodes := ParentNode.AsXmlElement().GetChildNodes();
+        if ChildNodes.Count() = 0 then
+            exit(false);
+        exit(ChildNodes.Get(1, FirstChild));
+    end;
+}
