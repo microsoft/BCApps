@@ -78,7 +78,7 @@ codeunit 139148 "UT REST"
     [Scope('OnPrem')]
     procedure XmlText2JsonText()
     var
-        JSONMgt: Codeunit "JSON Management";
+        JSONMgt: Codeunit Json;
         XmlText: Text;
         JsonText: Text;
     begin
@@ -96,9 +96,31 @@ codeunit 139148 "UT REST"
 
     [Test]
     [Scope('OnPrem')]
+    procedure XmlTextWithUTF8BOM2JsonText()
+    var
+        JSONMgt: Codeunit Json;
+        ByteOrderMarkUtf8: Text[1];
+        XmlText: Text;
+        JsonText: Text;
+    begin
+        // [SCENARIO] XML text with a leading UTF-8 byte order mark is converted to JSON
+
+        // [GIVEN] XML text prefixed with a UTF-8 byte order mark
+        ByteOrderMarkUtf8[1] := 65279;
+        XmlText := ByteOrderMarkUtf8 + MockXMLText();
+
+        // [WHEN] The XML text is converted to JSON
+        JsonText := JSONMgt.XMLTextToJSONText(XmlText);
+
+        // [THEN] The JSON has the expected content
+        VerifyJsonText(JsonText, MockJsonText());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure JsonText2XmlText()
     var
-        JSONMgt: Codeunit "JSON Management";
+        JSONMgt: Codeunit Json;
         XmlText: Text;
         JsonText: Text;
     begin
@@ -112,6 +134,7 @@ codeunit 139148 "UT REST"
 
         // [THEN] Resulted XML text has appropriate content
         VerifyXMLText(XmlText, MockXMLText());
+        Assert.AreEqual(0, StrPos(XmlText, '<?xml'), InvalidValueErr);
     end;
 
     [Test]
@@ -455,4 +478,3 @@ codeunit 139148 "UT REST"
         Assert.AreEqual(ExpectedXMLText, XMLText, InvalidValueErr);
     end;
 }
-

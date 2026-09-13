@@ -9,13 +9,14 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
+#if not CLEAN30
 using System;
+#endif
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 
 codeunit 5465 "Graph Mgt - General Tools"
@@ -46,15 +47,33 @@ codeunit 5465 "Graph Mgt - General Tools"
         JobQueueNotScheudledMsg: Label 'The job has been created and set to On Hold.';
         APIDataUpgradeCategoryLbl: Label 'APIUpgrade', Locked = true;
 
+#if not CLEAN30
+    [Obsolete('Use GetMandatoryStringPropertyFromJObject with the native JsonObject type instead.', '30.0')]
     [Scope('OnPrem')]
     procedure GetMandatoryStringPropertyFromJObject(var JsonObject: DotNet JObject; PropertyName: Text; var PropertyValue: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        Found: Boolean;
+        JsonToken: DotNet JToken;
     begin
-        Found := JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, PropertyName, PropertyValue);
-        if not Found then
+        if not JsonObject.TryGetValue(PropertyName, JsonToken) then
             Error(MissingFieldValueErr, PropertyName);
+        PropertyValue := Format(JsonToken);
+    end;
+#endif
+
+    procedure GetMandatoryStringPropertyFromJObject(JsonObject: JsonObject; PropertyName: Text; var PropertyValue: Text)
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(PropertyValue);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            Error(MissingFieldValueErr, PropertyName);
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit;
+            PropertyValue := JsonToken.AsValue().AsText();
+            exit;
+        end;
+        JsonToken.WriteTo(PropertyValue);
     end;
 
     procedure HandleUpdateReferencedIdFieldOnItem(var RecRef: RecordRef; NewId: Guid; var Handled: Boolean; DatabaseNumber: Integer; RecordFieldNumber: Integer)
@@ -359,4 +378,3 @@ codeunit 5465 "Graph Mgt - General Tools"
         exit(Format(Id).TrimStart('{').TrimEnd('}'));
     end;
 }
-

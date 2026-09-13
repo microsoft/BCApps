@@ -114,15 +114,29 @@ codeunit 5460 Json
         exit(JsonImpl.GetValueAndSetToRecFieldNo(RecordRef, PropertyPath, FieldNo));
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Gets the value at the specified property name in the JSON object.
     /// </summary>
     /// <param name="PropertyName">The property name</param>
-    /// <param name="Value">The value</param>
+    /// <param name="Value">The DotNet JSON token value.</param>
     /// <returns>True if the value is returned; otherwise, false</returns>
+    [Obsolete('Use GetNativePropertyValueByName to retrieve native AL JSON and scalar values.', '30.0')]
     procedure GetPropertyValueByName(PropertyName: Text; var Value: Variant): Boolean
     begin
         exit(JsonImpl.GetPropertyValueFromJObjectByName(PropertyName, Value));
+    end;
+#endif
+
+    /// <summary>
+    /// Gets the native AL value at the specified property name in the JSON object.
+    /// </summary>
+    /// <param name="PropertyName">The property name.</param>
+    /// <param name="Value">The AL scalar, JsonObject, or JsonArray value. JSON null clears the variant.</param>
+    /// <returns>True if the property exists; otherwise, false.</returns>
+    procedure GetNativePropertyValueByName(PropertyName: Text; var Value: Variant): Boolean
+    begin
+        exit(JsonImpl.GetNativePropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
@@ -231,6 +245,27 @@ codeunit 5460 Json
     procedure ReplaceJObjectInCollection(Index: Integer; Value: Text): Boolean
     begin
         exit(JsonImpl.ReplaceJObjectInCollection(Index, Value));
+    end;
+
+    /// <summary>
+    /// Converts XML text to JSON text.
+    /// </summary>
+    /// <param name="Xml">The XML document text to convert.</param>
+    /// <returns>The JSON representation produced with Json.NET XmlNodeConverter semantics.</returns>
+    procedure XMLTextToJSONText(Xml: Text): Text
+    begin
+        exit(JsonImpl.XMLTextToJSONText(Xml));
+    end;
+
+    /// <summary>
+    /// Converts JSON text to XML text with the specified document element name.
+    /// </summary>
+    /// <param name="Json">The JSON text to convert.</param>
+    /// <param name="DocumentElementName">The name of the XML document element.</param>
+    /// <returns>The converted XML document text.</returns>
+    procedure JSONTextToXMLText(Json: Text; DocumentElementName: Text): Text
+    begin
+        exit(JsonImpl.JSONTextToXMLText(Json, DocumentElementName));
     end;
 
 }

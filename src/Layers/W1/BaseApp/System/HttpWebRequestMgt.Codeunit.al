@@ -4,7 +4,6 @@ using System;
 using System.Environment;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Utilities;
 using System.Xml;
 
@@ -21,6 +20,7 @@ codeunit 1297 "Http Web Request Mgt."
         InternalErr: Label 'The remote service has returned the following error message:\\';
         NoCookieForYouErr: Label 'The web request has no cookies.';
         TimeoutErr: Label 'The server timed out waiting for the request.';
+        HttpErrorTxt: Label 'Http error %1 (%2)\%3', Comment = '%1 - Error code, %2 - Error name, %3 - Error description';
 
     [Scope('OnPrem')]
     procedure GetResponse(var ResponseInStream: InStream; var HttpStatusCode: DotNet HttpStatusCode; var ResponseHeaders: DotNet NameValueCollection): Boolean
@@ -122,13 +122,22 @@ codeunit 1297 "Http Web Request Mgt."
 
     procedure ParseFaultJsonResponse(ResponseJson: Text): Text
     var
-        JSONMgt: Codeunit "JSON Management";
+        ResponseJsonObject: JsonObject;
+        ErrorJsonObject: JsonObject;
+        JsonToken: JsonToken;
         "code": Text;
         name: Text;
         description: Text;
     begin
-        if JSONMgt.GetJsonWebResponseError(ResponseJson, code, name, description) then
-            exit(StrSubstNo('Http error %1 (%2)\%3', code, name, description));
+        if not ResponseJsonObject.ReadFrom(ResponseJson) then
+            exit('');
+        if ResponseJsonObject.Get('Error', JsonToken) and JsonToken.IsObject() then begin
+            ErrorJsonObject := JsonToken.AsObject();
+            code := ErrorJsonObject.GetText('code', true);
+            name := ErrorJsonObject.GetText('name', true);
+            description := ErrorJsonObject.GetText('description', true);
+        end;
+        exit(StrSubstNo(HttpErrorTxt, code, name, description));
     end;
 
     [TryFunction]
@@ -491,29 +500,33 @@ codeunit 1297 "Http Web Request Mgt."
 
     local procedure SetJSONContent(var ResponseJson: Text; ResponseInStream: InStream): Boolean
     var
-        JSONMgt: Codeunit "JSON Management";
-        ContentJson: Text;
+        ResponseJsonObject: JsonObject;
+        ContentJsonObject: JsonObject;
         Content: Text;
     begin
         if ResponseInStream.Read(Content) = 0 then
             exit(true);
 
-        if not JSONMgt.InitializeFromString(Content) then
+        if not ContentJsonObject.ReadFrom(Content) then
             exit(false);
 
-        ContentJson := JSONMgt.WriteObjectToString();
-        JSONMgt.InitializeObject(ResponseJson);
-        JSONMgt.AddJson('Content', ContentJson);
-        ResponseJson := JSONMgt.WriteObjectToString();
+        ResponseJsonObject.ReadFrom(ResponseJson);
+        if ResponseJsonObject.Contains('Content') then
+            ResponseJsonObject.Replace('Content', ContentJsonObject)
+        else
+            ResponseJsonObject.Add('Content', ContentJsonObject);
+        ResponseJsonObject.WriteTo(ResponseJson);
         exit(true);
     end;
 
     local procedure ParseWebResponseError(var ResponseJson: Text; WebException: DotNet WebException)
     var
-        JSONMgt: Codeunit "JSON Management";
         HttpWebResponse: DotNet HttpWebResponse;
         Convert: DotNet Convert;
         WebExceptionStatus: DotNet WebExceptionStatus;
+        ResponseJsonObject: JsonObject;
+        ErrorJsonObject: JsonObject;
+        ErrorDescriptionToken: JsonToken;
         ResponseInputStream: InStream;
         ErrorDescription: Text;
         StatusCode: Text;
@@ -542,17 +555,32 @@ codeunit 1297 "Http Web Request Mgt."
                 exit;
         end;
 
-        JSONMgt.SetJsonWebResponseError(ResponseJson, StatusCode, StatusCodeString, ErrorDescription);
+        if ResponseJson <> '' then
+            ResponseJsonObject.ReadFrom(ResponseJson);
+        ErrorJsonObject.Add('code', StatusCode);
+        ErrorJsonObject.Add('name', StatusCodeString);
+        ErrorJsonObject.Add('description', ErrorDescription);
+        if ResponseJsonObject.Contains('Error') then
+            ResponseJsonObject.Replace('Error', ErrorJsonObject)
+        else
+            ResponseJsonObject.Add('Error', ErrorJsonObject);
+        ResponseJsonObject.WriteTo(ResponseJson);
 
         // Try to get more details
         if WebExceptionResponse then begin
             ResponseInputStream := HttpWebResponse.GetResponseStream();
             if SetJSONContent(ResponseJson, ResponseInputStream) then
-                if JSONMgt.InitializeFromString(ResponseJson) then begin
-                    ErrorDescription := JSONMgt.GetValue('Content.error_description');
+                if ResponseJsonObject.ReadFrom(ResponseJson) then begin
+                    ErrorDescription := '';
+                    if ResponseJsonObject.SelectToken('Content.error_description', ErrorDescriptionToken) and ErrorDescriptionToken.IsValue() then
+                        if not ErrorDescriptionToken.AsValue().IsNull() and not ErrorDescriptionToken.AsValue().IsUndefined() then
+                            ErrorDescription := ErrorDescriptionToken.AsValue().AsText();
                     if ErrorDescription <> '' then begin
-                        JSONMgt.SetValue('Error.description', ErrorDescription);
-                        ResponseJson := JSONMgt.WriteObjectToString();
+                        ResponseJsonObject.Get('Error', ErrorDescriptionToken);
+                        ErrorJsonObject := ErrorDescriptionToken.AsObject();
+                        ErrorJsonObject.Replace('description', ErrorDescription);
+                        ResponseJsonObject.Replace('Error', ErrorJsonObject);
+                        ResponseJsonObject.WriteTo(ResponseJson);
                     end;
                 end;
         end;

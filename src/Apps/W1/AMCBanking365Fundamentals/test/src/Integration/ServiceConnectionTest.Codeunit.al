@@ -86,6 +86,48 @@ codeunit 134414 "Service Connection Test"
           'AMC Banking Setup Connection have wrong status');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure HasResponseErrorsHandlesMissingInvalidSyslogAndEmptyResponse()
+    var
+        AMCBankRESTRequestMgt: Codeunit "AMC Bank REST Request Mgt.";
+    begin
+        Initialize();
+
+        VerifyResponseWithoutValidSyslog(AMCBankRESTRequestMgt, '');
+        VerifyResponseWithoutValidSyslog(AMCBankRESTRequestMgt, '{}');
+        VerifyResponseWithoutValidSyslog(AMCBankRESTRequestMgt, '{"syslog":null}');
+        VerifyResponseWithoutValidSyslog(AMCBankRESTRequestMgt, '{"syslog":"not json"}');
+        VerifyResponseWithoutValidSyslog(AMCBankRESTRequestMgt, 'not json');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LogHttpActivityDoesNotLogInvalidJsonContent()
+    var
+        ActivityLog: Record "Activity Log";
+        AMCBankRESTRequestMgt: Codeunit "AMC Bank REST Request Mgt.";
+        HttpContent: HttpContent;
+        DetailedInfoInStream: InStream;
+        ActualContent: Text;
+        InvalidContent: Text;
+        ActivityId: Integer;
+    begin
+        Initialize();
+        InvalidContent := 'not json';
+        HttpContent.WriteFrom(InvalidContent);
+
+        ActivityId := AMCBankRESTRequestMgt.LogHttpActivity('REST', 'TEST', 'error', '', '', HttpContent, 'error');
+
+        ActivityLog.Get(ActivityId);
+        ActivityLog.CalcFields("Detailed Info");
+        ActivityLog."Detailed Info".CreateInStream(DetailedInfoInStream);
+        DetailedInfoInStream.ReadText(ActualContent);
+        Assert.AreEqual('', ActualContent, 'Invalid JSON log content must not be logged.');
+        ActivityLog.Delete();
+        Commit();
+    end;
+
     local procedure Initialize()
     var
         AMCBankingSetup: Record "AMC Banking Setup";
@@ -97,6 +139,32 @@ codeunit 134414 "Service Connection Test"
         end;
         AMCBankingSetup."AMC Enabled" := true;
         AMCBankingSetup.Modify();
+    end;
+
+    local procedure VerifyResponseWithoutValidSyslog(var AMCBankRESTRequestMgt: Codeunit "AMC Bank REST Request Mgt."; ResponseText: Text)
+    var
+        ActivityLog: Record "Activity Log";
+        ResponseTempBlob: Codeunit "Temp Blob";
+        ResponseOutStream: OutStream;
+        ResponseResult: Text;
+        ActivityId: Integer;
+    begin
+        if ResponseText <> '' then begin
+            ResponseTempBlob.CreateOutStream(ResponseOutStream);
+            ResponseOutStream.WriteText(ResponseText);
+        end;
+
+        Assert.IsFalse(
+            AMCBankRESTRequestMgt.HasResponseErrors(ResponseTempBlob, 'REST', 'syslog', ResponseResult, 'TEST'),
+            'A response without a valid syslog must retain the legacy non-error classification.');
+        Assert.AreEqual('', ResponseResult, 'A response without a valid syslog must have an empty result.');
+
+        ActivityId := AMCBankRESTRequestMgt.GetGlobalToActivityId();
+        Assert.IsTrue(ActivityLog.Get(ActivityId), 'A response without a valid syslog must still be logged.');
+        Assert.AreEqual(Format(ActivityLog.Status::Failed), Format(ActivityLog.Status), 'The response must retain the legacy failed log status.');
+        Assert.AreEqual(Format(AMCBankWebLogStatus::Failed), Format(ActivityLog."AMC Bank WebLog Status"), 'The response must retain the legacy failed web log status.');
+        ActivityLog.Delete();
+        Commit();
     end;
 
     local procedure ServiceExist(Desc: Text): Boolean

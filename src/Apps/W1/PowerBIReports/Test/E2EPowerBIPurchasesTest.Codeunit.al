@@ -14,7 +14,6 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 using System.Utilities;
 
 /// <summary>
@@ -124,7 +123,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyPurchOrderLine(Response: Text; PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(PurchLine."Line No.") + ')]'), 'Purchase line not found.');
@@ -175,7 +174,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyItemBudgetEntry(Response: Text; ItemBudgetEntry: Record "Item Budget Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(ItemBudgetEntry."Entry No.") + ')]'), 'Item budget entry not found.');
@@ -254,7 +253,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyPurchValueEntryV2(Response: Text; PurchaseHeader: Record "Purchase Header"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.itemLedgerEntryNo == ' + Format(ItemLedgerEntry."Entry No.") + ')]'), 'Purchase item ledger entry not found.');
@@ -358,7 +357,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyReceivedNotInvoiced(Response: Text; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(PurchaseLine."Line No.") + ')]'), 'Purchase item ledger entry not found.');
@@ -496,7 +495,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyPurchaseLine(Response: Text; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(PurchaseLine."Line No.") + ')]'), 'Purchase line not found.');
@@ -590,7 +589,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyPurchaseInvoiceLine(Response: Text; PurchInvHeader: Record "Purch. Inv. Header"; PurcInvLine: Record "Purch. Inv. Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(PurcInvLine."Line No.") + ')]'), 'Purchase invoice line not found.');
@@ -667,7 +666,7 @@ codeunit 139880 "E2E PowerBI Purchases Test"
 
     local procedure VerifyPurchaseCreditLine(Response: Text; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; PurcCrMemoLine: Record "Purch. Cr. Memo Line")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.lineNo == ' + Format(PurcCrMemoLine."Line No.") + ')]'), 'Purchase credit memo line not found.');

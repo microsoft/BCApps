@@ -9,7 +9,6 @@ using System.Environment.Configuration;
 using System.Integration;
 using System.Reflection;
 using System.Security.AccessControl;
-using System.Text;
 using System.Threading;
 using System.Utilities;
 
@@ -278,32 +277,28 @@ codeunit 6154 "API Webhook Notification Send"
 
     local procedure GetPayloadPerNotificationUrl(NotificationUrlNumber: Integer; var SubscriptionIds: List of [Text[150]]): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonArray: DotNet JArray;
+        JsonArray: JsonArray;
         SubscriptionId: Text[150];
         PayloadPerNotificationUrl: Text;
     begin
         Session.LogMessage('00006ZX', StrSubstNo(CollectPayloadPerNotificationUrlMsg, NotificationUrlNumber, SubscriptionIds.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
 
-        JSONManagement.InitializeEmptyCollection();
-        JSONManagement.GetJsonArray(JsonArray);
-
         foreach SubscriptionId in SubscriptionIds do
-            AddPayloadPerSubscription(JSONManagement, JsonArray, SubscriptionId);
+            AddPayloadPerSubscription(JsonArray, SubscriptionId);
 
         if JsonArray.Count() = 0 then begin
             Session.LogMessage('000029X', StrSubstNo(EmptyPayloadPerNotificationUrlErr, NotificationUrlNumber), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             exit('')
         end;
 
-        PayloadPerNotificationUrl := JsonArray.ToString();
+        JsonArray.WriteTo(PayloadPerNotificationUrl);
         FormatPayloadPerNotificationUrl(PayloadPerNotificationUrl, SubscriptionsPerNotificationUrlDictionary.Keys().Get(NotificationUrlNumber));
         exit(PayloadPerNotificationUrl);
     end;
 
-    local procedure AddPayloadPerSubscription(var JSONManagement: Codeunit "JSON Management"; var JsonArray: DotNet JArray; SubscriptionId: Text[150])
+    local procedure AddPayloadPerSubscription(var JsonArray: JsonArray; SubscriptionId: Text[150])
     var
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
         I: Integer;
         SubscriptionSystemId: Guid;
     begin
@@ -327,8 +322,8 @@ codeunit 6154 "API Webhook Notification Send"
             TempAPIWebhookNotificationAggr.FindLast();
 
         repeat
-            if GetEntityJObject(TempAPIWebhookNotificationAggr, JsonObject) then begin
-                JSONManagement.AddJObjectToJArray(JsonArray, JsonObject);
+            if GetEntityJsonObject(TempAPIWebhookNotificationAggr, JsonObject) then begin
+                JsonArray.Add(JsonObject);
                 I += 1;
                 Session.LogMessage('00006ZW', StrSubstNo(CollectNotificationPayloadMsg, SubscriptionSystemId, TempAPIWebhookNotificationAggr."Entity ID", ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"),
                     DateTimeToString(TempAPIWebhookNotificationAggr."Last Modified Date Time")), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
@@ -344,26 +339,20 @@ codeunit 6154 "API Webhook Notification Send"
     local procedure FormatPayloadPerNotificationUrl(var PayloadPerNotificationUrl: Text; NotificationUrl: Text)
     var
         APIWebhookSubscription: Record "API Webhook Subscription";
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        JsonArray: DotNet JArray;
+        JsonObject: JsonObject;
+        JsonArray: JsonArray;
     begin
         if PayloadPerNotificationUrl = '' then
             exit;
 
         if SubscriptionsTypeNotificationUrlDictionary.Get(NotificationUrl) = APIWebhookSubscription."Subscription Type"::Regular then begin
-            JSONManagement.InitializeCollection(PayloadPerNotificationUrl);
-            JSONManagement.GetJsonArray(JsonArray);
-            JSONManagement.InitializeEmptyObject();
-            JSONManagement.GetJSONObject(JsonObject);
-            JSONManagement.AddJArrayToJObject(JsonObject, 'value', JsonArray);
-            PayloadPerNotificationUrl := JsonObject.ToString();
+            JsonArray.ReadFrom(PayloadPerNotificationUrl);
+            JsonObject.Add('value', JsonArray);
+            JsonObject.WriteTo(PayloadPerNotificationUrl);
         end else begin
-            JSONManagement.InitializeEmptyObject();
-            JSONManagement.GetJSONObject(JsonObject);
-            JSONManagement.AddJPropertyToJObject(JsonObject, 'ProviderName', 'dyn365bc');
-            JSONManagement.AddJPropertyToJObject(JsonObject, 'Request', PayloadPerNotificationUrl);
-            PayloadPerNotificationUrl := JsonObject.ToString();
+            JsonObject.Add('ProviderName', 'dyn365bc');
+            JsonObject.Add('Request', PayloadPerNotificationUrl);
+            JsonObject.WriteTo(PayloadPerNotificationUrl);
         end;
     end;
 
@@ -1277,9 +1266,8 @@ codeunit 6154 "API Webhook Notification Send"
         exit(false);
     end;
 
-    local procedure GetEntityJObject(var TempAPIWebhookNotificationAggr: Record "API Webhook Notification Aggr" temporary; var JSONObject: DotNet JObject): Boolean
+    local procedure GetEntityJsonObject(var TempAPIWebhookNotificationAggr: Record "API Webhook Notification Aggr" temporary; var JsonObject: JsonObject): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
         ResourceUrl: Text;
         LastModifiedDateTime: DateTime;
         SubscriptionSystemId: Guid;
@@ -1304,17 +1292,16 @@ codeunit 6154 "API Webhook Notification Send"
                 Session.LogMessage('00006P3', StrSubstNo(EmptyLastModifiedDateTimeMsg, SubscriptionSystemId, TempAPIWebhookNotificationAggr."Entity ID", ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"),
                     TempAPIWebhookNotificationAggr."Attempt No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
 
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JSONObject);
-        JSONManagement.AddJPropertyToJObject(JSONObject, 'subscriptionId', TempAPIWebhookSubscription."Subscription Id");
-        JSONManagement.AddJPropertyToJObject(JSONObject, 'clientState', TempAPIWebhookSubscription."Client State");
-        JSONManagement.AddJPropertyToJObject(JSONObject, 'expirationDateTime', TempAPIWebhookSubscription."Expiration Date Time");
-        JSONManagement.AddJPropertyToJObject(JSONObject, 'resource', ResourceUrl);
-        JSONManagement.AddJPropertyToJObject(JSONObject, 'changeType', ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"));
-        JSONManagement.AddJPropertyToJObject(JSONObject, 'lastModifiedDateTime', LastModifiedDateTime);
+        Clear(JsonObject);
+        JsonObject.Add('subscriptionId', TempAPIWebhookSubscription."Subscription Id");
+        JsonObject.Add('clientState', TempAPIWebhookSubscription."Client State");
+        JsonObject.Add('expirationDateTime', TempAPIWebhookSubscription."Expiration Date Time");
+        JsonObject.Add('resource', ResourceUrl);
+        JsonObject.Add('changeType', ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"));
+        JsonObject.Add('lastModifiedDateTime', LastModifiedDateTime);
         if ((TempAPIWebhookSubscription."Subscription Type" = TempAPIWebhookSubscription."Subscription Type"::Dataverse) and
             (TempAPIWebhookNotificationAggr."Change Type" <> TempAPIWebhookNotificationAggr."Change Type"::Collection)) then
-            JSONManagement.AddJPropertyToJObject(JSONObject, 'initiatingAadUserId', GetAadUserId(TempAPIWebhookNotificationAggr."Created By User SID"));
+            JsonObject.Add('initiatingAadUserId', GetAadUserId(TempAPIWebhookNotificationAggr."Created By User SID"));
         exit(true);
     end;
 
@@ -1897,17 +1884,8 @@ codeunit 6154 "API Webhook Notification Send"
 
     [Scope('OnPrem')]
     procedure DateTimeToUtcString(DateTimeValue: DateTime): Text
-    var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        UtcDateTimeString: Text;
     begin
-        // TODO replace getting UTC through JSON with the new function when such function is implemented on the platform side
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'value', DateTimeValue);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, 'value', UtcDateTimeString);
-        exit(UtcDateTimeString);
+        exit(Format(DateTimeValue, 0, 9));
     end;
 
     local procedure LogActivity(ActivityFailed: Boolean; ActivityDescription: Text; ActivityMessage: Text)
@@ -1939,4 +1917,3 @@ codeunit 6154 "API Webhook Notification Send"
     begin
     end;
 }
-

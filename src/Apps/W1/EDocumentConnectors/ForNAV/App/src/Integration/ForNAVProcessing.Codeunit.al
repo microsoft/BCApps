@@ -7,7 +7,6 @@ namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 using Microsoft.EServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
-using System.Text;
 using System.Utilities;
 
 codeunit 6419 "ForNAV Processing"
@@ -120,33 +119,34 @@ codeunit 6419 "ForNAV Processing"
 
     local procedure GetNumberOfReceivedDocuments(InputTxt: Text): Integer
     var
-        JsonManagement: Codeunit "JSON Management";
-        Value: Text;
+        ResponseJson: JsonObject;
+        ItemsToken: JsonToken;
     begin
-        if not JsonManagement.InitializeFromString(InputTxt) then
+        if not ResponseJson.ReadFrom(InputTxt) then
             exit(0);
 
-        JsonManagement.GetArrayPropertyValueAsStringByName('items', Value);
-        JsonManagement.InitializeCollection(Value);
-
-        exit(JsonManagement.GetCollectionCount());
+        if not ResponseJson.Get('items', ItemsToken) or not ItemsToken.IsArray() then
+            exit(0);
+        exit(ItemsToken.AsArray().Count());
     end;
 
     local procedure ParseSendFileResponse(HttpContentResponse: HttpContent): Text
     var
-        JsonManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
+        IdToken: JsonToken;
         Result: Text;
-        Value: Text;
     begin
         Result := ParseJsonString(HttpContentResponse);
         if Result = '' then
             exit('');
 
-        if not JsonManagement.InitializeFromString(Result) then
+        if not ResponseJson.ReadFrom(Result) then
             exit('');
-
-        JsonManagement.GetStringPropertyValueByName('id', Value);
-        exit(Value);
+        if ResponseJson.Get('id', IdToken) and IdToken.IsValue() then begin
+            if IdToken.AsValue().IsNull() or IdToken.AsValue().IsUndefined() then
+                exit('');
+            exit(IdToken.AsValue().AsText());
+        end;
     end;
 
     local procedure SetEDocument(EDocEntryNo: Integer; FileId: Text)
@@ -165,29 +165,13 @@ codeunit 6419 "ForNAV Processing"
     procedure ParseJsonString(HttpContentResponse: HttpContent): Text
     var
         ResponseObject: JsonObject;
-        Response: Text;
         Result: Text;
-        IsJsonResponse: Boolean;
     begin
         HttpContentResponse.ReadAs(Result);
-        IsJsonResponse := ResponseObject.ReadFrom(Result);
-        if IsJsonResponse then
-            ResponseObject.WriteTo(Response)
-        else
-            exit('');
-
-        if not TryInitJson(Response) then
+        if not ResponseObject.ReadFrom(Result) then
             exit('');
 
         exit(Result);
-    end;
-
-    [TryFunction]
-    local procedure TryInitJson(JsonTxt: Text)
-    var
-        JsonManagement: Codeunit "JSON Management";
-    begin
-        JSONManagement.InitializeObject(JsonTxt);
     end;
 
     procedure GetDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)

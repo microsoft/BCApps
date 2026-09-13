@@ -3,7 +3,6 @@ namespace Microsoft.DataMigration.GP;
 using Microsoft.DataMigration;
 using System.Environment;
 using System.Integration;
-using System.Text;
 
 codeunit 4016 "Hybrid GP Management"
 {
@@ -138,55 +137,57 @@ codeunit 4016 "Hybrid GP Management"
     var
         HybridReplicationDetail: Record "Hybrid Replication Detail";
         HybridMessageManagement: Codeunit "Hybrid Message Management";
-        JsonManagement: Codeunit "JSON Management";
-        JsonManagement2: Codeunit "JSON Management";
         HelperFunctions: Codeunit "Helper Functions";
+        NotificationJson: JsonObject;
+        IncrementalTableJson: JsonObject;
+        ErrorJson: JsonObject;
+        TablesArray: JsonArray;
+        ErrorsArray: JsonArray;
+        JsonToken: JsonToken;
         ErrorCode: Text;
         ErrorMessage: Text;
-        Errors: Text;
-        IncrementalTable: Text;
         IncrementalTableCount: Integer;
         Value: Text;
         i: Integer;
         j: Integer;
     begin
         Session.LogMessage('0000FVL', UpdateStatusOnHybridReplicationCompletedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', HelperFunctions.GetTelemetryCategory());
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
         // Get table information, iterate through and create detail records for each
         for j := 1 to 2 do begin
-            JsonManagement.InitializeObject(NotificationText);
-
             // Wrapping these in if/then pairs to ensure backward-compatibility
             if j = 1 then
-                if (not JsonManagement.GetArrayPropertyValueAsStringByName('IncrementalTables', Value)) then exit;
+                if not TryGetJsonArray(NotificationJson, 'IncrementalTables', TablesArray) then
+                    exit;
             if j = 2 then
-                if (not JsonManagement.GetArrayPropertyValueAsStringByName('GPHistoryTables', Value)) then exit;
-            JsonManagement.InitializeCollection(Value);
-            IncrementalTableCount := JsonManagement.GetCollectionCount();
+                if not TryGetJsonArray(NotificationJson, 'GPHistoryTables', TablesArray) then
+                    exit;
+            IncrementalTableCount := TablesArray.Count();
 
             for i := 0 to IncrementalTableCount - 1 do begin
-                JsonManagement.GetObjectFromCollectionByIndex(IncrementalTable, i);
-                JsonManagement.InitializeObject(IncrementalTable);
+                TablesArray.Get(i, JsonToken);
+                IncrementalTableJson := JsonToken.AsObject();
 
                 HybridReplicationDetail.Init();
                 HybridReplicationDetail."Run ID" := RunId;
-                JsonManagement.GetStringPropertyValueByName('TableName', Value);
+                Value := GetJsonTokenText(IncrementalTableJson, 'TableName');
                 HybridReplicationDetail."Table Name" := CopyStr(Value, 1, 250);
 
-                JsonManagement.GetStringPropertyValueByName('CompanyName', Value);
+                Value := GetJsonTokenText(IncrementalTableJson, 'CompanyName');
                 HybridReplicationDetail."Company Name" := CopyStr(Value, 1, 250);
 
                 HybridReplicationDetail.Status := HybridReplicationDetail.Status::Successful;
-                if JsonManagement.GetStringPropertyValueByName('Errors', Errors) and Errors.StartsWith('[') then begin
-                    JsonManagement2.InitializeCollection(Errors);
-                    if JsonManagement2.GetCollectionCount() > 0 then begin
-                        JsonManagement2.GetObjectFromCollectionByIndex(Value, 0);
-                        JsonManagement2.InitializeObject(Value);
-                        JsonManagement2.GetStringPropertyValueByName('Code', ErrorCode);
-                        JsonManagement2.GetStringPropertyValueByName('Message', ErrorMessage);
+                if TryGetJsonArray(IncrementalTableJson, 'Errors', ErrorsArray) then begin
+                    if ErrorsArray.Count() > 0 then begin
+                        ErrorsArray.Get(0, JsonToken);
+                        ErrorJson := JsonToken.AsObject();
+                        ErrorCode := GetJsonTokenText(ErrorJson, 'Code');
+                        ErrorMessage := GetJsonTokenText(ErrorJson, 'Message');
                     end;
                 end else begin
-                    JsonManagement.GetStringPropertyValueByName('ErrorMessage', ErrorMessage);
-                    JsonManagement.GetStringPropertyValueByName('ErrorCode', ErrorCode);
+                    ErrorMessage := GetJsonTokenText(IncrementalTableJson, 'ErrorMessage');
+                    ErrorCode := GetJsonTokenText(IncrementalTableJson, 'ErrorCode');
                 end;
 
                 if (ErrorMessage <> '') or (ErrorCode <> '') then begin
@@ -200,6 +201,40 @@ codeunit 4016 "Hybrid GP Management"
                 HybridReplicationDetail.Insert();
             end;
         end;
+    end;
+
+    local procedure TryGetJsonArray(JsonObject: JsonObject; PropertyName: Text; var JsonArray: JsonArray): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(JsonArray);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit(false);
+        if JsonToken.IsArray() then begin
+            JsonArray := JsonToken.AsArray();
+            exit(true);
+        end;
+        if not JsonToken.IsValue() then
+            exit(false);
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit(false);
+        exit(JsonArray.ReadFrom(JsonToken.AsValue().AsText()));
+    end;
+
+    local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text): Text
+    var
+        JsonToken: JsonToken;
+        JsonText: Text;
+    begin
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit('');
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit('');
+            exit(JsonToken.AsValue().AsText());
+        end;
+        JsonToken.WriteTo(JsonText);
+        exit(JsonText);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Hybrid Message Management", 'OnResolveMessageCode', '', false, false)]
@@ -228,16 +263,17 @@ codeunit 4016 "Hybrid GP Management"
         HybridReplicationSummary: Record "Hybrid Replication Summary";
         HybridCompanyStatus: Record "Hybrid Company Status";
         HybridCloudManagement: Codeunit "Hybrid Cloud Management";
-        JsonManagement: Codeunit "JSON Management";
         HelperFunctions: Codeunit "Helper Functions";
+        NotificationJson: JsonObject;
         ServiceType: Text;
     begin
         // Do not process migration data for a diagnostic run since there should be none
         if HybridReplicationSummary.Get(RunId) and (HybridReplicationSummary.ReplicationType = HybridReplicationSummary.ReplicationType::Diagnostic) then
             exit;
 
-        JsonManagement.InitializeObject(NotificationText);
-        JsonManagement.GetStringPropertyValueByName('ServiceType', ServiceType);
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        ServiceType := GetJsonTokenText(NotificationJson, 'ServiceType');
         Session.LogMessage('0000FXA', StartingHandleInitializationOfGPSynchronizationTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', HelperFunctions.GetTelemetryCategory());
 
         if ServiceType = ReplicationCompletedServiceTypeTxt then begin

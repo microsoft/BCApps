@@ -11,7 +11,6 @@ using Microsoft.Utilities;
 using System;
 using System.Environment;
 using System.Reflection;
-using System.Text;
 
 table 469 "Workflow Webhook Subscription"
 {
@@ -138,8 +137,6 @@ table 469 "Workflow Webhook Subscription"
     end;
 
     var
-        JSONManagement: Codeunit "JSON Management";
-
         WorkflowWebhookSetup: Codeunit "Workflow Webhook Setup";
         UnableToParseEncodingErr: Label 'Unable to parse the Conditions. The provided Conditions were not in the correct Base64 encoded format.';
         UnableToParseInvalidJsonErr: Label 'Unable to parse the Conditions. The provided Conditions JSON was invalid.';
@@ -242,7 +239,11 @@ table 469 "Workflow Webhook Subscription"
         WorkflowEventHandling: Codeunit "Workflow Event Handling";
         RequestPageParametersHelper: Codeunit "Request Page Parameters Helper";
         EventConditions: FilterPageBuilder;
-        ConditionsObject: DotNet JObject;
+        ConditionsObject: JsonObject;
+#if not CLEAN30
+        LegacyConditionsObject: DotNet JObject;
+        ConditionsJsonText: Text;
+#endif
         ConditionsCount: Integer;
         Result: Text;
         IsHandled: Boolean;
@@ -316,9 +317,17 @@ table 469 "Workflow Webhook Subscription"
                         EventConditions, WorkflowWebhookSetup.GetPurchPayCategoryTxt(), DATABASE::Vendor));
                 end
             else begin
-                OnCreateWorkflowEventConditions(ConditionsTxt, EventCode, ConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
+                OnCreateWorkflowEventConditionsNative(ConditionsTxt, EventCode, ConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
                 if IsHandled then
                     exit(Result);
+
+#if not CLEAN30
+                ConditionsObject.WriteTo(ConditionsJsonText);
+                LegacyConditionsObject := LegacyConditionsObject.Parse(ConditionsJsonText);
+                OnCreateWorkflowEventConditions(ConditionsTxt, EventCode, LegacyConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
+                if IsHandled then
+                    exit(Result);
+#endif
 
                 SendAndLogError(
                   StrSubstNo(WorkflowWebhookSetup.GetUnsupportedWorkflowEventCodeErr(), EventCode),
@@ -327,36 +336,31 @@ table 469 "Workflow Webhook Subscription"
         end;
     end;
 
-    local procedure AddEventConditionsWrapper(ConditionsPropertyName: Text; ConditionsObject: DotNet JObject; SourcePageNo: Integer; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer)
+    local procedure AddEventConditionsWrapper(ConditionsPropertyName: Text; ConditionsObject: JsonObject; SourcePageNo: Integer; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer)
     var
-        ConditionsCollection: DotNet JToken;
+        ConditionsCollection: JsonToken;
+        ErrorText: Text;
     begin
-        if ConditionsObject.TryGetValue(ConditionsPropertyName, ConditionsCollection) then begin
-            if not TryInitializeCollection(ConditionsCollection) then
-                SendAndLogError(GetLastErrorText, StrSubstNo(UnableToParseJsonArrayErr, ConditionsPropertyName));
-            AddEventConditions(ConditionsCollection, EventConditions, SourcePageNo, ConditionsCount);
+        if ConditionsObject.Get(ConditionsPropertyName, ConditionsCollection) then begin
+            if not ConditionsCollection.IsArray() then begin
+                ErrorText := StrSubstNo(UnableToParseJsonArrayErr, ConditionsPropertyName);
+                SendAndLogError(ErrorText, ErrorText);
+            end;
+            AddEventConditions(ConditionsCollection.AsArray(), EventConditions, SourcePageNo, ConditionsCount);
             ConditionsCount := ConditionsCount + 1;
         end;
     end;
 
-    [TryFunction]
-    local procedure TryInitializeCollection(var ConditionsCollection: DotNet JToken)
-    begin
-        JSONManagement.InitializeCollectionFromJArray(ConditionsCollection);
-        // need to do some action on the collection to check if it is of Collection type
-        if JSONManagement.GetCollectionCount() < 0 then
-            Error(GetLastErrorText);
-    end;
-
-    local procedure AddEventConditions(ConditionsArray: DotNet JObject; var EventConditions: FilterPageBuilder; SourcePageNo: Integer; ConditionIndex: Integer)
+    local procedure AddEventConditions(ConditionsArray: JsonArray; var EventConditions: FilterPageBuilder; SourcePageNo: Integer; ConditionIndex: Integer)
     var
         TableMetadata: Record "Table Metadata";
         PageControlField: Record "Page Control Field";
         RecRef: RecordRef;
         FieldRef: FieldRef;
-        ConditionName: DotNet JToken;
-        Condition: DotNet JObject;
-        ConditionValue: DotNet JToken;
+        ConditionToken: JsonToken;
+        ConditionName: JsonToken;
+        Condition: JsonObject;
+        ConditionValue: JsonToken;
         FieldId: Integer;
         tableNo: Integer;
     begin
@@ -369,20 +373,22 @@ table 469 "Workflow Webhook Subscription"
         PageControlField.Reset();
         PageControlField.SetFilter(PageNo, '%1', SourcePageNo);
 
-        foreach Condition in ConditionsArray do
-            if Condition.TryGetValue('Name', ConditionName) and Condition.TryGetValue('Value', ConditionValue) then begin
+        foreach ConditionToken in ConditionsArray do begin
+            Condition := ConditionToken.AsObject();
+            if Condition.Get('Name', ConditionName) and Condition.Get('Value', ConditionValue) then begin
                 // get id of the field from the page in the page's source table
-                PageControlField.SetFilter(ControlName, ConditionName.ToString());
+                PageControlField.SetFilter(ControlName, GetJsonTokenText(ConditionName));
                 if not PageControlField.FindFirst() then
-                    SendAndLogError(GetLastErrorText, StrSubstNo(NoControlOnPageErr, ConditionName.ToString(), GetPageName(SourcePageNo)));
+                    SendAndLogError(GetLastErrorText, StrSubstNo(NoControlOnPageErr, GetJsonTokenText(ConditionName), GetPageName(SourcePageNo)));
 
                 FieldId := PageControlField.FieldNo;
                 FieldRef := RecRef.Field(FieldId);
 
                 // filter Header/Lines Table
                 // throws an error message if can not convert types
-                FieldRef.SetFilter(ConditionValue.ToString());
+                FieldRef.SetFilter(GetJsonTokenText(ConditionValue));
             end;
+        end;
 
         // create Filter Page Builder
         TableMetadata.Get(tableNo);
@@ -390,11 +396,26 @@ table 469 "Workflow Webhook Subscription"
         EventConditions.SetView(EventConditions.Name(ConditionIndex), RecRef.GetView());
     end;
 
-    [TryFunction]
-    local procedure TryParseJson(ConditionsTxt: Text; var ConditionsArray: DotNet JObject)
+    local procedure GetJsonTokenText(JsonToken: JsonToken): Text
+    var
+        JsonText: Text;
     begin
-        JSONManagement.InitializeObject(ConditionsTxt);
-        JSONManagement.GetJSONObject(ConditionsArray);
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit('');
+            exit(JsonToken.AsValue().AsText());
+        end;
+        JsonToken.WriteTo(JsonText);
+        exit(JsonText);
+    end;
+
+    [TryFunction]
+    local procedure TryParseJson(ConditionsTxt: Text; var ConditionsArray: JsonObject)
+    begin
+        Clear(ConditionsArray);
+        if ConditionsTxt = '' then
+            exit;
+        ConditionsArray.ReadFrom(ConditionsTxt);
     end;
 
     [TryFunction]
@@ -455,8 +476,15 @@ table 469 "Workflow Webhook Subscription"
     end;
 
     [IntegrationEvent(true, false)]
+    local procedure OnCreateWorkflowEventConditionsNative(ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: JsonObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
+    begin
+    end;
+
+#if not CLEAN30
+    [Obsolete('Subscribe to OnCreateWorkflowEventConditionsNative with the native JsonObject type instead.', '30.0')]
+    [IntegrationEvent(true, false)]
     local procedure OnCreateWorkflowEventConditions(ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: DotNet JObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
     begin
     end;
+#endif
 }
-

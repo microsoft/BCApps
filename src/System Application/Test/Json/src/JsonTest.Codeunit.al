@@ -6,8 +6,12 @@
 namespace System.Test.Text.Json;
 
 using System.Device;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Text.Json;
+using System.Utilities;
 
 codeunit 139910 "Json Test"
 {
@@ -15,6 +19,8 @@ codeunit 139910 "Json Test"
 
     var
         Assert: Codeunit "Library Assert";
+        InvalidJsonArrayErr: Label 'The value is not a valid JSON array.';
+        InvalidJsonObjectErr: Label 'The value is not a valid JSON object.';
 
     [Test]
     procedure TestGetCollectionCount()
@@ -107,6 +113,7 @@ codeunit 139910 "Json Test"
         Assert.AreEqual('Test Name', Printer.Name, 'The Name field was not set correctly.');
     end;
 
+#if not CLEAN30
     [Test]
     procedure TestGetPropertyValueByName()
     var
@@ -119,11 +126,24 @@ codeunit 139910 "Json Test"
         Json.InitializeObject(JsonObjectText);
 
         // [WHEN] Retrieve a value from the JSON object
+#pragma warning disable AL0432
         Json.GetPropertyValueByName('id', Value);
 
         // [THEN] The retrieved value matches the expected value
+        Assert.IsTrue(Value.IsDotNet, 'The legacy property getter must return a DotNet JSON token.');
         Assert.AreEqual('ABC123', Format(Value), 'The retrieved value does not match the expected value.');
+
+        Json.InitializeObject('{"object":{"id":1},"array":[1,2]}');
+        Assert.IsTrue(Json.GetPropertyValueByName('object', Value), 'The object property was not found.');
+        Assert.IsTrue(Value.IsDotNet, 'The legacy object property must return a DotNet JSON token.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('objectCopy', Value), 'The legacy object token was not added.');
+        Assert.IsTrue(Json.GetPropertyValueByName('array', Value), 'The array property was not found.');
+        Assert.IsTrue(Value.IsDotNet, 'The legacy array property must return a DotNet JSON token.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('arrayCopy', Value), 'The legacy array token was not added.');
+        Assert.AreEqual('{"object":{"id":1},"array":[1,2],"objectCopy":{"id":1},"arrayCopy":[1,2]}', Json.GetObjectAsText(), 'Legacy DotNet tokens changed JSON shape when added.');
+#pragma warning restore AL0432
     end;
+#endif
 
     [Test]
     procedure TestGetStringPropertyValueByName()
@@ -147,6 +167,20 @@ codeunit 139910 "Json Test"
 
         // [THEN] The retrieved value matches the expected value
         Assert.AreEqual('Test Name', Value, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetStringPropertyValuePreservesBooleanCasing()
+    var
+        Json: Codeunit "Json";
+        Value: Text;
+    begin
+        Json.InitializeObject('{"boolean":true,"text":"true"}');
+
+        Assert.IsTrue(Json.GetStringPropertyValueByName('boolean', Value), 'Boolean property was not found.');
+        Assert.AreEqual('True', Value, 'Boolean JSON value was not formatted compatibly.');
+        Assert.IsTrue(Json.GetStringPropertyValueByName('text', Value), 'Text property was not found.');
+        Assert.AreEqual('true', Value, 'Text JSON value was changed while normalizing Boolean values.');
     end;
 
     [Test]
@@ -201,6 +235,24 @@ codeunit 139910 "Json Test"
 
         // [THEN] The retrieved value matches the expected value
         Assert.AreEqual(123.45, Value, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetGuidPropertyValueFromJObjectByName()
+    var
+        Json: Codeunit "Json";
+        ExpectedValue: Guid;
+        Value: Guid;
+    begin
+        // [GIVEN] A JSON object with a GUID value
+        ExpectedValue := CreateGuid();
+        Json.InitializeObject('{"id":"' + Format(ExpectedValue) + '"}');
+
+        // [WHEN] Retrieve the GUID from the JSON object
+        Assert.IsTrue(Json.GetGuidPropertyValueFromJObjectByName('id', Value), 'The GUID property was not found.');
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual(ExpectedValue, Value, 'The retrieved GUID value does not match the expected value.');
     end;
 
     [Test]
@@ -291,6 +343,53 @@ codeunit 139910 "Json Test"
     end;
 
     [Test]
+    procedure TestXMLTextToJSONTextWithUTF8BOM()
+    var
+        Json: Codeunit "Json";
+        JsonObject: JsonObject;
+        JsonToken: JsonToken;
+        ByteOrderMarkUtf8: Text[1];
+        JsonText: Text;
+        XmlText: Text;
+    begin
+        // [GIVEN] XML text prefixed with a UTF-8 byte order mark
+        ByteOrderMarkUtf8[1] := 65279;
+        XmlText := ByteOrderMarkUtf8 + '<root><value>test</value></root>';
+
+        // [WHEN] The XML text is converted to JSON
+        JsonText := Json.XMLTextToJSONText(XmlText);
+
+        // [THEN] The JSON contains the XML document element content
+        Assert.IsTrue(JsonObject.ReadFrom(JsonText), 'The XML text was not converted to valid JSON.');
+        Assert.IsTrue(JsonObject.Get('value', JsonToken), 'The converted JSON does not contain the expected value.');
+        Assert.IsTrue(JsonToken.IsValue(), 'The converted JSON value has an unexpected type.');
+        Assert.AreEqual('test', JsonToken.AsValue().AsText(), 'The converted JSON value is incorrect.');
+    end;
+
+    [Test]
+    procedure TestXMLTextToJSONTextRejectsDTD()
+    var
+        Json: Codeunit "Json";
+    begin
+        asserterror Json.XMLTextToJSONText('<!DOCTYPE root [<!ENTITY value "test">]><root>&value;</root>');
+        Assert.ExpectedError('DTD');
+    end;
+
+    [Test]
+    procedure TestJSONTextToXMLTextWithoutDeclaration()
+    var
+        Json: Codeunit "Json";
+        XmlText: Text;
+    begin
+        // [WHEN] JSON text is converted to XML
+        XmlText := Json.JSONTextToXMLText('{"value":"test"}', 'root');
+
+        // [THEN] The XML contains only the document element, without an XML declaration
+        Assert.AreEqual('<root><value>test</value></root>', XmlText, 'The converted XML is incorrect.');
+        Assert.AreEqual(0, StrPos(XmlText, '<?xml'), 'The converted XML must not contain an XML declaration.');
+    end;
+
+    [Test]
     procedure TestReplaceOrAddJPropertyInJObject()
     var
         Json: Codeunit "Json";
@@ -372,5 +471,484 @@ codeunit 139910 "Json Test"
 
         // [THEN] The removed value matches the expected value
         Assert.AreEqual('[{"id":"ABC123"},{"id":"DYK484"}]', JsonArrayText, 'The removed value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestEmptyInitialization()
+    var
+        Json: Codeunit "Json";
+    begin
+        // [WHEN] Empty object and collection text are initialized
+        Json.InitializeObject('');
+        Json.InitializeCollection('');
+
+        // [THEN] Both native states contain empty JSON containers
+        Assert.AreEqual('{}', Json.GetObjectAsText(), 'Empty object initialization did not create an empty object.');
+        Assert.AreEqual('[]', Json.GetCollectionAsText(), 'Empty collection initialization did not create an empty collection.');
+        Assert.AreEqual(0, Json.GetCollectionCount(), 'Empty collection initialization did not clear the collection.');
+    end;
+
+    [Test]
+    procedure TestInvalidJsonInputRaisesError()
+    var
+        Json: Codeunit "Json";
+    begin
+        asserterror Json.InitializeCollection('not json');
+        Assert.ExpectedError(InvalidJsonArrayErr);
+        asserterror Json.InitializeObject('not json');
+        Assert.ExpectedError(InvalidJsonObjectErr);
+
+        Json.InitializeCollection('[]');
+        asserterror Json.AddJObjectToCollection('not json');
+        Assert.ExpectedError(InvalidJsonObjectErr);
+        Assert.AreEqual('[]', Json.GetCollectionAsText(), 'Invalid object input changed the collection.');
+        Assert.AreEqual('[]', Json.GetCollectionAsText(true), 'Invalid object input changed the indented collection.');
+        Assert.AreEqual(0, Json.GetCollectionCount(), 'Invalid object input changed the collection count.');
+
+        Json.InitializeCollection('[{}]');
+        asserterror Json.ReplaceJObjectInCollection(0, 'not json');
+        Assert.ExpectedError(InvalidJsonObjectErr);
+        Assert.AreEqual('[{}]', Json.GetCollectionAsText(), 'Invalid replacement input changed the collection.');
+        Assert.AreEqual(1, Json.GetCollectionCount(), 'Invalid replacement input changed the collection count.');
+    end;
+
+    [Test]
+    procedure TestObjectAndCollectionStateAreIndependent()
+    var
+        Json: Codeunit "Json";
+        SelectedObjectText: Text;
+    begin
+        // [GIVEN] Independently initialized object and collection states
+        Json.InitializeObject('{"objectState":"first"}');
+        Json.InitializeCollection('[{"collectionState":"kept"}]');
+
+        // [THEN] Initializing the collection did not replace object state
+        Assert.AreEqual('{"objectState":"first"}', Json.GetObjectAsText(), 'Collection initialization changed object state.');
+
+        // [WHEN] Object state is initialized again
+        Json.InitializeObject('{"objectState":"second"}');
+
+        // [THEN] Collection state is unchanged
+        Assert.AreEqual('[{"collectionState":"kept"}]', Json.GetCollectionAsText(), 'Object initialization changed collection state.');
+
+        // [GIVEN] Object state refers to an item in the current collection
+        Assert.IsTrue(Json.GetObjectFromCollectionByIndex(0, SelectedObjectText), 'The collection object was not selected.');
+
+        // [WHEN] Collection state is initialized again
+        Json.InitializeCollection('[{"collectionState":"replacement"}]');
+
+        // [THEN] The previously selected object remains valid and independent of the new collection
+        Assert.AreEqual('{"collectionState":"kept"}', Json.GetObjectAsText(), 'Collection reinitialization changed the selected object state.');
+        Assert.AreEqual('[{"collectionState":"replacement"}]', Json.GetCollectionAsText(), 'Collection reinitialization produced unexpected state.');
+    end;
+
+    [Test]
+    procedure TestInvalidCollectionIndexesAreSafe()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+    begin
+        // [GIVEN] A collection with one object
+        Json.InitializeCollection('[{"id":"one"}]');
+        JsonObjectText := 'unchanged';
+
+        // [WHEN] Negative and out-of-range indexes are used
+        // [THEN] Operations fail without changing collection state or the output parameter
+        Assert.IsFalse(Json.GetObjectFromCollectionByIndex(-1, JsonObjectText), 'A negative index was accepted.');
+        Assert.AreEqual('unchanged', JsonObjectText, 'A failed selection changed the output value.');
+        Assert.IsFalse(Json.GetObjectFromCollectionByIndex(1, JsonObjectText), 'An out-of-range index was accepted.');
+        Assert.IsFalse(Json.RemoveJObjectFromCollection(-1), 'A negative remove index was accepted.');
+        Assert.IsFalse(Json.RemoveJObjectFromCollection(1), 'An out-of-range remove index was accepted.');
+        Assert.IsFalse(Json.ReplaceJObjectInCollection(-1, '{"id":"replacement"}'), 'A negative replace index was accepted.');
+        Assert.IsFalse(Json.ReplaceJObjectInCollection(1, '{"id":"replacement"}'), 'An out-of-range replace index was accepted.');
+        Assert.AreEqual('[{"id":"one"}]', Json.GetCollectionAsText(), 'An invalid index changed collection state.');
+    end;
+
+    [Test]
+    procedure TestSelectedCollectionObjectMutatesCollectionState()
+    var
+        Json: Codeunit "Json";
+        SelectedObjectText: Text;
+    begin
+        // [GIVEN] The first collection object is selected
+        Json.InitializeCollection('[{"id":"one"},{"id":"two"}]');
+        Assert.IsTrue(Json.GetObjectFromCollectionByIndex(0, SelectedObjectText), 'The collection object was not selected.');
+
+        // [WHEN] Object state is changed
+        Json.ReplaceOrAddJPropertyInJObject('selected', true);
+
+        // [THEN] Object state still refers to the selected collection item
+        Assert.AreEqual('[{"id":"one","selected":true},{"id":"two"}]', Json.GetCollectionAsText(), 'Selected object mutation was not reflected in collection state.');
+    end;
+
+    [Test]
+    procedure TestSelectedCollectionObjectReplacementPreservesOrder()
+    var
+        Json: Codeunit "Json";
+        SelectedObjectText: Text;
+    begin
+        Json.InitializeCollection('[{"id":"one","name":"first"},{"id":"two"}]');
+        Assert.IsTrue(Json.GetObjectFromCollectionByIndex(0, SelectedObjectText), 'The collection object was not selected.');
+
+        Json.ReplaceOrAddJPropertyInJObject('id', 'replacement');
+
+        Assert.AreEqual('[{"id":"replacement","name":"first"},{"id":"two"}]', Json.GetCollectionAsText(), 'Selected object replacement changed property order or collection state.');
+    end;
+
+    [Test]
+    procedure TestReplacedCollectionObjectRemainsSelected()
+    var
+        Json: Codeunit "Json";
+    begin
+        // [GIVEN] A collection object is replaced
+        Json.InitializeCollection('[{"id":"one"}]');
+        Assert.IsTrue(Json.ReplaceJObjectInCollection(0, '{"id":"replacement"}'), 'The collection object was not replaced.');
+
+        // [WHEN] Object state is changed after replacement
+        Json.ReplaceOrAddJPropertyInJObject('selected', true);
+
+        // [THEN] Object state refers to the replacement in the collection
+        Assert.AreEqual('[{"id":"replacement","selected":true}]', Json.GetCollectionAsText(), 'Replacement did not remain selected as object state.');
+    end;
+
+    [Test]
+    procedure TestGetCollectionAndObjectReturnDeepClones()
+    var
+        Json: Codeunit "Json";
+        DetachedArray: JsonArray;
+        DetachedObject: JsonObject;
+        NestedObject: JsonObject;
+        JsonToken: JsonToken;
+    begin
+        // [GIVEN] Object and collection states containing nested objects
+        Json.InitializeCollection('[{"nested":{"value":1}}]');
+        Json.InitializeObject('{"nested":{"value":1}}');
+
+        // [WHEN] Nested values in the returned native containers are changed
+        DetachedArray := Json.GetCollection();
+        DetachedArray.Get(0, JsonToken);
+        DetachedObject := JsonToken.AsObject();
+        DetachedObject.Get('nested', JsonToken);
+        NestedObject := JsonToken.AsObject();
+        NestedObject.Replace('value', 2);
+
+        DetachedObject := Json.GetObject();
+        DetachedObject.Get('nested', JsonToken);
+        NestedObject := JsonToken.AsObject();
+        NestedObject.Replace('value', 2);
+
+        // [THEN] Persistent states are detached even for nested values
+        Assert.AreEqual('[{"nested":{"value":1}}]', Json.GetCollectionAsText(), 'GetCollection returned an alias instead of a deep clone.');
+        Assert.AreEqual('{"nested":{"value":1}}', Json.GetObjectAsText(), 'GetObject returned an alias instead of a deep clone.');
+    end;
+
+    [Test]
+    procedure TestAddJObjectToCollectionDeepClonesObjectState()
+    var
+        Json: Codeunit "Json";
+    begin
+        // [GIVEN] An object is added to an empty collection
+        Json.InitializeCollection('');
+        Json.AddJObjectToCollection('{"nested":{"value":1}}');
+
+        // [WHEN] The source object state is changed after the add
+        Json.ReplaceOrAddJPropertyInJObject('sourceOnly', true);
+
+        // [THEN] The collection contains a detached deep clone
+        Assert.AreEqual('[{"nested":{"value":1}}]', Json.GetCollectionAsText(), 'AddJObjectToCollection retained an alias to object state.');
+        Assert.AreEqual('{"nested":{"value":1},"sourceOnly":true}', Json.GetObjectAsText(), 'Object state did not retain the source object.');
+    end;
+
+    [Test]
+    procedure TestVariantPropertyTypes()
+    var
+        Json: Codeunit "Json";
+        ArrayValue: JsonArray;
+        JsonObjectValue: JsonObject;
+        JsonTokenValue: JsonToken;
+        ObjectValue: JsonObject;
+        Value: Variant;
+        BigIntegerValue: BigInteger;
+        BooleanValue: Boolean;
+        DecimalValue: Decimal;
+        IntegerValue: Integer;
+        TextValue: Text;
+    begin
+        // [GIVEN] JSON properties of each native JSON shape
+        Json.InitializeObject('{"text":"value","integer":42,"bigInteger":3000000000,"decimal":12.5,"boolean":true,"null":null,"object":{"id":1},"array":[1,2]}');
+
+        // [WHEN] Scalar values are requested as variants
+        Assert.IsTrue(Json.GetNativePropertyValueByName('text', Value), 'Text property was not found.');
+        Assert.IsTrue(Value.IsText(), 'Text JSON value was not returned as AL Text.');
+        TextValue := Value;
+        Assert.AreEqual('value', TextValue, 'Text variant value is incorrect.');
+
+        Assert.IsTrue(Json.GetNativePropertyValueByName('integer', Value), 'Integer property was not found.');
+        Assert.IsTrue(Value.IsInteger(), 'Integer JSON value was not returned as AL Integer.');
+        IntegerValue := Value;
+        Assert.AreEqual(42, IntegerValue, 'Integer variant value is incorrect.');
+
+        Assert.IsTrue(Json.GetNativePropertyValueByName('bigInteger', Value), 'BigInteger property was not found.');
+        Assert.IsTrue(Value.IsBigInteger(), 'Large integer JSON value was not returned as AL BigInteger.');
+        BigIntegerValue := Value;
+        Assert.AreEqual(3000000000L, BigIntegerValue, 'BigInteger variant value is incorrect.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('bigIntegerCopy', Value), 'BigInteger variant was not added.');
+        JsonObjectValue := Json.GetObject();
+        Assert.IsTrue(JsonObjectValue.Get('bigIntegerCopy', JsonTokenValue), 'BigInteger copy was not found.');
+        Assert.AreEqual(BigIntegerValue, JsonTokenValue.AsValue().AsBigInteger(), 'BigInteger variant was converted to a JSON string.');
+
+        Assert.IsTrue(Json.GetNativePropertyValueByName('decimal', Value), 'Decimal property was not found.');
+        Assert.IsTrue(Value.IsDecimal(), 'Decimal JSON value was not returned as AL Decimal.');
+        DecimalValue := Value;
+        Assert.AreEqual(12.5, DecimalValue, 'Decimal variant value is incorrect.');
+
+        Assert.IsTrue(Json.GetNativePropertyValueByName('boolean', Value), 'Boolean property was not found.');
+        Assert.IsTrue(Value.IsBoolean(), 'Boolean JSON value was not returned as AL Boolean.');
+        BooleanValue := Value;
+        Assert.IsTrue(BooleanValue, 'Boolean variant value is incorrect.');
+
+        // [THEN] Native object and array values are carried directly by Variant
+        Assert.IsTrue(Json.GetNativePropertyValueByName('object', Value), 'Object property was not found.');
+        Assert.IsTrue(Value.IsJsonObject(), 'Object JSON value was not returned as a native JsonObject.');
+        ObjectValue := Value;
+        ObjectValue.WriteTo(TextValue);
+        Assert.AreEqual('{"id":1}', TextValue, 'Object variant value is incorrect.');
+
+        Assert.IsTrue(Json.GetNativePropertyValueByName('array', Value), 'Array property was not found.');
+        Assert.IsTrue(Value.IsJsonArray(), 'Array JSON value was not returned as a native JsonArray.');
+        ArrayValue := Value;
+        ArrayValue.WriteTo(TextValue);
+        Assert.AreEqual('[1,2]', TextValue, 'Array variant value is incorrect.');
+    end;
+
+    [Test]
+    procedure TestNullAndMissingProperties()
+    var
+        Json: Codeunit "Json";
+        Value: Variant;
+        TextValue: Text;
+        IntegerValue: Integer;
+    begin
+        // [GIVEN] An object containing a JSON null
+        Json.InitializeObject('{"null":null}');
+
+        // [WHEN] The null property is requested
+        Value := 'not cleared';
+        Assert.IsTrue(Json.GetNativePropertyValueByName('null', Value), 'An existing null property was reported as missing.');
+
+        // [THEN] JSON null is represented by a cleared Variant
+        Assert.AreEqual('', Format(Value), 'JSON null did not clear the Variant value.');
+        Assert.IsFalse(Value.IsText(), 'JSON null was incorrectly returned as text.');
+
+        // [WHEN] A missing property is requested
+        Value := 'not cleared';
+
+        // [THEN] The call returns false and still clears the output Variant
+        Assert.IsFalse(Json.GetNativePropertyValueByName('missing', Value), 'A missing property was reported as present.');
+        Assert.AreEqual('', Format(Value), 'A missing property did not clear the Variant value.');
+
+        // [THEN] String null is empty, while a typed null is rejected
+        TextValue := 'not cleared';
+        Assert.IsTrue(Json.GetStringPropertyValueByName('null', TextValue), 'String getter did not recognize an existing null property.');
+        Assert.AreEqual('', TextValue, 'String getter did not return an empty value for JSON null.');
+        Assert.IsTrue(Json.GetIntegerPropertyValueFromJObjectByName('null', IntegerValue), 'Typed getter did not recognize an existing null property.');
+        Assert.AreEqual(0, IntegerValue, 'Typed null did not clear the output value.');
+        Assert.IsFalse(Json.GetStringPropertyValueByName('missing', TextValue), 'String getter accepted a missing property.');
+    end;
+
+    [Test]
+    procedure TestAddPropertyPreservesNativeScalarDispatch()
+    var
+        Json: Codeunit "Json";
+        JsonArrayValue: JsonArray;
+        JsonObjectValue: JsonObject;
+        ExpectedDate: Date;
+    begin
+        // [GIVEN] An empty JSON object
+        Json.InitializeObject('');
+        ExpectedDate := DMY2Date(9, 9, 2026);
+        JsonArrayValue.ReadFrom('[1,2]');
+        JsonObjectValue.ReadFrom('{"id":1}');
+
+        // [WHEN] Native JSON containers, scalar values, and another AL value are added
+        Json.ReplaceOrAddJPropertyInJObject('object', JsonObjectValue);
+        Json.ReplaceOrAddJPropertyInJObject('array', JsonArrayValue);
+        Json.ReplaceOrAddJPropertyInJObject('integer', 7);
+        Json.ReplaceOrAddJPropertyInJObject('decimal', 12.5);
+        Json.ReplaceOrAddJPropertyInJObject('boolean', true);
+        Json.ReplaceOrAddJPropertyInJObject('date', ExpectedDate);
+
+        // [THEN] JSON containers and scalar types are preserved, and other AL values use format 9 text
+        Assert.AreEqual('{"object":{"id":1},"array":[1,2],"integer":7,"decimal":12.5,"boolean":true,"date":"2026-09-09"}', Json.GetObjectAsText(), 'Property dispatch produced unexpected JSON types.');
+    end;
+
+    [Test]
+    procedure TestReplaceOrAddReturnValue()
+    var
+        Json: Codeunit "Json";
+    begin
+        // [GIVEN] An object with existing scalar properties
+        Json.InitializeObject('{"text":"same","integer":1}');
+
+        // [THEN] Equal replacements return false
+        Assert.IsFalse(Json.ReplaceOrAddJPropertyInJObject('text', 'same'), 'An equal text replacement was reported as changed.');
+        Assert.IsFalse(Json.ReplaceOrAddJPropertyInJObject('integer', 1), 'An equal integer replacement was reported as changed.');
+
+        // [THEN] Changed replacements and additions return true
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('integer', 2), 'A changed replacement was not reported.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('added', false), 'A new property was not reported.');
+        Assert.AreEqual('{"text":"same","integer":2,"added":false}', Json.GetObjectAsText(), 'Replacement or addition produced unexpected JSON.');
+    end;
+
+    [Test]
+    procedure TestGetValueAndSetToSupportedFieldTypes()
+    var
+        AccessControl: Record "Access Control";
+        DateRecord: Record Date;
+        RecordLink: Record "Record Link";
+        SourcePrinter: Record Printer;
+        TableInformation: Record "Table Information";
+        Json: Codeunit "Json";
+        ExpectedRecordId: RecordId;
+        RecordRef: RecordRef;
+        ExpectedDate: Date;
+        ExpectedGuid: Guid;
+        BlobInStream: InStream;
+        FieldsJsonObject: JsonObject;
+        RootJsonObject: JsonObject;
+        BlobText: Text;
+        JsonText: Text;
+        LongText: Text;
+    begin
+        // [GIVEN] JSON values for every documented field type available on existing records
+        ExpectedDate := DMY2Date(9, 9, 2026);
+        ExpectedGuid := CreateGuid();
+        SourcePrinter.ID := 'JSON-RECORD-ID';
+        ExpectedRecordId := SourcePrinter.RecordId();
+        LongText := PadStr('', 300, 'X');
+
+        FieldsJsonObject.Add('integer', 42);
+        FieldsJsonObject.Add('decimal', 12.5);
+        FieldsJsonObject.Add('date', ExpectedDate);
+        FieldsJsonObject.Add('boolean', true);
+        FieldsJsonObject.Add('guid', Format(ExpectedGuid));
+        FieldsJsonObject.Add('text', LongText);
+        FieldsJsonObject.Add('code', 'lowercase');
+        FieldsJsonObject.Add('option', 1);
+        FieldsJsonObject.Add('blob', 'SGVsbG8=');
+        FieldsJsonObject.Add('recordId', Format(ExpectedRecordId));
+        RootJsonObject.Add('fields', FieldsJsonObject);
+        RootJsonObject.WriteTo(JsonText);
+        Json.InitializeObject(JsonText);
+
+        // [WHEN] Paths are assigned to Integer, Text, Boolean, Option, BLOB, and RecordID fields
+        RecordRef.GetTable(RecordLink);
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.integer', RecordLink.FieldNo("Link ID")), 'Integer path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.text', RecordLink.FieldNo(Description)), 'Text path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.boolean', RecordLink.FieldNo(Notify)), 'Boolean path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.option', RecordLink.FieldNo(Type)), 'Option path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.blob', RecordLink.FieldNo(Note)), 'BLOB path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.recordId', RecordLink.FieldNo("Record ID")), 'RecordID path was not assigned.');
+        RecordRef.SetTable(RecordLink);
+
+        // [THEN] The fields contain converted values, including text truncation and decoded Base64
+        Assert.AreEqual(42, RecordLink."Link ID", 'Integer field value is incorrect.');
+        Assert.AreEqual(250, StrLen(RecordLink.Description), 'Text field value was not truncated to the field length.');
+        Assert.IsTrue(RecordLink.Notify, 'Boolean field value is incorrect.');
+        Assert.AreEqual(RecordLink.Type::Note, RecordLink.Type, 'Option field value is incorrect.');
+        Assert.AreEqual(Format(ExpectedRecordId), Format(RecordLink."Record ID"), 'RecordID field value is incorrect.');
+        RecordLink.Note.CreateInStream(BlobInStream);
+        BlobInStream.ReadText(BlobText);
+        Assert.AreEqual('Hello', BlobText, 'BLOB field value was not decoded from Base64.');
+
+        // [WHEN] The remaining documented field types are assigned on existing platform records
+        RecordRef.GetTable(TableInformation);
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.decimal', TableInformation.FieldNo("Record Size")), 'Decimal path was not assigned.');
+        RecordRef.SetTable(TableInformation);
+
+        RecordRef.GetTable(DateRecord);
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.date', DateRecord.FieldNo("Period Start")), 'Date path was not assigned.');
+        RecordRef.SetTable(DateRecord);
+
+        RecordRef.GetTable(AccessControl);
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.guid', AccessControl.FieldNo("User Security ID")), 'GUID path was not assigned.');
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'fields.code', AccessControl.FieldNo("Role ID")), 'Code path was not assigned.');
+        RecordRef.SetTable(AccessControl);
+
+        // [THEN] Decimal, Date, GUID, and Code conversions are correct
+        Assert.AreEqual(12.5, TableInformation."Record Size", 'Decimal field value is incorrect.');
+        Assert.AreEqual(ExpectedDate, DateRecord."Period Start", 'Date field value is incorrect.');
+        Assert.AreEqual(ExpectedGuid, AccessControl."User Security ID", 'GUID field value is incorrect.');
+        Assert.AreEqual('LOWERCASE', AccessControl."Role ID", 'Code field value is incorrect.');
+    end;
+
+    [Test]
+    procedure TestGetValueAndSetToRecFieldNoHandlesNullAndMissingPaths()
+    var
+        Printer: Record Printer;
+        Json: Codeunit "Json";
+        RecordRef: RecordRef;
+    begin
+        // [GIVEN] A record value and an object with a null property
+        Printer.ID := 'unchanged';
+        RecordRef.GetTable(Printer);
+        Json.InitializeObject('{"nested":{"null":null}}');
+
+        // [THEN] Null clears compatible fields, while a missing path does not change the field
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.null', Printer.FieldNo(ID)), 'A null path did not clear the field.');
+        Assert.IsFalse(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.missing', Printer.FieldNo(ID)), 'A missing path was assigned to a field.');
+        RecordRef.SetTable(Printer);
+        Assert.AreEqual('', Printer.ID, 'A null path did not clear the target field.');
+    end;
+
+    [Test]
+    procedure TestGetValueAndSetToRecFieldNoSelectsArrayPath()
+    var
+        Printer: Record Printer;
+        Json: Codeunit "Json";
+        RecordRef: RecordRef;
+    begin
+        // [GIVEN] A nested array path
+        Json.InitializeObject('{"items":[{"name":"selected"}]}');
+        RecordRef.GetTable(Printer);
+
+        // [WHEN] The array item path is assigned
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'items[0].name', Printer.FieldNo(Name)), 'Array path was not selected.');
+        RecordRef.SetTable(Printer);
+
+        // [THEN] The selected value is assigned
+        Assert.AreEqual('selected', Printer.Name, 'Array path selected an unexpected value.');
+    end;
+
+    [Test]
+    procedure TestGetCollectionAsTextIndentedGoldenOutput()
+    var
+        Json: Codeunit "Json";
+        CRLF: Text[2];
+        ExpectedText: Text;
+    begin
+        // [GIVEN] Nested JSON with empty containers and escaped property/value text
+        Json.InitializeCollection('[{"quoted\"key":"quote\" slash\\ line\r\n","nested":{"emptyObject":{},"emptyArray":[],"values":[1,true,null]}}]');
+        CRLF[1] := 13;
+        CRLF[2] := 10;
+        ExpectedText :=
+            '[' + CRLF +
+            '  {' + CRLF +
+            '    "quoted\"key": "quote\" slash\\ line\r\n",' + CRLF +
+            '    "nested": {' + CRLF +
+            '      "emptyObject": {},' + CRLF +
+            '      "emptyArray": [],' + CRLF +
+            '      "values": [' + CRLF +
+            '        1,' + CRLF +
+            '        true,' + CRLF +
+            '        null' + CRLF +
+            '      ]' + CRLF +
+            '    }' + CRLF +
+            '  }' + CRLF +
+            ']';
+
+        // [WHEN] The collection is formatted with indentation
+        // [THEN] Output exactly matches JsonConvert-compatible indentation and CRLF placement
+        Assert.AreEqual(ExpectedText, Json.GetCollectionAsText(true), 'Indented JSON output does not match the expected golden text.');
     end;
 }
