@@ -8,6 +8,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 using System.Utilities;
 
 page 99000888 "Work Center Load Lines"
@@ -135,13 +136,28 @@ page 99000888 "Work Center Load Lines"
 
     protected var
         WorkCenter: Record "Work Center";
+        CapacityUoM: Code[10];
+        CapacityTimeFactor: Decimal;
 
     procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
+    begin
+        SetLines(NewWorkCenter, NewPeriodType, NewAmountType, '');
+    end;
+
+    procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
+    var
+        CalendarMgt: Codeunit "Shop Calendar Management";
     begin
         WorkCenter.Copy(NewWorkCenter);
         Rec.DeleteAll();
         PeriodType := NewPeriodType;
         AmountType := NewAmountType;
+        CapacityUoM := NewCapUoM;
+
+        CapacityTimeFactor := 1;
+        if (CapacityUoM <> '') and (WorkCenter."Unit of Measure Code" <> '') then
+            CapacityTimeFactor := CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") / CalendarMgt.TimeFactor(CapacityUoM);
+
         CurrPage.Update(false);
 
         OnAfterSetLines(WorkCenter, PeriodType, AmountType);
@@ -159,19 +175,19 @@ page 99000888 "Work Center Load Lines"
     begin
         SetDateFilter();
         WorkCenter.CalcFields("Capacity (Effective)", "Prod. Order Need (Qty.)");
-        Rec.Capacity := WorkCenter."Capacity (Effective)";
-        Rec."Allocated Qty." := WorkCenter."Prod. Order Need (Qty.)";
-        Rec."Availability After Orders" := WorkCenter."Capacity (Effective)" - WorkCenter."Prod. Order Need (Qty.)";
+        Rec.Capacity := WorkCenter."Capacity (Effective)" * CapacityTimeFactor;
+        Rec."Allocated Qty." := WorkCenter."Prod. Order Need (Qty.)" * CapacityTimeFactor;
+        Rec."Availability After Orders" := Rec.Capacity - Rec."Allocated Qty.";
         if WorkCenter."Capacity (Effective)" <> 0 then
             Rec.Load := Round(WorkCenter."Prod. Order Need (Qty.)" / WorkCenter."Capacity (Effective)" * 100, 0.1)
         else
             Rec.Load := 0;
 
-        OnAfterCalcLine(WorkCenter, Rec);
+        OnAfterCalcLine(WorkCenter, Rec, CapacityUoM);
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcLine(var WorkCenter: Record "Work Center"; var LoadBuffer: Record "Load Buffer")
+    local procedure OnAfterCalcLine(var WorkCenter: Record "Work Center"; var LoadBuffer: Record "Load Buffer"; CapacityUoM: Code[10])
     begin
     end;
 

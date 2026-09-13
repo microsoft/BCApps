@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.WorkCenter;
 
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+using Microsoft.Manufacturing.Setup;
 using System.Utilities;
 
 page 9291 "Work Center Calendar Matrix"
@@ -585,12 +586,18 @@ page 9291 "Work Center Calendar Matrix"
 
     trigger OnAfterGetRecord()
     var
+        CalendarMgt: Codeunit "Shop Calendar Management";
         MATRIX_CurrentColumnOrdinal: Integer;
+        CapacityTimeFactor: Decimal;
     begin
+        CapacityTimeFactor := 1;
+        if (CapacityUoM <> '') and (Rec."Unit of Measure Code" <> '') then
+            CapacityTimeFactor := CalendarMgt.TimeFactor(Rec."Unit of Measure Code") / CalendarMgt.TimeFactor(CapacityUoM);
+
         MATRIX_CurrentColumnOrdinal := 0;
         while MATRIX_CurrentColumnOrdinal < MATRIX_CurrentNoOfMatrixColumn do begin
             MATRIX_CurrentColumnOrdinal := MATRIX_CurrentColumnOrdinal + 1;
-            MATRIX_OnAfterGetRecord(MATRIX_CurrentColumnOrdinal);
+            MATRIX_OnAfterGetRecord(MATRIX_CurrentColumnOrdinal, CapacityTimeFactor);
         end;
     end;
 
@@ -604,6 +611,7 @@ page 9291 "Work Center Calendar Matrix"
         MATRIX_CurrentNoOfMatrixColumn: Integer;
         MATRIX_CellData: array[32] of Decimal;
         MATRIX_CaptionSet: array[32] of Text[80];
+        CapacityUoM: Code[10];
 
     local procedure SetDateFilter(MATRIX_ColumnOrdinal: Integer)
     begin
@@ -615,9 +623,15 @@ page 9291 "Work Center Calendar Matrix"
 
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer)
     begin
+        Load(MatrixColumns1, MatrixRecords1, CurrentNoOfMatrixColumns, '');
+    end;
+
+    procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer; SetCapacityUoM: Code[10])
+    begin
         CopyArray(MATRIX_CaptionSet, MatrixColumns1, 1);
         CopyArray(MatrixRecords, MatrixRecords1, 1);
         MATRIX_CurrentNoOfMatrixColumn := CurrentNoOfMatrixColumns;
+        CapacityUoM := SetCapacityUoM;
     end;
 
     local procedure MATRIX_OnDrillDown(MATRIX_ColumnOrdinal: Integer)
@@ -636,11 +650,11 @@ page 9291 "Work Center Calendar Matrix"
         PAGE.RunModal(PAGE::"Calendar Entries", CalendarEntry);
     end;
 
-    local procedure MATRIX_OnAfterGetRecord(MATRIX_ColumnOrdinal: Integer)
+    local procedure MATRIX_OnAfterGetRecord(MATRIX_ColumnOrdinal: Integer; CapacityTimeFactor: Decimal)
     begin
         SetDateFilter(MATRIX_ColumnOrdinal);
         Rec.CalcFields("Capacity (Effective)");
-        MATRIX_CellData[MATRIX_ColumnOrdinal] := Rec."Capacity (Effective)";
+        MATRIX_CellData[MATRIX_ColumnOrdinal] := Rec."Capacity (Effective)" * CapacityTimeFactor;
     end;
 }
 
