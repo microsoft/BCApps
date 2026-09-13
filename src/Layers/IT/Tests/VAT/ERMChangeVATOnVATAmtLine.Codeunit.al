@@ -2,6 +2,7 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -22,6 +23,7 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInventory: Codeunit "Library - Inventory";
         IsInitialized: Boolean;
+        RoundingResidual: Decimal;
         ErrorWithCurrency: Label '%1 for %2 must not exceed %3 = %4.', Comment = '%1=Field Caption;%2=Field Value;%3=Field Caption;%4=Field Value;';
         ErrorWithoutCurrency: Label '%1 must not exceed %2 = %3.', Comment = '%1=Field Caption;%2=Field Caption;%3=Field Value;';
         DefaultVATAmountLineTxt: Label 'VAT Amount';
@@ -378,6 +380,91 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ServiceCalcVATAmountLinesCountsVATDifferenceOnce()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ItemServiceLine: Record "Service Line";
+        VATAmountLine: Record "VAT Amount Line";
+        RoundingVATIdentifier: Code[20];
+        VATDifference: Decimal;
+        QtyType: Option General,Invoicing,Shipping,Consuming;
+    begin
+        // [FEATURE] [Statistics] [Service] [VAT Difference] [Invoice Rounding]
+        // [SCENARIO 9102] A manual VAT Difference on a Service document is counted once when CalcVATAmountLines
+        // settles the rounding residual on the invoice rounding line.
+
+        // [GIVEN] Invoice Rounding and Allow VAT Difference are enabled.
+        Initialize();
+        LibrarySales.SetInvoiceRounding(true);
+        VATDifference := EnableVATDiffAmount(true);
+
+        // [GIVEN] Service Invoice with an Item line (VAT 10%) and an Invoice Rounding G/L Account line (VAT 0%) on its own VAT Identifier.
+        CreateServiceInvoiceWithInvoiceRoundingLine(ServiceHeader, ItemServiceLine, RoundingVATIdentifier);
+
+        // [GIVEN] The VAT Amount of the Item line was raised by the VAT Difference in Service Statistics.
+        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine, false);
+        ChangeVATAmountOnServiceDocument(ServiceHeader, ServiceLine, VATAmountLine, ItemServiceLine."VAT Identifier", VATDifference);
+
+        // [WHEN] The VAT Amount Lines are recalculated, as on refreshing Service Statistics.
+        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine, false);
+
+        // [THEN] The VAT Amount Lines carry the VAT of the Service Lines, with the VAT Difference counted once.
+        VATAmountLine.Reset();
+        Assert.AreEqual(
+          CalcServiceLinesVATAmount(ServiceHeader), VATAmountLine.GetTotalVATAmount(), 'Total VAT Amount must equal the VAT of the Service Lines.');
+
+        // [THEN] The 0% invoice rounding VAT Amount Line did not absorb the VAT Difference as a rounding residual.
+        VATAmountLine.SetRange("VAT Identifier", RoundingVATIdentifier);
+        VATAmountLine.FindFirst();
+        Assert.AreEqual(0, VATAmountLine."VAT Amount", 'The invoice rounding VAT Amount Line must not receive the VAT Difference.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ServiceCalcVATAmountLinesReturnsAllLinesAfterRoundingResidual()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ItemServiceLine: Record "Service Line";
+        VATAmountLine: Record "VAT Amount Line";
+        ERMChangeVATOnVATAmtLine: Codeunit "ERM Change VAT On VAT Amt Line";
+        RoundingVATIdentifier: Code[20];
+        Residual: Decimal;
+        QtyType: Option General,Invoicing,Shipping,Consuming;
+    begin
+        // [FEATURE] [Statistics] [Service] [Invoice Rounding]
+        // [SCENARIO 9102] After CalcVATAmountLines settles a rounding residual on the invoice rounding line,
+        // the caller sees all VAT Amount Lines and not only the line that received the residual.
+
+        // [GIVEN] Invoice Rounding is enabled.
+        Initialize();
+        LibrarySales.SetInvoiceRounding(true);
+
+        // [GIVEN] Service Invoice with an Item line and an Invoice Rounding G/L Account line on different VAT Identifiers, so two VAT Amount Lines.
+        CreateServiceInvoiceWithInvoiceRoundingLine(ServiceHeader, ItemServiceLine, RoundingVATIdentifier);
+
+        // [GIVEN] A rounding residual is left after the VAT Amount Lines are updated. It is injected through
+        // OnCalcVATAmountLinesOnBeforeUpdateVATAmountLine so the test does not depend on the rounding arithmetic of a localization.
+        Residual := LibraryRandom.RandDec(1, 2);
+        ERMChangeVATOnVATAmtLine.SetRoundingResidual(Residual);
+        BindSubscription(ERMChangeVATOnVATAmtLine);
+
+        // [WHEN] CalcVATAmountLines is called.
+        ServiceLine.CalcVATAmountLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine, false);
+        UnbindSubscription(ERMChangeVATOnVATAmtLine);
+
+        // [THEN] Both VAT Amount Lines are visible on the record handed back to the caller.
+        Assert.AreEqual(2, VATAmountLine.Count(), 'All VAT Amount Lines must be visible after CalcVATAmountLines.');
+
+        // [THEN] The residual was settled on a VAT Amount Line.
+        VATAmountLine.Reset();
+        Assert.AreEqual(
+          CalcServiceLinesVATAmount(ServiceHeader) + Residual, VATAmountLine.GetTotalVATAmount(), 'The rounding residual must be settled on a VAT Amount Line.');
+    end;
+
+    [Test]
     [HandlerFunctions('ServiceStatisticsHandler2')]
     [Scope('OnPrem')]
     procedure VATAmountLineVATdifferenceUpdatedWhenTwoVATLines()
@@ -644,6 +731,76 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
           ServiceLine, ServiceHeader, ServiceLine.Type::Item, CreateItem(), LibraryRandom.RandInt(10));
     end;
 
+    procedure SetRoundingResidual(NewRoundingResidual: Decimal)
+    begin
+        RoundingResidual := NewRoundingResidual;
+    end;
+
+    local procedure CreateServiceInvoiceWithInvoiceRoundingLine(var ServiceHeader: Record "Service Header"; var ItemServiceLine: Record "Service Line"; var RoundingVATIdentifier: Code[20])
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLAccount: Record "G/L Account";
+        Item: Record Item;
+        RoundingServiceLine: Record "Service Line";
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+    begin
+        Customer.Get(CreateCustomer());
+        CreateVATPostingSetup(VATPostingSetup, Customer."VAT Bus. Posting Group");
+
+        // The invoice rounding account carries 0% VAT on its own VAT Identifier, so its VAT Amount Line can only hold a rounding residual.
+        VATPostingSetup[2].Validate("VAT %", 0);
+        VATPostingSetup[2].Modify(true);
+        RoundingVATIdentifier := VATPostingSetup[2]."VAT Identifier";
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        CustomerPostingGroup.Validate(
+          "Invoice Rounding Account", LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup[2], GLAccount."Gen. Posting Type"::Sale));
+        CustomerPostingGroup.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
+        Item.Validate("Unit Price", 100 + LibraryRandom.RandInt(100));
+        Item.Modify(true);
+
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
+        LibraryService.CreateServiceLineWithQuantity(ItemServiceLine, ServiceHeader, ItemServiceLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        LibraryService.CreateServiceLineWithQuantity(
+          RoundingServiceLine, ServiceHeader, RoundingServiceLine.Type::"G/L Account", CustomerPostingGroup."Invoice Rounding Account", 1);
+        RoundingServiceLine.Validate("Unit Price", LibraryRandom.RandDec(1, 2));
+        RoundingServiceLine.Modify(true);
+    end;
+
+    local procedure ChangeVATAmountOnServiceDocument(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var VATAmountLine: Record "VAT Amount Line"; VATIdentifier: Code[20]; VATDifference: Decimal)
+    var
+        QtyType: Option General,Invoicing,Shipping;
+    begin
+        // Mirrors editing "VAT Amount" on the VAT Specification Subform and closing Service Statistics.
+        VATAmountLine.ModifyAll(Modified, false);
+        VATAmountLine.SetRange("VAT Identifier", VATIdentifier);
+        VATAmountLine.FindFirst();
+        VATAmountLine.Validate("VAT Amount", VATAmountLine."VAT Amount" + VATDifference);
+        VATAmountLine."Amount Including VAT" := VATAmountLine."VAT Amount" + VATAmountLine."VAT Base";
+        VATAmountLine.Modified := true;
+        VATAmountLine.Modify();
+        VATAmountLine.Reset();
+
+        ServiceLine.UpdateVATOnLines(QtyType::General, ServiceHeader, ServiceLine, VATAmountLine);
+        ServiceLine.UpdateVATOnLines(QtyType::Invoicing, ServiceHeader, ServiceLine, VATAmountLine);
+        ServiceLine.Reset();
+    end;
+
+    local procedure CalcServiceLinesVATAmount(ServiceHeader: Record "Service Header") VATAmount: Decimal
+    var
+        ServiceLine: Record "Service Line";
+    begin
+        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLine.FindSet();
+        repeat
+            VATAmount += ServiceLine."Amount Including VAT" - ServiceLine.Amount;
+        until ServiceLine.Next() = 0;
+    end;
+
     local procedure UpdateVATAmount(var VATAmountLine: Record "VAT Amount Line"; NewVATAmount: Decimal; Positive: Boolean)
     begin
         // Update VAT Amount on VAT Amount Line.
@@ -824,5 +981,10 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         VATAmountAfter := ServiceStatistics.SubForm."VAT Amount".AsDecimal();
         Assert.AreEqual(VATDiff, VATAmountAfter - VATAmountBefore, VATDiffErr);
     end;
-}
 
+    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnCalcVATAmountLinesOnBeforeUpdateVATAmountLine', '', false, false)]
+    local procedure SetRoundingResidualOnCalcVATAmountLinesOnBeforeUpdateVATAmountLine(var ServiceLine: Record "Service Line"; var VATAmountLine: Record "VAT Amount Line"; var TotalVATAmount: Decimal; Currency: Record Currency; var RoundingLineInserted: Boolean)
+    begin
+        TotalVATAmount := RoundingResidual;
+    end;
+}
