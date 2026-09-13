@@ -147,6 +147,9 @@ function Test-ApplicationTestTypes {
     - DuplicateObjects: An array of object signatures that are found to be duplicates across the scanned files.
     .PARAMETER SourceCodePaths
     An array of paths to the source code directories to be scanned for AL files.
+    .PARAMETER ObjectTypePattern
+    A regular expression alternation of the AL object types to recognize. Defaults to the primary six
+    ID-bearing types so that existing callers (the duplicate and test object checks) are unaffected.
     .OUTPUTS
     A custom object with the following properties:
     - ObjectSignatures: A hash map of unique object signatures and their names.
@@ -155,9 +158,11 @@ function Test-ApplicationTestTypes {
 #>
 function Get-FilesCollection
 (
-    [string[]] $SourceCodePaths
+    [string[]] $SourceCodePaths,
+    [string] $ObjectTypePattern = 'codeunit|page|table|query|report|xmlport'
 ) {
     $SourceFiles = @{}
+    $ObjectDetails = @{}
     $TestObjectSignatures = @()
     $DuplicateObjectSignatures = @()
 
@@ -168,7 +173,7 @@ function Get-FilesCollection
         }
         $filesInPath = Get-ChildItem -Path $Path -File -Recurse -Filter '*.al'
         foreach ($file in $filesInPath) {
-            $objectInfo = GetALObjectInformation -FilePath $file.FullName
+            $objectInfo = GetALObjectInformation -FilePath $file.FullName -ObjectTypePattern $ObjectTypePattern
             if ($null -eq $objectInfo) {
                 continue
             }
@@ -178,6 +183,13 @@ function Get-FilesCollection
                     $TestObjectSignatures += $objectInfo.Signature
                 }
                 $SourceFiles.Add($objectInfo.Signature, $objectInfo.ObjectName)
+                $ObjectDetails.Add($objectInfo.Signature, [PSCustomObject] @{
+                        ObjectType = $objectInfo.ObjectType
+                        ObjectId   = $objectInfo.ObjectId
+                        ObjectName = $objectInfo.ObjectName
+                        Signature  = $objectInfo.Signature
+                        Path       = $file.FullName
+                    })
             }
             else {
                 $DuplicateObjectSignatures += $objectInfo.Signature
@@ -188,6 +200,7 @@ function Get-FilesCollection
 
     return [PSCustomObject] @{
         ObjectSignatures = $SourceFiles
+        ObjectDetails    = $ObjectDetails
         TestObjects      = $TestObjectSignatures
         DuplicateObjects = $DuplicateObjectSignatures
     }
@@ -195,12 +208,13 @@ function Get-FilesCollection
 
 function GetALObjectInformation
 (
-    [string] $FilePath
+    [string] $FilePath,
+    [string] $ObjectTypePattern = 'codeunit|page|table|query|report|xmlport'
 ) {
     # (?<!\/\/.*) - negative lookbehind to exclude the comments on top of the file containing object signatures, for example:
     # // These tests rely on codeunit 138704 "Reten. Pol. Test Installer"
     #codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
-    $RegexPattern = '(?<!\/\/.*)(codeunit|page|table|query|report|xmlport) (\d+) (.*)'
+    $RegexPattern = "(?<!\/\/.*)($ObjectTypePattern) (\d+) (.*)"
     $MatchedString = Select-String -Path $FilePath -List -Pattern $RegexPattern
 
     if ($null -eq $MatchedString) {
@@ -323,8 +337,223 @@ function GetObjectId
     return $ObjectId -as [int]
 }
 
+<#
+    .SYNOPSIS
+    Determines whether an object ID falls within any of the provided allowed ranges.
+    .DESCRIPTION
+    Returns $true if the given numeric object ID is contained (inclusively) in at least one of the
+    allowed ranges, otherwise $false.
+    .PARAMETER ObjectId
+    The numeric object ID to validate.
+    .PARAMETER AllowedRanges
+    An array of range objects, each exposing integer 'From' and 'To' properties (inclusive bounds).
+#>
+function Test-IsObjectIdInAllowedRange {
+    param(
+        [Parameter(Mandatory = $true)] [int64] $ObjectId,
+        [Parameter(Mandatory = $true)] [object[]] $AllowedRanges
+    )
+
+    foreach ($range in $AllowedRanges) {
+        if (($ObjectId -ge [int64]$range.From) -and ($ObjectId -le [int64]$range.To)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+<#
+    .SYNOPSIS
+    Returns the test application folders configured by AL-Go and the build metadata.
+    .DESCRIPTION
+    Reads every build project settings.json and resolves its testFolders entries to absolute paths. It also
+    includes projects marked isTest in projects.json, which covers test utilities listed as AL-Go appFolders.
+    A trailing wildcard is treated as the containing test folder because every application below it is a test app.
+    .PARAMETER ProjectsPath
+    The directory containing the AL-Go build projects.
+    .PARAMETER ProjectsJsonPath
+    The build projects.json file containing canonical isTest metadata.
+    .PARAMETER RepositoryRoot
+    The standalone BCApps repository root used to remap build-system paths.
+#>
+function Get-ALGoTestFolders {
+    param(
+        [Parameter(Mandatory = $true)] [string] $ProjectsPath,
+        [string] $ProjectsJsonPath,
+        [string] $RepositoryRoot
+    )
+
+    $testFolders = @()
+    $settingsFiles = Get-ChildItem -Path $ProjectsPath -File -Recurse -Filter 'settings.json' |
+        Where-Object { $_.Directory.Name -eq '.AL-Go' }
+    foreach ($settingsFile in $settingsFiles) {
+        $settings = Get-Content -Path $settingsFile.FullName -Raw | ConvertFrom-Json
+        foreach ($testFolder in @($settings.testFolders)) {
+            $testFolderWithoutWildcard = $testFolder -replace '[\\/]\*$', ''
+            $projectFolder = $settingsFile.Directory.Parent.FullName
+            $testFolders += [System.IO.Path]::GetFullPath((Join-Path -Path $projectFolder -ChildPath $testFolderWithoutWildcard))
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($ProjectsJsonPath)) {
+        if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) {
+            throw 'RepositoryRoot is required when ProjectsJsonPath is provided.'
+        }
+
+        $projects = (Get-Content -LiteralPath $ProjectsJsonPath -Raw | ConvertFrom-Json).projects
+        foreach ($project in $projects.PSObject.Properties) {
+            if ($project.Value.isTest -ne $true) {
+                continue
+            }
+
+            foreach ($buildPath in @($project.Value.appJsonPath, $project.Value.projectPath)) {
+                if ([string]::IsNullOrWhiteSpace($buildPath)) {
+                    continue
+                }
+
+                $normalizedBuildPath = $buildPath -replace '/', '\'
+                $relativePath = $null
+                $bcAppsPrefix = '$env:INETROOT\App\BCApps\'
+                $appsPrefix = '$env:INETROOT\App\Apps\'
+                $layersPrefix = '$env:INETROOT\App\Layers\'
+                if ($normalizedBuildPath.StartsWith($bcAppsPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativePath = $normalizedBuildPath.Substring($bcAppsPrefix.Length)
+                }
+                elseif ($normalizedBuildPath.StartsWith($appsPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativePath = Join-Path 'src\Apps' $normalizedBuildPath.Substring($appsPrefix.Length)
+                }
+                elseif ($normalizedBuildPath.StartsWith($layersPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+                    $relativePath = Join-Path 'src\Layers' $normalizedBuildPath.Substring($layersPrefix.Length)
+                }
+
+                if ([string]::IsNullOrWhiteSpace($relativePath)) {
+                    continue
+                }
+
+                $candidatePath = Join-Path $RepositoryRoot ($relativePath -replace '\$CountryCode', '*')
+                foreach ($resolvedPath in @(Get-Item -Path $candidatePath -ErrorAction SilentlyContinue)) {
+                    if (-not $resolvedPath.PSIsContainer) {
+                        $resolvedPath = $resolvedPath.Directory
+                    }
+                    $testFolders += $resolvedPath.FullName
+                }
+            }
+        }
+    }
+
+    return @($testFolders | Sort-Object -Unique)
+}
+
+function Test-IsPathUnderAnyFolder {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Path,
+        [Parameter(Mandatory = $true)] [string[]] $Folders
+    )
+
+    $fullPath = [System.IO.Path]::GetFullPath($Path)
+    foreach ($folder in $Folders) {
+        $folderPrefix = [System.IO.Path]::GetFullPath($folder).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+        if ($fullPath.StartsWith($folderPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Test-IsFileInTestApplication {
+    param(
+        [Parameter(Mandatory = $true)] [string] $FilePath,
+        [Parameter(Mandatory = $true)] [string[]] $TestFolderPaths
+    )
+
+    if (Test-IsPathUnderAnyFolder -Path $FilePath -Folders $TestFolderPaths) {
+        return $true
+    }
+    if (IsTestObject -FilePath $FilePath) {
+        return $true
+    }
+
+    $directory = [System.IO.DirectoryInfo](Split-Path -Path $FilePath -Parent)
+    while ($null -ne $directory) {
+        $manifestPath = Join-Path -Path $directory.FullName -ChildPath 'app.json'
+        if (Test-Path -LiteralPath $manifestPath -PathType Leaf) {
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+            return $manifest.name -match '(?i)\btests?\b|\btest[\s-]*librar(?:y|ies)\b|\btest[\s-]*toolkit\b'
+        }
+        $directory = $directory.Parent
+    }
+
+    return $false
+}
+
+<#
+    .SYNOPSIS
+    Tests object IDs declared in newly added production AL files.
+    .DESCRIPTION
+    Validates only files supplied by the caller that are under an allowed source root and not under an AL-Go
+    test folder. This avoids scanning existing objects and correctly excludes non-codeunit objects in test apps.
+    .PARAMETER FilePaths
+    Absolute paths to files added by the current change.
+    .PARAMETER SourceCodePaths
+    Source roots in which production AL files are eligible for validation.
+    .PARAMETER TestFolderPaths
+    AL-Go test application folders that must not be checked against production ranges.
+    .PARAMETER AllowedRanges
+    An array of range objects, each exposing integer 'From' and 'To' properties (inclusive bounds).
+    .PARAMETER ObjectTypePattern
+    A regular expression alternation of the AL object types to recognize.
+#>
+function Test-ObjectIDsInAddedALFilesAreInAllowedRange {
+    param(
+        [Parameter(Mandatory = $true)] [string[]] $FilePaths,
+        [Parameter(Mandatory = $true)] [string[]] $SourceCodePaths,
+        [Parameter(Mandatory = $true)] [string[]] $TestFolderPaths,
+        [Parameter(Mandatory = $true)] [object[]] $AllowedRanges,
+        [string] $ObjectTypePattern = 'tableextension|pageextension|reportextension|enumextension|permissionsetextension|permissionset|codeunit|page|table|report|xmlport|query|enum'
+    )
+
+    $offendingObjects = @()
+    foreach ($filePath in $FilePaths) {
+        if ([System.IO.Path]::GetExtension($filePath) -ne '.al') {
+            continue
+        }
+        if (-not (Test-IsPathUnderAnyFolder -Path $filePath -Folders $SourceCodePaths)) {
+            continue
+        }
+        if (Test-IsFileInTestApplication -FilePath $filePath -TestFolderPaths $TestFolderPaths) {
+            continue
+        }
+        if (-not (Test-Path -LiteralPath $filePath -PathType Leaf)) {
+            throw "Added AL file '$filePath' does not exist."
+        }
+
+        $objectInfo = GetALObjectInformation -FilePath $filePath -ObjectTypePattern $ObjectTypePattern
+        if (($null -ne $objectInfo) -and (-not (Test-IsObjectIdInAllowedRange -ObjectId ([int64]$objectInfo.ObjectId) -AllowedRanges $AllowedRanges))) {
+            $offendingObjects += [PSCustomObject]@{
+                ObjectType = $objectInfo.ObjectType
+                ObjectId   = $objectInfo.ObjectId
+                ObjectName = $objectInfo.ObjectName
+                Path       = $filePath
+            }
+        }
+    }
+
+    if ($offendingObjects.Count -gt 0) {
+        $rangeText = (($AllowedRanges | ForEach-Object { "$($_.From)..$($_.To)" }) -join ', ')
+        foreach ($offendingObject in ($offendingObjects | Sort-Object { [int64]$_.ObjectId })) {
+            Write-Host "##[error]Object '$($offendingObject.ObjectType) $($offendingObject.ObjectId) $($offendingObject.ObjectName)' in newly added file '$($offendingObject.Path)' has an ID outside the allowed range(s): $rangeText"
+        }
+        throw "Object ID validation failed. $($offendingObjects.Count) object(s) in newly added AL file(s) have IDs outside the allowed range(s) ($rangeText)."
+    }
+}
+
 Export-ModuleMember -Function Test-ObjectIDsAreValid
 Export-ModuleMember -Function Test-ApplicationIds
 Export-ModuleMember -Function Test-ApplicationTestTypes
 Export-ModuleMember -Function Test-ApplicationManifests
 Export-ModuleMember -Function Get-FilesCollection
+Export-ModuleMember -Function Test-IsObjectIdInAllowedRange
+Export-ModuleMember -Function Get-ALGoTestFolders
+Export-ModuleMember -Function Test-ObjectIDsInAddedALFilesAreInAllowedRange
