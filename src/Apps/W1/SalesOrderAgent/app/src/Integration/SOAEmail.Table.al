@@ -73,6 +73,9 @@ table 4585 "SOA Email"
         key(Key2; "Agent User Security ID", Processed)
         {
         }
+        key(Key3; "Task ID", "Task Message ID")
+        {
+        }
     }
 
     internal procedure SetAgentMessageFields(var AgentTaskMessage: Record "Agent Task Message")
