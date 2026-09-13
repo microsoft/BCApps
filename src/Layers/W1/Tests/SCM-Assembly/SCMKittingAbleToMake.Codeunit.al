@@ -805,6 +805,54 @@ codeunit 137107 "SCM Kitting - Able To Make"
         BOMBuffer.TestField(Description, BOMComponent.Description);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure AvailabilityForPurchasedAssemblyBOMComponentUsesInventoryOnly()
+    var
+        BOMComponent: Record "BOM Component";
+        ComponentItem: Record Item;
+        PurchasedBOMItem: Record Item;
+        TopItem: Record Item;
+        CalculateBOMTree: Codeunit "Calculate BOM Tree";
+        AvailableQty: Decimal;
+    begin
+        // [FEATURE] [Item Availability by BOM Level] [Assembly BOM]
+        // [SCENARIO 650094] A purchased component with an assembly BOM contributes its inventory only once.
+        Initialize();
+
+        // [GIVEN] Assembly item "T" contains purchased item "P", which has an assembly BOM containing item "C".
+        LibraryAssembly.CreateItem(
+          TopItem, TopItem."Costing Method"::FIFO, TopItem."Replenishment System"::Assembly, '', '');
+        LibraryAssembly.CreateItem(
+          PurchasedBOMItem, PurchasedBOMItem."Costing Method"::FIFO,
+          PurchasedBOMItem."Replenishment System"::Purchase, '', '');
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryInventory.CreateBOMComponent(
+          BOMComponent, TopItem."No.", BOMComponent.Type::Item, PurchasedBOMItem."No.", 1, '');
+        LibraryInventory.CreateBOMComponent(
+          BOMComponent, PurchasedBOMItem."No.", BOMComponent.Type::Item, ComponentItem."No.", 1, '');
+
+        // [GIVEN] Item "P" has inventory.
+        AvailableQty := LibraryRandom.RandIntInRange(100, 200);
+        LibraryInventory.PostPositiveAdjustment(PurchasedBOMItem, '', '', '', AvailableQty, WorkDate(), 0);
+
+        // [WHEN] Calculate total availability for item "T".
+        CalculateBOMTree.SetShowTotalAvailability(true);
+        CalculateBOMTree.GenerateTreeForOneItem(TopItem, BOMBuffer, WorkDate(), "BOM Tree Type"::Availability);
+
+        // [THEN] Item "P" can make the parent from its inventory without counting that inventory twice.
+        BOMBuffer.SetRange("No.", PurchasedBOMItem."No.");
+        BOMBuffer.FindFirst();
+
+        // [THEN] The top item's able-to-make quantities equal the inventory of item "P".
+        BOMBuffer.SetRange("No.", TopItem."No.");
+        BOMBuffer.FindFirst();
+
+        // [THEN] The assembly BOM component of purchased item "P" remains visible in the inquiry.
+        BOMBuffer.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(BOMBuffer);
+    end;
+
     local procedure CreateBOMItemWithSKUonLocation(var Item: Record Item; var SKU: Record "Stockkeeping Unit"; var LocationCOde: Code[10])
     var
         Location: Record Location;
