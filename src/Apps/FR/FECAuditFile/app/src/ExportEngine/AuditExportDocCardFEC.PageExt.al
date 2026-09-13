@@ -38,87 +38,38 @@ pageextension 10826 "Audit Export Doc. Card FEC" extends "Audit File Export Doc.
                 }
             }
         }
-
-        modify(GLAccountMappingCode)
+        modify(AuditFileExportFormat)
         {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify("Header Comment")
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(Contact)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(ZipFileGeneration)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(SplitByMonth)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(SplitByDate)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(CreateMultipleZipFiles)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(LatestDataCheckDateTime)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-        modify(DataCheckStatus)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
-        }
-    }
-    actions
-    {
-        modify(DataCheck)
-        {
-            Enabled = not FECFormat;
-            Visible = not FECFormat;
+            trigger OnAfterValidate()
+            begin
+                UpdateFECFormat();
+                CurrPage.Update();
+            end;
         }
     }
 
     var
         FECFormat: Boolean;
 
-    trigger OnOpenPage()
-    begin
-        FECFormat := IsFECFormat();
-    end;
-
     trigger OnAfterGetCurrRecord()
     begin
-        FECFormat := IsFECFormat();
+        UpdateFECFormat();
     end;
 
-    local procedure IsFECFormat(): Boolean
+    local procedure UpdateFECFormat()
     var
         AuditFileExportSetup: Record "Audit File Export Setup";
         AuditFileExportFormat: enum "Audit File Export Format";
-        IsFECFormatSelected: Boolean;
     begin
         AuditFileExportFormat := Rec."Audit File Export Format";
-        if AuditFileExportFormat = 0 then begin     // if not initialized yet
+        if AuditFileExportFormat.AsInteger() = 0 then begin     // if not initialized yet
             AuditFileExportSetup.Get();
             AuditFileExportFormat := AuditFileExportSetup."Audit File Export Format";
         end;
-        IsFECFormatSelected := AuditFileExportFormat = AuditFileExportFormat::FEC;
-        exit(IsFECFormatSelected);
+        if Rec."Audit File Export Format" <> AuditFileExportFormat then begin
+            Rec."Audit File Export Format" := AuditFileExportFormat;
+            Rec.Modify(true);
+        end;
+        FECFormat := AuditFileExportFormat = AuditFileExportFormat::FEC;
     end;
 }

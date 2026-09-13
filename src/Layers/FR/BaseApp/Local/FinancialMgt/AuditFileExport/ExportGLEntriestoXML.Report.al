@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +16,9 @@ report 10820 "Export G/L Entries to XML"
     Caption = 'Export G/L Entries to XML';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File FR extensions must be installed.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -138,4 +142,4 @@ report 10820 "Export G/L Entries to XML"
         OutputFile: File;
         Text010: Label 'Default';
 }
-
+#endif
