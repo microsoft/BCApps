@@ -25,11 +25,6 @@
     "method": "TestCreateCreditMemoThroughPageAndAPI"
   },
   {
-    "codeunitId": 139729,
-    "codeunitName": "APIV1 - Purchase Invoices E2E",
-    "method": "TestPurchaseInvoiceWithPaymentDiscount"
-  },
-  {
     "codeunitId": 139734,
     "codeunitName": "APIV1 - Sales Inv. Lines E2E",
     "method": "TestPostingBlankLineDefaultsToItemType"
