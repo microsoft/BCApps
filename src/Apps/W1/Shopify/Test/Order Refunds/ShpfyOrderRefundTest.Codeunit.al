@@ -8,6 +8,7 @@ namespace Microsoft.Integration.Shopify.Test;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -1107,12 +1108,15 @@ codeunit 139611 "Shpfy Order Refund Test"
     var
         Shop: Record "Shpfy Shop";
         OrderHeader: Record "Shpfy Order Header";
+        Item: Record Item;
+        Location: Record Location;
         CreditMemoHeader: Record "Sales Header";
         SalesOrderHeader: Record "Sales Header";
         SalesShipmentHeader: Record "Sales Shipment Header";
         SalesShipmentLine: Record "Sales Shipment Line";
         ReleaseSalesDocument: Codeunit "Release Sales Document";
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
         OrderId: BigInteger;
@@ -1171,6 +1175,10 @@ codeunit 139611 "Shpfy Order Refund Test"
         CopyDocumentMgt.CopySalesDoc(Enum::"Sales Document Type From"::"Credit Memo", CreditMemoHeader."No.", SalesOrderHeader);
         SalesOrderHeader.Get(SalesOrderHeader."Document Type"::Order, SalesOrderHeader."No.");
         LibraryAssert.AreEqual(RefundId, SalesOrderHeader."Shpfy Refund Id", 'The exchange order must retain the refund ID before posting.');
+
+        // [GIVEN] Inventory posting is configured for the exchange item.
+        Item := InitializeTest.GetDummyItem();
+        LibraryInventory.UpdateInventoryPostingSetup(Location, Item."Inventory Posting Group");
 
         // [WHEN] The order is posted as shipment only.
         ShipmentNo := LibrarySales.PostSalesDocument(SalesOrderHeader, true, false);
