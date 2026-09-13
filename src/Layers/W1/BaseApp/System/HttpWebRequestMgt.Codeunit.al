@@ -131,12 +131,12 @@ codeunit 1297 "Http Web Request Mgt."
     begin
         if not ResponseJsonObject.ReadFrom(ResponseJson) then
             exit('');
-        if ResponseJsonObject.Get('Error', JsonToken) and JsonToken.IsObject() then begin
-            ErrorJsonObject := JsonToken.AsObject();
-            code := ErrorJsonObject.GetText('code', true);
-            name := ErrorJsonObject.GetText('name', true);
-            description := ErrorJsonObject.GetText('description', true);
-        end;
+        if not (ResponseJsonObject.Get('Error', JsonToken) and JsonToken.IsObject()) then
+            exit('');
+        ErrorJsonObject := JsonToken.AsObject();
+        code := ErrorJsonObject.GetText('code', true);
+        name := ErrorJsonObject.GetText('name', true);
+        description := ErrorJsonObject.GetText('description', true);
         exit(StrSubstNo(HttpErrorTxt, code, name, description));
     end;
 

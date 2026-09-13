@@ -199,10 +199,9 @@ codeunit 20124 "AMC Bank REST Request Mgt."
         end;
     end;
 
-#if not CLEAN30
-    [Obsolete('Use GetJsonObjectFromBlob with the native JsonObject type instead.', '30.0')]
     procedure GetJsonObjectFromBlob(ResponseTempBlob: Codeunit "Temp Blob"; var ReponseJObject: DotNet JObject)
     var
+        JSONManagement: Codeunit "JSON Management";
         JSONText: Text;
         JsonInStream: InStream;
     begin
@@ -210,29 +209,11 @@ codeunit 20124 "AMC Bank REST Request Mgt."
         if ResponseTempBlob.HasValue() then begin
             ResponseTempBlob.CreateInStream(JsonInStream);
             JsonInStream.ReadText(JSONText);
-            if not TryParseJObject(ReponseJObject, JSONText) then
-                Clear(ReponseJObject);
+            JSONManagement.InitializeFromString(JSONText);
+            JSONManagement.GetJSONObject(ReponseJObject);
         end;
     end;
 
-    [TryFunction]
-    local procedure TryParseJObject(var JsonObject: DotNet JObject; JsonText: Text)
-    begin
-        JsonObject := JsonObject.Parse(JsonText);
-    end;
-#endif
-
-    procedure GetJsonObjectFromBlob(ResponseTempBlob: Codeunit "Temp Blob"; var ResponseJsonObject: JsonObject)
-    var
-        JsonInStream: InStream;
-    begin
-        Clear(ResponseJsonObject);
-        if ResponseTempBlob.HasValue() then begin
-            ResponseTempBlob.CreateInStream(JsonInStream);
-            if not ResponseJsonObject.ReadFrom(JsonInStream) then
-                Clear(ResponseJsonObject);
-        end;
-    end;
 
     procedure LogHttpActivity(SoapCall: Text; AppCaller: Text[30]; LogMessage: Text; HintText: Text; SupportUrl: Text; LogHttpContent: HttpContent; ResponseResult: Text) Id: Integer;
     var
@@ -288,20 +269,16 @@ codeunit 20124 "AMC Bank REST Request Mgt."
 
     local procedure CleanSecureContent(LogHttpContent: HttpContent; var LogInStream: Instream);
     var
-        JsonObject: JsonObject;
+        JSONManagement: Codeunit "JSON Management";
         baseHttpContent: HttpContent;
         LogText: Text;
     begin
         LogHttpContent.ReadAs(LogText);
-        if LogText <> '' then
-            if not JsonObject.ReadFrom(LogText) then
-                LogText := ''
-            else begin
-                if GetJsonValue(JsonObject, 'modulepassword') <> '' then
-                    JsonObject.Replace('modulepassword', '**********');
-                JsonObject.WriteTo(LogText);
-            end;
+        JSONManagement.InitializeObject(LogText);
+        if (JSONManagement.GetValue('modulepassword') <> '') then
+            JSONManagement.SetValue('modulepassword', '**********');
 
+        LogText := JSONManagement.WriteObjectToString();
         baseHttpContent.WriteFrom(LogText);
         baseHttpContent.ReadAs(LogInStream);
 
@@ -310,8 +287,9 @@ codeunit 20124 "AMC Bank REST Request Mgt."
     procedure HasResponseErrors(ResponseTempBlob: Codeunit "Temp Blob"; RestCall: Text; JsonErrorKeyName: Text; Var ResponseResult: Text; AppCaller: Text[30]): Boolean;
     var
         AMCBankingSetup: Record "AMC Banking Setup";
-        ResponseJsonObject: JsonObject;
-        SyslogJsonObject: JsonObject;
+        JSONManagement: Codeunit "JSON Management";
+        SyslogJSONManagement: Codeunit "JSON Management";
+        JObject: DotNet JObject;
         LogId: Integer;
         HttpContent: HttpContent;
         ResponseInStream: InStream;
@@ -322,20 +300,19 @@ codeunit 20124 "AMC Bank REST Request Mgt."
         //Get result of call
         AMCBankingSetup.GET();
 
-        GetJsonObjectFromBlob(ResponseTempBlob, ResponseJsonObject);
+        GetJsonObjectFromBlob(ResponseTempBlob, JObject);
         ResponseTempBlob.CreateInStream(ResponseInStream);
 
-        SysLogText := GetJsonValue(ResponseJsonObject, JsonErrorKeyName);
+        JSONManagement.InitializeObjectFromJObject(JObject);
+        SysLogText := JSONManagement.GetValue(JsonErrorKeyName);
 
-        if SysLogText <> '' then
-            if not SyslogJsonObject.ReadFrom(SysLogText) then
-                Clear(SyslogJsonObject);
-        ResponseResult := LowerCase(GetJsonValue(SyslogJsonObject, 'syslogtype'));
+        SyslogJSONManagement.InitializeFromString(SysLogText);
+        ResponseResult := lowercase(SyslogJSONManagement.GetValue('syslogtype'));
         if (ResponseResult <> 'ok') then begin
 
-            GLBResponseErrorText := GetJsonValue(SyslogJsonObject, 'text');
-            HintText := GetJsonValue(SyslogJsonObject, 'hinttext');
-            URLText := GetJsonValue(SyslogJsonObject, 'url');
+            GLBResponseErrorText := SyslogJSONManagement.GetValue('text');
+            HintText := SyslogJSONManagement.GetValue('hinttext');
+            URLText := SyslogJSONManagement.GetValue('url');
 
             HttpContent.WriteFrom(ResponseInStream);
             LogId := LogHttpActivity(RestCall, AppCaller, GLBResponseErrorText, HintText, URLText, HttpContent, ResponseResult);
@@ -358,22 +335,6 @@ codeunit 20124 "AMC Bank REST Request Mgt."
         end;
 
         EXIT(FALSE);
-    end;
-
-    local procedure GetJsonValue(JsonObject: JsonObject; PropertyName: Text): Text
-    var
-        JsonToken: JsonToken;
-        JsonText: Text;
-    begin
-        if not JsonObject.Get(PropertyName, JsonToken) then
-            exit('');
-        if JsonToken.IsValue() then begin
-            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
-                exit('');
-            exit(JsonToken.AsValue().AsText());
-        end;
-        JsonToken.WriteTo(JsonText);
-        exit(JsonText);
     end;
 
     procedure ShowResponseError(ResponseResult: Text);
@@ -415,3 +376,4 @@ codeunit 20124 "AMC Bank REST Request Mgt."
 }
 #endif
 #pragma warning restore AS0018
+

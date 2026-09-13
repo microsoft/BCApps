@@ -184,7 +184,8 @@ codeunit 5461 "Json Impl."
         if JsonValue.IsNull() or JsonValue.IsUndefined() then
             exit(true);
 
-        Value := JsonValue.AsBoolean();
+        if not TryGetJsonBoolean(JsonValue, Value) then
+            if not Evaluate(Value, JsonValue.AsText(), 2) then;
         exit(true);
     end;
 
@@ -201,7 +202,8 @@ codeunit 5461 "Json Impl."
         if JsonValue.IsNull() or JsonValue.IsUndefined() then
             exit(true);
 
-        Value := JsonValue.AsDecimal();
+        if not TryGetJsonDecimal(JsonValue, Value) then
+            if not Evaluate(Value, JsonValue.AsText()) then;
         exit(true);
     end;
 
@@ -218,7 +220,8 @@ codeunit 5461 "Json Impl."
         if JsonValue.IsNull() or JsonValue.IsUndefined() then
             exit(true);
 
-        Value := JsonValue.AsInteger();
+        if not TryGetJsonInteger(JsonValue, Value) then
+            if not Evaluate(Value, JsonValue.AsText()) then;
         exit(true);
     end;
 
@@ -409,6 +412,12 @@ codeunit 5461 "Json Impl."
                 exit('False');
         end;
         exit(JsonToken.AsValue().AsText());
+    end;
+
+    [TryFunction]
+    local procedure TryGetJsonBoolean(JsonValue: JsonValue; var BooleanValue: Boolean)
+    begin
+        BooleanValue := JsonValue.AsBoolean();
     end;
 
     [TryFunction]

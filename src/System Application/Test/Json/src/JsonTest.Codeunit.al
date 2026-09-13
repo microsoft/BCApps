@@ -757,6 +757,32 @@ codeunit 139910 "Json Test"
     end;
 
     [Test]
+    procedure TestTypedGettersHandleMismatchedScalars()
+    var
+        Json: Codeunit "Json";
+        BooleanValue: Boolean;
+        DecimalValue: Decimal;
+        GuidValue: Guid;
+        IntegerValue: Integer;
+    begin
+        Json.InitializeObject('{"boolean":"not boolean","decimal":"not decimal","guid":"not guid","integer":"not integer"}');
+        BooleanValue := true;
+        DecimalValue := 1;
+        GuidValue := CreateGuid();
+        IntegerValue := 1;
+
+        Assert.IsTrue(Json.GetBoolPropertyValueFromJObjectByName('boolean', BooleanValue), 'Boolean property was not found.');
+        Assert.IsTrue(Json.GetDecimalPropertyValueFromJObjectByName('decimal', DecimalValue), 'Decimal property was not found.');
+        Assert.IsTrue(Json.GetGuidPropertyValueFromJObjectByName('guid', GuidValue), 'Guid property was not found.');
+        Assert.IsTrue(Json.GetIntegerPropertyValueFromJObjectByName('integer', IntegerValue), 'Integer property was not found.');
+
+        Assert.IsFalse(BooleanValue, 'Mismatched Boolean value was not cleared.');
+        Assert.AreEqual(0, DecimalValue, 'Mismatched Decimal value was not cleared.');
+        Assert.IsTrue(IsNullGuid(GuidValue), 'Mismatched Guid value was not cleared.');
+        Assert.AreEqual(0, IntegerValue, 'Mismatched Integer value was not cleared.');
+    end;
+
+    [Test]
     procedure TestAddPropertyPreservesNativeScalarDispatch()
     var
         Json: Codeunit "Json";
