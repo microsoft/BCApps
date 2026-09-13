@@ -2265,6 +2265,7 @@ codeunit 134154 "ERM Intercompany III"
     end;
 
     [Test]
+    [HandlerFunctions('RequestPageHandler')]
     procedure AutoAcceptICGenJnlTransactionUT()
     var
         ICSetup: Record "IC Setup";
