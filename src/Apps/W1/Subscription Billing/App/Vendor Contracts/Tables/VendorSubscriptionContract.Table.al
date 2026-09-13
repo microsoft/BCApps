@@ -952,11 +952,8 @@ table 8063 "Vendor Subscription Contract"
     var
         ServiceCommitment: Record "Subscription Line";
         NewDimSetID: Integer;
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        if IsHandled then
-            exit;
+        OnBeforeUpdateAllLineDim(Rec, NewParentDimSetID, OldParentDimSetID);
 
         if NewParentDimSetID = OldParentDimSetID then
             exit;
@@ -1782,6 +1779,11 @@ table 8063 "Vendor Subscription Contract"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var VendorSubscriptionContract: Record "Vendor Subscription Contract"; xVendorSubscriptionContract: Record "Vendor Subscription Contract"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateAllLineDim(var VendorSubscriptionContract: Record "Vendor Subscription Contract"; NewParentDimSetID: Integer; OldParentDimSetID: Integer)
     begin
     end;
 
