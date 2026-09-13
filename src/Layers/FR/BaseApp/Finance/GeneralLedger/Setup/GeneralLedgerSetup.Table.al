@@ -1457,6 +1457,18 @@ table 98 "General Ledger Setup"
             Caption = 'Use Concurrent Posting';
             ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
         }
+        field(211; "Fin. Rep. Preview Column Def."; Code[10])
+        {
+            Caption = 'Financial Report Column Definition for Preview';
+            TableRelation = "Column Layout Name";
+            ToolTip = 'Specifies the default column layout used when previewing financial reports.';
+        }
+        field(212; "Fin. Rep. Preview Row Def."; Code[10])
+        {
+            Caption = 'Financial Report Row Definition for Preview';
+            TableRelation = "Acc. Schedule Name";
+            ToolTip = 'Specifies the default row definition used when previewing financial reports.';
+        }
 #if not CLEANSCHEMA30
         field(10800; "Posting Allowed From"; Date)
         {
