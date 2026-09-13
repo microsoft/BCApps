@@ -2327,10 +2327,20 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
+#if not CLEANSCHEMA33
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#endif
         }
+#endif
 #if not CLEAN28        
         field(10860; "Payment in progress (LCY)"; Decimal)
         {
@@ -2586,7 +2596,9 @@ table 18 Customer
         RemovePaymentRoleranceQst: Label 'Do you want to remove payment tolerance from entries that are currently open?';
         CreateNewCustTxt: Label 'Create a new customer card for %1', Comment = '%1 is the name to be used to create the customer. ';
         SelectCustErr: Label 'You must select an existing customer.';
+#if not CLEAN30
         SirenNoTemplateTxt: Label '%1: %2', Locked = true;
+#endif
         CustNotRegisteredTxt: Label 'This customer is not registered. To continue, choose one of the following options:';
         SelectCustTxt: Label 'Select an existing customer';
         OverrideImageQst: Label 'Override Image?';
@@ -2977,10 +2989,13 @@ table 18 Customer
                 exit(CustomerPriceGroup."Price Calculation Method");
     end;
 
+#if not CLEAN30
+    [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '30.0')]
     procedure GetSIRENNoWithCaption(): Text
     begin
         exit(StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No."));
     end;
+#endif
 
     /// <summary>
     /// Calculates the total amount in local currency including balance, outstanding orders, shipped not invoiced, and outstanding invoices.

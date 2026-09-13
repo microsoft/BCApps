@@ -5749,6 +5749,7 @@ codeunit 136201 "Marketing Contacts"
         ContactList.Close();
     end;
 
+#if not CLEAN30
     [Test]
     procedure CustomerHasSirenNoFromContact()
     var
@@ -5772,6 +5773,7 @@ codeunit 136201 "Marketing Contacts"
         Customer.FindFirst();
         Customer.TestField("SIREN No.", Contact."SIREN No.");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,CustomerTemplateHandler,MessageHandler')]
