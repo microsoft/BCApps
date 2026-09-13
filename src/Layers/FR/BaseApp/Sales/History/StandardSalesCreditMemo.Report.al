@@ -1292,7 +1292,7 @@ report 1307 "Standard Sales - Credit Memo"
         GotServices: Boolean;
     begin
         SalesCrMemoLine.SetRange("Document No.", Header."No.");
-        SalesCrMemoLine.SetFilter(Type, '<> %1', SalesCrMemoLine.Type::Item);
+        SalesCrMemoLine.SetFilter(Type, '<>%1&<>%2', SalesCrMemoLine.Type::Item, SalesCrMemoLine.Type::" ");
         if not SalesCrMemoLine.IsEmpty() then
             GotServices := true;
         SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
