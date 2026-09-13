@@ -6,7 +6,6 @@ namespace Microsoft.Bank.Payment;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.Vendor;
 
 page 12188 "Manual vendor Payment Line"
@@ -34,11 +33,8 @@ page 12188 "Manual vendor Payment Line"
                     var
                         Vend: Record Vendor;
                     begin
-                        if Vend.Get(VendorNo) then begin
+                        if Vend.Get(VendorNo) then
                             VendorName := Vend.Name;
-                            WithholdingTaxCode := Vend."Withholding Tax Code";
-                            SocialSecurityCode := Vend."Social Security Code";
-                        end
                     end;
                 }
                 field(VendorName; VendorName)
@@ -46,20 +42,6 @@ page 12188 "Manual vendor Payment Line"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Vendor Name';
                     ToolTip = 'Specifies the vendor name.';
-                }
-                field(WithholdingTaxCode; WithholdingTaxCode)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Withholding Tax Code';
-                    TableRelation = "Withhold Code";
-                    ToolTip = 'Specifies the withholding tax code.';
-                }
-                field(SocialSecurityCode; SocialSecurityCode)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Social Security Code';
-                    TableRelation = "Contribution Code";
-                    ToolTip = 'Specifies the social security code.';
                 }
                 field(Desc; Desc)
                 {
@@ -173,7 +155,7 @@ page 12188 "Manual vendor Payment Line"
                     if VendorNo <> '' then
                         VendorBillLine."Vendor No." := VendorNo
                     else
-                        Error(Text12100);
+                        Error(MissingVendorNoErr);
                     VendorBillLine."Vendor Bank Acc. No." := VendorBankAccount;
                     VendorBillLine."Document Type" := DocumentType;
                     VendorBillLine."Document No." := DocumentNo;
@@ -187,8 +169,6 @@ page 12188 "Manual vendor Payment Line"
                     VendorBillLine."Amount to Pay" := TaxBaseAmount;
                     VendorBillLine."Manual Line" := true;
                     VendorBillLine."Cumulative Transfers" := true;
-                    VendorBillLine.SetWithholdCode(WithholdingTaxCode);
-                    VendorBillLine.SetSocialSecurityCode(SocialSecurityCode);
                     DimMgt.AddDimSource(DefaultDimSource, Database::Vendor, VendorNo);
                     VendorBillLine."Dimension Set ID" :=
                         DimMgt.GetRecDefaultDimID(
@@ -219,21 +199,21 @@ page 12188 "Manual vendor Payment Line"
     end;
 
     var
-        VendorNo: Code[20];
         VendorBillNo: Code[20];
         DocumentNo: Code[20];
-        WithholdingTaxCode: Code[20];
         VendorBankAccount: Code[20];
         ExternalDocNo: Code[20];
-        SocialSecurityCode: Code[20];
         VendorName: Text[100];
         Desc: Text[30];
         DocumentType: Enum "Gen. Journal Document Type";
         DocumentDate: Date;
         PostingDate: Date;
         TotalAmount: Decimal;
-        Text12100: Label 'Please enter the vendor code.';
         TaxBaseAmount: Decimal;
+        MissingVendorNoErr: Label 'Please enter the vendor number.';
+
+    protected var
+        VendorNo: Code[20];
 
     [Scope('OnPrem')]
     procedure SetVendBillNoAndDueDate(VendBillNo: Code[20]; Date: Date)

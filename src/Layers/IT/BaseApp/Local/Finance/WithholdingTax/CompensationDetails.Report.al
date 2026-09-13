@@ -758,15 +758,6 @@ report 12105 "Compensation Details"
     end;
 
     var
-        Text1033: Label 'From Payment Date and To Payment Date must be filled.';
-        Text1034: Label 'From Related Date and To Related Date must be filled.';
-        Text1035: Label 'Resident';
-        Text1036: Label 'Not Resident';
-        Text1037: Label 'Total ';
-        Text1038: Label 'Total Recipient cannot Report Income';
-        Text1039: Label 'Withholding Tax in advance';
-        Text1040: Label 'Total Withholding Tax';
-        Text1041: Label 'Total Social Security';
         Country: Record "Country/Region";
         Certified: Boolean;
         PrintOnlyOneForPage: Boolean;
@@ -788,9 +779,19 @@ report 12105 "Compensation Details"
         RecptMayReportIncome: Boolean;
         SrcWithHoldTax: Boolean;
         GroupNo: Integer;
-        Text1042: Label 'Total INAIL';
         DescTotINAIL3: Text[50];
         DescTotINAIL4: Text[50];
+
+        Text1033: Label 'From Payment Date and To Payment Date must be filled.';
+        Text1034: Label 'From Related Date and To Related Date must be filled.';
+        Text1035: Label 'Resident';
+        Text1036: Label 'Not Resident';
+        Text1037: Label 'Total ';
+        Text1038: Label 'Total Recipient cannot Report Income';
+        Text1039: Label 'Withholding Tax in advance';
+        Text1040: Label 'Total Withholding Tax';
+        Text1041: Label 'Total Social Security';
+        Text1042: Label 'Total INAIL';
         Birth_City___________Birth_County_CaptionLbl: Label 'Birth City';
         SubjectTypeCaptionLbl: Label 'Resident';
         Withholding_Tax__Document_Date_CaptionLbl: Label 'Document Date';
