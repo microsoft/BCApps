@@ -418,7 +418,28 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <summary>
     /// Deletes a document attachment from internal storage.
     /// </summary>
+    /// <remarks>
+    /// This overload rebuilds the media reference count map by scanning the entire Document
+    /// Attachment table on every call. When deleting multiple attachments in a batch, call
+    /// BuildMediaReferenceCounts once up front and use the overload that accepts a
+    /// MediaReferenceCounts dictionary instead, to avoid rescanning the table for every record.
+    /// </remarks>
     /// <param name="DocumentAttachment">The document attachment record to delete from internal storage.</param>
+    /// <returns>True if deletion was successful, false otherwise.</returns>
+    [Obsolete('Use the overload that accepts a MediaReferenceCounts dictionary built once via BuildMediaReferenceCounts, to avoid rescanning Document Attachment on every call.', '29.0')]
+    procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
+    begin
+        BuildMediaReferenceCounts(MediaReferenceCounts);
+        exit(DeleteFromInternalStorage(DocumentAttachment, MediaReferenceCounts));
+    end;
+
+    /// <summary>
+    /// Deletes a document attachment from internal storage.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record to delete from internal storage.</param>
+    /// <param name="MediaReferenceCounts">A map of MediaId -&gt; remaining reference count, as built by BuildMediaReferenceCounts.</param>
     /// <returns>True if deletion was successful, false otherwise.</returns>
     procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"; var MediaReferenceCounts: Dictionary of [Guid, Integer]): Boolean
     var
@@ -817,6 +838,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     var
         ExternalStorageSetup: Record "DA External Storage Setup";
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
@@ -838,7 +860,10 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageImpl.UploadToExternalStorage(Rec) then
             exit;
 
-        ExternalStorageImpl.DeleteFromInternalStorage(Rec);
+        // Media fields can't be filtered, so the reference count map must be rebuilt from a full
+        // scan for this single record - there is no batch of inserts to amortize it across here.
+        ExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts);
+        ExternalStorageImpl.DeleteFromInternalStorage(Rec, MediaReferenceCounts);
     end;
 
     /// <summary>

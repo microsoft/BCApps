@@ -236,11 +236,11 @@ page 8751 "Document Attachment - External"
                     // Multiple Document Attachment records can share the same Tenant Media
                     // record; build a reference count once so it's only physically deleted
                     // after the last referencing attachment in the selection is processed.
-                    ExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts, MediaReferenceCounts);
+                    ExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts);
 
                     if DocumentAttachment.FindSet() then
                         repeat
-                            if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment) then
+                            if ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, MediaReferenceCounts) then
                                 SuccessCount += 1
                             else
                                 FailedCount += 1;

@@ -355,6 +355,55 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
+    procedure DeleteFromInternalStorageKeepsSharedMediaUntilLastReferenceIsDeleted()
+    var
+        DocumentAttachment1: Record "Document Attachment";
+        DocumentAttachment2: Record "Document Attachment";
+        TenantMedia: Record "Tenant Media";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
+        SharedMediaId: Guid;
+        Result: Boolean;
+    begin
+        // [SCENARIO] Two Document Attachment records that share the same Tenant Media record
+        // (e.g. a posted document's attachment and its original document's attachment) must
+        // only have that Tenant Media record deleted once the last referencing attachment is
+        // processed - not when the first one is.
+        Initialize();
+
+        // [GIVEN] A document attachment stored externally
+        CreateDocumentAttachmentWithContent(DocumentAttachment1);
+        DocumentAttachment1."Stored Externally" := true;
+        DocumentAttachment1.Modify();
+
+        // [GIVEN] A second document attachment that shares the same Tenant Media record
+        CreateDocumentAttachmentWithContent(DocumentAttachment2);
+        DocumentAttachment2."Document Reference ID" := DocumentAttachment1."Document Reference ID";
+        DocumentAttachment2."Stored Externally" := true;
+        DocumentAttachment2.Modify();
+
+        SharedMediaId := DocumentAttachment2."Document Reference ID".MediaId();
+
+        // [GIVEN] A reference count map reflecting both attachments referencing the same media
+        DAExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts);
+
+        // [WHEN] Delete from internal is processed for the first attachment
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment1, MediaReferenceCounts);
+
+        // [THEN] Delete succeeds, but the shared Tenant Media record is kept because the second
+        // attachment still references it
+        Assert.IsTrue(Result, 'Delete from internal should succeed for the first attachment');
+        Assert.IsTrue(TenantMedia.Get(SharedMediaId), 'Shared Tenant Media should still exist while another attachment references it');
+
+        // [WHEN] Delete from internal is processed for the second (last) attachment
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment2, MediaReferenceCounts);
+
+        // [THEN] Delete succeeds and the Tenant Media record is now removed
+        Assert.IsTrue(Result, 'Delete from internal should succeed for the last attachment');
+        Assert.IsFalse(TenantMedia.Get(SharedMediaId), 'Shared Tenant Media should be deleted after the last attachment is processed');
+    end;
+
+    [Test]
     procedure DeleteFromInternalFailsForNonExternalDocument()
     var
         DocumentAttachment: Record "Document Attachment";
