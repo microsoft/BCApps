@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Document;
 
-using Microsoft.QualityManagement.AccessControl;
 using System.Environment.Configuration;
 
 /// <summary>
@@ -141,13 +140,12 @@ page 20413 "Qlty. Inspection Lines"
     }
 
     var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         CanEditLineNotes: Boolean;
         MeasurementNote: Text;
 
     trigger OnOpenPage()
     begin
-        CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments();
+        CanEditLineNotes := CurrPage.Editable();
     end;
 
     trigger OnAfterGetRecord()

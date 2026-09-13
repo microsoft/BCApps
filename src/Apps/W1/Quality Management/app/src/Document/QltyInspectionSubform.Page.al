@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Document;
 
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment.Configuration;
@@ -273,7 +272,6 @@ page 20407 "Qlty. Inspection Subform"
 
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         MatrixArrayConditionCellData: array[10] of Text;
         MatrixArrayConditionDescriptionCellData: array[10] of Text;
@@ -294,7 +292,7 @@ page 20407 "Qlty. Inspection Subform"
     var
         MatrixVisibleState: array[10] of Boolean;
     begin
-        CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments() and CurrPage.Editable();
+        CanEditLineNotes := CurrPage.Editable();
 
         QltyResultConditionMgmt.GetDefaultPromotedResults(true, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, MatrixVisibleState);
         Visible1 := MatrixVisibleState[1];
