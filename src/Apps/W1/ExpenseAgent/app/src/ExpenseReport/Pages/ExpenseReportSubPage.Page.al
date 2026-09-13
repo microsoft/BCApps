@@ -68,11 +68,6 @@ page 6999 "Expense Report SubPage"
                     ToolTip = 'Specifies where the expense occurred. Available when the expense requires per diem details.';
                     ShowMandatory = IsPerDiemCategory;
                     Editable = IsPerDiemCategory;
-
-                    trigger OnValidate()
-                    begin
-                        CurrPage.Update();
-                    end;
                 }
                 field(Description; Rec.Description)
                 {
