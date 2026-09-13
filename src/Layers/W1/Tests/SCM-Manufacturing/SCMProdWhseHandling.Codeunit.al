@@ -18,6 +18,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
@@ -56,6 +57,12 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         PickActivitiesCreatedMsg: Label 'Number of Invt. Pick activities created';
         BinPickQtyIsWrongErr: Label 'Bin pick quantity is wrong.';
         ShortageLineQtyIsWrongErr: Label 'Shortage line quantity is wrong.';
+        CannotDeleteWithPickedQtyErr: Label 'You cannot delete the production order because one or more components have a picked quantity that has not been consumed. Consume or return the picked quantity before deleting the production order.';
+        QtyPickedBaseShouldBePositiveErr: Label 'Qty. Picked (Base) should be positive after registering pick.';
+        ActConsumptionQtyShouldBeZeroErr: Label 'Act. Consumption (Qty) should be zero.';
+        ProdOrderShouldExistErr: Label 'Production Order should still exist after blocked deletion.';
+        ProdOrderShouldNotExistErr: Label 'Production Order should not exist after deletion succeeds.';
+        SharedOperationBinErr: Label 'Both production orders should pick the component into the same operation area bin.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1698,6 +1705,118 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure DeleteReleasedProdOrderBlockedWhenComponentHasPickedQty()
+    var
+        CompItem1: Record Item;
+        CompItem2: Record Item;
+        Location: Record Location;
+        ParentItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        RegisteredWhseActivityLine: Record "Registered Whse. Activity Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647854] Deleting a Released Production Order is blocked when a component has picked quantity not yet consumed.
+        Initialize();
+
+        // [GIVEN] Location with bins and "Warehouse Pick (mandatory)" for production consumption, released production order "PO" with two components stocked in bins.
+        CreateProductionOrderWithLocationBinsAndTwoComponents(ProductionOrder, Location, ParentItem, CompItem1, CompItem2);
+        Location."Prod. Consump. Whse. Handling" := "Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)";
+        Location.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [GIVEN] Warehouse pick is created and fully registered for "PO".
+        CreateAndRegisterFullPick(ProductionOrder, Location.Code);
+
+        // [GIVEN] No active warehouse pick lines remain for "PO".
+        WarehouseActivityLine.SetRange("Source No.", ProductionOrder."No.");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        Assert.RecordIsEmpty(WarehouseActivityLine);
+
+        // [GIVEN] Registered warehouse pick lines remain for "PO".
+        RegisteredWhseActivityLine.SetRange("Source No.", ProductionOrder."No.");
+        RegisteredWhseActivityLine.SetRange("Activity Type", RegisteredWhseActivityLine."Activity Type"::Pick);
+        Assert.RecordIsNotEmpty(RegisteredWhseActivityLine);
+
+        // [GIVEN] Component has positive Qty. Picked (Base) and zero Act. Consumption (Qty.).
+        FindFirstProdOrderComponent(ProdOrderComponent, ProductionOrder);
+        ProdOrderComponent.CalcFields("Act. Consumption (Qty)");
+        Assert.IsTrue(ProdOrderComponent."Qty. Picked (Base)" > 0, QtyPickedBaseShouldBePositiveErr);
+        Assert.AreEqual(0, ProdOrderComponent."Act. Consumption (Qty)", ActConsumptionQtyShouldBeZeroErr);
+        Commit();
+
+        // [WHEN] Delete the production order.
+        asserterror ProductionOrder.Delete(true);
+
+        // [THEN] Error is raised because picked quantity has not been consumed.
+        Assert.ExpectedError(CannotDeleteWithPickedQtyErr);
+        Assert.ExpectedErrorCode('Dialog');
+
+        // [THEN] Production order and its components still exist.
+        Assert.IsTrue(ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No."), ProdOrderShouldExistErr);
+        ProdOrderComponent.Reset();
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.RecordIsNotEmpty(ProdOrderComponent);
+    end;
+
+    [Test]
+    procedure DeleteReleasedProdOrderAllowedAfterPickedQtyReturnedWithSharedOperationBin()
+    var
+        CompItem1: Record Item;
+        CompItem2: Record Item;
+        Location: Record Location;
+        ParentItem: Record Item;
+        ProdOrderComponentA: Record "Prod. Order Component";
+        ProdOrderComponentB: Record "Prod. Order Component";
+        ProductionOrderA: Record "Production Order";
+        ProductionOrderB: Record "Production Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647854] Deleting a Released Production Order is allowed once its own picked, unconsumed quantity has been returned from a shared operation area bin, even though another order's picked quantity for the same component remains in that bin.
+        Initialize();
+
+        // [GIVEN] Location with bins and "Warehouse Pick (mandatory)" for production consumption, and two released production orders "POA" and "POB" for the same item, both picking the same components into the same operation area bins.
+        CreateProductionOrderWithLocationBinsAndTwoComponents(ProductionOrderA, Location, ParentItem, CompItem1, CompItem2);
+        Location."Prod. Consump. Whse. Handling" := "Prod. Consump. Whse. Handling"::"Warehouse Pick (mandatory)";
+        Location.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrderA, false, true, true, true, false);
+        CreateAndRefreshProductionOrder(ProductionOrderB, "Production Order Status"::Released, "Prod. Order Source Type"::Item, ParentItem."No.", 1, Location.Code);
+
+        // [GIVEN] Warehouse pick is created and fully registered for "POA" and "POB".
+        CreateAndRegisterFullPick(ProductionOrderA, Location.Code);
+        CreateAndRegisterFullPick(ProductionOrderB, Location.Code);
+
+        // [GIVEN] Every one of "POA"'s picked, unconsumed components is returned from its shared operation area bin, using the supported Internal Movement warehouse document, leaving behind only what "POB" still claims.
+        ProdOrderComponentA.SetRange(Status, ProductionOrderA.Status);
+        ProdOrderComponentA.SetRange("Prod. Order No.", ProductionOrderA."No.");
+        ProdOrderComponentA.FindSet();
+        repeat
+            Assert.IsTrue(ProdOrderComponentA."Qty. Picked (Base)" > 0, QtyPickedBaseShouldBePositiveErr);
+
+            ProdOrderComponentB.SetRange(Status, ProductionOrderB.Status);
+            ProdOrderComponentB.SetRange("Prod. Order No.", ProductionOrderB."No.");
+            ProdOrderComponentB.SetRange("Item No.", ProdOrderComponentA."Item No.");
+            ProdOrderComponentB.FindFirst();
+            Assert.IsTrue(ProdOrderComponentB."Qty. Picked (Base)" > 0, QtyPickedBaseShouldBePositiveErr);
+            Assert.AreEqual(ProdOrderComponentA."Bin Code", ProdOrderComponentB."Bin Code", SharedOperationBinErr);
+
+            ReturnExcessBinQtyBeyondOtherClaim(Location.Code, ProdOrderComponentA, ProdOrderComponentB."Qty. Picked (Base)");
+        until ProdOrderComponentA.Next() = 0;
+
+        // [WHEN] Delete "POA".
+        ProductionOrderA.Delete(true);
+
+        // [THEN] No error is raised and "POA" no longer exists, even though "POB" still has picked quantity in the same bins.
+        Assert.IsFalse(ProductionOrderA.Get(ProductionOrderA.Status, ProductionOrderA."No."), ProdOrderShouldNotExistErr);
+
+        // [THEN] "POB" is still blocked from deletion, since its own picked quantity is still in the shared bins.
+        asserterror ProductionOrderB.Delete(true);
+        Assert.ExpectedError(CannotDeleteWithPickedQtyErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1855,6 +1974,69 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
+    end;
+
+    local procedure FindFirstProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; ProductionOrder: Record "Production Order")
+    begin
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.FindFirst();
+    end;
+
+    local procedure CreateAndRegisterFullPick(var ProductionOrder: Record "Production Order"; LocationCode: Code[10])
+    var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        ProductionOrder.SetHideValidationDialog(true);
+        ProductionOrder.CreatePick(CopyStr(UserId(), 1, 50), 0, false, false, false);
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
+            LocationCode, WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure ReturnExcessBinQtyBeyondOtherClaim(LocationCode: Code[10]; ProdOrderComponent: Record "Prod. Order Component"; OtherClaimQtyBase: Decimal)
+    var
+        Bin: Record Bin;
+        ToBin: Record Bin;
+        BinContent: Record "Bin Content";
+        InternalMovementHeader: Record "Internal Movement Header";
+        InternalMovementLine: Record "Internal Movement Line";
+        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        QtyToReturnBase: Decimal;
+    begin
+        Bin.Get(LocationCode, ProdOrderComponent."Bin Code");
+        ToBin.SetRange("Location Code", LocationCode);
+        ToBin.SetFilter(Code, '<>%1', Bin.Code);
+        ToBin.FindFirst();
+
+        BinContent.Get(
+            LocationCode, ProdOrderComponent."Bin Code", ProdOrderComponent."Item No.",
+            ProdOrderComponent."Variant Code", ProdOrderComponent."Unit of Measure Code");
+        BinContent.CalcFields("Quantity (Base)");
+        QtyToReturnBase := BinContent."Quantity (Base)" - OtherClaimQtyBase;
+        if QtyToReturnBase <= 0 then
+            exit;
+
+        LibraryWarehouse.CreateInternalMovementHeader(InternalMovementHeader, LocationCode, ToBin.Code);
+        LibraryWarehouse.CreateInternalMovementLine(
+            InternalMovementHeader, InternalMovementLine, ProdOrderComponent."Item No.",
+            ProdOrderComponent."Bin Code", ToBin.Code, QtyToReturnBase);
+
+        CreateInventoryPickMovement.SetHideDialog(true);
+        CreateInventoryPickMovement.CreateInvtMvntWithoutSource(InternalMovementHeader);
+
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, '', WarehouseActivityLine."Activity Type"::"Invt. Movement",
+            LocationCode, WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
     end;
 
     local procedure FindWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type"; LocationCode: Code[10]; ActionType: Enum "Warehouse Action Type")

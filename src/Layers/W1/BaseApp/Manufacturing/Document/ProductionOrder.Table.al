@@ -766,7 +766,7 @@ table 5405 "Production Order"
         end;
 
         if Status = Status::Released then
-            ConfirmDeletion();
+            CheckPickedQtyBeforeDeletion();
 
         if Status = Status::Finished then
             DeleteFinishedProdOrderRelations()
@@ -868,7 +868,7 @@ table 5405 "Production Order"
         Text010: Label 'You may have changed a dimension.\\Do you want to update the lines?';
         Text011: Label 'You cannot change Finished Production Order dimensions.';
 #pragma warning restore AA0074
-        ConfirmDeleteQst: Label 'The items have been picked. If you delete the Production Order, then the items will remain in the operation area until you put them away.\Related item tracking information that is defined during the pick will be deleted.\Are you sure that you want to delete the Production Order?';
+        CannotDeleteWithPickedQtyErr: Label 'You cannot delete the production order because one or more components have a picked quantity that has not been consumed. Consume or return the picked quantity before deleting the production order.';
 
     protected var
         HideValidationDialog: Boolean;
@@ -1647,20 +1647,62 @@ table 5405 "Production Order"
         RemQtyBaseInvtItemProdOrdComp.Close();
     end;
 
-    local procedure ConfirmDeletion()
+    local procedure CheckPickedQtyBeforeDeletion()
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        Confirmed: Boolean;
     begin
+        ProdOrderComponent.SetRange(Status, Rec.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", "No.");
+        ProdOrderComponent.SetLoadFields("Expected Qty. (Base)", "Remaining Qty. (Base)", "Qty. Picked (Base)");
         if ProdOrderComponent.FindSet() then
             repeat
-                if (ProdOrderComponent."Expected Quantity" - ProdOrderComponent."Remaining Quantity") < ProdOrderComponent."Qty. Picked" then begin
-                    if not Confirm(ConfirmDeleteQst) then
-                        Error('');
-                    Confirmed := true;
+                if ((ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)") and
+                   IsPickedQtyStillInOperationArea(ProdOrderComponent)
+                then
+                    Error(CannotDeleteWithPickedQtyErr);
+            until ProdOrderComponent.Next() = 0;
+    end;
+
+    local procedure IsPickedQtyStillInOperationArea(ProdOrderComponent: Record "Prod. Order Component"): Boolean
+    var
+        BinContent: Record "Bin Content";
+    begin
+        if ProdOrderComponent."Bin Code" = '' then
+            exit(true);
+
+        if not BinContent.Get(
+            ProdOrderComponent."Location Code", ProdOrderComponent."Bin Code",
+            ProdOrderComponent."Item No.", ProdOrderComponent."Variant Code", ProdOrderComponent."Unit of Measure Code")
+        then
+            exit(false);
+        BinContent.CalcFields("Quantity (Base)");
+        exit(BinContent."Quantity (Base)" > CalcOtherComponentsUnconsumedPickedQty(ProdOrderComponent));
+    end;
+
+    local procedure CalcOtherComponentsUnconsumedPickedQty(ProdOrderComponent: Record "Prod. Order Component") TotalUnconsumedPickedQtyBase: Decimal
+    var
+        OtherProdOrderComponent: Record "Prod. Order Component";
+        OtherUnconsumedPickedQtyBase: Decimal;
+    begin
+        OtherProdOrderComponent.SetFilter(Status, '%1|%2', OtherProdOrderComponent.Status::Released, OtherProdOrderComponent.Status::Finished);
+        OtherProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
+        OtherProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+        OtherProdOrderComponent.SetRange("Location Code", ProdOrderComponent."Location Code");
+        OtherProdOrderComponent.SetRange("Bin Code", ProdOrderComponent."Bin Code");
+        OtherProdOrderComponent.SetFilter("Qty. Picked (Base)", '<>%1', 0);
+        if OtherProdOrderComponent.FindSet() then
+            repeat
+                if (OtherProdOrderComponent.Status <> ProdOrderComponent.Status) or
+                   (OtherProdOrderComponent."Prod. Order No." <> ProdOrderComponent."Prod. Order No.") or
+                   (OtherProdOrderComponent."Prod. Order Line No." <> ProdOrderComponent."Prod. Order Line No.") or
+                   (OtherProdOrderComponent."Line No." <> ProdOrderComponent."Line No.")
+                then begin
+                    OtherUnconsumedPickedQtyBase :=
+                        OtherProdOrderComponent."Qty. Picked (Base)" - (OtherProdOrderComponent."Expected Qty. (Base)" - OtherProdOrderComponent."Remaining Qty. (Base)");
+                    if OtherUnconsumedPickedQtyBase > 0 then
+                        TotalUnconsumedPickedQtyBase += OtherUnconsumedPickedQtyBase;
                 end;
-            until (ProdOrderComponent.Next() = 0) or Confirmed;
+            until OtherProdOrderComponent.Next() = 0;
     end;
 
     local procedure ValidateWarehousePutAwayLocation(ProductionOrder: Record "Production Order")
