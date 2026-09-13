@@ -238,7 +238,7 @@ codeunit 5461 "Json Impl."
         if JsonValue.IsNull() or JsonValue.IsUndefined() then
             exit(true);
 
-        Evaluate(Value, JsonValue.AsText());
+        if not TryGetJsonGuid(JsonValue, Value) then;
         exit(true);
     end;
 
@@ -418,6 +418,12 @@ codeunit 5461 "Json Impl."
     local procedure TryGetJsonBoolean(JsonValue: JsonValue; var BooleanValue: Boolean)
     begin
         BooleanValue := JsonValue.AsBoolean();
+    end;
+
+    [TryFunction]
+    local procedure TryGetJsonGuid(JsonValue: JsonValue; var GuidValue: Guid)
+    begin
+        Evaluate(GuidValue, JsonValue.AsText());
     end;
 
     [TryFunction]
