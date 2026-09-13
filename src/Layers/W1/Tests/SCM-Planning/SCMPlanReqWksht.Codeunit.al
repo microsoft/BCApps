@@ -34,6 +34,7 @@
         LibraryERM: Codeunit "Library - ERM";
         AvailabilityMgt: Codeunit AvailabilityManagement;
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         isInitialized: Boolean;
         RequisitionLineMustNotExistTxt: Label 'Requisition Line must not exist for Item %1.', Comment = '%1 = Item No.';
         ShipmentDateMessageTxt: Label 'Shipment Date';
@@ -5663,6 +5664,74 @@
         PlanningComponent.SetRange("Item No.", ComponentItem."No.");
         PlanningComponent.FindFirst();
         Assert.AreEqual(ExpectedQty, PlanningComponent."Expected Quantity", 'Expected Quantity should be rounded up by Qty. Rounding Precision');
+    end;
+
+    [Test]
+    procedure CurrentPriceWhenUsingOldDate()
+    var
+        Item: Record Item;
+        ItemVendor: Record "Item Vendor";
+        PriceListLine: Record "Price List Line";
+        RequisitionLine: Record "Requisition Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Rush orders should not get an old price
+        // [FEATURE] [Requisition Line] [Purchase Price Calculation]
+        Initialize();
+
+        // [GIVEN] New pricing enabled
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+
+        // [GIVEN] Default price calculation is 'V16'
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Item with vendor.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        UpdateItemVendorNo(Item, Vendor."No.");
+
+        // [GIVEN] Item Vendor with Lead Time Calculation
+        LibraryInventory.CreateItemVendor(ItemVendor, Vendor."No.", Item."No.");
+        Evaluate(ItemVendor."Lead Time Calculation", '<1W>');
+        ItemVendor.Modify();
+
+        // [GIVEN] Price List Line for the item and vendor using an old date range.
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, PriceListLine."Price List Code",
+            "Price Source Type"::Vendor, Vendor."No.", "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 20, 2));
+        PriceListLine.Status := PriceListLine.Status::Active;
+        PriceListLine.Validate("Ending Date", WorkDate() - 1);
+        PriceListLine.Modify(true);
+
+        // [GIVEN] Price List Line for the item and vendor using a new date range.
+        PriceListLine.Init();
+        LibraryPriceCalculation.CreatePurchPriceLine(
+            PriceListLine, PriceListLine."Price List Code",
+            "Price Source Type"::Vendor, Vendor."No.", "Price Asset Type"::Item, Item."No.");
+        PriceListLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(30, 60, 2));
+        PriceListLine.Status := PriceListLine.Status::Active;
+        PriceListLine.Validate("Starting Date", WorkDate());
+        PriceListLine.Modify(true);
+
+        // [GIVEN] A requisition line for the item and vendor
+        CreateRequisitionLine(RequisitionLine);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandIntInRange(1, 10));
+        RequisitionLine.Modify(true);
+
+        // [WHEN] Setting ending date to workdate, requiring the item to be ordered in the past according to the lead time
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+
+        // [THEN] The price should still be current and not pick the price when the order should have been placed.
+        Assert.AreEqual(PriceListLine."Direct Unit Cost", RequisitionLine."Direct Unit Cost", 'Price Calculation did not pick new price');
+
+        // [THEN] Order date should be later than starting date.
+        Assert.AreEqual(RequisitionLine."Order Date", WorkDate(), 'Order Date is not set to current date');
+        Assert.IsTrue(RequisitionLine."Starting Date" < RequisitionLine."Order Date", 'Starting Date is not earlier than Order Date');
     end;
 
     local procedure Initialize()
