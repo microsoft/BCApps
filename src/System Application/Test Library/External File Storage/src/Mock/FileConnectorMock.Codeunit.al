@@ -30,6 +30,8 @@ codeunit 135810 "File Connector Mock"
         TestFileAccount.DeleteAll();
 
         TestFileStorageConnector.ResetLastDeletedPath();
+        TestFileStorageConnector.ResetFileExistsCallCount();
+        TestFileStorageConnector.SetFailOnGetFile(false);
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -125,5 +127,27 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         exit(TestFileStorageConnector.GetLastDeletedPath());
+    end;
+
+    /// <summary>
+    /// Gets the number of times that the test file storage connector checked whether a file exists.
+    /// </summary>
+    /// <returns>The number of file existence checks.</returns>
+    procedure GetFileExistsCallCount(): Integer
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        exit(TestFileStorageConnector.GetFileExistsCallCount());
+    end;
+
+    /// <summary>
+    /// Specifies whether the test file storage connector fails when retrieving a file.
+    /// </summary>
+    /// <param name="FailOnGetFile">True to make file retrieval fail; otherwise, false.</param>
+    procedure SetFailOnGetFile(FailOnGetFile: Boolean)
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        TestFileStorageConnector.SetFailOnGetFile(FailOnGetFile);
     end;
 }

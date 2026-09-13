@@ -19,6 +19,7 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         ExternalStorageTok: Label 'External Storage - Document Attachments', Locked = true;
         ExternalStorageCategoryLbl: Label 'External Storage', Locked = true;
+        FileDownloadFailedTelemetryErr: Label 'The file could not be retrieved from external storage.', Locked = true;
 
     internal procedure LogFeatureEnabled()
     begin
@@ -49,6 +50,14 @@ codeunit 8754 "DA Feature Telemetry"
     begin
         GetTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
         FeatureTelemetry.LogUsage('0000RNS', ExternalStorageTok, 'File Downloaded', Dimensions);
+    end;
+
+    internal procedure LogFileDownloadFailed(DocumentAttachment: Record "Document Attachment")
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetFailureTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
+        FeatureTelemetry.LogError('0000RNY', ExternalStorageTok, 'File Download Failed', FileDownloadFailedTelemetryErr, '', Dimensions);
     end;
 
     internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")
@@ -105,6 +114,17 @@ codeunit 8754 "DA Feature Telemetry"
         
         if DocumentAttachment."External Upload Date" <> 0DT then
             Dimensions.Add('Upload Date', Format(DocumentAttachment."External Upload Date", 0, 9));
+    end;
+
+    local procedure GetFailureTelemetryDimensions(DocumentAttachment: Record "Document Attachment"; Operation: Text; var Dimensions: Dictionary of [Text, Text])
+    begin
+        Clear(Dimensions);
+        Dimensions.Add('Category', ExternalStorageCategoryLbl);
+        Dimensions.Add('Operation', Operation);
+        Dimensions.Add('Table ID', Format(DocumentAttachment."Table ID"));
+        Dimensions.Add('Stored Externally', Format(DocumentAttachment."Stored Externally"));
+        Dimensions.Add('Stored Internally', Format(DocumentAttachment."Stored Internally"));
+        Dimensions.Add('Has External Path', Format(DocumentAttachment."External File Path" <> ''));
     end;
 
     [TryFunction]
