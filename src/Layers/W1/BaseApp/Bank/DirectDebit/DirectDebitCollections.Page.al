@@ -87,7 +87,6 @@ page 1207 "Direct Debit Collections"
                 Caption = 'Create Direct Debit Collection';
                 Image = NewInvoice;
                 RunObject = Report "Create Direct Debit Collection";
-                ToolTip = 'Create a direct-debit collection to collect invoice payments directly from a customer''s bank account based on direct-debit mandates.';
             }
         }
         area(processing)
