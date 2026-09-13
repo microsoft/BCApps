@@ -90,11 +90,11 @@ codeunit 22 "Item Jnl.-Post Line"
         InventoryPostingToGL: Codeunit "Inventory Posting To G/L";
         AvgCostEntryPointHandler: Codeunit "Avg. Cost Entry Point Handler";
         ACYMgt: Codeunit "Additional-Currency Management";
-        ItemLedgEntryNo: Integer;
-        PhysInvtEntryNo: Integer;
-        CapLedgEntryNo: Integer;
-        ValueEntryNo: Integer;
-        ItemApplnEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
+        PhysInvtEntryNo: BigInteger;
+        CapLedgEntryNo: BigInteger;
+        ValueEntryNo: BigInteger;
+        ItemApplnEntryNo: BigInteger;
         TotalAppliedQty: Decimal;
         OverheadAmount: Decimal;
         VarianceAmount: Decimal;
@@ -205,9 +205,9 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure "Code"()
     var
-        xItemLedgEntryNo: Integer;
-        xItemApplnEntryNo: Integer;
-        xValueEntryNo: Integer;
+        xItemLedgEntryNo: BigInteger;
+        xItemApplnEntryNo: BigInteger;
+        xValueEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         xItemLedgEntryNo := ItemLedgEntryNo;
@@ -2191,7 +2191,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ValidateSequenceNo(ValueEntryNo, xValueEntryNo, Database::"Value Entry");
     end;
 
-    local procedure InsertItemReg(ItemLedgEntryNo: Integer; PhysInvtEntryNo: Integer; ValueEntryNo: Integer; CapLedgEntryNo: Integer)
+    local procedure InsertItemReg(ItemLedgEntryNo: BigInteger; PhysInvtEntryNo: BigInteger; ValueEntryNo: BigInteger; CapLedgEntryNo: BigInteger)
     begin
         if ItemReg."No." = 0 then begin
             ItemReg."No." := ItemReg.GetNextEntryNo(InvtSetup.UseLegacyPosting());
@@ -2243,7 +2243,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetNextValueEntryNo(CurrValueEntryNo: Integer): Integer
+    local procedure GetNextValueEntryNo(CurrValueEntryNo: BigInteger): BigInteger
     begin
         if InvtSetup.UseLegacyPosting() then
             exit(CurrValueEntryNo + 1);
@@ -2407,7 +2407,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="PostingDate">Item ledger entry posting date.</param>
     /// <param name="Quantity">Item ledger entry quantity.</param>
     /// <param name="CostToApply">If true, then cost application will be set to true.</param>
-    procedure InsertApplEntry(ItemLedgEntryNo: Integer; InboundItemEntry: Integer; OutboundItemEntry: Integer; TransferedFromEntryNo: Integer; PostingDate: Date; Quantity: Decimal; CostToApply: Boolean)
+    procedure InsertApplEntry(ItemLedgEntryNo: BigInteger; InboundItemEntry: BigInteger; OutboundItemEntry: BigInteger; TransferedFromEntryNo: BigInteger; PostingDate: Date; Quantity: Decimal; CostToApply: Boolean)
     var
         ApplItemLedgEntry: Record "Item Ledger Entry";
         OldItemApplnEntry: Record "Item Application Entry";
@@ -2505,7 +2505,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure UpdateItemApplnEntry(ItemLedgEntryNo: Integer; PostingDate: Date)
+    local procedure UpdateItemApplnEntry(ItemLedgEntryNo: BigInteger; PostingDate: Date)
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -4054,7 +4054,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure SplitItemJnlLine(var ItemJnlLine2: Record "Item Journal Line"; PostItemJnlLine: Boolean): Boolean
     var
-        FreeEntryNo: Integer;
+        FreeEntryNo: BigInteger;
         JnlLineNo: Integer;
         SignFactor: Integer;
         IsHandled: Boolean;
@@ -4567,7 +4567,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// </summary>
     /// <param name="OldItemLedgEntryNo">Inbound item ledger entry number.</param>
     /// <param name="NewItemLedgEntryNo">Outbound item ledger entry number.</param>
-    procedure UndoValuePostingWithJob(OldItemLedgEntryNo: Integer; NewItemLedgEntryNo: Integer)
+    procedure UndoValuePostingWithJob(OldItemLedgEntryNo: BigInteger; NewItemLedgEntryNo: BigInteger)
     var
         OldItemLedgEntry: Record "Item Ledger Entry";
         NewItemLedgEntry: Record "Item Ledger Entry";
@@ -4754,7 +4754,7 @@ codeunit 22 "Item Jnl.-Post Line"
         InsertPostValueEntryToGL(NewValueEntry);
     end;
 
-    local procedure UpdateOrigAppliedFromEntry(OldItemLedgEntryNo: Integer)
+    local procedure UpdateOrigAppliedFromEntry(OldItemLedgEntryNo: BigInteger)
     var
         ItemApplEntry: Record "Item Application Entry";
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -4984,7 +4984,7 @@ codeunit 22 "Item Jnl.-Post Line"
             Error(CannotUnapplyCorrEntryErr);
     end;
 
-    local procedure InsertTempTrkgSpecification(FreeEntryNo: Integer)
+    local procedure InsertTempTrkgSpecification(FreeEntryNo: BigInteger)
     var
         TempTrackingSpecification2: Record "Tracking Specification" temporary;
     begin
@@ -5588,7 +5588,7 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure GetMaxAppliedValuationdate(ItemLedgerEntry: Record "Item Ledger Entry"): Date
     var
         ToItemApplnEntry: Record "Item Application Entry";
-        FromItemledgEntryNo: Integer;
+        FromItemledgEntryNo: BigInteger;
         FromInbound: Boolean;
         MaxDate: Date;
         NewDate: Date;
@@ -5636,7 +5636,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <param name="ItemLedgerEntryNo">Item ledger entry no. to find value entries for.</param>
     /// <param name="ValuationDate">Valuation date to set.</param>
     /// <param name="FixedApplication">Indicates if it's a fixed application.</param>
-    procedure SetValuationDateAllValueEntrie(ItemLedgerEntryNo: Integer; ValuationDate: Date; FixedApplication: Boolean)
+    procedure SetValuationDateAllValueEntrie(ItemLedgerEntryNo: BigInteger; ValuationDate: Date; FixedApplication: Boolean)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -6083,7 +6083,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeApplyItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var OldItemLedgEntry: Record "Item Ledger Entry"; var ValueEntry: Record "Value Entry"; CausedByTransfer: Boolean; var Handled: Boolean; ItemJnlLine: Record "Item Journal Line"; var ItemApplnEntryNo: Integer)
+    local procedure OnBeforeApplyItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var OldItemLedgEntry: Record "Item Ledger Entry"; var ValueEntry: Record "Value Entry"; CausedByTransfer: Boolean; var Handled: Boolean; ItemJnlLine: Record "Item Journal Line"; var ItemApplnEntryNo: BigInteger)
     begin
     end;
 
@@ -6168,7 +6168,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertApplEntry(var ItemLedgEntryNo: Integer; var InboundItemEntry: Integer; var OutboundItemEntry: Integer; var TransferedFromEntryNo: Integer; var PostingDate: Date; var Quantity: Decimal; var CostToApply: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertApplEntry(var ItemLedgEntryNo: BigInteger; var InboundItemEntry: BigInteger; var OutboundItemEntry: BigInteger; var TransferedFromEntryNo: BigInteger; var PostingDate: Date; var Quantity: Decimal; var CostToApply: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -6242,7 +6242,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
+    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -6252,7 +6252,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer; var ValueEntryNo: Integer; var ItemApplnEntryNo: Integer; GlobalValueEntry: Record "Value Entry"; TransferItem: Boolean; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; var OldItemLedgerEntry: Record "Item Ledger Entry")
+    local procedure OnAfterInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger; var ValueEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; GlobalValueEntry: Record "Value Entry"; TransferItem: Boolean; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; var OldItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 
@@ -6267,12 +6267,12 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; var OldItemLedgEntry: Record "Item Ledger Entry"; var Item: Record Item; TransferItem: Boolean; var GlobalValueEntry: Record "Value Entry")
+    local procedure OnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; var OldItemLedgEntry: Record "Item Ledger Entry"; var Item: Record Item; TransferItem: Boolean; var GlobalValueEntry: Record "Value Entry")
     begin
     end;
 
@@ -6282,7 +6282,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitValueEntry(var ValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ValueEntryNo: Integer; var ItemLedgEntry: Record "Item Ledger Entry")
+    local procedure OnAfterInitValueEntry(var ValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ValueEntryNo: BigInteger; var ItemLedgEntry: Record "Item Ledger Entry")
     begin
     end;
 
@@ -6322,12 +6322,12 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
+    local procedure OnBeforeInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; OldValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; Sign: Integer; CalledFromAdjustment: Boolean; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertCorrValueEntry(var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -6355,7 +6355,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeItemApplnEntryInsert(var ItemApplicationEntry: Record "Item Application Entry"; GlobalItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplnEntryNo: Integer)
+    local procedure OnBeforeItemApplnEntryInsert(var ItemApplicationEntry: Record "Item Application Entry"; GlobalItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplnEntryNo: BigInteger)
     begin
     end;
 
@@ -6378,7 +6378,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: Integer; var ValueEntryNo: Integer; var ItemApplnEntryNo: Integer; var PhysicalInventoryEntryNo: Integer; var CapacityLedgerEntryNo: Integer)
+    local procedure OnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: BigInteger; var ValueEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; var PhysicalInventoryEntryNo: BigInteger; var CapacityLedgerEntryNo: BigInteger)
     begin
     end;
 
@@ -6393,7 +6393,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: Integer; var ItemApplnEntryNo: Integer; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; var PhysicalInventoryEntryNo: Integer; var CapacityLedgerEntryNo: Integer)
+    local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; var PhysicalInventoryEntryNo: BigInteger; var CapacityLedgerEntryNo: BigInteger)
     begin
     end;
 
@@ -6634,7 +6634,7 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeInitValueEntry(var ValueEntry: Record "Value Entry"; var ValueEntryNo: Integer; var ItemJournalLine: Record "Item Journal Line")
+    local procedure OnBeforeInitValueEntry(var ValueEntry: Record "Value Entry"; var ValueEntryNo: BigInteger; var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 
@@ -6831,7 +6831,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterInsertTransferEntry(var ItemJournalLine: Record "Item Journal Line"; NewItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; NewValueEntry: Record "Value Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertTransferEntry(var ItemJournalLine: Record "Item Journal Line"; NewItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; NewValueEntry: Record "Value Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -7052,7 +7052,7 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
     [IntegrationEvent(true, false)]
-    local procedure OnInsertOHValueEntryOnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnInsertOHValueEntryOnBeforeInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -7072,7 +7072,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnItemValuePostingOnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnItemValuePostingOnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -7694,7 +7694,7 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure SaveTouchedEntry(ItemLedgerEntryNo: Integer; IsInbound: Boolean)
     var
         ItemApplicationEntryHistory: Record "Item Application Entry History";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         if not CalledFromApplicationWorksheet then
             exit;
@@ -7853,7 +7853,7 @@ codeunit 22 "Item Jnl.-Post Line"
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Value Entry", 'r')]
-    local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    local procedure ValidateSequenceNo(LedgEntryNo: BigInteger; xLedgEntryNo: BigInteger; TableNo: Integer)
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -8408,7 +8408,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnItemValuePostingOnBeforeInsertOHValueEntry(var ItemJnlLine: Record "Item Journal Line"; var GlobalValueEntry: Record "Value Entry"; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal; var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceRequired: Boolean)
+    local procedure OnItemValuePostingOnBeforeInsertOHValueEntry(var ItemJnlLine: Record "Item Journal Line"; var GlobalValueEntry: Record "Value Entry"; var GlobalItemLedgEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var IsHandled: Boolean; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal; var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceRequired: Boolean)
     begin
     end;
 
@@ -8724,7 +8724,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertBalanceExpCostRevEntry(var GlobalItemLedgEntry: Record "Item Ledger Entry"; ValueEntry: Record "Value Entry"; var ValueEntryNo: Integer; var GLSetup: Record "General Ledger Setup"; var Currency: Record Currency; var GLSetupRead: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertBalanceExpCostRevEntry(var GlobalItemLedgEntry: Record "Item Ledger Entry"; ValueEntry: Record "Value Entry"; var ValueEntryNo: BigInteger; var GLSetup: Record "General Ledger Setup"; var Currency: Record Currency; var GLSetupRead: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -8789,7 +8789,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertCorrValueEntryOnAfterAssignNewValueEntry(GlobalItemLedgerEntry: Record "Item Ledger Entry"; var OldValueEntry: Record "Value Entry"; var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnInsertCorrValueEntryOnAfterAssignNewValueEntry(GlobalItemLedgerEntry: Record "Item Ledger Entry"; var OldValueEntry: Record "Value Entry"; var NewValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
     end;
 
@@ -8990,7 +8990,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertTransferEntryOnBeforeInsertValueEntry(var NewValueEntry: Record "Value Entry"; var NewItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer; var IsHandled: Boolean; ItemJournalLine: Record "Item Journal Line")
+    local procedure OnInsertTransferEntryOnBeforeInsertValueEntry(var NewValueEntry: Record "Value Entry"; var NewItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger; var IsHandled: Boolean; ItemJournalLine: Record "Item Journal Line")
     begin
     end;
 

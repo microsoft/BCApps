@@ -30,8 +30,8 @@ codeunit 6501 "Item Tracking Data Collection"
         CurrItemTrackingCode: Record "Item Tracking Code";
         TempGlobalTrackingSpec: Record "Tracking Specification" temporary;
         CurrBinCode: Code[20];
-        LastSummaryEntryNo: Integer;
-        LastReservEntryNo: Integer;
+        LastSummaryEntryNo: BigInteger;
+        LastReservEntryNo: BigInteger;
         FullGlobalDataSetExists: Boolean;
         SkipLot: Boolean;
         DirectTransfer: Boolean;
@@ -773,7 +773,7 @@ codeunit 6501 "Item Tracking Data Collection"
 
     procedure UpdateTrackingDataSetWithChange(var TempTrackingSpecificationChanged: Record "Tracking Specification" temporary; LineIsDemand: Boolean; CurrentSignFactor: Integer; ChangeType: Option Insert,Modify,Delete)
     var
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         if not TempTrackingSpecificationChanged.TrackingExists() then
             exit;
@@ -783,10 +783,10 @@ codeunit 6501 "Item Tracking Data Collection"
         UpdateTempSummaryWithChange(TempGlobalChangedEntrySummary);
     end;
 
-    local procedure UpdateTrackingGlobalChangeRec(var TempTrackingSpecificationChanged: Record "Tracking Specification" temporary; LineIsDemand: Boolean; CurrentSignFactor: Integer; ChangeType: Option Insert,Modify,Delete): Integer
+    local procedure UpdateTrackingGlobalChangeRec(var TempTrackingSpecificationChanged: Record "Tracking Specification" temporary; LineIsDemand: Boolean; CurrentSignFactor: Integer; ChangeType: Option Insert,Modify,Delete): BigInteger
     var
         NewQuantity: Decimal;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         if (ChangeType = ChangeType::Delete) or not LineIsDemand then
             NewQuantity := 0
@@ -1718,7 +1718,7 @@ codeunit 6501 "Item Tracking Data Collection"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnRetrieveLookupDataOnAfterTransferToTempRec(var TempEntrySummary: Record "Entry Summary" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; var ItemLedgEntry: Record "Item Ledger Entry"; var LastSummaryEntryNo: Integer)
+    local procedure OnRetrieveLookupDataOnAfterTransferToTempRec(var TempEntrySummary: Record "Entry Summary" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; var ItemLedgEntry: Record "Item Ledger Entry"; var LastSummaryEntryNo: BigInteger)
     begin
     end;
 

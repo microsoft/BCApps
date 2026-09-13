@@ -24,7 +24,7 @@ table 281 "Phys. Inventory Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -94,7 +94,7 @@ table 281 "Phys. Inventory Ledger Entry"
             Caption = 'Amount';
             ToolTip = 'Specifies the total amount for the items in the ledger entry.';
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -160,7 +160,7 @@ table 281 "Phys. Inventory Ledger Entry"
             Caption = 'Qty. (Phys. Inventory)';
             DecimalPlaces = 0 : 5;
         }
-        field(56; "Last Item Ledger Entry No."; Integer)
+        field(56; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             ToolTip = 'Specifies the number of the last item ledger entry that provided the basis for the physical inventory ledger entry.';
@@ -323,7 +323,7 @@ table 281 "Phys. Inventory Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Phys. Inventory Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

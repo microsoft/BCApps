@@ -306,7 +306,7 @@ page 1571 "G/L Entries Preview Subform"
     var
         GLAccount: Record "G/L Account";
         TempGLAccount: Record "G/L Account" temporary;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if RecRef.FindSet() then
             repeat

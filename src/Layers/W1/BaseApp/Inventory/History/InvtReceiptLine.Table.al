@@ -162,7 +162,7 @@ table 5853 "Invt. Receipt Line"
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;

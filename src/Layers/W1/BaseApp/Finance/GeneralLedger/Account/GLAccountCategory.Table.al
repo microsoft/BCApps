@@ -248,7 +248,7 @@ table 570 "G/L Account Category"
     /// Returns the entry number of the newly created category for further processing.
     /// </summary>
     /// <returns>Entry number of the newly inserted account category</returns>
-    procedure InsertRow(): Integer
+    procedure InsertRow(): BigInteger
     var
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
     begin

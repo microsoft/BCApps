@@ -36,7 +36,7 @@ table 265 "Document Entry"
             Caption = 'Posting Date';
             FieldClass = FlowFilter;
         }
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';

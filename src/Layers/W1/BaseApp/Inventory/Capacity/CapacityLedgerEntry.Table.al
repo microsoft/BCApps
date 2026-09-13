@@ -23,7 +23,7 @@ table 5832 "Capacity Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -67,7 +67,7 @@ table 5832 "Capacity Ledger Entry"
             Caption = 'Invoiced Quantity';
             DecimalPlaces = 0 : 5;
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -193,7 +193,7 @@ table 5832 "Capacity Ledger Entry"
             ToolTip = 'Specifies if the entry has been part of a reverse transaction.';
             DataClassification = CustomerContent;
         }
-        field(88; "Reversed by Entry No."; Integer)
+        field(88; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -201,7 +201,7 @@ table 5832 "Capacity Ledger Entry"
             DataClassification = CustomerContent;
             TableRelation = "Capacity Ledger Entry";
         }
-        field(89; "Reversed Entry No."; Integer)
+        field(89; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -343,7 +343,7 @@ table 5832 "Capacity Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Capacity Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

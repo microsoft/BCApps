@@ -25,7 +25,7 @@ table 1053 "Line Fee Note on Report Hist."
         /// <summary>
         /// Specifies the customer ledger entry number for which this line fee note was generated.
         /// </summary>
-        field(1; "Cust. Ledger Entry No"; Integer)
+        field(1; "Cust. Ledger Entry No"; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No';
             Editable = false;

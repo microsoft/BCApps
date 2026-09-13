@@ -28,7 +28,7 @@ table 5908 "Warranty Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -233,7 +233,7 @@ table 5908 "Warranty Ledger Entry"
         {
             Caption = 'Service Order Line No.';
         }
-        field(95; "Service Register No."; Integer)
+        field(95; "Service Register No."; BigInteger)
         {
             Caption = 'Service Register No.';
             Editable = false;
@@ -361,7 +361,7 @@ table 5908 "Warranty Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warranty Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

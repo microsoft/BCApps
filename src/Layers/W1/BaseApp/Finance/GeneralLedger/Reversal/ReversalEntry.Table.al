@@ -88,7 +88,7 @@ table 179 "Reversal Entry"
         /// <summary>
         /// G/L Register number that contains the entry being reversed, used for register-based reversals.
         /// </summary>
-        field(4; "G/L Register No."; Integer)
+        field(4; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             ToolTip = 'Specifies the number of the general ledger register, where the general ledger entry in this record was posted.';

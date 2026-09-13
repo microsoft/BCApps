@@ -415,7 +415,7 @@ table 5137 "Job Planning Line Archive"
             Caption = 'Description 2';
             ToolTip = 'Specifies information in addition to the description.';
         }
-        field(1043; "Job Ledger Entry No."; Integer)
+        field(1043; "Job Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';

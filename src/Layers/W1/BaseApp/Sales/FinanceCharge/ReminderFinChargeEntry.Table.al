@@ -27,7 +27,7 @@ table 300 "Reminder/Fin. Charge Entry"
         /// <summary>
         /// Specifies the unique sequential number assigned to this reminder or finance charge entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -95,7 +95,7 @@ table 300 "Reminder/Fin. Charge Entry"
         /// <summary>
         /// Specifies the customer ledger entry number that this reminder or finance charge relates to.
         /// </summary>
-        field(9; "Customer Entry No."; Integer)
+        field(9; "Customer Entry No."; BigInteger)
         {
             Caption = 'Customer Entry No.';
             ToolTip = 'Specifies the number of the customer ledger entry on the reminder line or finance charge memo line.';
@@ -222,7 +222,7 @@ table 300 "Reminder/Fin. Charge Entry"
     /// </summary>
     /// <returns>The last entry number, or 0 if no entries exist.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Reminder/Fin. Charge Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

@@ -414,7 +414,7 @@ table 5475 "Sales Invoice Entity Aggregate"
             Caption = 'Ship-to Phone No.';
             ExtendedDatatype = PhoneNo;
         }
-        field(1304; "Cust. Ledger Entry No."; Integer)
+        field(1304; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             DataClassification = CustomerContent;

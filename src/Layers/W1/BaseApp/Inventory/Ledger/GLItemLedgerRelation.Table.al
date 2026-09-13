@@ -13,21 +13,21 @@ table 5823 "G/L - Item Ledger Relation"
 
     fields
     {
-        field(1; "G/L Entry No."; Integer)
+        field(1; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             ToolTip = 'Specifies the number of the general ledger entry where cost from the associated value entry number in this record is posted.';
             NotBlank = true;
             TableRelation = "G/L Entry";
         }
-        field(2; "Value Entry No."; Integer)
+        field(2; "Value Entry No."; BigInteger)
         {
             Caption = 'Value Entry No.';
             ToolTip = 'Specifies the number of the value entry that has its cost posted in the associated general ledger entry in this record.';
             NotBlank = true;
             TableRelation = "Value Entry";
         }
-        field(3; "G/L Register No."; Integer)
+        field(3; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             ToolTip = 'Specifies the number of the general ledger register, where the general ledger entry in this record was posted.';

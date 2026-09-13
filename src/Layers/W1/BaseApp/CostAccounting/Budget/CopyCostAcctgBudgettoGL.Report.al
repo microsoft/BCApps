@@ -208,7 +208,7 @@ report 1136 "Copy Cost Acctg. Budget to G/L"
         DateFormula: DateFormula;
         Window: Dialog;
         DateChange: Code[10];
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoOfCopies: Integer;
         Factor: Decimal;
         i: Integer;

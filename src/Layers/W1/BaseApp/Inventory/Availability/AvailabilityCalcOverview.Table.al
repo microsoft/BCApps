@@ -15,7 +15,7 @@ table 5830 "Availability Calc. Overview"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -53,7 +53,7 @@ table 5830 "Availability Calc. Overview"
         {
             Caption = 'Unit of Measure Code';
         }
-        field(11; "Attached to Entry No."; Integer)
+        field(11; "Attached to Entry No."; BigInteger)
         {
             Caption = 'Attached to Entry No.';
             TableRelation = "Item Ledger Entry";

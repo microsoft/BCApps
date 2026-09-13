@@ -382,7 +382,7 @@ codeunit 130000 Assert
 
     local procedure IsNumber(Value: Variant): Boolean
     begin
-        exit(Value.IsDecimal or Value.IsInteger or Value.IsChar)
+        exit(Value.IsDecimal or Value.IsInteger or Value.IsBigInteger or Value.IsChar)
     end;
 
     procedure VerifyFailure(expectedErrorCode: Text; failureText: Text)

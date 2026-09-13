@@ -18,18 +18,18 @@ table 240 "Resource Register"
 
     fields
     {
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
-        field(2; "From Entry No."; Integer)
+        field(2; "From Entry No."; BigInteger)
         {
             Caption = 'From Entry No.';
             ToolTip = 'Specifies the first item entry number in the register.';
             TableRelation = "Res. Ledger Entry";
         }
-        field(3; "To Entry No."; Integer)
+        field(3; "To Entry No."; BigInteger)
         {
             Caption = 'To Entry No.';
             ToolTip = 'Specifies the number of the last entry line that you included before you posted the entries in the journal.';
@@ -100,7 +100,7 @@ table 240 "Resource Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Resource Register", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

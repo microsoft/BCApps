@@ -54,7 +54,7 @@ codeunit 439 "Export F/O Consolidation"
     procedure InsertGLEntry(NewGLEntry: Record "G/L Entry"): Integer
     var
         GLAccount: Record "G/L Account";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         NextEntryNo := TempGLEntry.GetLastEntryNo() + 1;
 

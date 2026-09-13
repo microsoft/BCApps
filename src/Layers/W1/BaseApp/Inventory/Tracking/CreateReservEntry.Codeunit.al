@@ -749,7 +749,7 @@ codeunit 99000830 "Create Reserv. Entry"
     var
         TempTrkgSpec3: Record "Tracking Specification" temporary;
         TempTrkgSpec4: Record "Tracking Specification" temporary;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NextState: Option SetFilter1,SetFilter2,LoosenFilter1,LoosenFilter2,Split,Error,Finish;
         IsHandled: Boolean;
     begin

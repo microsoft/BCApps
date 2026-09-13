@@ -597,7 +597,7 @@ table 124 "Purch. Cr. Memo Hdr."
             Editable = false;
             FieldClass = FlowField;
         }
-        field(1304; "Vendor Ledger Entry No."; Integer)
+        field(1304; "Vendor Ledger Entry No."; BigInteger)
         {
             Caption = 'Vendor Ledger Entry No.';
             Editable = false;

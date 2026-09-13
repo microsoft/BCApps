@@ -32,7 +32,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         WhseReg: Record "Warehouse Register";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         WMSMgt: Codeunit "WMS Management";
-        GlobalWhseEntryNo: Integer;
+        GlobalWhseEntryNo: BigInteger;
 #pragma warning disable AA0074
         Text000: Label 'is not sufficient to complete this action. The quantity in the bin is %1. %2 units are not available', Comment = '%1 = the value of the Quantity that is in the bin; %2 = the value of the Quantity that is not available.';
 #pragma warning disable AA0470
@@ -45,7 +45,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     var
         GlobalWhseEntry: Record "Warehouse Entry";
         Item: Record Item;
-        xGlobalWhseEntryNo: Integer;
+        xGlobalWhseEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         xGlobalWhseEntryNo := GlobalWhseEntryNo;
@@ -109,7 +109,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     procedure InitWhseEntry(var WhseEntry: Record "Warehouse Entry"; ZoneCode: Code[10]; BinCode: Code[20]; Sign: Integer)
     var
         ToBinContent: Record "Bin Content";
-        xGlobalWhseEntryNo: Integer;
+        xGlobalWhseEntryNo: BigInteger;
         IsHandled: Boolean;
         ShouldDeleteFromBinContent: Boolean;
     begin
@@ -208,7 +208,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         WhseEntry2: Record "Warehouse Entry";
         WhseItemTrackingSetup: Record "Item Tracking Setup";
         Sign: Integer;
-        xGlobalWhseEntryNo: Integer;
+        xGlobalWhseEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -510,7 +510,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         end;
     end;
 
-    local procedure InsertWhseReg(WhseEntryNo: Integer)
+    local procedure InsertWhseReg(WhseEntryNo: BigInteger)
     begin
         if WhseReg."No." = 0 then begin
             WhseReg.Init();
@@ -586,9 +586,9 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         WarehouseJournalLine := WhseJnlLine;
     end;
 
-    procedure SetWhseEntryNo(NewWhseEntryNo: Integer)
+    procedure SetWhseEntryNo(NewWhseEntryNo: BigInteger)
     var
-        xGlobalWhseEntryNo: Integer;
+        xGlobalWhseEntryNo: BigInteger;
     begin
         xGlobalWhseEntryNo := GlobalWhseEntryNo;
         GlobalWhseEntryNo := NewWhseEntryNo;
@@ -601,7 +601,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Entry", 'r')]
-    local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    local procedure ValidateSequenceNo(LedgEntryNo: BigInteger; xLedgEntryNo: BigInteger; TableNo: Integer)
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -623,7 +623,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInitWhseEntryOnBeforeInitWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; ZoneCode: Code[10]; BinCode: Code[20]; Sign: Integer; var GlobalWhseEntryNo: Integer)
+    local procedure OnInitWhseEntryOnBeforeInitWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; ZoneCode: Code[10]; BinCode: Code[20]; Sign: Integer; var GlobalWhseEntryNo: BigInteger)
     begin
     end;
 
@@ -633,7 +633,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseEntryNo: Integer; var WarehouseRegister: Record "Warehouse Register")
+    local procedure OnAfterCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseEntryNo: BigInteger; var WarehouseRegister: Record "Warehouse Register")
     begin
     end;
 
@@ -653,7 +653,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseEntryNo: Integer; var IsHandled: Boolean; var WarehouseRegister: Record "Warehouse Register")
+    local procedure OnBeforeCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseEntryNo: BigInteger; var IsHandled: Boolean; var WarehouseRegister: Record "Warehouse Register")
     begin
     end;
 
@@ -708,7 +708,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnDeleteFromBinContentOnAfterSetFiltersForBinContent(var BinContent: Record "Bin Content"; WarehouseEntry: Record "Warehouse Entry"; var WhseJnlLine: Record "Warehouse Journal Line"; var WhseReg: Record "Warehouse Register"; var WhseEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnDeleteFromBinContentOnAfterSetFiltersForBinContent(var BinContent: Record "Bin Content"; WarehouseEntry: Record "Warehouse Entry"; var WhseJnlLine: Record "Warehouse Journal Line"; var WhseReg: Record "Warehouse Register"; var WhseEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -728,7 +728,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInitWhseEntryOnAfterGetToBinContent(var WhseEntry: Record "Warehouse Entry"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var WhseJnlLine: Record "Warehouse Journal Line"; var WhseReg: Record "Warehouse Register"; var WhseEntryNo: Integer; var Bin: Record Bin)
+    local procedure OnInitWhseEntryOnAfterGetToBinContent(var WhseEntry: Record "Warehouse Entry"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var WhseJnlLine: Record "Warehouse Journal Line"; var WhseReg: Record "Warehouse Register"; var WhseEntryNo: BigInteger; var Bin: Record Bin)
     begin
     end;
 

@@ -27,7 +27,7 @@ table 1209 "Credit Trans Re-export History"
         /// <summary>
         /// Credit transfer register number that was re-exported.
         /// </summary>
-        field(2; "Credit Transfer Register No."; Integer)
+        field(2; "Credit Transfer Register No."; BigInteger)
         {
             Caption = 'Credit Transfer Register No.';
             TableRelation = "Credit Transfer Register";

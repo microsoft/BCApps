@@ -70,7 +70,7 @@ codeunit 6529 "Item Tracking Navigate Mgt."
         TempField: Record "Field" temporary;
         TempJobLedgEntry: Record "Job Ledger Entry" temporary;
         RecRef: RecordRef;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
 
 
     procedure FindTrackingRecords(SerialNoFilter: Text; LotNoFilter: Text; PackageNoFilter: Text; ItemNoFilter: Text; VariantFilter: Text)

@@ -60,8 +60,8 @@ codeunit 23 "Item Jnl.-Post Batch"
         Window: Dialog;
         ItemsToAdjust: List of [Code[20]];
         PostponedValueEntries: List of [Integer];
-        ItemRegNo: Integer;
-        WhseRegNo: Integer;
+        ItemRegNo: BigInteger;
+        WhseRegNo: BigInteger;
         StartLineNo: Integer;
         NoOfRecords: Integer;
         LineCount: Integer;
@@ -1003,14 +1003,14 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInsertItemLedgEntry', '', false, false)]
-    local procedure OnAfterInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer; var ValueEntryNo: Integer; var ItemApplnEntryNo: Integer; GlobalValueEntry: Record "Value Entry"; TransferItem: Boolean; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; var OldItemLedgerEntry: Record "Item Ledger Entry")
+    local procedure OnAfterInsertItemLedgEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger; var ValueEntryNo: BigInteger; var ItemApplnEntryNo: BigInteger; GlobalValueEntry: Record "Value Entry"; TransferItem: Boolean; var InventoryPostingToGL: Codeunit "Inventory Posting To G/L"; var OldItemLedgerEntry: Record "Item Ledger Entry")
     begin
         if ItemLedgerEntry."Item Register No." <> 0 then
             ItemRegNo := ItemLedgerEntry."Item Register No.";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInsertValueEntry', '', false, false)]
-    local procedure OnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: Integer)
+    local procedure OnAfterInsertValueEntry(var ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ValueEntryNo: BigInteger)
     begin
         if ValueEntry."Item Register No." <> 0 then
             ItemRegNo := ValueEntry."Item Register No.";
@@ -1068,7 +1068,7 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyRegNos(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
+    local procedure OnAfterCopyRegNos(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: BigInteger; var WhseRegNo: BigInteger)
     begin
     end;
 
@@ -1083,7 +1083,7 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
+    local procedure OnBeforePostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: BigInteger; var WhseRegNo: BigInteger)
     begin
     end;
 
@@ -1093,7 +1093,7 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
+    local procedure OnAfterPostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: BigInteger; var WhseRegNo: BigInteger)
     begin
     end;
 
@@ -1188,7 +1188,7 @@ codeunit 23 "Item Jnl.-Post Batch"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateDeleteLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
+    local procedure OnBeforeUpdateDeleteLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: BigInteger; var WhseRegNo: BigInteger)
     begin
     end;
 

@@ -41,7 +41,7 @@ table 382 "CV Ledger Entry Buffer"
         /// <summary>
         /// Entry number identifying the ledger entry record.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
@@ -338,7 +338,7 @@ table 382 "CV Ledger Entry Buffer"
         /// <summary>
         /// Entry number that closed this entry through payment or application.
         /// </summary>
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             DataClassification = SystemMetadata;

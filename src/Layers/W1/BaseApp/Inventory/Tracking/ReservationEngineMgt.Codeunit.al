@@ -368,7 +368,7 @@ codeunit 99000831 "Reservation Engine Mgt."
         DampenerPeriod: DateFormula;
         DateFormula: DateFormula;
         FirstDate: Date;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         if not ShouldModifyActionMessageDating(ReservEntry) then
             exit;
@@ -466,7 +466,7 @@ codeunit 99000831 "Reservation Engine Mgt."
             until (TempReservEntry.Next() = 0) or (QtyToAdd = 0);
     end;
 
-    local procedure ModifyItemTrackingOnTempRec(var TempReservEntry: Record "Reservation Entry" temporary; var TrackingSpecification: Record "Tracking Specification"; QtyToAdd: Decimal; var QtyToAddAsBlank: Decimal; LastEntryNo: Integer; ItemTrackingCode: Record "Item Tracking Code"; EntryMismatch: Boolean; CalledRecursively: Boolean): Decimal
+    local procedure ModifyItemTrackingOnTempRec(var TempReservEntry: Record "Reservation Entry" temporary; var TrackingSpecification: Record "Tracking Specification"; QtyToAdd: Decimal; var QtyToAddAsBlank: Decimal; LastEntryNo: BigInteger; ItemTrackingCode: Record "Item Tracking Code"; EntryMismatch: Boolean; CalledRecursively: Boolean): Decimal
     var
         TempReservEntryCopy: Record "Reservation Entry" temporary;
         ReservEntry1: Record "Reservation Entry";

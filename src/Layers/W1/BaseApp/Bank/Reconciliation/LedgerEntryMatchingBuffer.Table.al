@@ -37,7 +37,7 @@ table 1248 "Ledger Entry Matching Buffer"
         /// Entry number from the source ledger entry table.
         /// Provides unique identification and enables linking back to original ledger records.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

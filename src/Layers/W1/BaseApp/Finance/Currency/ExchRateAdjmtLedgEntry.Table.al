@@ -30,7 +30,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         /// <summary>
         /// Register number linking this entry to the adjustment posting register.
         /// </summary>
-        field(1; "Register No."; Integer)
+        field(1; "Register No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the register number of the entry.';
@@ -38,7 +38,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         /// <summary>
         /// Unique sequential entry number for this adjustment ledger entry.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'No.';
         }

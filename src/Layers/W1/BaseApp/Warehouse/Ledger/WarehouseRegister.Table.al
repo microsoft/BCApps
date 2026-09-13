@@ -20,18 +20,18 @@ table 7313 "Warehouse Register"
 
     fields
     {
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
-        field(2; "From Entry No."; Integer)
+        field(2; "From Entry No."; BigInteger)
         {
             Caption = 'First Entry No.';
             ToolTip = 'Specifies the first item entry number in the register.';
             TableRelation = "Warehouse Entry";
         }
-        field(3; "To Entry No."; Integer)
+        field(3; "To Entry No."; BigInteger)
         {
             Caption = 'Last Entry No.';
             ToolTip = 'Specifies the last warehouse entry number in the register.';
@@ -83,9 +83,9 @@ table 7313 "Warehouse Register"
     {
     }
 
- #if not CLEAN27
-   [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-   procedure InsertRecord(UseLegacyPosting: Boolean)
+#if not CLEAN27
+    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
+    procedure InsertRecord(UseLegacyPosting: Boolean)
     begin
         InsertRecord();
     end;
@@ -120,7 +120,7 @@ table 7313 "Warehouse Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Register", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

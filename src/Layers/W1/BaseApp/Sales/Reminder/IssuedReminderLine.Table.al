@@ -58,7 +58,7 @@ table 298 "Issued Reminder Line"
         /// <summary>
         /// Specifies the customer ledger entry number that this line references.
         /// </summary>
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Entry No.';

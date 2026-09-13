@@ -2622,7 +2622,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Reference to incoming document entry for electronic invoice and document management integration.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this general journal line is created for.';
@@ -3554,7 +3554,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Fixed asset error entry number for tracking FA posting errors and corrections.
         /// </summary>
-        field(5615; "FA Error Entry No."; Integer)
+        field(5615; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';

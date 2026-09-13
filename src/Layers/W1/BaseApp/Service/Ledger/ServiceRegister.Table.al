@@ -17,30 +17,30 @@ table 5934 "Service Register"
 
     fields
     {
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
-        field(2; "From Entry No."; Integer)
+        field(2; "From Entry No."; BigInteger)
         {
             Caption = 'From Entry No.';
             ToolTip = 'Specifies the first item entry number in the register.';
             TableRelation = "Service Ledger Entry";
         }
-        field(3; "To Entry No."; Integer)
+        field(3; "To Entry No."; BigInteger)
         {
             Caption = 'To Entry No.';
             ToolTip = 'Specifies the last sequence number from the range of service ledger entries created for this register line.';
             TableRelation = "Service Ledger Entry";
         }
-        field(4; "From Warranty Entry No."; Integer)
+        field(4; "From Warranty Entry No."; BigInteger)
         {
             Caption = 'From Warranty Entry No.';
             ToolTip = 'Specifies the first sequence number from the range of warranty ledger entries created for this register line.';
             TableRelation = "Warranty Ledger Entry";
         }
-        field(5; "To Warranty Entry No."; Integer)
+        field(5; "To Warranty Entry No."; BigInteger)
         {
             Caption = 'To Warranty Entry No.';
             ToolTip = 'Specifies the last sequence number from the range of warranty ledger entries created for this register line.';
@@ -99,7 +99,7 @@ table 5934 "Service Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Service Register", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

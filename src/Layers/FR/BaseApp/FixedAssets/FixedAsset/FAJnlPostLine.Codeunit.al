@@ -243,7 +243,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     local procedure PostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry")
     var
         MaxDisposalNo: Integer;
-        SalesEntryNo: Integer;
+        SalesEntryNo: BigInteger;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
         EntryAmounts: array[15] of Decimal;

@@ -14,11 +14,11 @@ table 5812 "Item Application Trace"
 
     fields
     {
-        field(1; "From Entry No."; Integer)
+        field(1; "From Entry No."; BigInteger)
         {
 
         }
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
 
         }

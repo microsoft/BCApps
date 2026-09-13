@@ -16,7 +16,7 @@ table 1105 "Cost Register"
 
     fields
     {
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             Editable = false;
@@ -31,28 +31,28 @@ table 1105 "Cost Register"
             Caption = 'Text';
             Editable = false;
         }
-        field(4; "From G/L Entry No."; Integer)
+        field(4; "From G/L Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'From G/L Entry No.';
             Editable = false;
             TableRelation = "G/L Entry";
         }
-        field(5; "To G/L Entry No."; Integer)
+        field(5; "To G/L Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'To G/L Entry No.';
             Editable = false;
             TableRelation = "G/L Entry";
         }
-        field(6; "From Cost Entry No."; Integer)
+        field(6; "From Cost Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'From Cost Entry No.';
             Editable = false;
             TableRelation = "Cost Entry";
         }
-        field(7; "To Cost Entry No."; Integer)
+        field(7; "To Cost Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'To Cost Entry No.';

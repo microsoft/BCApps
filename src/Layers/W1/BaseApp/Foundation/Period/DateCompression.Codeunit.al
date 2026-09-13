@@ -100,7 +100,7 @@ codeunit 9040 "Date Compression"
     var
         AnalysisView: Record "Analysis View";
         DateCompRegister: Record "Date Compr. Register";
-        LastRegNo: Integer;
+        LastRegNo: BigInteger;
     begin
         VerifyDateCompressionDates(DateComprSettingsBuffer."starting date", DateComprSettingsBuffer."Ending Date");
 
@@ -560,7 +560,7 @@ codeunit 9040 "Date Compression"
         SelectedDimension.Insert();
     end;
 
-    local procedure UpdateSavedSpace(var DateComprSettingsBuffer: Record "Date Compr. Settings Buffer"; LastRegNo: integer)
+    local procedure UpdateSavedSpace(var DateComprSettingsBuffer: Record "Date Compr. Settings Buffer"; LastRegNo: BigInteger)
     var
         DateComprRegister: Record "Date Compr. Register";
         RecordsRemoved: Integer;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -886,7 +886,7 @@ table 83 "Item Journal Line"
                 PhysInvtEntered := false;
             end;
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;

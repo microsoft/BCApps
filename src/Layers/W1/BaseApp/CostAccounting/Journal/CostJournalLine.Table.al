@@ -164,7 +164,7 @@ table 1101 "Cost Journal Line"
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
-        field(29; "G/L Entry No."; Integer)
+        field(29; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             Editable = false;

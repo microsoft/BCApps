@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1004,7 +1004,7 @@ table 114 "Sales Cr.Memo Header"
         /// <summary>
         /// Specifies the entry number of the related customer ledger entry.
         /// </summary>
-        field(1304; "Cust. Ledger Entry No."; Integer)
+        field(1304; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             Editable = false;

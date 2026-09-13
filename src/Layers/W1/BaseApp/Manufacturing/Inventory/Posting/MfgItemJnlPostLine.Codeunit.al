@@ -1528,7 +1528,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInitItemLedgEntry', '', true, false)]
-    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: Integer)
+    local procedure OnAfterInitItemLedgEntry(var NewItemLedgEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line"; var ItemLedgEntryNo: BigInteger)
     begin
         NewItemLedgEntry."Prod. Order Comp. Line No." := ItemJournalLine."Prod. Order Comp. Line No.";
     end;

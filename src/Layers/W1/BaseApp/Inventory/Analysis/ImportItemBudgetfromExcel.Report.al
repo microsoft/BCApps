@@ -231,7 +231,7 @@ report 7131 "Import Item Budget from Excel"
         Description: Text[50];
         ToItemBudgetName: Code[10];
         RecNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         ImportOption: Option "Replace entries","Add entries";
         AnalysisArea: Enum "Analysis Area Type";
         ValueType: Option "Sales Amount","COGS / Cost Amount",Quantity;

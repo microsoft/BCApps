@@ -37,7 +37,7 @@ table 130 "Incoming Document"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -1433,7 +1433,7 @@ table 130 "Incoming Document"
         TempErrorMessage.DeleteAll();
     end;
 
-    procedure SelectIncomingDocument(EntryNo: Integer; RelatedRecordID: RecordID): Integer
+    procedure SelectIncomingDocument(EntryNo: BigInteger; RelatedRecordID: RecordID): BigInteger
     var
         IncomingDocumentsSetup: Record "Incoming Documents Setup";
         IncomingDocument: Record "Incoming Document";
@@ -1461,7 +1461,7 @@ table 130 "Incoming Document"
     procedure SelectIncomingDocumentForPostedDocument(DocumentNo: Code[20]; PostingDate: Date; RelatedRecordID: RecordID)
     var
         IncomingDocument: Record "Incoming Document";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         IsPosted: Boolean;
     begin
         if (DocumentNo = '') or (PostingDate = 0D) then

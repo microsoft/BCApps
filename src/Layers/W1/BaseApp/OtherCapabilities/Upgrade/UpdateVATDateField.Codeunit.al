@@ -128,8 +128,8 @@ codeunit 104051 "Update VAT Date Field"
     local procedure UpdateGLEntries()
     var
         GLEntry: Record "G/L Entry";
-        TotalRows: Integer;
-        FromNo, ToNo : Integer;
+        TotalRows: BigInteger;
+        FromNo, ToNo : BigInteger;
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetVATDateFieldGLEntriesUpgrade()) then
             exit;
@@ -156,7 +156,7 @@ codeunit 104051 "Update VAT Date Field"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetVATDateFieldGLEntriesUpgrade());
     end;
 
-    local procedure DataTransferGLEntries(FromEntryNo: Integer; ToEntryNo: Integer)
+    local procedure DataTransferGLEntries(FromEntryNo: BigInteger; ToEntryNo: BigInteger)
     var
         GLEntry: Record "G/L Entry";
         VATDateDataTransfer: DataTransfer;

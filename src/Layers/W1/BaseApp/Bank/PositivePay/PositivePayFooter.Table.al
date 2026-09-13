@@ -26,7 +26,7 @@ table 1242 "Positive Pay Footer"
         /// <summary>
         /// Links this footer record to the associated data exchange entry for tracking and processing.
         /// </summary>
-        field(1; "Data Exch. Entry No."; Integer)
+        field(1; "Data Exch. Entry No."; BigInteger)
         {
             Caption = 'Data Exch. Entry No.';
             TableRelation = "Data Exch."."Entry No.";
@@ -34,7 +34,7 @@ table 1242 "Positive Pay Footer"
         /// <summary>
         /// Reference to the detail entry number for which this footer provides summary information.
         /// </summary>
-        field(2; "Data Exch. Detail Entry No."; Integer)
+        field(2; "Data Exch. Detail Entry No."; BigInteger)
         {
             Caption = 'Data Exch. Detail Entry No.';
             TableRelation = "Positive Pay Detail"."Data Exch. Entry No.";

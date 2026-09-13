@@ -153,7 +153,7 @@ report 95 "Date Compress VAT Entries"
 
             trigger OnPreDataItem()
             var
-                LastTransactionNo: Integer;
+                LastTransactionNo: BigInteger;
             begin
                 if EntrdDateComprReg."Ending Date" = 0D then
                     Error(Text003, EntrdDateComprReg.FieldCaption("Ending Date"));
@@ -350,9 +350,9 @@ report 95 "Date Compress VAT Entries"
         DataArchive: Codeunit "Data Archive";
         Window: Dialog;
         VATEntryFilter: Text[250];
-        LastGLEntryNo: Integer;
-        LastVATEntryNo: Integer;
-        NextTransactionNo: Integer;
+        LastGLEntryNo: BigInteger;
+        LastVATEntryNo: BigInteger;
+        NextTransactionNo: BigInteger;
         NoOfDeleted: Integer;
         GLRegExists: Boolean;
         UseDataArchive: Boolean;
@@ -417,9 +417,9 @@ report 95 "Date Compress VAT Entries"
 
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        FoundLastEntryNo: Integer;
+        FoundLastEntryNo: BigInteger;
         FoundLastVATEntryNo: Integer;
-        LastTransactionNo: Integer;
+        LastTransactionNo: BigInteger;
     begin
         GLEntry.Init();
         LastGLEntryNo := LastGLEntryNo + 1;

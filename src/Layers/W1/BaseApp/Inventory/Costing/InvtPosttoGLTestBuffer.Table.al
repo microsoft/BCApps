@@ -103,7 +103,7 @@ table 5822 "Invt. Post to G/L Test Buffer"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(16; "Value Entry No."; Integer)
+        field(16; "Value Entry No."; BigInteger)
         {
             Caption = 'Value Entry No.';
             DataClassification = SystemMetadata;

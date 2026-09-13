@@ -38,7 +38,7 @@ table 2587 "Invalidated Dim Correction"
         /// <summary>
         /// Entry number of the dimension correction that was invalidated.
         /// </summary>
-        field(3; "Invalidated Entry No."; Integer)
+        field(3; "Invalidated Entry No."; BigInteger)
         {
             DataClassification = CustomerContent;
             Caption = 'Invalidated Entry No.';

@@ -245,7 +245,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Import Attachment - Inc. Doc.", 'OnBeforeCreateNewSalesPurchIncomingDoc', '', true, false)]
-    local procedure OnBeforeCreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocEntryNo: BigInteger; var IsHandled: Boolean)
     var
         IncomingDocument: Record "Incoming Document";
         ServiceHeader: Record "Service Header";
