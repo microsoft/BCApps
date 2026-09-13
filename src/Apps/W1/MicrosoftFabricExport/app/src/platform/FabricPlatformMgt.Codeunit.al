@@ -29,6 +29,8 @@ codeunit 48520 "Fabric Platform Mgt"
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling export.';
         OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
+        SetupRequiredTitleLbl: Label 'Setup required';
+        SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable again.';
 
     procedure MaxTableCount(): Integer
     begin
@@ -278,6 +280,8 @@ codeunit 48520 "Fabric Platform Mgt"
     local procedure CreateSetupErrorInfo(ErrorMessage: Text) SetupErrorInfo: ErrorInfo
     begin
         SetupErrorInfo := ErrorInfo.Create(ErrorMessage);
+        SetupErrorInfo.Title := SetupRequiredTitleLbl;
+        SetupErrorInfo.DetailedMessage := SetupRequiredDetailedMsg;
         SetupErrorInfo.PageNo := Page::"Fabric Platform Setup";
         SetupErrorInfo.AddNavigationAction(OpenFabricSetupLbl);
     end;

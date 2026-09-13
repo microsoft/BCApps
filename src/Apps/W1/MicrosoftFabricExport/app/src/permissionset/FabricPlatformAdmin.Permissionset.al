@@ -23,6 +23,8 @@ permissionset 48530 "Fabric Exp Admin"
         codeunit "Fabric Platform Mgt" = X,
         codeunit "Fabric Platform Credential Mgt" = X,
         codeunit "Fabric Platform Admin Client" = X,
+        codeunit "Fabric Platform Lookup State" = X,
+        codeunit "Fabric Platform Http Client" = X,
         codeunit "Fabric Platform Telemetry" = X,
         codeunit "Fabric Config Package Mgt" = X,
         codeunit "Fabric Install" = X,

@@ -20,6 +20,7 @@ permissionset 48532 "Fabric Exp Activate"
         table "Fabric Config Package" = X,
         table "Fabric Config Package Line" = X,
         codeunit "Fabric Platform Mgt" = X,
+        codeunit "Fabric Platform Credential Mgt" = X,
         codeunit "Fabric Config Package Mgt" = X,
         codeunit "Fabric Platform Telemetry" = X,
         page "Fabric Platform Setup" = X,

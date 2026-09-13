@@ -4,6 +4,7 @@ table 48501 "Fabric Config Package"
 {
     Caption = 'Fabric Config Package';
     Access = Internal;
+    Permissions = tabledata "Fabric Config Package Line" = rd;
     DataPerCompany = false;
 
     fields

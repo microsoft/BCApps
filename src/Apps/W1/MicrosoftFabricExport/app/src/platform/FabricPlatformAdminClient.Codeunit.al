@@ -13,7 +13,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         RetrieveWorkspacesMalformedErr: Label 'Failed to retrieve workspaces: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForMirroredDbErr: Label 'Select a workspace before choosing an Open Mirroring database.';
         RetrieveMirroredDbsTransportErr: Label 'Failed to retrieve Open Mirroring databases: transport error.';
-        RetrieveMirroredDbsHttpErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
+        RetrieveMirroredDbsHttpGenericErr: Label 'Failed to retrieve Open Mirroring databases. Contact your administrator if the problem persists.';
+        RetrieveMirroredDbsHttpDetailsErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
         RetrieveMirroredDbsMalformedErr: Label 'Failed to retrieve Open Mirroring databases: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForSPErr: Label 'Select a workspace before adding the service principal.';
         PrincipalIdRequiredErr: Label 'Principal ID must be filled in before adding to the workspace.';
@@ -26,6 +27,7 @@ codeunit 48526 "Fabric Platform Admin Client"
     var
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         HttpClient: Codeunit "Fabric Platform Http Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         RestClientResult: Codeunit "Rest Client";
         Req: Codeunit "Http Request Message";
         Resp: Codeunit "Http Response Message";
@@ -40,6 +42,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         JsonArr: JsonArray;
         i: Integer;
     begin
+        FabricPrivacyNotice.EnsureApproved();
+
         TempBuffer.Reset();
         TempBuffer.DeleteAll();
 
@@ -72,6 +76,8 @@ codeunit 48526 "Fabric Platform Admin Client"
     var
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         HttpClient: Codeunit "Fabric Platform Http Client";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         RestClientResult: Codeunit "Rest Client";
         Req: Codeunit "Http Request Message";
         Resp: Codeunit "Http Response Message";
@@ -87,6 +93,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         WorkspaceIdForUrl: Text;
         i: Integer;
     begin
+        FabricPrivacyNotice.EnsureApproved();
+
         if WorkspaceId = '' then
             Error(WorkspaceRequiredForMirroredDbErr);
 
@@ -107,7 +115,8 @@ codeunit 48526 "Fabric Platform Admin Client"
             Error(RetrieveMirroredDbsTransportErr);
         if not Resp.GetIsSuccessStatusCode() then begin
             ResponseText := Resp.GetContent().AsText();
-            Error(RetrieveMirroredDbsHttpErr, Resp.GetHttpStatusCode(), ResponseText);
+            Telemetry.LogEvent('FAB-120', StrSubstNo(RetrieveMirroredDbsHttpDetailsErr, Resp.GetHttpStatusCode(), ResponseText));
+            Error(CreateMirroredDbsHttpErrorInfo(Resp.GetHttpStatusCode(), ResponseText));
         end;
 
         RootObj.ReadFrom(Resp.GetContent().AsText());
@@ -130,6 +139,7 @@ codeunit 48526 "Fabric Platform Admin Client"
     var
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         HttpClient: Codeunit "Fabric Platform Http Client";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         RestClientResult: Codeunit "Rest Client";
         Req: Codeunit "Http Request Message";
         Resp: Codeunit "Http Response Message";
@@ -171,6 +181,14 @@ codeunit 48526 "Fabric Platform Admin Client"
         if Resp.GetHttpStatusCode() = 409 then
             Error(SPAlreadyMemberErr);
         Error(AddSPHttpErr, Resp.GetHttpStatusCode(), ResponseText);
+    end;
+
+    local procedure CreateMirroredDbsHttpErrorInfo(StatusCode: Integer; ResponseBody: Text) ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message := RetrieveMirroredDbsHttpGenericErr;
+        ErrInfo.DetailedMessage := StrSubstNo(RetrieveMirroredDbsHttpDetailsErr, StatusCode, ResponseBody);
+        ErrInfo.DataClassification := DataClassification::SystemMetadata;
+        ErrInfo.ErrorType := ErrorType::Internal;
     end;
 
     local procedure FormatGuidForFabricUrl(GuidText: Text): Text

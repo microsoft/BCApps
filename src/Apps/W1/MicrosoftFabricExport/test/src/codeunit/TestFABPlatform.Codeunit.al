@@ -12,7 +12,6 @@ codeunit 140012 "Test FAB Platform"
     var
         Assert: Codeunit "Assert";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         LookupState: Codeunit "Fabric Platform Lookup State";
         IsInitialized: Boolean;
         ExpectedMessages: List of [Text];
@@ -28,6 +27,7 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricTables: Record "Tenant Fabric Tables";
         TenantFabricCompanies: Record "Tenant Fabric Companies";
         FabricTableClaim: Record "Fabric Table Claim";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
         TenantFabricTables.DeleteAll(false);
         TenantFabricSetup.DeleteAll(false);
@@ -113,6 +113,7 @@ codeunit 140012 "Test FAB Platform"
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
         //[SCENARIO] Enable routes through the lifecycle seam (Story 3)
         //[GIVEN] Initialize
@@ -141,6 +142,7 @@ codeunit 140012 "Test FAB Platform"
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
         //[SCENARIO] Start, Stop, and Disable route through the lifecycle seam (Stories 4-5)
         //[GIVEN] Initialize
@@ -162,10 +164,11 @@ codeunit 140012 "Test FAB Platform"
         FabricPlatformMgt.StopExport();
         FabricPlatformMgt.DisableExport();
 
-        //[THEN] All three seams fired
+        //[THEN] All three seams fired and all requested messages were shown
         Assert.IsTrue(PlatformTestSub.WasStartCalled(), 'Expected the start seam to fire.');
         Assert.IsTrue(PlatformTestSub.WasStopCalled(), 'Expected the stop seam to fire.');
         Assert.IsTrue(PlatformTestSub.WasDisableCalled(), 'Expected the disable seam to fire.');
+        Assert.AreEqual(0, ExpectedMessages.Count(), 'Expected all requested messages to be shown.');
         UnbindSubscription(PlatformTestSub);
     end;
 
@@ -604,6 +607,7 @@ codeunit 140012 "Test FAB Platform"
     procedure TestConnectionUsesSeamWithoutCallingPlatform()
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
         //[SCENARIO] TestConnection routes through the lifecycle seam
         //[GIVEN] Initialize
@@ -629,12 +633,16 @@ codeunit 140012 "Test FAB Platform"
     var
         AdminClient: Codeunit "Fabric Platform Admin Client";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         TempBuffer: Record "Name/Value Buffer" temporary;
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         Token: SecretText;
     begin
         //[SCENARIO] GetWorkspaces treats a success response without a value array as malformed
         //[GIVEN] Initialize
         Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
         Token := SecretStrSubstNo('sample-token');
@@ -651,7 +659,6 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The malformed response is rejected
         Assert.ExpectedError('malformed');
-        UnbindSubscription(PlatformTestSub);
     end;
 
     [Test]
@@ -659,12 +666,16 @@ codeunit 140012 "Test FAB Platform"
     var
         AdminClient: Codeunit "Fabric Platform Admin Client";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         TempBuffer: Record "Name/Value Buffer" temporary;
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         Token: SecretText;
     begin
         //[SCENARIO] GetMirroredDatabases treats a success response without a value array as malformed
         //[GIVEN] Initialize
         Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
         Token := SecretStrSubstNo('sample-token');
@@ -681,7 +692,78 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The malformed response is rejected
         Assert.ExpectedError('malformed');
-        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    procedure AddServicePrincipalToWorkspaceSucceeds()
+    var
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        Token: SecretText;
+        Success: Boolean;
+    begin
+        //[SCENARIO] AddServicePrincipalToWorkspace succeeds on a successful Fabric response
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
+        //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
+        CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
+        Token := SecretStrSubstNo('sample-token');
+        LookupState.SetFabricApiToken(Token, 3600);
+        //[GIVEN] The HTTP handler is mocked to return a successful role assignment response
+        BindSubscription(PlatformTestSub);
+        PlatformTestSub.SetMockHttpResponse(200, '{}');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The service principal is added to the workspace
+        Success := TryAddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
+
+        //[THEN] The call completes without error
+        Assert.IsTrue(Success, 'Expected AddServicePrincipalToWorkspace to succeed on a 200 response.');
+    end;
+
+    [Test]
+    procedure AddServicePrincipalToWorkspaceFailsWhenAlreadyMember()
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        Token: SecretText;
+    begin
+        //[SCENARIO] AddServicePrincipalToWorkspace reports a friendly error on HTTP 409
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
+        //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
+        CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
+        Token := SecretStrSubstNo('sample-token');
+        LookupState.SetFabricApiToken(Token, 3600);
+        //[GIVEN] The HTTP handler is mocked to return a 409 conflict response
+        BindSubscription(PlatformTestSub);
+        PlatformTestSub.SetMockHttpResponse(409, '{}');
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The service principal is added to the workspace
+        asserterror AdminClient.AddServicePrincipalToWorkspace('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222');
+
+        //[THEN] The already-a-member conflict is reported
+        Assert.ExpectedError('already a member');
+    end;
+
+    [TryFunction]
+    local procedure TryAddServicePrincipalToWorkspace(WorkspaceId: Text; PrincipalId: Text)
+    var
+        AdminClient: Codeunit "Fabric Platform Admin Client";
+    begin
+        AdminClient.AddServicePrincipalToWorkspace(WorkspaceId, PrincipalId);
     end;
 
     [Test]

@@ -175,14 +175,14 @@ codeunit 48521 "Fabric Config Package Mgt"
                 if not TableIds.Contains(PackageLine."Table ID") then
                     RemovedTableIds.Add(PackageLine."Table ID");
             until PackageLine.Next() = 0;
-        PackageLine.DeleteAll(true);
+        PackageLine.DeleteAll(false);
 
         foreach TableId in TableIds do begin
             if AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
                 PackageLine.Init();
                 PackageLine."Package Code" := PackageCode;
                 PackageLine.Validate("Table ID", TableId);
-                PackageLine.Insert(true);
+                PackageLine.Insert(false);
             end else
                 LogSkippedTableWarning(PackageCode, TableId);
         end;
