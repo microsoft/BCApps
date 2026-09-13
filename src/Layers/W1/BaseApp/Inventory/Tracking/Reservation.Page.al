@@ -297,7 +297,7 @@ page 498 Reservation
                     begin
                         RemainingQtyToReserveBase := QtyToReserveBase - QtyReservedBase;
                         if RemainingQtyToReserveBase = 0 then
-                            Error(Text000);
+                            ValidateReservationApplicable();
                         QtyReservedBefore := QtyReservedBase;
                         if HandleItemTracking then
                             ReservMgt.SetItemTrackingHandling(2);
@@ -425,6 +425,7 @@ page 498 Reservation
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ReservConfirmQst: Label 'Do you want to reserve specific tracking numbers?';
+        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 
     procedure SetReservSource(CurrentRecordVar: Variant)
     begin
@@ -687,6 +688,22 @@ page 498 Reservation
         Rec.SetRange("Non-specific Reserved Qty.");
     end;
 
+    local procedure ValidateReservationApplicable()
+    var
+        TransferDirection: Enum "Transfer Direction";
+    begin
+        if ReservEntry."Source Type" = 5741 then begin
+            TransferDirection := ReservEntry.GetTransferDirection();
+            if TransferDirection = TransferDirection::Inbound then
+                Error(InboundQtyErr);
+
+            // Outbound transfer lines should behave like other sources when nothing remains to reserve
+            Error(Text000);
+        end;
+
+        Error(Text000);
+    end;
+
     procedure AutoReserve()
     var
         IsHandled: Boolean;
@@ -695,7 +712,7 @@ page 498 Reservation
             ReservEntry, FullAutoReservation, QtyToReserve, QtyReserved, QtyToReserveBase, QtyReservedBase, IsHandled);
         if not IsHandled then begin
             if Abs(QtyToReserveBase) - Abs(QtyReservedBase) = 0 then
-                Error(Text000);
+                ValidateReservationApplicable();
             ReservMgt.AutoReserve(
                 FullAutoReservation, ReservEntry.Description,
                 ReservEntry."Shipment Date", QtyToReserve - QtyReserved, QtyToReserveBase - QtyReservedBase);
@@ -737,18 +754,6 @@ page 498 Reservation
     local procedure OnAfterUpdateReservFrom(var EntrySummary: Record "Entry Summary")
     begin
     end;
-
-
-
-
-
-
-
-
-
-
-
-
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserve(ReservEntry: Record "Reservation Entry"; var FullAutoReservation: Boolean; QtyToReserve: Decimal; QtyReserved: Decimal; QtyToReserveBase: Decimal; QtyReservedBase: Decimal; var IsHandled: Boolean);
