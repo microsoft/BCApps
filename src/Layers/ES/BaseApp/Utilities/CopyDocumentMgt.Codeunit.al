@@ -1731,12 +1731,12 @@ codeunit 6620 "Copy Document Mgt."
         if IsHandled then
             exit;
 
-        if ExactCostRevMandatory and
+        if (ExactCostRevMandatory or ShouldPreserveHistoricalApplication(FromSalesLine)) and
            (FromSalesLine.Type = FromSalesLine.Type::Item) and
            (FromSalesLine."Appl.-from Item Entry" <> 0) and
            not MoveNegLines
         then begin
-            if RecalculateAmount then
+            if RecalculateAmount and ExactCostRevMandatory then
                 RecalculateSalesLineAmounts(FromSalesLine, ToSalesLine);
             ToSalesLine.Validate("Appl.-from Item Entry", FromSalesLine."Appl.-from Item Entry");
             if not CreateToHeader then
@@ -2119,12 +2119,13 @@ codeunit 6620 "Copy Document Mgt."
         if IsHandled then
             exit;
 
-        if ExactCostRevMandatory and
+        if (ExactCostRevMandatory or
+            ShouldPreserveHistoricalApplication(ToPurchLine, FromPurchLine."Appl.-to Item Entry")) and
            (FromPurchLine.Type = FromPurchLine.Type::Item) and
            (FromPurchLine."Appl.-to Item Entry" <> 0) and
            not MoveNegLines
         then begin
-            if RecalculateAmount then begin
+            if RecalculateAmount and ExactCostRevMandatory then begin
                 ToPurchLine.Validate("Direct Unit Cost", FromPurchLine."Direct Unit Cost");
                 ToPurchLine.Validate("Line Discount %", FromPurchLine."Line Discount %");
                 ToPurchLine.Validate(
@@ -3076,10 +3077,11 @@ codeunit 6620 "Copy Document Mgt."
                                 else
                                     ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, ItemLedgEntry);
 
-                                ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
-                                  TempTrkgItemLedgEntry, ToSalesLine,
-                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                                  FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", true);
+                                if not ShouldPreserveHistoricalApplication(ToSalesLine) then
+                                    ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
+                                      TempTrkgItemLedgEntry, ToSalesLine,
+                                      FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                      FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", true);
                             end;
                             OnAfterCopySalesLineFromSalesShptLineBuffer(
                               ToSalesLine, FromSalesShptLine, IncludeHeader, RecalculateLines, TempDocSalesLine, ToSalesHeader, TempFromSalesLineBuf, ExactCostRevMandatory, FromSalesHeader, LinesNotCopied);
@@ -3483,10 +3485,11 @@ codeunit 6620 "Copy Document Mgt."
                                 ItemTrackingDocMgt.CollectItemTrkgPerPostedDocLine(
                                   TempItemTrkgEntry, TempTrkgItemLedgEntry, false, TempFromSalesLineBuf."Document No.", TempFromSalesLineBuf."Line No.");
 
-                            ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
-                              TempTrkgItemLedgEntry, ToSalesLine,
-                              FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                              FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", false);
+                            if not ShouldPreserveHistoricalApplication(ToSalesLine) then
+                                ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
+                                  TempTrkgItemLedgEntry, ToSalesLine,
+                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                  FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", false);
                             OnCopySalesCrMemoLinesToDocOnAfterCopyItemLedgEntryTrkgToSalesLn(ToSalesLine);
                         end;
                     end;
@@ -3599,10 +3602,11 @@ codeunit 6620 "Copy Document Mgt."
                                 else
                                     ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, ItemLedgEntry);
 
-                                ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
-                                  TempTrkgItemLedgEntry, ToSalesLine,
-                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                                  FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", true);
+                                if not ShouldPreserveHistoricalApplication(ToSalesLine) then
+                                    ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
+                                      TempTrkgItemLedgEntry, ToSalesLine,
+                                      FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                      FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", true);
                             end;
                             OnAfterCopySalesLineFromReturnRcptLineBuffer(
                               ToSalesLine, FromReturnRcptLine, IncludeHeader, RecalculateLines,
@@ -3659,6 +3663,9 @@ codeunit 6620 "Copy Document Mgt."
         AssemblyHeader: Record "Assembly Header";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
     begin
+        if ShouldPreserveHistoricalApplication(ToSalesLine) then
+            exit;
+
         if MoveNegLines or not ExactCostRevMandatory then
             ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, TempItemLedgEntry)
         else
@@ -3675,9 +3682,11 @@ codeunit 6620 "Copy Document Mgt."
 
     procedure SplitPstdSalesLinesPerILE(ToSalesHeader: Record "Sales Header"; FromSalesHeader: Record "Sales Header"; var ItemLedgEntry: Record "Item Ledger Entry"; var TempSalesLineBuf: Record "Sales Line" temporary; FromSalesLine: Record "Sales Line"; var TempDocSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer; var CopyItemTrkg: Boolean; var MissingExCostRevLink: Boolean; FillExactCostRevLink: Boolean; FromShptOrRcpt: Boolean) Result: Boolean
     var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         OrgQtyBase: Decimal;
         OneRecord: Boolean;
         IsHandled: Boolean;
+        PreserveHistoricalApplication: Boolean;
     begin
         IsHandled := false;
         OnBeforeSplitPstdSalesLinesPerILE(ToSalesHeader, FromSalesHeader, FromSalesLine, TempSalesLineBuf, FromShptOrRcpt, IsHandled);
@@ -3694,11 +3703,18 @@ codeunit 6620 "Copy Document Mgt."
 
         if (FromSalesLine.Type <> FromSalesLine.Type::Item) or (FromSalesLine.Quantity = 0) then
             exit(false);
-        if IsCopyItemTrkg(ItemLedgEntry, CopyItemTrkg, FillExactCostRevLink) or
-           not FillExactCostRevLink or MoveNegLines or
-           not ExactCostRevMandatory
-        then
-            exit(false);
+
+        PreserveHistoricalApplication :=
+            FillExactCostRevLink and not MoveNegLines and
+            HasApplicationAcrossTrackingPeriods(ItemLedgEntry, FromSalesLine."No.");
+        if PreserveHistoricalApplication then
+            IsCopyItemTrkg(ItemLedgEntry, CopyItemTrkg, FillExactCostRevLink)
+        else
+            if IsCopyItemTrkg(ItemLedgEntry, CopyItemTrkg, FillExactCostRevLink) or
+               not FillExactCostRevLink or MoveNegLines or
+               not ExactCostRevMandatory
+            then
+                exit(false);
 
         OneRecord := ItemLedgEntry.count() = 1;
         ItemLedgEntry.FindSet();
@@ -3734,7 +3750,13 @@ codeunit 6620 "Copy Document Mgt."
                 end;
                 FromSalesLine."Quantity (Base)" := FromSalesLine."Quantity (Base)" - TempSalesLineBuf."Quantity (Base)";
                 FromSalesLine.Quantity := FromSalesLine.Quantity - TempSalesLineBuf.Quantity;
-                TempSalesLineBuf."Appl.-from Item Entry" := ItemLedgEntry."Entry No.";
+                if PreserveHistoricalApplication and ItemLedgEntry.TrackingExists() and
+                   not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                       FromSalesLine."No.", ItemLedgEntry."Entry No.")
+                then
+                    TempSalesLineBuf."Appl.-from Item Entry" := 0
+                else
+                    TempSalesLineBuf."Appl.-from Item Entry" := ItemLedgEntry."Entry No.";
                 NextLineNo := NextLineNo + 1;
                 TempSalesLineBuf."Line No." := NextLineNo;
                 NextLineNo := NextLineNo + 1;
@@ -3758,11 +3780,52 @@ codeunit 6620 "Copy Document Mgt."
             end;
         until (ItemLedgEntry.Next() = 0) or (FromSalesLine."Quantity (Base)" = 0);
 
-        if (FromSalesLine."Quantity (Base)" <> 0) and FillExactCostRevLink then
+        if (FromSalesLine."Quantity (Base)" <> 0) and FillExactCostRevLink and
+           (ExactCostRevMandatory or PreserveHistoricalApplication)
+        then
             MissingExCostRevLink := true;
         OnSplitPstdSalesLinesPerILEOnBeforeCheckUnappliedLines(ToSalesHeader, SkippedLine, MissingExCostRevLink);
         CheckUnappliedLines(SkippedLine, MissingExCostRevLink);
         exit(true);
+    end;
+
+    local procedure ShouldPreserveHistoricalApplication(SalesLine: Record "Sales Line"): Boolean
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+    begin
+        exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            SalesLine."No.", SalesLine."Appl.-from Item Entry"));
+    end;
+
+    local procedure ShouldPreserveHistoricalApplication(PurchaseLine: Record "Purchase Line"): Boolean
+    begin
+        exit(ShouldPreserveHistoricalApplication(PurchaseLine, PurchaseLine."Appl.-to Item Entry"));
+    end;
+
+    local procedure ShouldPreserveHistoricalApplication(PurchaseLine: Record "Purchase Line"; ApplToItemEntry: Integer): Boolean
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+    begin
+        if not PurchaseLine.IsCreditDocType() then
+            exit(false);
+
+        exit(ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            PurchaseLine."No.", ApplToItemEntry));
+    end;
+
+    local procedure HasApplicationAcrossTrackingPeriods(var ItemLedgerEntry: Record "Item Ledger Entry"; ItemNo: Code[20]): Boolean
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+    begin
+        if ItemLedgerEntry.FindSet() then
+            repeat
+                if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                    ItemNo, ItemLedgerEntry."Entry No.")
+                then
+                    exit(true);
+            until ItemLedgerEntry.Next() = 0;
+
+        exit(false);
     end;
 
     local procedure SplitSalesDocLinesPerItemTrkg(var ItemLedgEntry: Record "Item Ledger Entry"; var TempItemTrkgEntry: Record "Reservation Entry" temporary; var TempSalesLineBuf: Record "Sales Line" temporary; FromSalesLine: Record "Sales Line"; var TempDocSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: Integer; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean): Boolean
@@ -4018,10 +4081,11 @@ codeunit 6620 "Copy Document Mgt."
                                 else
                                     ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, ItemLedgEntry);
 
-                                ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
-                                  TempTrkgItemLedgEntry, ToPurchLine,
-                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                                  FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", true);
+                                if not ShouldPreserveHistoricalApplication(ToPurchLine) then
+                                    ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
+                                      TempTrkgItemLedgEntry, ToPurchLine,
+                                      FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                      FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", true);
                             end;
                             OnAfterCopyPurchLineFromPurchRcptLineBuffer(
                               ToPurchLine, FromPurchRcptLine, IncludeHeader, RecalculateLines,
@@ -4218,9 +4282,10 @@ codeunit 6620 "Copy Document Mgt."
                                 ItemTrackingDocMgt.CollectItemTrkgPerPostedDocLine(
                                   TempItemTrkgEntry, TempTrkgItemLedgEntry, true, TempFromPurchLineBuf."Document No.", TempFromPurchLineBuf."Line No.");
 
-                            ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(TempTrkgItemLedgEntry, ToPurchLine,
-                              FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                              FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
+                            if not ShouldPreserveHistoricalApplication(ToPurchLine) then
+                                ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(TempTrkgItemLedgEntry, ToPurchLine,
+                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                  FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
                         end;
                     end;
                     OnAfterCopyPurchLineFromPurchLineBuffer(
@@ -4392,10 +4457,11 @@ codeunit 6620 "Copy Document Mgt."
                                 ItemTrackingDocMgt.CollectItemTrkgPerPostedDocLine(
                                   TempItemTrkgEntry, TempTrkgItemLedgEntry, true, TempFromPurchLineBuf."Document No.", TempFromPurchLineBuf."Line No.");
 
-                            ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
-                              TempTrkgItemLedgEntry, ToPurchLine,
-                              FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                              FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
+                            if not ShouldPreserveHistoricalApplication(ToPurchLine) then
+                                ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
+                                  TempTrkgItemLedgEntry, ToPurchLine,
+                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                  FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", false);
                         end;
                     end;
                     OnAfterCopyPurchLineFromPurchCrMemoLineBuffer(
@@ -4515,10 +4581,11 @@ codeunit 6620 "Copy Document Mgt."
                                 else
                                     ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, ItemLedgEntry);
 
-                                ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
-                                  TempTrkgItemLedgEntry, ToPurchLine,
-                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                                  FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", true);
+                                if not ShouldPreserveHistoricalApplication(ToPurchLine) then
+                                    ItemTrackingMgt.CopyItemLedgEntryTrkgToPurchLn(
+                                      TempTrkgItemLedgEntry, ToPurchLine,
+                                      FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                      FromPurchHeader."Prices Including VAT", ToPurchHeader."Prices Including VAT", true);
                             end;
                             OnAfterCopyPurchLineFromReturnShptLineBuffer(
                               ToPurchLine, FromReturnShptLine, IncludeHeader, RecalculateLines,
@@ -4602,9 +4669,11 @@ codeunit 6620 "Copy Document Mgt."
     var
         PurchaseItem: Record Item;
         ApplyRec: Record "Item Application Entry";
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         OrgQtyBase: Decimal;
         OneRecord: Boolean;
         IsHandled: Boolean;
+        PreserveHistoricalApplication: Boolean;
     begin
         if FromShptOrRcpt then begin
             FromPurchLineBuf.Reset();
@@ -4621,11 +4690,20 @@ codeunit 6620 "Copy Document Mgt."
         if PurchaseItem.IsNonInventoriableType() then
             exit(false);
 
-        if IsCopyItemTrkg(ItemLedgEntry, CopyItemTrkg, FillExactCostRevLink) or
-           not FillExactCostRevLink or MoveNegLines or
-           not ExactCostRevMandatory
-        then
-            exit(false);
+        PreserveHistoricalApplication :=
+            (ToPurchHeader."Document Type" in [
+                ToPurchHeader."Document Type"::"Return Order",
+                ToPurchHeader."Document Type"::"Credit Memo"]) and
+            FillExactCostRevLink and not MoveNegLines and
+            HasApplicationAcrossTrackingPeriods(ItemLedgEntry, FromPurchLine."No.");
+        if PreserveHistoricalApplication then
+            IsCopyItemTrkg(ItemLedgEntry, CopyItemTrkg, FillExactCostRevLink)
+        else
+            if IsCopyItemTrkg(ItemLedgEntry, CopyItemTrkg, FillExactCostRevLink) or
+               not FillExactCostRevLink or MoveNegLines or
+               not ExactCostRevMandatory
+            then
+                exit(false);
 
         IsHandled := false;
         OnSplitPstdPurchLinesPerILEOnBeforeCheckJobNo(FromPurchLine, Result, IsHandled);
@@ -4684,7 +4762,13 @@ codeunit 6620 "Copy Document Mgt."
                     end;
                 FromPurchLine."Quantity (Base)" := FromPurchLine."Quantity (Base)" - FromPurchLineBuf."Quantity (Base)";
                 FromPurchLine.Quantity := FromPurchLine.Quantity - FromPurchLineBuf.Quantity;
-                FromPurchLineBuf."Appl.-to Item Entry" := ItemLedgEntry."Entry No.";
+                    if PreserveHistoricalApplication and ItemLedgEntry.TrackingExists() and
+                       not ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                           FromPurchLine."No.", ItemLedgEntry."Entry No.")
+                    then
+                        FromPurchLineBuf."Appl.-to Item Entry" := 0
+                    else
+                        FromPurchLineBuf."Appl.-to Item Entry" := ItemLedgEntry."Entry No.";
                 NextLineNo := NextLineNo + 1;
                 FromPurchLineBuf."Line No." := NextLineNo;
                 NextLineNo := NextLineNo + 1;
@@ -4712,7 +4796,9 @@ codeunit 6620 "Copy Document Mgt."
                     SkippedLine := true;
         until (ItemLedgEntry.Next() = 0) or (FromPurchLine."Quantity (Base)" = 0);
 
-        if (FromPurchLine."Quantity (Base)" <> 0) and FillExactCostRevLink then
+        if (FromPurchLine."Quantity (Base)" <> 0) and FillExactCostRevLink and
+           (ExactCostRevMandatory or PreserveHistoricalApplication)
+        then
             MissingExCostRevLink := true;
         OnSplitPstdPurchLinesPerILEOnBeforeCheckUnappliedLines(ToPurchHeader, SkippedLine, MissingExCostRevLink);
         CheckUnappliedLines(SkippedLine, MissingExCostRevLink);

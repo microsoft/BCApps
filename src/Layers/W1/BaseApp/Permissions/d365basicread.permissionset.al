@@ -549,6 +549,7 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Item Statistics Buffer" = R,
                   tabledata "Item Substitution" = R,
                   tabledata "Item Templ." = R,
+                  tabledata "Item Tracking Code Change Log" = R,
                   tabledata "Item Tracking Comment" = R,
                   tabledata "Item Translation" = R,
                   tabledata "Item Turnover Buffer" = R,

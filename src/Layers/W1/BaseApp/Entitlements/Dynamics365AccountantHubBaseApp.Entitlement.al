@@ -12,6 +12,7 @@ entitlement "Dynamics 365 - Accountant Hub BaseApp"
                          "D365 ACCOUNTANTS",
                          "D365 BASIC",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 JOBS, EDIT",
                          "D365 MONITOR FIELDS",
                          "LOCAL",
