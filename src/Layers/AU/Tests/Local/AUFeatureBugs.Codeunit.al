@@ -11,6 +11,7 @@ codeunit 145403 "AU Feature Bugs"
         Assert: Codeunit Assert;
         LibraryAPACLocalization: Codeunit "Library - APAC Localization";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
@@ -18,6 +19,11 @@ codeunit 145403 "AU Feature Bugs"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         AmountMustBeZeroMsg: Label 'Amount must be zero.';
         WHTAmountErr: Label 'WHT amount should match with %1', Comment = '%1 = Expected Amount';
+        ACYBaseErr: Label 'Additional-Currency Base is expected to be calculated from the Base of the same VAT entry.';
+        ACYAmountErr: Label 'Additional-Currency Amount is expected to be calculated from the Amount of the same VAT entry.';
+        VATEntryCountErr: Label 'Two VAT entries (main line and discount line) are expected for the posted invoice.';
+        DifferentBaseErr: Label 'The two VAT entries are expected to have different Base amounts.';
+        UnexpectedVATEntryErr: label 'Unexpected VAT entry with Base %1.', comment = '%1 = VAT Entry Base';
 
     [Test]
     [Scope('OnPrem')]
@@ -50,6 +56,46 @@ codeunit 145403 "AU Feature Bugs"
         UpdateGeneralLedgerSetup(
           GeneralLedgerSetup."Enable Tax Invoices", GeneralLedgerSetup."Enable WHT", GeneralLedgerSetup."Print Tax Invoices on Posting",
           GeneralLedgerSetup."Unrealized VAT");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesInvoiceWithLineDiscountACYCalculatedPerVATEntry()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        CustomerNo: Code[20];
+        ItemNo: Code[20];
+        DocumentNo: Code[20];
+        ACYCurrencyCode: Code[10];
+        OldAdditionalReportingCurrency: Code[10];
+        OldEnableGSTAustralia: Boolean;
+    begin
+        // [FEATURE] [GST] [Sales] [ACY]
+        // [SCENARIO] Additional-Currency Base and Additional-Currency Amount are duplicated (net value) on both
+        // the main line and the discount line VAT Entries of a Sales Invoice when a line discount is applied and an
+        // Additional Reporting Currency is used. This test locks in the current (buggy) behavior.
+
+        // [GIVEN] GST (Australia) is enabled and an Additional Reporting Currency is set
+        OldEnableGSTAustralia := SetEnableGSTAustralia(true);
+        ACYCurrencyCode := CreateCurrencyWithACYExchangeRate();
+        OldAdditionalReportingCurrency := SetAdditionalReportingCurrency(ACYCurrencyCode);
+
+        // [GIVEN] A 15% GST posting setup, a customer using it and an item with unit price 100 using it
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+          VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 15);
+        CustomerNo := CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group");
+        ItemNo := CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group", 100);
+
+        // [WHEN] A Sales Invoice with quantity 1 and a 5% line discount is posted
+        DocumentNo := CreateAndPostSalesInvoiceWithLineDiscount(SalesHeader, CustomerNo, ItemNo, 1, 5);
+
+        // [THEN] Two VAT entries are created with different Base but identical Additional-Currency Base and Amount
+        VerifyACYCalculatedPerVATEntry(DocumentNo);
+
+        // Tear down
+        SetAdditionalReportingCurrency(OldAdditionalReportingCurrency);
+        SetEnableGSTAustralia(OldEnableGSTAustralia);
     end;
 
     [Test]
@@ -607,6 +653,129 @@ codeunit 145403 "AU Feature Bugs"
         WHTEntry.SetRange("Document Type", WHTEntry."Document Type"::Invoice);
         WHTEntry.FindFirst();
         Assert.AreNearlyEqual(ExpectedWHTAmount, Abs(WHTEntry.Amount), 0.01, StrSubstNo(WHTAmountErr, ExpectedWHTAmount));
+    end;
+
+    local procedure SetEnableGSTAustralia(NewEnableGSTAustralia: Boolean) OldEnableGSTAustralia: Boolean
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        OldEnableGSTAustralia := GeneralLedgerSetup."Enable GST (Australia)";
+        GeneralLedgerSetup.Validate("Enable GST (Australia)", NewEnableGSTAustralia);
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure SetAdditionalReportingCurrency(CurrencyCode: Code[10]) OldAdditionalReportingCurrency: Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        OldAdditionalReportingCurrency := GeneralLedgerSetup."Additional Reporting Currency";
+        GeneralLedgerSetup."Additional Reporting Currency" := CurrencyCode;  // Set directly to avoid running the Adjust Add. Reporting Currency report.
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure CreateCurrencyWithACYExchangeRate(): Code[10]
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.SetCurrencyGainLossAccounts(Currency);
+        Currency.Validate("Residual Gains Account", Currency."Realized Gains Acc.");
+        Currency.Validate("Residual Losses Account", Currency."Realized Losses Acc.");
+        Currency.Modify(true);
+
+        CurrencyExchangeRate.Init();
+        CurrencyExchangeRate."Currency Code" := Currency.Code;
+        CurrencyExchangeRate."Starting Date" := 0D;
+        CurrencyExchangeRate.Insert(true);
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 100);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 189.1478);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 100);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 189.1478);
+        CurrencyExchangeRate.Modify(true);
+        exit(Currency.Code);
+    end;
+
+    local procedure CreateCustomerWithVATBusPostingGroup(VATBusPostingGroup: Code[20]): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateItemWithVATProdPostingGroup(VATProdPostingGroup: Code[20]; UnitPrice: Decimal): Code[20]
+    var
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        Item.Validate("Unit Price", UnitPrice);
+        Item.Modify(true);
+        exit(Item."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithLineDiscount(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal; LineDiscountPct: Decimal): Code[20]
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
+        SalesLine.Validate("Line Discount %", LineDiscountPct);
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));  // Ship and Invoice.
+    end;
+
+    local procedure VerifyACYCalculatedPerVATEntry(DocumentNo: Code[20])
+    var
+        VATEntry: Record "VAT Entry";
+        FirstBase: Decimal;
+        FirstACYBase: Decimal;
+        EntryCount: Integer;
+        DifferentBaseFound: Boolean;
+        DifferentACYBaseFound: Boolean;
+        DifferentACYBaseErr: label 'The two VAT entries are expected to have the different Additional-Currency Base: %1.', comment = '%1 = Additional Currency Base';
+    begin
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.FindSet();
+        FirstBase := VATEntry.Base;
+        FirstACYBase := VATEntry."Additional-Currency Base";
+        repeat
+            EntryCount += 1;
+            if VATEntry.Base <> FirstBase then
+                DifferentBaseFound := true;
+            if VATEntry."Additional-Currency Base" <> FirstACYBase then
+                DifferentACYBaseFound := true;
+
+            // [THEN] Every VAT entry of the document carries the same net Additional-Currency values (the defect)
+
+            case
+                vatentry.base of
+                -100.0:
+                    begin
+                        Assert.AreEqual(-52.87, VATEntry."Additional-Currency Base", ACYBaseErr);
+                        Assert.AreEqual(-7.93, VATEntry."Additional-Currency Amount", ACYAmountErr);
+                    end;
+                5.0:
+                    begin
+                        Assert.AreEqual(2.64, VATEntry."Additional-Currency Base", ACYBaseErr);
+                        Assert.AreEqual(0.4, VATEntry."Additional-Currency Amount", ACYAmountErr);
+                    end;
+                else
+                    Assert.Fail(UnexpectedVATEntryErr);
+            end;
+
+        until VATEntry.Next() = 0;
+
+        // [THEN] There are two VAT entries (main line and discount line) with different Base
+        Assert.AreEqual(2, EntryCount, VATEntryCountErr);
+        Assert.IsTrue(DifferentBaseFound, DifferentBaseErr);
+        Assert.IsTrue(DifferentACYBaseFound, StrSubstNo(DifferentACYBaseErr, FirstACYBase));
     end;
 
     [ConfirmHandler]

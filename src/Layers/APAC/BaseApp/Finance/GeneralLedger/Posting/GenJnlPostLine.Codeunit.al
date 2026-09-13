@@ -894,17 +894,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         if AddCurrencyCode <> '' then
             if AddCurrencyCode <> SrcCurrCode then begin
-                if GenJnlLine."VAT Base (ACY)" = 0 then begin
-                    SrcCurrGLEntryAmt := ExchangeAmtLCYToFCY2(GLEntryAmount);
-                    SrcCurrGLEntryVATAmt := ExchangeAmtLCYToFCY2(GLEntryVATAmount);
-                    SrcCurrGLEntryBaseAmt := ExchangeAmtLCYToFCY2(GLEntryBaseAmount);
-                    SrcCurrVATDifference := ExchangeAmtLCYToFCY2(VATDifferenceLCY);
-                end else begin
-                    SrcCurrGLEntryAmt := GenJnlLine."VAT Base (ACY)";
-                    SrcCurrGLEntryVATAmt := GenJnlLine."Amount Including VAT (ACY)" - GenJnlLine."VAT Base (ACY)";
-                    SrcCurrGLEntryBaseAmt := GenJnlLine."VAT Base (ACY)";
+                SrcCurrGLEntryAmt := ExchangeAmtLCYToFCY2(GLEntryAmount);
+                SrcCurrGLEntryVATAmt := ExchangeAmtLCYToFCY2(GLEntryVATAmount);
+                SrcCurrGLEntryBaseAmt := ExchangeAmtLCYToFCY2(GLEntryBaseAmount);
+                if GenJnlLine."VAT Base (ACY)" = 0 then
+                    SrcCurrVATDifference := ExchangeAmtLCYToFCY2(VATDifferenceLCY)
+                else
                     SrcCurrVATDifference := GenJnlLine."VAT Difference (ACY)";
-                end;
                 NonDedVATDiffACY := ExchangeAmtLCYToFCY2(GenJnlLine."Non-Deductible VAT Diff.");
             end else begin
                 SrcCurrVATDifference := GenJnlLine."VAT Difference";
