@@ -14,7 +14,7 @@ using Microsoft.Utilities;
 using System.Reflection;
 using System.Text;
 
-codeunit 99001560 "Subc. Purch. Factbox Mgmt."
+codeunit 20560 "Subc. Purch. Factbox Mgmt."
 {
     var
 #if not CLEAN29

@@ -43,8 +43,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
     begin
         // [SCENARIO] The "Transfer WIP Item" flag set on a Routing Line is propagated through the
         // Prod. Order Routing Line to the Purchase Line when the subcontracting purchase order
@@ -121,8 +121,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
     begin
         // [SCENARIO] When "Transfer WIP Item" is NOT set on the Routing Line,
         // the Purchase Line must NOT have the flag set.
@@ -372,9 +372,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RequisitionWkshName: Record "Requisition Wksh. Name";
         TransferHeader: Record "Transfer Header";
         WorkCenter: array[2] of Record "Work Center";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 641284] Creating WIP transfer orders for purchase lines from production orders at different locations opens all transfer orders.
@@ -415,7 +415,10 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+#pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -1028,8 +1031,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     procedure WIPTransferCreatedPerProdOrderLineInFamilyProductionOrder()
     var
         Family: Record Family;
-        FamilyItem: array[2] of Record Item;
         FamilyLine: array[2] of Record "Family Line";
+        FamilyItem: array[2] of Record Item;
         MachineCenter: array[2] of Record "Machine Center";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
@@ -1040,8 +1043,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] A Production Order sourced from a Family with 2 family items shares a single
@@ -1156,9 +1159,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
-        OriginalQty: Decimal;
         ChangedQty: Decimal;
+        OriginalQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When the purchase line quantity is changed from the original production order
         // quantity, the WIP transfer line must use the updated purchase line quantity, not the
@@ -1232,9 +1235,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         UnitOfMeasure: Record "Unit of Measure";
         WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
         BoxQtyPerPCS: Decimal;
         ProdOrderQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When the item has a non-base Purchase Unit of Measure (e.g. BOX = 10 PCS),
         // the WIP Transfer Order line must use the purchase line UOM (BOX) and quantity,
@@ -1314,8 +1317,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        FullQty: Decimal;
         AlreadyPostedQty: Decimal;
+        FullQty: Decimal;
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When part of the WIP has already been posted at the vendor location,
@@ -1395,8 +1398,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        OriginalQty: Decimal;
         ChangedQty: Decimal;
+        OriginalQty: Decimal;
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO] When the purchase line quantity is increased after the original quantity
@@ -1476,9 +1479,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
-        PurchaseHeaderPage: TestPage "Purchase Order";
         FullQty: Decimal;
         ReducedQty: Decimal;
+        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 639382] When an open (unposted) WIP transfer line had its quantity reduced,
         // re-running "Create Transfer Order to Subcontractor" must create the remaining quantity
@@ -1906,6 +1909,78 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         Assert.ExpectedError('Subcontracting Location Code');
     end;
 
+    [Test]
+    procedure ProdOrderRoutingLineTransferWIPItemValidationFailsForMachineCenterType()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO] Validating Transfer WIP Item = true on a Prod. Order Routing Line with
+        // Machine Center type fails, even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Subcontracting work centers with machine centers and an item with routing + BOM
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A released production order to create Prod. Order Routing Lines
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1);
+
+        // [GIVEN] A Prod. Order Routing Line with Type = Machine Center
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Machine Center");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] Transfer WIP Item is set to true on the Machine Center routing line
+        // [THEN] An error is raised because the line type must be Work Center
+        asserterror ProdOrderRoutingLine.Validate("Transfer WIP Item", true);
+        Assert.ExpectedTestFieldError(ProdOrderRoutingLine.FieldCaption(Type), Format(ProdOrderRoutingLine.Type::"Work Center"));
+    end;
+
+    [Test]
+    procedure ProdOrderRoutingPageTransferWIPItemDisabledForMachineCenterLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO] Transfer WIP Item field is disabled on Prod. Order Routing page for a Machine
+        // Center routing line, even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Subcontracting work centers with machine centers and an item with routing + BOM
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A released production order to create Prod. Order Routing Lines
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1);
+
+        // [GIVEN] A Prod. Order Routing Line with Type = Machine Center
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Machine Center");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] The Prod. Order Routing page is opened for that line
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+
+        // [THEN] Transfer WIP Item is not enabled (Machine Center type is not eligible)
+        Assert.IsFalse(ProdOrderRtng."Transfer WIP Item".Enabled(), ProdOrderRoutingTransferWIPEnabledErr);
+        ProdOrderRtng.Close();
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -1985,7 +2060,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
         RoutingLine.SetRange("No.", WorkCenterNo);
         RoutingLine.FindFirst();
-        RoutingLine."Transfer WIP Item" := TransferWIPItem;
+        RoutingLine.Validate("Transfer WIP Item", TransferWIPItem);
         RoutingLine.Modify(true);
 
         RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
@@ -2051,4 +2126,5 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+        ProdOrderRoutingTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center prod. order routing line.';
 }

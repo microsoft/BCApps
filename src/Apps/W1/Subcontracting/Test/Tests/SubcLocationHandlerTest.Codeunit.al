@@ -8,6 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
@@ -61,6 +62,8 @@ codeunit 139981 "Subc. Location Handler Test"
         SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+
+        LibrarySetupStorage.Save(Database::"Inventory Setup");
 
         IsInitialized := true;
         Commit();
@@ -195,6 +198,157 @@ codeunit 139981 "Subc. Location Handler Test"
         Assert.IsTrue(TransferHeader.FindFirst(), 'Transfer Order should be created');
         Assert.AreEqual(LocationOrig.Code, TransferHeader."Transfer-from Code", 'Transfer-from Code should be Origin Location');
         Assert.AreEqual(LocationSub.Code, TransferHeader."Transfer-to Code", 'Transfer-to Code should be Subcontractor Location');
+    end;
+
+    [Test]
+    procedure DirectTransferFromRequireShipmentLocationIsBlocked()
+    var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        // [SCENARIO 640958] Creating a subcontracting transfer with no in-transit route from a location that
+        //                 requires a shipment is blocked with a guided error instead of a raw TestField error.
+        Initialize();
+
+        // [GIVEN] Subcontractor and Original locations; the Original location requires a shipment; no in-transit transfer route exists.
+        LibraryWarehouse.CreateLocation(LocationSub);
+        LibraryWarehouse.CreateLocation(LocationOrig);
+        LocationOrig."Require Shipment" := true;
+        LocationOrig.Modify(true);
+
+        // [GIVEN] Inventory Setup posts direct transfers via Shipment and Receipt (so warehouse handling is enforced)
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [GIVEN] Subcontracting Scenario Setup (component at the subcontractor location, original at the require-shipment location)
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+
+        // [WHEN] Running the Create Subcontracting Transfer Order report
+        Commit(); // Report requires commit
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+
+        // [THEN] A guided error is raised instead of a raw TestField error on the location
+        asserterror CreateSubCTransfOrder.Run();
+        Assert.ExpectedError('requires warehousing');
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    procedure DirectTransferFromRequireShipmentLocationAllowedWithDirectTransferPosting()
+    var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        // [SCENARIO 640958] When Inventory Setup posts direct transfers as Direct Transfer, the transfer is created
+        //                 from a require-shipment source location instead of being blocked, because the Direct Transfer
+        //                 posting type skips the outbound warehouse-handling check.
+        Initialize();
+
+        // [GIVEN] Subcontractor and Original locations; the Original location requires a shipment; no in-transit route exists.
+        LibraryWarehouse.CreateLocation(LocationSub);
+        LibraryWarehouse.CreateLocation(LocationOrig);
+        LocationOrig."Require Shipment" := true;
+        LocationOrig.Modify(true);
+
+        // [GIVEN] Inventory Setup posts direct transfers via Direct Transfer
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Direct Transfer");
+
+        // [GIVEN] Subcontracting Scenario Setup
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+
+        // [WHEN] Running the Create Subcontracting Transfer Order report
+        Commit(); // Report requires commit
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+        CreateSubCTransfOrder.Run();
+
+        // [THEN] A direct transfer order is created (not blocked)
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.IsTrue(TransferHeader.FindFirst(), 'A transfer order should be created when Inventory Setup uses Direct Transfer posting.');
+        Assert.IsTrue(TransferHeader."Direct Transfer", 'The created transfer order should be a direct transfer.');
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    procedure InTransitRouteWithDirectTransferUsesInTransitCode()
+    var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+        TransitLocation: Record Location;
+        Vendor: Record Vendor;
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        // [SCENARIO 640958] A transfer route flagged Direct Transfer with Shipment and Receipt posting and an In-Transit
+        //                 Code creates a transfer order that keeps the Direct Transfer flag, the posting type, and the In-Transit Code.
+        Initialize();
+
+        // [GIVEN] Subcontractor and Original locations and an in-transit location
+        LibraryWarehouse.CreateLocation(LocationSub);
+        LibraryWarehouse.CreateLocation(LocationOrig);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+
+        // [GIVEN] Inventory Setup posts direct transfers via Shipment and Receipt
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [GIVEN] A transfer route from Original to Subcontractor with an In-Transit Code, flagged Direct Transfer (Shipment and Receipt posting)
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Modify(true);
+
+        // [GIVEN] Subcontracting Scenario Setup
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+
+        // [WHEN] Running the Create Subcontracting Transfer Order report
+        Commit(); // Report requires commit
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+        CreateSubCTransfOrder.Run();
+
+        // [THEN] The transfer order keeps the route's Direct Transfer flag, Shipment and Receipt posting, and In-Transit Code
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.IsTrue(TransferHeader.FindFirst(), 'A transfer order should be created.');
+        Assert.IsTrue(TransferHeader."Direct Transfer", 'The created transfer order should keep the route''s Direct Transfer flag.');
+        Assert.AreEqual(
+            "Direct Transfer Posting Type"::"Shipment and Receipt", TransferHeader."Direct Transfer Posting",
+            'The transfer order should keep the route''s Direct Transfer Posting.');
+        Assert.AreEqual(TransitLocation.Code, TransferHeader."In-Transit Code", 'The transfer order should keep the route''s In-Transit Code.');
     end;
 
     [Test]
@@ -623,5 +777,14 @@ codeunit 139981 "Subc. Location Handler Test"
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
+    end;
+
+    local procedure SetInventoryDirectTransferPostingType(PostingType: Enum "Direct Transfer Posting Type")
+    var
+        InventorySetup: Record "Inventory Setup";
+    begin
+        InventorySetup.Get();
+        InventorySetup.Validate("Direct Transfer Posting Type", PostingType);
+        InventorySetup.Modify(true);
     end;
 }

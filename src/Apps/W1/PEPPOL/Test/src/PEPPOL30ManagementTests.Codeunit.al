@@ -64,6 +64,115 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalespersonTxt: Label 'Salesperson';
 
     [Test]
+    procedure UnknownFormatValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLinesValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLines('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLineValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLine('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineTypeValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateLineTypeAndDescription('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatPostedDocumentValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidatePostedDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatIteratorRaisesControlledError()
+    var
+        SalesHeader: Record "Sales Header";
+        PostedRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedRecRef, SalesHeader);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineIteratorRaisesControlledError()
+    var
+        SalesLine: Record "Sales Line";
+        PostedLineRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedLineRecRef, SalesLine);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
     procedure GeneralInfo()
     var
         Cust: Record Customer;

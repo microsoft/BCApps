@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Planning;
 
-pageextension 99001511 "Subc. Planning Comp" extends "Planning Components"
+pageextension 20511 "Subc. Planning Comp" extends "Planning Components"
 {
     layout
     {

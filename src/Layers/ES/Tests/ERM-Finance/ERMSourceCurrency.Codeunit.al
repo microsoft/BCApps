@@ -11,6 +11,7 @@ codeunit 134897 "ERM Source Currency"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryFiscalYear: Codeunit "Library - Fiscal Year";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         isInitialized: Boolean;
         AmountIncorrectSignErr: Label 'The Source Currency Amount should have the same sign as the amount on the G/L Entry', Locked = true;
         VATAmountIncorrectErr: Label 'The Source Currency Amount should be equal to the amount %1 multiplied by the VAT % %2', Locked = true;
@@ -22,6 +23,8 @@ codeunit 134897 "ERM Source Currency"
         SourceCurrencyAmountShouldBeZeroErr: Label 'The Source Currency Amount should be 0', Locked = true;
         SourceCurrencyAmountShouldMatchEnteredAmountErr: Label 'Source Currency Amount should match manually entered amount', Locked = true;
         PayablesSCYAmountErr: Label 'Source Currency Amount on payables G/L entry should match the FCY invoice amount', Locked = true;
+        SourceCurrencyVATAmountNotZeroErr: Label 'Source Currency VAT Amount should not be zero', Locked = true;
+        SourceCurrencyReceivablesNotZeroErr: Label 'Source Currency Amount on receivables should not be zero', Locked = true;
 
     [Test]
     procedure GenJournalPurchaseNormalVATLCY()
@@ -1930,6 +1933,95 @@ codeunit 134897 "ERM Source Currency"
         Assert.AreEqual(-InvoiceAmount, GLEntry."Source Currency Amount", PayablesSCYAmountErr);
     end;
 
+    [Test]
+    procedure EmployeeFCYPaymentPayablesGLEntryHasCorrectSCYAmount()
+    var
+        Employee: Record Employee;
+        EmployeePostingGroup: Record "Employee Posting Group";
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        StartDate: Date;
+        PaymentAmount: Decimal;
+    begin
+        // [FEATURE] [Employee]
+        // [SCENARIO] Payables G/L entry keeps the full FCY amount as Source Currency Amount when posting an FCY employee payment,
+        // instead of a value that has been reconverted through LCY and rounded (bug 639486).
+        Initialize();
+
+        // [GIVEN] Start date "D" as WorkDate.
+        StartDate := WorkDate();
+
+        // [GIVEN] Currency "C" with an exchange rate of 7 FCY = 1 LCY on "D".
+        // [GIVEN] With this rate an FCY amount not divisible by 7 converts to an inexact LCY amount, and back-converting through LCY would round to a slightly different FCY amount.
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        CreateCurrencyExchangeRate(Currency.Code, StartDate, 7, 1);
+
+        // [GIVEN] Employee "E".
+        LibraryHumanResource.CreateEmployee(Employee);
+
+        // [GIVEN] Posted employee Payment via Gen. Journal on "D" with a fixed positive amount 650 in "C".
+        PaymentAmount := 650;
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Employee, Employee."No.",
+            Currency.Code, PaymentAmount, StartDate);
+
+        // [THEN] The payables G/L entry has Source Currency Code equal to "C".
+        EmployeePostingGroup.Get(Employee."Employee Posting Group");
+        GLEntry.SetLoadFields("Document No.", "G/L Account No.", "Source Currency Code", "Source Currency Amount");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", EmployeePostingGroup."Payables Account");
+        GLEntry.FindFirst();
+        Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+
+        // [THEN] Source Currency Amount on payables G/L entry equals the full FCY amount, not a value reconverted through LCY and rounded.
+        Assert.AreEqual(PaymentAmount, GLEntry."Source Currency Amount", PayablesSCYAmountErr);
+    end;
+
+    [Test]
+    procedure SalesInvoiceFCYLineDiscountDeferralNoDiscountPosting()
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        Currency: Record Currency;
+        DeferralCode: Code[10];
+        PostedInvoiceNo: Code[20];
+        VATAmount: Decimal;
+        OldDiscountPosting: Integer;
+    begin
+        // [SCENARIO 640453] Source Currency VAT Amount is not zero on G/L Entry when posting sales invoice with Line Discount, Deferral Code, and Discount Posting = No Discounts
+        Initialize();
+
+        // [GIVEN] Sales Setup with Discount Posting = "No Discounts"
+        OldDiscountPosting := SetSalesDiscountPosting(0); // 0 = "No Discounts"
+
+        // [GIVEN] Currency "C" with exchange rate, Deferral Template "DT" with 3 periods
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 1, 0.8);
+        DeferralCode := CreateDeferralCode(3);
+
+        // [GIVEN] Customer "C" with 25% VAT
+        CreateCustomerWithVATSetup(CustomerPostingGroup, GeneralPostingSetup, VATPostingSetup, 25);
+
+        // [GIVEN] Sales Invoice "SI" with Line Discount and Deferral
+        CreateSalesInvoiceWithLineDiscountAndDeferral(SalesHeader, CustomerPostingGroup.Code, GeneralPostingSetup, VATPostingSetup, Currency.Code, DeferralCode, 100, 1);
+        VATAmount := SalesHeader."Amount Including VAT" - SalesHeader.Amount;
+
+        // [WHEN] Post Sales Invoice "SI"
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Source Currency VAT Amount on VAT G/L Entry is not zero and equals calculated VAT amount
+        // [THEN] Source Currency Code on all G/L Entries equals Currency Code
+        // [THEN] Source Currency Amounts on all G/L Entries balance to 0
+        VerifySalesInvoiceSourceCurrencyAmounts(PostedInvoiceNo, Currency.Code, VATAmount, VATPostingSetup, CustomerPostingGroup);
+
+        // Cleanup
+        SetSalesDiscountPosting(OldDiscountPosting);
+    end;
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
@@ -2207,4 +2299,83 @@ codeunit 134897 "ERM Source Currency"
         end;
     end;
 
+    local procedure SetSalesDiscountPosting(DiscountPostingOption: Integer): Integer
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+        OldDiscountPosting: Integer;
+    begin
+        SalesSetup.Get();
+        OldDiscountPosting := SalesSetup."Discount Posting";
+        SalesSetup."Discount Posting" := DiscountPostingOption;
+        SalesSetup.Modify();
+        exit(OldDiscountPosting);
+    end;
+
+    local procedure CreateDeferralCode(NoOfPeriods: Integer): Code[10]
+    var
+        DeferralTemplate: Record "Deferral Template";
+    begin
+        CreateDeferralTemplate(DeferralTemplate);
+        DeferralTemplate."No. of Periods" := NoOfPeriods;
+        DeferralTemplate.Modify();
+        exit(DeferralTemplate."Deferral Code");
+    end;
+
+    local procedure CreateCustomerWithVATSetup(var CustomerPostingGroup: Record "Customer Posting Group"; var GeneralPostingSetup: Record "General Posting Setup"; var VATPostingSetup: Record "VAT Posting Setup"; VATPercent: Decimal)
+    begin
+        CreateCustomerWithNewPostingGroups(CustomerPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", VATPercent);
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithLineDiscountAndDeferral(var SalesHeader: Record "Sales Header"; CustomerPostingGroupCode: Code[20]; GeneralPostingSetup: Record "General Posting Setup"; VATPostingSetup: Record "VAT Posting Setup"; CurrencyCode: Code[10]; DeferralCode: Code[10]; UnitPrice: Decimal; LineDiscountPct: Decimal)
+    var
+        Customer: Record Customer;
+        SalesLine: Record "Sales Line";
+        GLAccount: Record "G/L Account";
+    begin
+        Customer.SetRange("Customer Posting Group", CustomerPostingGroupCode);
+        Customer.FindFirst();
+
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Sale, GeneralPostingSetup, VATPostingSetup);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Validate("Line Discount %", LineDiscountPct);
+        SalesLine.Validate("Deferral Code", DeferralCode);
+        SalesLine.Modify(true);
+
+        SalesHeader.CalcFields(Amount, "Amount Including VAT");
+    end;
+
+    local procedure VerifySalesInvoiceSourceCurrencyAmounts(DocumentNo: Code[20]; CurrencyCode: Code[10]; VATAmount: Decimal; VATPostingSetup: Record "VAT Posting Setup"; CustomerPostingGroup: Record "Customer Posting Group")
+    var
+        GLEntry: Record "G/L Entry";
+        SCYBalance: Decimal;
+    begin
+        GetGLEntries(GLEntry, DocumentNo, GLEntry."Document Type"::Invoice);
+
+        repeat
+            Assert.AreEqual(CurrencyCode, GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+
+            case GLEntry."G/L Account No." of
+                VATPostingSetup."Sales VAT Account":
+                    begin
+                        Assert.AreNotEqual(0, GLEntry."Source Currency Amount", SourceCurrencyVATAmountNotZeroErr);
+                        Assert.AreEqual(-VATAmount, GLEntry."Source Currency Amount", StrSubstNo(VATAmountIncorrectErr, VATAmount, VATPostingSetup."VAT %"));
+                        if GLEntry."Gen. Posting Type" = GLEntry."Gen. Posting Type"::Sale then
+                            Assert.AreEqual(-VATAmount, GLEntry."Source Currency VAT Amount", StrSubstNo(VATAmountIncorrectErr, VATAmount, VATPostingSetup."VAT %"));
+                    end;
+                CustomerPostingGroup."Receivables Account":
+                    Assert.AreNotEqual(0, GLEntry."Source Currency Amount", SourceCurrencyReceivablesNotZeroErr);
+            end;
+            SCYBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+
+        Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
+    end;
 }

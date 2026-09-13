@@ -30,6 +30,12 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         DocumentTypeWarehouseMovementLbl: Label 'Warehouse Movement';
         NoWhseWkshErr: Label 'There is no Warehouse Worksheet for the specified template, worksheet name, and location. Ensure the correct worksheet is defined on the Quality Management Setup Card and the worksheet exists for location %1.', Comment = '%1=location';
 
+    /// <summary>
+    /// Creates movement worksheet lines and optionally creates a warehouse movement document.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, quantity, and posting behavior.</param>
+    /// <returns>True if at least one movement worksheet line was created; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -99,6 +105,14 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
                 QltyNotificationMgmt.NotifyDocumentCreated(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeWarehouseMovementLbl, CreatedDocumentNo, CreatedWarehouseActivityHeader);
     end;
 
+    /// <summary>
+    /// Creates a warehouse movement from the worksheet lines created for the inspection.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection used to filter the worksheet lines by item and variant.</param>
+    /// <param name="WhseWkshTemplateName">The movement worksheet template name.</param>
+    /// <param name="WhseWkshName">The movement worksheet name.</param>
+    /// <param name="FromLocationCode">The source location code.</param>
+    /// <returns>The number of the created warehouse movement.</returns>
     local procedure CreateMovementFromMovementWorksheetLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; WhseWkshTemplateName: Code[10]; WhseWkshName: Code[10]; FromLocationCode: Code[20]): Text
     var
         WhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -131,6 +145,17 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         exit(CreatedWarehouseActivityHeaderDocumentNo);
     end;
 
+    /// <summary>
+    /// Creates a movement worksheet line and assigns inspection item tracking.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="WhseWkshTemplateName">The movement worksheet template name.</param>
+    /// <param name="WhseWkshName">The movement worksheet name.</param>
+    /// <param name="FromLocationCode">The source location code.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
+    /// <param name="ToBinCode">The destination bin code.</param>
+    /// <param name="Quantity">The quantity to move.</param>
+    /// <param name="WorksheetLineCreated">Set to true after the worksheet line is created.</param>
     local procedure CreateWarehouseWorksheetLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; WhseWkshTemplateName: Code[10]; WhseWkshName: Code[10]; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean)
     var
         WkshWhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -184,6 +209,11 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
 
     #region Event Subscribers
 
+    /// <summary>
+    /// Captures the last warehouse activity number created by the warehouse source report.
+    /// </summary>
+    /// <param name="FirstActivityNo">The first warehouse activity number created by the report.</param>
+    /// <param name="LastActivityNo">The last warehouse activity number created by the report.</param>
     [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterPostReport', '', true, true)]
     local procedure HandleOnAfterPostReport(FirstActivityNo: Code[20]; LastActivityNo: Code[20])
     begin
@@ -193,38 +223,41 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
     #endregion Event Subscribers
 
     /// <summary>
-    /// Provides an opportunity to alter the warehouse worksheet line that was made with MoveInventory
+    /// Occurs after a warehouse movement worksheet line and any tracking lines are created.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="FromLocationCode"></param>
-    /// <param name="FromBinCode"></param>
-    /// <param name="ToBinCode"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="WorksheetLineCreated"></param>
-    /// <param name="ltrecWarehouseEntry"></param>
-    /// <param name="lrecWhseWkshLine"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the moved inventory.</param>
+    /// <param name="FromLocationCode">The source location code.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
+    /// <param name="ToBinCode">The destination bin code.</param>
+    /// <param name="Quantity">The moved quantity.</param>
+    /// <param name="WorksheetLineCreated">Indicates whether the worksheet line was created.</param>
+    /// <param name="TempWarehouseEntry">The temporary warehouse entry containing tracking values.</param>
+    /// <param name="WkshWhseWorksheetLine">The created warehouse worksheet line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWarehouseWorksheetLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var WkshWhseWorksheetLine: Record "Whse. Worksheet Line")
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to alter the warehouse worksheet tracking lines that were made with MoveInventory
+    /// Occurs before item tracking lines are assigned to a warehouse movement worksheet line.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="FromLocationCode"></param>
-    /// <param name="FromBinCode"></param>
-    /// <param name="ToBinCode"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="WorksheetLineCreated"></param>
-    /// <param name="lrecWhseWkshLine"></param>
-    /// <param name="ltrecWarehouseEntry"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="FromLocationCode">The source location code.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
+    /// <param name="ToBinCode">The destination bin code.</param>
+    /// <param name="Quantity">The quantity used for the tracking lines.</param>
+    /// <param name="WorksheetLineCreated">Indicates whether the worksheet line was created.</param>
+    /// <param name="WkshWhseWorksheetLine">The warehouse worksheet line receiving tracking lines.</param>
+    /// <param name="TempWarehouseEntry">The temporary warehouse entry containing tracking values.</param>
+    /// <param name="IsHandled">Set to true to skip the default tracking-line assignment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetWhseWkshTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal; var WorksheetLineCreated: Boolean; WkshWhseWorksheetLine: Record "Whse. Worksheet Line"; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Raises an actionable error when the movement worksheet is not configured.
+    /// </summary>
     local procedure ThrowMissingSetupError()
     var
         ErrorInfo: ErrorInfo;
@@ -235,6 +268,10 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         Error(ErrorInfo);
     end;
 
+    /// <summary>
+    /// Raises an actionable error when the configured movement worksheet does not exist for a location.
+    /// </summary>
+    /// <param name="FromLocationCode">The source location for which no worksheet was found.</param>
     local procedure ThrowNoWhseWkshError(FromLocationCode: Code[10])
     var
         ErrorInfo: ErrorInfo;
@@ -245,6 +282,10 @@ codeunit 20451 "Qlty. Disp. Move Worksheet" implements "Qlty. Disposition"
         Error(ErrorInfo);
     end;
 
+    /// <summary>
+    /// Opens Quality Management Setup from a movement worksheet setup error action.
+    /// </summary>
+    /// <param name="ErrorInfo">The error context supplied to the action callback.</param>
     procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";

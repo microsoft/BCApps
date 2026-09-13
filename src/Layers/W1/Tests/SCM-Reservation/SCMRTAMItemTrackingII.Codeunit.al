@@ -4375,6 +4375,102 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         PurchaseLine.TestField("Qty. to Receive", RegularQty);
     end;
 
+    [Test]
+    [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
+    procedure QuantityMustBeRestoredWhenUndoDropShipmentSalesShipmentIsExecutedForNonInventoryItem()
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 646367] Verify that quantity must be restored when Undo Drop Shipment Sales Shipment is executed for a Non-Inventory item.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create a Non-Inventory item.
+        CreateNonInventoriableItemWithVendorNo(Item, Item.Type::"Non-Inventory", Quantity);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Post Sales Document with shipment only.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [GIVEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+
+        // [GIVEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", Quantity, 0);
+
+        // [WHEN] Undo Sales Shipment.
+        UndoSalesShipment(SalesHeader."No.");
+
+        // [THEN] Verify that Qty. to Ship is restored and Quantity Shipped is Zero.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that Qty. to Receive is restored and Quantity Received is Zero.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that the posted shipment and the linked posted receipt are both corrected.
+        VerifyUndoneSalesShipmentLine(SalesHeader."No.", Item."No.", Quantity);
+        VerifyUndonePurchRcptLine(PurchaseHeader."No.", Item."No.", Quantity);
+    end;
+
+    [Test]
+    [HandlerFunctions('SalesListPageHandler,ConfirmHandler')]
+    procedure QuantityMustBeRestoredWhenUndoDropShipmentPurchRcptIsExecutedForServiceItem()
+    var
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 646367] Verify that quantity must be restored when Undo Drop Shipment Purchase Receipt is executed for a Service item.
+        Initialize();
+
+        // [GIVEN] Generate a random quantity.
+        Quantity := LibraryRandom.RandInt(50);
+
+        // [GIVEN] Create a Service item.
+        CreateNonInventoriableItemWithVendorNo(Item, Item.Type::Service, Quantity);
+
+        // [GIVEN] Create a sales order with drop shipment.
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", '', Quantity, false);
+
+        // [GIVEN] Create a purchase order for drop shipment.
+        CreatePurchaseHeaderAndGetDropShipment(PurchaseHeader, SalesHeader."Sell-to Customer No.");
+
+        // [GIVEN] Post Sales Document with shipment only.
+        PostSalesDocument(SalesHeader."Document Type", SalesHeader."No.", true, false);
+
+        // [GIVEN] Verify that the shipment is posted and quantity shipped.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", Quantity, 0);
+
+        // [GIVEN] Verify that the Receipt is posted and quantity received.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", Quantity, 0);
+
+        // [WHEN] Undo Purchase Receipt.
+        UndoPurchaseReceipt(PurchaseHeader."No.");
+
+        // [THEN] Verify that Qty. to Ship is restored and Quantity Shipped is Zero.
+        VerifyQuantityForDropShipmentInSalesLine(SalesHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that Qty. to Receive is restored and Quantity Received is Zero.
+        VerifyQuantityForDropShipmentInPurchaseLine(PurchaseHeader, Item."No.", 0, Quantity);
+
+        // [THEN] Verify that the posted receipt and the linked posted shipment are both corrected.
+        VerifyUndonePurchRcptLine(PurchaseHeader."No.", Item."No.", Quantity);
+        VerifyUndoneSalesShipmentLine(SalesHeader."No.", Item."No.", Quantity);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6211,6 +6307,46 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
             CostActualAmount,
             ItemLedgEntry."Cost Amount (Actual)",
             StrSubstNo(ValueMustBeEqualErr, ItemLedgEntry.FieldCaption("Cost Amount (Actual)"), CostActualAmount, ItemLedgEntry.TableCaption()));
+    end;
+
+    local procedure CreateNonInventoriableItemWithVendorNo(var Item: Record Item; ItemType: Enum "Item Type"; UnitCost: Decimal)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Type, ItemType);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Validate("Unit Price", LibraryRandom.RandDec(10, 2));
+        Item.Validate("Unit Cost", UnitCost);
+        Item.Validate("Last Direct Cost", Item."Unit Cost");
+        Item.Modify(true);
+    end;
+
+    local procedure VerifyUndoneSalesShipmentLine(SalesOrderNo: Code[20]; ItemNo: Code[20]; ExpectedQuantity: Decimal)
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+    begin
+        FindSalesShipmentHeader(SalesShipmentHeader, SalesOrderNo);
+        SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange("No.", ItemNo);
+        SalesShipmentLine.SetRange(Correction, true);
+        SalesShipmentLine.SetRange(Quantity, -ExpectedQuantity);
+        Assert.RecordIsNotEmpty(SalesShipmentLine);
+    end;
+
+    local procedure VerifyUndonePurchRcptLine(PurchOrderNo: Code[20]; ItemNo: Code[20]; ExpectedQuantity: Decimal)
+    var
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        PurchRcptHeader.SetRange("Order No.", PurchOrderNo);
+        PurchRcptHeader.FindFirst();
+        PurchRcptLine.SetRange("Document No.", PurchRcptHeader."No.");
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+        PurchRcptLine.SetRange("No.", ItemNo);
+        PurchRcptLine.SetRange(Correction, true);
+        PurchRcptLine.SetRange(Quantity, -ExpectedQuantity);
+        Assert.RecordIsNotEmpty(PurchRcptLine);
     end;
 
     [ModalPageHandler]

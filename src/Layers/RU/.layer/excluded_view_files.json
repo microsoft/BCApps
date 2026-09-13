@@ -385,7 +385,6 @@
   "Tests\\Local\\ERMVATInvoicesJnlExport.Codeunit.al",
   "Tests\\Local\\ERMSalesVATLedgExportXML.Codeunit.al",
   "Tests\\Local\\ERMStatisticFormFNS1.Codeunit.al",
-  "Tests\\Performance-Internal\\FinancialsPerfProfileTests.Codeunit.al",
   "Tests\\TestLibraries\\BankStatementProviderMock.Codeunit.al",
   "Tests\\TestLibraries\\PurchasePaymentModel.Codeunit.133004.al",
   "Tests\\TestLibraries\\PurchasePrepaymentModel.Codeunit.133007.al",

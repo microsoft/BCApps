@@ -310,6 +310,10 @@ table 18469 "Delivery Challan Line"
                 "Location Code" = field("Vendor Location"),
                 "External Document No." = field("Delivery Challan No."),
                 "Item No." = field("Item No."),
+                "Variant Code" = field("Variant Code"),
+                "Order No." = field("Production Order No."),
+                "Order Line No." = field("Production Order Line No."),
+                "Prod. Order Comp. Line No." = field("Prod. Order Comp. Line No."),
                 "Subcon Order No." = field("Document No.")));
             Caption = 'Remaining Quantity';
             DecimalPlaces = 0 : 3;

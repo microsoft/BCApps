@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+#pragma warning disable AL0659 // Accepted: renaming the enum is a breaking change
 enum 11035 "Intrastat Submission Channel DE"
+#pragma warning restore AL0659
 {
     Extensible = true;
     Caption = 'Intrastat Submission Channel';

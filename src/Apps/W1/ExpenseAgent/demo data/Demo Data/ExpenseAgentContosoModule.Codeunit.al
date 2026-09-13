@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.DemoData.Finance;
 using Microsoft.DemoTool;
 
 codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Module"
@@ -26,35 +27,40 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
     procedure CreateSetupData()
     var
         ExpenseAgentModuleSetup: Record "Expense Agent Module Setup";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
         ExpenseAgentModuleSetup.InitRecord();
-        Codeunit.Run(Codeunit::"Create Expense Payment Method");
-        Codeunit.Run(Codeunit::"Create Expense No. Series DM");
-        Codeunit.Run(Codeunit::"Create Expense Group");
-        Codeunit.Run(Codeunit::"Create Expense G/L Account");
-        Codeunit.Run(Codeunit::"Create Expense Posting Group");
-        Codeunit.Run(Codeunit::"Create Expense Team");
-        Codeunit.Run(Codeunit::"Create Exp. Agent Setup");
+        CreateExpenseCountryData.CreateSetupData();
     end;
 
     procedure CreateMasterData()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
+        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
     begin
-        Codeunit.Run(Codeunit::"Create Expense Location");
-        Codeunit.Run(Codeunit::"Create Expense Categories DM");
-        Codeunit.Run(Codeunit::"Create Expense Subcategories");
-        Codeunit.Run(Codeunit::"Create Expense Rule Header");
-        Codeunit.Run(Codeunit::"Create Expense Rule Condition");
-        Codeunit.Run(Codeunit::"Create Expense User");
+        CreateExpenseCountryData.CreateMasterData();
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", CreateVATPostingGroups.Domestic());
+        ExpenseAgentSetup.Modify(true);
+        Commit();
+        Codeunit.Run(Codeunit::"Create Expense VAT Rates");
     end;
 
     procedure CreateTransactionalData()
+    var
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
-        Codeunit.Run(Codeunit::"Create Expense");
-        Codeunit.Run(Codeunit::"Create Exp. Report");
+        CreateExpenseCountryData.CreateTransactionalData();
     end;
 
     procedure CreateHistoricalData()
+    var
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
-        Codeunit.Run(Codeunit::"Create Posted Expense Report");
+        CreateExpenseCountryData.CreateHistoricalData();
     end;
 }

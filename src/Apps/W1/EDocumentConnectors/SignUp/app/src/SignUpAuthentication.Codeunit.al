@@ -55,7 +55,6 @@ codeunit 6442 "SignUp Authentication"
         if this.SignUpConnectionSetup.Get() then
             exit;
 
-        this.SignUpConnectionSetup."Authentication URL" := this.AuthURLTxt;
         this.SignUpConnectionSetup."Service URL" := this.GetServiceApi();
         this.StorageSet(this.SignUpConnectionSetup."Marketplace Tenant", this.GetMarketplaceTenant());
         this.StorageSet(this.SignUpConnectionSetup."Client Tenant", this.GetClientTenant());
@@ -163,6 +162,16 @@ codeunit 6442 "SignUp Authentication"
             Identifier := AADTenantID
         else
             Identifier := NullGuid;
+    end;
+
+    /// <summary>
+    /// The method returns the authentication URL for the given Entra tenant.
+    /// </summary>
+    /// <param name="EntraTenantId">Entra tenant ID</param>
+    /// <returns>Authentication URL</returns>
+    procedure GetAuthUrl(EntraTenantId: Text): Text
+    begin
+        exit(StrSubstNo(this.AuthURLTxt, EntraTenantId));
     end;
 
     /// <summary>
@@ -281,10 +290,9 @@ codeunit 6442 "SignUp Authentication"
     begin
         Clear(AccessToken);
         this.SignUpConnectionSetup.Get();
-        this.SignUpConnectionSetup.TestField("Authentication URL");
 
         HttpRequestMessage := this.PrepareRequest(SecretStrSubstNo(this.AuthTemplateTxt, TypeHelper.UriEscapeDataString(ClientId), ClientSecret, TypeHelper.UriEscapeDataString(ClientId)),
-                                                  StrSubstNo(this.SignUpConnectionSetup."Authentication URL", ClientTenant));
+                                                  this.GetAuthUrl(ClientTenant));
 
         if not this.SendRequest(HttpRequestMessage, Response) then
             exit;

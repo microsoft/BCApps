@@ -32,9 +32,9 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// Used as an interim shim to assist with obsoletions and refactoring.
     /// Consider using the disposition method that you want directly instead.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, quantity, and posting behavior.</param>
+    /// <returns>True if the selected movement disposition created or posted a movement; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         Location: Record Location;
@@ -89,10 +89,10 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// Do not use directly for net new code. This method is an interim shim to help with obsoletions and refactoring for dispositions.
     /// Instead use the new dispositions directly.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="UseMovement"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, quantity, and posting behavior.</param>
+    /// <param name="UseMovement">Use movement documents or worksheets instead of reclassification journals.</param>
+    /// <returns>True if inventory was moved or a movement entry was prepared; otherwise, false.</returns>
     internal procedure MoveInventory(QltyInspectionHeader: Record "Qlty. Inspection Header"; TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; UseMovement: Boolean) DidSomething: Boolean
     var
     begin
@@ -110,21 +110,21 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// <summary>
     /// Provides an opportunity to modify the instruction or replace it completely.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
-    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="DidSomething">Indicates whether inventory was moved or a movement entry was prepared.</param>
+    /// <param name="IsHandled">Set to true to skip automatic movement selection.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to extend the processing
+    /// Occurs after the automatically selected movement disposition is processed.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="DidSomething">Indicates whether inventory was moved or a movement entry was prepared.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean)
     begin

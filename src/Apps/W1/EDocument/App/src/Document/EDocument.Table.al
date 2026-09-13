@@ -283,6 +283,10 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
+        field(45; "Receiving Company Reg. No."; Text[20])
+        {
+            Caption = 'Receiving Company Registration No.';
+        }
         #endregion
 
         #region Clearance Model
@@ -560,7 +564,7 @@ table 6121 "E-Document"
     var
         Telemetry: Codeunit Telemetry;
         ToStringLbl: Label '%1,%2,%3,%4', Locked = true;
-        DeleteLinkedNotAllowedErr: Label 'The E-Document is linked to sales or purchase document and cannot be deleted.';
+        DeleteLinkedNotAllowedErr: Label 'The E-Document is linked to a source document and cannot be deleted.';
         DeleteProcessedNotAllowedErr: Label 'The E-Document has already been processed and cannot be deleted.';
         DeleteUniqueNotAllowedErr: Label 'Only duplicate E-Documents can be deleted without a confirmation in the user interface.';
         NoFileErr: label 'No previewable attachment exists for this %2.', Comment = '%1 - a table caption';

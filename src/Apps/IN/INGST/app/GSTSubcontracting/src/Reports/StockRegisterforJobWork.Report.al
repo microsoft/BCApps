@@ -220,8 +220,10 @@ report 18468 "Stock Register for Job Work"
                   "Order No." = field("Production Order No."),
                   "Order Line No." = field("Production Order Line No.");
 
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting("Entry Type", "Location Code", "External Document No.", "Item No.", "Order Type", "Order No.", "Order Line No.")
                         Order(Ascending) where("Order Type" = const(Production));
+#pragma warning restore AL0254
                 column(Item_Ledger_Entry_Entry_No_; "Entry No.")
                 {
                 }
@@ -319,7 +321,9 @@ report 18468 "Stock Register for Job Work"
             dataitem("Purch. Rcpt. Line"; "Purch. Rcpt. Line")
             {
                 DataItemLink = "Prod. Order No." = field("Production Order No."), "Prod. Order Line No." = field("Production Order Line No.");
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting("Prod. Order No.", "Prod. Order Line No.") Order(Ascending);
+#pragma warning restore AL0254
                 column(Vendor__No___________Vendor_Name_________Vendor_Address________Vendor__Address_2__Control1280014; Vendor."No." + '  ' + Vendor.Name + '  ' + Vendor.Address + '  ' + Vendor."Address 2")
                 {
                 }

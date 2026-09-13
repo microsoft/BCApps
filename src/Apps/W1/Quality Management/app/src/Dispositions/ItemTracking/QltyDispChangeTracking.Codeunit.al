@@ -31,9 +31,9 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <summary>
     /// Performs the change item tracking disposition.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory and current tracking values.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing the new tracking values and posting behavior.</param>
+    /// <returns>True if item tracking was changed; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) Changed: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -114,6 +114,14 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
             QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
+    /// <summary>
+    /// Creates an item reclassification journal line with the requested tracking changes.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and current tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The quantity, source filters, and new tracking values.</param>
+    /// <param name="ReclassBatchName">The item reclassification journal batch name.</param>
+    /// <param name="ItemJournalLine">The created item journal line.</param>
+    /// <param name="ReservationEntry">The reservation entry created for the new tracking values.</param>
     local procedure CreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -149,6 +157,14 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
         OnAfterCreateTrackingItemReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ReclassBatchName, ItemJournalLine, ReservationEntry);
     end;
 
+    /// <summary>
+    /// Creates a warehouse reclassification journal line with the requested tracking changes.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and current tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The quantity, source filters, and new tracking values.</param>
+    /// <param name="ReclassBatchName">The warehouse reclassification journal batch name.</param>
+    /// <param name="WhseWarehouseJournalLine">The created warehouse journal line.</param>
+    /// <param name="WhseItemTrackingLine">The created warehouse item tracking line.</param>
     local procedure CreateTrackingWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; ReclassBatchName: Code[10]; var WhseWarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -173,6 +189,10 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <summary>
     /// Occurs before change tracking has taken place, allowing the opportunity to extend or replace the functionality.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="Changed">Indicates whether item tracking was changed.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
@@ -181,6 +201,9 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <summary>
     /// Occurs after change tracking has taken place.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="Changed">Indicates whether item tracking was changed.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
@@ -189,14 +212,24 @@ codeunit 20443 "Qlty. Disp. Change Tracking" implements "Qlty. Disposition"
     /// <summary>
     /// Provides an opportunity to adjust the item reclassification line created to change item tracking information before it is inserted.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and current tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The quantity, source filters, and new tracking values.</param>
+    /// <param name="ReclassBatchName">The item reclassification journal batch name.</param>
+    /// <param name="ItemJournalLine">The item journal line being prepared.</param>
+    /// <param name="IsHandled">Set to true to skip the default line creation.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeInsertCreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to adjust the warehouse reclassification line and whse. tracking line created to change item tracking information.
+    /// Occurs after an item reclassification line and reservation entry are created for the tracking change.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and current tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The quantity, source filters, and new tracking values.</param>
+    /// <param name="ReclassBatchName">The item reclassification journal batch name.</param>
+    /// <param name="ItemJournalLine">The created item journal line.</param>
+    /// <param name="ReservationEntry">The reservation entry created for the new tracking values.</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterCreateTrackingItemReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ReclassBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     begin

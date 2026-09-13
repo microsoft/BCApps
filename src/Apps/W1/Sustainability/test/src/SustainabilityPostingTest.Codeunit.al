@@ -66,6 +66,11 @@ codeunit 148184 "Sustainability Posting Test"
         FieldShouldNotBeEditableErr: Label '%1 should not be editable in Page %2.', Comment = '%1 = Field Caption , %2 = Page Caption';
         FieldShouldBeEditableErr: Label '%1 should be editable in Page %2.', Comment = '%1 = Field Caption , %2 = Page Caption';
         ItemOrCategoryFilterErr: Label 'You must not use Item No. Filter and Item Category Filter at the same time.';
+        EntryNoShouldBeBaselinePlusOneErr: Label 'The committed Entry No. should be the baseline Entry No. plus one.', Locked = true;
+        EntryNoShouldBePositiveErr: Label 'The committed Entry No. should be a positive SQL-assigned key.', Locked = true;
+        EntryNoShouldBeConsecutiveErr: Label 'The committed Entry Nos. should be consecutive.', Locked = true;
+        TwoLedgerEntriesExpectedErr: Label 'Exactly two Sustainability Ledger Entries should be posted.', Locked = true;
+        PreviewKeyShouldBeNegativeErr: Label 'The preview Sustainability Ledger Entry should use a negative temporary key.', Locked = true;
 
     [Test]
     procedure TestInformationIsTransferredToLedgerEntry()
@@ -1875,7 +1880,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // [GIVEN] Update "Buy-from Country/Region Code" in Sustainability Journal Line.
         SustainabilityJournalLine.Validate("Document No.", SustainabilityJournalMgt.GetDocumentNo(false, SustainabilityJnlBatch, '', SustainabilityJournalLine."Posting Date"));
-        SustainabilityJournalLine.Validate(Description, LibraryRandom.RandText(10));
+        SustainabilityJournalLine.Validate(Description, LibraryUtility.GenerateGUID());
         SustainabilityJournalLine.Validate("Unit of Measure", UnitOfMeasure.Code);
         SustainabilityJournalLine.Validate("Fuel/Electricity", LibraryRandom.RandIntInRange(1, 1));
         SustainabilityJournalLine.Validate("Country/Region Code", CountryRegion.Code);
@@ -5455,6 +5460,210 @@ codeunit 148184 "Sustainability Posting Test"
         VerifySustValueEntry(PostedAssemblyHeader."No.", CompItem."No.", -ExpectedCO2eOnLot[2]);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,GLPostingPreviewHandler')]
+    procedure VerifyIdentityContinuesAfterRepeatedPreviewOfCorrectivePurchaseCreditMemo()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        AccountCode: Code[20];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        CrMemoNo: Code[20];
+        PostedCrMemoNo: Code[20];
+        BaselineEntryNo: Integer;
+        BaselineEmissionCO2: Decimal;
+    begin
+        // [SCENARIO 640599] Repeated preview of a corrective purchase credit memo consumes no
+        // Sustainability Ledger Entry identity, and posting creates the baseline entry plus one.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] "Enable Value Chain Tracking" is disabled so only a Sustainability Ledger Entry is created.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(false);
+
+        // [GIVEN] A Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] A Purchase Order line with Sustainability emissions.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, "Purchase Line Type"::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandIntInRange(10, 10));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(10, 200));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandIntInRange(5, 5));
+        PurchaseLine.Validate("Sust. Account No.", AccountCode);
+        PurchaseLine.Validate("Emission CO2", LibraryRandom.RandIntInRange(10, 20));
+        PurchaseLine.Validate("Emission CH4", LibraryRandom.RandIntInRange(1, 5));
+        PurchaseLine.Validate("Emission N2O", LibraryRandom.RandIntInRange(1, 5));
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] A Reason Code on the Purchase Header.
+        UpdateReasonCodeinPurchaseHeader(PurchaseHeader);
+
+        // [GIVEN] The source invoice is posted and a corrective credit memo is created.
+        CrMemoNo := CreateCorrectiveCreditMemo(PurchaseHeader);
+
+        // [GIVEN] The committed source-invoice Sustainability Ledger Entry is the identity baseline.
+        SustainabilityLedgerEntry.Reset();
+        Assert.RecordCount(SustainabilityLedgerEntry, 1);
+        SustainabilityLedgerEntry.FindFirst();
+        BaselineEntryNo := SustainabilityLedgerEntry."Entry No.";
+        BaselineEmissionCO2 := SustainabilityLedgerEntry."Emission CO2";
+        Assert.IsTrue(BaselineEntryNo > 0, EntryNoShouldBePositiveErr);
+
+        // [GIVEN] The corrective credit memo is loaded and committed.
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::"Credit Memo", CrMemoNo);
+        Commit();
+
+        // [WHEN] The corrective credit memo is previewed twice.
+        asserterror LibraryPurchase.PreviewPostPurchaseDocument(PurchaseHeader);
+        Assert.ExpectedError('');
+        asserterror LibraryPurchase.PreviewPostPurchaseDocument(PurchaseHeader);
+        Assert.ExpectedError('');
+
+        // [WHEN] The corrective credit memo is posted.
+        PostedCrMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The new committed Entry No. is the baseline plus one - no identity was consumed by preview.
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.SetRange("Document No.", PostedCrMemoNo);
+        SustainabilityLedgerEntry.FindFirst();
+        Assert.AreEqual(BaselineEntryNo + 1, SustainabilityLedgerEntry."Entry No.", EntryNoShouldBeBaselinePlusOneErr);
+
+        // [THEN] The credit memo preserves the reversed sign of the source-invoice emission.
+        Assert.AreEqual(
+            -BaselineEmissionCO2,
+            SustainabilityLedgerEntry."Emission CO2",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Emission CO2"), -BaselineEmissionCO2, SustainabilityLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure VerifyNativeSustainabilityJournalPostingUsesPositiveConsecutiveEntryNos()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+        FirstEntryNo: Integer;
+    begin
+        // [SCENARIO 640599] Native Sustainability journal posting keeps positive consecutive AutoIncrement keys.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A Sustainability Journal Batch and a ready-to-post Account.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(false);
+        SustainabilityAccount := LibrarySustainability.GetAReadyToPostAccount();
+
+        // [GIVEN] Two valid Sustainability Journal Lines.
+        CreatePostableSustainabilityJnlLine(SustainabilityJournalLine, SustainabilityJnlBatch, SustainabilityAccount, 10000);
+        CreatePostableSustainabilityJnlLine(SustainabilityJournalLine, SustainabilityJnlBatch, SustainabilityAccount, 20000);
+
+        // [WHEN] The journal lines are posted natively.
+        SustainabilityJournalLine.SetRange("Journal Template Name", SustainabilityJnlBatch."Journal Template Name");
+        SustainabilityJournalLine.SetRange("Journal Batch Name", SustainabilityJnlBatch.Name);
+        Codeunit.Run(Codeunit::"Sustainability Jnl.-Post", SustainabilityJournalLine);
+
+        // [THEN] Exactly two Sustainability Ledger Entries with positive consecutive SQL-assigned keys.
+        SustainabilityLedgerEntry.Reset();
+        Assert.AreEqual(2, SustainabilityLedgerEntry.Count(), TwoLedgerEntriesExpectedErr);
+        SustainabilityLedgerEntry.FindSet();
+        FirstEntryNo := SustainabilityLedgerEntry."Entry No.";
+        Assert.IsTrue(FirstEntryNo > 0, EntryNoShouldBePositiveErr);
+        SustainabilityLedgerEntry.Next();
+        Assert.AreEqual(FirstEntryNo + 1, SustainabilityLedgerEntry."Entry No.", EntryNoShouldBeConsecutiveErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure VerifyRecurringSustainabilityJournalPostingUsesPositiveConsecutiveEntryNos()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+        RecurringFrequency: DateFormula;
+        FirstEntryNo: Integer;
+    begin
+        // [SCENARIO 640599] Recurring Sustainability journal posting keeps positive consecutive AutoIncrement keys.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A recurring Sustainability Journal Batch and a ready-to-post Account.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(true);
+        SustainabilityAccount := LibrarySustainability.GetAReadyToPostAccount();
+        Evaluate(RecurringFrequency, '<1M>');
+
+        // [GIVEN] Two valid recurring Sustainability Journal Lines.
+        CreatePostableSustainabilityJnlLine(SustainabilityJournalLine, SustainabilityJnlBatch, SustainabilityAccount, 10000);
+        SetRecurringFieldsOnJnlLine(SustainabilityJournalLine, RecurringFrequency);
+        CreatePostableSustainabilityJnlLine(SustainabilityJournalLine, SustainabilityJnlBatch, SustainabilityAccount, 20000);
+        SetRecurringFieldsOnJnlLine(SustainabilityJournalLine, RecurringFrequency);
+
+        // [WHEN] The recurring journal lines are posted.
+        SustainabilityJournalLine.SetRange("Journal Template Name", SustainabilityJnlBatch."Journal Template Name");
+        SustainabilityJournalLine.SetRange("Journal Batch Name", SustainabilityJnlBatch.Name);
+        Codeunit.Run(Codeunit::"Sustainability Recur Jnl.-Post", SustainabilityJournalLine);
+
+        // [THEN] Exactly two Sustainability Ledger Entries with positive consecutive SQL-assigned keys.
+        SustainabilityLedgerEntry.Reset();
+        Assert.AreEqual(2, SustainabilityLedgerEntry.Count(), TwoLedgerEntriesExpectedErr);
+        SustainabilityLedgerEntry.FindSet();
+        FirstEntryNo := SustainabilityLedgerEntry."Entry No.";
+        Assert.IsTrue(FirstEntryNo > 0, EntryNoShouldBePositiveErr);
+        SustainabilityLedgerEntry.Next();
+        Assert.AreEqual(FirstEntryNo + 1, SustainabilityLedgerEntry."Entry No.", EntryNoShouldBeConsecutiveErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('GLPostingPreviewNegativeKeyHandler')]
+    procedure VerifyCustomGenericPreviewUsesNegativeKeyWithoutConsumingIdentity()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+        SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
+        GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
+        SustPreviewTestSubscriber: Codeunit "Sust Preview Test Subscriber";
+        BaselineEntryNo: Integer;
+    begin
+        // [SCENARIO 640599] A custom generic Gen. Jnl.-Post Preview subscriber that calls InsertLedgerEntry
+        // without enabling sequence preview mode uses a negative temporary key and consumes no identity.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A prepared Sustainability Journal Line ready for InsertLedgerEntry.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(false);
+        SustainabilityAccount := LibrarySustainability.GetAReadyToPostAccount();
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(SustainabilityJnlBatch, SustainabilityAccount, 10000);
+        SustainabilityJournalLine.Validate("Fuel/Electricity", LibraryRandom.RandIntInRange(1, 10));
+        SustainabilityJournalLine.Modify(true);
+
+        // [GIVEN] A committed baseline Sustainability Ledger Entry.
+        SustainabilityPostMgt.InsertLedgerEntry(SustainabilityJournalLine);
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.FindLast();
+        BaselineEntryNo := SustainabilityLedgerEntry."Entry No.";
+        Assert.IsTrue(BaselineEntryNo > 0, EntryNoShouldBePositiveErr);
+        Commit();
+
+        // [WHEN] A custom generic preview inserts a Sustainability Ledger Entry (negative key asserted in the handler).
+        BindSubscription(SustPreviewTestSubscriber);
+        asserterror GenJnlPostPreview.Preview(SustPreviewTestSubscriber, SustainabilityJournalLine);
+
+        // [THEN] Only the preview-mode error is raised.
+        Assert.ExpectedError('');
+        UnbindSubscription(SustPreviewTestSubscriber);
+
+        // [THEN] No identity was consumed: a subsequent normal insert yields the baseline plus one.
+        SustainabilityPostMgt.InsertLedgerEntry(SustainabilityJournalLine);
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.SetFilter("Entry No.", '>%1', BaselineEntryNo);
+        SustainabilityLedgerEntry.FindFirst();
+        Assert.AreEqual(BaselineEntryNo + 1, SustainabilityLedgerEntry."Entry No.", EntryNoShouldBeBaselinePlusOneErr);
+    end;
+
     local procedure CreateUserSetup(var UserSetup: Record "User Setup"; UserID: Code[50])
     begin
         UserSetup.Init();
@@ -5485,6 +5694,20 @@ codeunit 148184 "Sustainability Posting Test"
         LibrarySustainability.InsertAccountCategory(
             CategoryCode, CategoryCode, Enum::"Emission Scope"::"Scope 1", Enum::"Calculation Foundation"::"Fuel/Electricity",
             true, true, true, '', false);
+    end;
+
+    local procedure CreatePostableSustainabilityJnlLine(var SustainabilityJournalLine: Record "Sustainability Jnl. Line"; SustainabilityJnlBatch: Record "Sustainability Jnl. Batch"; SustainabilityAccount: Record "Sustainability Account"; LineNo: Integer)
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+    begin
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(SustainabilityJnlBatch, SustainabilityAccount, LineNo);
+        SustainabilityJournalLine.Validate("Document No.", SustainabilityJournalMgt.GetDocumentNo(false, SustainabilityJnlBatch, '', SustainabilityJournalLine."Posting Date"));
+        SustainabilityJournalLine.Validate(Description, LibraryUtility.GenerateGUID());
+        SustainabilityJournalLine.Validate("Unit of Measure", UnitOfMeasure.Code);
+        SustainabilityJournalLine.Validate("Fuel/Electricity", LibraryRandom.RandIntInRange(1, 10));
+        SustainabilityJournalLine.Modify(true);
     end;
 
     local procedure UpdateReasonCodeinPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
@@ -5519,7 +5742,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // Create Corrective Credit Memo.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryRandom.RandText(10));
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify();
 
         // Post Corrective Credit Memo.
@@ -5600,7 +5823,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // Create Corrective Credit Memo.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryRandom.RandText(10));
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify();
 
         // Open Purchase Cr Memo Statistics.
@@ -5973,7 +6196,7 @@ codeunit 148184 "Sustainability Posting Test"
 
         // Create Corrective Credit Memo.
         CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeader);
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryRandom.RandText(10));
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         PurchaseHeader.Modify(true);
 
         exit(PurchaseHeader."No.");
@@ -6019,7 +6242,7 @@ codeunit 148184 "Sustainability Posting Test"
             LibraryRandom.RandDecInDecimalRange(0.5, 1, 1));
     end;
 
-    local procedure CreateAndPostPurchaseDocument(var PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[20]; CountryRegionCode: Code[10]; AccountCode: Code[20]; EmissionCO2PerUnit: Decimal; EmissionCH4PerUnit: Decimal; EmissionN2OPerUnit: Decimal): Code[20]
+    local procedure CreateAndPostPurchaseDocument(var PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10]; CountryRegionCode: Code[10]; AccountCode: Code[20]; EmissionCO2PerUnit: Decimal; EmissionCH4PerUnit: Decimal; EmissionN2OPerUnit: Decimal): Code[20]
     var
         PurchaseLine: Record "Purchase Line";
     begin
@@ -6060,6 +6283,13 @@ codeunit 148184 "Sustainability Posting Test"
         LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, TemplateType);
         LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
         LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+    end;
+
+    local procedure SetRecurringFieldsOnJnlLine(var SustainabilityJournalLine: Record "Sustainability Jnl. Line"; RecurringFrequency: DateFormula)
+    begin
+        SustainabilityJournalLine.Validate("Recurring Method", SustainabilityJournalLine."Recurring Method"::"F Fixed");
+        SustainabilityJournalLine.Validate("Recurring Frequency", RecurringFrequency);
+        SustainabilityJournalLine.Modify(true);
     end;
 
     local procedure VerifySustValueEntry(DocumentNo: Code[20]; ItemNo: Code[20]; ExpectedCO2eEmission: Decimal)
@@ -6190,6 +6420,24 @@ codeunit 148184 "Sustainability Posting Test"
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
         GLPostingPreview."No. of Records".AssertEquals(1);
+        GLPostingPreview.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure GLPostingPreviewNegativeKeyHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    var
+        SustainabilityLedgerEntries: TestPage "Sustainability Ledger Entries";
+    begin
+        GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
+        GLPostingPreview."No. of Records".AssertEquals(1);
+
+        // Drill down to the temporary preview Sustainability Ledger Entries and assert the negative preview key.
+        SustainabilityLedgerEntries.Trap();
+        GLPostingPreview."No. of Records".DrillDown();
+        SustainabilityLedgerEntries.First();
+        Assert.IsTrue(SustainabilityLedgerEntries."Entry No.".AsInteger() < 0, PreviewKeyShouldBeNegativeErr);
+        SustainabilityLedgerEntries.Close();
+
         GLPostingPreview.OK().Invoke();
     end;
 

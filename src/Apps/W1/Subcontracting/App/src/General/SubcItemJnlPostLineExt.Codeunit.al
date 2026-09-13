@@ -11,7 +11,7 @@ using Microsoft.Inventory.Posting;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001515 "Subc. ItemJnlPostLine Ext"
+codeunit 20515 "Subc. ItemJnlPostLine Ext"
 {
 #if not CLEAN29
     var
