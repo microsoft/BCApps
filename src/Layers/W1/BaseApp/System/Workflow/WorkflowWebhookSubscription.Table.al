@@ -317,7 +317,7 @@ table 469 "Workflow Webhook Subscription"
                         EventConditions, WorkflowWebhookSetup.GetPurchPayCategoryTxt(), DATABASE::Vendor));
                 end
             else begin
-                OnCreateWorkflowEventConditionsNative(ConditionsTxt, EventCode, ConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
+                OnCreateEventConditionsOnBeforeLegacyFallback(ConditionsTxt, EventCode, ConditionsObject, EventConditions, ConditionsCount, Result, IsHandled);
                 if IsHandled then
                     exit(Result);
 
@@ -476,12 +476,12 @@ table 469 "Workflow Webhook Subscription"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnCreateWorkflowEventConditionsNative(ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: JsonObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
+    local procedure OnCreateEventConditionsOnBeforeLegacyFallback(ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: JsonObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
     begin
     end;
 
 #if not CLEAN30
-    [Obsolete('Subscribe to OnCreateWorkflowEventConditionsNative with the native JsonObject type instead.', '30.0')]
+    [Obsolete('Subscribe to OnCreateEventConditionsOnBeforeLegacyFallback with the native JsonObject type instead.', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnCreateWorkflowEventConditions(ConditionsTxt: Text; EventCode: Code[128]; ConditionsObject: DotNet JObject; var EventConditions: FilterPageBuilder; var ConditionsCount: Integer; var Result: Text; var IsHandled: Boolean)
     begin
