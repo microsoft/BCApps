@@ -54,7 +54,9 @@ codeunit 9751 "Web Service Management Impl."
         WebServiceName: Text;
     begin
         AllObj.Get(ObjectType, ObjectId);
+        #pragma warning disable AL0432
         WebServiceName := GetWebServiceName(ObjectName, AllObj."Object Name");
+        #pragma warning restore AL0432
 
         if WebService.Get(ObjectType, WebServiceName) then begin
             ModifyWebService(WebService, AllObj, WebServiceName, Published);
@@ -73,7 +75,9 @@ codeunit 9751 "Web Service Management Impl."
         WebServiceName: Text;
     begin
         AllObj.Get(ObjectType, ObjectId);
+        #pragma warning disable AL0432
         WebServiceName := GetWebServiceName(ObjectName, AllObj."Object Name");
+        #pragma warning restore AL0432
 
         if TenantWebService.Get(ObjectType, WebServiceName) then begin
             ModifyTenantWebService(TenantWebService, AllObj, WebServiceName, Published);
