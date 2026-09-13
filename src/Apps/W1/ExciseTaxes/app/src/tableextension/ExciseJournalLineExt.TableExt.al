@@ -6,6 +6,7 @@ namespace Microsoft.ExciseTaxes;
 
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Sustainability.ExciseTax;
 
 tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
@@ -27,6 +28,9 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
                     "Excise Unit of Measure Code" := '';
                     "Quantity for Excise Tax" := 0;
                     "Excise Duty" := 0;
+                    "Excise Calculation Type" := "Excise Calculation Type"::"Specific per Unit";
+                    "Excise Duty %" := 0;
+                    "Excise Taxable Amount" := 0;
                     "Tax Amount" := 0;
                 end;
 
@@ -62,7 +66,7 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
 
             trigger OnValidate()
             begin
-                Rec."Tax Amount" := CalculateTaxAmount(Rec."Excise Duty", Rec."Source Qty.", Rec."Quantity for Excise Tax");
+                UpdateTaxAmount();
             end;
         }
         field(7416; "Excise Duty"; Decimal)
@@ -79,7 +83,7 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
                 if Rec."Excise Duty" <> 0 then
                     Rec.TestField("Excise Tax Type");
 
-                Rec."Tax Amount" := CalculateTaxAmount(Rec."Excise Duty", Rec."Source Qty.", Rec."Quantity for Excise Tax");
+                UpdateTaxAmount();
             end;
         }
         field(7417; "Tax Amount"; Decimal)
@@ -90,6 +94,35 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(7418; "Excise Calculation Type"; Enum "Excise Calculation Type")
+        {
+            Caption = 'Excise Calculation Type';
+            DataClassification = CustomerContent;
+            Editable = false;
+
+            trigger OnValidate()
+            begin
+                UpdateTaxAmount();
+            end;
+        }
+        field(7419; "Excise Duty %"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Excise Duty %';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            MaxValue = 1000;
+            DataClassification = CustomerContent;
+            Editable = false;
+
+            trigger OnValidate()
+            begin
+                if Rec."Excise Duty %" <> 0 then
+                    Rec.TestField("Excise Tax Type");
+
+                UpdateTaxAmount();
+            end;
+        }
         field(7420; "FA Ledger Entry No."; Integer)
         {
             Caption = 'FA Ledger Entry No.';
@@ -97,11 +130,34 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(7421; "Excise Taxable Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Caption = 'Taxable Amount';
+            MinValue = 0;
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if Rec."Excise Taxable Amount" <> 0 then
+                    Rec.TestField("Excise Tax Type");
+
+                UpdateTaxAmount();
+            end;
+        }
+        field(7422; "Item Category Code"; Code[20])
+        {
+            Caption = 'Item Category Code';
+            TableRelation = "Item Category".Code;
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         modify("Source Qty.")
         {
             trigger OnAfterValidate()
             begin
-                Rec."Tax Amount" := CalculateTaxAmount(Rec."Excise Duty", Rec."Source Qty.", Rec."Quantity for Excise Tax");
+                UpdateTaxAmount();
             end;
         }
     }
@@ -129,11 +185,16 @@ tableextension 7413 "Excise Journal Line Ext" extends "Sust. Excise Jnl. Line"
             Error(EntryTypeNotAllowedForTaxTypeErr, "Excise Entry Type", "Excise Tax Type");
     end;
 
-    local procedure CalculateTaxAmount(ExciseDuty: Decimal; Quantity: Decimal; QtyForTax: Decimal): Decimal
+    local procedure UpdateTaxAmount()
+    var
+        TaxAmount: Decimal;
     begin
-        if (ExciseDuty = 0) or (Quantity = 0) or (QtyForTax = 0) then
-            exit(0);
+        if Rec."Excise Calculation Type" in [Rec."Excise Calculation Type"::"Specific per Unit", Rec."Excise Calculation Type"::Hybrid] then
+            TaxAmount := Rec."Excise Duty" * Rec."Source Qty." * Rec."Quantity for Excise Tax";
 
-        exit(ExciseDuty * Quantity * QtyForTax);
+        if Rec."Excise Calculation Type" in [Rec."Excise Calculation Type"::"Ad valorem", Rec."Excise Calculation Type"::Hybrid] then
+            TaxAmount += Rec."Excise Duty %" / 100 * Rec."Excise Taxable Amount";
+
+        Rec."Tax Amount" := TaxAmount;
     end;
 }
