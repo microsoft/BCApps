@@ -26,6 +26,8 @@ The BC Copilot Eval Toolkit lets developers write and run automated evals for co
 1. You can also use the API (page 149038 "AIT Log Entry API") to get the result for a suite
 1. Open AL Test Tool and switch to the created eval suite to execute each eval manually
 
+For agent eval suites, the _AI Eval Command Line Runner_ can load detailed Agent Task troubleshooting JSON associated with the latest suite version. Repeatedly use the _Load Next Agent Task Log_ action and read the _Agent Task Log_ field until it contains `No more Agent Task logs.`. The PowerShell test runner performs this loop and writes each raw task export from every completed eval line to a dedicated folder when `-AgentTaskLogFolder` is passed to `Invoke-AITTests`.
+
 
 ## Writing data-driven AI evals
 

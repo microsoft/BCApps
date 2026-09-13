@@ -43,6 +43,7 @@ page 149042 "AIT CommandLine Card"
                         if AITCode <> xRec."Test Suite Code" then
                             Clear(LineNoFilter);
 
+                        ResetAgentTaskLogExport();
                         UpdateAITestMethodLines();
                     end;
                 }
@@ -76,6 +77,7 @@ page 149042 "AIT CommandLine Card"
 
                     trigger OnValidate()
                     begin
+                        ResetAgentTaskLogExport();
                         UpdateAITestMethodLines();
                     end;
                 }
@@ -159,6 +161,36 @@ page 149042 "AIT CommandLine Card"
                     end;
                 }
             }
+            group(AgentTaskLogGroup)
+            {
+                Caption = 'Agent Task Log Export';
+
+                field("Agent Task Log"; AgentTaskLogText)
+                {
+                    Caption = 'Agent Task Log';
+                    Editable = false;
+                    MultiLine = true;
+                    ToolTip = 'Specifies the troubleshooting JSON for the current Agent Task, or indicates that no more task logs are available.';
+                }
+                field("Agent Task Log Version"; AgentTaskLogVersionText)
+                {
+                    Caption = 'Agent Task Log Version';
+                    Editable = false;
+                    ToolTip = 'Specifies the eval version associated with the current Agent Task log.';
+                }
+                field("Agent Task Log Entry ID"; AgentTaskLogEntryIDText)
+                {
+                    Caption = 'Agent Task Log Entry ID';
+                    Editable = false;
+                    ToolTip = 'Specifies the eval log entry associated with the current Agent Task log.';
+                }
+                field("Agent Task ID"; AgentTaskIDText)
+                {
+                    Caption = 'Agent Task ID';
+                    Editable = false;
+                    ToolTip = 'Specifies the Agent Task ID associated with the current task log.';
+                }
+            }
             group("Test Method Lines Group")
             {
                 Editable = false;
@@ -240,7 +272,19 @@ page 149042 "AIT CommandLine Card"
                 begin
                     AITTestMethodLine.SetRange("Test Suite Code", AITCode);
                     AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
+                    ResetAgentTaskLogExport();
                     UpdateAITestMethodLines();
+                end;
+            }
+            action(LoadAgentTaskLogs)
+            {
+                Caption = 'Load Next Agent Task Log';
+                Image = Refresh;
+                ToolTip = 'Loads the next Agent Task troubleshooting JSON associated with the latest eval suite version.';
+
+                trigger OnAction()
+                begin
+                    LoadNextAgentTaskLog();
                 end;
             }
 
@@ -278,6 +322,9 @@ page 149042 "AIT CommandLine Card"
                 actionref(ClearTestStatus_Promoted; ResetTestSuite)
                 {
                 }
+                actionref(LoadAgentTaskLogs_Promoted; LoadAgentTaskLogs)
+                {
+                }
             }
         }
     }
@@ -300,6 +347,14 @@ page 149042 "AIT CommandLine Card"
         InputDataset: Text;
         SuiteDefinition: Text;
         InputDatasetFilename: Text;
+        AgentTaskLog: Record "Agent Task Log";
+        AgentTaskLogText: Text;
+        AgentTaskIDText: Text;
+        AgentTaskLogEntryIDText: Text;
+        AgentTaskLogVersionText: Text;
+        AgentTaskLogExportInitialized: Boolean;
+        AgentTaskLogExportCompleted: Boolean;
+        NoMoreAgentTaskLogsTxt: Label 'No more Agent Task logs.', Locked = true;
 
     local procedure StartAITSuite()
     var
@@ -312,6 +367,7 @@ page 149042 "AIT CommandLine Card"
             Error(TestSuiteCodeNotFoundErr, AITCode);
 
         AITTestSuiteMgt.StartAITSuite(AITTestSuite);
+        ResetAgentTaskLogExport();
         UpdateAITestMethodLines();
     end;
 
@@ -325,6 +381,7 @@ page 149042 "AIT CommandLine Card"
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
         if AITTestMethodLine.FindFirst() then begin
             AITTestSuiteMgt.RunAITestLine(AITTestMethodLine, false);
+            ResetAgentTaskLogExport();
             UpdateAITestMethodLines();
         end;
     end;
@@ -360,6 +417,85 @@ page 149042 "AIT CommandLine Card"
     begin
         SetFilterOnTestLines(Rec);
         RefreshNoOfPendingTests();
+        CurrPage.Update(false);
+    end;
+
+    local procedure LoadNextAgentTaskLog()
+    var
+        AITLogEntry: Record "AIT Log Entry";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+    begin
+        VerifyTestSuiteCode();
+        if AgentTaskLogExportCompleted then begin
+            SetNoMoreAgentTaskLogs();
+            exit;
+        end;
+
+        if not AgentTaskLogExportInitialized then begin
+            AITLogEntry.SetRange("Test Suite Code", AITCode);
+            AITLogEntry.SetCurrentKey(Version);
+            if not AITLogEntry.FindLast() then begin
+                SetNoMoreAgentTaskLogs();
+                exit;
+            end;
+
+            AgentTaskLog.SetRange("Test Suite Code", AITCode);
+            AgentTaskLog.SetRange(Version, AITLogEntry.Version);
+            if LineNoFilter > 0 then
+                AgentTaskLog.SetRange("Test Method Line No.", LineNoFilter);
+            AgentTaskLog.SetCurrentKey("Test Suite Code", Version, "Test Method Line No.", "Agent Task ID", Operation, "Procedure Name");
+        end;
+
+        if not FindNextAgentTaskLog() then begin
+            SetNoMoreAgentTaskLogs();
+            exit;
+        end;
+
+        AgentTaskIDText := Format(AgentTaskLog."Agent Task ID", 0, 9);
+        AgentTaskLogEntryIDText := Format(AgentTaskLog."Test Log Entry ID", 0, 9);
+        AgentTaskLogVersionText := Format(AgentTaskLog.Version, 0, 9);
+        AgentTaskLogText := AgentTestContextImpl.GetAgentTaskLog(AgentTaskLog."Agent Task ID");
+        CurrPage.Update(false);
+    end;
+
+    local procedure FindNextAgentTaskLog(): Boolean
+    var
+        AITLogEntry: Record "AIT Log Entry";
+        AgentTaskLogFound: Boolean;
+    begin
+        repeat
+            if AgentTaskLogExportInitialized then
+                AgentTaskLogFound := AgentTaskLog.Next() <> 0
+            else begin
+                AgentTaskLogExportInitialized := true;
+                AgentTaskLogFound := AgentTaskLog.FindFirst();
+            end;
+
+            if not AgentTaskLogFound then
+                exit(false);
+        until AITLogEntry.Get(AgentTaskLog."Test Log Entry ID");
+
+        exit(true);
+    end;
+
+    local procedure ResetAgentTaskLogExport()
+    begin
+        Clear(AgentTaskLog);
+        Clear(AgentTaskLogText);
+        Clear(AgentTaskIDText);
+        Clear(AgentTaskLogEntryIDText);
+        Clear(AgentTaskLogVersionText);
+        AgentTaskLogExportInitialized := false;
+        AgentTaskLogExportCompleted := false;
+    end;
+
+    local procedure SetNoMoreAgentTaskLogs()
+    begin
+        AgentTaskLogText := NoMoreAgentTaskLogsTxt;
+        Clear(AgentTaskIDText);
+        Clear(AgentTaskLogEntryIDText);
+        Clear(AgentTaskLogVersionText);
+        AgentTaskLogExportCompleted := true;
         CurrPage.Update(false);
     end;
 
