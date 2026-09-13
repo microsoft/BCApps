@@ -196,8 +196,9 @@ codeunit 138400 "RS Pack Content - Evaluation"
         // [SCENARIO] The data on itemsales.xml are consistent
         Initialize();
 
-        TempXMLBuffer.Load(FileManagement.CombinePath(
-            ApplicationPath, '../../App/Demotool/Pictures/MachineLearning/itemsales.xml'));
+        // Demo data moved under App\BCApps\src during the submodule migration; try the new location, fall back to the legacy layout.
+        if not TryLoadXmlBuffer(TempXMLBuffer, FileManagement.CombinePath(ApplicationPath, '../../App/BCApps/src/DemoTool/Pictures/MachineLearning/itemsales.xml')) then
+            TempXMLBuffer.Load(FileManagement.CombinePath(ApplicationPath, '../../App/Demotool/Pictures/MachineLearning/itemsales.xml'));
 
         Item.SetRange("Assembly BOM", false);
         Evaluate(Periods, TempXMLBuffer.GetAttributeValueAsText('Periods'));
@@ -211,6 +212,12 @@ codeunit 138400 "RS Pack Content - Evaluation"
                 TempXMLBuffer.GetAttributeValueAsText('item'),
                 Format(Periods)));
         until TempXMLBuffer.Next() = 0;
+    end;
+
+    [TryFunction]
+    local procedure TryLoadXmlBuffer(var TempXMLBuffer: Record "XML Buffer" temporary; FilePath: Text)
+    begin
+        TempXMLBuffer.Load(FilePath);
     end;
 
     [Test]
