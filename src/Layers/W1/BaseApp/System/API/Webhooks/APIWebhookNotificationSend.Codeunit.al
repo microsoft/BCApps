@@ -1266,42 +1266,42 @@ codeunit 6154 "API Webhook Notification Send"
         exit(false);
     end;
 
-    local procedure GetEntityJsonObject(var TempAPIWebhookNotificationAggr: Record "API Webhook Notification Aggr" temporary; var JsonObject: JsonObject): Boolean
+    local procedure GetEntityJsonObject(var TempNotificationAggr: Record "API Webhook Notification Aggr" temporary; var JsonObject: JsonObject): Boolean
     var
         ResourceUrl: Text;
         LastModifiedDateTime: DateTime;
         SubscriptionSystemId: Guid;
     begin
-        SubscriptionSystemId := GetSystemIdBySubscriptionId(TempAPIWebhookNotificationAggr."Subscription ID");
+        SubscriptionSystemId := GetSystemIdBySubscriptionId(TempNotificationAggr."Subscription ID");
         ClearFiltersFromSubscriptionsBuffer();
-        TempAPIWebhookSubscription.SetRange("Subscription Id", TempAPIWebhookNotificationAggr."Subscription ID");
+        TempAPIWebhookSubscription.SetRange("Subscription Id", TempNotificationAggr."Subscription ID");
         if not TempAPIWebhookSubscription.FindFirst() then begin
             Session.LogMessage('000070G', StrSubstNo(CannotFindSubscriptionErr, SubscriptionSystemId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
             exit(false);
         end;
 
-        ResourceUrl := GetEntityUrl(TempAPIWebhookNotificationAggr, TempAPIWebhookSubscription);
+        ResourceUrl := GetEntityUrl(TempNotificationAggr, TempAPIWebhookSubscription);
         if ResourceUrl = '' then
             exit(false);
 
-        LastModifiedDateTime := TempAPIWebhookNotificationAggr."Last Modified Date Time";
+        LastModifiedDateTime := TempNotificationAggr."Last Modified Date Time";
         if LastModifiedDateTime = 0DT then
-            if TempAPIWebhookNotificationAggr."Change Type" = TempAPIWebhookNotificationAggr."Change Type"::Collection then
+            if TempNotificationAggr."Change Type" = TempNotificationAggr."Change Type"::Collection then
                 LastModifiedDateTime := CurrentDateTime()
             else
-                Session.LogMessage('00006P3', StrSubstNo(EmptyLastModifiedDateTimeMsg, SubscriptionSystemId, TempAPIWebhookNotificationAggr."Entity ID", ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"),
-                    TempAPIWebhookNotificationAggr."Attempt No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
+                Session.LogMessage('00006P3', StrSubstNo(EmptyLastModifiedDateTimeMsg, SubscriptionSystemId, TempNotificationAggr."Entity ID", ChangeTypeToString(TempNotificationAggr."Change Type"),
+                    TempNotificationAggr."Attempt No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
 
         Clear(JsonObject);
         JsonObject.Add('subscriptionId', TempAPIWebhookSubscription."Subscription Id");
         JsonObject.Add('clientState', TempAPIWebhookSubscription."Client State");
         JsonObject.Add('expirationDateTime', TempAPIWebhookSubscription."Expiration Date Time");
         JsonObject.Add('resource', ResourceUrl);
-        JsonObject.Add('changeType', ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"));
+        JsonObject.Add('changeType', ChangeTypeToString(TempNotificationAggr."Change Type"));
         JsonObject.Add('lastModifiedDateTime', LastModifiedDateTime);
         if ((TempAPIWebhookSubscription."Subscription Type" = TempAPIWebhookSubscription."Subscription Type"::Dataverse) and
-            (TempAPIWebhookNotificationAggr."Change Type" <> TempAPIWebhookNotificationAggr."Change Type"::Collection)) then
-            JsonObject.Add('initiatingAadUserId', GetAadUserId(TempAPIWebhookNotificationAggr."Created By User SID"));
+            (TempNotificationAggr."Change Type" <> TempNotificationAggr."Change Type"::Collection)) then
+            JsonObject.Add('initiatingAadUserId', GetAadUserId(TempNotificationAggr."Created By User SID"));
         exit(true);
     end;
 
