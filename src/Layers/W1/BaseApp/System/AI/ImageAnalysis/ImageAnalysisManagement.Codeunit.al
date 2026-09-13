@@ -20,6 +20,7 @@ codeunit 2020 "Image Analysis Management"
         SetMediaErr: Label 'There was a problem uploading the image file. Please try again.';
         NoApiKeyUriErr: Label 'To analyze images, you must provide an API key and an API URI for Computer Vision.';
         NoImageErr: Label 'You haven''t uploaded an image to analyze.';
+        MediaWrongFormatErr: Label 'The media file is not supported. Only images of the following types are supported: JPEG, PNG, GIF, BMP.';
         LastError: Text;
         IsLastErrorUsageLimitError: Boolean;
         UseOAuth2: Boolean;
@@ -41,6 +42,10 @@ codeunit 2020 "Image Analysis Management"
         UsingOAuth2TelemetryMsg: Label 'Using OAuth2 token authentication for Computer Vision.', Locked = true;
         UsingApiKeyTelemetryMsg: Label 'Using API key authentication for Computer Vision (OAuth2 not configured or failed).', Locked = true;
         UsingCustomConfigTelemetryMsg: Label 'Using customer-configured API key and URI for Computer Vision.', Locked = true;
+        ImageValidationFailedTelemetryMsg: Label 'Image content validation failed before sending to Computer Vision. Reason: %1.', Locked = true;
+        MissingFileTelemetryTxt: Label 'MissingFile', Locked = true;
+        NotAnImageTelemetryTxt: Label 'NotAnImage', Locked = true;
+        UnsupportedFormatTelemetryTxt: Label 'UnsupportedFormat', Locked = true;
 
     [NonDebuggable]
     procedure Initialize()
@@ -98,6 +103,7 @@ codeunit 2020 "Image Analysis Management"
         FileManagement: Codeunit "File Management";
     begin
         if TenantMedia.Get(MediaId) then begin
+            // Keep metadata checks advisory; Analyze validates the actual image content.
             ImageAnalysisProvider.IsMediaSupported(MediaId);
             ImagePath := FileManagement.ServerTempFileName('');
             TenantMedia.CalcFields(Content);
@@ -197,6 +203,7 @@ codeunit 2020 "Image Analysis Management"
         ImageAnalysisSetup: Record "Image Analysis Setup";
         ResultJSONManagement: Codeunit "JSON Management";
         UsageLimitError: Text;
+        ImageValidationError: Text;
     begin
         Initialize();
         SetLastError('', false);
@@ -211,22 +218,89 @@ codeunit 2020 "Image Analysis Management"
         else
             if ImagePath = '' then
                 SetLastError(NoImageErr, false)
-            else
-                if ImageAnalysisSetup.IsUsageLimitReached(UsageLimitError, LimitValue, LimitType) then
-                    SetLastError(UsageLimitError, true)
+            else begin
+                ImageValidationError := GetImageValidationError(ImagePath);
+                if ImageValidationError <> '' then
+                    SetLastError(ImageValidationError, false)
                 else
-                    if InvokeAnalysisWithAuth(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
-                        ImageAnalysisSetup.Increment()
+                    if ImageAnalysisSetup.IsUsageLimitReached(UsageLimitError, LimitValue, LimitType) then
+                        SetLastError(UsageLimitError, true)
                     else
-                        if ImageAnalysisProvider.GetLastError() <> '' then
-                            SetLastError(ImageAnalysisProvider.GetLastError(), false)
+                        if InvokeAnalysisWithAuth(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
+                            ImageAnalysisSetup.Increment()
                         else
-                            SetLastError(GenericErrorErr, false);
+                            if ImageAnalysisProvider.GetLastError() <> '' then
+                                SetLastError(ImageAnalysisProvider.GetLastError(), false)
+                            else
+                                SetLastError(GenericErrorErr, false);
+            end;
 
         ImageAnalysisResult.SetResult(ResultJSONManagement, AnalysisTypes);
         OnAfterImageAnalysis(ImageAnalysisResult);
 
         exit(not HasError());
+    end;
+
+    /// <summary>
+    /// Validates the image format from the file content rather than caller-supplied metadata.
+    /// API-specific size and dimension restrictions are left to the configured service.
+    /// </summary>
+    /// <param name="Path">The path of the file that is about to be sent.</param>
+    /// <returns>An empty text if the content is valid, otherwise the error message to show to the user.</returns>
+    local procedure GetImageValidationError(Path: Text): Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        ImageFormat: Enum "Image Format";
+        ImageInStream: InStream;
+    begin
+        if not FileManagement.ServerFileExists(Path) then begin
+            LogImageValidationFailure(MissingFileTelemetryTxt);
+            exit(NoImageErr);
+        end;
+
+        FileManagement.BLOBImportFromServerFile(TempBlob, Path);
+
+        TempBlob.CreateInStream(ImageInStream);
+        if not TryGetImageFormat(ImageInStream, ImageFormat) then begin
+            LogImageValidationFailure(NotAnImageTelemetryTxt);
+            exit(MediaWrongFormatErr);
+        end;
+
+        if not IsSupportedImageFormat(ImageFormat) then begin
+            LogImageValidationFailure(UnsupportedFormatTelemetryTxt);
+            exit(MediaWrongFormatErr);
+        end;
+
+        exit('');
+    end;
+
+    [TryFunction]
+    local procedure TryGetImageFormat(ImageInStream: InStream; var ImageFormat: Enum "Image Format")
+    var
+        Image: Codeunit Image;
+    begin
+        Image.FromStream(ImageInStream);
+        ImageFormat := Image.GetFormat();
+    end;
+
+    local procedure IsSupportedImageFormat(ImageFormat: Enum "Image Format"): Boolean
+    begin
+        case ImageFormat of
+            Enum::"Image Format"::Jpeg,
+            Enum::"Image Format"::Png,
+            Enum::"Image Format"::Gif,
+            Enum::"Image Format"::Bmp:
+                exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    local procedure LogImageValidationFailure(Reason: Text)
+    begin
+        Session.LogMessage('0000QJ8', StrSubstNo(ImageValidationFailedTelemetryMsg, Reason),
+            Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ImageAnalysisTelemetryCategoryTxt);
     end;
 
     [Scope('OnPrem')]
