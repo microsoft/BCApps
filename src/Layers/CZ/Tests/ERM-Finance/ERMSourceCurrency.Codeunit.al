@@ -2100,6 +2100,67 @@ codeunit 134897 "ERM Source Currency"
         SalesLine.Modify(true);
     end;
 
+    [Test]
+    procedure SalesInvoiceLCYWithPaymentMethodBalAccountPosting()
+    var
+        Customer: Record Customer;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GLEntry: Record "G/L Entry";
+        PaymentMethod: Record "Payment Method";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        BalancingGLAccountNo: Code[20];
+        ExpectedSourceCurrencyAmount: Decimal;
+        PostedDocumentNo: Code[20];
+    begin
+        // [SCENARIO] An LCY sales invoice with a payment method balancing account can be previewed when source currency consistency is enabled.
+
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [GIVEN] Source currency consistency and extended posting preview are enabled.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] A payment method with a G/L balancing account and payment terms without a payment discount.
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("Bal. Account Type", PaymentMethod."Bal. Account Type"::"G/L Account");
+        PaymentMethod.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PaymentMethod.Modify(true);
+        BalancingGLAccountNo := PaymentMethod."Bal. Account No.";
+
+        // [GIVEN] A customer whose payment method and payment terms flow to a new LCY sales invoice.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Method Code", PaymentMethod.Code);
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.TestField("Currency Code", '');
+        SalesHeader.TestField("Payment Method Code", PaymentMethod.Code);
+
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedSourceCurrencyAmount := SalesHeader."Amount Including VAT";
+
+        // [WHEN] Posting the salesinvoice.
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The posting completes without a source currency consistency error.
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Payment);
+        GLEntry.SetRange("G/L Account No.", PaymentMethod."Bal. Account No.");
+        GLEntry.FindFirst();
+        
+        GLEntry.TestField(Amount, ExpectedSourceCurrencyAmount);
+        GLEntry.TestField("Source Currency Code", '');
+        GLEntry.TestField("Source Currency Amount", ExpectedSourceCurrencyAmount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

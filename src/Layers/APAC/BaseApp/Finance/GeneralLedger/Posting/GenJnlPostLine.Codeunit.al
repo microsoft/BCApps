@@ -11087,18 +11087,21 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure CalcSourceCurrVATBaseAmount(var GenJnlLine: Record "Gen. Journal Line"; var WHTAmountLCY: Decimal): Decimal
+    local procedure CalcSourceCurrVATBaseAmount(GenJnlLine: Record "Gen. Journal Line"; WHTAmountLCY: Decimal): Decimal
     begin
-        if GenJnlLine."System-Created Entry" then
-            exit(GenJnlLine."Source Currency Amount");
+        if GenJnlLine."Source Currency Code" = '' then begin
+            if GenJnlLine."System-Created Entry" then
+                exit(GenJnlLine."Source Currency Amount" + WHTAmountLCY);
 
-        if GenJnlLine."Source Currency Code" <> '' then begin
-            if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
-                exit(GenJnlLine."Source Curr. VAT Base Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY))
+            if (GenJnlLine."Source Currency Amount" <> (GenJnlLine.Amount - GenJnlLine."VAT Amount")) and
+               (GenJnlLine."Source Currency Amount" <> 0)
+            then
+                exit(GenJnlLine."Source Currency Amount" + WHTAmountLCY)
             else
-                exit(GenJnlLine."Source Currency Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY));
-        end else
-            exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY));
+                exit(GenJnlLine.Amount - GenJnlLine."VAT Amount" + WHTAmountLCY);
+        end;
+
+        exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY));
     end;
 
     local procedure GetVendorPayablesAccount2(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var GenJournalLine: Record "Gen. Journal Line"; VendPostingGr: Record "Vendor Posting Group"): Code[20]
