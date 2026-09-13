@@ -10,6 +10,7 @@ table 135018 "Test Media Cleanup"
     DataClassification = CustomerContent;
     InherentPermissions = RIMDX;
     InherentEntitlements = RIMDX;
+    ReplicateData = false;
 
     fields
     {

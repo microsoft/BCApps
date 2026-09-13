@@ -10,6 +10,7 @@ table 138706 "Record Reference Test"
     Access = Internal;
     DataClassification = SystemMetadata;
     Caption = 'Record Reference Test Caption';
+    ReplicateData = false;
 
     fields
     {
