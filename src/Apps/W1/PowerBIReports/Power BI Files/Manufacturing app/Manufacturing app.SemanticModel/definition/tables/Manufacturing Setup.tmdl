@@ -4,7 +4,7 @@ table 'Manufacturing Setup'
 
 	measure 'Show Capacity In UOM' =
 			
-			var WorkCenterUOM = VALUES('Manufacturing Setup'[Show Capacity In])
+			var WorkCenterUOM = VALUES('Manufacturing Setup'[type])
 			RETURN "Show capacity in " & WorkCenterUOM
 		isHidden
 		lineageTag: cb361d3b-41bb-4ba6-a02b-c4cebe2e88dc
@@ -19,6 +19,22 @@ table 'Manufacturing Setup'
 		sourceColumn: Show Capacity In
 
 		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column code
+		dataType: string
+		lineageTag: 29081d47-8c4b-4b58-a149-be6afe1ba7c5
+		summarizeBy: none
+		sourceColumn: code
+
+		annotation SummarizationSetBy = Automatic
+
+	column type
+		dataType: string
+		lineageTag: c846fde1-dce7-45b0-bbcb-a0195d578e0b
+		summarizeBy: none
+		sourceColumn: type
 
 		annotation SummarizationSetBy = Automatic
 
