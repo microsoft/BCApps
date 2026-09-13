@@ -160,22 +160,47 @@ codeunit 1639 "Office Line Generation"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Office Document Handler", 'OnCloseSuggestedLineItemsPage', '', false, false)]
     local procedure CreateLineItemsOnCloseSuggestedLineItems(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; PageCloseAction: Action)
     var
+        DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         OfficeMgt: Codeunit "Office Management";
         AddedCount: Integer;
+        InsertFailureErrorText: Text;
+        InsertFailed: Boolean;
     begin
         if PageCloseAction in [ACTION::OK, ACTION::LookupOK] then
-            if TempOfficeSuggestedLineItem.FindSet() then
+            if TempOfficeSuggestedLineItem.FindSet() then begin
+                DisableAggregateTableUpdate.SetDisableAllRecords(true);
+                BindSubscription(DisableAggregateTableUpdate);
                 repeat
-                    if TempOfficeSuggestedLineItem.Add then begin
-                        InsertLineItem(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity);
-                        AddedCount += 1;
-                    end;
-                until TempOfficeSuggestedLineItem.Next() = 0;
+                    if TempOfficeSuggestedLineItem.Add then
+                        if TryInsertLineItemAndCommit(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity) then
+                            AddedCount += 1
+                        else begin
+                            InsertFailureErrorText := GetLastErrorText();
+                            InsertFailed := true;
+                        end;
+                until InsertFailed or (TempOfficeSuggestedLineItem.Next() = 0);
+                if UnbindSubscription(DisableAggregateTableUpdate) then;
+
+                if AddedCount > 0 then begin
+                    UpdateAggregateTableFromHeader(HeaderRecRef);
+                    Commit();
+                end;
+            end;
+
+        if InsertFailed then
+            Error(InsertFailureErrorText);
 
         Session.LogMessage('00001KJ', StrSubstNo(TelemetryClosedPageTxt, NewLine(),
             PageCloseAction,
             TempOfficeSuggestedLineItem.Count,
             AddedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
+    end;
+
+    [TryFunction]
+    local procedure TryInsertLineItemAndCommit(var HeaderRecRef: RecordRef; ItemNo: Text[50]; Quantity: Integer)
+    begin
+        InsertLineItem(HeaderRecRef, ItemNo, Quantity);
+        Commit();
     end;
 
     local procedure CalculateMatchStrength(ItemNo: Text[50]; Matches: Integer; SearchText: Text; AlreadyFound: Boolean) Strength: Decimal
@@ -405,7 +430,6 @@ codeunit 1639 "Office Line Generation"
         SalesLine.Validate("No.", CopyStr(ItemNo, 1, 20));
         SalesLine.Validate(Quantity, Quantity);
         SalesLine.Insert(true);
-        Commit();
     end;
 
     local procedure InsertPurchaseLine(var PurchaseHeader: Record "Purchase Header"; ItemNo: Text[50]; Quantity: Integer)
@@ -428,7 +452,27 @@ codeunit 1639 "Office Line Generation"
         PurchaseLine.Validate("No.", CopyStr(ItemNo, 1, 20));
         PurchaseLine.Validate(Quantity, Quantity);
         PurchaseLine.Insert(true);
-        Commit();
+    end;
+
+    local procedure UpdateAggregateTableFromHeader(var HeaderRecRef: RecordRef)
+    var
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        case HeaderRecRef.Number of
+            DATABASE::"Sales Header":
+                begin
+                    HeaderRecRef.SetTable(SalesHeader);
+                    if SalesHeader.Find() then
+                        SalesHeader.Modify();
+                end;
+            DATABASE::"Purchase Header":
+                begin
+                    HeaderRecRef.SetTable(PurchaseHeader);
+                    if PurchaseHeader.Find() then
+                        PurchaseHeader.Modify();
+                end;
+        end;
     end;
 
     local procedure NewLine() CrLf: Text[2]
