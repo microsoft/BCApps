@@ -5874,6 +5874,7 @@ codeunit 137405 "SCM Item Tracking"
     end;
 
     [Test]
+    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler')]
     [Scope('OnPrem')]
     procedure GetAvailableLotQtyNetsProductionComponentReservationOnce()
     var
