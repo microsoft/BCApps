@@ -23,7 +23,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
-using Microsoft.Service.Item;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using Microsoft.TestLibraries.DynamicsFieldService;
@@ -1578,109 +1577,85 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    procedure IgnoreServiceItemWhenConvertToCustomerAssetIsFalse()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
         Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
         CRMProduct: Record "CRM Product";
-        CRMIntegrationRecord: Record "CRM Integration Record";
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-        ProductId: Guid;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item is skipped when linked CRM Product has Convert to Customer Asset = No.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
+        LibraryCRMIntegration.CreateCRMConnectionSetup('', '@@test@@', true);
         InitSetup(true, '');
 
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
-
-        ProductId := CreateGuid();
-        CRMProduct.ProductId := ProductId;
-        CRMProduct.ConvertToCustomerAsset := false;
-        CRMProduct.Insert(false);
-
-        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
-
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsTrue(IgnoreRecord, 'Service Item should be ignored when Convert to Customer Asset is false.');
-    end;
-
-    [Test]
-    procedure DoNotIgnoreServiceItemWhenConvertToCustomerAssetIsTrue()
-    var
-        Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
-        CRMProduct: Record "CRM Product";
-        CRMIntegrationRecord: Record "CRM Integration Record";
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-        ProductId: Guid;
-    begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item is not skipped when linked CRM Product has Convert to Customer Asset = Yes.
-        Initialize();
-        InitSetup(true, '');
-
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
-
-        ProductId := CreateGuid();
-        CRMProduct.ProductId := ProductId;
+        // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        LibraryCRMIntegration.CreateCoupledItemAndProduct(Item, CRMProduct);
         CRMProduct.ConvertToCustomerAsset := true;
-        CRMProduct.Insert(false);
+        CRMProduct.Modify();
 
-        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+        // [WHEN] The item is synchronized to the Field Service product.
+        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
 
-        Assert.IsFalse(IgnoreRecord, 'Service Item should not be ignored when Convert to Customer Asset is true.');
+        // [THEN] Native Field Service customer asset creation is disabled.
+        CRMProduct.Get(CRMProduct.ProductId);
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
 
     [Test]
-    procedure DoNotIgnoreServiceItemWhenItemNoIsBlank()
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure DisableCustomerAssetConversionOnlyMarksActualChanges()
     var
-        TempServiceItem: Record "Service Item" temporary;
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
+        CRMProduct: Record "CRM Product";
+        AdditionalFieldsWereModified: Boolean;
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item with blank Item No. is not skipped by this filter.
-        Initialize();
-        InitSetup(true, '');
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] Customer asset conversion only marks the product as modified when its value changes.
 
-        TempServiceItem."Item No." := '';
-        RecordRef.GetTable(TempServiceItem);
+        // [WHEN] Customer asset conversion is already disabled.
+        FSIntegrationTestLibrary.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+        // [THEN] The product is not marked as modified.
+        Assert.IsFalse(AdditionalFieldsWereModified, 'An unchanged product should not be marked as modified.');
 
-        Assert.IsFalse(IgnoreRecord, 'Service Item with blank Item No. should not be ignored by this filter.');
+        // [WHEN] Customer asset conversion is enabled and then disabled.
+        CRMProduct.ConvertToCustomerAsset := true;
+        FSIntegrationTestLibrary.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+
+        // [THEN] Customer asset conversion is disabled and the product is marked as modified.
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
+        Assert.IsTrue(AdditionalFieldsWereModified, 'A changed product should be marked as modified.');
     end;
 
     [Test]
-    procedure DoNotIgnoreServiceItemWhenItemIsNotCoupled()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ItemProductMappingDisablesCustomerAssetConversion()
     var
-        Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
+        CRMProduct: Record "CRM Product";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item with uncoupled Item is not skipped by this filter.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] The item-product mapping always disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
 
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
+        // [WHEN] The default item-product mapping is reset.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsFalse(IgnoreRecord, 'Service Item with uncoupled Item should not be ignored by this filter.');
+        // [THEN] Convert to Customer Asset is mapped to the constant false in the outbound direction.
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        Assert.IsTrue(IntegrationFieldMapping.FindFirst(), 'The Convert to Customer Asset mapping should exist.');
+        Assert.AreEqual(0, IntegrationFieldMapping."Field No.", 'The mapping should use a constant value.');
+        Assert.AreEqual(IntegrationFieldMapping.Direction::ToIntegrationTable, IntegrationFieldMapping.Direction, 'The mapping should be outbound.');
+        Assert.AreEqual('false', IntegrationFieldMapping."Constant Value", 'The mapping should disable Convert to Customer Asset.');
     end;
 
     local procedure Initialize()
