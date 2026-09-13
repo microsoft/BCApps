@@ -31,6 +31,8 @@ codeunit 148156 "Service Commitment Test"
         RecurringDiscountCannotBeGrantedErr: Label 'Recurring discounts cannot be granted in conjunction with Usage Based Billing', Locked = true;
         BillingLineForServiceCommitmentExistErr: Label 'The contract line is in the current billing. Delete the billing line to be able to adjust the Subscription Line start date.', Locked = true;
         BillingLineArchiveForServiceCommitmentExistErr: Label 'The contract line has already been billed. The Subscription Line start date can no longer be changed.', Locked = true;
+        TermUntilNotCalculatedErr: Label '"Term Until" Date is not calculated correctly.', Locked = true;
+        CancellationPossibleUntilNotCalculatedErr: Label '"Cancellation Possible Until" Date is not calculated correctly.', Locked = true;
 
     #region Tests
 
@@ -732,6 +734,222 @@ codeunit 148156 "Service Commitment Test"
         TempSubscriptionLine.TestField("Subscription Line Start Date", NewStartDate);
     end;
 
+    [Test]
+    procedure UT_CancellationPossibleUntilIsNotMovedToMonthEndForDayNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A Notice Period expressed in days is subtracted from a month end "Term Until" without being rounded up to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line starting 01.01.2026 with Initial Term 12M, Subsequent Term 12M and Notice Period 60D
+        MockSubscriptionLineWithTerms(SubscriptionLine, DMY2Date(1, 1, 2026), '<12M>', '<12M>', '<60D>');
+
+        // [WHEN] The termination dates are calculated
+        SubscriptionLine.CalculateTermUntilDate();
+
+        // [THEN] "Term Until" is the last day of the initial term
+        Assert.AreEqual(DMY2Date(31, 12, 2026), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+
+        // [THEN] "Cancellation Possible Until" is exactly 60 days earlier and not moved to the end of November
+        Assert.AreEqual(DMY2Date(1, 11, 2026), SubscriptionLine."Cancellation Possible Until", CancellationPossibleUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_CancellationPossibleUntilIsNotMovedToMonthEndForWeekNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A Notice Period expressed in weeks is subtracted from a month end "Term Until" without being rounded up to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line starting 01.01.2026 with Initial Term 12M, Subsequent Term 12M and Notice Period 4W
+        MockSubscriptionLineWithTerms(SubscriptionLine, DMY2Date(1, 1, 2026), '<12M>', '<12M>', '<4W>');
+
+        // [WHEN] The termination dates are calculated
+        SubscriptionLine.CalculateTermUntilDate();
+
+        // [THEN] "Cancellation Possible Until" is exactly 4 weeks before 31.12.2026 and not moved back to 31.12.2026
+        Assert.AreEqual(DMY2Date(31, 12, 2026), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+        Assert.AreEqual(DMY2Date(3, 12, 2026), SubscriptionLine."Cancellation Possible Until", CancellationPossibleUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_CancellationPossibleUntilIsMovedToMonthEndForMonthNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A Notice Period expressed in months keeps aligning "Cancellation Possible Until" to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line starting 01.03.2025 with Initial Term 12M, Subsequent Term 12M and Notice Period 1M
+        MockSubscriptionLineWithTerms(SubscriptionLine, DMY2Date(1, 3, 2025), '<12M>', '<12M>', '<1M>');
+
+        // [WHEN] The termination dates are calculated
+        SubscriptionLine.CalculateTermUntilDate();
+
+        // [THEN] "Term Until" is 28.02.2026 and "Cancellation Possible Until" is moved from 28.01.2026 to the end of January
+        Assert.AreEqual(DMY2Date(28, 2, 2026), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+        Assert.AreEqual(DMY2Date(31, 1, 2026), SubscriptionLine."Cancellation Possible Until", CancellationPossibleUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_CancellationPossibleUntilIsMovedToMonthEndForQuarterNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A Notice Period expressed in quarters keeps aligning "Cancellation Possible Until" to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line starting 01.03.2025 with Initial Term 12M, Subsequent Term 12M and Notice Period 1Q
+        MockSubscriptionLineWithTerms(SubscriptionLine, DMY2Date(1, 3, 2025), '<12M>', '<12M>', '<1Q>');
+
+        // [WHEN] The termination dates are calculated
+        SubscriptionLine.CalculateTermUntilDate();
+
+        // [THEN] "Term Until" is 28.02.2026 and "Cancellation Possible Until" is moved from 28.11.2025 to the end of November
+        Assert.AreEqual(DMY2Date(28, 2, 2026), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+        Assert.AreEqual(DMY2Date(30, 11, 2025), SubscriptionLine."Cancellation Possible Until", CancellationPossibleUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_TermUntilIsNotMovedToMonthEndForDayNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] Entering a month end "Cancellation Possible Until" with a Notice Period expressed in days calculates "Term Until" without rounding it to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line with Notice Period 60D
+        MockSubscriptionLine(SubscriptionLine);
+        Evaluate(SubscriptionLine."Notice Period", '<60D>');
+
+        // [WHEN] "Cancellation Possible Until" is set to the last day of November 2026
+        SubscriptionLine.Validate("Cancellation Possible Until", DMY2Date(30, 11, 2026));
+
+        // [THEN] "Term Until" is exactly 60 days later and not moved to the end of January
+        Assert.AreEqual(DMY2Date(29, 1, 2027), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_TermUntilIsMovedToMonthEndForMonthNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] Entering a month end "Cancellation Possible Until" with a Notice Period expressed in months keeps aligning "Term Until" to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line with Notice Period 1M
+        MockSubscriptionLine(SubscriptionLine);
+        Evaluate(SubscriptionLine."Notice Period", '<1M>');
+
+        // [WHEN] "Cancellation Possible Until" is set to the last day of February 2026
+        SubscriptionLine.Validate("Cancellation Possible Until", DMY2Date(28, 2, 2026));
+
+        // [THEN] "Term Until" is moved from 28.03.2026 to the end of March
+        Assert.AreEqual(DMY2Date(31, 3, 2026), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_IsMonthBasedDateFormulaExcludesDayAndWeekComponents()
+    var
+        DateFormulaManagement: Codeunit "Date Formula Management";
+        EmptyDateFormula: DateFormula;
+    begin
+        // [SCENARIO] A date formula is month based when it carries no day and no week component, no matter how many terms it has
+
+        Initialize();
+
+        // [THEN] Days and weeks are not month based
+        Assert.IsFalse(IsMonthBasedDateFormula('<60D>'), 'A date formula in days must not be month based.');
+        Assert.IsFalse(IsMonthBasedDateFormula('<4W>'), 'A date formula in weeks must not be month based.');
+
+        // [THEN] Months, quarters and years are month based
+        Assert.IsTrue(IsMonthBasedDateFormula('<1M>'), 'A date formula in months must be month based.');
+        Assert.IsTrue(IsMonthBasedDateFormula('<1Q>'), 'A date formula in quarters must be month based.');
+        Assert.IsTrue(IsMonthBasedDateFormula('<1Y>'), 'A date formula in years must be month based.');
+
+        // [THEN] A composite date formula built only from months, quarters and years is month based as well
+        Assert.IsTrue(IsMonthBasedDateFormula('<1Y+6M>'), 'A composite date formula in years and months must be month based.');
+        Assert.IsTrue(IsMonthBasedDateFormula('<1Q+1M>'), 'A composite date formula in quarters and months must be month based.');
+
+        // [THEN] A composite date formula carrying a day or week component is not month based
+        Assert.IsFalse(IsMonthBasedDateFormula('<1M+15D>'), 'A composite date formula with a day component must not be month based.');
+        Assert.IsFalse(IsMonthBasedDateFormula('<1M+2W>'), 'A composite date formula with a week component must not be month based.');
+
+        // [THEN] Current period and empty date formulas are not month based
+        Assert.IsFalse(IsMonthBasedDateFormula('<CM>'), 'A current period date formula must not be month based.');
+        Assert.IsFalse(DateFormulaManagement.IsMonthBasedDateFormula(EmptyDateFormula), 'An empty date formula must not be month based.');
+    end;
+
+    [Test]
+    procedure UT_TermUntilIsMovedToMonthEndForCompositeMonthNoticePeriod()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A composite Notice Period built only from months and years keeps aligning "Term Until" to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line with Notice Period 1Y+6M
+        MockSubscriptionLine(SubscriptionLine);
+        Evaluate(SubscriptionLine."Notice Period", '<1Y+6M>');
+
+        // [WHEN] "Cancellation Possible Until" is set to the last day of February 2026
+        SubscriptionLine.Validate("Cancellation Possible Until", DMY2Date(28, 2, 2026));
+
+        // [THEN] "Term Until" is moved from 28.08.2027 to the end of August
+        Assert.AreEqual(DMY2Date(31, 8, 2027), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_TermUntilIsNotMovedToMonthEndForDayExtensionTerm()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A Subsequent Term expressed in days extends a month end "Term Until" by exactly that many days
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line whose term runs until 31.12.2026, with a Subsequent Term of 30D
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine."Term Until" := DMY2Date(31, 12, 2026);
+        Evaluate(SubscriptionLine."Extension Term", '<30D>');
+
+        // [WHEN] The term is extended
+        SubscriptionLine.CalculateTermUntilUsingExtensionTerm();
+
+        // [THEN] "Term Until" is exactly 30 days later and not moved to the end of January
+        Assert.AreEqual(DMY2Date(30, 1, 2027), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+    end;
+
+    [Test]
+    procedure UT_TermUntilIsMovedToMonthEndForMonthExtensionTerm()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        // [SCENARIO] A Subsequent Term expressed in months keeps aligning "Term Until" to the end of the month
+
+        Initialize();
+
+        // [GIVEN] A Subscription Line whose term runs until 28.02.2026, with a Subsequent Term of 1M
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine."Term Until" := DMY2Date(28, 2, 2026);
+        Evaluate(SubscriptionLine."Extension Term", '<1M>');
+
+        // [WHEN] The term is extended
+        SubscriptionLine.CalculateTermUntilUsingExtensionTerm();
+
+        // [THEN] "Term Until" is moved from 28.03.2026 to the end of March
+        Assert.AreEqual(DMY2Date(31, 3, 2026), SubscriptionLine."Term Until", TermUntilNotCalculatedErr);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -830,6 +1048,32 @@ codeunit 148156 "Service Commitment Test"
         SubscriptionLine."Entry No." := 0;
         SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
         SubscriptionLine.Insert(false);
+    end;
+
+    local procedure IsMonthBasedDateFormula(DateFormulaText: Text): Boolean
+    var
+        DateFormulaManagement: Codeunit "Date Formula Management";
+        DateFormulaValue: DateFormula;
+    begin
+        Evaluate(DateFormulaValue, DateFormulaText);
+        exit(DateFormulaManagement.IsMonthBasedDateFormula(DateFormulaValue));
+    end;
+
+    local procedure MockSubscriptionLineWithTerms(var SubscriptionLine: Record "Subscription Line"; StartDate: Date; InitialTermText: Text; ExtensionTermText: Text; NoticePeriodText: Text)
+    var
+        InitialTerm: DateFormula;
+        ExtensionTerm: DateFormula;
+        NoticePeriod: DateFormula;
+    begin
+        MockSubscriptionLine(SubscriptionLine);
+        // The start date is validated before the terms, so that the termination dates are only calculated by the procedure under test.
+        SubscriptionLine.Validate("Subscription Line Start Date", StartDate);
+        Evaluate(InitialTerm, InitialTermText);
+        SubscriptionLine.Validate("Initial Term", InitialTerm);
+        Evaluate(ExtensionTerm, ExtensionTermText);
+        SubscriptionLine.Validate("Extension Term", ExtensionTerm);
+        Evaluate(NoticePeriod, NoticePeriodText);
+        SubscriptionLine.Validate("Notice Period", NoticePeriod);
     end;
 
     local procedure UpdateServiceDatesAndCloseContractLines()
