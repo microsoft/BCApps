@@ -553,7 +553,7 @@ codeunit 1535 "Approvals Mgmt."
         if not ApprovalEntry.IsEmpty() then
             ApprovalEntry.SetRange("Related to Change", false);
 
-        OnFindOpenApprovalEntryForCurrUserOnAfterApprovalEntrySetFilters(ApprovalEntry);
+        OnFindOpenApprovalEntryForCurrUserOnAfterApprovalEntrySetFilters(ApprovalEntry, RecordID);
         exit(ApprovalEntry.FindFirst());
     end;
 
@@ -3488,7 +3488,7 @@ codeunit 1535 "Approvals Mgmt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnFindOpenApprovalEntryForCurrUserOnAfterApprovalEntrySetFilters(var ApprovalEntry: Record "Approval Entry")
+    local procedure OnFindOpenApprovalEntryForCurrUserOnAfterApprovalEntrySetFilters(var ApprovalEntry: Record "Approval Entry"; RecordID: RecordID)
     begin
     end;
 
