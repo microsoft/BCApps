@@ -407,7 +407,10 @@ codeunit 144051 "ERM Sales/Purchase VAT"
         AmountACY := GetACYAmount(SalesLine."Amount Including VAT" - SalesLine."Line Amount", CurrencyCode);
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
         VerifyVATEntries(SalesHeader."Document Type", DocumentNo, -AmountACY, SalesLine."VAT Prod. Posting Group");
-        VerifyGLEntries(SalesHeader."Document Type", DocumentNo, VATPostingSetup."Sales VAT Account", -AmountACY);
+        if CurrencyCode = '' then
+            VerifyRealizedVATGLEntriesDoNotExist(DocumentNo, VATPostingSetup)
+        else
+            VerifyGLEntries(SalesHeader."Document Type", DocumentNo, VATPostingSetup."Sales VAT Account", -AmountACY);
     end;
 
     [Test]
@@ -463,7 +466,10 @@ codeunit 144051 "ERM Sales/Purchase VAT"
         AmountACY := GetACYAmount(SalesLine."Amount Including VAT" - SalesLine."Line Amount", CurrencyCode);
         VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
         VerifyVATEntries(SalesHeader."Document Type", DocumentNo, -AmountACY, SalesLine."VAT Prod. Posting Group");
-        VerifyGLEntries(SalesHeader."Document Type", DocumentNo, VATPostingSetup."Sales VAT Account", -AmountACY);
+        if CurrencyCode = '' then
+            VerifyRealizedVATGLEntriesDoNotExist(DocumentNo, VATPostingSetup)
+        else
+            VerifyGLEntries(SalesHeader."Document Type", DocumentNo, VATPostingSetup."Sales VAT Account", -AmountACY);
     end;
 
     [Test]
@@ -821,6 +827,21 @@ codeunit 144051 "ERM Sales/Purchase VAT"
           AdditionalCurrencyAmount, GLEntry."Additional-Currency Amount", LibraryERM.GetAmountRoundingPrecision(),
           StrSubstNo(
             AmountError, GLEntry.FieldCaption("Additional-Currency Amount"), GLEntry."Additional-Currency Amount", GLEntry.TableCaption()));
+    end;
+
+    local procedure VerifyRealizedVATGLEntriesDoNotExist(DocumentNo: Code[20]; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::"Credit Memo");
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        GLEntry.SetRange("Bal. Account No.", VATPostingSetup."Sales VAT Account");
+        Assert.IsTrue(GLEntry.IsEmpty(), 'VAT G/L entry from unrealized to realized account should not be posted');
+
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Sales VAT Account");
+        GLEntry.SetRange("Bal. Account No.", VATPostingSetup."Sales VAT Unreal. Account");
+        Assert.IsTrue(GLEntry.IsEmpty(), 'VAT G/L entry from realized to unrealized account should not be posted');
     end;
 
     local procedure VerifyGLEntryVATUnrealizedAmount(DocumentNo: Code[20]; VATUnrealAccount: Code[20]; TotalVATAmount: Decimal)
