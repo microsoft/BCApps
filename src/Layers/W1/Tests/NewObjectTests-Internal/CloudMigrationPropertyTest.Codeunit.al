@@ -680,7 +680,7 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"XML Schema Restriction");
         ListOfTablesToMigrate.Add(Database::"XML Schema");
         ListOfTablesToMigrate.Add(Database::"Zone");
-        ListOfTablesToMigrate.Add(Database::"Custom Report Layout");
+        ListOfTablesToMigrate.Add(9650); // Database::"Custom Report Layout"
         ListOfTablesToMigrate.Add(Database::"Feature Data Update Status");
         ListOfTablesToMigrate.Add(Database::"Feature Data Update Status");
         ListOfTablesToMigrate.Add(Database::"Image Analysis Setup");
