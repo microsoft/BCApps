@@ -37,6 +37,15 @@ page 7075 "EA KPI Entries"
                         Rec.OpenCard();
                     end;
                 }
+                field("Line No."; Rec."Line No.")
+                {
+                    ToolTip = 'Specifies the line number of the record, for expense report lines.';
+
+                    trigger OnDrillDown()
+                    begin
+                        Rec.OpenCard();
+                    end;
+                }
                 field(CreatedByExpUserId; Rec."Created By Exp. User Id")
                 {
                     Visible = false;
