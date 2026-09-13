@@ -926,7 +926,7 @@ codeunit 137087 "SCM Order Planning - II"
     [Test]
     [HandlerFunctions('MakeSupplyOrdersPageHandler')]
     [Scope('OnPrem')]
-    procedure SalesOrderWithDropShipmentNotReservedForReqLineCreatedFromOrderPlanning()
+    procedure SalesOrderWithDropShipmentReservedForReqLineCreatedFromOrderPlanning()
     var
         Item: Record Item;
         SalesHeader: Record "Sales Header";
@@ -936,7 +936,7 @@ codeunit 137087 "SCM Order Planning - II"
         Quantity: Decimal;
     begin
         // [FEATURE] [Drop Shipment] [Order Planning] [Reservation]
-        // [SCENARIO 231925] Sales order that is set for drop shipment after it is planned by Order Planning functionality, is not reserved from resulting requisition worksheet.
+        // [SCENARIO 231925] Sales order that is set for drop shipment after it is planned by Order Planning functionality, is reserved from resulting requisition worksheet.
         Initialize();
         Quantity := LibraryRandom.RandDec(10, 2);
 
@@ -962,11 +962,11 @@ codeunit 137087 "SCM Order Planning - II"
         // [THEN] Requisition line is created.
         FindRequisitionLine(RequisitionLine, '', Item."No.", LocationBlue.Code);
 
-        // [THEN] The sales line is not reserved from requisition line.
+        // [THEN] The sales line is reserved from requisition line, even though Reserve is Never for the drop shipment line.
         SalesLine.Find();
         SalesLine.CalcFields("Reserved Quantity");
         SalesLine.TestField(Reserve, SalesLine.Reserve::Never);
-        SalesLine.TestField("Reserved Quantity", 0);
+        SalesLine.TestField("Reserved Quantity", Quantity);
     end;
 
     [Test]

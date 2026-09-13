@@ -2043,8 +2043,7 @@ codeunit 99000832 "Sales Line-Reserve"
         end else begin
             if not SalesLine."Drop Shipment" then
                 SalesLine.SetReserveToOptional();
-            if SalesLine.Reserve <> SalesLine.Reserve::Never then
-                BindToTracking(SalesLine, TrackingSpecification, Description, ExpectedDate, ReservQty, ReservQtyBase);
+            BindToTracking(SalesLine, TrackingSpecification, Description, ExpectedDate, ReservQty, ReservQtyBase);
         end;
     end;
 
