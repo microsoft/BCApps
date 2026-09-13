@@ -1975,6 +1975,64 @@ codeunit 134897 "ERM Source Currency"
         SetSalesDiscountPosting(OldDiscountPosting);
     end;
 
+    [Test]
+    procedure PurchaseInvoiceReverseChargeVATFCYWithRoundingDifference()
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        VendorNo: Code[20];
+        PostedPurchaseInvoiceNo: Code[20];
+        ExpectedVATAmount: Decimal;
+    begin
+        // [SCENARIO 647818] Reverse charge VAT G/L entries preserve source currency amounts when LCY rounding differs.
+        Initialize();
+
+        // [GIVEN] A vendor and posting setup with 8.1% reverse charge VAT.
+        VendorNo := CreateVendorWithNewPostingGroups(
+            VendorPostingGroup, GeneralPostingSetup, VATPostingSetup,
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandDecInDecimalRange(8.1, 8.1, 2));
+        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] A purchase invoice for 1,788.27 in a foreign currency with an exchange rate of 1:0.81709.
+        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
+        CreatePurchaseInvoiceWithRoundingDifference(PurchaseHeader, VendorNo, GLAccount."No.");
+        ExpectedVATAmount := Round(PurchaseHeader.Amount * VATPostingSetup."VAT %" / 100, 0.01, '=');
+
+        // [WHEN] The purchase invoice is posted.
+        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The originating entry preserves the source VAT amount despite the LCY rounding difference.
+        GLEntry.SetRange("Document No.", PostedPurchaseInvoiceNo);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedVATAmount, GLEntry."Source Currency VAT Amount",
+            StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+
+        // [THEN] The reverse charge entries use the original source VAT amount.
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup."Purchase VAT Account");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(
+            ExpectedVATAmount, GLEntry."Source Currency Amount",
+            StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+
+        GLEntry.SetRange("G/L Account No.", VATPostingSetup.GetRevChargeAccount(false));
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(
+            -ExpectedVATAmount, GLEntry."Source Currency Amount",
+            StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
+
+        GLEntry.SetRange("G/L Account No.");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
+    end;
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
@@ -2330,5 +2388,33 @@ codeunit 134897 "ERM Source Currency"
         until GLEntry.Next() = 0;
 
         Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
+    end;
+
+    local procedure CreatePurchaseInvoiceWithRoundingDifference(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20])
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        PurchaseLine: Record "Purchase Line";
+        CurrencyCode: Code[10];
+    begin
+        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        CurrencyCode := CreateCurrency();
+        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.FindLast();
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", 0.81709);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", 0.81709);
+        CurrencyExchangeRate.Modify(true);
+        PurchaseHeader.Validate("Currency Code", CurrencyCode);
+        PurchaseHeader.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 1788.27);
+        PurchaseLine.Modify(true);
+
+        PurchaseHeader.CalcFields(Amount, "Amount Including VAT");
+        PurchaseHeader."Doc. Amount Incl. VAT" := PurchaseHeader."Amount Including VAT";
+        PurchaseHeader."Doc. Amount VAT" := PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount;
+        PurchaseHeader.Modify();
     end;
 }

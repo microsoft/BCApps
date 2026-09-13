@@ -1056,30 +1056,36 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
+        FullVATAmountSrcCurr: Decimal;
         LastNextEntryNo: Integer;
     begin
+        if GenJnlLine."System-Created Entry" and (GenJnlLine."Source Currency Code" <> GLSetup."LCY Code") then
+            FullVATAmountSrcCurr := GenJnlLine."Source Curr. VAT Amount"
+        else
+            FullVATAmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount");
+
         if not NonDeductibleVAT.IsNonDeductibleVATEnabled() then begin
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToPurchAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"), VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true,
-                CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount"));
+                FullVATAmountSrcCurr);
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToRevChargeAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetRevChargeAccount(VATPostingParameters."Unrealized VAT"),
                 -VATPostingParameters."Full VAT Amount" - GenJnlLine."Non Ded. VAT Amount", -VATPostingParameters."Full VAT Amount ACY" - GenJnlLine."Non Ded. Source Curr. VAT Amt.", true,
-                CalcAmountSrcCurr(GenJnlLine, -VATPostingParameters."Full VAT Amount" - GenJnlLine."Non Ded. VAT Amount"));
+                -FullVATAmountSrcCurr - GenJnlLine."Non Ded. Source Curr. VAT Amt.");
             exit;
         end;
 
         if VATPostingParameters."Unrealized VAT" then begin
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"), VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true,
-                CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount"));
+                FullVATAmountSrcCurr);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetRevChargeAccount(VATPostingParameters."Unrealized VAT"), -VATPostingParameters."Full VAT Amount", -VATPostingParameters."Full VAT Amount ACY", true,
-                CalcAmountSrcCurr(GenJnlLine, -VATPostingParameters."Full VAT Amount"));
+                -FullVATAmountSrcCurr);
             exit;
         end;
         if VATPostingParameters."Non-Deductible VAT %" <> 100 then begin
