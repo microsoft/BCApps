@@ -122,16 +122,12 @@ page 1 "Company Information"
                 field("EORI Number"; Rec."EORI Number")
                 {
                     ApplicationArea = Basic, Suite;
+                    Visible = false;
                 }
                 field("Industrial Classification"; Rec."Industrial Classification")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                }
-                field("Fiscal Entity No."; Rec."Fiscal Entity No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the fiscal entity number is the VAT number assigned to a group of companies to report one consolidated VAT declaration.';
                 }
                 field("Registration No."; Rec."Registration No.")
                 {
@@ -799,12 +795,9 @@ page 1 "Company Information"
     end;
 
     local procedure SystemIndicatorOnAfterValidate()
-    var
-        CompanyBadgeChangedLbl: Label 'Company badge changed.', Locked = true;
     begin
         SystemIndicatorChanged := true;
         UpdateSystemIndicator();
-        Session.LogAuditMessage(CompanyBadgeChangedLbl, SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
 
     local procedure ActivateFields()

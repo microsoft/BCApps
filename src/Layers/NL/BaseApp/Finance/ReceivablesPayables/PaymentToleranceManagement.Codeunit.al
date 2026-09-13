@@ -5,7 +5,9 @@
 namespace Microsoft.Finance.ReceivablesPayables;
 
 using Microsoft.Bank.Reconciliation;
+#if not CLEAN30
 using Microsoft.Bank.Statement;
+#endif
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
@@ -230,7 +232,7 @@ codeunit 426 "Payment Tolerance Management"
         if (TempGenJnlLine."Applies-to Doc. No." = '') and (TempGenJnlLine."Applies-to ID" = '') then
             exit(true);
 
-        OnPmtTolGenJnlOnAfterCheckConditions(TempGenJnlLine, SuppressCommit, Result, TempGenJnlLine);
+        OnPmtTolGenJnlOnAfterCheckConditions(TempGenJnlLine, SuppressCommit, Result);
 
         case true of
             (TempGenJnlLine."Account Type" = TempGenJnlLine."Account Type"::Customer) or
@@ -1708,146 +1710,16 @@ codeunit 426 "Payment Tolerance Management"
         end;
     end;
 
+#if not CLEAN30
     [Scope('OnPrem')]
+    [Obsolete('Use Payment Tolerance Mgt. NL.PmtTolCBGJnl instead.', '30.0')]
     procedure PmtTolCBGJnl(var CBGStatementLine: Record "CBG Statement Line"): Boolean
     var
-        GLSetup: Record "General Ledger Setup";
-        Customer: Record Customer;
-        Vendor: Record Vendor;
-        NewCustLedgEntry: Record "Cust. Ledger Entry";
-        NewVendLedgEntry: Record "Vendor Ledger Entry";
-        AppliedAmount: Decimal;
-        OriginalAppliedAmount: Decimal;
-        ApplyingAmount: Decimal;
-        AmounttoApply: Decimal;
-        PmtDiscAmount: Decimal;
-        MaxPmtTolAmount: Decimal;
-        CBGStatementLineApplID: Code[20];
-        ApplnRoundingPrecision: Decimal;
-        CBGStatement: Record "CBG Statement";
-        UseDocumentNo: Code[20];
+        PaymentToleranceMgtNL: Codeunit "Payment Tolerance Mgt. NL";
     begin
-        MaxPmtTolAmount := 0;
-        PmtDiscAmount := 0;
-        AppliedAmount := 0;
-        ApplyingAmount := 0;
-        AmounttoApply := 0;
-
-        if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Customer then begin
-            Customer.Get(CBGStatementLine."Account No.");
-            if Customer."Block Payment Tolerance" then
-                exit(false);
-        end else
-            if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Vendor then begin
-                Vendor.Get(CBGStatementLine."Account No.");
-                if Vendor."Block Payment Tolerance" then
-                    exit(false);
-            end;
-
-        CBGStatement.Get(CBGStatementLine."Journal Template Name", CBGStatementLine."No.");
-        GLSetup.Get();
-        if CBGStatementLine."Applies-to Doc. No." = '' then
-            if CBGStatementLine."Applies-to ID" <> '' then
-                CBGStatementLineApplID := CBGStatementLine."Applies-to ID";
-
-        if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Customer then begin
-            NewCustLedgEntry."Posting Date" := CBGStatementLine.Date;
-            NewCustLedgEntry."Document No." := CBGStatementLine."Document No.";
-            NewCustLedgEntry."Customer No." := CBGStatementLine."Account No.";
-            NewCustLedgEntry."Currency Code" := CBGStatement.Currency;
-            if CBGStatementLine."Applies-to Doc. No." <> '' then
-                NewCustLedgEntry."Applies-to Doc. No." := CBGStatementLine."Applies-to Doc. No.";
-            DelCustPmtTolAcc(NewCustLedgEntry, CBGStatementLineApplID);
-            NewCustLedgEntry.Amount := CBGStatementLine.Amount;
-            NewCustLedgEntry."Remaining Amount" := CBGStatementLine.Amount;
-            case (CBGStatementLine.Amount >= 0) of
-                true:
-                    NewCustLedgEntry."Document Type" := NewCustLedgEntry."Document Type"::Refund;
-                false:
-                    NewCustLedgEntry."Document Type" := NewCustLedgEntry."Document Type"::Payment;
-            end;
-            CalcCustApplnAmount(
-              NewCustLedgEntry, GLSetup, AppliedAmount, ApplyingAmount, AmounttoApply, PmtDiscAmount,
-              MaxPmtTolAmount, CBGStatementLineApplID, ApplnRoundingPrecision);
-        end else begin
-            NewVendLedgEntry."Posting Date" := CBGStatementLine.Date;
-            NewVendLedgEntry."Document No." := CBGStatementLine."Document No.";
-            NewVendLedgEntry."Vendor No." := CBGStatementLine."Account No.";
-            NewVendLedgEntry."Currency Code" := CBGStatement.Currency;
-            if CBGStatementLine."Applies-to Doc. No." <> '' then
-                NewVendLedgEntry."Applies-to Doc. No." := CBGStatementLine."Applies-to Doc. No.";
-            DelVendPmtTolAcc(NewVendLedgEntry, CBGStatementLineApplID);
-            NewVendLedgEntry.Amount := CBGStatementLine.Amount;
-            NewVendLedgEntry."Remaining Amount" := CBGStatementLine.Amount;
-            NewVendLedgEntry."Document Type" := NewVendLedgEntry."Document Type"::Payment;
-            CalcVendApplnAmount(
-              NewVendLedgEntry, GLSetup, AppliedAmount, ApplyingAmount, AmounttoApply, PmtDiscAmount,
-              MaxPmtTolAmount, CBGStatementLineApplID, ApplnRoundingPrecision);
-        end;
-
-        OriginalAppliedAmount := AppliedAmount;
-
-        if GLSetup."Pmt. Disc. Tolerance Warning" then
-            case CBGStatementLine."Account Type" of
-                CBGStatementLine."Account Type"::Customer:
-                    if not ManagePaymentDiscToleranceWarningCustomer(
-                         NewCustLedgEntry, CBGStatementLineApplID, AppliedAmount, AmounttoApply, CBGStatementLine."Applies-to Doc. No.")
-                    then
-                        exit(false);
-                CBGStatementLine."Account Type"::Vendor:
-                    if not ManagePaymentDiscToleranceWarningVendor(
-                         NewVendLedgEntry, CBGStatementLineApplID, AppliedAmount, AmounttoApply, CBGStatementLine."Applies-to Doc. No.")
-                    then
-                        exit(false);
-            end;
-
-        if Abs(AmounttoApply) >= Abs(AppliedAmount - PmtDiscAmount - MaxPmtTolAmount) then begin
-            AppliedAmount := AppliedAmount - PmtDiscAmount;
-            if Abs(AppliedAmount) > Abs(AmounttoApply) then
-                AppliedAmount := AmounttoApply;
-
-            if ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <= Abs(MaxPmtTolAmount)) and
-              (MaxPmtTolAmount <> 0) and ((Abs(AppliedAmount + ApplyingAmount) - ApplnRoundingPrecision) <> 0) and
-              ((Abs(AppliedAmount + ApplyingAmount) > ApplnRoundingPrecision))
-            then begin
-                if CBGStatement.Type = CBGStatement.Type::"Bank/Giro" then
-                    UseDocumentNo := CBGStatement."Document No."
-                else
-                    UseDocumentNo := CBGStatementLine."Document No.";
-
-                if CBGStatementLine."Account Type" = CBGStatementLine."Account Type"::Customer then begin
-                    if GLSetup."Payment Tolerance Warning" then begin
-                        if CallPmtTolWarning(
-                             CBGStatementLine.Date, CBGStatementLine."Account No.", UseDocumentNo,
-                             CBGStatement.Currency, ApplyingAmount, OriginalAppliedAmount, "Payment Tolerance Account Type"::Customer)
-                        then begin
-                            if ApplyingAmount <> 0 then
-                                PutCustPmtTolAmount(NewCustLedgEntry, ApplyingAmount, AppliedAmount, CBGStatementLineApplID)
-                            else
-                                DelCustPmtTolAcc(NewCustLedgEntry, CBGStatementLineApplID);
-                        end else
-                            exit(false);
-                    end else
-                        PutCustPmtTolAmount(NewCustLedgEntry, AppliedAmount, ApplyingAmount, CBGStatementLineApplID);
-                end else
-                    if GLSetup."Payment Tolerance Warning" then begin
-                        if CallPmtTolWarning(
-                             CBGStatementLine.Date, CBGStatementLine."Account No.", UseDocumentNo,
-                             CBGStatement.Currency, ApplyingAmount, OriginalAppliedAmount, "Payment Tolerance Account Type"::Vendor)
-                        then begin
-                            if (AppliedAmount <> 0) and (ApplyingAmount <> 0) then
-                                PutVendPmtTolAmount(NewVendLedgEntry, ApplyingAmount, AppliedAmount, CBGStatementLineApplID)
-                            else
-                                DelVendPmtTolAcc(NewVendLedgEntry, CBGStatementLineApplID);
-                        end else
-                            exit(false);
-                    end else
-                        PutVendPmtTolAmount(NewVendLedgEntry, ApplyingAmount, AppliedAmount, CBGStatementLineApplID);
-            end;
-
-        end;
-        exit(true);
+        exit(PaymentToleranceMgtNL.PmtTolCBGJnl(CBGStatementLine));
     end;
+#endif
 
     local procedure GetCustApplicationRoundingPrecisionForAppliesToID(var AppliedCustLedgEntry: Record "Cust. Ledger Entry"; var ApplnRoundingPrecision: Decimal; var AmountRoundingPrecision: Decimal; var ApplnInMultiCurrency: Boolean; ApplnCurrencyCode: Code[20])
     begin
@@ -1927,6 +1799,7 @@ codeunit 426 "Payment Tolerance Management"
             (DocumentType = DocumentType::"Credit Memo"))
         then
             PositiveFilter := true;
+
         exit(PositiveFilter);
     end;
 
@@ -1937,6 +1810,7 @@ codeunit 426 "Payment Tolerance Management"
             (DocumentType = DocumentType::"Credit Memo"))
         then
             PositiveFilter := true;
+
         exit(PositiveFilter);
     end;
 
@@ -3087,9 +2961,8 @@ codeunit 426 "Payment Tolerance Management"
     /// <param name="GenJournalLine">General journal line being processed</param>
     /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
     /// <param name="Result">Result of tolerance condition checking</param>
-    /// <param name="GenJournalLineByRef">General journal line being processed, passed by reference so subscribers can modify it before standard payment tolerance processing continues</param>
     [IntegrationEvent(false, false)]
-    local procedure OnPmtTolGenJnlOnAfterCheckConditions(GenJournalLine: Record "Gen. Journal Line"; var SuppressCommit: Boolean; var Result: Boolean; var GenJournalLineByRef: Record "Gen. Journal Line")
+    local procedure OnPmtTolGenJnlOnAfterCheckConditions(GenJournalLine: Record "Gen. Journal Line"; var SuppressCommit: Boolean; var Result: Boolean)
     begin
     end;
 

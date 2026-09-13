@@ -203,12 +203,6 @@ page 8900 "Administrator Main Role Center"
                         RunObject = page "Config Templates";
                         Tooltip = 'Open the Customer/Vendor/Item Templates page.';
                     }
-                    //action("Setup and Help Resources")
-                    //{
-                    //    ApplicationArea = Basic, Suite;
-                    //    Caption = 'Setup and Help Resources';
-                    //    RunObject = page 1822;
-                    //}
                     action("Transformation Rules")
                     {
                         ApplicationArea = Basic, Suite;
@@ -373,12 +367,6 @@ page 8900 "Administrator Main Role Center"
                         RunObject = page "Code Coverage";
                         Tooltip = 'Open the Code Coverage page.';
                     }
-                    // action("Sessions")
-                    // {
-                    //	 ApplicationArea = All;
-                    //	 Caption = 'Sessions';
-                    //	 RunObject = codeunit 9500;
-                    // }
                 }
                 action("Feature Management")
                 {
@@ -467,7 +455,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Data Encryption Management';
                         RunObject = page "Data Encryption Management";
                         Tooltip = 'Open the Data Encryption Management page.';
-                        // AccessByPermission = 'System 5420=X';
                     }
                     action("Data Classification Worksheet")
                     {
@@ -648,12 +635,6 @@ page 8900 "Administrator Main Role Center"
                     RunObject = page "User Setup";
                     Tooltip = 'Open the User Setup page.';
                 }
-                // action("Change Password")
-                // {
-                //     ApplicationArea = Basic, Suite;
-                //     Caption = 'Change Password';
-                //     RunObject = page ;
-                // }
                 action("User Security Status")
                 {
                     ApplicationArea = Basic, Suite;
@@ -896,12 +877,6 @@ page 8900 "Administrator Main Role Center"
                     RunObject = page "Web Services";
                     Tooltip = 'Open the Web Services page.';
                 }
-                //action("Bank Data Conv. Service Setup")
-                //{
-                //    ApplicationArea = Basic, Suite;
-                //    Caption = 'Bank Data Conv. Service Setup';
-                //    RunObject = page 1260;
-                //}
                 action("Microsoft Dynamics 365 Connection Setup")
                 {
                     ApplicationArea = Suite;

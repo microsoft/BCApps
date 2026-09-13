@@ -34,6 +34,7 @@ codeunit 1220 "SEPA CT-Export File"
     var
         ExportToServerFile: Boolean;
         FeatureNameTxt: label 'SEPA Credit Transfer Export', locked = true;
+        FileNameLbl: Label '%1.XML', Locked = true;
 
     internal procedure FeatureName(): Text
     begin
@@ -48,6 +49,19 @@ codeunit 1220 "SEPA CT-Export File"
     /// <param name="XMLPortID">XML port ID to use for export processing</param>
     /// <returns>True if export completed successfully</returns>
     procedure Export(var GenJnlLine: Record "Gen. Journal Line"; XMLPortID: Integer) Result: Boolean
+    begin
+        exit(Export(GenJnlLine, XMLPortID, ''));
+    end;
+
+    /// <summary>
+    /// Exports SEPA credit transfer data from general journal lines to XML format using the specified file name.
+    /// Creates credit transfer register entry and manages file output to server or client.
+    /// </summary>
+    /// <param name="GenJnlLine">General journal lines containing payment data to export</param>
+    /// <param name="XMLPortID">XML port ID to use for export processing</param>
+    /// <param name="FileName">File name to use for the exported payment file</param>
+    /// <returns>True if export completed successfully</returns>
+    procedure Export(var GenJnlLine: Record "Gen. Journal Line"; XMLPortID: Integer; FileName: Text) Result: Boolean
     var
         CreditTransferRegister: Record "Credit Transfer Register";
         TempBlob: Codeunit "Temp Blob";
@@ -80,11 +94,17 @@ codeunit 1220 "SEPA CT-Export File"
                       'urn:iso:std:iso:20022:tech:xsd:pain.001.001.09" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:iso:std:iso:20022:tech:xsd:pain.001.001.09 pain.001.001.09.ch.03.xsd');
             end;
         CreditTransferRegister.FindLast();
+
+        if FileName = '' then
+            FileName := StrSubstNo(FileNameLbl, CreditTransferRegister.Identifier)
+        else
+            FileName := FileManagement.GetFileName(FileName);
+
         UseCommonDialog := not ExportToServerFile;
         OnBeforeBLOBExport(TempBlob, CreditTransferRegister, UseCommonDialog, FileCreated, IsHandled);
         if not IsHandled then
             FileCreated :=
-              FileManagement.BLOBExport(TempBlob, StrSubstNo('%1.XML', CreditTransferRegister.Identifier), UseCommonDialog) <> '';
+                FileManagement.BLOBExport(TempBlob, FileName, UseCommonDialog) <> '';
         if FileCreated then
             SetCreditTransferRegisterToFileCreated(CreditTransferRegister, TempBlob);
 

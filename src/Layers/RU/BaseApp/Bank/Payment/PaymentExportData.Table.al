@@ -936,4 +936,5 @@ table 1226 "Payment Export Data"
     local procedure OnAfterSetBankAsRecipient(var PaymentExportData: Record "Payment Export Data"; var BankAccount: Record "Bank Account")
     begin
     end;
+
 }
