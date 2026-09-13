@@ -355,8 +355,9 @@ codeunit 9660 "Report Layouts Impl."
         EffectiveSubtype: Enum "Report Layout Subtype";
     begin
         ReportLayoutNewDialog.SetReportID(SelectedReportLayoutList."Report ID");
+        ReportLayoutNewDialog.SetLayoutFormat(SelectedReportLayoutList."Layout Format");
         if ImpliedSubtype <> Enum::"Report Layout Subtype"::Default then
-            ReportLayoutNewDialog.SetImpliedSubtype(ImpliedSubtype);
+            ReportLayoutNewDialog.SetLayoutSubtype(ImpliedSubtype);
         if ReportLayoutNewDialog.RunModal() = Action::OK then begin
             EffectiveSubtype := ReportLayoutNewDialog.SelectedLayoutSubtype();
             case true of
