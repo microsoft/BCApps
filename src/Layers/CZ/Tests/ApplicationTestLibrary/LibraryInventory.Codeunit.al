@@ -554,16 +554,6 @@ codeunit 132201 "Library - Inventory"
         ItemChargeAssignmentPurch.Modify(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Manufacturing', '26.0')]
-    procedure CreateItemJournal(var ItemJournalBatch: Record "Item Journal Batch"; ItemNo: Code[20]; ItemJournalTemplateType: Enum "Item Journal Template Type"; ProductionOrderNo: Code[20])
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.CreateProdItemJournal(ItemJournalBatch, ItemNo, ItemJournalTemplateType, ProductionOrderNo);
-    end;
-#endif
-
     procedure CreateItemJournalTemplate(var ItemJournalTemplate: Record "Item Journal Template")
     begin
         ItemJournalTemplate.Init();
@@ -1380,16 +1370,6 @@ codeunit 132201 "Library - Inventory"
         RecRef.GetTable(ItemJournalLine);
         ItemJournalLine."Line No." := LibraryUtility.GetNewLineNo(RecRef, ItemJournalLine.FieldNo("Line No."));
     end;
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Manufacturing', '26.0')]
-    procedure OutputJnlExplRoute(var ItemJournalLine: Record "Item Journal Line")
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.OutputJnlExplodeRoute(ItemJournalLine);
-    end;
-#endif
 
     procedure PostDirectTransferOrder(var TransferHeader: Record "Transfer Header")
     var

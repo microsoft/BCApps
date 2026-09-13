@@ -75,23 +75,9 @@ codeunit 6108 "E-Document Processing"
     procedure ModifyEDocumentStatus(var EDocument: Record "E-Document")
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
-#if not CLEAN26
-        EDocumentLog: Codeunit "E-Document Log";
-#endif
         IEDocumentStatus: Interface IEDocumentStatus;
         InProgress: Boolean;
-#if not CLEAN26
-        IsHandled: Boolean;
-#endif
     begin
-#if not CLEAN26
-#pragma warning disable AL0432
-        EDocumentLog.OnUpdateEDocumentStatus(EDocument, IsHandled);
-#pragma warning restore AL0432
-        if IsHandled then
-            exit;
-#endif
-
         EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
         if EDocumentServiceStatus.FindSet() then
             repeat

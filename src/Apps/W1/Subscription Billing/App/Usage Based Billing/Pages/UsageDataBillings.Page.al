@@ -85,16 +85,6 @@ page 8035 "Usage Data Billings"
                 {
                     ToolTip = 'Specifies the calculated period (in days).';
                 }
-#if not CLEAN26
-                field("Charged Period (Hours)"; Rec."Charged Period (Hours)")
-                {
-                    ToolTip = 'Specifies the calculated period (in hours).';
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
-                    ObsoleteTag = '26.0';
-                }
-#endif
                 field(Quantity; Rec.Quantity)
                 {
                     ToolTip = 'Specifies the quantity.';

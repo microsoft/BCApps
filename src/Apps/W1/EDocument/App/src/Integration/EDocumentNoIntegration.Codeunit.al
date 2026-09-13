@@ -10,52 +10,8 @@ using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using System.Utilities;
 
-#if not CLEAN26
-#pragma warning disable AL0432 
-codeunit 6128 "E-Document No Integration" implements "E-Document Integration", IDocumentSender, IDocumentReceiver, ISentDocumentActions, IConsentManager
-#pragma warning restore AL0432
-#else
 codeunit 6128 "E-Document No Integration" implements IDocumentSender, IDocumentReceiver, ISentDocumentActions, IConsentManager
-#endif
 {
-
-#if not CLEAN26
-    procedure Send(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage)
-    begin
-        IsAsync := false;
-    end;
-
-    procedure ReceiveDocument(var TempBlob: Codeunit "Temp Blob"; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage)
-    begin
-    end;
-
-    procedure GetDocumentCountInBatch(var TempBlob: Codeunit "Temp Blob"): Integer
-    begin
-    end;
-
-    procedure SendBatch(var EDocuments: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage)
-    begin
-        IsAsync := false;
-    end;
-
-    procedure GetResponse(var EDocument: Record "E-Document"; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage): Boolean
-    begin
-    end;
-
-    procedure GetApproval(var EDocument: Record "E-Document"; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage): Boolean
-    begin
-    end;
-
-    procedure Cancel(var EDocument: Record "E-Document"; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage): Boolean
-    begin
-    end;
-
-    procedure GetIntegrationSetup(var SetupPage: Integer; var SetupTable: Integer)
-    begin
-        SetupPage := 0;
-        SetupTable := 0;
-    end;
-#endif
 
     #region IDocumentSender
 

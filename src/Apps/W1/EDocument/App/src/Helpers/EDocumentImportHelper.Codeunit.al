@@ -757,22 +757,6 @@ codeunit 6109 "E-Document Import Helper"
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBillingVendorErr, Vendor."No."));
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Use it to process imported E-Document
-    /// </summary>
-    /// <param name="EDocument">The E-Document record.</param>
-    /// <param name="CreateJnlLine">If processing should create journal line</param>
-    [Obsolete('Use codeunit 6140 "E-Doc. Import"''s method ProcessIncomingEDocument', '26.0')]
-    procedure ProcessDocument(var EDocument: Record "E-Document"; CreateJnlLine: Boolean)
-    var
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
-    begin
-        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocumentImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
-    end;
-#endif
-
     /// <summary>
     /// Use it to set hide dialogs when importing E-Document.
     /// </summary>

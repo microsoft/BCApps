@@ -48,20 +48,6 @@ codeunit 7767 "AOAI Authorization"
         exit(false);
     end;
 
-#if not CLEAN26
-    [NonDebuggable]
-    procedure SetMicrosoftManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
-    begin
-        ClearVariables();
-
-        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
-        Endpoint := NewEndpoint;
-        Deployment := NewDeployment;
-        ApiKey := NewApiKey;
-        ManagedResourceDeployment := NewManagedResourceDeployment;
-    end;
-#endif
-
     [NonDebuggable]
     procedure SetMicrosoftManagedAuthorization(NewManagedResourceDeployment: Text)
     begin

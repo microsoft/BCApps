@@ -129,34 +129,6 @@ pageextension 36964 "Manufacturing Manager RC" extends "Manufacturing Manager RC
         }
         addlast(Group16)
         {
-#if not CLEAN26
-            action("Current Utilization (Power BI)")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Current Utilization (Power BI)';
-                Image = "PowerBI";
-                RunObject = page "Current Utilization";
-                Tooltip = 'Open a Power BI Report to view the current Weeks Utilization % by comparing Capacity Used to Available Capacity in Hours. View all or some Work Centers to measure throughput and efficiency.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The Power BI report has been changed/removed and this is no longer required.';
-                ObsoleteTag = '26.0';
-                Visible = false;
-            }
-#endif
-#if not CLEAN26
-            action("Historical Utilization (Power BI)")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Historical Utilization (Power BI)';
-                Image = "PowerBI";
-                RunObject = page "Historical Utilization";
-                Tooltip = 'Open a Power BI Report to view the historical Utilization % by comparing Capacity Used vs. Available Capacity in Hours viewed over a timeline you can define to see trends. View all or some Work Centers.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The Power BI report has been changed/removed and this is no longer required.';
-                ObsoleteTag = '26.0';
-                Visible = false;
-            }
-#endif
             action("Work Center Load (Power BI)")
             {
                 ApplicationArea = Basic, Suite;
