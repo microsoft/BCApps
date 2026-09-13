@@ -10,7 +10,6 @@ codeunit 163408 "Interface Tax Accounting"
         DemoDataSetup: Record "Demo Data Setup";
         MakeAdjustments: Codeunit "Make Adjustments";
         CreateTaxDiffSetup: Codeunit "Create Tax Diff. Setup";
-        CreateTaxRegisters: Report "Create Tax Registers";
         Window: Dialog;
         Steps: Integer;
         MaxSteps: Integer;
@@ -79,17 +78,9 @@ codeunit 163408 "Interface Tax Accounting"
 
     procedure BuildTaxRegisters(StartDate: Date)
     var
-        TaxRegSection: Record "Tax Register Section";
     begin
         exit;
 
-        TaxRegSection.FindFirst();
-        TaxRegSection.SetRange(Code, TaxRegSection.Code);
-        CreateTaxRegisters.UseRequestPage(false);
-        CreateTaxRegisters.SetTableView(TaxRegSection);
-        CreateTaxRegisters.Run();
-        Clear(CreateTaxRegisters);
-        Commit();
     end;
 }
 

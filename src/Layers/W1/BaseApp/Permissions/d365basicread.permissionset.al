@@ -458,9 +458,7 @@ permissionset 209 "D365 Basic - Read"
 #endif
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
-#if not CLEAN28
                   tabledata "Exchange Sync" = R,
-#endif
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,
                   tabledata "Extended Text Header" = R,

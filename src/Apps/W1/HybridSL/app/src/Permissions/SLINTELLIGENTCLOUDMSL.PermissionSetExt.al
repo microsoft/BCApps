@@ -108,13 +108,13 @@ permissionsetextension 47000 "SLINTELLIGENT CLOUD - MSL" extends "INTELLIGENT CL
                   tabledata "SL PJEquip" = RIMD,
                   tabledata "SL PJPent" = RIMD,
                   tabledata "SL PJProj" = RIMD,
-                  tabledata "SL PurchOrd" = RIMD,
-                  tabledata "SL PurOrdDet" = RIMD,
                   tabledata "SL SOHeader" = RIMD,
                   tabledata "SL SOLine" = RIMD,
                   tabledata "SL SOType" = RIMD,
 #pragma warning restore AL0432
 #endif
+                  tabledata "SL PurchOrd" = RIMD,
+                  tabledata "SL PurOrdDet" = RIMD,
                   tabledata SLGLAcctBalByPeriod = RIMD,
                   tabledata "SL Period List Work Table" = RIMD;
 }

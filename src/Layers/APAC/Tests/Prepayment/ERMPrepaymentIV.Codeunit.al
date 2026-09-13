@@ -3829,7 +3829,6 @@ codeunit 134103 "ERM Prepayment IV"
         Currency.Validate("Invoice Rounding Precision", LibraryRandom.RandDec(0, 2));
         Currency.Modify(true);
         exit(Currency.Code);
-        LibraryERM.SetAddReportingCurrency(Currency.Code);
     end;
 
     local procedure CreateSalesDocumentWithCurrency(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrencyCode: Code[10]; CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"): Decimal

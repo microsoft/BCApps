@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 #pragma warning disable AA0247
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 page 11017 "Sales VAT Adv. Notif. List"
+#pragma warning restore AS0011
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Sales VAT Advance Notification List';
