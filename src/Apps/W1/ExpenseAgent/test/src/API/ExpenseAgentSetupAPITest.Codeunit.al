@@ -64,6 +64,9 @@ codeunit 148333 "Expense Agent Setup API Test"
         if IsInitialized then
             exit;
 
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Agent Setup API Test");
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         IsInitialized := true;

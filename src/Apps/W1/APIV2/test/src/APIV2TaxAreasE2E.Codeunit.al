@@ -24,8 +24,13 @@ codeunit 139826 "APIV2 - Tax Areas E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := true;
         Commit();
@@ -269,7 +274,6 @@ codeunit 139826 "APIV2 - Tax Areas E2E"
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Value)));
     end;
 }
-
 
 
 

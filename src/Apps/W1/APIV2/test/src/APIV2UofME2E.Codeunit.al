@@ -24,6 +24,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         UnitOfMeasure: Record "Unit of Measure";
         Response: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can get the units of measure.
 
         // [GIVEN] Units of measure.
@@ -44,6 +46,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         Response: Text;
         OldDescription: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can update a unit of measure.
 
         // [GIVEN] Units of measure.
@@ -73,6 +77,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         UnitOfMeasure: Record "Unit of Measure";
         Response: Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can delete a unit of measure.
 
         // [GIVEN] Units of measure.
@@ -94,6 +100,8 @@ codeunit 139812 "APIV2 - UofM E2E"
         Request: Text;
         "Code": Text;
     begin
+        Initialize();
+
         // [SCENARIO] User can insert a unit of measure.
 
         // [GIVEN] A new unit of measure.
@@ -186,9 +194,14 @@ codeunit 139812 "APIV2 - UofM E2E"
           Format(UnitOfMeasure."International Standard Code"), InternationalStandardCode,
           StrSubstNo(WrongPropertyValueErr, 'internationalStandardCode'));
     end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }
-
-
 
 
 

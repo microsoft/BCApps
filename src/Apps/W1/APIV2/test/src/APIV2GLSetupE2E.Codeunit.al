@@ -1,6 +1,11 @@
 codeunit 139860 "APIV2 - G/L Setup E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
+
+    trigger OnRun()
+    begin
+    end;
 
     var
         Assert: Codeunit "Assert";
@@ -13,6 +18,8 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
         GeneralLedgerSetup: Record "General Ledger Setup";
         Response, TargetURL : Text;
     begin
+        Initialize();
+
         GeneralLedgerSetup.Get();
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"APIV2 - G/L Setup", ServiceNameTxt);
         LibraryGraphMgt.GetFromWebService(Response, TargetURL);
@@ -60,4 +67,11 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
         Assert.AreEqual(GeneralLedgerSetup."Shortcut Dimension 8 Code", PropertyJsonToken.AsValue().AsText(), 'Expected the same shortcutDimension8Code for generalLedgerSetup');
     end;
 
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 }

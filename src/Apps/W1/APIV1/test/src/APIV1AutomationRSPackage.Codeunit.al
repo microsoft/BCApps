@@ -3,6 +3,7 @@ codeunit 139731 "APIV1 - Automation RS Package"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -29,11 +30,14 @@ codeunit 139731 "APIV1 - Automation RS Package"
     var
         TenantConfigPackageFile: Record "Tenant Config. Package File";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         TenantConfigPackageFile.DELETEALL(TRUE);
 
         IF IsInitialized THEN
             EXIT;
 
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         SamplePackageFile := GenerateSamplePackageFile();
         IsInitialized := TRUE;
     end;

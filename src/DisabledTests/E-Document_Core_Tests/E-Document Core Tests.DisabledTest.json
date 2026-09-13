@@ -315,11 +315,6 @@
     "method": "*"
   },
   {
-    "codeunitId": 135575,
-    "codeunitName": "E-Doc. API Test",
-    "method": "*"
-  },
-  {
     "codeunitId": 139235,
     "codeunitName": "PEPPOL30 Management Tests",
     "method": "GetTaxSubtotalInfo"

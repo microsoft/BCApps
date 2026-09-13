@@ -18,7 +18,6 @@ codeunit 148318 "Expense Capabilities API Test"
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
@@ -248,7 +247,9 @@ codeunit 148318 "Expense Capabilities API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Capabilities API Test");
         IsInitialized := true;
         Commit();

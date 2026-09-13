@@ -25,11 +25,16 @@ codeunit 139822 "APIV2 - Employees E2E"
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         LibraryApplicationArea.EnableBasicHRSetup();
 
         // Lazy Setup.
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryHumanResource.SetupEmployeeNumberSeries();
 
@@ -205,7 +210,6 @@ codeunit 139822 "APIV2 - Employees E2E"
         EmployeeJSON := LibraryGraphMgt.AddPropertytoJSON(EmployeeJSON, 'iban', Employee."IBAN");
     end;
 }
-
 
 
 

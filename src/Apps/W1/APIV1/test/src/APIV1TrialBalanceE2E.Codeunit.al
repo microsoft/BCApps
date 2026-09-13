@@ -3,6 +3,7 @@ codeunit 139718 "APIV1 - Trial Balance E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -60,8 +61,12 @@ codeunit 139718 "APIV1 - Trial Balance E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryApplicationArea.EnableFoundationSetup();
         IsInitialized := TRUE;

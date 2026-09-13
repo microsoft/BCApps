@@ -1,6 +1,7 @@
 codeunit 139841 "APIV2 - PDF Document E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -26,6 +27,10 @@ codeunit 139841 "APIV2 - PDF Document E2E"
     var
         CompanyInformation: Record "Company Information";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         CompanyInformation.Get();
         if CompanyInformation."Giro No." = '' then
             CompanyInformation."Giro No." := '1234567';
@@ -381,4 +386,3 @@ codeunit 139841 "APIV2 - PDF Document E2E"
         Commit();
     end;
 }
-
