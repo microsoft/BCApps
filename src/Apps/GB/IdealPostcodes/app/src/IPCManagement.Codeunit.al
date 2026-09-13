@@ -57,40 +57,6 @@ codeunit 9400 "IPC Management"
         exit(false);
     end;
 
-    [NonDebuggable]
-    procedure GetAddressDetails(AddressId: Text; var TempIPCAddressLookup: Record "IPC Address Lookup" temporary; var ReasonCode: Integer; var ReasonPhrase: Text)
-    var
-        Config: Record "IPC Config";
-        TypeHelper: Codeunit "Type Helper";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        AuditLog: Codeunit "Audit Log";
-        HttpClient: HttpClient;
-        HttpResponse: HttpResponseMessage;
-        ResponseText: Text;
-        RequestUrl: Text;
-    begin
-        if not GetConfiguration(Config) then
-            Error(ConfigNotSetupErr);
-
-        if not Config.Enabled then
-            exit;
-
-        FeatureTelemetry.LogUptake('0000RFF', 'IdealPostcodes', Enum::"Feature Uptake Status"::Used);
-        RequestUrl := Config.APIEndpoint() + '/' + TypeHelper.UriEscapeDataString(AddressId);
-        HttpClient.DefaultRequestHeaders().Add('Authorization', SecretStrSubstNo('IDEALPOSTCODES api_key="%1"', Config.GetAPIPasswordAsSecret(Config."API Key")));
-
-        if HttpClient.Get(RequestUrl, HttpResponse) then begin
-            ReasonCode := HttpResponse.HttpStatusCode();
-            ReasonPhrase := HttpResponse.ReasonPhrase();
-            if HttpResponse.IsSuccessStatusCode then begin
-                HttpResponse.Content.ReadAs(ResponseText);
-                ParseAddressDetail(ResponseText, TempIPCAddressLookup);
-            end else
-                if ReasonCode in [401, 403] then
-                    AuditLog.LogAuditMessage(StrSubstNo(SecurityAuditAuthFailedTxt, ReasonCode, ReasonPhrase), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
-        end;
-    end;
-
     procedure LookupAddress(var Address: Text[100]; var Address2: Text[50]; var City: Text[30]; var PostCode: Code[20]; var County: Text[30]; var CountryCode: Code[10])
     var
         TempIPCAddressLookup: Record "IPC Address Lookup" temporary;
@@ -198,28 +164,6 @@ codeunit 9400 "IPC Management"
         TempIPCAddressLookup."Display Text" := CopyStr(DisplayText, 1, MaxStrLen(TempIPCAddressLookup."Display Text"));
 
         TempIPCAddressLookup.Insert();
-    end;
-
-    local procedure ParseAddressDetail(ResponseText: Text; var TempIPCAddressLookup: Record "IPC Address Lookup")
-    var
-        JsonObject: JsonObject;
-    begin
-        if JsonObject.ReadFrom(ResponseText) then begin
-            TempIPCAddressLookup.Init();
-            TempIPCAddressLookup.Address := CopyStr(GetJsonValue(JsonObject, 'address'), 1, MaxStrLen(TempIPCAddressLookup.Address));
-            TempIPCAddressLookup."Address 2" := CopyStr(GetJsonValue(JsonObject, 'address2'), 1, MaxStrLen(TempIPCAddressLookup."Address 2"));
-            TempIPCAddressLookup.City := CopyStr(GetJsonValue(JsonObject, 'city'), 1, MaxStrLen(TempIPCAddressLookup.City));
-            TempIPCAddressLookup."Post Code" := CopyStr(GetJsonValue(JsonObject, 'postcode'), 1, MaxStrLen(TempIPCAddressLookup."Post Code"));
-            TempIPCAddressLookup.County := CopyStr(GetJsonValue(JsonObject, 'county'), 1, MaxStrLen(TempIPCAddressLookup.County));
-            TempIPCAddressLookup."Country/Region Code" := CopyStr(GetJsonValue(JsonObject, 'country_code'), 1, MaxStrLen(TempIPCAddressLookup."Country/Region Code"));
-        end;
-
-        // Create display text
-        TempIPCAddressLookup."Display Text" := TempIPCAddressLookup.Address;
-        if TempIPCAddressLookup.City <> '' then
-            TempIPCAddressLookup."Display Text" += ', ' + TempIPCAddressLookup.City;
-        if TempIPCAddressLookup."Post Code" <> '' then
-            TempIPCAddressLookup."Display Text" += ' ' + TempIPCAddressLookup."Post Code";
     end;
 
     local procedure GetJsonValue(JsonObject: JsonObject; KeyName: Text): Text
