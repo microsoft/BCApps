@@ -28,6 +28,31 @@ tableextension 8053 "Sales Header" extends "Sales Header"
         }
     }
 
+    /// <summary>
+    /// Deletes the Sales Subscription Lines of every line of this sales document in one batch.
+    /// Use this instead of the Sales Line procedure DeleteSalesServiceCommitment() when all lines of the
+    /// document are removed without running their triggers, for example when the document is posted, when
+    /// a quote is converted into an order, or by the "Delete Invoiced Sales Orders" and
+    /// "Delete Invoiced Blanket Sales Orders" batch jobs.
+    /// Unlike the Sales Line procedure this does not skip document types outside Quote, Order and Blanket
+    /// Order, because Copy Document carries Sales Subscription Lines over to an Invoice or Credit Memo as
+    /// well, and those have to be cleaned up when the document is posted.
+    /// Temporary records are skipped, so calling this on a temporary Sales Header never deletes the real
+    /// Sales Subscription Lines of a document that happens to share its number.
+    /// </summary>
+    procedure DeleteSalesServiceCommitments()
+    var
+        SalesServiceCommitment: Record "Sales Subscription Line";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        SalesServiceCommitment.FilterOnDocument(Rec."Document Type", Rec."No.");
+        if SalesServiceCommitment.IsEmpty() then
+            exit;
+
+        SalesServiceCommitment.DeleteAll(false);
+    end;
+
     local procedure GetLastLineNo(): Integer
     var
         SalesLine: Record "Sales Line";
