@@ -28,6 +28,12 @@ tableextension 6168 "E-Doc. Purchase Line" extends "Purchase Line"
                     Currency."Amount Rounding Precision")
             end;
         }
+        field(6102; "Created From Draft E-Doc"; Boolean)
+        {
+            Caption = 'Created From Draft E-Document';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
 
     }
 
