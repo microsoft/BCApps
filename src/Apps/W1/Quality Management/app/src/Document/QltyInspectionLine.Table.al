@@ -464,7 +464,7 @@ table 20406 "Qlty. Inspection Line"
         QltyInspectionTemplateLine.SetRange("Template Code", Rec."Template Code");
         QltyInspectionTemplateLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
         QltyInspectionTemplateLine.SetFilter("Test Code", '<>%1', Rec."Test Code");
-        QltyInspectionTemplateLine.SetFilter("Expression Formula", '<>''''');
+        QltyInspectionTemplateLine.SetFilter("Expression Formula", StrSubstNo('@*[%1]*', Rec."Test Code"));
         QltyInspectionTemplateLine.SetAutoCalcFields("Test Value Type");
         if QltyInspectionTemplateLine.FindSet() then
             repeat

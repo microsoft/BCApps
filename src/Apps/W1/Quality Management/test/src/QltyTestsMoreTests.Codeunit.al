@@ -83,6 +83,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
         ShippedDefaultCodeTok: Label 'TRACKINGSPEC', Locked = true;
         ModifiedDescriptionTok: Label 'MODIFIED DEFAULT DESCRIPTION', Locked = true;
+        SentinelValueTok: Label 'SENTINEL', Locked = true;
 
     [Test]
     procedure TestTable_ValidateExpressionFormula()
@@ -1841,6 +1842,104 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [THEN] The text expression field's Test Value is also automatically set to 'test'
         QltyInspectionLine.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.", 20000);
         LibraryAssert.AreEqual('test', QltyInspectionLine."Test Value", 'Test value should be set.');
+
+        QltyInspectionGenRule.Delete();
+        ConfigurationToLoadQltyInspectionTemplateHdr.Delete();
+    end;
+
+    [Test]
+    procedure LineTable_UpdateExpressionsInOtherInspectionLines_OnlyDependentReevaluated()
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        SourceQltyInspectionLine: Record "Qlty. Inspection Line";
+        DependentQltyInspectionLine: Record "Qlty. Inspection Line";
+        UnrelatedQltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        DependentExprQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        UnrelatedExprQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        SourceTextQltyTest: Record "Qlty. Test";
+        SecondTextQltyTest: Record "Qlty. Test";
+        DependentExpressionQltyTest: Record "Qlty. Test";
+        UnrelatedExpressionQltyTest: Record "Qlty. Test";
+        Location: Record Location;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryInventory: Codeunit "Library - Inventory";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 620380] Changing a line only re-evaluates text-expression lines that reference it, leaving unrelated text-expression lines untouched
+        Initialize();
+
+        // [GIVEN] Setup exists, a full WMS location is created, and an item is created
+        QltyInspectionUtility.EnsureSetupExists();
+        LibraryWarehouse.CreateFullWMSLocation(Location, 1);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] A template with a source text field "S1" and a second, unrelated text field "S2"
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, SourceTextQltyTest, SourceTextQltyTest."Test Value Type"::"Value Type Text");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, DependentExpressionQltyTest, DependentExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, SecondTextQltyTest, SecondTextQltyTest."Test Value Type"::"Value Type Text");
+        QltyInspectionUtility.CreateTestAndAddToTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, UnrelatedExpressionQltyTest, UnrelatedExpressionQltyTest."Test Value Type"::"Value Type Text Expression");
+
+        // [GIVEN] The dependent text expression "E1" references the source text field "S1"
+        DependentExpressionQltyTest.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaTestCodeTok, SourceTextQltyTest.Code), true);
+        DependentExpressionQltyTest.Modify();
+        DependentExprQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        DependentExprQltyInspectionTemplateLine.SetRange("Test Code", DependentExpressionQltyTest.Code);
+        DependentExprQltyInspectionTemplateLine.FindFirst();
+        DependentExprQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, SourceTextQltyTest.Code);
+        DependentExprQltyInspectionTemplateLine.Modify();
+
+        // [GIVEN] The unrelated text expression "E2" references the second text field "S2", not "S1"
+        UnrelatedExpressionQltyTest.SetResultCondition(DefaultResult2PassCodeTok, StrSubstNo(ExpressionFormulaTestCodeTok, SecondTextQltyTest.Code), true);
+        UnrelatedExpressionQltyTest.Modify();
+        UnrelatedExprQltyInspectionTemplateLine.SetRange("Template Code", ConfigurationToLoadQltyInspectionTemplateHdr.Code);
+        UnrelatedExprQltyInspectionTemplateLine.SetRange("Test Code", UnrelatedExpressionQltyTest.Code);
+        UnrelatedExprQltyInspectionTemplateLine.FindFirst();
+        UnrelatedExprQltyInspectionTemplateLine."Expression Formula" := StrSubstNo(ExpressionFormulaTestCodeTok, SecondTextQltyTest.Code);
+        UnrelatedExprQltyInspectionTemplateLine.Modify();
+
+        // [GIVEN] A purchase order is created, released, and received
+        QltyPurOrderGenerator.CreatePurchaseOrder(10, Location, Item, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        QltyPurOrderGenerator.ReceivePurchaseOrder(Location, PurchaseHeader, PurchaseLine);
+
+        // [GIVEN] A generation rule is created and an inspection is created from the purchase line
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        QltyInspectionUtility.CreateInspectionWithPurchaseLine(PurchaseLine, ConfigurationToLoadQltyInspectionTemplateHdr.Code, QltyInspectionHeader);
+
+        // [GIVEN] The unrelated expression line "E2" is seeded with a sentinel value that re-evaluation would overwrite
+        UnrelatedQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        UnrelatedQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        UnrelatedQltyInspectionLine.SetRange("Test Code", UnrelatedExpressionQltyTest.Code);
+        UnrelatedQltyInspectionLine.FindFirst();
+        UnrelatedQltyInspectionLine."Test Value" := SentinelValueTok;
+        UnrelatedQltyInspectionLine.Modify(false);
+
+        // [WHEN] The source text field "S1" value is changed, firing the Test Value validation
+        SourceQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        SourceQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        SourceQltyInspectionLine.SetRange("Test Code", SourceTextQltyTest.Code);
+        SourceQltyInspectionLine.FindFirst();
+        SourceQltyInspectionLine.Validate("Test Value", 'test');
+        SourceQltyInspectionLine.Modify(true);
+
+        // [THEN] The dependent expression "E1", which references "S1", is re-evaluated to the new value
+        DependentQltyInspectionLine.SetRange("Inspection No.", QltyInspectionHeader."No.");
+        DependentQltyInspectionLine.SetRange("Re-inspection No.", QltyInspectionHeader."Re-inspection No.");
+        DependentQltyInspectionLine.SetRange("Test Code", DependentExpressionQltyTest.Code);
+        DependentQltyInspectionLine.FindFirst();
+        LibraryAssert.AreEqual('test', DependentQltyInspectionLine."Test Value", 'Dependent text expression referencing the changed line should be re-evaluated.');
+
+        // [THEN] The unrelated expression "E2", which does not reference "S1", keeps its sentinel value
+        UnrelatedQltyInspectionLine.FindFirst();
+        LibraryAssert.AreEqual(SentinelValueTok, UnrelatedQltyInspectionLine."Test Value", 'Unrelated text expression not referencing the changed line should not be re-evaluated.');
 
         QltyInspectionGenRule.Delete();
         ConfigurationToLoadQltyInspectionTemplateHdr.Delete();
