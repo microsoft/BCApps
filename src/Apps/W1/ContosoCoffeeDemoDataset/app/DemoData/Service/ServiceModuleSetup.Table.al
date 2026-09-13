@@ -29,36 +29,43 @@ table 4765 "Service Module Setup"
         }
         field(2; "Customer No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Customer No.';
             TableRelation = Customer;
         }
         field(3; "Item 1 No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Item 1 No.';
             TableRelation = Item where(Type = const(Inventory));
         }
         field(4; "Service Item 1 No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Service Item 1 No.';
             TableRelation = Item where(Type = const(Service));
         }
         field(5; "Service Item 2 No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Service Item 2 No.';
             TableRelation = Item where(Type = const(Service));
         }
         field(6; "Resource 1 No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Resource 1 No.';
             TableRelation = Resource;
         }
         field(7; "Resource 2 No."; Code[20])
         {
+            DataClassification = CustomerContent;
             Caption = 'Resource 2 No.';
             TableRelation = Resource;
         }
         field(8; "Service Location"; Code[10])
         {
+            DataClassification = CustomerContent;
             Caption = 'Service Location';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
