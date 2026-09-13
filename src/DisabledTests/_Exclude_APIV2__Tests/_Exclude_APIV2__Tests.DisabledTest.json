@@ -65,11 +65,6 @@
     "method": "TestCreateCreditMemoThroughPageAndAPI"
   },
   {
-    "codeunitId": 139843,
-    "codeunitName": "APIV2 - Vendor Payments E2E",
-    "method": "TestCreateVendorPaymentWithoutDocNo"
-  },
-  {
     "codeunitId": 139851,
     "codeunitName": "APIV2 - Purchase Orders E2E",
     "method": "TestCreateOrderThroughPageAndAPI"
@@ -78,10 +73,5 @@
     "codeunitId": 139865,
     "codeunitName": "APIV2 - Purch. Cr. Memos E2E",
     "method": "TestCreateCreditMemoThroughPageAndAPI"
-  },
-  {
-    "codeunitId": 139867,
-    "codeunitName": "APIV2 - Apply Vendor Ent. E2E",
-    "method": "TestApplyVendorEntryAppliesPayment"
   }
 ]
