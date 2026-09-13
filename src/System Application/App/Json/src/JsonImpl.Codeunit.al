@@ -158,59 +158,84 @@ codeunit 5461 "Json Impl."
     procedure GetEnumPropertyValueFromJObjectByName(PropertyName: Text; var Value: Option): Boolean
     var
         JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
         if not GetJsonValueByName(PropertyName, JsonToken) then
             exit(false);
 
-        Evaluate(Value, JsonToken.AsValue().AsText(), 0);
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(true);
+
+        Evaluate(Value, JsonValue.AsText(), 0);
         exit(true);
     end;
 
     procedure GetBoolPropertyValueFromJObjectByName(PropertyName: Text; var Value: Boolean): Boolean
     var
         JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
         Clear(Value);
         if not GetJsonValueByName(PropertyName, JsonToken) then
             exit(false);
 
-        Value := JsonToken.AsValue().AsBoolean();
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(true);
+
+        Value := JsonValue.AsBoolean();
         exit(true);
     end;
 
     procedure GetDecimalPropertyValueFromJObjectByName(PropertyName: Text; var Value: Decimal): Boolean
     var
         JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
         Clear(Value);
         if not GetJsonValueByName(PropertyName, JsonToken) then
             exit(false);
 
-        Value := JsonToken.AsValue().AsDecimal();
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(true);
+
+        Value := JsonValue.AsDecimal();
         exit(true);
     end;
 
     procedure GetIntegerPropertyValueFromJObjectByName(PropertyName: Text; var Value: Integer): Boolean
     var
         JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
         Clear(Value);
         if not GetJsonValueByName(PropertyName, JsonToken) then
             exit(false);
 
-        Value := JsonToken.AsValue().AsInteger();
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(true);
+
+        Value := JsonValue.AsInteger();
         exit(true);
     end;
 
     procedure GetGuidPropertyValueFromJObjectByName(PropertyName: Text; var Value: Guid): Boolean
     var
         JsonToken: JsonToken;
+        JsonValue: JsonValue;
     begin
         Clear(Value);
         if not GetJsonValueByName(PropertyName, JsonToken) then
             exit(false);
 
-        Evaluate(Value, JsonToken.AsValue().AsText());
+        JsonValue := JsonToken.AsValue();
+        if JsonValue.IsNull() or JsonValue.IsUndefined() then
+            exit(true);
+
+        Evaluate(Value, JsonValue.AsText());
         exit(true);
     end;
 
@@ -308,16 +333,13 @@ codeunit 5461 "Json Impl."
     end;
 
     local procedure GetJsonValueByName(PropertyName: Text; var JsonToken: JsonToken): Boolean
-    var
-        JsonValue: JsonValue;
     begin
         if not JsonObjectState.Get(PropertyName, JsonToken) then
             exit(false);
         if not JsonToken.IsValue() then
             exit(false);
 
-        JsonValue := JsonToken.AsValue();
-        exit(not JsonValue.IsNull() and not JsonValue.IsUndefined());
+        exit(true);
     end;
 
     local procedure JsonTokenToVariant(JsonToken: JsonToken; var Value: Variant)
@@ -425,9 +447,8 @@ codeunit 5461 "Json Impl."
             exit(false);
 
         JsonValue := JsonToken.AsValue();
-        if JsonValue.IsNull() or JsonValue.IsUndefined() then
-            exit(false);
-        Value := JsonValue.AsText();
+        if not (JsonValue.IsNull() or JsonValue.IsUndefined()) then
+            Value := JsonValue.AsText();
 
         case FieldRef.Type of
             FieldType::Integer,
@@ -568,14 +589,41 @@ codeunit 5461 "Json Impl."
 
     local procedure AddJPropertyToJObject(var JsonObject: JsonObject; PropertyName: Text; Value: Variant)
     var
+#if not CLEAN30
+        JTokenDotNet: DotNet JToken;
+        JsonFormatting: DotNet Formatting;
+        JsonText: Text;
+#endif
+        BigIntegerValue: BigInteger;
         JsonArrayValue: JsonArray;
         JsonObjectValue: JsonObject;
+        JsonTokenValue: JsonToken;
+        JsonValueValue: JsonValue;
         BooleanValue: Boolean;
         DecimalValue: Decimal;
         IntegerValue: Integer;
         ValueText: Text;
     begin
         case true of
+#if not CLEAN30
+            Value.IsDotNet:
+                begin
+                    JTokenDotNet := Value;
+                    JsonText := JTokenDotNet.ToString(JsonFormatting.None);
+                    JsonTokenValue.ReadFrom(JsonText);
+                    JsonObject.Add(PropertyName, JsonTokenValue);
+                end;
+#endif
+            Value.IsJsonToken():
+                begin
+                    JsonTokenValue := Value;
+                    JsonObject.Add(PropertyName, JsonTokenValue);
+                end;
+            Value.IsJsonValue():
+                begin
+                    JsonValueValue := Value;
+                    JsonObject.Add(PropertyName, JsonValueValue.AsToken());
+                end;
             Value.IsJsonObject():
                 begin
                     JsonObjectValue := Value;
@@ -585,6 +633,11 @@ codeunit 5461 "Json Impl."
                 begin
                     JsonArrayValue := Value;
                     JsonObject.Add(PropertyName, JsonArrayValue);
+                end;
+            Value.IsBigInteger():
+                begin
+                    BigIntegerValue := Value;
+                    JsonObject.Add(PropertyName, BigIntegerValue);
                 end;
             Value.IsInteger():
                 begin

@@ -136,8 +136,11 @@ codeunit 139910 "Json Test"
         Json.InitializeObject('{"object":{"id":1},"array":[1,2]}');
         Assert.IsTrue(Json.GetPropertyValueByName('object', Value), 'The object property was not found.');
         Assert.IsTrue(Value.IsDotNet, 'The legacy object property must return a DotNet JSON token.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('objectCopy', Value), 'The legacy object token was not added.');
         Assert.IsTrue(Json.GetPropertyValueByName('array', Value), 'The array property was not found.');
         Assert.IsTrue(Value.IsDotNet, 'The legacy array property must return a DotNet JSON token.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('arrayCopy', Value), 'The legacy array token was not added.');
+        Assert.AreEqual('{"object":{"id":1},"array":[1,2],"objectCopy":{"id":1},"arrayCopy":[1,2]}', Json.GetObjectAsText(), 'Legacy DotNet tokens changed JSON shape when added.');
 #pragma warning restore AL0432
     end;
 #endif
@@ -481,6 +484,8 @@ codeunit 139910 "Json Test"
 
         // [THEN] Both native states contain empty JSON containers
         Assert.AreEqual('{}', Json.GetObjectAsText(), 'Empty object initialization did not create an empty object.');
+        Assert.AreEqual('[]', Json.GetCollectionAsText(), 'Empty collection initialization did not create an empty collection.');
+        Assert.AreEqual(0, Json.GetCollectionCount(), 'Empty collection initialization did not clear the collection.');
     end;
 
     [Test]
@@ -659,15 +664,18 @@ codeunit 139910 "Json Test"
     var
         Json: Codeunit "Json";
         ArrayValue: JsonArray;
+        JsonObjectValue: JsonObject;
+        JsonTokenValue: JsonToken;
         ObjectValue: JsonObject;
         Value: Variant;
+        BigIntegerValue: BigInteger;
         BooleanValue: Boolean;
         DecimalValue: Decimal;
         IntegerValue: Integer;
         TextValue: Text;
     begin
         // [GIVEN] JSON properties of each native JSON shape
-        Json.InitializeObject('{"text":"value","integer":42,"decimal":12.5,"boolean":true,"null":null,"object":{"id":1},"array":[1,2]}');
+        Json.InitializeObject('{"text":"value","integer":42,"bigInteger":3000000000,"decimal":12.5,"boolean":true,"null":null,"object":{"id":1},"array":[1,2]}');
 
         // [WHEN] Scalar values are requested as variants
         Assert.IsTrue(Json.GetNativePropertyValueByName('text', Value), 'Text property was not found.');
@@ -679,6 +687,15 @@ codeunit 139910 "Json Test"
         Assert.IsTrue(Value.IsInteger(), 'Integer JSON value was not returned as AL Integer.');
         IntegerValue := Value;
         Assert.AreEqual(42, IntegerValue, 'Integer variant value is incorrect.');
+
+        Assert.IsTrue(Json.GetNativePropertyValueByName('bigInteger', Value), 'BigInteger property was not found.');
+        Assert.IsTrue(Value.IsBigInteger(), 'Large integer JSON value was not returned as AL BigInteger.');
+        BigIntegerValue := Value;
+        Assert.AreEqual(3000000000L, BigIntegerValue, 'BigInteger variant value is incorrect.');
+        Assert.IsTrue(Json.ReplaceOrAddJPropertyInJObject('bigIntegerCopy', Value), 'BigInteger variant was not added.');
+        JsonObjectValue := Json.GetObject();
+        Assert.IsTrue(JsonObjectValue.Get('bigIntegerCopy', JsonTokenValue), 'BigInteger copy was not found.');
+        Assert.AreEqual(BigIntegerValue, JsonTokenValue.AsValue().AsBigInteger(), 'BigInteger variant was converted to a JSON string.');
 
         Assert.IsTrue(Json.GetNativePropertyValueByName('decimal', Value), 'Decimal property was not found.');
         Assert.IsTrue(Value.IsDecimal(), 'Decimal JSON value was not returned as AL Decimal.');
@@ -734,7 +751,8 @@ codeunit 139910 "Json Test"
         TextValue := 'not cleared';
         Assert.IsTrue(Json.GetStringPropertyValueByName('null', TextValue), 'String getter did not recognize an existing null property.');
         Assert.AreEqual('', TextValue, 'String getter did not return an empty value for JSON null.');
-        Assert.IsFalse(Json.GetIntegerPropertyValueFromJObjectByName('null', IntegerValue), 'Typed getter accepted JSON null.');
+        Assert.IsTrue(Json.GetIntegerPropertyValueFromJObjectByName('null', IntegerValue), 'Typed getter did not recognize an existing null property.');
+        Assert.AreEqual(0, IntegerValue, 'Typed null did not clear the output value.');
         Assert.IsFalse(Json.GetStringPropertyValueByName('missing', TextValue), 'String getter accepted a missing property.');
     end;
 
@@ -876,11 +894,11 @@ codeunit 139910 "Json Test"
         RecordRef.GetTable(Printer);
         Json.InitializeObject('{"nested":{"null":null}}');
 
-        // [THEN] Null and missing paths return false without changing the field
-        Assert.IsFalse(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.null', Printer.FieldNo(ID)), 'A null path was assigned to a field.');
+        // [THEN] Null clears compatible fields, while a missing path does not change the field
+        Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.null', Printer.FieldNo(ID)), 'A null path did not clear the field.');
         Assert.IsFalse(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.missing', Printer.FieldNo(ID)), 'A missing path was assigned to a field.');
         RecordRef.SetTable(Printer);
-        Assert.AreEqual('unchanged', Printer.ID, 'A null or missing path changed the target field.');
+        Assert.AreEqual('', Printer.ID, 'A null path did not clear the target field.');
     end;
 
     [Test]

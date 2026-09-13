@@ -322,7 +322,7 @@ codeunit 6154 "API Webhook Notification Send"
             TempAPIWebhookNotificationAggr.FindLast();
 
         repeat
-            if GetEntityJObject(TempAPIWebhookNotificationAggr, JsonObject) then begin
+            if GetEntityJsonObject(TempAPIWebhookNotificationAggr, JsonObject) then begin
                 JsonArray.Add(JsonObject);
                 I += 1;
                 Session.LogMessage('00006ZW', StrSubstNo(CollectNotificationPayloadMsg, SubscriptionSystemId, TempAPIWebhookNotificationAggr."Entity ID", ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"),
@@ -1266,7 +1266,7 @@ codeunit 6154 "API Webhook Notification Send"
         exit(false);
     end;
 
-    local procedure GetEntityJObject(var TempAPIWebhookNotificationAggr: Record "API Webhook Notification Aggr" temporary; var JSONObject: JsonObject): Boolean
+    local procedure GetEntityJsonObject(var TempAPIWebhookNotificationAggr: Record "API Webhook Notification Aggr" temporary; var JsonObject: JsonObject): Boolean
     var
         ResourceUrl: Text;
         LastModifiedDateTime: DateTime;
@@ -1292,16 +1292,16 @@ codeunit 6154 "API Webhook Notification Send"
                 Session.LogMessage('00006P3', StrSubstNo(EmptyLastModifiedDateTimeMsg, SubscriptionSystemId, TempAPIWebhookNotificationAggr."Entity ID", ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"),
                     TempAPIWebhookNotificationAggr."Attempt No."), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl);
 
-        Clear(JSONObject);
-        JSONObject.Add('subscriptionId', TempAPIWebhookSubscription."Subscription Id");
-        JSONObject.Add('clientState', TempAPIWebhookSubscription."Client State");
-        JSONObject.Add('expirationDateTime', TempAPIWebhookSubscription."Expiration Date Time");
-        JSONObject.Add('resource', ResourceUrl);
-        JSONObject.Add('changeType', ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"));
-        JSONObject.Add('lastModifiedDateTime', LastModifiedDateTime);
+        Clear(JsonObject);
+        JsonObject.Add('subscriptionId', TempAPIWebhookSubscription."Subscription Id");
+        JsonObject.Add('clientState', TempAPIWebhookSubscription."Client State");
+        JsonObject.Add('expirationDateTime', TempAPIWebhookSubscription."Expiration Date Time");
+        JsonObject.Add('resource', ResourceUrl);
+        JsonObject.Add('changeType', ChangeTypeToString(TempAPIWebhookNotificationAggr."Change Type"));
+        JsonObject.Add('lastModifiedDateTime', LastModifiedDateTime);
         if ((TempAPIWebhookSubscription."Subscription Type" = TempAPIWebhookSubscription."Subscription Type"::Dataverse) and
             (TempAPIWebhookNotificationAggr."Change Type" <> TempAPIWebhookNotificationAggr."Change Type"::Collection)) then
-            JSONObject.Add('initiatingAadUserId', GetAadUserId(TempAPIWebhookNotificationAggr."Created By User SID"));
+            JsonObject.Add('initiatingAadUserId', GetAadUserId(TempAPIWebhookNotificationAggr."Created By User SID"));
         exit(true);
     end;
 
