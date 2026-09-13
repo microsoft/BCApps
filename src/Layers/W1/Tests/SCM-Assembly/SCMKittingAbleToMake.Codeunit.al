@@ -46,6 +46,7 @@ codeunit 137107 "SCM Kitting - Able To Make"
         SupplyType: Option Inventory,Purchase,"Prod. Order";
         ItemErr: Label '%1 Item must Exist';
         ItemNotExistErr: Label '%1 Item must not Exist';
+        WrongQtyErr: Label 'Value on %1 is incorrect for item %2.', Comment = '%1 = Field caption, %2 = Item number.';
 
     [Normal]
     local procedure Initialize()
@@ -843,10 +844,22 @@ codeunit 137107 "SCM Kitting - Able To Make"
         // [THEN] Item "P" can make the parent from its inventory without counting that inventory twice.
         BOMBuffer.SetRange("No.", PurchasedBOMItem."No.");
         BOMBuffer.FindFirst();
+        Assert.AreEqual(
+            AvailableQty, BOMBuffer."Able to Make Parent",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), PurchasedBOMItem."No."));
+        Assert.AreEqual(
+            AvailableQty, BOMBuffer."Able to Make Top Item",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), PurchasedBOMItem."No."));
 
         // [THEN] The top item's able-to-make quantities equal the inventory of item "P".
         BOMBuffer.SetRange("No.", TopItem."No.");
         BOMBuffer.FindFirst();
+        Assert.AreEqual(
+            AvailableQty, BOMBuffer."Able to Make Parent",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), TopItem."No."));
+        Assert.AreEqual(
+            AvailableQty, BOMBuffer."Able to Make Top Item",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), TopItem."No."));
 
         // [THEN] The assembly BOM component of purchased item "P" remains visible in the inquiry.
         BOMBuffer.SetRange("No.", ComponentItem."No.");
