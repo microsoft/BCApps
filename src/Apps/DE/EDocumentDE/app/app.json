@@ -40,8 +40,11 @@
     },
     {
       "from": 11035,
-      "to": 11042
+      "to": 11043
     }
+  ],
+  "resourceFolders": [
+    ".resources"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
