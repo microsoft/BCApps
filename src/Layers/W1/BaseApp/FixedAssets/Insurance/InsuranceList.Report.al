@@ -8,6 +8,7 @@ report 5621 "Insurance - List"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Insurance List';
+    ToolTip = 'View or edit the list of insurance policies in the system.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

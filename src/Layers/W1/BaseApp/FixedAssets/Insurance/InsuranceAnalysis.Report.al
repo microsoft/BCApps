@@ -8,6 +8,7 @@ report 5620 "Insurance - Analysis"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Insurance Analysis';
+    ToolTip = 'View an analysis of your fixed assets with various types of data for both individual assets and groups of assets.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

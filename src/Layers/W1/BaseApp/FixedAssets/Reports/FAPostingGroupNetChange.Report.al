@@ -16,6 +16,7 @@ report 5611 "FA Posting Group - Net Change"
     AdditionalSearchTerms = 'fixed asset posting group net change';
     ApplicationArea = FixedAssets;
     Caption = 'FA Posting Group - Net Change';
+    ToolTip = 'Run the FA Posting Group - Net Change report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

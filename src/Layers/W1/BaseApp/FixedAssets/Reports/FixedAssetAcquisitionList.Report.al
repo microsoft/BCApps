@@ -12,6 +12,7 @@ report 5608 "Fixed Asset - Acquisition List"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Acquisition List';
+    ToolTip = 'View the related acquisitions.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

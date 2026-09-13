@@ -282,7 +282,6 @@ page 5610 "Depreciation Book Card"
                     Ellipsis = true;
                     Image = NewDepreciationBook;
                     RunObject = Report "Create FA Depreciation Books";
-                    ToolTip = 'Create depreciation books for the fixed asset. You can create empty fixed asset depreciation books, for example for all fixed assets, when you have set up a new depreciation book. You can also use an existing fixed asset depreciation book as the basis for new book.';
                 }
                 action("C&opy Depreciation Book")
                 {
@@ -291,7 +290,6 @@ page 5610 "Depreciation Book Card"
                     Ellipsis = true;
                     Image = CopyDepreciationBook;
                     RunObject = Report "Copy Depreciation Book";
-                    ToolTip = 'Copy specified entries from one depreciation book to another. The entries are not posted to the new depreciation book - they are either inserted as lines in a general ledger fixed asset journal or in a fixed asset journal, depending on whether the new depreciation book has activated general ledger integration.';
                 }
                 action("C&ancel FA Ledger Entries")
                 {
@@ -300,7 +298,6 @@ page 5610 "Depreciation Book Card"
                     Ellipsis = true;
                     Image = CancelFALedgerEntries;
                     RunObject = Report "Cancel FA Ledger Entries";
-                    ToolTip = 'Remove one or more fixed asset ledger entries from the FA Ledger Entries window. If you posted erroneous transactions to one or more fixed assets, you can use this function to cancel the fixed asset ledger entries. In the FA Ledger Entries window, select the entry or entries that you want to cancel.';
                 }
                 action("Co&py FA Entries to G/L Budget")
                 {
@@ -309,7 +306,6 @@ page 5610 "Depreciation Book Card"
                     Ellipsis = true;
                     Image = CopyLedgerToBudget;
                     RunObject = Report "Copy FA Entries to G/L Budget";
-                    ToolTip = 'Copy the fixed asset ledger entries to budget entries.';
                 }
             }
         }
