@@ -4790,7 +4790,11 @@ table 18 Customer
 
     local procedure IsOnBeforeCheckBlockedCustHandled(Customer: Record Customer; Source: Option Journal,Document; DocType: Enum "Gen. Journal Document Type"; Shipment: Boolean; Transaction: Boolean) IsHandled: Boolean
     begin
-        OnBeforeCheckBlockedCust(Customer, Source, DocType.AsInteger(), Shipment, Transaction, IsHandled)
+#if not CLEAN29
+        OnBeforeCheckBlockedCust(Customer, Source, DocType.AsInteger(), Shipment, Transaction, IsHandled);
+#endif
+        if not IsHandled then
+            OnBeforeCheckBlockedCust2(Customer, Source, DocType, Shipment, Transaction, IsHandled)
     end;
 
     /// <summary>
@@ -4802,8 +4806,16 @@ table 18 Customer
     /// <param name="Shipment">Indicates if this is a shipment operation.</param>
     /// <param name="Transaction">Indicates if this is a posting transaction.</param>
     /// <param name="IsHandled">Set to true to skip the default blocked check.</param>
+#if not CLEAN29
+    [Obsolete('Replaced by OnBeforeCheckBlockedCust2', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBlockedCust(Customer: Record Customer; Source: Option Journal,Document; DocType: Option; Shipment: Boolean; Transaction: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckBlockedCust2(Customer: Record Customer; Source: Option Journal,Document; DocType: Enum "Gen. Journal Document Type"; Shipment: Boolean; Transaction: Boolean; var IsHandled: Boolean)
     begin
     end;
 
