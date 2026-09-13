@@ -952,10 +952,15 @@ codeunit 139786 "E-Doc. Item Charge Tests"
 
     local procedure Initialize()
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         InventorySetup: Record "Inventory Setup";
     begin
         if IsInitialized then
             exit;
+
+        GeneralLedgerSetup.GetRecordOnce();
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+        GeneralLedgerSetup.Modify();
 
         LibrarySales.SetStockoutWarning(false);
         LibrarySales.SetCreditWarningsToNoWarnings();
