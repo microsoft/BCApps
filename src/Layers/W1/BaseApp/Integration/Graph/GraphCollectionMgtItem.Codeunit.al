@@ -24,6 +24,7 @@ codeunit 5470 "Graph Collection Mgt - Item"
         ItemUOMConversionsDescriptionTxt: Label 'Graph CDM - Unit of Measure Conversions complex type on Item Entity page', Locked = true;
         ValueMustBeEqualErr: Label 'Conversions must be specified with %1 with value %2.', Locked = true;
         BaseUnitOfMeasureCannotHaveConversionsErr: Label 'Base Unit Of Measure must be specified on the item first.', Locked = true;
+        InvalidUOMConversionErr: Label 'The %1 property must contain a JSON object.', Comment = '%1 - Unit of measure conversion property name';
 
     [Scope('Cloud')]
     procedure InsertItemFromSalesDocument(var Item: Record Item; var TempFieldSet: Record "Field" temporary; UnitOfMeasureJSON: Text)
@@ -295,8 +296,15 @@ codeunit 5470 "Graph Collection Mgt - Item"
         if not JsonObject.Get(UOMConversionComplexTypeName(), ConversionJsonToken) then
             exit(false);
 
+        if ConversionJsonToken.IsValue() then begin
+            if ConversionJsonToken.AsValue().IsNull() or ConversionJsonToken.AsValue().IsUndefined() then
+                exit(false);
+            if ConversionJsonToken.AsValue().AsText() in ['', 'null'] then
+                exit(false);
+        end;
+
         if not ConversionJsonToken.IsObject() then
-            exit(false);
+            Error(InvalidUOMConversionErr, UOMConversionComplexTypeName());
 
         ConversionJsonObject := ConversionJsonToken.AsObject();
 

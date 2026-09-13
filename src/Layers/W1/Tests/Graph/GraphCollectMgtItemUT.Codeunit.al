@@ -14,6 +14,7 @@ codeunit 134627 "Graph Collect Mgt Item UT"
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
         BaseUnitOfMeasureCannotHaveConversionsErr: Label 'Base Unit Of Measure must be specified on the item first.';
+        InvalidUOMConversionErr: Label 'The %1 property must contain a JSON object.', Comment = '%1 - Unit of measure conversion property name';
 
     [Test]
     [Scope('OnPrem')]
@@ -329,6 +330,27 @@ codeunit 134627 "Graph Collect Mgt Item UT"
 
         // Verify
         Assert.ExpectedError(BaseUnitOfMeasureCannotHaveConversionsErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestInvalidUOMConversionShapeRaisesError()
+    var
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
+        JsonObject: JsonObject;
+        ItemUOMJSON: Text;
+    begin
+        CreateTestItem(Item);
+        UnitOfMeasure.Get(Item."Base Unit of Measure");
+        JsonObject.ReadFrom(ConvertUnitOfMeasureToJSON(UnitOfMeasure));
+        JsonObject.Add(GraphCollectionMgtItem.UOMConversionComplexTypeName(), 'invalid');
+        JsonObject.WriteTo(ItemUOMJSON);
+
+        asserterror UpdateBaseUnitOfMeasure(Item, ItemUOMJSON);
+
+        Assert.ExpectedError(StrSubstNo(InvalidUOMConversionErr, GraphCollectionMgtItem.UOMConversionComplexTypeName()));
     end;
 
     local procedure GenerateNoUOMJSONString(): Text
