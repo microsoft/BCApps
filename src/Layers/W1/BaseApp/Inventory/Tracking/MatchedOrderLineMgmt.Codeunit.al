@@ -696,6 +696,7 @@ codeunit 5826 "Matched Order Line Mgmt."
         PurchaseHeaderOrder: Record "Purchase Header";
         PurchaseLineInvoice, PurchaseLineOrder : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchRcptLineReceipt: Record "Purch. Rcpt. Line";
         PurchaseLines: Page "Purchase Lines";
     begin
         PurchaseLineInvoice.GetBySystemId(DetailedMatchedOrderLine."Document Line SystemId");
@@ -712,6 +713,11 @@ codeunit 5826 "Matched Order Line Mgmt."
         PurchaseLineOrder.SetRange("Location Code", PurchaseLineInvoice."Location Code");
         PurchaseLineOrder.SetRange("Variant Code", PurchaseLineInvoice."Variant Code");
         PurchaseLineOrder.SetRange("Unit of Measure Code", PurchaseLineInvoice."Unit of Measure Code");
+        if (PurchaseLineInvoice."Receipt No." <> '') and (PurchaseLineInvoice."Receipt Line No." <> 0) then
+            if PurchRcptLineReceipt.Get(PurchaseLineInvoice."Receipt No.", PurchaseLineInvoice."Receipt Line No.") then begin
+                PurchaseLineOrder.SetRange("Document No.", PurchRcptLineReceipt."Order No.");
+                PurchaseLineOrder.SetRange("Line No.", PurchRcptLineReceipt."Order Line No.");
+            end;
         if PurchaseLineOrder.FindSet() then
             repeat
                 PurchaseLineOrder.Mark(true);
