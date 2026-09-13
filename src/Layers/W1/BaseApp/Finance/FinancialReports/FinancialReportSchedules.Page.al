@@ -12,6 +12,7 @@ page 8360 "Financial Report Schedules"
     PageType = List;
     RefreshOnActivate = true;
     SourceTable = "Financial Report Schedule";
+    UsageCategory = Lists;
 
     layout
     {
@@ -21,7 +22,7 @@ page 8360 "Financial Report Schedules"
             {
                 field("Financial Report Name"; Rec."Financial Report Name")
                 {
-                    Visible = false;
+                    Visible = NameVisible;
                 }
                 field(Code; Rec.Code)
                 {
@@ -40,6 +41,9 @@ page 8360 "Financial Report Schedules"
                 {
                 }
                 field("Send Email"; Rec."Send Email")
+                {
+                }
+                field("Email Subject"; Rec."Email Subject")
                 {
                 }
                 field("No. of Recipients"; Rec."No. of Recipients")
@@ -127,4 +131,12 @@ page 8360 "Financial Report Schedules"
             actionref(Logs_Promoted; Logs) { }
         }
     }
+
+    var
+        NameVisible: Boolean;
+
+    trigger OnOpenPage()
+    begin
+        NameVisible := Rec.GetFilter("Financial Report Name") = '';
+    end;
 }

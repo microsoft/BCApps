@@ -579,6 +579,13 @@ page 104 "Account Schedule"
         GetDescriptions();
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Row Type" := xRec."Row Type";
+        Rec."Totaling Type" := xRec."Totaling Type";
+        Rec."Amount Type" := xRec."Amount Type";
+    end;
+
     var
         AccSchedManagement: Codeunit AccSchedManagement;
         CurrentSchedName: Code[10];
