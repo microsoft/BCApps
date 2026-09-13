@@ -1564,7 +1564,7 @@ codeunit 1173 "Document Attachment Mgmt"
                 ToFieldRef := ToRecRef.Field(3);
                 ToNo := ToFieldRef.Value();
                 ToDocumentAttachment.Validate("No.", ToNo);
-                Clear(ToDocumentAttachment."Document Type");
+                SetDocumentTypeForPostedDocument(ToDocumentAttachment, ToRecRef.Number);
                 OnCopyAttachmentsForPostedDocsOnBeforeToDocumentAttachmentInsert(FromDocumentAttachment, ToDocumentAttachment);
                 ToDocumentAttachment.Insert(true);
                 OnCopyAttachmentsForPostedDocsOnAfterToDocumentAttachmentInsert(FromDocumentAttachment, ToDocumentAttachment);
@@ -1619,11 +1619,31 @@ codeunit 1173 "Document Attachment Mgmt"
                 end;
                 OnCopyAttachmentsForPostedDocsLinesOnAfterSetToTableID(ToRecRef, ToDocumentAttachmentLine);
 
-                Clear(ToDocumentAttachmentLine."Document Type");
+                SetDocumentTypeForPostedDocument(ToDocumentAttachmentLine, ToRecRef.Number);
                 ToDocumentAttachmentLine.Validate("No.", ToNo);
 
                 if ToDocumentAttachmentLine.Insert(true) then;
             until FromDocumentAttachmentLine.Next() = 0;
+    end;
+
+    local procedure SetDocumentTypeForPostedDocument(var DocumentAttachment: Record "Document Attachment"; PostedDocumentTableID: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        OnBeforeSetDocumentTypeForPostedDocument(DocumentAttachment, PostedDocumentTableID, IsHandled);
+        if IsHandled then
+            exit;
+
+        case PostedDocumentTableID of
+            Database::"Sales Invoice Header",
+            Database::"Purch. Inv. Header":
+                DocumentAttachment.Validate("Document Type", DocumentAttachment."Document Type"::Invoice);
+            Database::"Sales Cr.Memo Header",
+            Database::"Purch. Cr. Memo Hdr.":
+                DocumentAttachment.Validate("Document Type", DocumentAttachment."Document Type"::"Credit Memo");
+            else
+                Clear(DocumentAttachment."Document Type");
+        end;
     end;
 
     procedure MoveAttachmentsWithinSameRecordType(var MoveFromRecRef: RecordRef; var MoveToRecRef: RecordRef)
@@ -1773,6 +1793,11 @@ codeunit 1173 "Document Attachment Mgmt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyAttachmentsForPostedDocsLines(var FromRecRef: RecordRef; var ToRecRef: RecordRef; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetDocumentTypeForPostedDocument(var DocumentAttachment: Record "Document Attachment"; PostedDocumentTableID: Integer; var IsHandled: Boolean)
     begin
     end;
 
