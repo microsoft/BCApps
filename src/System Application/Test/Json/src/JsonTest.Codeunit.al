@@ -920,11 +920,17 @@ codeunit 139910 "Json Test"
         RecordRef.GetTable(Printer);
         Json.InitializeObject('{"nested":{"null":null}}');
 
-        // [THEN] Null clears compatible fields, while a missing path does not change the field
+        // [THEN] Null clears compatible fields
         Assert.IsTrue(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.null', Printer.FieldNo(ID)), 'A null path did not clear the field.');
-        Assert.IsFalse(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.missing', Printer.FieldNo(ID)), 'A missing path was assigned to a field.');
         RecordRef.SetTable(Printer);
         Assert.AreEqual('', Printer.ID, 'A null path did not clear the target field.');
+
+        // [THEN] A missing path does not change the field
+        Printer.ID := 'unchanged';
+        RecordRef.GetTable(Printer);
+        Assert.IsFalse(Json.GetValueAndSetToRecFieldNo(RecordRef, 'nested.missing', Printer.FieldNo(ID)), 'A missing path was assigned to a field.');
+        RecordRef.SetTable(Printer);
+        Assert.AreEqual('unchanged', Printer.ID, 'A missing path changed the target field.');
     end;
 
     [Test]
