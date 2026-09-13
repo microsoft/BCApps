@@ -8,10 +8,13 @@ namespace Microsoft.Finance.ExcelReports.Test;
 using Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Purchases.ExcelReports;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.ExcelReports;
 using Microsoft.Sales.Receivables;
+using System.TestLibraries.Utilities;
 
 codeunit 139555 "Aged Accounts Excel Reports"
 {
@@ -22,9 +25,16 @@ codeunit 139555 "Aged Accounts Excel Reports"
     var
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
         DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
         DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
+        FilteredPostingGroupTok: Label 'EXRTOPLIST1', Locked = true;
+        OtherPostingGroupTok: Label 'EXRTOPLIST2', Locked = true;
+        ShowSalesTok: Label 'Sales (LCY)', Locked = true;
+        ShowPurchasesTok: Label 'Purchases (LCY)', Locked = true;
+        ShowBalanceTok: Label 'Balance (LCY)', Locked = true;
+        OneRowExpectedErr: Label 'Only the customer or vendor in the filtered posting group should be exported';
 
     [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
@@ -482,6 +492,138 @@ codeunit 139555 "Aged Accounts Excel Reports"
         Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'The vendor with an outstanding balance should not be skipped');
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerTopListRequestPageHandler')]
+    procedure TopCustomerListRankedByBalanceFiltersOnLedgerEntryPostingGroup()
+    var
+        FilteredCustomer: Record Customer;
+        OtherCustomer: Record Customer;
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 649289] Ranking by balance, the posting group filter is resolved against the customer ledger entry and not against the blank "Posting Group" on the detailed entry
+        InitializeAgingData();
+
+        // [GIVEN] Two customers in different posting groups, where the detailed entries have a blank "Posting Group", as on cloud migrated data
+        CreateCustomerInPostingGroup(FilteredCustomer, FilteredPostingGroupTok);
+        CreateCustomerInPostingGroup(OtherCustomer, OtherPostingGroupTok);
+        CreateCustomerLedgerData(FilteredCustomer."No.", FilteredPostingGroupTok, 2500, 1000);
+        CreateCustomerLedgerData(OtherCustomer."No.", OtherPostingGroupTok, 5000, 4000);
+        Commit();
+
+        // [WHEN] Running the Customer - Top List (Excel) report ranked by balance, filtered on the first posting group
+        RunCustomerTopList(ShowBalanceTok, FilteredPostingGroupTok, RequestPageXml, Variant);
+
+        // [THEN] Only the customer in that posting group is exported, with its balance and its sales
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopCustomerData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), OneRowExpectedErr);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('CustomerNo', FilteredCustomer."No.");
+        LibraryReportDataset.AssertCurrentRowValueEquals('AmountLCY', 1000);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount2LCY', 2500);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerTopListRequestPageHandler')]
+    procedure TopCustomerListRankedBySalesReportsBalanceForTheSamePostingGroup()
+    var
+        FilteredCustomer: Record Customer;
+        OtherCustomer: Record Customer;
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 649289] Ranking by sales, the balance column is filled from the balance query, which has to resolve the same posting group filter
+        InitializeAgingData();
+
+        // [GIVEN] Two customers in different posting groups, where the detailed entries have a blank "Posting Group"
+        CreateCustomerInPostingGroup(FilteredCustomer, FilteredPostingGroupTok);
+        CreateCustomerInPostingGroup(OtherCustomer, OtherPostingGroupTok);
+        CreateCustomerLedgerData(FilteredCustomer."No.", FilteredPostingGroupTok, 2500, 1000);
+        CreateCustomerLedgerData(OtherCustomer."No.", OtherPostingGroupTok, 5000, 4000);
+        Commit();
+
+        // [WHEN] Running the Customer - Top List (Excel) report ranked by sales, filtered on the first posting group
+        RunCustomerTopList(ShowSalesTok, FilteredPostingGroupTok, RequestPageXml, Variant);
+
+        // [THEN] Only the customer in that posting group is exported, with its sales and its balance
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopCustomerData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), OneRowExpectedErr);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('CustomerNo', FilteredCustomer."No.");
+        LibraryReportDataset.AssertCurrentRowValueEquals('AmountLCY', 2500);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount2LCY', 1000);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorTopListRequestPageHandler')]
+    procedure TopVendorListRankedByBalanceFiltersOnLedgerEntryPostingGroup()
+    var
+        FilteredVendor: Record Vendor;
+        OtherVendor: Record Vendor;
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 649289] Ranking by balance, the posting group filter is resolved against the vendor ledger entry and not against the blank "Posting Group" on the detailed entry
+        InitializeAgingData();
+
+        // [GIVEN] Two vendors in different posting groups, where the detailed entries have a blank "Posting Group", as on cloud migrated data
+        CreateVendorInPostingGroup(FilteredVendor, FilteredPostingGroupTok);
+        CreateVendorInPostingGroup(OtherVendor, OtherPostingGroupTok);
+        CreateVendorLedgerData(FilteredVendor."No.", FilteredPostingGroupTok, -2500, -1000);
+        CreateVendorLedgerData(OtherVendor."No.", OtherPostingGroupTok, -5000, -4000);
+        Commit();
+
+        // [WHEN] Running the Vendor - Top List (Excel) report ranked by balance, filtered on the first posting group
+        RunVendorTopList(ShowBalanceTok, FilteredPostingGroupTok, RequestPageXml, Variant);
+
+        // [THEN] Only the vendor in that posting group is exported, with its balance and its purchases
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopVendorData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), OneRowExpectedErr);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VendorNo', FilteredVendor."No.");
+        LibraryReportDataset.AssertCurrentRowValueEquals('AmountLCY', 1000);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount2LCY', 2500);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorTopListRequestPageHandler')]
+    procedure TopVendorListRankedByPurchasesReportsBalanceForTheSamePostingGroup()
+    var
+        FilteredVendor: Record Vendor;
+        OtherVendor: Record Vendor;
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 649289] Ranking by purchases, the balance column is filled from the balance query, which has to resolve the same posting group filter
+        InitializeAgingData();
+
+        // [GIVEN] Two vendors in different posting groups, where the detailed entries have a blank "Posting Group"
+        CreateVendorInPostingGroup(FilteredVendor, FilteredPostingGroupTok);
+        CreateVendorInPostingGroup(OtherVendor, OtherPostingGroupTok);
+        CreateVendorLedgerData(FilteredVendor."No.", FilteredPostingGroupTok, -2500, -1000);
+        CreateVendorLedgerData(OtherVendor."No.", OtherPostingGroupTok, -5000, -4000);
+        Commit();
+
+        // [WHEN] Running the Vendor - Top List (Excel) report ranked by purchases, filtered on the first posting group
+        RunVendorTopList(ShowPurchasesTok, FilteredPostingGroupTok, RequestPageXml, Variant);
+
+        // [THEN] Only the vendor in that posting group is exported, with its purchases and its balance
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="TopVendorData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), OneRowExpectedErr);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VendorNo', FilteredVendor."No.");
+        LibraryReportDataset.AssertCurrentRowValueEquals('AmountLCY', 2500);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Amount2LCY', 1000);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure InitializeAgingData()
     var
         Vendor: Record Vendor;
@@ -491,6 +633,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
+        LibraryVariableStorage.Clear();
         DetailedVendorLedgEntry.DeleteAll();
         DetailedCustLedgEntry.DeleteAll();
         VendorLedgerEntry.DeleteAll();
@@ -623,6 +766,141 @@ codeunit 139555 "Aged Accounts Excel Reports"
         DetailedVendorLedgEntry.ModifyAll("Posting Date", NewPostingDate);
     end;
 
+    local procedure RunCustomerTopList(ShowValue: Text; PostingGroupCode: Code[20]; var RequestPageXml: Text; var Variant: Variant)
+    begin
+        LibraryVariableStorage.Enqueue(ShowValue);
+        LibraryVariableStorage.Enqueue(PostingGroupCode);
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Customer Top List", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Customer Top List", Variant, RequestPageXml);
+    end;
+
+    local procedure RunVendorTopList(ShowValue: Text; PostingGroupCode: Code[20]; var RequestPageXml: Text; var Variant: Variant)
+    begin
+        LibraryVariableStorage.Enqueue(ShowValue);
+        LibraryVariableStorage.Enqueue(PostingGroupCode);
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Vendor Top List", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Vendor Top List", Variant, RequestPageXml);
+    end;
+
+    local procedure CreateCustomerPostingGroup(PostingGroupCode: Code[20])
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+    begin
+        if CustomerPostingGroup.Get(PostingGroupCode) then
+            exit;
+
+        CustomerPostingGroup.Init();
+        CustomerPostingGroup.Code := PostingGroupCode;
+        CustomerPostingGroup.Insert();
+    end;
+
+    local procedure CreateVendorPostingGroup(PostingGroupCode: Code[20])
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        if VendorPostingGroup.Get(PostingGroupCode) then
+            exit;
+
+        VendorPostingGroup.Init();
+        VendorPostingGroup.Code := PostingGroupCode;
+        VendorPostingGroup.Insert();
+    end;
+
+    local procedure CreateCustomerInPostingGroup(var Customer: Record Customer; PostingGroupCode: Code[20])
+    begin
+        CreateCustomerPostingGroup(PostingGroupCode);
+
+        Customer.Init();
+        Customer."No." := GenerateAccountNo();
+        Customer.Name := Customer."No.";
+        Customer."Customer Posting Group" := PostingGroupCode;
+        Customer.Insert();
+    end;
+
+    local procedure CreateVendorInPostingGroup(var Vendor: Record Vendor; PostingGroupCode: Code[20])
+    begin
+        CreateVendorPostingGroup(PostingGroupCode);
+
+        Vendor.Init();
+        Vendor."No." := GenerateAccountNo();
+        Vendor.Name := Vendor."No.";
+        Vendor."Vendor Posting Group" := PostingGroupCode;
+        Vendor.Insert();
+    end;
+
+    local procedure CreateCustomerLedgerData(CustomerNo: Code[20]; PostingGroupCode: Code[20]; SalesLCY: Decimal; BalanceLCY: Decimal)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        if CustLedgerEntry.FindLast() then;
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." := CustLedgerEntry."Entry No." + 1;
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry."Customer Name" := CustomerNo;
+        CustLedgerEntry."Document Type" := "Gen. Journal Document Type"::Invoice;
+        CustLedgerEntry."Document No." := 'DOC' + Format(CustLedgerEntry."Entry No.");
+        CustLedgerEntry."Posting Date" := WorkDate();
+        CustLedgerEntry."Document Date" := WorkDate();
+        CustLedgerEntry."Due Date" := WorkDate() + 30;
+        CustLedgerEntry."Sales (LCY)" := SalesLCY;
+        CustLedgerEntry."Customer Posting Group" := PostingGroupCode;
+        CustLedgerEntry.Open := true;
+        CustLedgerEntry.Insert();
+
+        if DetailedCustLedgEntry.FindLast() then;
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." := DetailedCustLedgEntry."Entry No." + 1;
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Customer No." := CustomerNo;
+        DetailedCustLedgEntry."Posting Date" := WorkDate();
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
+        DetailedCustLedgEntry.Amount := BalanceLCY;
+        DetailedCustLedgEntry."Amount (LCY)" := BalanceLCY;
+        // Left blank on purpose, the column was added in v20 and is not backfilled on upgrade or cloud migration
+        DetailedCustLedgEntry."Posting Group" := '';
+        DetailedCustLedgEntry.Insert();
+    end;
+
+    local procedure CreateVendorLedgerData(VendorNo: Code[20]; PostingGroupCode: Code[20]; PurchaseLCY: Decimal; BalanceLCY: Decimal)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        if VendorLedgerEntry.FindLast() then;
+        VendorLedgerEntry.Init();
+        VendorLedgerEntry."Entry No." := VendorLedgerEntry."Entry No." + 1;
+        VendorLedgerEntry."Vendor No." := VendorNo;
+        VendorLedgerEntry."Vendor Name" := VendorNo;
+        VendorLedgerEntry."Document Type" := "Gen. Journal Document Type"::Invoice;
+        VendorLedgerEntry."Document No." := 'DOC' + Format(VendorLedgerEntry."Entry No.");
+        VendorLedgerEntry."Posting Date" := WorkDate();
+        VendorLedgerEntry."Document Date" := WorkDate();
+        VendorLedgerEntry."Due Date" := WorkDate() + 30;
+        VendorLedgerEntry."Purchase (LCY)" := PurchaseLCY;
+        VendorLedgerEntry."Vendor Posting Group" := PostingGroupCode;
+        VendorLedgerEntry.Open := true;
+        VendorLedgerEntry.Insert();
+
+        if DetailedVendorLedgEntry.FindLast() then;
+        DetailedVendorLedgEntry.Init();
+        DetailedVendorLedgEntry."Entry No." := DetailedVendorLedgEntry."Entry No." + 1;
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
+        DetailedVendorLedgEntry."Vendor No." := VendorNo;
+        DetailedVendorLedgEntry."Posting Date" := WorkDate();
+        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::"Initial Entry";
+        DetailedVendorLedgEntry.Amount := BalanceLCY;
+        DetailedVendorLedgEntry."Amount (LCY)" := BalanceLCY;
+        // Left blank on purpose, the column was added in v20 and is not backfilled on upgrade or cloud migration
+        DetailedVendorLedgEntry."Posting Group" := '';
+        DetailedVendorLedgEntry.Insert();
+    end;
+
+    local procedure GenerateAccountNo() AccountNo: Code[20]
+    begin
+        exit(CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(AccountNo)));
+    end;
+
     [RequestPageHandler]
     procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
@@ -708,5 +986,21 @@ codeunit 139555 "Aged Accounts Excel Reports"
         EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
         EXRAgedAccPayableExcel."Skip Zero Balance Vendors".SetValue(true);
         EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure CustomerTopListRequestPageHandler(var EXRCustomerTopList: TestRequestPage "EXR Customer Top List")
+    begin
+        EXRCustomerTopList.Show.SetValue(LibraryVariableStorage.DequeueText());
+        EXRCustomerTopList.TopCustomerData.SetFilter("Customer Posting Group", LibraryVariableStorage.DequeueText());
+        EXRCustomerTopList.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure VendorTopListRequestPageHandler(var EXRVendorTopList: TestRequestPage "EXR Vendor Top List")
+    begin
+        EXRVendorTopList.Show.SetValue(LibraryVariableStorage.DequeueText());
+        EXRVendorTopList.TopVendorData.SetFilter("Vendor Posting Group", LibraryVariableStorage.DequeueText());
+        EXRVendorTopList.OK().Invoke();
     end;
 }
