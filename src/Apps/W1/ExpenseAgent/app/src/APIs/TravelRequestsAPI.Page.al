@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
+using System.Telemetry;
 
 page 7134 "Travel Requests API"
 {
@@ -23,7 +24,10 @@ page 7134 "Travel Requests API"
     AboutText = 'Provides access to data from the Travel Request table';
     Permissions = tabledata "Spend Request" = rimd,
                   tabledata "Spend Request Detail" = rmd,
-                  tabledata "Spend Request To G/L Link" = rd;
+                  tabledata "Spend Request To G/L Link" = rd,
+                  tabledata "Expense Report Header" = ri,
+                  tabledata "Posted Expense Report Header" = r,
+                  tabledata "Posted Expense Report Line" = r;
 
     layout
     {
@@ -203,6 +207,13 @@ page 7134 "Travel Requests API"
                     EntitySetName = 'travelers';
                     SubPageLink = "Spend Request No." = field("No.");
                 }
+                part(employees; "Employees API")
+                {
+                    Caption = 'Employees';
+                    EntityName = 'employee';
+                    EntitySetName = 'employees';
+                    SubPageLink = "Travel Request SystemId Filter" = field(SystemId);
+                }
             }
         }
     }
@@ -269,6 +280,56 @@ page 7134 "Travel Requests API"
         SetActionResponse(ActionContext);
     end;
 
+    [ServiceEnabled]
+    procedure CreateExpenseReport(var ActionContext: WebServiceActionContext)
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        CheckOwnerScopeRequired();
+        Rec.TestField("Document Type", Rec."Document Type"::"Travel Request");
+        if Rec.Status <> Rec.Status::Approved then
+            Error(TravelRequestMustBeApprovedErr, Rec."No.");
+        Rec.TestField("Requested For");
+
+        if not ExpenseReportHeader.CreateFromApprovedTravelRequestIfMissing(Rec) then begin
+            ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+            ExpenseReportHeader.SetRange("Expense User No.", Rec."Requested For");
+            ExpenseReportHeader.SetLoadFields("No.");
+            ExpenseReportHeader.FindFirst();
+            Error(GetExpenseReportAlreadyLinkedError(ExpenseReportHeader, Rec));
+        end;
+
+        LogCreateExpenseReport();
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(ExpenseReportHeader.FieldNo(SystemId), ExpenseReportHeader.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
+    local procedure GetExpenseReportAlreadyLinkedError(ExpenseReportHeader: Record "Expense Report Header"; TravelRequest: Record "Spend Request"): ErrorInfo
+    var
+        ExpenseReportAlreadyLinkedError: ErrorInfo;
+    begin
+        ExpenseReportAlreadyLinkedError.Message := StrSubstNo(
+            ExpenseReportAlreadyLinkedErr, TravelRequest."Requested For", ExpenseReportHeader."No.", TravelRequest."No.");
+        ExpenseReportAlreadyLinkedError.Title := ExpenseReportAlreadyLinkedTitleErr;
+        ExpenseReportAlreadyLinkedError.DetailedMessage := ExpenseReportAlreadyLinkedDetailsErr;
+        ExpenseReportAlreadyLinkedError.DataClassification := DataClassification::EndUserIdentifiableInformation;
+        ExpenseReportAlreadyLinkedError.ErrorType := ErrorType::Client;
+        ExpenseReportAlreadyLinkedError.RecordId := ExpenseReportHeader.RecordId;
+        ExpenseReportAlreadyLinkedError.PageNo := Page::"Expense Report";
+        ExpenseReportAlreadyLinkedError.AddNavigationAction(ShowItLbl);
+        exit(ExpenseReportAlreadyLinkedError);
+    end;
+
+    local procedure LogCreateExpenseReport()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUsage('EA-TR-CREATEREPORT', ExpenseAgentSetup.GetFeatureName(), ExpenseReportCreatedLbl);
+    end;
+
     trigger OnFindRecord(Which: Text): Boolean
     begin
         ProcessOwnerFilter();
@@ -321,6 +382,16 @@ page 7134 "Travel Requests API"
             Rec.TestField("Requested By", OwnerEmployeeNo);
     end;
 
+    local procedure CheckOwnerScopeRequired()
+    var
+        OwnerEmployeeNo: Code[20];
+    begin
+        OwnerEmployeeNo := ProcessOwnerFilter();
+        if OwnerEmployeeNo = '' then
+            Error(OwnerScopeRequiredErr);
+        Rec.TestField("Requested By", OwnerEmployeeNo);
+    end;
+
     local procedure ProcessApproverFilter()
     var
         TravelRequestApproval: Codeunit "Travel Request Approval";
@@ -357,4 +428,11 @@ page 7134 "Travel Requests API"
         ExpectedEndDateProvided: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
+        TravelRequestMustBeApprovedErr: Label 'Travel request %1 must be approved before an expense report can be created.', Comment = '%1 = Travel Request No.';
+        ExpenseReportAlreadyLinkedErr: Label 'Expense user %1 already has expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Expense Report No., %3 = Travel Request No.';
+        ExpenseReportAlreadyLinkedTitleErr: Label 'Expense report already exists';
+        ExpenseReportAlreadyLinkedDetailsErr: Label 'Open the existing expense report linked to this travel request.';
+        ExpenseReportCreatedLbl: Label 'Expense report created from approved travel request', Locked = true;
+        ShowItLbl: Label 'Show it';
+        OwnerScopeRequiredErr: Label 'The create expense report action must be invoked through the owning expense user.';
 }

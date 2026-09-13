@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.HumanResources.Employee;
 
 codeunit 148315 "Expense Users API Test"
 {
@@ -16,12 +17,48 @@ codeunit 148315 "Expense Users API Test"
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseUsers', Locked = true;
+        EmployeesServiceNameTok: Label 'employees', Locked = true;
+
+    [Test]
+    procedure EmployeesAPICanFilterExpenseUsers()
+    var
+        LinkedExpenseUser: Record "Expense User";
+        UnlinkedEmployee: Record Employee;
+        TargetURL: Text;
+        ResponseText: Text;
+        LinkedEmployeeIdTxt: Text;
+        UnlinkedEmployeeIdTxt: Text;
+    begin
+        // [SCENARIO] The Employees API can be filtered to employees linked to Expense Users.
+        Initialize();
+
+        // [GIVEN] One linked employee and one employee without an Expense User.
+        LibraryExpense.CreateExpenseUser(LinkedExpenseUser);
+        LibraryHumanResource.CreateEmployee(UnlinkedEmployee);
+        Commit();
+
+        // [WHEN] The employee collection is filtered by isExpenseUser.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Employees API", EmployeesServiceNameTok);
+        if StrPos(TargetURL, '?') <> 0 then
+            TargetURL += '&$filter=isExpenseUser eq true'
+        else
+            TargetURL += '?$filter=isExpenseUser eq true';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        ResponseText := LowerCase(ResponseText);
+        UnlinkedEmployeeIdTxt := LowerCase(LibraryGraphMgt.StripBrackets(Format(UnlinkedEmployee.SystemId)));
+        LinkedEmployeeIdTxt := GetEmployeeSystemIdText(LinkedExpenseUser."Employee No.");
+
+        // [THEN] Only the employee linked to an Expense User is returned.
+        Assert.AreNotEqual(0, StrPos(ResponseText, LinkedEmployeeIdTxt), 'The linked employee must be returned.');
+        Assert.AreEqual(0, StrPos(ResponseText, UnlinkedEmployeeIdTxt), 'The unlinked employee must not be returned.');
+    end;
 
     [Test]
     procedure UnlinkedExpenseUserIsHiddenFromAPI()
@@ -98,5 +135,13 @@ codeunit 148315 "Expense Users API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Users API Test");
+    end;
+
+    local procedure GetEmployeeSystemIdText(EmployeeNo: Code[20]): Text
+    var
+        Employee: Record Employee;
+    begin
+        Employee.Get(EmployeeNo);
+        exit(LowerCase(LibraryGraphMgt.StripBrackets(Format(Employee.SystemId))));
     end;
 }

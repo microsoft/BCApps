@@ -2,7 +2,32 @@
   {
     "codeunitId": 148315,
     "codeunitName": "Expense Users API Test",
+    "method": "EmployeesAPICanFilterExpenseUsers"
+  },
+  {
+    "codeunitId": 148315,
+    "codeunitName": "Expense Users API Test",
     "method": "UnlinkedExpenseUserIsHiddenFromAPI"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIMapsEmployeeNumberToExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIRejectsEmployeeWithoutExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "CreateExpenseReportActionRecreatesDeletedReport"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproveTravelRequestActionCreatesExpenseReport"
   },
   {
     "codeunitId": 148347,

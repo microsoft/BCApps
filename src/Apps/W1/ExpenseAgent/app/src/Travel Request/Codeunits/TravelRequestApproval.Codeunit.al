@@ -11,7 +11,10 @@ using System.Text;
 codeunit 7133 "Travel Request Approval"
 {
     Access = Internal;
-    Permissions = tabledata "Spend Request" = rm;
+    Permissions = tabledata "Spend Request" = rm,
+                  tabledata "Expense Report Header" = ri,
+                  tabledata "Posted Expense Report Header" = r,
+                  tabledata "Posted Expense Report Line" = r;
 
     internal procedure Submit(var SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20])
     var
@@ -73,6 +76,12 @@ codeunit 7133 "Travel Request Approval"
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
         ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
+        if ExpenseReportHeader.IsEmpty() then begin
+            LogError('EA-TR-REPORTERROR', ExpenseReportCreationFailedLbl, ExpenseReportCreationFailedTelemetryErr);
+            Error(GetExpenseReportWasNotCreatedError(SpendRequest));
+        end;
     end;
 
     internal procedure Reject(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
@@ -97,6 +106,25 @@ codeunit 7133 "Travel Request Approval"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUsage(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName);
+    end;
+
+    local procedure LogError(EventId: Text; ActionName: Text; ErrorMessage: Text)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogError(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName, ErrorMessage);
+    end;
+
+    local procedure GetExpenseReportWasNotCreatedError(SpendRequest: Record "Spend Request"): ErrorInfo
+    var
+        ExpenseReportWasNotCreatedError: ErrorInfo;
+    begin
+        ExpenseReportWasNotCreatedError.Message := StrSubstNo(
+            ExpenseReportWasNotCreatedErr, SpendRequest."No.", SpendRequest."Requested For");
+        ExpenseReportWasNotCreatedError.DataClassification := DataClassification::EndUserIdentifiableInformation;
+        ExpenseReportWasNotCreatedError.ErrorType := ErrorType::Internal;
+        exit(ExpenseReportWasNotCreatedError);
     end;
 
     internal procedure ApplyOwnerFilter(var SpendRequest: Record "Spend Request"; OwnerSystemId: Guid): Code[20]
@@ -223,4 +251,7 @@ codeunit 7133 "Travel Request Approval"
         NotTravelRequestOwnerErr: Label 'Expense user %1 cannot submit travel request %2 because the user did not create it.', Comment = '%1 = Expense user number, %2 = Travel request number';
         NotTravelRequestApproverErr: Label 'Expense user %1 is not authorized to approve or reject travel request %2.', Comment = '%1 = Expense user number, %2 = Travel request number';
         TooManyTravelRequestSubmittersErr: Label 'Expense user %1 is configured to approve too many travel request submitters. Refine the approval setup before listing pending travel requests.', Comment = '%1 = Expense user number';
+        ExpenseReportWasNotCreatedErr: Label 'An expense report was not created after approving travel request %1 for expense user %2.', Comment = '%1 = Travel Request No., %2 = Expense User No.';
+        ExpenseReportCreationFailedLbl: Label 'Create expense report after travel request approval failed', Locked = true;
+        ExpenseReportCreationFailedTelemetryErr: Label 'The approved travel request did not produce an expense report.', Locked = true;
 }
