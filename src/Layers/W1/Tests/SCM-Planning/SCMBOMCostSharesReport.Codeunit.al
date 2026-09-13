@@ -25,7 +25,6 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         isInitialized: Boolean;
-        GLBShowLevelAs: Option "First BOM Level","BOM Leaves";
         GLBShowCostShareAs: Option "Single-level","Rolled-up";
         IncorrectValueErr: Label 'Incorrect value of %1.%2.';
         UnitCostMustMatchStdCostErr: Label 'Unit cost in bom cost shares must match item standard cost';
@@ -70,7 +69,7 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         BOMCostShares.Close();
     end;
 
-    local procedure CreateCostSharesTree(TopItemReplSystem: Enum "Replenishment System"; Depth: Integer; Width: Integer; ShowLevelAs: Option; ShowDetails: Boolean; ShowCostShareAs: Option)
+    local procedure CreateCostSharesTree(TopItemReplSystem: Enum "Replenishment System"; Depth: Integer; Width: Integer; ShowCostShareAs: Option)
     var
         Item: Record Item;
         TempItem: Record Item temporary;
@@ -89,174 +88,66 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         CalcStandardCost.CalcItem(Item."No.", (Item."Replenishment System" = Item."Replenishment System"::Assembly));
         Item.Get(Item."No.");
 
-        // Exercise: Run BOM Cost Shares Distribution Report.
-        RunBOMCostSharesReport(Item, ShowLevelAs, ShowDetails, ShowCostShareAs);
+        // Exercise: Run Production Cost Shares Report.
+        RunProductionCostSharesReport(Item);
 
         // Verify: Check the cost values for top item.
         if ShowCostShareAs = GLBShowCostShareAs::"Rolled-up" then
-            VerifyBOMCostSharesReport(Item."No.",
+            VerifyProductionCostSharesReport(Item."No.",
               Item."Rolled-up Material Cost",
               Item."Rolled-up Capacity Cost",
               Item."Rolled-up Mfg. Ovhd Cost",
               Item."Rolled-up Cap. Overhead Cost",
               Item."Rolled-up Subcontracted Cost",
-              Item."Unit Cost")
+              Item."Rolled-up Mat. Non-Invt. Cost",
+              Item."Unit Cost",
+              ShowCostShareAs)
         else
-            VerifyBOMCostSharesReport(Item."No.",
+            VerifyProductionCostSharesReport(Item."No.",
               Item."Single-Level Material Cost",
               Item."Single-Level Capacity Cost",
               Item."Single-Level Mfg. Ovhd Cost",
               Item."Single-Level Cap. Ovhd Cost",
               Item."Single-Level Subcontrd. Cost",
-              Item."Unit Cost")
+              Item."Single-Lvl Mat. Non-Invt. Cost",
+              Item."Unit Cost",
+              ShowCostShareAs)
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
+    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,ProductionCostSharesReportHandler')]
     [Scope('OnPrem')]
-    procedure TopItemAssemblyBOMLeavesSglLvl()
+    procedure TopItemAssemblySingleLevel()
     begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"BOM Leaves", true, GLBShowCostShareAs::"Single-level");
+        CreateCostSharesTree(GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowCostShareAs::"Single-level");
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
+    [HandlerFunctions('CalcStdCostMenuHandler,ProductionCostSharesReportHandler')]
     [Scope('OnPrem')]
-    procedure TopItemProdOrderBOMLeavesSglLvl()
+    procedure TopItemProdOrderSingleLevel()
     begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"BOM Leaves", true, GLBShowCostShareAs::"Single-level");
+        CreateCostSharesTree(GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowCostShareAs::"Single-level");
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
+    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,ProductionCostSharesReportHandler')]
     [Scope('OnPrem')]
-    procedure TopItemAssemblyBOMLeavesRldUp()
+    procedure TopItemAssemblyRolledUp()
     begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"BOM Leaves", true, GLBShowCostShareAs::"Rolled-up");
+        CreateCostSharesTree(GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowCostShareAs::"Rolled-up");
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
+    [HandlerFunctions('CalcStdCostMenuHandler,ProductionCostSharesReportHandler')]
     [Scope('OnPrem')]
-    procedure TopItemProdOrderBOMLeavesRldUp()
+    procedure TopItemProdOrderRolledUp()
     begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"BOM Leaves", true, GLBShowCostShareAs::"Rolled-up");
+        CreateCostSharesTree(GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowCostShareAs::"Rolled-up");
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemAssemblyFstLvlSglLvl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"First BOM Level", true, GLBShowCostShareAs::"Single-level");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemProdOrderFstLvlSglLvl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"First BOM Level", true, GLBShowCostShareAs::"Single-level");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemAssemblyFstLvlRldUp()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 1, 1, GLBShowLevelAs::"First BOM Level", true, GLBShowCostShareAs::"Rolled-up");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemProdOrderFstLvlRldUp()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"First BOM Level", true, GLBShowCostShareAs::"Rolled-up");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemAssemblyBOMLeavesSglLvlNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"BOM Leaves", false, GLBShowCostShareAs::"Single-level");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemProdOrderBOMLeavesSglLvlNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"BOM Leaves", false, GLBShowCostShareAs::"Single-level");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemAssemblyBOMLeavesRldUpNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"BOM Leaves", false, GLBShowCostShareAs::"Rolled-up");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemProdOrderBOMLeavesRldUpNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"BOM Leaves", false, GLBShowCostShareAs::"Rolled-up");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemAssemblyFstLvlSglLvlNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"First BOM Level", false, GLBShowCostShareAs::"Single-level");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemProdOrderFstLvlSglLvlNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"First BOM Level", false, GLBShowCostShareAs::"Single-level");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemAssemblyFstLvlRldUpNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::Assembly, 2, 1, GLBShowLevelAs::"First BOM Level", false, GLBShowCostShareAs::"Rolled-up");
-    end;
-
-    [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesDistribReportHandler')]
-    [Scope('OnPrem')]
-    procedure TopItemProdOrderFstLvlRldUpNoDtl()
-    begin
-        CreateCostSharesTree(
-          GLBItem."Replenishment System"::"Prod. Order", 2, 1, GLBShowLevelAs::"First BOM Level", false, GLBShowCostShareAs::"Rolled-up");
-    end;
-
-    [Test]
-    [HandlerFunctions('BOMCostSharesPageHandlerRunDistribution,BOMCostSharesDistributionRequestPageHandler')]
+    [HandlerFunctions('BOMCostSharesPageHandlerRunProductionCostShares,ProductionCostSharesRequestPageHandler')]
     procedure OpeningBOMCostSharesPageForItemWithSpecialCharacterInName()
     var
         Item: Record Item;
@@ -278,7 +169,7 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         // [GIVEN] Create BOM for the item.
         LibraryManufacturing.CreateProductionBOM(Item, 1);
 
-        // [WHEN] Run BOM Cost Shares page and invoke BOM Cost Shares distribution report from it.
+        // [WHEN] Run BOM Cost Shares page and invoke Production Cost Shares report from it.
         // [THEN] The page and report are running okay with the item no. "ITEM1>".
         LibraryVariableStorage.Enqueue(Item."No.");
         LibraryVariableStorage.Enqueue(Item."No.");
@@ -426,7 +317,7 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesPageHandler,NoWarningsMessageHandler,BOMCostSharesDistribReportHandler')]
+    [HandlerFunctions('CalcStdCostMenuHandler,ProducedCompConfirmHandler,BOMCostSharesPageHandler,NoWarningsMessageHandler,ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
     procedure TopItemAssemblyPage()
     begin
@@ -434,7 +325,7 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
     end;
 
     [Test]
-    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesPageHandler,NoWarningsMessageHandler,BOMCostSharesDistribReportHandler')]
+    [HandlerFunctions('CalcStdCostMenuHandler,BOMCostSharesPageHandler,NoWarningsMessageHandler,ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
     procedure TopItemProdOrderPage()
     begin
@@ -990,19 +881,16 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, CalcDate('<-1M>', Today()), CalcDate('<1M>', Today()));
     end;
 
-    local procedure RunBOMCostSharesReport(Item: Record Item; ShowLevelAs: Option; ShowDetails: Boolean; ShowCostShareAs: Option)
+    local procedure RunProductionCostSharesReport(Item: Record Item)
     var
         Item1: Record Item;
     begin
         Item1.SetRange("No.", Item."No.");
         Commit();
-        LibraryVariableStorage.Enqueue(ShowCostShareAs);
-        LibraryVariableStorage.Enqueue(ShowLevelAs);
-        LibraryVariableStorage.Enqueue(ShowDetails);
-        REPORT.Run(REPORT::"BOM Cost Share Distribution", true, false, Item1);
+        Report.Run(Report::"Production Cost Shares", true, false, Item1);
     end;
 
-    local procedure VerifyBOMCostSharesReport(ItemNo: Code[20]; ExpMaterialCost: Decimal; ExpCapacityCost: Decimal; ExpMfgOvhdCost: Decimal; ExpCapOvhdCost: Decimal; ExpSubcontractedCost: Decimal; ExpTotalCost: Decimal)
+    local procedure VerifyProductionCostSharesReport(ItemNo: Code[20]; ExpMaterialCost: Decimal; ExpCapacityCost: Decimal; ExpMfgOvhdCost: Decimal; ExpCapOvhdCost: Decimal; ExpSubcontractedCost: Decimal; ExpNonInvMaterialCost: Decimal; ExpTotalCost: Decimal; ShowCostShareAs: Option "Single-level","Rolled-up")
     var
         CostAmount: Decimal;
         RoundingFactor: Decimal;
@@ -1010,23 +898,45 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         RoundingFactor := 100 * LibraryERM.GetUnitAmountRoundingPrecision();
 
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('ItemNo', ItemNo);
+        LibraryReportDataset.SetRange('No', ItemNo);
 
-        CostAmount := LibraryReportDataset.Sum('MaterialCost');
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelMaterialCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpMaterialCost');
         Assert.AreNearlyEqual(ExpMaterialCost, CostAmount, RoundingFactor, 'Wrong Material Cost in item ' + ItemNo);
 
-        CostAmount := LibraryReportDataset.Sum('CapacityCost');
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelCapacityCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpCapacityCost');
         Assert.AreNearlyEqual(ExpCapacityCost, CostAmount, RoundingFactor, 'Wrong Capacity Cost in item ' + ItemNo);
 
-        CostAmount := LibraryReportDataset.Sum('MfgOvhdCost');
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelMfgOvhdCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpMfgOvhdCost');
         Assert.AreNearlyEqual(ExpMfgOvhdCost, CostAmount, RoundingFactor, 'Wrong Mfg. Overhead in item ' + ItemNo);
 
-        CostAmount := LibraryReportDataset.Sum('CapOvhdCost');
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelCapOvhdCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpCapacityOvhdCost');
         Assert.AreNearlyEqual(ExpCapOvhdCost, CostAmount, RoundingFactor, 'Wrong Cap. Overhead in item ' + ItemNo);
 
-        CostAmount := LibraryReportDataset.Sum('SubcontrdCost');
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelSubcontrdCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpSubcontractedCost');
         Assert.AreNearlyEqual(
           ExpSubcontractedCost, CostAmount, RoundingFactor, 'Wrong Subcontracted Cost in item ' + ItemNo);
+
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLvlMatNonInvtCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpMatNonInvtCost');
+        Assert.AreNearlyEqual(
+          ExpNonInvMaterialCost, CostAmount, RoundingFactor, 'Wrong Non Inventory Material Cost in item ' + ItemNo);
 
         CostAmount := LibraryReportDataset.Sum('TotalCost');
         Assert.AreNearlyEqual(ExpTotalCost, CostAmount, RoundingFactor, 'Wrong Total Cost in item ' + ItemNo);
@@ -1233,8 +1143,6 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
     var
         Item: Record Item;
         VariantVar: Variant;
-        ShowLevelAs: Option "First BOM Level","BOM Leaves";
-        ShowCostShareAs: Option "Single-level","Rolled-up";
         ItemNo: Code[20];
     begin
         LibraryVariableStorage.Dequeue(VariantVar);
@@ -1247,10 +1155,8 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
         BOMCostShares."Show Warnings".Invoke(); // Call Show Warnings for code coverage purposes.
 
         // Enqueue parameters for report.
-        LibraryVariableStorage.Enqueue(ShowCostShareAs::"Single-level");
-        LibraryVariableStorage.Enqueue(ShowLevelAs::"BOM Leaves");
-        LibraryVariableStorage.Enqueue(true);
-        BOMCostShares."BOM Cost Share Distribution".Invoke(); // Call BOM Cost Shares distribution report for code coverage purposes.
+        LibraryVariableStorage.Enqueue(ItemNo);
+        BOMCostShares."Production Cost Shares".Invoke(); // Call Production Cost Shares report for code coverage purposes.
         BOMCostShares.OK().Invoke();
     end;
 
@@ -1296,38 +1202,27 @@ codeunit 137391 "SCM - BOM Cost Shares Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure BOMCostSharesDistribReportHandler(var BOMCostShareDistribution: TestRequestPage "BOM Cost Share Distribution")
-    var
-        ShowCostShareAs: Variant;
-        ShowLevelAs: Variant;
-        ShowDetails: Variant;
+    procedure ProductionCostSharesReportHandler(var ProductionCostShares: TestRequestPage "Production Cost Shares")
     begin
-        LibraryVariableStorage.Dequeue(ShowCostShareAs);
-        LibraryVariableStorage.Dequeue(ShowLevelAs);
-        LibraryVariableStorage.Dequeue(ShowDetails);
-
-        BOMCostShareDistribution.ShowCostShareAs.SetValue(ShowCostShareAs);
-        BOMCostShareDistribution.ShowLevelAs.SetValue(ShowLevelAs);
-        BOMCostShareDistribution.ShowDetails.SetValue(ShowDetails);
-        BOMCostShareDistribution.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ProductionCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [PageHandler]
-    procedure BOMCostSharesPageHandlerRunDistribution(var BOMCostShares: TestPage "BOM Cost Shares")
+    procedure BOMCostSharesPageHandlerRunProductionCostShares(var BOMCostShares: TestPage "BOM Cost Shares")
     begin
         BOMCostShares.ItemFilter.AssertEquals(StrSubstNo('''%1''', LibraryVariableStorage.DequeueText()));
 
         Commit();
-        BOMCostShares."BOM Cost Share Distribution".Invoke();
+        BOMCostShares."Production Cost Shares".Invoke();
         BOMCostShares.OK().Invoke();
     end;
 
     [RequestPageHandler]
-    procedure BOMCostSharesDistributionRequestPageHandler(var BOMCostShareDistribution: TestRequestPage "BOM Cost Share Distribution")
+    procedure ProductionCostSharesRequestPageHandler(var ProductionCostShares: TestRequestPage "Production Cost Shares")
     begin
         Assert.AreEqual(
-          StrSubstNo('''%1''', LibraryVariableStorage.DequeueText()),
-          BOMCostShareDistribution.Item.GetFilter(BOMCostShareDistribution.Item."No."), '');
+          LibraryVariableStorage.DequeueText(),
+          DelChr(ProductionCostShares.Item.GetFilter(ProductionCostShares.Item."No."), '<>', ''''), '');
     end;
 
     [PageHandler]

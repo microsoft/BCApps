@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -277,18 +277,23 @@ page 5872 "BOM Cost Shares"
         }
         area(reporting)
         {
+#if not CLEAN29
             action("BOM Cost Share Distribution")
             {
                 ApplicationArea = Assembly;
                 Caption = 'BOM Cost Share Distribution';
                 Image = "Report";
                 ToolTip = 'Get a graphical overview of how an assembled or produced item''s cost is distributed through its BOM. The first chart shows the total unit cost of the parent item''s components and labor resources broken down in up to five different cost shares. The pie chart labeled By Material/Labor shows the proportional distribution between the parent item''s material and labor costs, as well as its own manufacturing overhead. The material cost share includes the item''s material costs. The labor cost share includes capacity, capacity overhead and subcontracted costs. The pie chart labeled By Direct/Indirect shows the proportional distribution between the parent item''s direct and indirect costs. The direct cost share includes the item''s material, capacity, and subcontracted costs.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+                ObsoleteTag = '29.0';
 
                 trigger OnAction()
                 begin
                     ShowBOMCostShareDistribution();
                 end;
             }
+#endif
         }
         area(Promoted)
         {
@@ -299,9 +304,14 @@ page 5872 "BOM Cost Shares"
                 actionref("Show Warnings_Promoted"; "Show Warnings")
                 {
                 }
+#if not CLEAN29
                 actionref("BOM Cost Share Distribution_Promoted"; "BOM Cost Share Distribution")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+                    ObsoleteTag = '29.0';
                 }
+#endif
             }
         }
     }
@@ -422,6 +432,7 @@ page 5872 "BOM Cost Shares"
         CurrPage.Update(false);
     end;
 
+#if not CLEAN29
     local procedure ShowBOMCostShareDistribution()
     var
         Item2: Record Item;
@@ -436,6 +447,7 @@ page 5872 "BOM Cost Shares"
 
         REPORT.Run(REPORT::"BOM Cost Share Distribution", true, true, Item2);
     end;
+#endif
 
     local procedure ShowWarnings()
     var
