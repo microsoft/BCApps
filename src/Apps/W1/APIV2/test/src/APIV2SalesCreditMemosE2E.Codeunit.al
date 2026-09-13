@@ -797,17 +797,32 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     local procedure CreateCorrectiveSalesCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
+        ReasonCode: Record "Reason Code";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesHeader: Record "Sales Header";
         InvoiceCode: Code[20];
     begin
         LibrarySales.CreateSalesInvoice(SalesHeader);
+        EnsureReasonCode();
+        ReasonCode.FindFirst();
+        SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesHeader.Modify(true);
         InvoiceCode := LibrarySales.PostSalesDocument(SalesHeader, false, true);
         SalesInvoiceHeader.Get(InvoiceCode);
         Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
         SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesCrMemoHeader.FindFirst();
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")

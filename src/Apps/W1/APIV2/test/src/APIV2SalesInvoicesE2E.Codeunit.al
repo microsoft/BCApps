@@ -958,6 +958,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         DocumentId := SalesInvoiceHeader."Draft Invoice SystemId";
 
         // Special case for AU
+        EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
 
         Commit();
@@ -997,6 +998,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         DocumentId := SalesInvoiceHeader."Draft Invoice SystemId";
 
         // Special case for AU
+        EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
 
         Commit();
@@ -1358,7 +1360,20 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     local procedure CreateCancelledSalesInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         CreatePostedSalesInvoice(SalesInvoiceHeader);
+        EnsureReasonCode();
+        LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
+        Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateSalesInvoices(var InvoiceID1: Text; var InvoiceID2: Text)
