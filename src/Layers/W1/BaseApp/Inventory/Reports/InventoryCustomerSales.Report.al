@@ -304,13 +304,18 @@ report 713 "Inventory - Customer Sales"
             Type = Excel;
             Summary = 'Built in layout for the Inventory Customer Sales Excel report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory Customer Sales Word';
             LayoutFile = '.\Inventory\Reports\InventoryCustomerSales.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory Customer Sales Word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -323,6 +328,14 @@ report 713 "Inventory - Customer Sales"
             Summary = 'Built in layout for the Inventory Customer Sales RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryCustomerSalesBody.docx';
+            Caption = 'Body-only: Inventory Customer Sales Word';
+            Summary = 'Portrait orientated. Shows invoiced quantity, sales amount, discount, profit, and profit percentage for each item and customer, with subtotals for each item and overall totals.';
+        }
     }
 
     labels

@@ -13,7 +13,11 @@ report 6628 "Lot No Label"
     ApplicationArea = All;
     Caption = 'Lot No Label';
     WordMergeDataItem = "Lot No. Information";
+#if CLEAN30
+    DefaultRenderingLayout = WordBody;
+#else
     DefaultRenderingLayout = Word;
+#endif
 
     dataset
     {
@@ -75,11 +79,24 @@ report 6628 "Lot No Label"
     }
     rendering
     {
+#if not CLEAN30
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Inventory/Tracking/LotNoLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Inventory/Tracking/LotNoLabelBody.docx';
+            Caption = 'Body-only: Lot No Label (Word)';
+            Summary = 'Portrait orientated. Shows the item description and number with the lot number as text and as a 2D barcode. Use it to print labels for lot tracked items.';
         }
     }
 

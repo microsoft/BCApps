@@ -14,7 +14,11 @@ report 714 "Inventory - Vendor Purchases"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Vendor Purchases';
     ToolTip = 'View a list of the vendors that your company has purchased items from within a selected period. It shows invoiced quantity, amount and discount. The report can be used to analyze a company''s item purchases.';
+#if CLEAN30
+    DefaultRenderingLayout = Excel;
+#else
     DefaultRenderingLayout = Word;
+#endif
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -214,13 +218,18 @@ report 714 "Inventory - Vendor Purchases"
             LayoutFile = './Inventory/Reports/InventoryVendorPurchases.xlsx';
             Summary = 'Built in layout for the Inventory - Vendor Purchases Excel report.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory - Vendor Purchases Word';
             Type = Word;
             LayoutFile = './Inventory/Reports/InventoryVendorPurchases.docx';
             Summary = 'Built in layout for the Inventory - Vendor Purchases Word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
+#endif
 #if not CLEAN28
         layout(RDLC)
         {
@@ -233,6 +242,14 @@ report 714 "Inventory - Vendor Purchases"
             Summary = 'Built in layout for the Inventory - Vendor Purchases RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Inventory/Reports/InventoryVendorPurchasesBody.docx';
+            Caption = 'Body-only: Inventory - Vendor Purchases Word';
+            Summary = 'Portrait orientated. Shows invoiced quantity, cost amount, and discount amount for each item and vendor, with subtotals for each item and overall totals.';
+        }
     }
 
     labels
