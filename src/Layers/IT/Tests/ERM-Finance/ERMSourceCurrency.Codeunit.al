@@ -2347,7 +2347,6 @@ codeunit 134897 "ERM Source Currency"
         PaymentMethod: Record "Payment Method";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        BalancingGLAccountNo: Code[20];
         ExpectedSourceCurrencyAmount: Decimal;
         PostedDocumentNo: Code[20];
     begin
@@ -2366,7 +2365,6 @@ codeunit 134897 "ERM Source Currency"
         PaymentMethod.Validate("Bal. Account Type", PaymentMethod."Bal. Account Type"::"G/L Account");
         PaymentMethod.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
         PaymentMethod.Modify(true);
-        BalancingGLAccountNo := PaymentMethod."Bal. Account No.";
 
         // [GIVEN] A customer whose payment method and payment terms flow to a new LCY sales invoice.
         LibrarySales.CreateCustomer(Customer);
