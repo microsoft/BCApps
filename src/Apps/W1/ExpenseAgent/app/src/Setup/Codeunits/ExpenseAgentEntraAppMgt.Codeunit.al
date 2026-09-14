@@ -61,11 +61,8 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     end;
 
     internal procedure VerifyCanDisableAadApplicationForCurrentCompany()
-    var
-        AadApplication: Record "AAD Application";
     begin
         VerifyCurrentUserCanManageExpenseAgent();
-        GetAadApplication(AadApplication);
     end;
 
     local procedure EnableAadApplicationForCurrentCompanyWithoutAuthorization()
@@ -255,7 +252,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AggregatePermissionSet.SetRange("App ID", BaseApplicationAppId);
         AggregatePermissionSet.SetRange("Role ID", AgentAdminPermissionSetLbl);
         if not AggregatePermissionSet.FindFirst() then
-            Error(PermissionSetMissingErr, AgentAdminPermissionSetLbl);
+            ErrorPermissionSetMissing(AgentAdminPermissionSetLbl);
     end;
 
     local procedure GetExpenseManagementAdminPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set")
@@ -272,7 +269,17 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AggregatePermissionSet.SetRange("App ID", ExpenseAgentAppId);
         AggregatePermissionSet.SetRange("Role ID", PermissionSetId);
         if not AggregatePermissionSet.FindFirst() then
-            Error(PermissionSetMissingErr, PermissionSetId);
+            ErrorPermissionSetMissing(PermissionSetId);
+    end;
+
+    local procedure ErrorPermissionSetMissing(PermissionSetId: Code[20])
+    var
+        MissingPermissionSetErrorInfo: ErrorInfo;
+    begin
+        MissingPermissionSetErrorInfo.ErrorType := ErrorType::Internal;
+        MissingPermissionSetErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        MissingPermissionSetErrorInfo.Message := StrSubstNo(PermissionSetMissingErr, PermissionSetId);
+        Error(MissingPermissionSetErrorInfo);
     end;
 
     local procedure SetExpenseAgentPermissionFilters(var AccessControl: Record "Access Control"; AadApplication: Record "AAD Application"; AggregatePermissionSet: Record "Aggregate Permission Set")
