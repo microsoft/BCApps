@@ -43,7 +43,7 @@ codeunit 6993 "Expense Agent API Validation"
             Error(CapabilityNotEnabledErr, Enum::"Copilot Capability"::"Expense Agent");
     end;
 
-    [Obsolete('Use codeunit "Expense Agent Entra App Mgt.".GetAadAppId() instead.', '30.0')]
+    [Obsolete('Use codeunit "Expense Agent Entra App Mgt.".GetAadAppId() instead.', '99.9')]
     procedure GetAadAppId(): Text
     var
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
