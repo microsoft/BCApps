@@ -315,7 +315,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
             exit;
 
         AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Session.LogMessage('', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+        Session.LogMessage('0000VF3', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         Error(BlockedEndpointErr);
     end;
 
