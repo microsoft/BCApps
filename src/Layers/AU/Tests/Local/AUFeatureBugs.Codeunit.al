@@ -301,7 +301,7 @@ codeunit 145403 "AU Feature Bugs"
         OldEnableGSTAustralia: Boolean;
     begin
         // [FEATURE] [GST] [Sales] [ACY]
-        // [SCENARIO] Additional-Currency Base and Additional-Currency Amount are duplicated (net value) on both
+        // [SCENARIO 649279] Additional-Currency Base and Additional-Currency Amount are duplicated (net value) on both
         // the main line and the discount line VAT Entries of a Sales Invoice when a line discount is applied and an
         // Additional Reporting Currency is used. This test locks in the current (buggy) behavior.
 
