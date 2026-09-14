@@ -27,7 +27,6 @@ codeunit 148338 "Expense Permissions Test"
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
         D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
-        PermissionDeniedErr: Label 'You do not have the following permissions', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
@@ -132,20 +131,29 @@ codeunit 148338 "Expense Permissions Test"
         ExpenseUser: Record "Expense User";
         Approver: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
+        ExpenseUserCanRead: Boolean;
+        PermissionErrorCode: Text;
+        PermissionErrorText: Text;
     begin
         // [SCENARIO] An employee-only caller cannot approve requests without access to Expense User data.
         Initialize();
         CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+        // Preserve the fixture for the post-denial checks when asserterror rolls back.
+        Commit();
 
         LibraryLowerPermissions.StartLoggingNAVPermissions();
-        SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
+        LibraryLowerPermissions.SetExactPermissionSet(EmployeeOnlyPermissionSetTok);
+        ExpenseUserCanRead := ExpenseUser.ReadPermission();
         asserterror TravelRequestApproval.Approve(SpendRequest, Approver."No.");
-        Assert.ExpectedErrorCode('DB:ClientReadDenied');
-        Assert.ExpectedError(PermissionDeniedErr);
-        Assert.ExpectedError(ExpenseUser.TableCaption());
+        // Capture the denial before permission cleanup can change the last-error state.
+        PermissionErrorCode := GetLastErrorCode();
+        PermissionErrorText := GetLastErrorText();
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
 
+        Assert.AreEqual('DB:ClientReadDenied', PermissionErrorCode, 'Approval must fail because Expense User read access is denied.');
+        Assert.ExpectedMessage(ExpenseUser.TableCaption(), PermissionErrorText);
+        Assert.IsFalse(ExpenseUserCanRead, 'The caller must not have direct access to Expense User.');
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'A denied approval must preserve the request status.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
@@ -307,6 +315,15 @@ codeunit 148338 "Expense Permissions Test"
         SpendRequestToGLLink: Record "Spend Request To G/L Link";
         ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequestCanRead: Boolean;
+        SpendRequestDetailCanRead: Boolean;
+        SpendRequestToGLLinkCanRead: Boolean;
+        SpendRequestCanWrite: Boolean;
+        SpendRequestDetailCanWrite: Boolean;
+        ExpenseUserCanRead: Boolean;
+        ExpenseReportHeaderCanRead: Boolean;
+        ExpenseUserCanWrite: Boolean;
+        ExpenseReportHeaderCanWrite: Boolean;
     begin
         Initialize();
 
@@ -315,18 +332,28 @@ codeunit 148338 "Expense Permissions Test"
         LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
 
         // [WHEN] The effective table permissions are evaluated.
-        // [THEN] BaseApp rights are not added to these roles; app-owned rights follow the role level.
-        Assert.IsFalse(SpendRequest.ReadPermission(), 'The role must not grant direct BaseApp request access.');
-        Assert.IsFalse(SpendRequestDetail.ReadPermission(), 'The role must not grant direct BaseApp detail access.');
-        Assert.IsFalse(SpendRequestToGLLink.ReadPermission(), 'The role must not grant direct BaseApp ledger-link access.');
-        Assert.IsFalse(SpendRequest.WritePermission(), 'The role must not grant direct BaseApp request writes.');
-        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The role must not grant direct BaseApp detail writes.');
-        Assert.IsTrue(ExpenseUser.ReadPermission(), 'The role must retain read access to app-owned expense users.');
-        Assert.IsTrue(ExpenseReportHeader.ReadPermission(), 'The role must retain read access to app-owned reports.');
-        Assert.AreEqual(CanEdit, ExpenseUser.WritePermission(), 'Expense user write access must follow the role level.');
-        Assert.AreEqual(CanEdit, ExpenseReportHeader.WritePermission(), 'Expense report write access must follow the role level.');
+        SpendRequestCanRead := SpendRequest.ReadPermission();
+        SpendRequestDetailCanRead := SpendRequestDetail.ReadPermission();
+        SpendRequestToGLLinkCanRead := SpendRequestToGLLink.ReadPermission();
+        SpendRequestCanWrite := SpendRequest.WritePermission();
+        SpendRequestDetailCanWrite := SpendRequestDetail.WritePermission();
+        ExpenseUserCanRead := ExpenseUser.ReadPermission();
+        ExpenseReportHeaderCanRead := ExpenseReportHeader.ReadPermission();
+        ExpenseUserCanWrite := ExpenseUser.WritePermission();
+        ExpenseReportHeaderCanWrite := ExpenseReportHeader.WritePermission();
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] BaseApp rights are not added to these roles; app-owned rights follow the role level.
+        Assert.IsFalse(SpendRequestCanRead, 'The role must not grant direct BaseApp request access.');
+        Assert.IsFalse(SpendRequestDetailCanRead, 'The role must not grant direct BaseApp detail access.');
+        Assert.IsFalse(SpendRequestToGLLinkCanRead, 'The role must not grant direct BaseApp ledger-link access.');
+        Assert.IsFalse(SpendRequestCanWrite, 'The role must not grant direct BaseApp request writes.');
+        Assert.IsFalse(SpendRequestDetailCanWrite, 'The role must not grant direct BaseApp detail writes.');
+        Assert.IsTrue(ExpenseUserCanRead, 'The role must retain read access to app-owned expense users.');
+        Assert.IsTrue(ExpenseReportHeaderCanRead, 'The role must retain read access to app-owned reports.');
+        Assert.AreEqual(CanEdit, ExpenseUserCanWrite, 'Expense user write access must follow the role level.');
+        Assert.AreEqual(CanEdit, ExpenseReportHeaderCanWrite, 'Expense report write access must follow the role level.');
     end;
 
     local procedure VerifyTravelRequestDetailUpdateIndirectly(PermissionSetId: Code[20])
