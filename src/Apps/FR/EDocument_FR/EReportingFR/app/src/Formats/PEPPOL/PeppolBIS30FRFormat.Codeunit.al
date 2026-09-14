@@ -6,7 +6,6 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.IO.Peppol;
-using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
@@ -586,6 +585,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     var
         Customer: Record Customer;
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         BuyerPartyNode: XmlNode;
         CustomerNo: Code[20];

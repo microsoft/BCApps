@@ -572,8 +572,8 @@ codeunit 10991 "EDoc. Helpers"
 
     local procedure RaiseIdentifierError(ErrorMessage: Text; RecordVariant: Variant)
     var
-        IdentifierErrorInfo: ErrorInfo;
         RecordRef: RecordRef;
+        IdentifierErrorInfo: ErrorInfo;
     begin
         RecordRef.GetTable(RecordVariant);
         IdentifierErrorInfo.Message(ErrorMessage);
