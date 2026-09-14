@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -217,7 +217,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
             exit;
 
         AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Session.LogMessage('', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+        Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
         Clear(TempBlob);
         Error(ResponseTooLargeErr);
     end;
@@ -247,7 +247,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         // Schema / source expectation: a genuine VIES response echoes the queried country code and VAT number.
         if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseSchemaTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('', ResponseSchemaMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+            Session.LogMessage('0000VER', ResponseSchemaMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
             Error(ResponseSchemaErr);
         end;
 
@@ -256,7 +256,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
            (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo()))
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+            Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
             Error(ResponseIntegrityErr);
         end;
     end;

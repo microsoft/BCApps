@@ -201,7 +201,7 @@ codeunit 10046 "OAuth Client IRIS"
         end;
         if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), GetTokensEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
+            FeatureTelemetry.LogError('0000VEL', Helper.GetIRISFeatureName(), GetTokensEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
             Error(ResponseTooLargeErr);
         end;
         HttpResponseMessage.Content().ReadAs(ResponseText);
@@ -383,7 +383,7 @@ codeunit 10046 "OAuth Client IRIS"
 
         if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), GetTokensEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
+            FeatureTelemetry.LogError('0000VEM', Helper.GetIRISFeatureName(), GetTokensEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
             Error(ResponseTooLargeErr);
         end;
         HttpResponseMessage.Content().ReadAs(ResponseText);
@@ -426,7 +426,7 @@ codeunit 10046 "OAuth Client IRIS"
         end;
         if StrLen(ResponseText) > GetMaxResponseSize() then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), SubmitTransmEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
+            FeatureTelemetry.LogError('0000VEN', Helper.GetIRISFeatureName(), SubmitTransmEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
             Error(ResponseTooLargeErr);
         end;
         Helper.WriteTextToTempBlob(ResponseContentBlob, ResponseText);
@@ -464,7 +464,7 @@ codeunit 10046 "OAuth Client IRIS"
         end;
         if StrLen(ResponseText) > GetMaxResponseSize() then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), RequestTransmStatusOrAckEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
+            FeatureTelemetry.LogError('0000VEO', Helper.GetIRISFeatureName(), RequestTransmStatusOrAckEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
             Error(ResponseTooLargeErr);
         end;
         Helper.WriteTextToTempBlob(ResponseBlob, ResponseText);

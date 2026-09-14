@@ -406,7 +406,7 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         HttpClient.Get(PublicIPServiceURL, HttpResponseMessage);
         if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
+            FeatureTelemetry.LogError('0000VEJ', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
             exit;
         end;
         HttpResponseMessage.Content().ReadAs(Content);
@@ -414,7 +414,7 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         // malicious payload from the unauthenticated service cannot be extracted and trusted.
         if StrLen(Content) > GetMaxResponseSize() then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
+            FeatureTelemetry.LogError('0000VEK', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
             exit;
         end;
         Regex.Match(Content, IPAddressRegExPatternTxt, 0, Matches);
