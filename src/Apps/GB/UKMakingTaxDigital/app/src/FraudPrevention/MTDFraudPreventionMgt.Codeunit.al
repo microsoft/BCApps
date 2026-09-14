@@ -461,6 +461,9 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         Uri: Codeunit Uri;
         Host: Text;
     begin
+        // URL restrictions apply online (SaaS) only; on-prem admins control their own network egress (e.g. internal proxies).
+        if not EnvironmentInformation.IsSaaS() then
+            exit(true);
         if not TryInitUri(Uri, PublicIPServiceURL) then
             exit(false);
         // Require HTTPS so the response cannot be tampered with in transit and to reduce the redirect surface.

@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.Registration;
 using Microsoft.CRM.Contact;
 using Microsoft.Sales.Customer;
 using System;
+using System.Environment;
 using System.Integration;
 using System.Reflection;
 using System.Telemetry;
@@ -55,6 +56,9 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
+        BlockedEndpointErr: Label 'The VAT registration service endpoint must be an external address. Internal, private, loopback, or link-local addresses are not allowed.';
+        BlockedEndpointMsg: Label 'The VAT reg. no. validation failed. The configured service endpoint targets an internal address and was rejected.', Locked = true;
+        SecurityAuditBlockedEndpointTxt: Label 'The EU VAT Registration No. validation service (VIES) endpoint was rejected because it targets an internal address.', Locked = true;
         CountryCodePathTxt: Label 'descendant::vat:countryCode', Locked = true;
         VatNumberPathTxt: Label 'descendant::vat:vatNumber', Locked = true;
         VATRegistrationURL: Text;
@@ -85,6 +89,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         BlankSecretText: SecretText;
     begin
         VATRegistrationURL := VATRegNoSrvConfig.GetVATRegNoURL();
+        CheckServiceEndpointAllowed(VATRegistrationURL);
 
         if VATRegistrationLog."VAT Registration No." = '' then
             Error(NoVATNoToValidateErr);
@@ -286,6 +291,83 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ErrInfo.DataClassification := DataClassification::SystemMetadata;
         ErrInfo.ErrorType := ErrorType::Internal;
         Error(ErrInfo);
+    end;
+
+    local procedure CheckServiceEndpointAllowed(ServiceUrl: Text)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        AuditLog: Codeunit "Audit Log";
+        Uri: Codeunit Uri;
+        Host: Text;
+    begin
+        // SSRF mitigation: the service endpoint is an admin-configurable setup value. Online (SaaS), reject internal/
+        // private/loopback targets so the setup cannot redirect this server-side call to an internal address. On-prem
+        // admins control their own network egress (e.g. internal proxies), so no restriction is applied there. VIES is
+        // http by design, so the scheme is not restricted.
+        if not EnvironmentInformation.IsSaaS() then
+            exit;
+        if not TryInitUri(Uri, ServiceUrl) then
+            exit; // a malformed URL is handled by the existing send/fault path
+        Host := LowerCase(Uri.GetHost());
+        if Host = '' then
+            exit;
+        if not IsInternalHost(Host) then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        Session.LogMessage('', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+        Error(BlockedEndpointErr);
+    end;
+
+    [TryFunction]
+    local procedure TryInitUri(var Uri: Codeunit Uri; Url: Text)
+    begin
+        Uri.Init(Url);
+    end;
+
+    local procedure IsInternalHost(Host: Text): Boolean
+    begin
+        if Host in ['localhost', '127.0.0.1', '::1', '[::1]'] then
+            exit(true);
+
+        if Host.Contains(':') then begin
+            // IPv4-mapped IPv6 literal (::ffff:127.0.0.1): re-check the embedded IPv4 address.
+            if Host.StartsWith('::ffff:') then
+                exit(IsInternalHost(CopyStr(Host, 8)));
+            // IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
+            if Host.StartsWith('fc') or Host.StartsWith('fd') then
+                exit(true);
+            if Host.StartsWith('fe8') or Host.StartsWith('fe9') or Host.StartsWith('fea') or Host.StartsWith('feb') then
+                exit(true);
+            exit(false);
+        end;
+
+        // IPv4 loopback (127.0.0.0/8), link-local incl. cloud IMDS (169.254.0.0/16), and RFC1918 private ranges.
+        if Host.StartsWith('127.') then
+            exit(true);
+        if Host.StartsWith('169.254.') then
+            exit(true);
+        if Host.StartsWith('10.') then
+            exit(true);
+        if Host.StartsWith('192.168.') then
+            exit(true);
+        exit(IsPrivate172Range(Host));
+    end;
+
+    local procedure IsPrivate172Range(Host: Text): Boolean
+    var
+        Octets: List of [Text];
+        SecondOctet: Integer;
+    begin
+        // Private range 172.16.0.0 - 172.31.255.255.
+        if not Host.StartsWith('172.') then
+            exit(false);
+        Octets := Host.Split('.');
+        if Octets.Count() < 2 then
+            exit(false);
+        if not Evaluate(SecondOctet, Octets.Get(2)) then
+            exit(false);
+        exit((SecondOctet >= 16) and (SecondOctet <= 31));
     end;
 
     /// <summary>
