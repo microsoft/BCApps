@@ -327,7 +327,9 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
     local procedure IsInternalHost(Host: Text): Boolean
     begin
-        if Host in ['localhost', '127.0.0.1', '::1', '[::1]'] then
+        // Strip IPv6 literal brackets so bracketed forms (e.g. [::ffff:127.0.0.1]) are checked the same as bare hosts.
+        Host := DelChr(Host, '=', '[]');
+        if Host in ['localhost', '127.0.0.1', '::1'] then
             exit(true);
 
         if Host.Contains(':') then begin
