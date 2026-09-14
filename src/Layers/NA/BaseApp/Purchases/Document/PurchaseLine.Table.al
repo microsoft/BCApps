@@ -2726,6 +2726,7 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
+                TestStatusOpen();
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
