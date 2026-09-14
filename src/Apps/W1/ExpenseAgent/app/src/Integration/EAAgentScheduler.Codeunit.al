@@ -23,7 +23,7 @@ codeunit 6935 "EA Agent Scheduler"
         TelemetryAgentScheduledTaskCancelledLbl: Label 'Agent scheduled task cancelled.', Locked = true;
         TelemetryRecoveryScheduledTaskCancelledLbl: Label 'Recovery scheduled task cancelled.', Locked = true;
         TelemetryAgentScheduledLbl: Label 'Agent scheduled.', Locked = true;
-        HasNoAccessControlErr: Label 'Expense agent setup page specifies that you cannot configure the agent.';
+        HasNoAccessControlErr: Label 'You do not have permission to configure the Expense Agent. Ask an administrator to grant you "Can Configure Agent" access on the Expense Agent Setup page.';
 
     internal procedure ScheduleAgent(EASetup: Record "Expense Agent Setup")
     var
