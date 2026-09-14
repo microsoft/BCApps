@@ -852,7 +852,7 @@ codeunit 148012 "Nemhandel Tests"
     local procedure GetOversizedResponseBodyText(CVRNumber: Text): Text
     begin
         // Valid JSON that echoes the CVR number but carries a payload larger than the accepted response size (64 KB).
-        exit(StrSubstNo('{"cvrNummer":"%1","pad":"%2"}', CVRNumber, PadStr('', 70000, 'A')));
+        exit('{"cvrNummer":"' + CVRNumber + '","pad":"' + PadStr('', 70000, 'A') + '"}');
     end;
 
     local procedure UpdateRegisteredWithNemhandel(NewValue: Enum "Nemhandel Company Status")

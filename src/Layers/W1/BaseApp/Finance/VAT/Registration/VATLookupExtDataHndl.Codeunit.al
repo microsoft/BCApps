@@ -232,10 +232,10 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     /// Responses that do not echo an identifier are left to the existing verification logic and are not rejected here,
     /// so legitimate responses that simply omit those fields are never blocked.
     /// </summary>
-    /// <param name="VATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
+    /// <param name="RecVATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
     /// <param name="XMLDoc">The parsed VIES response document.</param>
     /// <param name="Namespace">The VIES XML namespace used to resolve response nodes.</param>
-    internal procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
+    internal procedure ValidateResponseIntegrity(var RecVATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
     var
         AuditLog: Codeunit "Audit Log";
         ResponseCountryCode: Text;
@@ -250,8 +250,8 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ResponseVATNumber := ExtractResponseValue(XMLDoc, VatNumberPathTxt, Namespace);
 
         // Integrity (validate-if-present): only reject when an echoed identifier is present and contradicts the request.
-        if ((ResponseCountryCode <> '') and (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetCountryCode()))) or
-           ((ResponseVATNumber <> '') and (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo())))
+        if ((ResponseCountryCode <> '') and (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(RecVATRegistrationLog.GetCountryCode()))) or
+           ((ResponseVATNumber <> '') and (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(RecVATRegistrationLog.GetVATRegNo())))
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
