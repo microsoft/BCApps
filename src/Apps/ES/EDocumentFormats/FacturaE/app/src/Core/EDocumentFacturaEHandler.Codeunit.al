@@ -113,7 +113,7 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetNumberValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceTotals/InvoiceTotal', EDocumentPurchaseHeader.Total);
         EDocumentXMLHelper.SetNumberValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceTotals/TotalOutstandingAmount', EDocumentPurchaseHeader."Amount Due");
         EDocumentXMLHelper.SetDateValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/InvoiceDocumentReference/ReferencedDocumentDate', EDocumentPurchaseHeader."Due Date");
-        EDocumentXMLHelper.SetStringValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/Corrective/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Applies-to Ext. Invoice No."), EDocumentPurchaseHeader."Applies-to Ext. Invoice No.");
+        EDocumentXMLHelper.SetStringValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/Corrective/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Vendor Invoice No."), EDocumentPurchaseHeader."Vendor Invoice No.");
 
         if VendorNo <> '' then
             EDocumentPurchaseHeader."[BC] Vendor No." := VendorNo;
