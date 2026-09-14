@@ -435,7 +435,7 @@ function Initialize-AgentTaskLogFolder {
         $AgentTaskLogFolderParent = Split-Path -Path $ResolvedAgentTaskLogFolder -Parent
         $AgentTaskLogFolderName = Split-Path -Path $ResolvedAgentTaskLogFolder -Leaf
         $OldAgentTaskLogFolder = Join-Path $AgentTaskLogFolderParent "$AgentTaskLogFolderName-old"
-        $ArchiveFolder = Join-Path $OldAgentTaskLogFolder (Get-Date -Format 'yyyyMMdd_HHmmss_fff')
+        $ArchiveFolder = Join-Path $OldAgentTaskLogFolder (Get-Date -Format 'yyyy_MM_dd_HHmmss')
         New-Item -ItemType Directory -Force -Path $OldAgentTaskLogFolder | Out-Null
         Move-Item -Path $AgentTaskLogFolder -Destination $ArchiveFolder
         Write-HostWithTimestamp "Moved existing Agent Task logs to $ArchiveFolder"
