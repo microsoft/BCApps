@@ -118,9 +118,9 @@ codeunit 148361 "Expense Agent Config. Test"
         // [WHEN] Activating the Expense Agent for the current company
         ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
 
-        // [THEN] The global grant is replaced by an explicit current-company grant
+        // [THEN] The global grant remains and an explicit current-company grant is added
         VerifyAadApplicationState(AadApplication.State::Enabled);
-        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, '');
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, '');
         VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
     end;
 
@@ -145,7 +145,7 @@ codeunit 148361 "Expense Agent Config. Test"
         // [WHEN] Deactivating the Expense Agent for the current company
         ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
 
-        // [THEN] The current permission is removed while company "B" is preserved
+        // [THEN] The current permission is removed and company "B" is preserved
         VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
         VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, OtherCompanyName);
     end;
@@ -217,13 +217,13 @@ codeunit 148361 "Expense Agent Config. Test"
     end;
 
     [Test]
-    procedure DeactivatingRemovesGlobalPermission()
+    procedure DeactivatingWithGlobalPermissionDisablesApplication()
     var
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 640454] Deactivating removes a legacy global Expense Agent grant
+        // [SCENARIO 640454] A global grant does not keep the Entra app enabled after the last company is deactivated
         Initialize();
 
         // [GIVEN] Enabled Entra app "EA" has global and current-company Expense Agent permissions
@@ -235,8 +235,9 @@ codeunit 148361 "Expense Agent Config. Test"
         // [WHEN] Deactivating the Expense Agent for the current company
         ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
 
-        // [THEN] Current and global Expense Agent grants are removed
-        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, '');
+        // [THEN] "EA" is disabled, the current grant is removed, and the global grant remains
+        VerifyAadApplicationState(AadApplication.State::Disabled);
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, '');
         VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
     end;
 
@@ -320,7 +321,6 @@ codeunit 148361 "Expense Agent Config. Test"
         if PermissionSetId = ExpenseAgentPermissionSetTok then begin
             GetExpenseAgentPermissionSet(AggregatePermissionSet);
             AssignPermission(AadApplication, AggregatePermissionSet, CompanyNameValue);
-            SelectLatestVersion();
             exit;
         end;
 
