@@ -2684,7 +2684,9 @@ codeunit 142063 SalesDocTotalsSalesEntryUI
         CreateTaxGroup('');
         CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
         if IsCalcInvDiscountMarked() then
-            SalesHeader.Validate("Invoice Discount Calculation", SalesHeader."Invoice Discount Calculation"::"%");
+            SalesHeader.Validate("Invoice Discount Calculation", SalesHeader."Invoice Discount Calculation"::"%")
+        else
+            SalesHeader.Validate("Invoice Discount Calculation", SalesHeader."Invoice Discount Calculation"::None);
         SalesHeader.Validate("Tax Area Code", TaxAreaCode);
         SalesHeader.Modify();
         LibrarySales.CreateSalesLine(

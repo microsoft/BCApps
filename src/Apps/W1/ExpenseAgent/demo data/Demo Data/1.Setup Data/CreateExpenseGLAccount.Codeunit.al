@@ -4,8 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.DemoData.Finance;
+using Microsoft.DemoTool;
 using Microsoft.DemoTool.Helpers;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.Enums;
 
 codeunit 8207 "Create Expense G/L Account"
 {
@@ -16,9 +19,152 @@ codeunit 8207 "Create Expense G/L Account"
     var
         GLAccountIndent: Codeunit "G/L Account-Indent";
     begin
+        AddExpenseVATAccountsForLocalization();
+        InsertExpenseVATAccounts();
         AddGLAccountsForLocalization();
 
         GLAccountIndent.Indent();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create G/L Account", OnAfterAddGLAccountsForLocalization, '', false, false)]
+    local procedure AddExpenseVATAccountsForLocalization()
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
+        CreateExpenseVATRates: Codeunit "Create Expense VAT Rates";
+        VATRates: List of [Decimal];
+        VATRate: Decimal;
+        AccountNo: Integer;
+    begin
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
+        if not ContosoCoffeeDemoDataSetup.Get() then
+            exit;
+
+        VATRates := GetExpenseVATRates(ContosoCoffeeDemoDataSetup."Country/Region Code");
+        AccountNo := 5650;
+        foreach VATRate in VATRates do begin
+            if AccountNo > 5659 then
+                Error(ExpenseVATAccountRangeExceededErr, ContosoCoffeeDemoDataSetup."Country/Region Code");
+            ContosoGLAccount.AddAccountForLocalization(CreateExpenseVATRates.GetExpenseVATAccountName(VATRate), Format(AccountNo));
+            AccountNo += 1;
+        end;
+    end;
+
+    local procedure InsertExpenseVATAccounts()
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
+        CreateExpenseVATRates: Codeunit "Create Expense VAT Rates";
+        VATRates: List of [Decimal];
+        VATRate: Decimal;
+    begin
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
+        if not ContosoCoffeeDemoDataSetup.Get() then
+            exit;
+
+        VATRates := GetExpenseVATRates(ContosoCoffeeDemoDataSetup."Country/Region Code");
+        foreach VATRate in VATRates do
+            ContosoGLAccount.InsertGLAccount(
+                ContosoGLAccount.GetAccountNo(CreateExpenseVATRates.GetExpenseVATAccountName(VATRate)),
+                CreateExpenseVATRates.GetExpenseVATAccountName(VATRate),
+                Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Assets, '',
+                Enum::"G/L Account Type"::Posting, '', '', 0, '', Enum::"General Posting Type"::" ", '', '', false, false, false);
+    end;
+
+    local procedure GetExpenseVATRates(CountryCode: Code[10]) VATRates: List of [Decimal]
+    begin
+        case CountryCode of
+            'AT':
+                AddExpenseVATRates(VATRates, 0, 10, 13, 20);
+            'AU':
+                AddExpenseVATRates(VATRates, 0, 10);
+            'BE':
+                AddExpenseVATRates(VATRates, 0, 6, 12, 21);
+            'BG':
+                AddExpenseVATRates(VATRates, 0, 9, 20);
+            'CH':
+                AddExpenseVATRates(VATRates, 0, 2.6, 3.8, 8.1);
+            'CY':
+                AddExpenseVATRates(VATRates, 0, 9, 19);
+            'CZ':
+                AddExpenseVATRates(VATRates, 0, 12, 21);
+            'DE':
+                AddExpenseVATRates(VATRates, 0, 7, 19);
+            'DK':
+                AddExpenseVATRates(VATRates, 0, 25);
+            'EE':
+                AddExpenseVATRates(VATRates, 0, 9, 22);
+            'ES':
+                AddExpenseVATRates(VATRates, 0, 10, 21);
+            'FI':
+                AddExpenseVATRates(VATRates, 0, 10, 13.5, 25.5);
+            'FR':
+                AddExpenseVATRates(VATRates, 0, 10, 20);
+            'GB':
+                AddExpenseVATRates(VATRates, 0, 20);
+            'GR':
+                AddExpenseVATRates(VATRates, 0, 13, 24);
+            'HR':
+                AddExpenseVATRates(VATRates, 0, 13, 25);
+            'HU':
+                AddExpenseVATRates(VATRates, 0, 18, 27);
+            'IE':
+                AddExpenseVATRates(VATRates, 0, 9, 13.5, 23);
+            'IS':
+                AddExpenseVATRates(VATRates, 0, 11, 24);
+            'IT':
+                AddExpenseVATRates(VATRates, 0, 10, 22);
+            'LT':
+                AddExpenseVATRates(VATRates, 0, 9, 21);
+            'LU':
+                AddExpenseVATRates(VATRates, 0, 8, 17);
+            'LV':
+                AddExpenseVATRates(VATRates, 0, 12, 21);
+            'MT':
+                AddExpenseVATRates(VATRates, 0, 5, 7, 18);
+            'MX':
+                AddExpenseVATRates(VATRates, 0, 16);
+            'NL':
+                AddExpenseVATRates(VATRates, 0, 9, 21);
+            'NO':
+                AddExpenseVATRates(VATRates, 0, 12, 15, 25);
+            'NZ':
+                AddExpenseVATRates(VATRates, 0, 15);
+            'PL':
+                AddExpenseVATRates(VATRates, 0, 8, 23);
+            'PT':
+                AddExpenseVATRates(VATRates, 0, 6, 13, 23);
+            'RO':
+                AddExpenseVATRates(VATRates, 0, 9, 19);
+            'SE':
+                AddExpenseVATRates(VATRates, 0, 6, 12, 25);
+            'SI':
+                AddExpenseVATRates(VATRates, 0, 9.5, 22);
+            'SK':
+                AddExpenseVATRates(VATRates, 0, 10, 23);
+            'UA':
+                AddExpenseVATRates(VATRates, 0, 20);
+        end;
+    end;
+
+    local procedure AddExpenseVATRates(var VATRates: List of [Decimal]; VATRate1: Decimal; VATRate2: Decimal)
+    begin
+        VATRates.Add(VATRate1);
+        VATRates.Add(VATRate2);
+    end;
+
+    local procedure AddExpenseVATRates(var VATRates: List of [Decimal]; VATRate1: Decimal; VATRate2: Decimal; VATRate3: Decimal)
+    begin
+        AddExpenseVATRates(VATRates, VATRate1, VATRate2);
+        VATRates.Add(VATRate3);
+    end;
+
+    local procedure AddExpenseVATRates(var VATRates: List of [Decimal]; VATRate1: Decimal; VATRate2: Decimal; VATRate3: Decimal; VATRate4: Decimal)
+    begin
+        AddExpenseVATRates(VATRates, VATRate1, VATRate2, VATRate3);
+        VATRates.Add(VATRate4);
     end;
 
     local procedure AddGLAccountsForLocalization()
@@ -41,6 +187,7 @@ codeunit 8207 "Create Expense G/L Account"
         RentalVehiclesTok: Label 'Rental vehicles', MaxLength = 100;
         BusinessEntertainingNondeductibleTok: Label 'Business Entertaining, nondeductible', MaxLength = 100;
         OtherTravelExpensesTok: Label 'Other travel expenses', MaxLength = 100;
+        ExpenseVATAccountRangeExceededErr: Label 'More than ten Expense VAT rates are defined for country/region %1.', Comment = '%1 = country/region code';
 
     procedure FindGLAccountByName(AccountName: Text[100]): Code[20]
     var
