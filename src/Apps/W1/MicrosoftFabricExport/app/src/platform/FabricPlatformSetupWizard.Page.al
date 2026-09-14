@@ -24,7 +24,6 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 label(IntroText)
                 {
-                    ApplicationArea = All;
                     Caption = 'This guide connects your environment to Microsoft Fabric: enter API credentials, choose a workspace and Open Mirroring database, grant access, connect, and select the companies and tables to synchronize.';
                 }
             }
@@ -36,7 +35,6 @@ page 48519 "Fabric Platform Setup Wizard"
                 field(ClientId; ClientIdValue)
                 {
                     Caption = 'Client ID';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
@@ -49,7 +47,6 @@ page 48519 "Fabric Platform Setup Wizard"
                 field(ClientSecret; ClientSecretValue)
                 {
                     Caption = 'Client Secret';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
                     ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
@@ -66,7 +63,6 @@ page 48519 "Fabric Platform Setup Wizard"
                 field(PrincipalId; PrincipalIdValue)
                 {
                     Caption = 'Principal ID';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
 
@@ -84,7 +80,6 @@ page 48519 "Fabric Platform Setup Wizard"
                 field("Fabric Workspace Name"; WorkspaceNameValue)
                 {
                     Caption = 'Fabric Workspace Name';
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace. Use the assist button to browse available workspaces.';
 
@@ -104,8 +99,8 @@ page 48519 "Fabric Platform Setup Wizard"
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(WorkspaceId, TempBuffer.Value) then
                                 Error(CreateFabricDataErrorInfo(StrSubstNo(WorkspaceIdInvalidErr, TempBuffer.Value)));
-                            Rec."Fabric Workspace ID" := WorkspaceId;
-                            Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
+                            Rec.Validate("Fabric Workspace ID", WorkspaceId);
+                            Rec.Validate("Fabric Workspace Name", CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name")));
                             Clear(Rec."Fabric Lakehouse ID");
                             Rec.Modify(true);
                             WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
@@ -122,7 +117,6 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 label(WorkspaceAccessText)
                 {
-                    ApplicationArea = All;
                     Caption = 'Choose Add to workspace to grant the service principal (Principal ID) Contributor access on the selected Fabric workspace. Run this once per workspace.';
                 }
             }
@@ -134,7 +128,6 @@ page 48519 "Fabric Platform Setup Wizard"
                 field("Fabric Open Mirroring Name"; OpenMirroringNameValue)
                 {
                     Caption = 'Fabric Open Mirroring Name';
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the display name of the selected Microsoft Fabric Open Mirroring database. Use the assist button to browse Open Mirroring databases in the selected workspace.';
 
@@ -154,7 +147,7 @@ page 48519 "Fabric Platform Setup Wizard"
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(MirroredDatabaseId, TempBuffer.Value) then
                                 Error(CreateFabricDataErrorInfo(StrSubstNo(MirroredDatabaseIdInvalidErr, TempBuffer.Value)));
-                            Rec."Fabric Lakehouse ID" := MirroredDatabaseId;
+                            Rec.Validate("Fabric Lakehouse ID", MirroredDatabaseId);
                             Rec.Modify(true);
                             OpenMirroringNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(OpenMirroringNameValue));
                             CredMgt.SetOpenMirroringDatabaseName(OpenMirroringNameValue);
@@ -169,12 +162,10 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 field("Minutes Between Exports"; Rec."Minutes Between Exports")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the interval, in minutes, between continuous export runs.';
                 }
                 label(ConnectText)
                 {
-                    ApplicationArea = All;
                     Caption = 'Choose Connect to Fabric to run the platform setup pipeline. This is asynchronous; follow progress on Fabric Synchronization Overview after finishing this guide.';
                 }
             }
@@ -185,7 +176,6 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 label(CompaniesText)
                 {
-                    ApplicationArea = All;
                     Caption = 'Choose Select companies to add the companies whose data you want to send to Microsoft Fabric.';
                 }
             }
@@ -196,7 +186,6 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 label(TablesText)
                 {
-                    ApplicationArea = All;
                     Caption = 'Choose Select tables to add the Business Central tables you want to send to Microsoft Fabric.';
                 }
             }
@@ -207,12 +196,10 @@ page 48519 "Fabric Platform Setup Wizard"
 
                 label(FinishText)
                 {
-                    ApplicationArea = All;
                     Caption = 'Your Fabric connection is configured. Choose Finish to start synchronization, or start it later from the Fabric Platform Setup page.';
                 }
                 field("Export Enabled"; Rec."Export Enabled")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies whether continuous export is currently enabled.';
                 }
@@ -346,10 +333,10 @@ page 48519 "Fabric Platform Setup Wizard"
 
     local procedure CreateFabricDataErrorInfo(DetailedMessage: Text) ErrInfo: ErrorInfo
     begin
-        ErrInfo.Message := FabricDataInvalidErr;
-        ErrInfo.DetailedMessage := DetailedMessage;
-        ErrInfo.DataClassification := DataClassification::SystemMetadata;
-        ErrInfo.ErrorType := ErrorType::Internal;
+        ErrInfo.Message(FabricDataInvalidErr);
+        ErrInfo.DetailedMessage(DetailedMessage);
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     var

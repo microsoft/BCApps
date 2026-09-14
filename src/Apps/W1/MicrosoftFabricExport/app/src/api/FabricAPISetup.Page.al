@@ -62,7 +62,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Enable the Fabric export')]
     [Scope('Cloud')]
-    procedure enableexport(var ActionContext: WebServiceActionContext)
+    procedure Enableexport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
@@ -73,7 +73,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Start the Fabric export')]
     [Scope('Cloud')]
-    procedure startexport(var ActionContext: WebServiceActionContext)
+    procedure Startexport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
@@ -84,7 +84,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Stop the Fabric export')]
     [Scope('Cloud')]
-    procedure stopexport(var ActionContext: WebServiceActionContext)
+    procedure Stopexport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
@@ -95,7 +95,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Disable the Fabric export')]
     [Scope('Cloud')]
-    procedure disableexport(var ActionContext: WebServiceActionContext)
+    procedure Disableexport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin

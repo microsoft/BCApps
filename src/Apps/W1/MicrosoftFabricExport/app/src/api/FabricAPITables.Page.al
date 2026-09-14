@@ -57,7 +57,7 @@ page 48502 "Fabric API Tables"
     [ServiceEnabled]
     [Caption('Add a table to Fabric export')]
     [Scope('Cloud')]
-    procedure addtable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
+    procedure Addtable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";

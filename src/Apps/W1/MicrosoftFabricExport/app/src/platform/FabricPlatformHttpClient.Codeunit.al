@@ -4,8 +4,6 @@ using System.RestClient;
 
 codeunit 48525 "Fabric Platform Http Client"
 {
-    Access = Internal;
-
     internal procedure CreateClientWithBearer(AccessToken: SecretText) RestClientResult: Codeunit "Rest Client"
     begin
         RestClientResult := CreateClient();

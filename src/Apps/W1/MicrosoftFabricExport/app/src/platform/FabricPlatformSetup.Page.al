@@ -26,7 +26,6 @@ page 48511 "Fabric Platform Setup"
                 field("Fabric Workspace Name"; WorkspaceNameValue)
                 {
                     Caption = 'Fabric Workspace Name';
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace. Use the assist button to browse available workspaces.';
 
@@ -49,8 +48,8 @@ page 48511 "Fabric Platform Setup"
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(WorkspaceId, TempBuffer.Value) then
                                 Error(CreateFabricDataErrorInfo(StrSubstNo(WorkspaceIdInvalidErr, TempBuffer.Value)));
-                            Rec."Fabric Workspace ID" := WorkspaceId;
-                            Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
+                            Rec.Validate("Fabric Workspace ID", WorkspaceId);
+                            Rec.Validate("Fabric Workspace Name", CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name")));
                             Clear(Rec."Fabric Lakehouse ID");
                             Rec.Modify(true);
                             WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
@@ -62,7 +61,6 @@ page 48511 "Fabric Platform Setup"
                 }
                 field("Fabric Workspace ID"; Rec."Fabric Workspace ID")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies the Microsoft Fabric workspace that receives the exported data.';
@@ -70,7 +68,6 @@ page 48511 "Fabric Platform Setup"
                 field("Fabric Open Mirroring Name"; OpenMirroringNameValue)
                 {
                     Caption = 'Fabric Open Mirroring Name';
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the display name of the selected Microsoft Fabric Open Mirroring database. Use the assist button to browse Open Mirroring databases in the selected workspace.';
 
@@ -93,7 +90,7 @@ page 48511 "Fabric Platform Setup"
                             LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(MirroredDatabaseId, TempBuffer.Value) then
                                 Error(CreateFabricDataErrorInfo(StrSubstNo(MirroredDatabaseIdInvalidErr, TempBuffer.Value)));
-                            Rec."Fabric Lakehouse ID" := MirroredDatabaseId;
+                            Rec.Validate("Fabric Lakehouse ID", MirroredDatabaseId);
                             Rec.Modify(true);
                             OpenMirroringNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(OpenMirroringNameValue));
                             CredMgt.SetOpenMirroringDatabaseName(OpenMirroringNameValue);
@@ -104,26 +101,22 @@ page 48511 "Fabric Platform Setup"
                 field("Fabric Lakehouse ID"; Rec."Fabric Lakehouse ID")
                 {
                     Caption = 'Fabric Open Mirroring Database ID';
-                    ApplicationArea = All;
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies the Microsoft Fabric Open Mirroring database that receives the exported data.';
                 }
                 field("Fabric Data Namespace"; Rec."Fabric Data Namespace")
                 {
-                    ApplicationArea = All;
                     Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported data tables.';
                 }
                 field("Fabric Logging Namespace"; Rec."Fabric Logging Namespace")
                 {
-                    ApplicationArea = All;
                     Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported logging tables.';
                 }
                 field("Setup Complete"; Rec."Setup Complete")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies whether the platform setup pipeline completed successfully.';
                 }
@@ -134,7 +127,6 @@ page 48511 "Fabric Platform Setup"
 
                 field("Minutes Between Exports"; Rec."Minutes Between Exports")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the interval, in minutes, between continuous export runs.';
 
                     trigger OnValidate()
@@ -144,7 +136,6 @@ page 48511 "Fabric Platform Setup"
                 }
                 field("Max Consecutive Failed Runs"; Rec."Max Consecutive Failed Runs")
                 {
-                    ApplicationArea = All;
                     MinValue = 1;
                     MaxValue = 5;
                     ToolTip = 'Specifies how many consecutive failed runs are allowed before the platform stops the export.';
@@ -156,7 +147,6 @@ page 48511 "Fabric Platform Setup"
                 }
                 field("Export Enabled"; Rec."Export Enabled")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies whether continuous export is currently enabled.';
                 }
@@ -169,7 +159,6 @@ page 48511 "Fabric Platform Setup"
                 field(ClientId; ClientIdValue)
                 {
                     Caption = 'Client ID';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
@@ -186,7 +175,6 @@ page 48511 "Fabric Platform Setup"
                 field(ClientSecret; ClientSecretValue)
                 {
                     Caption = 'Client Secret';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
                     ToolTip = 'Specifies the Azure AD client secret. Enter a new value to update the stored secret.';
@@ -207,7 +195,6 @@ page 48511 "Fabric Platform Setup"
                 field(PrincipalId; PrincipalIdValue)
                 {
                     Caption = 'Principal ID';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the object ID of the service principal in Azure AD. Used to grant the service principal Contributor access on the Fabric workspace.';
 
@@ -224,11 +211,9 @@ page 48511 "Fabric Platform Setup"
         {
             part(CompaniesFactBox; "Fabric Companies FactBox")
             {
-                ApplicationArea = All;
             }
             part(TablesFactBox; "Fabric Tables FactBox")
             {
-                ApplicationArea = All;
             }
         }
     }
@@ -469,10 +454,10 @@ page 48511 "Fabric Platform Setup"
 
     local procedure CreateFabricDataErrorInfo(DetailedMessage: Text) ErrInfo: ErrorInfo
     begin
-        ErrInfo.Message := FabricDataInvalidErr;
-        ErrInfo.DetailedMessage := DetailedMessage;
-        ErrInfo.DataClassification := DataClassification::SystemMetadata;
-        ErrInfo.ErrorType := ErrorType::Internal;
+        ErrInfo.Message(FabricDataInvalidErr);
+        ErrInfo.DetailedMessage(DetailedMessage);
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     var

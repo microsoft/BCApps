@@ -53,10 +53,10 @@ codeunit 48521 "Fabric Config Package Mgt"
                 end;
             until PackageLine.Next() = 0;
 
-        Pkg.Active := true;
-        Pkg."Activated On" := CurrentDateTime();
-        Pkg."Activated By" := CopyStr(UserId(), 1, MaxStrLen(Pkg."Activated By"));
-        Pkg."Last Activated Version" := Pkg.Version;
+        Pkg.Validate(Active, true);
+        Pkg.Validate("Activated On", CurrentDateTime());
+        Pkg.Validate("Activated By", CopyStr(UserId(), 1, MaxStrLen(Pkg."Activated By")));
+        Pkg.Validate("Last Activated Version", Pkg.Version);
         Pkg.Modify(true);
 
         LogPackageEvent('FAB-150', 'Config package activated.', Pkg."Code");
@@ -80,9 +80,9 @@ codeunit 48521 "Fabric Config Package Mgt"
                 FabricPlatformMgt.ReleaseTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code");
             until PackageLine.Next() = 0;
 
-        Pkg.Active := false;
-        Pkg."Activated On" := 0DT;
-        Pkg."Activated By" := '';
+        Pkg.Validate(Active, false);
+        Pkg.Validate("Activated On", 0DT);
+        Pkg.Validate("Activated By", '');
         Pkg.Modify(true);
 
         LogPackageEvent('FAB-151', 'Config package deactivated.', Pkg."Code");
@@ -123,8 +123,8 @@ codeunit 48521 "Fabric Config Package Mgt"
                 end;
             until PackageLine.Next() = 0;
 
-        Pkg."Activated On" := CurrentDateTime();
-        Pkg."Last Activated Version" := Pkg.Version;
+        Pkg.Validate("Activated On", CurrentDateTime());
+        Pkg.Validate("Last Activated Version", Pkg.Version);
         Pkg.Modify(true);
 
         LogPackageEvent('FAB-152', 'Config package reapplied.', Pkg."Code");
@@ -156,15 +156,15 @@ codeunit 48521 "Fabric Config Package Mgt"
     begin
         if not Pkg.Get(PackageCode) then begin
             Pkg.Init();
-            Pkg."Code" := PackageCode;
-            Pkg.Description := Description;
-            Pkg.Version := Version;
+            Pkg.Validate("Code", PackageCode);
+            Pkg.Validate(Description, Description);
+            Pkg.Validate(Version, Version);
             Pkg.Insert(true);
         end else begin
             if Pkg.Version = Version then
                 exit; // Already registered at this version — nothing to do
-            Pkg.Description := Description;
-            Pkg.Version := Version;
+            Pkg.Validate(Description, Description);
+            Pkg.Validate(Version, Version);
             Pkg.Modify(true);
         end;
 
@@ -182,7 +182,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         foreach TableId in TableIds do
             if AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
                 PackageLine.Init();
-                PackageLine."Package Code" := PackageCode;
+                PackageLine.Validate("Package Code", PackageCode);
                 PackageLine.Validate("Table ID", TableId);
                 PackageLine.Insert(false);
             end else

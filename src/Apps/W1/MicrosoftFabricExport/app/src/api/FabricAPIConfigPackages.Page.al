@@ -46,7 +46,7 @@ page 48504 "Fabric API Config Packages"
     [ServiceEnabled]
     [Caption('Activate the configuration package')]
     [Scope('Cloud')]
-    procedure activate(var ActionContext: WebServiceActionContext)
+    procedure Activate(var ActionContext: WebServiceActionContext)
     var
         FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
     begin
@@ -57,7 +57,7 @@ page 48504 "Fabric API Config Packages"
     [ServiceEnabled]
     [Caption('Deactivate the configuration package')]
     [Scope('Cloud')]
-    procedure deactivate(var ActionContext: WebServiceActionContext)
+    procedure Deactivate(var ActionContext: WebServiceActionContext)
     var
         FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
     begin
@@ -68,7 +68,7 @@ page 48504 "Fabric API Config Packages"
     [ServiceEnabled]
     [Caption('Reapply the configuration package')]
     [Scope('Cloud')]
-    procedure reapply(var ActionContext: WebServiceActionContext)
+    procedure Reapply(var ActionContext: WebServiceActionContext)
     var
         FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
     begin

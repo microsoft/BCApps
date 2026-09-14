@@ -7,12 +7,11 @@ using System.Reflection;
 
 codeunit 48520 "Fabric Platform Mgt"
 {
-    Access = Internal;
     // Mediates writes to the platform selection tables (500-table cap, existence checks),
     // so callers only need read access to these tables directly.
-    Permissions = tabledata "Tenant Fabric Tables" = RIMD,
+    Permissions = tabledata "Fabric Table Claim" = RIMD,
                   tabledata "Tenant Fabric Companies" = RIMD,
-                  tabledata "Fabric Table Claim" = RIMD;
+                  tabledata "Tenant Fabric Tables" = RIMD;
 
     var
         MaxTablesErr: Label 'A maximum of %1 tables can be exported to Microsoft Fabric. Remove a table before adding another.', Comment = '%1 = maximum number of tables';
@@ -32,7 +31,7 @@ codeunit 48520 "Fabric Platform Mgt"
         SetupRequiredTitleLbl: Label 'Setup required';
         SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable again.';
 
-    procedure MaxTableCount(): Integer
+    internal procedure MaxTableCount(): Integer
     begin
         // Platform limit for the number of exported tables.
         exit(500);
@@ -42,7 +41,7 @@ codeunit 48520 "Fabric Platform Mgt"
     // Platform setup singleton
     // -------------------------------------------------------------------------
 
-    procedure EnsureSetup(var TenantFabricSetup: Record "Tenant Fabric Setup")
+    internal procedure EnsureSetup(var TenantFabricSetup: Record "Tenant Fabric Setup")
     begin
         if TenantFabricSetup.FindFirst() then
             exit;
@@ -54,7 +53,7 @@ codeunit 48520 "Fabric Platform Mgt"
         TenantFabricSetup.Insert(true);
     end;
 
-    procedure HasSetup(): Boolean
+    internal procedure HasSetup(): Boolean
     var
         TenantFabricSetup: Record "Tenant Fabric Setup";
     begin
@@ -65,14 +64,14 @@ codeunit 48520 "Fabric Platform Mgt"
     // Table selection (500-table platform limit enforced here)
     // -------------------------------------------------------------------------
 
-    procedure SelectedTableCount(): Integer
+    internal procedure SelectedTableCount(): Integer
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
     begin
         exit(TenantFabricTables.Count());
     end;
 
-    procedure CheckCanAddTable()
+    internal procedure CheckCanAddTable()
     var
         MaxTables: Integer;
     begin
@@ -81,7 +80,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Error(MaxTablesErr, MaxTables);
     end;
 
-    procedure EnsureCapacity(AdditionalCount: Integer)
+    internal procedure EnsureCapacity(AdditionalCount: Integer)
     var
         MaxTables: Integer;
     begin
@@ -90,7 +89,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Error(MaxTablesErr, MaxTables);
     end;
 
-    procedure AddTable(TableId: Integer)
+    internal procedure AddTable(TableId: Integer)
     begin
         CheckCanAddTable();
         InsertTable(TableId);
@@ -111,16 +110,16 @@ codeunit 48520 "Fabric Platform Mgt"
 
         TenantFabricTables.Init();
         TenantFabricTables.Validate("Table ID", TableId);
-        TenantFabricTables."Table Name" := CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Table Name"));
-        TenantFabricTables."Fabric Entity Name" := CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name"));
+        TenantFabricTables.Validate("Table Name", CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Table Name")));
+        TenantFabricTables.Validate("Fabric Entity Name", CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name")));
         if TableMetadata.Get(TableId) then
-            TenantFabricTables."Per Company" := TableMetadata.DataPerCompany
+            TenantFabricTables.Validate("Per Company", TableMetadata.DataPerCompany)
         else
-            TenantFabricTables."Per Company" := true;
+            TenantFabricTables.Validate("Per Company", true);
         TenantFabricTables.Insert(true);
     end;
 
-    procedure AddTables(var AllObjWithCaption: Record AllObjWithCaption)
+    internal procedure AddTables(var AllObjWithCaption: Record AllObjWithCaption)
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
         NewTableCount: Integer;
@@ -152,7 +151,7 @@ codeunit 48520 "Fabric Platform Mgt"
     // app; see docs/PlatformRequest-TableOwnership.md for the platform-level design.
     // -------------------------------------------------------------------------
 
-    procedure ClaimTable(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
+    internal procedure ClaimTable(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
     begin
@@ -169,7 +168,7 @@ codeunit 48520 "Fabric Platform Mgt"
         InsertClaim(TableId, SourceType, PackageCode);
     end;
 
-    procedure ReleaseTable(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
+    internal procedure ReleaseTable(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20])
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
         Claim: Record "Fabric Table Claim";
@@ -182,7 +181,7 @@ codeunit 48520 "Fabric Platform Mgt"
                 TenantFabricTables.Delete(true);
     end;
 
-    procedure IsClaimedByOthers(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20]): Boolean
+    internal procedure IsClaimedByOthers(TableId: Integer; SourceType: Enum "Fabric Table Claim Source"; PackageCode: Code[20]): Boolean
     var
         Claim: Record "Fabric Table Claim";
     begin
@@ -211,9 +210,9 @@ codeunit 48520 "Fabric Platform Mgt"
         if Claim.Get(TableId, SourceType, PackageCode) then
             exit;
         Claim.Init();
-        Claim."Table ID" := TableId;
-        Claim."Source Type" := SourceType;
-        Claim."Package Code" := PackageCode;
+        Claim.Validate("Table ID", TableId);
+        Claim.Validate("Source Type", SourceType);
+        Claim.Validate("Package Code", PackageCode);
         Claim.Insert(true);
     end;
 
@@ -221,7 +220,7 @@ codeunit 48520 "Fabric Platform Mgt"
     // Company selection
     // -------------------------------------------------------------------------
 
-    procedure AddCompany(CompanyName: Text[30])
+    internal procedure AddCompany(CompanyName: Text[30])
     var
         TenantFabricCompanies: Record "Tenant Fabric Companies";
         Company: Record Company;
@@ -234,7 +233,7 @@ codeunit 48520 "Fabric Platform Mgt"
 
         TenantFabricCompanies.Init();
         TenantFabricCompanies.Validate("Company Name", CompanyName);
-        TenantFabricCompanies.Enabled := true;
+        TenantFabricCompanies.Validate(Enabled, true);
         TenantFabricCompanies.Insert(true);
     end;
 
@@ -246,7 +245,7 @@ codeunit 48520 "Fabric Platform Mgt"
     // without triggering a real ADF pipeline run.
     // -------------------------------------------------------------------------
 
-    procedure EnableExport()
+    internal procedure EnableExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
@@ -280,13 +279,13 @@ codeunit 48520 "Fabric Platform Mgt"
     local procedure CreateSetupErrorInfo(ErrorMessage: Text) SetupErrorInfo: ErrorInfo
     begin
         SetupErrorInfo := ErrorInfo.Create(ErrorMessage);
-        SetupErrorInfo.Title := SetupRequiredTitleLbl;
-        SetupErrorInfo.DetailedMessage := SetupRequiredDetailedMsg;
-        SetupErrorInfo.PageNo := Page::"Fabric Platform Setup";
+        SetupErrorInfo.Title(SetupRequiredTitleLbl);
+        SetupErrorInfo.DetailedMessage(SetupRequiredDetailedMsg);
+        SetupErrorInfo.PageNo(Page::"Fabric Platform Setup");
         SetupErrorInfo.AddNavigationAction(OpenFabricSetupLbl);
     end;
 
-    procedure StartExport()
+    internal procedure StartExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
@@ -305,7 +304,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(StartRequestedMsg);
     end;
 
-    procedure StopExport()
+    internal procedure StopExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
@@ -320,7 +319,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(StopRequestedMsg);
     end;
 
-    procedure DisableExport()
+    internal procedure DisableExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
         Telemetry: Codeunit "Fabric Platform Telemetry";
@@ -335,7 +334,7 @@ codeunit 48520 "Fabric Platform Mgt"
             Message(DisableRequestedMsg);
     end;
 
-    procedure TestConnection()
+    internal procedure TestConnection()
     var
         TempBuffer: Record "Name/Value Buffer" temporary;
         AdminClient: Codeunit "Fabric Platform Admin Client";

@@ -24,32 +24,26 @@ page 48515 "Fabric Config Packages"
             {
                 field("Code"; Rec."Code")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the code of the configuration package.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies a description of the configuration package.';
                 }
                 field(Version; Rec.Version)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the version of the configuration package.';
                 }
                 field(Active; Rec.Active)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies whether this package is currently active.';
                 }
                 field("Activated On"; Rec."Activated On")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies when this package was last activated.';
                 }
                 field("Activated By"; Rec."Activated By")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies who activated this package.';
                 }
             }

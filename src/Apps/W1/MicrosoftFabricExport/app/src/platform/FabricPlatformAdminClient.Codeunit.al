@@ -47,7 +47,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         FabricPrivacyNotice.EnsureApproved();
 
         TempBuffer.Reset();
-        TempBuffer.DeleteAll();
+        TempBuffer.DeleteAll(false);
 
         AccessToken := CredMgt.AcquireFabricApiTokenDelegated();
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
@@ -68,7 +68,7 @@ codeunit 48526 "Fabric Platform Admin Client"
                 TempBuffer.ID := i + 1;
                 TempBuffer.Name := CopyStr(NameToken.AsValue().AsText(), 1, MaxStrLen(TempBuffer.Name));
                 TempBuffer.Value := CopyStr(IdToken.AsValue().AsText(), 1, MaxStrLen(TempBuffer.Value));
-                TempBuffer.Insert();
+                TempBuffer.Insert(false);
             end;
         end;
     end;
@@ -106,7 +106,7 @@ codeunit 48526 "Fabric Platform Admin Client"
             Error(WorkspaceRequiredForMirroredDbErr);
 
         TempBuffer.Reset();
-        TempBuffer.DeleteAll();
+        TempBuffer.DeleteAll(false);
 
         AccessToken := CredMgt.AcquireFabricApiTokenDelegated();
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
@@ -135,7 +135,7 @@ codeunit 48526 "Fabric Platform Admin Client"
                 TempBuffer.ID := i + 1;
                 TempBuffer.Name := CopyStr(NameToken.AsValue().AsText(), 1, MaxStrLen(TempBuffer.Name));
                 TempBuffer.Value := CopyStr(IdToken.AsValue().AsText(), 1, MaxStrLen(TempBuffer.Value));
-                TempBuffer.Insert();
+                TempBuffer.Insert(false);
             end;
         end;
     end;
@@ -190,18 +190,18 @@ codeunit 48526 "Fabric Platform Admin Client"
 
     local procedure CreateMirroredDbsHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
     begin
-        ErrInfo.Message := RetrieveMirroredDbsHttpGenericErr;
-        ErrInfo.DetailedMessage := StrSubstNo(RetrieveMirroredDbsHttpStatusErr, StatusCode);
-        ErrInfo.DataClassification := DataClassification::SystemMetadata;
-        ErrInfo.ErrorType := ErrorType::Internal;
+        ErrInfo.Message(RetrieveMirroredDbsHttpGenericErr);
+        ErrInfo.DetailedMessage(StrSubstNo(RetrieveMirroredDbsHttpStatusErr, StatusCode));
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure CreateAddSPHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
     begin
-        ErrInfo.Message := AddSPHttpGenericErr;
-        ErrInfo.DetailedMessage := StrSubstNo(AddSPHttpStatusErr, StatusCode);
-        ErrInfo.DataClassification := DataClassification::SystemMetadata;
-        ErrInfo.ErrorType := ErrorType::Internal;
+        ErrInfo.Message(AddSPHttpGenericErr);
+        ErrInfo.DetailedMessage(StrSubstNo(AddSPHttpStatusErr, StatusCode));
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure FormatGuidForFabricUrl(GuidText: Text): Text

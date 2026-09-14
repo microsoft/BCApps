@@ -24,32 +24,26 @@ page 48510 "Fabric Platform Export Summary"
             {
                 field("Run ID"; Rec."Run ID")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the correlation ID of the export run.';
                 }
                 field("Type"; Rec."Type")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the kind of operation the run represents.';
                 }
                 field(State; Rec.State)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the terminal state of the run.';
                 }
                 field("Start Time"; Rec."Start Time")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies when the run started.';
                 }
                 field("End Time"; Rec."End Time")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies when the run ended.';
                 }
                 field("Error Message"; Rec."Error Message")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the error message when the run failed.';
                 }
             }

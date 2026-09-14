@@ -73,7 +73,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         end;
 
         EncryptionNotEnabledErrorInfo := ErrorInfo.Create(EncryptionNotEnabledErr);
-        EncryptionNotEnabledErrorInfo.PageNo := Page::"Data Encryption Management";
+        EncryptionNotEnabledErrorInfo.PageNo(Page::"Data Encryption Management");
         EncryptionNotEnabledErrorInfo.AddNavigationAction(OpenDataEncryptionMgtLbl);
         Error(EncryptionNotEnabledErrorInfo);
     end;

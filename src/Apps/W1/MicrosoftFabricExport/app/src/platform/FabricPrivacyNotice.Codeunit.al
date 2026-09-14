@@ -19,8 +19,8 @@ codeunit 48529 "Fabric Privacy Notice"
     begin
         TempPrivacyNotice.Init();
         TempPrivacyNotice.ID := PrivacyNoticeIdTok;
-        TempPrivacyNotice."Integration Service Name" := IntegrationServiceNameTxt;
-        if not TempPrivacyNotice.Insert() then;
+        TempPrivacyNotice."Integration Service Name" := Text.CopyStr(IntegrationServiceNameTxt, 1, Text.MaxStrLen(TempPrivacyNotice."Integration Service Name"));
+        if not TempPrivacyNotice.Insert(false) then;
     end;
 
     internal procedure IsApproved(): Boolean
@@ -52,9 +52,9 @@ codeunit 48529 "Fabric Privacy Notice"
         if IsApproved() then
             exit;
 
-        ErrInfo.Message := NotApprovedErr;
-        ErrInfo.DataClassification := DataClassification::SystemMetadata;
-        ErrInfo.PageNo := Page::"Fabric Platform Setup";
+        ErrInfo.Message(NotApprovedErr);
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.PageNo(Page::"Fabric Platform Setup");
         ErrInfo.AddNavigationAction(OpenSetupActionTxt);
         Error(ErrInfo);
     end;

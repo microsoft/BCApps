@@ -21,31 +21,26 @@ page 48512 "Fabric Platform Tables"
             {
                 field("Table ID"; Rec."Table ID")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the ID of the Business Central table to export.';
                 }
                 field("Table Name"; Rec."Table Name")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the name of the Business Central table to export.';
                 }
                 field("Per Company"; Rec."Per Company")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies whether the table stores data per company.';
                 }
                 field("Fabric Entity Name"; Rec."Fabric Entity Name")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the destination entity name used in Microsoft Fabric.';
                 }
                 field("Fabric Schema Type"; Rec."Fabric Schema Type")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies whether the table is exported as data or logging.';
                 }
             }

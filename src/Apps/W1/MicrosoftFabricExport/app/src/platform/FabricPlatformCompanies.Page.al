@@ -22,13 +22,11 @@ page 48508 "Fabric Platform Companies"
             {
                 field("Company Name"; Rec."Company Name")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the company included in the Fabric export.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies whether this company is exported. Disabled companies are skipped.';
                 }
             }

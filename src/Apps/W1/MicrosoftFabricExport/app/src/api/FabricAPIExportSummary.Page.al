@@ -48,6 +48,6 @@ page 48505 "Fabric API Export Summary"
 
     trigger OnOpenPage()
     begin
-        Rec.ReadIsolation := IsolationLevel::ReadCommitted;
+        Rec.ReadIsolation(IsolationLevel::ReadCommitted);
     end;
 }
