@@ -93,6 +93,10 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         ExecuteWebServiceRequest(CurrExchRateUpdateSetup, ResponseInStream);
+        // ResponseInStream is created from TempBlobResponse above, so ExecuteWebServiceRequest (via
+        // Http Web Request Mgt.GetResponse -> CopyTo) writes the downloaded payload into TempBlobResponse's
+        // backing blob. TempBlobResponse.Length() therefore reflects the actual response on the default HTTP path
+        // (same Temp Blob pattern as Http Web Request Mgt.SendRequestAndReadResponse), and drives the size check.
         CheckResponseSize();
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
