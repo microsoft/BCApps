@@ -411,32 +411,36 @@ page 1 "Company Information"
                         ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
                     end;
                 }
-                group(WorkDate)
+                group(EvaluationCompanyWorkDate)
                 {
-                    ShowCaption = false;
+                    Caption = 'Evaluation Company Work Date';
                     Visible = WorkDateSelectionVisible;
-                    field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                    group(WorkDate)
                     {
-                        ApplicationArea = Basic, Suite;
+                        ShowCaption = false;
+                        field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                        {
+                            ApplicationArea = Basic, Suite;
 
-                        trigger OnValidate()
-                        begin
-                            CustomWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date";
-                            CurrPage.Update(false);
-                        end;
+                            trigger OnValidate()
+                            begin
+                                CustomWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date";
+                                CurrPage.Update(false);
+                            end;
+                        }
+                        field("Apply Work Date to Sessions"; Rec."Apply Work Date to Sessions")
+                        {
+                            ApplicationArea = Basic, Suite;
+                        }
                     }
-                    field("Apply Work Date to Sessions"; Rec."Apply Work Date to Sessions")
+                    group(CustomWorkDate)
                     {
-                        ApplicationArea = Basic, Suite;
-                    }
-                }
-                group(CustomWorkDate)
-                {
-                    ShowCaption = false;
-                    Visible = CustomWorkDateVisible;
-                    field("Custom Work Date"; Rec."Custom Work Date")
-                    {
-                        ApplicationArea = Basic, Suite;
+                        ShowCaption = false;
+                        Visible = CustomWorkDateVisible;
+                        field("Custom Work Date"; Rec."Custom Work Date")
+                        {
+                            ApplicationArea = Basic, Suite;
+                        }
                     }
                 }
             }
