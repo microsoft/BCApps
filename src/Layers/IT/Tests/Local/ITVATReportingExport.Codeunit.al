@@ -2372,9 +2372,12 @@ codeunit 144012 "IT - VAT Reporting - Export"
     local procedure ExportFile_Datifattura(VATReportHeader: Record "VAT Report Header")
     var
         DatifatturaExport: Codeunit "Datifattura Export";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         VATReportReleaseReopen: Codeunit "VAT Report Release/Reopen";
         ITVATReportingExport: Codeunit "IT - VAT Reporting - Export";
     begin
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         VATReportReleaseReopen.Release(VATReportHeader);
         VATReportHeader.SetFilter("No.", VATReportHeader."No.");
         BindSubscription(ITVATReportingExport);
@@ -3910,4 +3913,3 @@ codeunit 144012 "IT - VAT Reporting - Export"
         LibraryVariableStorage.Enqueue(ErrorMessages.Description.Value);
     end;
 }
-
