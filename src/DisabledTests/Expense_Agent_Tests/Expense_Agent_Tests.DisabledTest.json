@@ -108,5 +108,65 @@
     "codeunitId": 148348,
     "codeunitName": "Expense VAT Spec. API Test",
     "method": "AgentVATSpecificationIsInsertedThroughAPI"
+  },
+  {
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtReadRetainsAppPermissions"
+  },
+  {
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtEditRetainsAppPermissions"
+  },
+  {
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtAdminRetainsAppPermissions"
+  },
+  {
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "D365BasicCanUpdateTravelRequestDetailsIndirectly"
+  },
+  {
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseAgentCanUpdateTravelRequestDetailsIndirectly"
+  },
+  {
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "TravelRequestApprovalFailsWithoutExpensePermissions"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithReportIsBlocked"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithPostedReportIsBlocked"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithPostedLineIsBlocked"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithUnpostedLineIsBlocked"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "TravelRequestAPIDatesKeepValidation"
+  },
+  {
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DefaultApproverFilterQuotesWildcardUserNo"
   }
 ]
