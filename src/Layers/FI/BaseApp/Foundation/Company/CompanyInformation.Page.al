@@ -404,7 +404,7 @@ page 1 "Company Information"
                 }
                 group(EvaluationCompanyWorkDate)
                 {
-                    Caption = 'Evaluation Company Work Date';
+                    ShowCaption = false;
                     Visible = WorkDateSelectionVisible;
                     group(WorkDate)
                     {
@@ -419,10 +419,6 @@ page 1 "Company Information"
                                 CurrPage.Update(false);
                             end;
                         }
-                        field("Apply Work Date to Sessions"; Rec."Apply Work Date to Sessions")
-                        {
-                            ApplicationArea = Basic, Suite;
-                        }
                     }
                     group(CustomWorkDate)
                     {
@@ -432,6 +428,10 @@ page 1 "Company Information"
                         {
                             ApplicationArea = Basic, Suite;
                         }
+                    }
+                    field("Apply Work Date to Sessions"; Rec."Apply Work Date to Sessions")
+                    {
+                        ApplicationArea = Basic, Suite;
                     }
                 }
             }
