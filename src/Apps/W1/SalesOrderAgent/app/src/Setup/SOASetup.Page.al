@@ -260,7 +260,7 @@ page 4400 "SOA Setup"
                             trigger OnValidate()
                             begin
                                 if Rec."Incl. Capable to Promise" then
-                                    VerifyOrderPromisingSetupExists();
+                                    VerifyOrderPromisingSetupConfigured();
                                 ConfigUpdated();
                             end;
                         }
@@ -691,18 +691,18 @@ page 4400 "SOA Setup"
             TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
     end;
 
-    local procedure VerifyOrderPromisingSetupExists()
+    local procedure VerifyOrderPromisingSetupConfigured()
     var
-        OrderPromisingSetup: Record "Order Promising Setup";
+        SOAShipmentDateMgt: Codeunit "SOA Shipment Date Mgt.";
     begin
-        if not OrderPromisingSetup.IsEmpty() then
+        if SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
             exit;
 
-        // Capable to Promise requires the Order Promising Setup; offer to create it so the agent does not fail later.
+        // Capable to Promise needs the Order Promising Setup template and worksheet; offer to configure it so the agent does not fail later.
         if Confirm(OrderPromisingSetupMissingQst, false) then
             Page.RunModal(Page::"Order Promising Setup");
 
-        if OrderPromisingSetup.IsEmpty() then
+        if not SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
             Rec."Incl. Capable to Promise" := false;
     end;
 
@@ -886,5 +886,5 @@ page 4400 "SOA Setup"
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
-        OrderPromisingSetupMissingQst: Label 'The Order Promising Setup does not exist and is required to include capable-to-promise items. Do you want to create it now?';
+        OrderPromisingSetupMissingQst: Label 'The Order Promising Setup is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?';
 }
