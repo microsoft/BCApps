@@ -406,13 +406,13 @@ function Export-AgentTaskLogs {
             $FailureFileName = '{0}_v{1}_evalLog{2}_task{3}_download-error.txt' -f $SafeSuiteCode, $Version, $AIEvalLogId, $AgentTaskId
             $FailureFilePath = Join-Path $AgentTaskLogFolder $FailureFileName
             Write-HostWithTimestamp $FailureMessage
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, [System.Text.UTF8Encoding]::new($false))
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:UTF8EncodingWithoutBOM)
             continue
         }
 
         $FileName = '{0}_v{1}_evalLog{2}_task{3}.json' -f $SafeSuiteCode, $Version, $AIEvalLogId, $AgentTaskId
         $FilePath = Join-Path $AgentTaskLogFolder $FileName
-        [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, $script:UTF8EncodingWithoutBOM)
         Write-HostWithTimestamp "Exported Agent Task log to $FilePath"
     }
 
@@ -420,7 +420,7 @@ function Export-AgentTaskLogs {
         $FailureMessage = "Agent Task log export for suite $SuiteCode did not finish within $($script:AgentTaskLogExportTimeout.TotalMinutes) minutes."
         $FailureFilePath = Join-Path $AgentTaskLogFolder "$SafeSuiteCode`_download-timeout.txt"
         Write-HostWithTimestamp $FailureMessage
-        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:UTF8EncodingWithoutBOM)
     }
 }
 
@@ -869,6 +869,7 @@ $script:DefaultTransactionTimeout = [timespan]::FromMinutes(60);
 $script:DefaultCulture = "en-US";
 $script:AgentTaskLogExportTimeout = [timespan]::FromMinutes(15);
 $script:NoMoreAgentTaskLogs = "No more Agent Task logs.";
+$script:UTF8EncodingWithoutBOM = [System.Text.UTF8Encoding]::new($false);
 
 $script:TestRunnerPage = '149042'
 $script:ClientAssembly1 = "Microsoft.Dynamics.Framework.UI.Client.dll"
