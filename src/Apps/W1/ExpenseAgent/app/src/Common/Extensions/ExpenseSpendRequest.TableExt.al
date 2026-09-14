@@ -17,13 +17,14 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         {
             Caption = 'Requested For';
             ToolTip = 'Specifies the expense user for whom the spend request is being created.';
-            DataClassification = CustomerContent;
+            DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Expense User";
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                UpdateRequestedForTraveler(xRec."Requested For");
+                if SpendRequestExists() then
+                    UpdateRequestedForTraveler(xRec."Requested For");
             end;
         }
         field(6901; "Business Justification"; Text[2048])
@@ -129,7 +130,98 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
                 TestStatusOpen();
             end;
         }
+        field(6913; "Approver Expense User Filter"; Code[20])
+        {
+            Caption = 'Approver Expense User Filter';
+            FieldClass = FlowFilter;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6914; "Submitted By Expense User No."; Code[20])
+        {
+            Caption = 'Submitted By Expense User No.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6915; "Submitted At"; DateTime)
+        {
+            Caption = 'Submitted At';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(6916; "Approval Expense User No."; Code[20])
+        {
+            Caption = 'Approval Expense User No.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6917; "Rejection Reason"; Text[2048])
+        {
+            Caption = 'Rejection Reason';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(6918; "Requested By User Id Filter"; Guid)
+        {
+            Caption = 'Requested By User Id Filter';
+            FieldClass = FlowFilter;
+            TableRelation = "Expense User".SystemId;
+        }
+        field(6919; "Approver User Id Filter"; Guid)
+        {
+            Caption = 'Approver User Id Filter';
+            FieldClass = FlowFilter;
+            TableRelation = "Expense User".SystemId;
+        }
     }
+    trigger OnInsert()
+    var
+        StartDateProvided: Boolean;
+        EndDateProvided: Boolean;
+    begin
+        StartDateProvided := APIStartDateProvided;
+        EndDateProvided := APIEndDateProvided;
+        APIStartDateProvided := false;
+        APIEndDateProvided := false;
+
+        // The base OnInsert initializes both dates to WorkDate. Restore API inputs before persistence.
+        ApplyExpectedDatesFromAPI(APIExpectedStartDate, APIExpectedEndDate, StartDateProvided, EndDateProvided);
+    end;
+
+    trigger OnAfterInsert()
+    begin
+        if Rec."Document Type" = Rec."Document Type"::"Travel Request" then
+            InsertRequestedForTraveler();
+    end;
+
+    trigger OnBeforeDelete()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        if Rec."Document Type" <> Rec."Document Type"::"Travel Request" then
+            exit;
+
+        ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+        if ExpenseReportHeader.FindFirst() then
+            Error(GetLinkedExpenseReportError(ExpenseReportHeader.RecordId, Page::"Expense Report"));
+
+        ExpenseReportLine.SetRange("Spend Request No.", Rec."No.");
+        if ExpenseReportLine.FindFirst() then
+            Error(GetLinkedExpenseReportError(ExpenseReportLine.RecordId, Page::"Expense Report Lines"));
+
+        PostedExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+        if PostedExpenseReportHeader.FindFirst() then
+            Error(GetLinkedExpenseReportError(PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report"));
+
+        PostedExpenseReportLine.SetRange("Spend Request No.", Rec."No.");
+        if PostedExpenseReportLine.FindFirst() then
+            Error(GetLinkedExpenseReportError(PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines"));
+    end;
+
     trigger OnDelete()
     var
         Traveler: Record Traveler;
@@ -139,7 +231,52 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     end;
 
     var
+        APIExpectedStartDate: Date;
+        APIExpectedEndDate: Date;
+        APIStartDateProvided: Boolean;
+        APIEndDateProvided: Boolean;
         ReplaceRequestedForTravelerQst: Label 'The %1 was changed. A traveler was automatically added for the previous %1. Do you want to remove that traveler and add a new one for the current %1 instead?', Comment = '%1 = Requested For field caption';
+
+    local procedure GetLinkedExpenseReportError(ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
+    var
+        LinkedReportError: ErrorInfo;
+        LinkedExpenseReportExistsErr: Label 'You cannot delete travel request %1 because it is linked to an expense report.', Comment = '%1 = Travel request number';
+        LinkedExpenseReportTitleErr: Label 'Travel request is linked to an expense report';
+        LinkedExpenseReportDetailsErr: Label 'Open the related report to see where this travel request is used. Posted history cannot be removed by deleting the travel request.';
+        ShowItLbl: Label 'Show it';
+    begin
+        LinkedReportError.Message := StrSubstNo(LinkedExpenseReportExistsErr, Rec."No.");
+        LinkedReportError.Title := LinkedExpenseReportTitleErr;
+        LinkedReportError.DetailedMessage := LinkedExpenseReportDetailsErr;
+        LinkedReportError.DataClassification := DataClassification::CustomerContent;
+        LinkedReportError.ErrorType := ErrorType::Client;
+        LinkedReportError.RecordId := ReportRecordId;
+        LinkedReportError.PageNo := ReportPageNo;
+        LinkedReportError.AddNavigationAction(ShowItLbl);
+        exit(LinkedReportError);
+    end;
+
+    internal procedure SetExpectedDatesForAPIInsert(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
+    begin
+        APIExpectedStartDate := StartDate;
+        APIExpectedEndDate := EndDate;
+        APIStartDateProvided := StartDateProvided;
+        APIEndDateProvided := EndDateProvided;
+    end;
+
+    internal procedure ApplyExpectedDatesFromAPI(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
+    begin
+        // Populate the final pair before either field trigger validates it; omitted values remain unchanged.
+        if StartDateProvided then
+            Rec."Expected Start Date" := StartDate;
+        if EndDateProvided then
+            Rec."Expected End Date" := EndDate;
+
+        if StartDateProvided then
+            Rec.Validate("Expected Start Date");
+        if EndDateProvided then
+            Rec.Validate("Expected End Date");
+    end;
 
     internal procedure InsertRequestedForTraveler()
     var
@@ -211,5 +348,16 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         end;
 
         Rec.Validate("International Travel", Rec."Origin Country/Region Code" <> Rec."Dest. Country/Region Code");
+    end;
+
+    local procedure SpendRequestExists(): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if Rec."No." = '' then
+            exit(false);
+
+        SpendRequest.SetLoadFields("No.");
+        exit(SpendRequest.Get(Rec."No."));
     end;
 }

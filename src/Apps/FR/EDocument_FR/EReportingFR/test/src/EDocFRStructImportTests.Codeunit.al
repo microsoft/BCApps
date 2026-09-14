@@ -2,6 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace Microsoft.eServices.EDocument.Formats.Test;
+
+using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Formats;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using System.Utilities;
+
 codeunit 148149 "E-Doc. FR Struct. Import Tests"
 {
     Subtype = Test;
@@ -88,7 +96,7 @@ codeunit 148149 "E-Doc. FR Struct. Import Tests"
         Assert.AreEqual(Format("E-Doc. Process Draft"::"Purchase Credit Memo"), Format(ProcessDraft), 'The draft should be processed as a purchase credit memo.');
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         Assert.AreEqual('FX-AVR-4001', EDocumentPurchaseHeader."Sales Invoice No.", 'Wrong document number.');
-        Assert.AreEqual('FX-INV-3001', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'Wrong applies-to external invoice number.');
+        Assert.AreEqual('FX-INV-3001', EDocumentPurchaseHeader."Vendor Invoice No.", 'Wrong vendor invoice number.');
     end;
 
     [Test]

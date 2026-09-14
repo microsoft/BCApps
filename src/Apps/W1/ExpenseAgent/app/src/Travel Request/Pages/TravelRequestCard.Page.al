@@ -14,6 +14,9 @@ page 7129 "Travel Request Card"
     ApplicationArea = Basic, Suite;
     SourceTable = "Spend Request";
     SourceTableView = where("Document Type" = filter("Travel Request"));
+    Permissions = tabledata "Spend Request" = rimd,
+                  tabledata "Spend Request Detail" = rmd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     AboutTitle = 'About the travel request';
     AboutText = 'A travel request captures the intent to travel, its purpose, expected cost, schedule, and travelers, so it can be reviewed and approved before any expense is incurred.';
