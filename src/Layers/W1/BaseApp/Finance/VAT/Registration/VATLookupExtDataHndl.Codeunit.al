@@ -9,6 +9,7 @@ using Microsoft.Sales.Customer;
 using System;
 using System.Integration;
 using System.Reflection;
+using System.Telemetry;
 using System.Utilities;
 using System.Xml;
 
@@ -48,6 +49,17 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         EUVATRegNoValidationServiceTok: Label 'EUVATRegNoValidationServiceTelemetryCategoryTok', Locked = true;
         ValidationSuccessfulMsg: Label 'The VAT reg. no. validation was successful', Locked = true;
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
+        ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
+        ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
+        ResponseSchemaErr: Label 'The response from the EU VAT Registration No. validation service (VIES) was not in the expected format and was rejected.';
+        ResponseSchemaMsg: Label 'The VAT reg. no. validation failed. The response did not contain the expected identifiers.', Locked = true;
+        ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) does not match the requested VAT registration number and was rejected.';
+        ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseSchemaTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not contain the expected identifiers.', Locked = true;
+        SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
+        CountryCodePathTxt: Label 'descendant::vat:countryCode', Locked = true;
+        VatNumberPathTxt: Label 'descendant::vat:vatNumber', Locked = true;
         VATRegistrationURL: Text;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)
@@ -94,6 +106,8 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
             TempBlobBody.CreateOutStream(ResponseOutStream);
             CopyStream(ResponseOutStream, ResponseInStream);
+
+            CheckResponseSize(TempBlobBody);
 
             Session.LogMessage('0000C3Q', ValidationSuccessfulMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
         end else begin
@@ -185,7 +199,89 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         TempBlobRequestBody.CreateInStream(InStream);
         XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, XMLDocOut);
 
+        ValidateResponseIntegrity(VATRegistrationLog, XMLDocOut, NamespaceTxt);
+
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, XMLDocOut, NamespaceTxt);
+    end;
+
+    /// <summary>
+    /// Rejects VIES responses that exceed the maximum expected size, protecting downstream
+    /// XML parsing from abnormally large or malicious payloads received over the unauthenticated service.
+    /// </summary>
+    /// <param name="TempBlob">Temp blob holding the raw response content received from the VIES service.</param>
+    local procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        if TempBlob.Length() <= GetMaxResponseSize() then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        Session.LogMessage('', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+        Clear(TempBlob);
+        Error(ResponseTooLargeErr);
+    end;
+
+    /// <summary>
+    /// Validates the structure and integrity of a VIES response before its content is trusted.
+    /// Ensures the response echoes the country code and VAT registration number that were requested,
+    /// so that a tampered, swapped, or unrelated response received over the unauthenticated service is rejected.
+    /// </summary>
+    /// <param name="VATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
+    /// <param name="XMLDoc">The parsed VIES response document.</param>
+    /// <param name="Namespace">The VIES XML namespace used to resolve response nodes.</param>
+    procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
+    var
+        AuditLog: Codeunit "Audit Log";
+        ResponseCountryCode: Text;
+        ResponseVATNumber: Text;
+    begin
+        if IsNull(XMLDoc) then
+            exit;
+        if IsNull(XMLDoc.DocumentElement) then
+            exit;
+
+        ResponseCountryCode := ExtractResponseValue(XMLDoc, CountryCodePathTxt, Namespace);
+        ResponseVATNumber := ExtractResponseValue(XMLDoc, VatNumberPathTxt, Namespace);
+
+        // Schema / source expectation: a genuine VIES response echoes the queried country code and VAT number.
+        if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseSchemaTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('', ResponseSchemaMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+            Error(ResponseSchemaErr);
+        end;
+
+        // Integrity: the echoed identifiers must match the values that were requested.
+        if (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetCountryCode())) or
+           (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo()))
+        then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+            Error(ResponseIntegrityErr);
+        end;
+    end;
+
+    local procedure ExtractResponseValue(XMLDoc: DotNet XmlDocument; Xpath: Text; Namespace: Text): Text
+    var
+        XMLDOMMgt: Codeunit "XML DOM Management";
+        FoundXmlNode: DotNet XmlNode;
+    begin
+        if not XMLDOMMgt.FindNodeWithNamespace(XMLDoc.DocumentElement, Xpath, 'vat', Namespace, FoundXmlNode) then
+            exit('');
+        exit(FoundXmlNode.InnerText);
+    end;
+
+    local procedure NormalizeIdentifier(Value: Text): Text
+    begin
+        Value := UpperCase(Value);
+        exit(DelChr(Value, '=', DelChr(Value, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')));
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        // A single checkVatApprox response is one company record (typically < 2 KB incl. SOAP envelope).
+        // 64 KB leaves ample headroom for long trader details while still rejecting abnormally large payloads.
+        exit(65536);
     end;
 
     /// <summary>

@@ -9,6 +9,7 @@ using System;
 using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
+using System.Telemetry;
 using System.Utilities;
 using System.Xml;
 
@@ -44,6 +45,9 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning restore AA0470
         ExchRatesUpdatedTxt: Label 'The user updated currency exchange rates via a currency exchange rate service.', Locked = true;
         TelemetryCategoryTok: Label 'AL Exchange Rate Service', Locked = true;
+        ResponseTooLargeErr: Label 'The response from the currency exchange rate service exceeded the maximum allowed size and was rejected.';
+        ResponseTooLargeTxt: Label 'The currency exchange rate update failed. The response exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The currency exchange rate service returned a response that exceeded the maximum allowed size.', Locked = true;
 
     local procedure SyncCurrencyExchangeRates()
     var
@@ -89,8 +93,27 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         ExecuteWebServiceRequest(CurrExchRateUpdateSetup, ResponseInStream);
+        CheckResponseSize();
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
+    end;
+
+    local procedure CheckResponseSize()
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        if TempBlobResponse.Length() <= GetMaxResponseSize() then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        Session.LogMessage('', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        Clear(TempBlobResponse);
+        Error(ResponseTooLargeErr);
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        exit(10485760); // 10 MB - exchange rate feeds are small; larger responses are rejected as potentially malicious.
     end;
 
     local procedure CreateDataExchange(var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"; ResponseInStream: InStream; SourceName: Text[250])

@@ -75,6 +75,8 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         IPv4LoopbackIPAddressTxt: Label '127.0.0.1', Locked = true;
         IPv6LoopbackIPAddressTxt: Label '::1', Locked = true;
         IPAddressRegExPatternTxt: Label '[0-9]{1,3}(\.[0-9]{1,3}){3}|([0-9A-Fa-f]{0,4}:){2,7}([0-9A-Fa-f]{1,4})', Locked = true;
+        ResponseTooLargeTxt: Label 'The public IP service response exceeded the maximum allowed size and was rejected.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The public IP service returned a response that exceeded the maximum allowed size.', Locked = true;
 
     internal procedure AddFraudPreventionHeaders(var RequestJSON: Text)
     var
@@ -395,16 +397,51 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
     var
         Matches: Record Matches;
         Regex: Codeunit Regex;
+        AuditLog: Codeunit "Audit Log";
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
         Content: Text;
     begin
         ServerIPAddress := '';
         HttpClient.Get(PublicIPServiceURL, HttpResponseMessage);
+        if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            FeatureTelemetry.LogError('', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
+            exit;
+        end;
         HttpResponseMessage.Content().ReadAs(Content);
+        // Reject oversized responses before running the pattern match, so an IP-like substring in a large
+        // malicious payload from the unauthenticated service cannot be extracted and trusted.
+        if StrLen(Content) > GetMaxResponseSize() then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            FeatureTelemetry.LogError('', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
+            exit;
+        end;
         Regex.Match(Content, IPAddressRegExPatternTxt, 0, Matches);
         if Matches.FindFirst() then
             ServerIPAddress := Matches.ReadValue();
+    end;
+
+    local procedure IsResponseSizeAcceptable(var HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        ContentHeaders: HttpHeaders;
+        Values: array[10] of Text;
+        ContentLength: Integer;
+    begin
+        if not HttpResponseMessage.Content().GetHeaders(ContentHeaders) then
+            exit(true);
+        if not ContentHeaders.GetValues('Content-Length', Values) then
+            exit(true);
+        if not Evaluate(ContentLength, Values[1]) then
+            exit(true);
+        exit(ContentLength <= GetMaxResponseSize());
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        // The public IP service returns a short IP address string (a few bytes). 4 KB leaves ample headroom
+        // for simple JSON/text wrappers while rejecting abnormally large payloads.
+        exit(4096);
     end;
 
     internal procedure TestPublicIPServiceURL(url: Text)

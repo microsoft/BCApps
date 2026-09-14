@@ -486,6 +486,87 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestResponseIntegrityAcceptsMatchingIdentifiers()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ResponseDoc: DotNet XmlDocument;
+    begin
+        // [SCENARIO] A VIES response that echoes the requested country code and VAT number passes the integrity check
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+
+        // [GIVEN] A response echoing the requested country code and VAT number
+        CreateVATCheckResponseWithIdentifiers(ResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo());
+
+        // [THEN] The integrity validation passes without error
+        VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseIntegrityRejectsMismatchedIdentifiers()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ResponseDoc: DotNet XmlDocument;
+    begin
+        // [SCENARIO] A VIES response echoing a different VAT number than requested is rejected
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+
+        // [GIVEN] A response echoing a VAT number that does not match the request
+        CreateVATCheckResponseWithIdentifiers(ResponseDoc, VATRegistrationLog.GetCountryCode(), '00000000');
+
+        // [THEN] The response is rejected as tampered/unrelated
+        asserterror VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('does not match the requested VAT registration number');
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseIntegrityRejectsMissingIdentifiers()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ResponseDoc: DotNet XmlDocument;
+        ValidatedName: Text;
+        ValidatedAddress: Text;
+    begin
+        // [SCENARIO] A VIES response without the echoed country code and VAT number is rejected as malformed
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+        ValidatedName := LibraryUtility.GenerateGUID();
+        ValidatedAddress := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A response that omits the country code and VAT number identifiers
+        CreateValidVATCheckResponse(ResponseDoc, ValidatedName, ValidatedAddress);
+
+        // [THEN] The response is rejected as not matching the expected format
+        asserterror VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('was not in the expected format');
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestGetVATRegNo()
     begin
         Initialize();
@@ -1473,6 +1554,19 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
             XMLDOMMgt.AddElement(VATNode, NameTxt, ValidatedName, NamespaceTxt, InvalidNode);
             XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, InvalidNode);
         end;
+    end;
+
+    local procedure CreateVATCheckResponseWithIdentifiers(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text)
+    var
+        XMLDOMMgt: Codeunit "XML DOM Management";
+        VATNode: DotNet XmlNode;
+        ChildNode: DotNet XmlNode;
+    begin
+        XMLDoc := XMLDoc.XmlDocument();
+        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
+        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, ChildNode);
     end;
 
     local procedure CreateCountryCodeWithEUCode(): Code[10]
