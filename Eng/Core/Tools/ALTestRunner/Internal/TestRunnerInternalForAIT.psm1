@@ -309,7 +309,8 @@ function Invoke-AITSuite
     [Parameter(Mandatory = $true)]
     [string] $SuiteCode,
     [string] $SuiteLineNo,
-    [string] $AgentTaskLogFolder,
+    [switch] $ExportAgentTaskLogs,
+    [string] $AgentTaskLogFolder = "$PSScriptRoot\AgentTaskLogs",
     [int] $ClientSessionTimeout = $script:ClientSessionTimeout,
     [timespan] $TransactionTimeout = $script:TransactionTimeout
 ) {
@@ -342,7 +343,7 @@ function Invoke-AITSuite
             $NoOfPendingTests = $clientContext.GetControlByName($form, "No. of Pending Tests")
             $NoOfPendingTests = [int] $NoOfPendingTests.StringValue
 
-            if ($AgentTaskLogFolder) {
+            if ($ExportAgentTaskLogs) {
                 Export-AgentTaskLogs -SuiteCode $SuiteCode -AgentTaskLogFolder $AgentTaskLogFolder -ClientContext $clientContext -Form $form
             }
         }
