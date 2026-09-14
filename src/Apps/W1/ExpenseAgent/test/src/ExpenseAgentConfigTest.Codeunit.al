@@ -36,7 +36,6 @@ codeunit 148361 "Expense Agent Config. Test"
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OtherCompanyName: Text[30];
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating with another company permission adds the current company permission
         Initialize();
 
@@ -60,7 +59,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating a disabled Entra app preserves its existing current company permission
         Initialize();
 
@@ -83,7 +81,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating preserves an unrelated permission assigned to the Entra app user
         Initialize();
 
@@ -106,7 +103,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating with a global Expense Agent permission adds the current company permission
         Initialize();
 
@@ -131,7 +127,6 @@ codeunit 148361 "Expense Agent Config. Test"
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OtherCompanyName: Text[30];
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Deactivating preserves another company permission
         Initialize();
 
@@ -156,7 +151,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Deactivating removes the current-company Expense Agent permission
         Initialize();
 
@@ -177,7 +171,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Deactivating preserves unrelated permissions
         Initialize();
 
@@ -200,7 +193,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Deactivating without a current grant preserves unrelated permissions
         Initialize();
 
@@ -222,7 +214,6 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] A global grant does not keep the Entra app enabled after the last company is deactivated
         Initialize();
 

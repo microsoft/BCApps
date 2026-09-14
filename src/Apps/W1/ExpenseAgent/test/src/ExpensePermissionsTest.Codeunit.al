@@ -316,7 +316,6 @@ codeunit 148338 "Expense Permissions Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] The required administrator permissions can activate the Expense Agent Entra application
         Initialize();
 
@@ -341,7 +340,6 @@ codeunit 148338 "Expense Permissions Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] The required administrator permissions can deactivate the Expense Agent Entra application
         Initialize();
 
@@ -366,7 +364,6 @@ codeunit 148338 "Expense Permissions Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activation requires Expense Management Admin
         Initialize();
 
@@ -389,7 +386,6 @@ codeunit 148338 "Expense Permissions Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activation requires the administrator to hold the Expense Agent permission
         Initialize();
 
@@ -412,7 +408,6 @@ codeunit 148338 "Expense Permissions Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Deactivation requires the administrator to hold the Expense Agent permission
         Initialize();
 

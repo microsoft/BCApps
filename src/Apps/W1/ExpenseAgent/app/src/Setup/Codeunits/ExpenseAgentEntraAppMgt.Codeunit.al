@@ -102,14 +102,8 @@ codeunit 6913 "Expense Agent Entra App Mgt."
 
         OtherCompanyPermissionExists := HasOtherCompanyPermission(AadApplication, CompanyNameValue);
         RemovePermissionForCompany(AadApplication, CompanyNameValue, not OtherCompanyPermissionExists);
-        if OtherCompanyPermissionExists then begin
-            AadApplication.Get(GetAadAppId());
-            if AadApplication.State <> AadApplication.State::Enabled then begin
-                AadApplication.State := AadApplication.State::Enabled;
-                AadApplication.Modify(false);
-            end;
+        if OtherCompanyPermissionExists then
             exit;
-        end;
         if AadApplication.State = AadApplication.State::Disabled then
             exit;
 
