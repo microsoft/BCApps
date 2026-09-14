@@ -57,6 +57,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
         BlockedEndpointErr: Label 'The VAT registration service endpoint must be an external address. Internal, private, loopback, or link-local addresses are not allowed.';
+        OpenVATRegServiceSetupTxt: Label 'Open the EU VAT Registration No. Validation Service Setup';
         BlockedEndpointMsg: Label 'The VAT reg. no. validation failed. The configured service endpoint targets an internal address and was rejected.', Locked = true;
         SecurityAuditBlockedEndpointTxt: Label 'The EU VAT Registration No. validation service (VIES) endpoint was rejected because it targets an internal address.', Locked = true;
         CountryCodePathTxt: Label 'descendant::vat:countryCode', Locked = true;
@@ -298,6 +299,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         EnvironmentInformation: Codeunit "Environment Information";
         AuditLog: Codeunit "Audit Log";
         Uri: Codeunit Uri;
+        BlockedEndpointErrInfo: ErrorInfo;
         Host: Text;
     begin
         // SSRF mitigation: the service endpoint is an admin-configurable setup value. Online (SaaS), reject internal/
@@ -316,7 +318,12 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
         AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
         Session.LogMessage('0000VF3', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-        Error(BlockedEndpointErr);
+        // Rejecting the configured endpoint is a recoverable setup problem, so make the error navigate to the setup page.
+        BlockedEndpointErrInfo.Message := BlockedEndpointErr;
+        BlockedEndpointErrInfo.DataClassification := DataClassification::SystemMetadata;
+        BlockedEndpointErrInfo.PageNo := Page::"VAT Registration Config";
+        BlockedEndpointErrInfo.AddNavigationAction(OpenVATRegServiceSetupTxt);
+        Error(BlockedEndpointErrInfo);
     end;
 
     [TryFunction]
