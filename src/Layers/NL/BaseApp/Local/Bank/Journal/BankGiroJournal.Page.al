@@ -333,10 +333,10 @@ page 11400 "Bank/Giro Journal"
             JnlSelected := (Rec.GetFilter("Journal Template Name") <> '');
             Rec.FilterGroup(0);
             if not JnlSelected then begin
-                GenJnlManagement.TemplateSelectionCBG(PAGE::"Bank/Giro Journal", 12, Rec, JnlSelected);
+                GenJnlManagementNL.TemplateSelectionCBG(PAGE::"Bank/Giro Journal", 12, Rec, JnlSelected);
                 if not JnlSelected then
                     Error('');
-                GenJnlManagement.CheckTemplateNameCBG(Rec.GetRangeMax("Journal Template Name"));
+                GenJnlManagementNL.CheckTemplateNameCBG(Rec.GetRangeMax("Journal Template Name"));
             end;
         end;
 
@@ -349,7 +349,7 @@ page 11400 "Bank/Giro Journal"
         Text1000002: Label 'Do you want to post the %1 Journal?';
         Text1000003: Label 'Do you want to post and print the %1 Journal?';
         "CGB Statement reconciliation": Codeunit "CBG Statement Reconciliation";
-        GenJnlManagement: Codeunit GenJnlManagement;
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
         "Account No.Visible": Boolean;
         CurrencyVisible: Boolean;
 }

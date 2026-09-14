@@ -452,14 +452,14 @@ table 5200 Employee
         field(57; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
-            ToolTip = 'Specifies the number used by the bank for the bank account.';
             MaskType = Concealed;
+            ToolTip = 'Specifies the number used by the bank for the bank account.';
         }
         field(58; IBAN; Code[50])
         {
             Caption = 'IBAN';
-            ToolTip = 'Specifies the bank account''s international bank account number.';
             MaskType = Concealed;
+            ToolTip = 'Specifies the bank account''s international bank account number.';
 
             trigger OnValidate()
             var

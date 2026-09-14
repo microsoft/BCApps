@@ -89,7 +89,7 @@ table 11401 "CBG Statement Line"
             begin
                 TestField(Date);
                 if (Date <> xRec.Date) and (Amount <> 0) then
-                    PaymentToleranceMgt.PmtTolCBGJnl(Rec);
+                    PaymentToleranceMgtNL.PmtTolCBGJnl(Rec);
 
                 ValidateApplyRequirements(Rec);
             end;
@@ -299,7 +299,7 @@ table 11401 "CBG Statement Line"
 
             trigger OnValidate()
             begin
-                if not PaymentToleranceMgt.PmtTolCBGJnl(Rec) then
+                if not PaymentToleranceMgtNL.PmtTolCBGJnl(Rec) then
                     exit;
             end;
         }
@@ -331,7 +331,7 @@ table 11401 "CBG Statement Line"
                     exit;
 
                 if (Amount <> xRec.Amount) and (Amount <> 0) then
-                    PaymentToleranceMgt.PmtTolCBGJnl(Rec);
+                    PaymentToleranceMgtNL.PmtTolCBGJnl(Rec);
             end;
         }
         field(21; "Applies-to ID"; Code[50])
@@ -729,6 +729,7 @@ table 11401 "CBG Statement Line"
         DimManagement: Codeunit DimensionManagement;
         GenJnlApply: Codeunit "Gen. Jnl.-Apply";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        PaymentToleranceMgtNL: Codeunit "Payment Tolerance Mgt. NL";
         TypeHelper: Codeunit "Type Helper";
         DateParseErr: Label 'Could not read a date from text ''%1'' using format %2.', Comment = '%1=a string representing a date like 081001,%2=a string representing a format like yyMMdd';
         FinancialInterfaceTelebank: Codeunit "Financial Interface Telebank";
