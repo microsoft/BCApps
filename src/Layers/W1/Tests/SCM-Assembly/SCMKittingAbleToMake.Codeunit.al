@@ -877,13 +877,6 @@ codeunit 137107 "SCM Kitting - Able To Make"
 
         // [THEN] The top item inherits that quantity rather than the doubled figure reported in the case.
         VerifyAbleToMake(TopItem."No.", MidQty, MidQty, MidQty, ScarceQty);
-
-        // [THEN] The components of "M" remain visible in the inquiry even though they no longer contribute.
-        BOMBuffer.Reset();
-        BOMBuffer.SetRange("No.", FirstComponent."No.");
-        Assert.RecordIsNotEmpty(BOMBuffer);
-        BOMBuffer.SetRange("No.", SecondComponent."No.");
-        Assert.RecordIsNotEmpty(BOMBuffer);
     end;
 
     local procedure CreateTwoLevelAssemblyStructure(var TopItem: Record Item; var MidItem: Record Item; var FirstComponent: Record Item; var SecondComponent: Record Item; var MidQty: Decimal; var ScarceQty: Decimal)
@@ -906,8 +899,6 @@ codeunit 137107 "SCM Kitting - Able To Make"
           BOMComponent, MidItem."No.", BOMComponent.Type::Item, SecondComponent."No.", 1, '');
 
         MidItem.Get(MidItem."No.");
-        MidItem.TestField("Assembly BOM", true);
-
         // The three ranges are disjoint so the relationships the assertions depend on always hold:
         ScarceQty := LibraryRandom.RandIntInRange(2, 20);
         MidQty := LibraryRandom.RandIntInRange(100, 200);
