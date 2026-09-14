@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
+using Microsoft.HumanResources.Employee;
 
 codeunit 6902 "Expense Rule Validation"
 {
@@ -49,6 +50,8 @@ codeunit 6902 "Expense Rule Validation"
         MerchantNameMandatoryOnReportLineErr: Label 'Merchant Name is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         ExpenseAlreadyExistErr: Label 'An expense already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
         ExpenseReportAlreadyExistErr: Label 'An expense report already exists with the same Receipt No. %1, Expense Date %2, Merchant Name %3 and Amount %4.', Comment = '%1 = Receipt No., %2 = Expense Date, %3 = Merchant Name, %4 = Amount';
+        EmployeePostingGroupMandatoryErr: Label '%1 is mandatory on %2 %3.', Comment = '%1 = Field Caption, %2 = Table Caption, %3 = Employee No.';
+        EmployeePostingGroupMandatoryOnExpenseReportErr: Label '%1 is mandatory on Expense Report No. %2.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
 
     procedure ValidateExpenseAgainstRule(var Expense: Record Expense)
     var
@@ -117,6 +120,7 @@ codeunit 6902 "Expense Rule Validation"
 
         CheckAttachmentsOnExpense(Expense);
         CheckForDuplicateExpense(Expense);
+        CheckEmployeePostingGroupOnExpense(Expense);
 
         if ExpenseAgentSetup."Receipt No. Mandatory" then
             if (Expense."Expense Ext. Doc. No." = '') and (Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Mileage) then
@@ -138,6 +142,7 @@ codeunit 6902 "Expense Rule Validation"
 
         CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
         CheckForDuplicateExpenseReportLine(ExpenseReportLine);
+        CheckEmployeePostingGroupOnExpenseReport(ExpenseReportLine);
 
         if ExpenseAgentSetup."Receipt No. Mandatory" then
             if (ExpenseReportLine."Expense Ext. Doc. No." = '') and (ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Mileage) then
@@ -167,6 +172,46 @@ codeunit 6902 "Expense Rule Validation"
 
         if JustificationRequired and (Expense.Justification = '') then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", JustificationRequiredErr);
+    end;
+
+    local procedure CheckEmployeePostingGroupOnExpense(Expense: Record Expense)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        if Expense."Expense User No." = '' then
+            exit;
+
+        if not ExpenseUser.Get(Expense."Expense User No.") then
+            exit;
+
+        if ExpenseUser."Employee No." = '' then
+            exit;
+
+        if not Employee.Get(ExpenseUser."Employee No.") then
+            exit;
+
+        if Employee."Employee Posting Group" <> '' then
+            exit;
+
+        ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(EmployeePostingGroupMandatoryErr, Employee.FieldCaption("Employee Posting Group"), Employee.TableCaption(), Employee."No."));
+    end;
+
+    local procedure CheckEmployeePostingGroupOnExpenseReport(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        Currency: Record Currency;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportLine.GetExpenseReportHeader(ExpenseReportHeader, Currency);
+        if ExpenseReportHeader."Employee Posting Group" <> '' then
+            exit;
+
+        ExpenseReportRuleViolation.AddRuleViolation(
+            ExpenseReportLine."Document No.",
+            ExpenseReportLine."Line No.",
+            StrSubstNo(EmployeePostingGroupMandatoryOnExpenseReportErr, ExpenseReportHeader.FieldCaption("Employee Posting Group"), ExpenseReportHeader."No."));
     end;
 
     local procedure CheckJustificationFromConditions(Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header"): Boolean
