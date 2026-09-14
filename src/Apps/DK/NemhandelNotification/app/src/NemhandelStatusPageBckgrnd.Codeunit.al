@@ -87,7 +87,7 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
                         '0000VEV', ResponseRejectedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
                         TelemetryScope::All, CustomDimensions);
                 end else begin
-                    if ResponseCVRNumber.Contains(CVRNumber) then
+                    if UpperCase(ResponseCVRNumber.Trim()) = UpperCase(CVRNumber.Trim()) then
                         CompanyStatus := "Nemhandel Company Status"::Registered
                     else
                         CompanyStatus := "Nemhandel Company Status"::NotRegistered;
@@ -164,7 +164,11 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
             exit(false);
         if not ContentJson.Get('cvrNummer', CVRNumberToken) then
             exit(false);
-        exit(CVRNumberToken.WriteTo(ResponseCVRNumber));
+        // Require a scalar value (reject nested objects/arrays) so a tampered payload cannot smuggle the CVR number.
+        if not CVRNumberToken.IsValue() then
+            exit(false);
+        ResponseCVRNumber := CVRNumberToken.AsValue().AsText();
+        exit(true);
     end;
 
     local procedure GetMaxResponseSize(): Integer

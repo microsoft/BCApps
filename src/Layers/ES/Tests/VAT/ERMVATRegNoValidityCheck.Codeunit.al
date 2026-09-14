@@ -529,7 +529,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
         // [THEN] The response is rejected as tampered/unrelated
         asserterror VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
-        Assert.ExpectedError('does not match the requested VAT registration number');
+        Assert.ExpectedError('did not match the requested identifiers');
 
         // Tear Down
         Customer.Delete();
@@ -555,7 +555,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
         // [THEN] The response is rejected as tampered/unrelated
         asserterror VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
-        Assert.ExpectedError('does not match the requested VAT registration number');
+        Assert.ExpectedError('did not match the requested identifiers');
 
         // Tear Down
         Customer.Delete();

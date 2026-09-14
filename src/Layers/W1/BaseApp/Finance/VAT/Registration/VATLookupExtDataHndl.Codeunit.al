@@ -51,7 +51,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
         ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
-        ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) does not match the requested VAT registration number and was rejected.';
+        ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not match the requested identifiers and was rejected.';
         ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
@@ -216,7 +216,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         Clear(TempBlob);
-        Error(ResponseTooLargeErr);
+        ThrowInternalError(ResponseTooLargeErr);
     end;
 
     /// <summary>
@@ -249,7 +249,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-            Error(ResponseIntegrityErr);
+            ThrowInternalError(ResponseIntegrityErr);
         end;
     end;
 
@@ -274,6 +274,18 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         // A single checkVatApprox response is one company record (typically < 2 KB incl. SOAP envelope).
         // 64 KB leaves ample headroom for long trader details while still rejecting abnormally large payloads.
         exit(65536);
+    end;
+
+    local procedure ThrowInternalError(MessageText: Text)
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        // The failure is a non-actionable, service-side condition from the unauthenticated VIES service; the specific
+        // reason is already captured in telemetry and the security audit, so surface it as an internal error.
+        ErrInfo.Message := MessageText;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata;
+        ErrInfo.ErrorType := ErrorType::Internal;
+        Error(ErrInfo);
     end;
 
     /// <summary>

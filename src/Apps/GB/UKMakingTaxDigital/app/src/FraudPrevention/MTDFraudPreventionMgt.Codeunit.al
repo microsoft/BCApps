@@ -484,6 +484,9 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
             exit(true);
 
         if Host.Contains(':') then begin
+            // IPv4-mapped IPv6 literal (::ffff:127.0.0.1): re-check the embedded IPv4 address.
+            if Host.StartsWith('::ffff:') then
+                exit(IsInternalHost(CopyStr(Host, 8)));
             // IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
             if Host.StartsWith('fc') or Host.StartsWith('fd') then
                 exit(true);

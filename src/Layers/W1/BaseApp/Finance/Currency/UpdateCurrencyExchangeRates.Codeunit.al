@@ -112,7 +112,19 @@ codeunit 1281 "Update Currency Exchange Rates"
         AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         Session.LogMessage('0000VEP', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
         Clear(TempBlobResponse);
-        Error(ResponseTooLargeErr);
+        ThrowInternalError(ResponseTooLargeErr);
+    end;
+
+    local procedure ThrowInternalError(MessageText: Text)
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        // The failure is a non-actionable, service-side condition (the exchange-rate service returned an oversized
+        // response); the specific reason is already captured in telemetry and the security audit, so surface it as internal.
+        ErrInfo.Message := MessageText;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata;
+        ErrInfo.ErrorType := ErrorType::Internal;
+        Error(ErrInfo);
     end;
 
     local procedure GetMaxResponseSize(): Integer
