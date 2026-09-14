@@ -11089,12 +11089,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CalcSourceCurrVATBaseAmount(GenJnlLine: Record "Gen. Journal Line"; WHTAmountLCY: Decimal): Decimal
     begin
-        if GenJnlLine."Source Currency Code" <> '' then begin
+        if GenJnlLine."Source Currency Code" <> '' then
             if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
                 exit(GenJnlLine."Source Curr. VAT Base Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY))
             else
                 exit(GenJnlLine."Source Currency Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY));
-        end;
 
         if GenJnlLine."Source Currency Code" = '' then begin
             if GenJnlLine."System-Created Entry" then
