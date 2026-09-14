@@ -1,6 +1,7 @@
 namespace Microsoft.EServices;
 
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 13608 "Nemhandel Status Page Bckgrnd"
 {
@@ -8,8 +9,8 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
 
     var
         NemhandelMgt: Codeunit "Nemhandel Status Mgt.";
-        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - url, e.g. https://microsoft.com', Locked = true;
-        ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - url, e.g. https://microsoft.com', Locked = true;
+        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - host, e.g. microsoft.com', Locked = true;
+        ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - host, e.g. microsoft.com', Locked = true;
         CompanyStatusCheckedTxt: Label 'Nemhandel company registration status was checked.', Locked = true;
         ResponseRejectedTxt: Label 'The Nemhandelsregisteret response was rejected by response validation (size or schema).', Locked = true;
         ServiceCallFailedTxt: Label 'The Nemhandelsregisteret company registration status lookup failed.', Locked = true;
@@ -60,12 +61,12 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         HttpRequestURI := HttpClientNemhandel.GetRequestURI(CVRNumber);
         if not HttpClientNemhandel.SendGetRequest(HttpRequestURI, HttpRequestMessage, HttpResponseMsgNemhandel) then
             if HttpResponseMsgNemhandel.IsBlockedByEnvironment() then
-                ErrorMessage := StrSubstNo(EnvironmentBlocksErr, HttpRequestMessage.GetRequestUri())
+                ErrorMessage := StrSubstNo(EnvironmentBlocksErr, GetHostFromUri(HttpRequestURI))
             else
-                ErrorMessage := StrSubstNo(ConnectionErr, HttpRequestMessage.GetRequestUri());
+                ErrorMessage := StrSubstNo(ConnectionErr, GetHostFromUri(HttpRequestURI));
         if ErrorMessage <> '' then begin
             Telemetry.LogMessage(
-                '0000L9W', ErrorMessage, Verbosity::Warning, DataClassification::OrganizationIdentifiableInformation,
+                '0000L9W', ErrorMessage, Verbosity::Warning, DataClassification::SystemMetadata,
                 TelemetryScope::ExtensionPublisher, CustomDimensions);
             CompanyStatus := "Nemhandel Company Status"::Unknown;
             exit;
@@ -176,5 +177,21 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         // A lookup returns a single company record (typically < 1 KB). 64 KB leaves ample headroom
         // while still rejecting abnormally large payloads from the unauthenticated service.
         exit(65536);
+    end;
+
+    local procedure GetHostFromUri(RequestUri: Text): Text
+    var
+        Uri: Codeunit Uri;
+    begin
+        // Return only the host so the CVR-number-bearing request URI is not emitted verbatim to telemetry.
+        if not TryInitUri(Uri, RequestUri) then
+            exit('');
+        exit(Uri.GetHost());
+    end;
+
+    [TryFunction]
+    local procedure TryInitUri(var Uri: Codeunit Uri; RequestUri: Text)
+    begin
+        Uri.Init(RequestUri);
     end;
 }
