@@ -14,13 +14,17 @@ codeunit 48521 "Fabric Config Package Mgt"
         ImportMissingCodeErr: Label 'The package file does not contain a package code.';
         InvalidPackageFileErr: Label 'The file could not be read as a valid package definition.';
         CategoryTok: Label 'MicrosoftFabricExport', Locked = true;
+        PackageActivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Comment = '%1 = package code, %2 = version';
+        PackageDeactivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Comment = '%1 = package code';
+        PackageReappliedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Comment = '%1 = package code, %2 = version';
+        PackageRegisteredViaCodeMsg: Label 'Config package v%1 registered via code.', Comment = '%1 = version';
 
     internal procedure Activate(var Pkg: Record "Fabric Config Package")
     var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-        Telemetry: Codeunit "Fabric Platform Telemetry";
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         NewTableCount: Integer;
         WasNew: Boolean;
     begin
@@ -57,14 +61,14 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         LogPackageEvent('FAB-150', 'Config package activated.', Pkg."Code");
-        Telemetry.LogAudit('FAB-150-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Pkg."Code", Pkg.Version));
+        Telemetry.LogAudit('FAB-150-AUD', StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version));
     end;
 
     internal procedure Deactivate(var Pkg: Record "Fabric Config Package")
     var
+        PackageLine: Record "Fabric Config Package Line";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
-        PackageLine: Record "Fabric Config Package Line";
         KeptTableCount: Integer;
     begin
         PackageLine.SetRange("Package Code", Pkg."Code");
@@ -83,7 +87,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         LogPackageEvent('FAB-151', 'Config package deactivated.', Pkg."Code");
-        Telemetry.LogAudit('FAB-151-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Pkg."Code"));
+        Telemetry.LogAudit('FAB-151-AUD', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"));
 
         if GuiAllowed() and (KeptTableCount > 0) then
             Message(TablesKeptByOtherPackageMsg, KeptTableCount);
@@ -91,10 +95,10 @@ codeunit 48521 "Fabric Config Package Mgt"
 
     internal procedure Reapply(var Pkg: Record "Fabric Config Package")
     var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-        Telemetry: Codeunit "Fabric Platform Telemetry";
         PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        Telemetry: Codeunit "Fabric Platform Telemetry";
         NewTableCount: Integer;
         WasNew: Boolean;
     begin
@@ -126,7 +130,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Modify(true);
 
         LogPackageEvent('FAB-152', 'Config package reapplied.', Pkg."Code");
-        Telemetry.LogAudit('FAB-152-AUD', StrSubstNo('Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Pkg."Code", Pkg.Version));
+        Telemetry.LogAudit('FAB-152-AUD', StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version));
     end;
 
     internal procedure IsReapplyAvailable(var Pkg: Record "Fabric Config Package"): Boolean
@@ -177,7 +181,7 @@ codeunit 48521 "Fabric Config Package Mgt"
             until PackageLine.Next() = 0;
         PackageLine.DeleteAll(false);
 
-        foreach TableId in TableIds do begin
+        foreach TableId in TableIds do
             if AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
                 PackageLine.Init();
                 PackageLine."Package Code" := PackageCode;
@@ -185,7 +189,6 @@ codeunit 48521 "Fabric Config Package Mgt"
                 PackageLine.Insert(false);
             end else
                 LogSkippedTableWarning(PackageCode, TableId);
-        end;
 
         // If it was already active, release claims on dropped tables and reapply so
         // the platform tables stay aligned with the current package definition.
@@ -195,7 +198,7 @@ codeunit 48521 "Fabric Config Package Mgt"
             Reapply(Pkg);
         end;
 
-        LogPackageEvent('FAB-155', StrSubstNo('Config package v%1 registered via code.', Version), PackageCode);
+        LogPackageEvent('FAB-155', StrSubstNo(PackageRegisteredViaCodeMsg, Version), PackageCode);
     end;
 
     local procedure LogPackageEvent(EventId: Text; EventMessage: Text; PackageCode: Code[20])

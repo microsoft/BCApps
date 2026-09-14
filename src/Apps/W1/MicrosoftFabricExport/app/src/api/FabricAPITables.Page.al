@@ -57,13 +57,13 @@ page 48502 "Fabric API Tables"
     [ServiceEnabled]
     [Caption('Add a table to Fabric export')]
     [Scope('Cloud')]
-    procedure addtable(TableId: Integer; var ActionContext: WebServiceActionContext)
+    procedure addtable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
     var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
-        FabricPlatformMgt.AddTable(TableId);
-        TenantFabricTables.Get(TableId);
+        FabricPlatformMgt.AddTable(NewTableId);
+        TenantFabricTables.Get(NewTableId);
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Fabric API Tables");
         ActionContext.AddEntityKey(TenantFabricTables.FieldNo(SystemId), TenantFabricTables.SystemId);

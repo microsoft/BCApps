@@ -42,13 +42,13 @@ page 48503 "Fabric API Companies"
     [ServiceEnabled]
     [Caption('Add a company to Fabric export')]
     [Scope('Cloud')]
-    procedure addcompany(CompanyName: Text[30]; var ActionContext: WebServiceActionContext)
+    procedure addcompany(NewCompanyName: Text[30]; var ActionContext: WebServiceActionContext)
     var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         TenantFabricCompanies: Record "Tenant Fabric Companies";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
-        FabricPlatformMgt.AddCompany(CompanyName);
-        TenantFabricCompanies.Get(CompanyName);
+        FabricPlatformMgt.AddCompany(NewCompanyName);
+        TenantFabricCompanies.Get(NewCompanyName);
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Fabric API Companies");
         ActionContext.AddEntityKey(TenantFabricCompanies.FieldNo(SystemId), TenantFabricCompanies.SystemId);

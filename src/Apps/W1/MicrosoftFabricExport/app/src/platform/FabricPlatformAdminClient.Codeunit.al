@@ -21,6 +21,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
         SPAlreadyMemberErr: Label 'The service principal is already a member of this workspace.';
         AddSPHttpErr: Label 'Failed to add service principal to workspace. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
+        MirroredDatabasesUrlTok: Label 'https://api.fabric.microsoft.com/v1/workspaces/%1/mirroredDatabases', Comment = '%1 = workspace ID', Locked = true;
+        RoleAssignmentsUrlTok: Label 'https://api.fabric.microsoft.com/v1/workspaces/%1/roleAssignments', Comment = '%1 = workspace ID', Locked = true;
 
     /// <summary>Fills TempBuffer with Fabric workspaces accessible to the delegated token (Name = display name, Value = workspace GUID).</summary>
     procedure GetWorkspaces(var TempBuffer: Record "Name/Value Buffer" temporary)
@@ -32,7 +34,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         Req: Codeunit "Http Request Message";
         Resp: Codeunit "Http Response Message";
         AccessToken: SecretText;
-        ResponseText: Text;
         RootObj: JsonObject;
         ArrayToken: JsonToken;
         ItemToken: JsonToken;
@@ -109,7 +110,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest(
             'GET',
-            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/mirroredDatabases', WorkspaceIdForUrl),
+            StrSubstNo(MirroredDatabasesUrlTok, WorkspaceIdForUrl),
             '');
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(RetrieveMirroredDbsTransportErr);
@@ -150,6 +151,8 @@ codeunit 48526 "Fabric Platform Admin Client"
         PrincipalObj: JsonObject;
         Body: Text;
     begin
+        FabricPrivacyNotice.EnsureApproved();
+
         if WorkspaceId = '' then
             Error(WorkspaceRequiredForSPErr);
         if PrincipalId = '' then
@@ -170,7 +173,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest(
             'POST',
-            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/roleAssignments', WorkspaceIdForUrl),
+            StrSubstNo(RoleAssignmentsUrlTok, WorkspaceIdForUrl),
             Body);
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(AddSPTransportErr);

@@ -631,10 +631,10 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure GetWorkspacesErrorsOnMalformedResponse()
     var
+        TempBuffer: Record "Name/Value Buffer" temporary;
         AdminClient: Codeunit "Fabric Platform Admin Client";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
-        TempBuffer: Record "Name/Value Buffer" temporary;
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         Token: SecretText;
     begin
@@ -665,10 +665,10 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure GetMirroredDatabasesErrorsOnMalformedResponse()
     var
+        TempBuffer: Record "Name/Value Buffer" temporary;
         AdminClient: Codeunit "Fabric Platform Admin Client";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
-        TempBuffer: Record "Name/Value Buffer" temporary;
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         Token: SecretText;
     begin

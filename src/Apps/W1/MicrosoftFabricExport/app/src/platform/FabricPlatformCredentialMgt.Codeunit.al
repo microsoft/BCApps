@@ -14,6 +14,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment.';
         OpenDataEncryptionMgtLbl: Label 'Activate Encryption';
+        OAuthAuthorityUrlTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = tenant ID', Locked = true;
 
     internal procedure SetClientId(ClientId: Text)
     begin
@@ -122,7 +123,7 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         if AuthorityTenantId = '' then
             Error(TenantIdRequiredErr);
 
-        OAuthAuthorityUrl := StrSubstNo('https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', AuthorityTenantId);
+        OAuthAuthorityUrl := StrSubstNo(OAuthAuthorityUrlTok, AuthorityTenantId);
         Scopes.Add('https://api.fabric.microsoft.com/.default');
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
 

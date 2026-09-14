@@ -32,9 +32,9 @@ page 48511 "Fabric Platform Setup"
 
                     trigger OnAssistEdit()
                     var
+                        TempBuffer: Record "Name/Value Buffer" temporary;
                         AdminClient: Codeunit "Fabric Platform Admin Client";
                         CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                        TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
                         WorkspaceId: Guid;
                     begin
@@ -76,9 +76,9 @@ page 48511 "Fabric Platform Setup"
 
                     trigger OnAssistEdit()
                     var
+                        TempBuffer: Record "Name/Value Buffer" temporary;
                         AdminClient: Codeunit "Fabric Platform Admin Client";
                         CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                        TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
                         MirroredDatabaseId: Guid;
                     begin

@@ -58,7 +58,7 @@ codeunit 48520 "Fabric Platform Mgt"
     var
         TenantFabricSetup: Record "Tenant Fabric Setup";
     begin
-        exit(TenantFabricSetup.FindFirst());
+        exit(not TenantFabricSetup.IsEmpty());
     end;
 
     // -------------------------------------------------------------------------
@@ -337,9 +337,9 @@ codeunit 48520 "Fabric Platform Mgt"
 
     procedure TestConnection()
     var
+        TempBuffer: Record "Name/Value Buffer" temporary;
         AdminClient: Codeunit "Fabric Platform Admin Client";
         Telemetry: Codeunit "Fabric Platform Telemetry";
-        TempBuffer: Record "Name/Value Buffer" temporary;
         IsHandled: Boolean;
         IsSuccess: Boolean;
     begin
