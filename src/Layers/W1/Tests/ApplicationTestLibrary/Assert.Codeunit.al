@@ -372,6 +372,9 @@ codeunit 130000 Assert
         if Left.IsDotNet or Right.IsDotNet then
             exit((Format(Left, 0, 2) = Format(Right, 0, 2)));
 
+        if IsNumber(Left) or IsNumber(Right) then  // we have places where we compare biginteger and text
+            exit((Format(Left, 0, 2) = Format(Right, 0, 2)));
+
         exit((TypeOf(Left) = TypeOf(Right)) and (Format(Left, 0, 2) = Format(Right, 0, 2)))
     end;
 
