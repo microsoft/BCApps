@@ -1656,53 +1656,9 @@ table 5405 "Production Order"
         ProdOrderComponent.SetLoadFields("Expected Qty. (Base)", "Remaining Qty. (Base)", "Qty. Picked (Base)");
         if ProdOrderComponent.FindSet() then
             repeat
-                if ((ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)") and
-                   IsPickedQtyStillInOperationArea(ProdOrderComponent)
-                then
+                if (ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)" then
                     Error(CannotDeleteWithPickedQtyErr);
             until ProdOrderComponent.Next() = 0;
-    end;
-
-    local procedure IsPickedQtyStillInOperationArea(ProdOrderComponent: Record "Prod. Order Component"): Boolean
-    var
-        BinContent: Record "Bin Content";
-    begin
-        if ProdOrderComponent."Bin Code" = '' then
-            exit(true);
-
-        if not BinContent.Get(
-            ProdOrderComponent."Location Code", ProdOrderComponent."Bin Code",
-            ProdOrderComponent."Item No.", ProdOrderComponent."Variant Code", ProdOrderComponent."Unit of Measure Code")
-        then
-            exit(false);
-        BinContent.CalcFields("Quantity (Base)");
-        exit(BinContent."Quantity (Base)" > CalcOtherComponentsUnconsumedPickedQty(ProdOrderComponent));
-    end;
-
-    local procedure CalcOtherComponentsUnconsumedPickedQty(ProdOrderComponent: Record "Prod. Order Component") TotalUnconsumedPickedQtyBase: Decimal
-    var
-        OtherProdOrderComponent: Record "Prod. Order Component";
-        OtherUnconsumedPickedQtyBase: Decimal;
-    begin
-        OtherProdOrderComponent.SetFilter(Status, '%1|%2', OtherProdOrderComponent.Status::Released, OtherProdOrderComponent.Status::Finished);
-        OtherProdOrderComponent.SetRange("Item No.", ProdOrderComponent."Item No.");
-        OtherProdOrderComponent.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-        OtherProdOrderComponent.SetRange("Location Code", ProdOrderComponent."Location Code");
-        OtherProdOrderComponent.SetRange("Bin Code", ProdOrderComponent."Bin Code");
-        OtherProdOrderComponent.SetFilter("Qty. Picked (Base)", '<>%1', 0);
-        if OtherProdOrderComponent.FindSet() then
-            repeat
-                if (OtherProdOrderComponent.Status <> ProdOrderComponent.Status) or
-                   (OtherProdOrderComponent."Prod. Order No." <> ProdOrderComponent."Prod. Order No.") or
-                   (OtherProdOrderComponent."Prod. Order Line No." <> ProdOrderComponent."Prod. Order Line No.") or
-                   (OtherProdOrderComponent."Line No." <> ProdOrderComponent."Line No.")
-                then begin
-                    OtherUnconsumedPickedQtyBase :=
-                        OtherProdOrderComponent."Qty. Picked (Base)" - (OtherProdOrderComponent."Expected Qty. (Base)" - OtherProdOrderComponent."Remaining Qty. (Base)");
-                    if OtherUnconsumedPickedQtyBase > 0 then
-                        TotalUnconsumedPickedQtyBase += OtherUnconsumedPickedQtyBase;
-                end;
-            until OtherProdOrderComponent.Next() = 0;
     end;
 
     local procedure ValidateWarehousePutAwayLocation(ProductionOrder: Record "Production Order")
