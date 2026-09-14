@@ -4078,7 +4078,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         CapacityItemJournalBatch.Modify(true);
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     local procedure CreateSubcontractingSetup(var WorkCenter: Record "Work Center"; var RoutingHeader: Record "Routing Header"; OperationNo: Code[10])
     var
         RoutingLine: Record "Routing Line";
@@ -4396,7 +4396,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         AvailabilityManagement.SetSourceRecord(TempOrderPromisingLine, SalesHeader);
         AvailabilityManagement.CalcCapableToPromise(TempOrderPromisingLine, SalesHeader."No.");
     end;
-#if not CLEAN28
+#if not CLEAN29
     local procedure CalculateSubcontractOrder(var RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20]; ProductionOrder: Record "Production Order")
     var
         WorkCenter: Record "Work Center";
