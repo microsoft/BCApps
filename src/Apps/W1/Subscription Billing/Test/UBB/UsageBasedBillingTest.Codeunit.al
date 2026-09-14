@@ -84,6 +84,16 @@ codeunit 148153 "Usage Based Billing Test"
         ColumnSeparator: Option " ",Tab,Semicolon,Comma,Space,Custom;
         FileEncoding: Option "MS-DOS","UTF-8","UTF-16",WINDOWS;
         FileType: Option Xml,"Variable Text","Fixed Text",Json;
+        BillingLineAmountMismatchLbl: Label 'Billing Line Amount should be equal to the total Usage Data Billing Amount.', Locked = true;
+        BillingLineNotLinkedToUsageDataLbl: Label 'Usage Data Billing should be linked to the Billing Line it was billed in.', Locked = true;
+        BillingLineStartDateLbl: Label 'Billing Line should start at the earliest Charge Start Date.', Locked = true;
+        BillingLineStretchedEndDateLbl: Label 'Billing Line should be stretched to the Charge End Date of the crossing usage entry.', Locked = true;
+        BillingLineRhythmEndDateLbl: Label 'Billing Line should end at the billing rhythm period end.', Locked = true;
+        FirstBillingLineEndDateLbl: Label 'First Billing Line should end at the first rhythm period end.', Locked = true;
+        FirstBillingLineStartDateLbl: Label 'First Billing Line should start at the first Charge Start Date.', Locked = true;
+        NextBillingDateLbl: Label 'Next Billing Date should follow the stretched billing period.', Locked = true;
+        SecondBillingLineEndDateLbl: Label 'Second Billing Line should end at the second rhythm period end.', Locked = true;
+        SecondBillingLineStartDateLbl: Label 'Second Billing Line should start at the second rhythm period start.', Locked = true;
 
     #region Tests
 
@@ -2381,6 +2391,224 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataBilling.TestField("Pricing Unit Cost Surcharge %", ExpectedSubscriptionLine."Pricing Unit Cost Surcharge %");
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure UsageEntryCrossingBillingRhythmIsBilledInOneBillingLine()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        CrossingChargeEndDate: Date;
+        PeriodStartDate: Date;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] A usage entry that starts inside the billing rhythm but ends after it is billed within a single billing line
+
+        // [GIVEN] Three usage entries where the last one crosses the monthly rhythm boundary
+        Initialize();
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        SetupUsageDataWithEntryCrossingBillingRhythm(PeriodStartDate, CrossingChargeEndDate);
+
+        // [THEN] One billing line covers the whole usage period, stretched to the charge end date of the crossing entry
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        Assert.RecordCount(CustomerBillingLine, 1);
+        CustomerBillingLine.FindFirst();
+        Assert.AreEqual(PeriodStartDate, CustomerBillingLine."Billing from", BillingLineStartDateLbl);
+        Assert.AreEqual(CrossingChargeEndDate, CustomerBillingLine."Billing to", BillingLineStretchedEndDateLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure BillingLineAmountMatchesUsageDataWhenEntryCrossesPeriod()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        UsageDataBilling: Record "Usage Data Billing";
+        CrossingChargeEndDate: Date;
+        PeriodStartDate: Date;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] No usage amount is lost when a usage entry crosses the billing rhythm boundary
+
+        // [GIVEN] Three usage entries where the last one crosses the monthly rhythm boundary
+        Initialize();
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        SetupUsageDataWithEntryCrossingBillingRhythm(PeriodStartDate, CrossingChargeEndDate);
+
+        // [THEN] The billing lines add up to the total of the usage data billing
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
+        UsageDataBilling.CalcSums(Amount);
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        CustomerBillingLine.CalcSums(Amount);
+        Assert.AreEqual(
+            Round(UsageDataBilling.Amount, Currency."Amount Rounding Precision"),
+            Round(CustomerBillingLine.Amount, Currency."Amount Rounding Precision"),
+            BillingLineAmountMismatchLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure AllUsageDataEntriesLinkToSameBillingLineWhenEntryCrossesPeriod()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        UsageDataBilling: Record "Usage Data Billing";
+        CrossingChargeEndDate: Date;
+        PeriodStartDate: Date;
+        BillingLineEntryNo: Integer;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] Every usage entry is linked to the billing line it was billed in, also when it crosses the rhythm boundary
+
+        // [GIVEN] Three usage entries where the last one crosses the monthly rhythm boundary
+        Initialize();
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        SetupUsageDataWithEntryCrossingBillingRhythm(PeriodStartDate, CrossingChargeEndDate);
+
+        // [THEN] All usage data billing entries point to the single billing line
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        CustomerBillingLine.FindFirst();
+        BillingLineEntryNo := CustomerBillingLine."Entry No.";
+
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
+        UsageDataBilling.FindSet();
+        repeat
+            Assert.AreEqual(BillingLineEntryNo, UsageDataBilling."Billing Line Entry No.", BillingLineNotLinkedToUsageDataLbl);
+        until UsageDataBilling.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure UsageEntryInsideBillingRhythmKeepsRhythmBillingToDate()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        PeriodStartDate: Date;
+        SupplierSubscriptionID: Text;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] The billing period is not stretched when all usage entries end inside the billing rhythm
+
+        // [GIVEN] Three usage entries that all end within the first monthly rhythm period
+        Initialize();
+        SetupUsageBasedCustomerContractForMonthlyRhythm(PeriodStartDate, SupplierSubscriptionID);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate, PeriodStartDate + 17);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate + 11, PeriodStartDate + 17);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate + 18, CalcDate('<CM>', PeriodStartDate));
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        ProcessUsageDataAndCreateCustomerInvoice();
+
+        // [THEN] One billing line ends at the rhythm period end
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        Assert.RecordCount(CustomerBillingLine, 1);
+        CustomerBillingLine.FindFirst();
+        Assert.AreEqual(PeriodStartDate, CustomerBillingLine."Billing from", BillingLineStartDateLbl);
+        Assert.AreEqual(CalcDate('<CM>', PeriodStartDate), CustomerBillingLine."Billing to", BillingLineRhythmEndDateLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure RhythmAlignedUsageEntriesCreateOneBillingLinePerPeriod()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        PeriodStartDate: Date;
+        SecondPeriodStartDate: Date;
+        SupplierSubscriptionID: Text;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] Usage entries aligned to the billing rhythm are still billed in one billing line per period
+
+        // [GIVEN] Two usage entries, each covering exactly one monthly rhythm period
+        Initialize();
+        SetupUsageBasedCustomerContractForMonthlyRhythm(PeriodStartDate, SupplierSubscriptionID);
+        SecondPeriodStartDate := CalcDate('<1M>', PeriodStartDate);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate, CalcDate('<CM>', PeriodStartDate));
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, SecondPeriodStartDate, CalcDate('<CM>', SecondPeriodStartDate));
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        ProcessUsageDataAndCreateCustomerInvoice();
+
+        // [THEN] Two billing lines are created with unchanged rhythm periods
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        Assert.RecordCount(CustomerBillingLine, 2);
+        CustomerBillingLine.FindFirst();
+        Assert.AreEqual(PeriodStartDate, CustomerBillingLine."Billing from", FirstBillingLineStartDateLbl);
+        Assert.AreEqual(CalcDate('<CM>', PeriodStartDate), CustomerBillingLine."Billing to", FirstBillingLineEndDateLbl);
+        CustomerBillingLine.FindLast();
+        Assert.AreEqual(SecondPeriodStartDate, CustomerBillingLine."Billing from", SecondBillingLineStartDateLbl);
+        Assert.AreEqual(CalcDate('<CM>', SecondPeriodStartDate), CustomerBillingLine."Billing to", SecondBillingLineEndDateLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure NoOverlappingBillingLineCreatedAfterStretchedBillingPeriod()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        CustomerSubscriptionLine: Record "Subscription Line";
+        CrossingChargeEndDate: Date;
+        PeriodStartDate: Date;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] The period following a stretched billing period starts after it instead of at the rhythm boundary
+
+        // [GIVEN] Three usage entries where the last one crosses the monthly rhythm boundary
+        Initialize();
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        SetupUsageDataWithEntryCrossingBillingRhythm(PeriodStartDate, CrossingChargeEndDate);
+
+        // [THEN] No billing line starts at the rhythm boundary that the stretched billing line covers
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        CustomerBillingLine.SetRange("Billing from", CalcDate('<CM>', PeriodStartDate) + 1);
+        Assert.RecordIsEmpty(CustomerBillingLine);
+
+        // [THEN] The Subscription Line continues after the stretched billing period
+        FindCustomerSubscriptionLine(CustomerSubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(CrossingChargeEndDate + 1, CustomerSubscriptionLine."Next Billing Date", NextBillingDateLbl);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure ChainedCrossingUsageEntriesAreBilledInOneBillingLine()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        UsageDataBilling: Record "Usage Data Billing";
+        PeriodStartDate: Date;
+        FirstCrossingChargeEndDate: Date;
+        SecondCrossingChargeEndDate: Date;
+        SupplierSubscriptionID: Text;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] Multiple chained crossing usage entries extend the billing line to cover all chained entries in a single billing line
+
+        // [GIVEN] Three usage entries where each subsequent entry starts before the previous one ends but extends past its end date
+        Initialize();
+        SetupUsageBasedCustomerContractForMonthlyRhythm(PeriodStartDate, SupplierSubscriptionID);
+        FirstCrossingChargeEndDate := CalcDate('<1M>', PeriodStartDate) + 10;
+        SecondCrossingChargeEndDate := CalcDate('<2M>', PeriodStartDate) + 10;
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate, PeriodStartDate + 17);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate + 18, FirstCrossingChargeEndDate);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, FirstCrossingChargeEndDate - 5, SecondCrossingChargeEndDate);
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        ProcessUsageDataAndCreateCustomerInvoice();
+
+        // [THEN] One billing line covers the whole chained usage period, stretched to the second crossing entry's charge end date
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        Assert.RecordCount(CustomerBillingLine, 1);
+        CustomerBillingLine.FindFirst();
+        Assert.AreEqual(PeriodStartDate, CustomerBillingLine."Billing from", BillingLineStartDateLbl);
+        Assert.AreEqual(SecondCrossingChargeEndDate, CustomerBillingLine."Billing to", BillingLineStretchedEndDateLbl);
+
+        // [THEN] Total amount matches
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
+        UsageDataBilling.CalcSums(Amount);
+        CustomerBillingLine.CalcSums(Amount);
+        Assert.AreEqual(
+            Round(UsageDataBilling.Amount, Currency."Amount Rounding Precision"),
+            Round(CustomerBillingLine.Amount, Currency."Amount Rounding Precision"),
+            BillingLineAmountMismatchLbl);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Usage Based Billing Test");
@@ -2808,6 +3036,72 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.SetRecFilter();
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+    end;
+
+    local procedure SetupUsageBasedCustomerContractForMonthlyRhythm(var PeriodStartDate: Date; var SupplierSubscriptionID: Text)
+    begin
+        ContractTestLibrary.InitContractsApp();
+        CreateSubscriptionItemWithPrices(LibraryRandom.RandDec(1000, 2), LibraryRandom.RandDec(1000, 2));
+        SetupServiceDataForProcessing(Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Calculation Base Type"::"Item Price", Enum::"Invoicing Via"::Contract,
+                                       '1M', '1M', '1M', "Service Partner"::Customer, 100, Item."No.");
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
+        UsageBasedBTestLibrary.CreateGenericImportSettings(GenericImportSettings, UsageDataSupplier."No.", true, true);
+        UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, UsageDataSupplier."No.");
+        PeriodStartDate := CalcDate('<-CM>', WorkDate());
+        SupplierSubscriptionID := LibraryRandom.RandText(80);
+    end;
+
+    local procedure SetupUsageDataWithEntryCrossingBillingRhythm(var PeriodStartDate: Date; var CrossingChargeEndDate: Date)
+    var
+        SupplierSubscriptionID: Text;
+    begin
+        SetupUsageBasedCustomerContractForMonthlyRhythm(PeriodStartDate, SupplierSubscriptionID);
+        // The third entry starts in the first rhythm period and ends in the second one
+        CrossingChargeEndDate := CalcDate('<1M>', PeriodStartDate) + 17;
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate, PeriodStartDate + 17);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate + 11, PeriodStartDate + 17);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate + 18, CrossingChargeEndDate);
+        ProcessUsageDataAndCreateCustomerInvoice();
+    end;
+
+    local procedure AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID: Text; ChargeStartDate: Date; ChargeEndDate: Date)
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+    begin
+        UsageBasedBTestLibrary.CreateSimpleUsageDataGenericImport(
+            UsageDataGenericImport, UsageDataImport."Entry No.", SubscriptionHeader."No.", Customer."No.", Item."Unit Cost",
+            ChargeStartDate, ChargeEndDate, ChargeStartDate, ChargeEndDate, LibraryRandom.RandInt(10));
+        UsageDataGenericImport."Supp. Subscription ID" := CopyStr(SupplierSubscriptionID, 1, MaxStrLen(UsageDataGenericImport."Supp. Subscription ID"));
+        UsageDataGenericImport.Modify(false);
+    end;
+
+    local procedure ProcessUsageDataAndCreateCustomerInvoice()
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+    begin
+        ProcessUsageDataImport(Enum::"Processing Step"::"Process Imported Lines");
+
+        UsageDataGenericImport.Reset();
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataGenericImport.FindSet();
+        repeat
+            PrepareServiceCommitmentAndUsageDataGenericImportForUsageBilling(UsageDataGenericImport, Enum::"Usage Based Pricing"::"Usage Quantity", '1M', '1M', CalcDate('<-CM>', WorkDate()));
+        until UsageDataGenericImport.Next() = 0;
+        Codeunit.Run(Codeunit::"Import And Process Usage Data", UsageDataImport);
+
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        PostDocument := false;
+        UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
+    end;
+
+    local procedure FilterCustomerBillingLinesOnSubscription(var CustomerBillingLine: Record "Billing Line")
+    begin
+        CustomerBillingLine.Reset();
+        CustomerBillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
+        CustomerBillingLine.SetRange(Partner, "Service Partner"::Customer);
+        CustomerBillingLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
     end;
 
     local procedure SetupDataExchangeDefinition()
