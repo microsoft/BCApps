@@ -57,15 +57,15 @@ function Invoke-AITTests {
         [string] $SuiteCode,
         [string] $SuiteLineNo,
         [switch] $ResetTestSuite,
-        [switch] $ExportAgentTaskLogs,
-        [string] $AgentTaskLogFolder = "$PSScriptRoot\AgentTaskLogs"
+        [switch] $ExportAITRunData,
+        [string] $AITRunDataFolder = "$PSScriptRoot\AITRunData"
     )
 
     if ($ResetTestSuite) {
         TestRunnerInternalForAIT\Reset-AITTestSuite -SuiteCode $SuiteCode
     }
 
-    $TestRunResult = TestRunnerInternalForAIT\Invoke-AITSuite -SuiteCode $SuiteCode -SuiteLineNo $SuiteLineNo -ExportAgentTaskLogs:$ExportAgentTaskLogs -AgentTaskLogFolder $AgentTaskLogFolder
+    $TestRunResult = TestRunnerInternalForAIT\Invoke-AITSuite -SuiteCode $SuiteCode -SuiteLineNo $SuiteLineNo -ExportAITRunData:$ExportAITRunData -AITRunDataFolder $AITRunDataFolder
 
     return $TestRunResult
 }

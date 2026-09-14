@@ -26,7 +26,21 @@ The BC Copilot Eval Toolkit lets developers write and run automated evals for co
 1. You can also use the API (page 149038 "AIT Log Entry API") to get the result for a suite
 1. Open AL Test Tool and switch to the created eval suite to execute each eval manually
 
-For agent eval suites, the _AI Eval Command Line Runner_ can load detailed Agent Task troubleshooting JSON associated with the latest suite version. Repeatedly use the _Load Next Agent Task Log_ action and read the _Agent Task Log_ field until it contains `No more Agent Task logs.`. Pass `-ExportAgentTaskLogs` to `Invoke-AITTests` to make the PowerShell test runner perform this loop and write each raw task export from every completed eval line. The output defaults to the `AgentTaskLogs` folder next to the test runner module and can be changed with `-AgentTaskLogFolder`. Existing output is moved under an `AgentTaskLogs-old` folder into a timestamp-named subfolder before a new run. Export stops after 15 minutes; blank responses and timeouts are logged and written to text files in the output folder.
+The _AI Eval Command Line Runner_ can export structured run data for the latest suite version. Repeatedly use the _Load Next AI Eval Run Data File_ action and read the _AI Eval Run Data File_ and _AI Eval Run Data File Path_ fields until the content contains `No more AI Eval run data files.`. Pass `-ExportAITRunData` to `Invoke-AITTests` to make the PowerShell test runner perform this loop. The output defaults to the `AITRunData` folder next to the test runner module and can be changed with `-AITRunDataFolder`.
+
+The export uses the following structure:
+
+```text
+<suite>\
+  version-<version>\
+    results.json
+    <dataset-group-without-extension>-<test-input-code>\
+      evaluation-result-<AI-Eval-log-ID>.json
+      agent-task-details\
+        task-<Agent-Task-ID>.json
+```
+
+`results.json` is the entry point for analysis. Each evaluation result contains the original dataset identifiers, input, output, status, metrics, errors, and references to optional Agent Task troubleshooting details. Known dataset file extensions are removed only from folder names; persisted dataset codes are unchanged. Existing data for the same suite version is deleted before that version is exported again. Other versions are preserved. Export stops after 15 minutes; blank responses, invalid paths, and timeouts are logged and written to text files in the output folder.
 
 
 ## Writing data-driven AI evals

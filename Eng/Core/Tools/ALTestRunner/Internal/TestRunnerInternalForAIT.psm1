@@ -309,15 +309,15 @@ function Invoke-AITSuite
     [Parameter(Mandatory = $true)]
     [string] $SuiteCode,
     [string] $SuiteLineNo,
-    [switch] $ExportAgentTaskLogs,
-    [string] $AgentTaskLogFolder = "$PSScriptRoot\AgentTaskLogs",
+    [switch] $ExportAITRunData,
+    [string] $AITRunDataFolder = "$PSScriptRoot\AITRunData",
     [int] $ClientSessionTimeout = $script:ClientSessionTimeout,
     [timespan] $TransactionTimeout = $script:TransactionTimeout
 ) {
     $NoOfPendingTests = 0
     $TestResult = @()
-    if ($ExportAgentTaskLogs) {
-        Initialize-AgentTaskLogFolder -AgentTaskLogFolder $AgentTaskLogFolder
+    if ($ExportAITRunData) {
+        New-Item -ItemType Directory -Force -Path $AITRunDataFolder | Out-Null
     }
 
     do {
@@ -347,8 +347,8 @@ function Invoke-AITSuite
             $NoOfPendingTests = $clientContext.GetControlByName($form, "No. of Pending Tests")
             $NoOfPendingTests = [int] $NoOfPendingTests.StringValue
 
-            if ($ExportAgentTaskLogs) {
-                Export-AgentTaskLogs -SuiteCode $SuiteCode -AgentTaskLogFolder $AgentTaskLogFolder -ClientContext $clientContext -Form $form
+            if ($ExportAITRunData) {
+                Export-AITRunData -SuiteCode $SuiteCode -SuiteLineNo $SuiteLineNo -AITRunDataFolder $AITRunDataFolder
             }
         }
         catch {
@@ -374,74 +374,154 @@ function Invoke-AITSuite
     return $TestResult
 }
 
-function Export-AgentTaskLogs {
+function Export-AITRunData {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $SuiteCode,
+        [string] $SuiteLineNo,
+        [Parameter(Mandatory = $true)]
+        [string] $AITRunDataFolder
+    )
+
+    try {
+        $clientContext = Open-ClientSessionWithWait -DisableSSLVerification:$script:DisableSSLVerification -AuthorizationType $script:AuthorizationType -Credential $script:Credential -ServiceUrl $script:ServiceUrl -ClientSessionTimeout $script:ClientSessionTimeout -TransactionTimeout $script:AITRunDataExportTimeout -Culture $script:Culture
+        $form = Open-TestForm -TestPage $script:TestRunnerPage -DisableSSLVerification:$script:DisableSSLVerification -AuthorizationType $script:AuthorizationType -ClientContext $clientContext
+
+        $SelectSuiteControl = $clientContext.GetControlByName($form, "AIT Suite Code")
+        $clientContext.SaveValue($SelectSuiteControl, $SuiteCode)
+        if ($SuiteLineNo -ne '') {
+            $SelectSuiteLineControl = $clientContext.GetControlByName($form, "Line No. Filter")
+            $clientContext.SaveValue($SelectSuiteLineControl, $SuiteLineNo)
+        }
+
+        Export-AITRunDataFiles -SuiteCode $SuiteCode -AITRunDataFolder $AITRunDataFolder -ClientContext $clientContext -Form $form
+    }
+    catch {
+        $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
+        $FailureMessage = "AI Eval run data export for suite $SuiteCode failed: $($_.Exception.Message)"
+        $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_export-error.txt"
+        Write-HostWithTimestamp $FailureMessage
+        New-Item -ItemType Directory -Force -Path $AITRunDataFolder | Out-Null
+        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+    }
+    finally {
+        if ($clientContext) {
+            $clientContext.Dispose()
+        }
+    }
+}
+
+function Export-AITRunDataFiles {
     param (
         [Parameter(Mandatory = $true)]
         [string] $SuiteCode,
         [Parameter(Mandatory = $true)]
-        [string] $AgentTaskLogFolder,
+        [string] $AITRunDataFolder,
         [Parameter(Mandatory = $true)]
         [ClientContext] $ClientContext,
         [Parameter(Mandatory = $true)]
         [ClientLogicalForm] $Form
     )
 
-    Write-HostWithTimestamp "Loading Agent Task logs for suite $SuiteCode"
-    $LoadAgentTaskLogsAction = $ClientContext.GetActionByName($Form, "LoadAgentTaskLogs")
+    Write-HostWithTimestamp "Loading AI Eval run data for suite $SuiteCode"
+    $LoadAITRunDataFileAction = $ClientContext.GetActionByName($Form, "LoadAITRunDataFile")
     $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
-    $AgentTaskLogText = ''
-    $ExportTimeout = (Get-Date).Add($script:AgentTaskLogExportTimeout)
-    while (($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) -and ((Get-Date) -lt $ExportTimeout)) {
-        $ClientContext.InvokeAction($LoadAgentTaskLogsAction)
-        $AgentTaskLogText = $ClientContext.GetControlByName($Form, "Agent Task Log").StringValue
-        if ($AgentTaskLogText -eq $script:NoMoreAgentTaskLogs) {
+    $AITRunDataFileText = ''
+    $ExportTimeout = (Get-Date).Add($script:AITRunDataExportTimeout)
+    $ExpectedRunFolder = ''
+    $FailureCount = 0
+    $ResolvedAITRunDataFolder = [System.IO.Path]::GetFullPath($AITRunDataFolder).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+    while (($AITRunDataFileText -ne $script:NoMoreAITRunDataFiles) -and ((Get-Date) -lt $ExportTimeout)) {
+        $ClientContext.InvokeAction($LoadAITRunDataFileAction)
+        $AITRunDataFileText = $ClientContext.GetControlByName($Form, "AIT Run Data File").StringValue
+        if ($AITRunDataFileText -eq $script:NoMoreAITRunDataFiles) {
             continue
         }
 
-        $Version = $ClientContext.GetControlByName($Form, "Agent Task Log Version").StringValue
-        $AIEvalLogId = $ClientContext.GetControlByName($Form, "AI Eval Log ID").StringValue
-        $AgentTaskId = $ClientContext.GetControlByName($Form, "Agent Task ID").StringValue
-        if ([string]::IsNullOrWhiteSpace($AgentTaskLogText)) {
-            $FailureMessage = "The Agent Task log file for suite $SuiteCode, version $Version, AI Eval log $AIEvalLogId, and task $AgentTaskId could not be downloaded because the returned content was blank or empty."
-            $FailureFileName = '{0}_v{1}_evalLog{2}_task{3}_download-error.txt' -f $SafeSuiteCode, $Version, $AIEvalLogId, $AgentTaskId
-            $FailureFilePath = Join-Path $AgentTaskLogFolder $FailureFileName
+        $AITRunDataFilePath = $ClientContext.GetControlByName($Form, "AIT Run Data File Path").StringValue
+        if ([string]::IsNullOrWhiteSpace($AITRunDataFilePath)) {
+            $FailureCount++
+            $FailureMessage = "An AI Eval run data file for suite $SuiteCode could not be downloaded because its path was blank or empty."
+            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
             Write-HostWithTimestamp $FailureMessage
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:UTF8EncodingWithoutBOM)
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
             continue
         }
 
-        $FileName = '{0}_v{1}_evalLog{2}_task{3}.json' -f $SafeSuiteCode, $Version, $AIEvalLogId, $AgentTaskId
-        $FilePath = Join-Path $AgentTaskLogFolder $FileName
-        [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, $script:UTF8EncodingWithoutBOM)
-        Write-HostWithTimestamp "Exported Agent Task log to $FilePath"
+        $PathSegments = $AITRunDataFilePath -split '[\\/]'
+        if ($PathSegments.Count -lt 3) {
+            $FailureCount++
+            $FailureMessage = "The AI Eval run data file path '$AITRunDataFilePath' is invalid."
+            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
+            Write-HostWithTimestamp $FailureMessage
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+            continue
+        }
+
+        $RunFolder = [System.IO.Path]::GetFullPath((Join-Path (Join-Path $AITRunDataFolder $PathSegments[0]) $PathSegments[1]))
+        $FilePath = [System.IO.Path]::GetFullPath((Join-Path $AITRunDataFolder $AITRunDataFilePath))
+        if ((-not $RunFolder.StartsWith("$ResolvedAITRunDataFolder\", [System.StringComparison]::OrdinalIgnoreCase)) -or
+            (-not $FilePath.StartsWith("$RunFolder\", [System.StringComparison]::OrdinalIgnoreCase))) {
+            $FailureCount++
+            $FailureMessage = "The AI Eval run data file path '$AITRunDataFilePath' resolves outside the output folder."
+            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
+            Write-HostWithTimestamp $FailureMessage
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+            continue
+        }
+
+        if ([string]::IsNullOrWhiteSpace($ExpectedRunFolder)) {
+            if (($PathSegments.Count -ne 3) -or ($PathSegments[2] -ne 'results.json')) {
+                $FailureCount++
+                $FailureMessage = "The first AI Eval run data file must be the version results.json file."
+                $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
+                Write-HostWithTimestamp $FailureMessage
+                [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+                continue
+            }
+
+            $ExpectedRunFolder = $RunFolder
+            if (Test-Path -Path $RunFolder) {
+                Remove-Item -Path $RunFolder -Recurse -Force
+                Write-HostWithTimestamp "Removed existing AI Eval run data from $RunFolder"
+            }
+        }
+        elseif ($RunFolder -ne $ExpectedRunFolder) {
+            $FailureCount++
+            $FailureMessage = "The AI Eval run data file path '$AITRunDataFilePath' does not belong to the current suite version."
+            $FailureFilePath = Join-Path $ExpectedRunFolder "download-error-$FailureCount.txt"
+            Write-HostWithTimestamp $FailureMessage
+            New-Item -ItemType Directory -Force -Path $ExpectedRunFolder | Out-Null
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+            continue
+        }
+
+        if ([string]::IsNullOrWhiteSpace($AITRunDataFileText)) {
+            $FailureCount++
+            $FailureMessage = "The AI Eval run data file '$AITRunDataFilePath' could not be downloaded because its content was blank or empty."
+            $FailureFilePath = Join-Path $ExpectedRunFolder "download-error-$FailureCount.txt"
+            Write-HostWithTimestamp $FailureMessage
+            New-Item -ItemType Directory -Force -Path $ExpectedRunFolder | Out-Null
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+            continue
+        }
+
+        New-Item -ItemType Directory -Force -Path (Split-Path -Path $FilePath -Parent) | Out-Null
+        [System.IO.File]::WriteAllText($FilePath, $AITRunDataFileText, $script:AITRunDataFileEncodingWithoutBOM)
+        Write-HostWithTimestamp "Exported AI Eval run data to $FilePath"
     }
 
-    if ($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) {
-        $FailureMessage = "Agent Task log export for suite $SuiteCode did not finish within $($script:AgentTaskLogExportTimeout.TotalMinutes) minutes."
-        $FailureFilePath = Join-Path $AgentTaskLogFolder "$SafeSuiteCode`_download-timeout.txt"
+    if ($AITRunDataFileText -ne $script:NoMoreAITRunDataFiles) {
+        $FailureMessage = "AI Eval run data export for suite $SuiteCode did not finish within $($script:AITRunDataExportTimeout.TotalMinutes) minutes."
+        if ([string]::IsNullOrWhiteSpace($ExpectedRunFolder)) {
+            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-timeout.txt"
+        }
+        else {
+            $FailureFilePath = Join-Path $ExpectedRunFolder "download-timeout.txt"
+        }
         Write-HostWithTimestamp $FailureMessage
-        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:UTF8EncodingWithoutBOM)
+        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
     }
-}
-
-function Initialize-AgentTaskLogFolder {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string] $AgentTaskLogFolder
-    )
-
-    if ((Test-Path -Path $AgentTaskLogFolder) -and (Get-ChildItem -Path $AgentTaskLogFolder -File -Recurse -Force | Select-Object -First 1)) {
-        $ResolvedAgentTaskLogFolder = (Resolve-Path -Path $AgentTaskLogFolder).Path
-        $AgentTaskLogFolderParent = Split-Path -Path $ResolvedAgentTaskLogFolder -Parent
-        $AgentTaskLogFolderName = Split-Path -Path $ResolvedAgentTaskLogFolder -Leaf
-        $OldAgentTaskLogFolder = Join-Path $AgentTaskLogFolderParent "$AgentTaskLogFolderName-old"
-        $ArchiveFolder = Join-Path $OldAgentTaskLogFolder (Get-Date -Format 'yyyy_MM_dd_HHmmss')
-        New-Item -ItemType Directory -Force -Path $OldAgentTaskLogFolder | Out-Null
-        Move-Item -Path $AgentTaskLogFolder -Destination $ArchiveFolder
-        Write-HostWithTimestamp "Moved existing Agent Task logs to $ArchiveFolder"
-    }
-
-    New-Item -ItemType Directory -Force -Path $AgentTaskLogFolder | Out-Null
 }
 
 # Run the next test in the suite
@@ -867,9 +947,9 @@ $script:DefaultServerInstance = "NAV"
 $script:DefaultClientSessionTimeout = 60;
 $script:DefaultTransactionTimeout = [timespan]::FromMinutes(60);
 $script:DefaultCulture = "en-US";
-$script:AgentTaskLogExportTimeout = [timespan]::FromMinutes(15);
-$script:NoMoreAgentTaskLogs = "No more Agent Task logs.";
-$script:UTF8EncodingWithoutBOM = [System.Text.UTF8Encoding]::new($false);
+$script:AITRunDataExportTimeout = [timespan]::FromMinutes(15);
+$script:NoMoreAITRunDataFiles = "No more AI Eval run data files.";
+$script:AITRunDataFileEncodingWithoutBOM = [System.Text.UTF8Encoding]::new($false);
 
 $script:TestRunnerPage = '149042'
 $script:ClientAssembly1 = "Microsoft.Dynamics.Framework.UI.Client.dll"
