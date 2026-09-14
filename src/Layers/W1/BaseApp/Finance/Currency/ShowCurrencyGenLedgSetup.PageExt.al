@@ -6,7 +6,6 @@
 namespace Microsoft.Finance.Currency;
 
 using Microsoft.Finance.GeneralLedger.Setup;
-using System.Environment.Configuration;
 
 pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
 {
