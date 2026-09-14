@@ -19,7 +19,7 @@ pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Show Currency';
                 importance = Additional;
-                visible = IsSaaSExcelAddinEnabled;
+                visible = false;
 
                 trigger OnValidate()
                 begin
@@ -31,7 +31,7 @@ pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Currency Symbol Position';
                 importance = Additional;
-                visible = IsSaaSExcelAddinEnabled;
+                visible = false;
 
                 trigger OnValidate()
                 begin
@@ -43,7 +43,6 @@ pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
 
     var
         RestartSession: Boolean;
-        IsSaaSExcelAddinEnabled: Boolean;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
@@ -54,12 +53,5 @@ pageextension 60 ShowCurrencyGenLedgSetup extends "General Ledger Setup"
                 SessionSetting.Init();
                 SessionSetting.RequestSessionUpdate(false);
             end;
-    end;
-
-    trigger OnOpenPage()
-    var
-        ServerSetting: Codeunit "Server Setting";
-    begin
-        IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
     end;
 }
