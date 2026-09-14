@@ -399,18 +399,18 @@ function Export-AgentTaskLogs {
         }
 
         $Version = $ClientContext.GetControlByName($Form, "Agent Task Log Version").StringValue
-        $TestLogEntryId = $ClientContext.GetControlByName($Form, "Agent Task Log Entry ID").StringValue
+        $AIEvalLogId = $ClientContext.GetControlByName($Form, "AI Eval Log ID").StringValue
         $AgentTaskId = $ClientContext.GetControlByName($Form, "Agent Task ID").StringValue
         if ([string]::IsNullOrWhiteSpace($AgentTaskLogText)) {
-            $FailureMessage = "The Agent Task log file for suite $SuiteCode, version $Version, log entry $TestLogEntryId, and task $AgentTaskId could not be downloaded because the returned content was blank or empty."
-            $FailureFileName = '{0}_v{1}_log{2}_task{3}_download-error.txt' -f $SafeSuiteCode, $Version, $TestLogEntryId, $AgentTaskId
+            $FailureMessage = "The Agent Task log file for suite $SuiteCode, version $Version, AI Eval log $AIEvalLogId, and task $AgentTaskId could not be downloaded because the returned content was blank or empty."
+            $FailureFileName = '{0}_v{1}_evalLog{2}_task{3}_download-error.txt' -f $SafeSuiteCode, $Version, $AIEvalLogId, $AgentTaskId
             $FailureFilePath = Join-Path $AgentTaskLogFolder $FailureFileName
             Write-HostWithTimestamp $FailureMessage
             [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, [System.Text.UTF8Encoding]::new($false))
             continue
         }
 
-        $FileName = '{0}_v{1}_log{2}_task{3}.json' -f $SafeSuiteCode, $Version, $TestLogEntryId, $AgentTaskId
+        $FileName = '{0}_v{1}_evalLog{2}_task{3}.json' -f $SafeSuiteCode, $Version, $AIEvalLogId, $AgentTaskId
         $FilePath = Join-Path $AgentTaskLogFolder $FileName
         [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, [System.Text.UTF8Encoding]::new($false))
         Write-HostWithTimestamp "Exported Agent Task log to $FilePath"

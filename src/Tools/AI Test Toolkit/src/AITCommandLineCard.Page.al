@@ -178,11 +178,11 @@ page 149042 "AIT CommandLine Card"
                     Editable = false;
                     ToolTip = 'Specifies the eval version associated with the current Agent Task log.';
                 }
-                field("Agent Task Log Entry ID"; AgentTaskLogEntryIDText)
+                field("AI Eval Log ID"; AIEvalLogIDText)
                 {
-                    Caption = 'Agent Task Log Entry ID';
+                    Caption = 'AI Eval Log ID';
                     Editable = false;
-                    ToolTip = 'Specifies the eval log entry associated with the current Agent Task log.';
+                    ToolTip = 'Specifies the AI Eval log entry associated with the current Agent Task log.';
                 }
                 field("Agent Task ID"; AgentTaskIDText)
                 {
@@ -350,7 +350,7 @@ page 149042 "AIT CommandLine Card"
         AgentTaskLog: Record "Agent Task Log";
         AgentTaskLogText: Text;
         AgentTaskIDText: Text;
-        AgentTaskLogEntryIDText: Text;
+        AIEvalLogIDText: Text;
         AgentTaskLogVersionText: Text;
         AgentTaskLogExportInitialized: Boolean;
         AgentTaskLogExportCompleted: Boolean;
@@ -452,7 +452,7 @@ page 149042 "AIT CommandLine Card"
         end;
 
         AgentTaskIDText := Format(AgentTaskLog."Agent Task ID", 0, 9);
-        AgentTaskLogEntryIDText := Format(AgentTaskLog."Test Log Entry ID", 0, 9);
+        AIEvalLogIDText := Format(AgentTaskLog."Test Log Entry ID", 0, 9);
         AgentTaskLogVersionText := Format(AgentTaskLog.Version, 0, 9);
         AgentTaskLogText := AgentTestContextImpl.GetAgentTaskLog(AgentTaskLog."Agent Task ID");
         CurrPage.Update(false);
@@ -483,7 +483,7 @@ page 149042 "AIT CommandLine Card"
         Clear(AgentTaskLog);
         Clear(AgentTaskLogText);
         Clear(AgentTaskIDText);
-        Clear(AgentTaskLogEntryIDText);
+        Clear(AIEvalLogIDText);
         Clear(AgentTaskLogVersionText);
         AgentTaskLogExportInitialized := false;
         AgentTaskLogExportCompleted := false;
@@ -493,7 +493,7 @@ page 149042 "AIT CommandLine Card"
     begin
         AgentTaskLogText := NoMoreAgentTaskLogsTxt;
         Clear(AgentTaskIDText);
-        Clear(AgentTaskLogEntryIDText);
+        Clear(AIEvalLogIDText);
         Clear(AgentTaskLogVersionText);
         AgentTaskLogExportCompleted := true;
         CurrPage.Update(false);
