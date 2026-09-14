@@ -30,6 +30,7 @@ page 6996 "Expense Agent Setup"
                 field("Enable Agent"; Rec."Enable Agent")
                 {
                     Editable = false;
+                    Visible = false;
                     ToolTip = 'Specifies whether the agent is active in this company. Use the Configure Expense Agent wizard from the agent avatar to activate or deactivate the agent; this page only reflects the current state.';
                 }
                 field(Mailbox; Rec."Email Address")
