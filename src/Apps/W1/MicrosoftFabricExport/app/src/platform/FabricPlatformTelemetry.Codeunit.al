@@ -23,6 +23,13 @@ codeunit 48527 "Fabric Platform Telemetry"
         Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
+    /// <summary>Emits a customer-actionable operational failure, visible in tenant-level telemetry.</summary>
+    procedure LogFailureEvent(EventId: Text; Message: Text; Dimensions: Dictionary of [Text, Text])
+    begin
+        Dimensions.Set('Category', CategoryTok);
+        Session.LogMessage(EventId, Message, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+    end;
+
     /// <summary>
     /// Emits an audit event describing a configuration change made by the current user.
     /// Session.LogAuditMessage is OnPrem-only, so on the Cloud target these events are

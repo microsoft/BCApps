@@ -47,8 +47,7 @@ codeunit 48521 "Fabric Config Package Mgt"
             repeat
                 WasNew := not TenantFabricTables.Get(PackageLine."Table ID");
                 FabricPlatformMgt.ClaimTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code");
-                if WasNew then begin
-                    TenantFabricTables.Get(PackageLine."Table ID");
+                if WasNew and TenantFabricTables.Get(PackageLine."Table ID") then begin
                     TenantFabricTables.Validate("Fabric Schema Type", PackageLine."Fabric Schema Type");
                     TenantFabricTables.Modify(true);
                 end;
@@ -118,8 +117,7 @@ codeunit 48521 "Fabric Config Package Mgt"
             repeat
                 WasNew := not TenantFabricTables.Get(PackageLine."Table ID");
                 FabricPlatformMgt.ClaimTable(PackageLine."Table ID", "Fabric Table Claim Source"::Package, Pkg."Code");
-                if WasNew then begin
-                    TenantFabricTables.Get(PackageLine."Table ID");
+                if WasNew and TenantFabricTables.Get(PackageLine."Table ID") then begin
                     TenantFabricTables.Validate("Fabric Schema Type", PackageLine."Fabric Schema Type");
                     TenantFabricTables.Modify(true);
                 end;

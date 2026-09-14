@@ -50,4 +50,9 @@ page 48506 "Fabric API Export Details"
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.ReadIsolation := IsolationLevel::ReadCommitted;
+    end;
 }

@@ -14,13 +14,14 @@ codeunit 48526 "Fabric Platform Admin Client"
         WorkspaceRequiredForMirroredDbErr: Label 'Select a workspace before choosing an Open Mirroring database.';
         RetrieveMirroredDbsTransportErr: Label 'Failed to retrieve Open Mirroring databases: transport error.';
         RetrieveMirroredDbsHttpGenericErr: Label 'Failed to retrieve Open Mirroring databases. Contact your administrator if the problem persists.';
-        RetrieveMirroredDbsHttpDetailsErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
+        RetrieveMirroredDbsHttpStatusErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.', Comment = '%1 = HTTP status code';
         RetrieveMirroredDbsMalformedErr: Label 'Failed to retrieve Open Mirroring databases: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForSPErr: Label 'Select a workspace before adding the service principal.';
         PrincipalIdRequiredErr: Label 'Principal ID must be filled in before adding to the workspace.';
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
         SPAlreadyMemberErr: Label 'The service principal is already a member of this workspace.';
-        AddSPHttpErr: Label 'Failed to add service principal to workspace. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
+        AddSPHttpGenericErr: Label 'Failed to add service principal to workspace. Contact your administrator if the problem persists.';
+        AddSPHttpStatusErr: Label 'Failed to add service principal to workspace. HTTP %1.', Comment = '%1 = HTTP status code';
         MirroredDatabasesUrlTok: Label 'https://api.fabric.microsoft.com/v1/workspaces/%1/mirroredDatabases', Comment = '%1 = workspace ID', Locked = true;
         RoleAssignmentsUrlTok: Label 'https://api.fabric.microsoft.com/v1/workspaces/%1/roleAssignments', Comment = '%1 = workspace ID', Locked = true;
 
@@ -90,6 +91,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         IdToken: JsonToken;
         NameToken: JsonToken;
         JsonArr: JsonArray;
+        TelemetryDimensions: Dictionary of [Text, Text];
         ResponseText: Text;
         WorkspaceIdForUrl: Text;
         i: Integer;
@@ -116,11 +118,13 @@ codeunit 48526 "Fabric Platform Admin Client"
             Error(RetrieveMirroredDbsTransportErr);
         if not Resp.GetIsSuccessStatusCode() then begin
             ResponseText := Resp.GetContent().AsText();
-            Telemetry.LogEvent('FAB-120', StrSubstNo(RetrieveMirroredDbsHttpDetailsErr, Resp.GetHttpStatusCode(), ResponseText));
-            Error(CreateMirroredDbsHttpErrorInfo(Resp.GetHttpStatusCode(), ResponseText));
+            TelemetryDimensions.Add('HttpResponseBody', ResponseText);
+            Telemetry.LogFailureEvent('FAB-120', StrSubstNo(RetrieveMirroredDbsHttpStatusErr, Resp.GetHttpStatusCode()), TelemetryDimensions);
+            Error(CreateMirroredDbsHttpErrorInfo(Resp.GetHttpStatusCode()));
         end;
 
-        RootObj.ReadFrom(Resp.GetContent().AsText());
+        if not RootObj.ReadFrom(Resp.GetContent().AsText()) then
+            Error(RetrieveMirroredDbsMalformedErr);
         if not RootObj.Get('value', ArrayToken) then
             Error(RetrieveMirroredDbsMalformedErr);
         JsonArr := ArrayToken.AsArray();
@@ -145,7 +149,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         Req: Codeunit "Http Request Message";
         Resp: Codeunit "Http Response Message";
         AccessToken: SecretText;
-        ResponseText: Text;
         WorkspaceIdForUrl: Text;
         BodyObj: JsonObject;
         PrincipalObj: JsonObject;
@@ -180,16 +183,23 @@ codeunit 48526 "Fabric Platform Admin Client"
         if Resp.GetIsSuccessStatusCode() then
             exit;
 
-        ResponseText := Resp.GetContent().AsText();
         if Resp.GetHttpStatusCode() = 409 then
             Error(SPAlreadyMemberErr);
-        Error(AddSPHttpErr, Resp.GetHttpStatusCode(), ResponseText);
+        Error(CreateAddSPHttpErrorInfo(Resp.GetHttpStatusCode()));
     end;
 
-    local procedure CreateMirroredDbsHttpErrorInfo(StatusCode: Integer; ResponseBody: Text) ErrInfo: ErrorInfo
+    local procedure CreateMirroredDbsHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
     begin
         ErrInfo.Message := RetrieveMirroredDbsHttpGenericErr;
-        ErrInfo.DetailedMessage := StrSubstNo(RetrieveMirroredDbsHttpDetailsErr, StatusCode, ResponseBody);
+        ErrInfo.DetailedMessage := StrSubstNo(RetrieveMirroredDbsHttpStatusErr, StatusCode);
+        ErrInfo.DataClassification := DataClassification::SystemMetadata;
+        ErrInfo.ErrorType := ErrorType::Internal;
+    end;
+
+    local procedure CreateAddSPHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message := AddSPHttpGenericErr;
+        ErrInfo.DetailedMessage := StrSubstNo(AddSPHttpStatusErr, StatusCode);
         ErrInfo.DataClassification := DataClassification::SystemMetadata;
         ErrInfo.ErrorType := ErrorType::Internal;
     end;
