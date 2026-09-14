@@ -79,6 +79,7 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         SecurityAuditResponseTooLargeTxt: Label 'The public IP service returned a response that exceeded the maximum allowed size.', Locked = true;
         BlockedUrlTxt: Label 'The configured public IP service URL was rejected; it must be an external HTTPS endpoint.', Locked = true;
         SecurityAuditBlockedUrlTxt: Label 'The configured public IP service URL was rejected as it is not an allowed external HTTPS endpoint (non-HTTPS or internal/private/loopback host).', Locked = true;
+        BlockedUrlErr: Label 'The User IP Address Service URL must be an external HTTPS endpoint. Internal, private, loopback, or link-local addresses are not allowed.';
 
     internal procedure AddFraudPreventionHeaders(var RequestJSON: Text)
     var
@@ -409,6 +410,7 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         // targets before issuing the server-side request. The endpoint host is fully owned/chosen by the customer, so no
         // allow-list is possible; this blocks the most dangerous internal targets while keeping arbitrary public endpoints.
         if not IsPublicIPServiceUrlAllowed(PublicIPServiceURL) then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
             AuditLog.LogAuditMessage(SecurityAuditBlockedUrlTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             FeatureTelemetry.LogError('0000VEW', HMRCFraudPreventHeadersTok, '', BlockedUrlTxt);
             exit;
@@ -526,6 +528,10 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
     begin
         if url = '' then
             exit;
+
+        // Surface the specific SSRF-rejection reason to the admin instead of the generic empty-IP error below.
+        if not IsPublicIPServiceUrlAllowed(url) then
+            Error(BlockedUrlErr);
 
         // test getting server public IP address
         if not GetServerPublicIPFromExternalService(ServerIPAddress, url) then

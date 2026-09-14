@@ -141,6 +141,7 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
 
         // Size limit: reject abnormally large responses from the unauthenticated Nemhandelsregisteret service before parsing.
         if StrLen(ContentString) > GetMaxResponseSize() then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             exit;
         end;

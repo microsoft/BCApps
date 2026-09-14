@@ -537,6 +537,32 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestResponseIntegrityRejectsMismatchedCountryCode()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ResponseDoc: DotNet XmlDocument;
+    begin
+        // [SCENARIO] A VIES response echoing a different country code than requested is rejected
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+
+        // [GIVEN] A response echoing the requested VAT number but a wrong country code
+        CreateVATCheckResponseWithIdentifiers(ResponseDoc, 'XX', VATRegistrationLog.GetVATRegNo());
+
+        // [THEN] The response is rejected as tampered/unrelated
+        asserterror VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('does not match the requested VAT registration number');
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestResponseIntegrityAllowsMissingIdentifiers()
     var
         Customer: Record Customer;

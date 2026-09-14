@@ -109,7 +109,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         if TempBlobResponse.Length() <= GetMaxResponseSize() then
             exit;
 
-        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         Session.LogMessage('0000VEP', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
         Clear(TempBlobResponse);
         Error(ResponseTooLargeErr);
