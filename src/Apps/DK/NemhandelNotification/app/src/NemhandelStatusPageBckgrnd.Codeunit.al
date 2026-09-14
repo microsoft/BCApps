@@ -84,7 +84,7 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
                     // Logged as a warning (and to environment telemetry) so it is distinguishable from a successful lookup.
                     CompanyStatus := "Nemhandel Company Status"::Unknown;
                     Telemetry.LogMessage(
-                        '0000L9X', ResponseRejectedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+                        '', ResponseRejectedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
                         TelemetryScope::All, CustomDimensions);
                 end else begin
                     if ResponseCVRNumber.Contains(CVRNumber) then
