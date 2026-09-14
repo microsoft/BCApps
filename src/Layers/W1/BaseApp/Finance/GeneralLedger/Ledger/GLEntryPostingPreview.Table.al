@@ -45,7 +45,7 @@ table 1570 "G/L Entry Posting Preview"
         /// <summary>
         /// Unique sequential identifier for the preview G/L entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -435,7 +435,7 @@ table 1570 "G/L Entry Posting Preview"
         /// <summary>
         /// Entry number of the reversing entry for this preview G/L entry.
         /// </summary>
-        field(74; "Reversed by Entry No."; Integer)
+        field(74; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -445,7 +445,7 @@ table 1570 "G/L Entry Posting Preview"
         /// <summary>
         /// Entry number of the entry being reversed by this preview G/L entry.
         /// </summary>
-        field(75; "Reversed Entry No."; Integer)
+        field(75; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';

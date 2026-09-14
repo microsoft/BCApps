@@ -42,7 +42,7 @@ table 5802 "Value Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -104,7 +104,7 @@ table 5802 "Value Entry"
             else
             if ("Source Type" = const(Item)) "Inventory Posting Group";
         }
-        field(11; "Item Ledger Entry No."; Integer)
+        field(11; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry that this value entry is linked to.';
@@ -144,7 +144,7 @@ table 5802 "Value Entry"
             AutoFormatExpression = '';
             Caption = 'Sales Amount (Actual)';
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -488,7 +488,7 @@ table 5802 "Value Entry"
             ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
         }
-        field(1002; "Job Ledger Entry No."; Integer)
+        field(1002; "Job Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';
@@ -510,7 +510,7 @@ table 5802 "Value Entry"
         {
             Caption = 'Average Cost Exception';
         }
-        field(5831; "Capacity Ledger Entry No."; Integer)
+        field(5831; "Capacity Ledger Entry No."; BigInteger)
         {
             Caption = 'Capacity Ledger Entry No.';
             ToolTip = 'Specifies the entry number of the item ledger entry that this value entry is linked to.';
@@ -679,7 +679,7 @@ table 5802 "Value Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Value Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

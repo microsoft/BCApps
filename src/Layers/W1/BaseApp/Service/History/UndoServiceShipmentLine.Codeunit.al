@@ -114,8 +114,8 @@ codeunit 5818 "Undo Service Shipment Line"
         ConfirmManagement: Codeunit "Confirm Management";
         Window: Dialog;
         ItemShptEntryNo: Integer;
-        ServLedgEntryNo: Integer;
-        WarrantyLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
+        WarrantyLedgEntryNo: BigInteger;
         DeleteServItems: Boolean;
         PostedWhseShptLineFound: Boolean;
     begin

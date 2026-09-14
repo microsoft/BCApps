@@ -29,7 +29,7 @@ codeunit 5652 "Insurance Jnl.-Post Line"
         InsuranceReg: Record "Insurance Register";
         InsuranceJnlCheckLine: Codeunit "Insurance Jnl.-Check Line";
         MakeInsCoverageLedgEntry: Codeunit "Make Ins. Coverage Ledg. Entry";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
 
     procedure RunWithCheck(var InsuranceJnlLine2: Record "Insurance Journal Line")
     begin

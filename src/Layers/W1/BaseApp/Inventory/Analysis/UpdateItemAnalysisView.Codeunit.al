@@ -560,7 +560,7 @@ codeunit 7150 "Update Item Analysis View"
         exit(TempDimBuf.FindFirst());
     end;
 
-    procedure DimSetIDInFilter(DimSetID: Integer; var ItemAnalysisView: Record "Item Analysis View"): Boolean
+    procedure DimSetIDInFilter(DimSetID: BigInteger; var ItemAnalysisView: Record "Item Analysis View"): Boolean
     var
         InFilters: Boolean;
     begin

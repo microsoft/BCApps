@@ -35,8 +35,8 @@ codeunit 5912 "ServLedgEntries-Post"
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         ServOrderMgt: Codeunit ServOrderManagement;
-        NextServLedgerEntryNo: Integer;
-        NextWarrantyLedgerEntryNo: Integer;
+        NextServLedgerEntryNo: BigInteger;
+        NextWarrantyLedgerEntryNo: BigInteger;
         SrcCode: Code[10];
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -44,7 +44,7 @@ codeunit 5912 "ServLedgEntries-Post"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure InitServiceRegister(var PassedServEntryNo: Integer; var PassedWarrantyEntryNo: Integer)
+    procedure InitServiceRegister(var PassedServEntryNo: BigInteger; var PassedWarrantyEntryNo: BigInteger)
     var
         SrcCodeSetup: Record "Source Code Setup";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
@@ -77,7 +77,7 @@ codeunit 5912 "ServLedgEntries-Post"
         OnAfterInitServiceRegister(ServiceRegister);
     end;
 
-    procedure FinishServiceRegister(var PassedServEntryNo: Integer; var PassedWarrantyEntryNo: Integer)
+    procedure FinishServiceRegister(var PassedServEntryNo: BigInteger; var PassedWarrantyEntryNo: BigInteger)
     begin
         OnBeforeFinishServiceRegister(ServiceRegister);
 
@@ -96,7 +96,7 @@ codeunit 5912 "ServLedgEntries-Post"
             ServiceRegister.Insert();
     end;
 
-    procedure InsertServLedgerEntry(var NextEntryNo: Integer; var ServHeader: Record "Service Header"; var TempServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; DocNo: Code[20]) Result: Integer
+    procedure InsertServLedgerEntry(var NextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var TempServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; DocNo: Code[20]) Result: BigInteger
     var
         LineAmount: Decimal;
         IsHandled: Boolean;
@@ -191,7 +191,7 @@ codeunit 5912 "ServLedgEntries-Post"
         exit(ServLedgEntry."Entry No.");
     end;
 
-    procedure InsertServLedgerEntrySale(var PassedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; QtyToCharge: Decimal; GenJnlLineDocNo: Code[20]; DocLineNo: Integer)
+    procedure InsertServLedgerEntrySale(var PassedNextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; QtyToCharge: Decimal; GenJnlLineDocNo: Code[20]; DocLineNo: Integer)
     var
         ServShptLine: Record "Service Shipment Line";
         ApplyToServLedgEntry: Record "Service Ledger Entry";
@@ -381,7 +381,7 @@ codeunit 5912 "ServLedgEntries-Post"
         PassedNextEntryNo := NextServLedgerEntryNo;
     end;
 
-    local procedure InsertServLedgEntryCrMemo(var PassedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; GenJnlLineDocNo: Code[20])
+    local procedure InsertServLedgEntryCrMemo(var PassedNextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; GenJnlLineDocNo: Code[20])
     var
         ServItem: Record "Service Item";
         TotalAmount: Decimal;
@@ -492,7 +492,7 @@ codeunit 5912 "ServLedgEntries-Post"
         PassedNextEntryNo := NextServLedgerEntryNo;
     end;
 
-    local procedure InsertServLedgerEntryCrMUsage(var PassedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; DocNo: Code[20])
+    local procedure InsertServLedgerEntryCrMUsage(var PassedNextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; DocNo: Code[20])
     var
         LineAmount: Decimal;
         IsHandled: Boolean;
@@ -583,7 +583,7 @@ codeunit 5912 "ServLedgEntries-Post"
             CopyServicedInfoFromServiceItem(ServLedgEntry, ServLine."Service Item No.");
     end;
 
-    procedure InsertWarrantyLedgerEntry(var PassedWarrantyEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; GenJnlLineDocNo: Code[20]): Integer
+    procedure InsertWarrantyLedgerEntry(var PassedWarrantyEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; GenJnlLineDocNo: Code[20]): BigInteger
     begin
         if ServLine.Warranty and (ServLine.Type in [ServLine.Type::Item, ServLine.Type::Resource]) and (ServLine."Qty. to Ship" <> 0) then begin
             Clear(WarrantyLedgEntry);
@@ -704,7 +704,7 @@ codeunit 5912 "ServLedgEntries-Post"
 
     procedure UnapplyOpenServiceLines(var ServiceLine: Record "Service Line")
     var
-        ServLedgEntryNo, WarrantyLedgEntryNo : Integer;
+        ServLedgEntryNo, WarrantyLedgEntryNo : BigInteger;
     begin
         ServiceLine.FindSet();
         repeat
@@ -793,7 +793,7 @@ codeunit 5912 "ServLedgEntries-Post"
         WarrantyLedgerEntry.Quantity := -WarrantyLedgerEntry.Quantity;
     end;
 
-    procedure CreateCreditEntry(var PassedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; GenJnlLineDocNo: Code[20])
+    procedure CreateCreditEntry(var PassedNextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; GenJnlLineDocNo: Code[20])
     var
         ServShptHeader: Record "Service Shipment Header";
         ServContractAccGr: Record "Service Contract Account Group";
@@ -1171,12 +1171,12 @@ codeunit 5912 "ServLedgEntries-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateCreditEntry(var ServiceDocumentRegister: Record "Service Document Register"; var ServiceLine: Record "Service Line"; var ServiceHeader: Record "Service Header"; var ServiceLedgerEntry: Record "Service Ledger Entry"; var GenJnlLineDocNo: Code[20]; var ServDocType: Integer; var PassedNextEntryNo: Integer; var ServDocNo: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeCreateCreditEntry(var ServiceDocumentRegister: Record "Service Document Register"; var ServiceLine: Record "Service Line"; var ServiceHeader: Record "Service Header"; var ServiceLedgerEntry: Record "Service Ledger Entry"; var GenJnlLineDocNo: Code[20]; var ServDocType: Integer; var PassedNextEntryNo: BigInteger; var ServDocNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgerEntryCrMUsage(var NextEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; DocNo: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgerEntryCrMUsage(var NextEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; DocNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
@@ -1261,17 +1261,17 @@ codeunit 5912 "ServLedgEntries-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgerEntry(var NextEntryNo: Integer; var ServiceHeader: Record "Service Header"; var TempServiceLine: Record "Service Line"; var ServiceItemLine: Record "Service Item Line"; Qty: Decimal; DocNo: Code[20]; var Result: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgerEntry(var NextEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var TempServiceLine: Record "Service Line"; var ServiceItemLine: Record "Service Item Line"; Qty: Decimal; DocNo: Code[20]; var Result: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgerEntrySale(var PassedNextEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServiceItemLine: Record "Service Item Line"; var ServiceLedgerEntry: Record "Service Ledger Entry"; Qty: Decimal; QtyToCharge: Decimal; GenJnlLineDocNo: Code[20]; DocLineNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgerEntrySale(var PassedNextEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServiceItemLine: Record "Service Item Line"; var ServiceLedgerEntry: Record "Service Ledger Entry"; Qty: Decimal; QtyToCharge: Decimal; GenJnlLineDocNo: Code[20]; DocLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgEntryCrMemo(var PassedNextEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; GenJnlLineDocNo: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgEntryCrMemo(var PassedNextEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; GenJnlLineDocNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
@@ -1286,7 +1286,7 @@ codeunit 5912 "ServLedgEntries-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterReverseOpenServiceLedgerEntry(var ServiceLedgerEntry: Record "Service Ledger Entry"; var NextServLedgerEntryNo: Integer)
+    local procedure OnAfterReverseOpenServiceLedgerEntry(var ServiceLedgerEntry: Record "Service Ledger Entry"; var NextServLedgerEntryNo: BigInteger)
     begin
     end;
 }

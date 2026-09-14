@@ -81,7 +81,7 @@ table 296 "Reminder Line"
         /// <summary>
         /// Specifies the customer ledger entry number that this reminder line references.
         /// </summary>
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Entry No.';
@@ -920,7 +920,7 @@ table 296 "Reminder Line"
     /// </summary>
     /// <param name="EntryNo">The customer ledger entry number.</param>
     /// <returns>The count of issued reminders for the entry.</returns>
-    procedure GetNoOfReminderForCustLedgEntry(EntryNo: Integer): Integer
+    procedure GetNoOfReminderForCustLedgEntry(EntryNo: BigInteger): Integer
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         NoOfReminders: Integer;
@@ -1317,7 +1317,7 @@ table 296 "Reminder Line"
     /// <param name="EntryNo">The customer ledger entry number.</param>
     /// <param name="IsHandled">Set to true to skip default counting logic.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetNoOfReminderForCustLedgEntry(var ReminderLine: Record "Reminder Line"; var NoOfReminders: Integer; EntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeGetNoOfReminderForCustLedgEntry(var ReminderLine: Record "Reminder Line"; var NoOfReminders: Integer; EntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

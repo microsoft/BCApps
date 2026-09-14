@@ -34,7 +34,7 @@ codeunit 212 "Res. Jnl.-Post Line"
         ResourceUnitOfMeasure: Record "Resource Unit of Measure";
         ResourcesSetup: Record "Resources Setup";
         ResJnlCheckLine: Codeunit "Res. Jnl.-Check Line";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         GLSetupRead: Boolean;
 
     procedure RunWithCheck(var ResJournalLine: Record "Res. Journal Line")
@@ -172,7 +172,7 @@ codeunit 212 "Res. Jnl.-Post Line"
         exit(Chargeable);
     end;
 
-    local procedure InsertRegister(ResLedgEntryNo: Integer)
+    local procedure InsertRegister(ResLedgEntryNo: BigInteger)
     begin
         if ResourceRegister."No." = 0 then begin
             ResourceRegister."No." := ResourceRegister.GetNextEntryNo(ResourcesSetup.UseLegacyPosting());
@@ -211,7 +211,7 @@ codeunit 212 "Res. Jnl.-Post Line"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Res. Ledger Entry", 'r')]
-    local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    local procedure ValidateSequenceNo(LedgEntryNo: BigInteger; xLedgEntryNo: BigInteger; TableNo: Integer)
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -228,12 +228,12 @@ codeunit 212 "Res. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostResJnlLine(var ResJournalLine: Record "Res. Journal Line"; var ResLedgEntry: Record "Res. Ledger Entry"; var NextEntryNo: Integer)
+    local procedure OnAfterPostResJnlLine(var ResJournalLine: Record "Res. Journal Line"; var ResLedgEntry: Record "Res. Ledger Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostResJnlLine(var ResJournalLine: Record "Res. Journal Line"; var IsHandled: Boolean; var NextEntryNo: Integer)
+    local procedure OnBeforePostResJnlLine(var ResJournalLine: Record "Res. Journal Line"; var IsHandled: Boolean; var NextEntryNo: BigInteger)
     begin
     end;
 

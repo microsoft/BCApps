@@ -48,9 +48,9 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAInsertGLAcc: Codeunit "FA Insert G/L Account";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
         DeprBookCode: Code[10];
-        ErrorEntryNo: Integer;
-        NextEntryNo: Integer;
-        NextMaintenanceEntryNo: Integer;
+        ErrorEntryNo: BigInteger;
+        NextEntryNo: BigInteger;
+        NextMaintenanceEntryNo: BigInteger;
         RegisterInserted: Boolean;
         LastEntryNo: Integer;
         GLRegisterNo: Integer;
@@ -754,7 +754,7 @@ codeunit 5600 "FA Insert Ledger Entry"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeInsertRegister(var FALedgerEntry: Record "FA Ledger Entry"; var FALedgerEntry2: Record "FA Ledger Entry"; var NextEntryNo: Integer)
+    local procedure OnBeforeInsertRegister(var FALedgerEntry: Record "FA Ledger Entry"; var FALedgerEntry2: Record "FA Ledger Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -784,7 +784,7 @@ codeunit 5600 "FA Insert Ledger Entry"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnInsertFAOnAfterSetFALedgEntryFANo(FALedgEntry3: Record "FA Ledger Entry"; FALedgEntry2: Record "FA Ledger Entry"; FALedgEntry: Record "FA Ledger Entry"; var NextEntryNo: Integer)
+    local procedure OnInsertFAOnAfterSetFALedgEntryFANo(FALedgEntry3: Record "FA Ledger Entry"; FALedgEntry2: Record "FA Ledger Entry"; FALedgEntry: Record "FA Ledger Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 

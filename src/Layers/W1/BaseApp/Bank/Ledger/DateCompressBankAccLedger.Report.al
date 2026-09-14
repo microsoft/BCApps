@@ -96,7 +96,7 @@ report 1498 "Date Compress Bank Acc. Ledger"
             trigger OnPreDataItem()
             var
                 GLSetup: Record "General Ledger Setup";
-                LastTransactionNo: Integer;
+                LastTransactionNo: BigInteger;
             begin
                 if EntrdDateComprReg."Ending Date" = 0D then
                     Error(MustBeSpecifiedErr, EntrdDateComprReg.FieldCaption("Ending Date"));
@@ -295,12 +295,12 @@ report 1498 "Date Compress Bank Acc. Ledger"
         DataArchive: Codeunit "Data Archive";
         Window: Dialog;
         BankAccLedgEntryFilter: Text[250];
-        LastEntryNo: Integer;
-        NextTransactionNo: Integer;
+        LastEntryNo: BigInteger;
+        NextTransactionNo: BigInteger;
         NoOfDeleted: Integer;
         GLRegExists: Boolean;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -353,8 +353,8 @@ report 1498 "Date Compress Bank Acc. Ledger"
 
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        FoundLastEntryNo: Integer;
-        LastTransactionNo: Integer;
+        FoundLastEntryNo: BigInteger;
+        LastTransactionNo: BigInteger;
     begin
         GLEntry.Init();
         LastEntryNo := LastEntryNo + 1;
@@ -419,9 +419,9 @@ report 1498 "Date Compress Bank Acc. Ledger"
     local procedure ComprCollectedEntries()
     var
         BankAccLedgEntry: Record "Bank Account Ledger Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        BankAccLedgEntryNo: Integer;
+        BankAccLedgEntryNo: BigInteger;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, BankAccLedgEntryNo) then begin
@@ -480,7 +480,7 @@ report 1498 "Date Compress Bank Acc. Ledger"
         Window.Update(3, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewBankAccLedgEntry: Record "Bank Account Ledger Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var NewBankAccLedgEntry: Record "Bank Account Ledger Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;
@@ -569,7 +569,7 @@ report 1498 "Date Compress Bank Acc. Ledger"
     /// <param name="BankAccountLedgerEntry">Bank account ledger entry being inserted during compression.</param>
     /// <param name="DimEntryNo">Dimension entry number associated with the compressed entry.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnInsertNewEntryOnBeforeInsert(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; DimEntryNo: Integer)
+    local procedure OnInsertNewEntryOnBeforeInsert(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; DimEntryNo: BigInteger)
     begin
     end;
 }

@@ -19,7 +19,7 @@ table 5895 "Inventory Adjustment Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
@@ -46,7 +46,7 @@ table 5895 "Inventory Adjustment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = Location;
         }
-        field(11; "Item Ledger Entry No."; Integer)
+        field(11; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             DataClassification = SystemMetadata;

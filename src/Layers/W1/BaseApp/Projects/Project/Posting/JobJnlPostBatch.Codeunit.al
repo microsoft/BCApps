@@ -47,7 +47,7 @@ codeunit 1013 "Job Jnl.-Post Batch"
         NoSeriesBatch: Codeunit "No. Series - Batch";
         AsmPost: Codeunit "Assembly-Post";
         Window: Dialog;
-        JobRegNo: Integer;
+        JobRegNo: BigInteger;
         StartLineNo: Integer;
         LineCount: Integer;
         NoOfRecords: Integer;

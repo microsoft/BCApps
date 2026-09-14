@@ -167,7 +167,7 @@ table 5855 "Invt. Shipment Line"
             ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;
@@ -311,7 +311,7 @@ table 5855 "Invt. Shipment Line"
             Caption = 'FA No.';
             TableRelation = "Fixed Asset";
         }
-        field(12451; "FA Entry No."; Integer)
+        field(12451; "FA Entry No."; BigInteger)
         {
             Caption = 'FA Entry No.';
             TableRelation = "FA Ledger Entry" where("Entry No." = field("FA Entry No."));

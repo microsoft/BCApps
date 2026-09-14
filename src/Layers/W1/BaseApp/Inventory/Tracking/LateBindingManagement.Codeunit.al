@@ -22,7 +22,7 @@ codeunit 6502 "Late Binding Management"
         TempReservEntryInsert: Record "Reservation Entry" temporary;
         TempReservEntryOrderTrackingSurplus: Record "Reservation Entry" temporary;
         ReservMgt: Codeunit "Reservation Management";
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
 
     local procedure CleanUpVariables()
     begin
@@ -248,7 +248,7 @@ codeunit 6502 "Late Binding Management"
 
     local procedure MakeConnection(var SupplySurplusEntry: Record "Reservation Entry"; var DemandReservEntry: Record "Reservation Entry"; QtyToReshuffle: Decimal) RemainingQty: Decimal
     var
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         if SupplySurplusEntry."Quantity (Base)" = 0 then
@@ -316,8 +316,8 @@ codeunit 6502 "Late Binding Management"
     local procedure WriteToDatabase()
     var
         ReservEntry: Record "Reservation Entry";
-        PrevNegEntryNo: Integer;
-        LastInsertedEntryNo: Integer;
+        PrevNegEntryNo: BigInteger;
+        LastInsertedEntryNo: BigInteger;
     begin
         TempReservEntryDelete.Reset();
         TempReservEntryModify.Reset();
