@@ -871,6 +871,7 @@ table 79 "Company Information"
     var
         Company: Record Company;
     begin
+        Company.SetLoadFields("Evaluation Company");
         if Company.Get(CurrentCompany()) then
             exit(Company."Evaluation Company");
 

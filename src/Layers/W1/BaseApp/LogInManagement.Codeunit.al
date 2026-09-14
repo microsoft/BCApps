@@ -225,7 +225,7 @@ codeunit 40 LogInManagement
         CompanyInformation: Record "Company Information";
         SkipGettingDefaultWorkDateForAllSessions: Boolean;
     begin
-        OnBeforeGetDefaultWorkDateForAllSessions(CurrentClientType, SkipGettingDefaultWorkDateForAllSessions);
+        OnBeforeGetDefaultWorkDateForAllSessions(CurrentClientType, CompanyName(), SkipGettingDefaultWorkDateForAllSessions);
         if SkipGettingDefaultWorkDateForAllSessions then
             exit(false);
 
@@ -236,7 +236,10 @@ codeunit 40 LogInManagement
         if not CompanyInformation."Apply Work Date to Sessions" then
             exit(false);
 
-        CompanyInformation.LoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
+        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
+        if not CompanyInformation.Get() then
+            exit(false);
+
         if not CompanyInformation."Demo Company" then
             if not CompanyInformation.IsEvaluationCompany() then
                 exit(false);
@@ -258,6 +261,17 @@ codeunit 40 LogInManagement
         GLEntry: Record "G/L Entry";
     begin
         case CompanyInformation."Evaluation Work Date" of
+            CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date":
+                begin
+                    GLEntry.SetCurrentKey("Posting Date");
+                    GLEntry.SecurityFiltering(SecurityFilter::Ignored);
+                    if GLEntry.FindLast() then begin
+                        LogInWorkDate := NormalDate(GLEntry."Posting Date");
+                        exit(NormalDate(GLEntry."Posting Date"));
+                    end;
+
+                    exit(WorkDate());
+                end;
             CompanyInformation."Evaluation Work Date"::Today:
                 exit(Today);
             CompanyInformation."Evaluation Work Date"::"Custom Date":
@@ -266,13 +280,6 @@ codeunit 40 LogInManagement
                         exit(Today);
                     exit(CompanyInformation."Custom Work Date");
                 end;
-        end;
-
-        GLEntry.SetCurrentKey("Posting Date");
-        GLEntry.SecurityFiltering(SecurityFilter::Ignored);
-        if GLEntry.FindLast() then begin
-            LogInWorkDate := NormalDate(GLEntry."Posting Date");
-            exit(NormalDate(GLEntry."Posting Date"));
         end;
 
         exit(WorkDate());
@@ -377,7 +384,7 @@ codeunit 40 LogInManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var SkipGettingDefaultWorkDateForAllSessions: Boolean)
+    local procedure OnBeforeGetDefaultWorkDateForAllSessions(CurrentClientType: ClientType; CompanyName: Text; var SkipGettingDefaultWorkDateForAllSessions: Boolean)
     begin
     end;
 

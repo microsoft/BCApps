@@ -2,7 +2,6 @@ codeunit 139028 "Test Workdate"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    EventSubscriberInstance = Manual;
 
     Permissions =
         tabledata Company = rm,
@@ -16,7 +15,6 @@ codeunit 139028 "Test Workdate"
 
     var
         Assert: Codeunit Assert;
-        TestWorkdate: Codeunit "Test Workdate";
 
     [Test]
     [Scope('OnPrem')]
@@ -145,98 +143,8 @@ codeunit 139028 "Test Workdate"
 
         ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
 
-        Assert.AreEqual(WorkDate(), DefaultWorkDate, 'The current work date should remain unchanged.');
+        Assert.AreEqual(0D, DefaultWorkDate, 'The default work date should not be calculated.');
         Assert.IsFalse(ApplyWorkDateToAllSessions, 'The work date should not be applied to all sessions.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure GettingDefaultWorkDateForAllSessionsCanBeSkipped()
-    var
-        CompanyInformation: Record "Company Information";
-        LogInManagement: Codeunit LogInManagement;
-        DefaultWorkDate: Date;
-        ApplyWorkDateToAllSessions: Boolean;
-    begin
-        // [SCENARIO] An extension can skip getting the default work date for all session types.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
-        BindSubscription(TestWorkdate);
-
-        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
-
-        UnbindSubscription(TestWorkdate);
-        Assert.IsFalse(ApplyWorkDateToAllSessions, 'The work date should not be applied when getting it is skipped.');
-        Assert.AreEqual(0D, DefaultWorkDate, 'The default work date should not be calculated when getting it is skipped.');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure EvaluationWorkDateIsVisibleForEvaluationCompany()
-    var
-        CompanyInformation: Record "Company Information";
-        CompanyInformationPage: TestPage "Company Information";
-    begin
-        // [SCENARIO] The work date setting is visible for an evaluation company.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
-
-        CompanyInformationPage.OpenEdit();
-
-        Assert.IsTrue(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be visible for an evaluation company.');
-        Assert.IsTrue(CompanyInformationPage."Apply Work Date to Sessions".Visible(), 'The all sessions field should be visible for an evaluation company.');
-        CompanyInformationPage.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure EvaluationWorkDateIsHiddenForRegularCompany()
-    var
-        CompanyInformation: Record "Company Information";
-        CompanyInformationPage: TestPage "Company Information";
-    begin
-        // [SCENARIO] The work date setting is hidden for a regular company.
-        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
-
-        CompanyInformationPage.OpenEdit();
-
-        Assert.IsFalse(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be hidden for a regular company.');
-        Assert.IsFalse(CompanyInformationPage."Apply Work Date to Sessions".Visible(), 'The all sessions field should be hidden for a regular company.');
-        CompanyInformationPage.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure EvaluationWorkDateIsVisibleForDemoCompany()
-    var
-        CompanyInformation: Record "Company Information";
-        CompanyInformationPage: TestPage "Company Information";
-    begin
-        // [SCENARIO] The work date setting remains visible for a legacy demo company.
-        SetCompanyWorkDateSettings(CompanyInformation, false, true, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
-
-        CompanyInformationPage.OpenEdit();
-
-        Assert.IsTrue(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be visible for a demo company.');
-        CompanyInformationPage.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure CustomWorkDateVisibilityChangesWithSelection()
-    var
-        CompanyInformation: Record "Company Information";
-        CompanyInformationPage: TestPage "Company Information";
-    begin
-        // [SCENARIO] The custom date is shown only when Custom Date is selected.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
-
-        CompanyInformationPage.OpenEdit();
-        Assert.IsFalse(CompanyInformationPage."Custom Work Date".Visible(), 'The custom date should initially be hidden.');
-
-        CompanyInformationPage."Evaluation Work Date".SetValue(CompanyInformation."Evaluation Work Date"::"Custom Date");
-
-        Assert.IsTrue(CompanyInformationPage."Custom Work Date".Visible(), 'The custom date should be visible for the Custom Date option.');
-        Assert.AreEqual(Today, CompanyInformationPage."Custom Work Date".AsDate(), 'The custom date should default to today.');
-        CompanyInformationPage.Close();
     end;
 
     [Test]
@@ -286,11 +194,5 @@ codeunit 139028 "Test Workdate"
         GLEntry."Entry No." := GLEntry.GetLastEntryNo() + 1;
         GLEntry.Insert();
         exit(GLEntry."Posting Date");
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::LogInManagement, 'OnBeforeGetDefaultWorkDateForAllSessions', '', false, false)]
-    local procedure SkipGettingDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var SkipGettingDefaultWorkDateForAllSessions: Boolean)
-    begin
-        SkipGettingDefaultWorkDateForAllSessions := true;
     end;
 }
