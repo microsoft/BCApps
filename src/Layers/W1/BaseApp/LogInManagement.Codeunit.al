@@ -223,7 +223,12 @@ codeunit 40 LogInManagement
     internal procedure GetDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var DefaultWorkDate: Date): Boolean
     var
         CompanyInformation: Record "Company Information";
+        SkipGettingDefaultWorkDateForAllSessions: Boolean;
     begin
+        OnBeforeGetDefaultWorkDateForAllSessions(CurrentClientType, SkipGettingDefaultWorkDateForAllSessions);
+        if SkipGettingDefaultWorkDateForAllSessions then
+            exit(false);
+
         CompanyInformation.SetLoadFields("Apply Work Date to Sessions");
         if not CompanyInformation.Get() then
             exit(false);
@@ -368,6 +373,11 @@ codeunit 40 LogInManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnShowTermsAndConditions()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var SkipGettingDefaultWorkDateForAllSessions: Boolean)
     begin
     end;
 

@@ -2,6 +2,7 @@ codeunit 139028 "Test Workdate"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     Permissions =
         tabledata Company = rm,
@@ -15,6 +16,7 @@ codeunit 139028 "Test Workdate"
 
     var
         Assert: Codeunit Assert;
+        TestWorkdate: Codeunit "Test Workdate";
 
     [Test]
     [Scope('OnPrem')]
@@ -149,6 +151,26 @@ codeunit 139028 "Test Workdate"
 
     [Test]
     [Scope('OnPrem')]
+    procedure GettingDefaultWorkDateForAllSessionsCanBeSkipped()
+    var
+        CompanyInformation: Record "Company Information";
+        LogInManagement: Codeunit LogInManagement;
+        DefaultWorkDate: Date;
+        ApplyWorkDateToAllSessions: Boolean;
+    begin
+        // [SCENARIO] An extension can skip getting the default work date for all session types.
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
+        BindSubscription(TestWorkdate);
+
+        ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
+
+        UnbindSubscription(TestWorkdate);
+        Assert.IsFalse(ApplyWorkDateToAllSessions, 'The work date should not be applied when getting it is skipped.');
+        Assert.AreEqual(0D, DefaultWorkDate, 'The default work date should not be calculated when getting it is skipped.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure EvaluationWorkDateIsVisibleForEvaluationCompany()
     var
         CompanyInformation: Record "Company Information";
@@ -264,5 +286,11 @@ codeunit 139028 "Test Workdate"
         GLEntry."Entry No." := GLEntry.GetLastEntryNo() + 1;
         GLEntry.Insert();
         exit(GLEntry."Posting Date");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::LogInManagement, 'OnBeforeGetDefaultWorkDateForAllSessions', '', false, false)]
+    local procedure SkipGettingDefaultWorkDateForAllSessions(CurrentClientType: ClientType; var SkipGettingDefaultWorkDateForAllSessions: Boolean)
+    begin
+        SkipGettingDefaultWorkDateForAllSessions := true;
     end;
 }
