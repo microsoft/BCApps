@@ -902,6 +902,116 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure ReapproveTravelRequestWithPostedHeader()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 626966] Reapproving a reopened request with posted header history does not create another report.
+        Initialize();
+
+        // [GIVEN] Request "R" has posted header history for user "U", zero net spend, and no draft.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
+        ExpenseUser.Get(SpendRequest."Requested For");
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        Assert.AreEqual(SpendRequest."No.", PostedExpenseReportHeader."Spend Request No.", 'The posted header must link the request.');
+        VerifyPostedTravelRequestHistory(SpendRequest, PostedExpenseReportHeader);
+
+        // [WHEN] Owner "U" reopens and resubmits "R".
+        ReleaseSpendRequest.Reopen(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'The request must persist as open after reopening.');
+        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
+
+        // [THEN] Request "R" awaits its assigned approver rather than being approved automatically.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
+
+        // [WHEN] Assigned approver "A" approves "R".
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] Approval is persisted without creating a draft or changing posted history.
+        VerifyReapprovedTravelRequest(SpendRequest, PostedExpenseReportHeader, ExpenseUser."No.", ApproverExpenseUser."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure ReapproveTravelRequestWithPostedLine()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 626966] Reapproving a reopened request with line-only posted history does not create another report.
+        Initialize();
+
+        // [GIVEN] Only posted lines link request "R" to user "U", with zero net spend and no draft.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, false);
+        ExpenseUser.Get(SpendRequest."Requested For");
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        Assert.AreEqual('', PostedExpenseReportHeader."Spend Request No.", 'The posted header must not link the request in the line-only fixture.');
+        VerifyPostedTravelRequestHistory(SpendRequest, PostedExpenseReportHeader);
+
+        // [WHEN] Owner "U" reopens and resubmits "R".
+        ReleaseSpendRequest.Reopen(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'The request must persist as open after reopening.');
+        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
+
+        // [THEN] Request "R" awaits its assigned approver rather than being approved automatically.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
+
+        // [WHEN] Assigned approver "A" approves "R".
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] Approval is persisted without creating a draft or changing posted history.
+        VerifyReapprovedTravelRequest(SpendRequest, PostedExpenseReportHeader, ExpenseUser."No.", ApproverExpenseUser."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure AutoReapproveTravelRequestWithPostedHistory()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 626966] Resubmitting a reopened request with the agent disabled preserves posted history without a new report.
+        Initialize();
+
+        // [GIVEN] Request "R" has posted history for user "U", zero net spend, no draft, and the agent disabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(false);
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
+        ExpenseUser.Get(SpendRequest."Requested For");
+        VerifyPostedTravelRequestHistory(SpendRequest, PostedExpenseReportHeader);
+
+        // [WHEN] Owner "U" reopens and resubmits "R".
+        ReleaseSpendRequest.Reopen(SpendRequest);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'The request must persist as open after reopening.');
+        TravelRequestApproval.Submit(SpendRequest, ExpenseUser."No.");
+
+        // [THEN] Automatic approval is persisted without creating a draft or changing posted history.
+        VerifyReapprovedTravelRequest(SpendRequest, PostedExpenseReportHeader, ExpenseUser."No.", '');
+    end;
+
+    [Test]
     procedure ApproveTravelRequestPageAction()
     var
         ExpenseReportHeader: Record "Expense Report Header";
@@ -2178,6 +2288,46 @@ codeunit 148339 "Spend Request Test"
         Assert.IsFalse(FilteredTravelRequest.IsEmpty(), DefaultTravelRequestVisibleMsg);
         FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
         Assert.IsTrue(FilteredTravelRequest.IsEmpty(), UnassignedTravelRequestHiddenMsg);
+    end;
+
+    local procedure VerifyPostedTravelRequestHistory(SpendRequest: Record "Spend Request"; ExpectedPostedExpenseReportHeader: Record "Posted Expense Report Header")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, 'The travel request must persist as approved.');
+        SpendRequest.CalcFields("Total Spent Amount (LCY)");
+        Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", 'The posted history must leave zero net spend.');
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordIsEmpty(ExpenseReportHeader);
+        ExpenseReportHeader.SetRange("Spend Request No.");
+        ExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
+        Assert.RecordIsEmpty(ExpenseReportHeader);
+
+        PostedExpenseReportHeader.Get(ExpectedPostedExpenseReportHeader."No.");
+        Assert.AreEqual(ExpectedPostedExpenseReportHeader.SystemId, PostedExpenseReportHeader.SystemId, 'The original posted report must remain.');
+        Assert.AreEqual(ExpectedPostedExpenseReportHeader."Spend Request No.", PostedExpenseReportHeader."Spend Request No.", 'The posted header request link must remain unchanged.');
+        Assert.AreEqual(SpendRequest."Requested For", PostedExpenseReportHeader."Expense User No.", 'Posted history must belong to the requested expense user.');
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
+        PostedExpenseReportLine.SetRange("Expense User No.", SpendRequest."Requested For");
+        Assert.RecordCount(PostedExpenseReportLine, 2);
+        PostedExpenseReportLine.CalcSums("Amount (LCY)");
+        Assert.AreEqual(0, PostedExpenseReportLine."Amount (LCY)", 'Both offsetting posted lines must remain linked to the same request and expense user.');
+    end;
+
+    local procedure VerifyReapprovedTravelRequest(SpendRequest: Record "Spend Request"; PostedExpenseReportHeader: Record "Posted Expense Report Header"; SubmitterExpenseUserNo: Code[20]; ApproverExpenseUserNo: Code[20])
+    begin
+        VerifyPostedTravelRequestHistory(SpendRequest, PostedExpenseReportHeader);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SubmitterExpenseUserNo, SpendRequest."Submitted By Expense User No.", 'The resubmitting expense user must be persisted.');
+        Assert.AreNotEqual(0DT, SpendRequest."Submitted At", 'The resubmission date and time must be persisted.');
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", 'The approving user must be persisted.');
+        Assert.AreEqual(ApproverExpenseUserNo, SpendRequest."Approval Expense User No.", 'The approval expense user must match the approval route.');
+        Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", 'The approval date and time must be persisted.');
+        Assert.AreEqual('', SpendRequest."Rejection Reason", 'An approved request must not retain a rejection reason.');
     end;
 
     local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)

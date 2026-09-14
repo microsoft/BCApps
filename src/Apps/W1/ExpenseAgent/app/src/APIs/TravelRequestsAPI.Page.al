@@ -327,7 +327,7 @@ page 7134 "Travel Requests API"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUsage('EA-TR-CREATEREPORT', ExpenseAgentSetup.GetFeatureName(), ExpenseReportCreatedLbl);
+        FeatureTelemetry.LogUsage('0000VF2', ExpenseAgentSetup.GetFeatureName(), ExpenseReportCreatedLbl);
     end;
 
     trigger OnFindRecord(Which: Text): Boolean

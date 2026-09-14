@@ -1382,7 +1382,22 @@ table 6906 "Expense Report Header"
         exit(true);
     end;
 
+    internal procedure HasPostedTravelRequestReport(SpendRequest: Record "Spend Request"): Boolean
+    var
+        PostedReportError: ErrorInfo;
+    begin
+        exit(TryGetPostedTravelRequestReportError(SpendRequest, PostedReportError));
+    end;
+
     local procedure CheckPostedTravelRequestReports(SpendRequest: Record "Spend Request")
+    var
+        PostedReportError: ErrorInfo;
+    begin
+        if TryGetPostedTravelRequestReportError(SpendRequest, PostedReportError) then
+            Error(PostedReportError);
+    end;
+
+    local procedure TryGetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; var PostedReportError: ErrorInfo): Boolean
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
@@ -1391,17 +1406,23 @@ table 6906 "Expense Report Header"
         PostedExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
         PostedExpenseReportHeader.SetLoadFields("No.");
-        if PostedExpenseReportHeader.FindFirst() then
-            Error(GetPostedTravelRequestReportError(
-                SpendRequest, PostedExpenseReportHeader."No.", PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report"));
+        if PostedExpenseReportHeader.FindFirst() then begin
+            PostedReportError := GetPostedTravelRequestReportError(
+                SpendRequest, PostedExpenseReportHeader."No.", PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report");
+            exit(true);
+        end;
 
         PostedExpenseReportLine.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportLine.SetRange("Expense User No.", SpendRequest."Requested For");
         PostedExpenseReportLine.SetLoadFields("Document No.", "Line No.");
-        if PostedExpenseReportLine.FindFirst() then
-            Error(GetPostedTravelRequestReportError(
-                SpendRequest, PostedExpenseReportLine."Document No.", PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines"));
+        if PostedExpenseReportLine.FindFirst() then begin
+            PostedReportError := GetPostedTravelRequestReportError(
+                SpendRequest, PostedExpenseReportLine."Document No.", PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines");
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     local procedure GetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; ReportNo: Code[20]; ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo

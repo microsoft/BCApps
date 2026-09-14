@@ -19,6 +19,7 @@ codeunit 7133 "Travel Request Approval"
     internal procedure Submit(var SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20])
     var
         Submitter: Record "Expense User";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
     begin
         CheckTravelRequest(SpendRequest);
@@ -35,18 +36,19 @@ codeunit 7133 "Travel Request Approval"
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
         ReleaseSpendRequest.Release(SpendRequest);
-        LogAction('EA-TR-SUBMIT', TravelRequestSubmittedLbl);
+        FeatureTelemetry.LogUsage('0000VEY', ExpenseAgentSetup.GetFeatureName(), TravelRequestSubmittedLbl);
     end;
 
     internal procedure Approve(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
     var
         Approver: Record "Expense User";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         CheckTravelRequest(SpendRequest);
         SpendRequest.TestStatus(SpendRequest.Status::Released);
         CheckApprover(SpendRequest, ApproverExpenseUserNo, Approver);
         ApproveInternal(SpendRequest, ApproverExpenseUserNo);
-        LogAction('EA-TR-APPROVE', TravelRequestApprovedLbl);
+        FeatureTelemetry.LogUsage('0000VEZ', ExpenseAgentSetup.GetFeatureName(), TravelRequestApprovedLbl);
     end;
 
     internal procedure ApproveAutomatically(var SpendRequest: Record "Spend Request")
@@ -61,12 +63,13 @@ codeunit 7133 "Travel Request Approval"
             Error(AutomaticApprovalNotAllowedErr);
 
         ApproveInternal(SpendRequest, '');
-        LogAction('EA-TR-AUTOAPPROVE', TravelRequestAutoApprovedLbl);
+        FeatureTelemetry.LogUsage('0000VF0', ExpenseAgentSetup.GetFeatureName(), TravelRequestAutoApprovedLbl);
     end;
 
     local procedure ApproveInternal(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
     var
         ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         SpendRequest.TestField("Requested For");
         SpendRequest.Status := SpendRequest.Status::Approved;
@@ -75,11 +78,14 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
+        if ExpenseReportHeader.HasPostedTravelRequestReport(SpendRequest) then
+            exit;
+
         ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
         if ExpenseReportHeader.IsEmpty() then begin
-            LogError('EA-TR-REPORTERROR', ExpenseReportCreationFailedLbl, ExpenseReportCreationFailedTelemetryErr);
+            FeatureTelemetry.LogError('0000VEX', ExpenseAgentSetup.GetFeatureName(), ExpenseReportCreationFailedLbl, ExpenseReportCreationFailedTelemetryErr);
             Error(GetExpenseReportWasNotCreatedError(SpendRequest));
         end;
     end;
@@ -87,6 +93,7 @@ codeunit 7133 "Travel Request Approval"
     internal procedure Reject(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     var
         Approver: Record "Expense User";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         CheckTravelRequest(SpendRequest);
         SpendRequest.TestStatus(SpendRequest.Status::Released);
@@ -97,23 +104,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         SpendRequest."Rejection Reason" := CopyStr(RejectReason, 1, MaxStrLen(SpendRequest."Rejection Reason"));
         SpendRequest.Modify();
-        LogAction('EA-TR-REJECT', TravelRequestRejectedLbl);
-    end;
-
-    local procedure LogAction(EventId: Text; ActionName: Text)
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        FeatureTelemetry.LogUsage(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName);
-    end;
-
-    local procedure LogError(EventId: Text; ActionName: Text; ErrorMessage: Text)
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        FeatureTelemetry.LogError(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName, ErrorMessage);
+        FeatureTelemetry.LogUsage('0000VF1', ExpenseAgentSetup.GetFeatureName(), TravelRequestRejectedLbl);
     end;
 
     local procedure GetExpenseReportWasNotCreatedError(SpendRequest: Record "Spend Request"): ErrorInfo
@@ -243,6 +234,7 @@ codeunit 7133 "Travel Request Approval"
     end;
 
     var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         AutomaticApprovalNotAllowedErr: Label 'Automatic travel request approval can be used only when the Expense Agent is disabled.';
         TravelRequestSubmittedLbl: Label 'Travel request submitted.', Locked = true;
         TravelRequestApprovedLbl: Label 'Travel request approved.', Locked = true;
