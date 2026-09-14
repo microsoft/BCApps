@@ -808,62 +808,137 @@ codeunit 137107 "SCM Kitting - Able To Make"
 
     [Test]
     [Scope('OnPrem')]
-    procedure AvailabilityForPurchasedAssemblyBOMComponentUsesInventoryOnly()
+    procedure AvailabilityForAssemblyBOMItemAddsComponentAvailability()
     var
-        BOMComponent: Record "BOM Component";
-        ComponentItem: Record Item;
-        PurchasedBOMItem: Record Item;
         TopItem: Record Item;
+        MidItem: Record Item;
+        FirstComponent: Record Item;
+        SecondComponent: Record Item;
         CalculateBOMTree: Codeunit "Calculate BOM Tree";
-        AvailableQty: Decimal;
+        MidQty: Decimal;
+        ScarceQty: Decimal;
     begin
         // [FEATURE] [Item Availability by BOM Level] [Assembly BOM]
-        // [SCENARIO 650094] A purchased component with an assembly BOM contributes its inventory only once.
+        // [SCENARIO 650094] An assembly item's able-to-make is its inventory plus what its BOM can build.
         Initialize();
 
-        // [GIVEN] Assembly item "T" contains purchased item "P", which has an assembly BOM containing item "C".
-        LibraryAssembly.CreateItem(
-          TopItem, TopItem."Costing Method"::FIFO, TopItem."Replenishment System"::Assembly, '', '');
-        LibraryAssembly.CreateItem(
-          PurchasedBOMItem, PurchasedBOMItem."Costing Method"::FIFO,
-          PurchasedBOMItem."Replenishment System"::Purchase, '', '');
-        LibraryInventory.CreateItem(ComponentItem);
-        LibraryInventory.CreateBOMComponent(
-          BOMComponent, TopItem."No.", BOMComponent.Type::Item, PurchasedBOMItem."No.", 1, '');
-        LibraryInventory.CreateBOMComponent(
-          BOMComponent, PurchasedBOMItem."No.", BOMComponent.Type::Item, ComponentItem."No.", 1, '');
-
-        // [GIVEN] Item "P" has inventory.
-        AvailableQty := LibraryRandom.RandIntInRange(100, 200);
-        LibraryInventory.PostPositiveAdjustment(PurchasedBOMItem, '', '', '', AvailableQty, WorkDate(), 0);
+        // [GIVEN] Assembly item "T" contains assembly item "M", which contains components "C1" and "C2".
+        // [GIVEN] "M" holds inventory, "C1" is abundant and "C2" is scarce.
+        CreateTwoLevelAssemblyStructure(
+          TopItem, MidItem, FirstComponent, SecondComponent, MidQty, ScarceQty);
 
         // [WHEN] Calculate total availability for item "T".
+        MidItem.TestField("Replenishment System", MidItem."Replenishment System"::Assembly);
         CalculateBOMTree.SetShowTotalAvailability(true);
         CalculateBOMTree.GenerateTreeForOneItem(TopItem, BOMBuffer, WorkDate(), "BOM Tree Type"::Availability);
 
-        // [THEN] Item "P" can make the parent from its inventory without counting that inventory twice.
-        BOMBuffer.SetRange("No.", PurchasedBOMItem."No.");
-        BOMBuffer.FindFirst();
-        Assert.AreEqual(
-            AvailableQty, BOMBuffer."Able to Make Parent",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), PurchasedBOMItem."No."));
-        Assert.AreEqual(
-            AvailableQty, BOMBuffer."Able to Make Top Item",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), PurchasedBOMItem."No."));
+        // [THEN] "M" contributes its own inventory plus what the scarcer component lets it assemble.
+        VerifyAbleToMake(MidItem."No.", MidQty + ScarceQty, MidQty + ScarceQty, MidQty, ScarceQty);
 
-        // [THEN] The top item's able-to-make quantities equal the inventory of item "P".
-        BOMBuffer.SetRange("No.", TopItem."No.");
-        BOMBuffer.FindFirst();
-        Assert.AreEqual(
-            AvailableQty, BOMBuffer."Able to Make Parent",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), TopItem."No."));
-        Assert.AreEqual(
-            AvailableQty, BOMBuffer."Able to Make Top Item",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), TopItem."No."));
+        // [THEN] The top item inherits that quantity.
+        VerifyAbleToMake(TopItem."No.", MidQty + ScarceQty, MidQty + ScarceQty, MidQty, ScarceQty);
 
-        // [THEN] The assembly BOM component of purchased item "P" remains visible in the inquiry.
-        BOMBuffer.SetRange("No.", ComponentItem."No.");
+        // [THEN] The scarcer component caps the assembly path.
+        VerifyAbleToMakeParent(SecondComponent."No.", ScarceQty, MidQty, ScarceQty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AvailabilityForPurchasedAssemblyBOMItemUsesInventoryOnly()
+    var
+        TopItem: Record Item;
+        MidItem: Record Item;
+        FirstComponent: Record Item;
+        SecondComponent: Record Item;
+        CalculateBOMTree: Codeunit "Calculate BOM Tree";
+        MidQty: Decimal;
+        ScarceQty: Decimal;
+    begin
+        // [FEATURE] [Item Availability by BOM Level] [Assembly BOM]
+        // [SCENARIO 650094] A purchased item that still carries an assembly BOM contributes its inventory once.
+        Initialize();
+
+        // [GIVEN] Assembly item "T" contains item "M", which contains components "C1" and "C2".
+        CreateTwoLevelAssemblyStructure(
+          TopItem, MidItem, FirstComponent, SecondComponent, MidQty, ScarceQty);
+
+        // [GIVEN] Item "M" is switched to purchase replenishment, keeping its assembly BOM.
+        MidItem.Get(MidItem."No.");
+        MidItem.Validate("Replenishment System", MidItem."Replenishment System"::Purchase);
+        MidItem.Modify(true);
+
+        // [WHEN] Calculate total availability for item "T".
+        MidItem.TestField("Replenishment System", MidItem."Replenishment System"::Purchase);
+        CalculateBOMTree.SetShowTotalAvailability(true);
+        CalculateBOMTree.GenerateTreeForOneItem(TopItem, BOMBuffer, WorkDate(), "BOM Tree Type"::Availability);
+
+        // [THEN] "M" contributes its inventory once, not twice.
+        VerifyAbleToMake(MidItem."No.", MidQty, MidQty, MidQty, ScarceQty);
+
+        // [THEN] The top item inherits that quantity rather than the doubled figure reported in the case.
+        VerifyAbleToMake(TopItem."No.", MidQty, MidQty, MidQty, ScarceQty);
+
+        // [THEN] The components of "M" remain visible in the inquiry even though they no longer contribute.
+        BOMBuffer.Reset();
+        BOMBuffer.SetRange("No.", FirstComponent."No.");
         Assert.RecordIsNotEmpty(BOMBuffer);
+        BOMBuffer.SetRange("No.", SecondComponent."No.");
+        Assert.RecordIsNotEmpty(BOMBuffer);
+    end;
+
+    local procedure CreateTwoLevelAssemblyStructure(var TopItem: Record Item; var MidItem: Record Item; var FirstComponent: Record Item; var SecondComponent: Record Item; var MidQty: Decimal; var ScarceQty: Decimal)
+    var
+        BOMComponent: Record "BOM Component";
+        AbundantQty: Decimal;
+    begin
+        LibraryAssembly.CreateItem(
+          TopItem, TopItem."Costing Method"::FIFO, TopItem."Replenishment System"::Assembly, '', '');
+        LibraryAssembly.CreateItem(
+          MidItem, MidItem."Costing Method"::FIFO, MidItem."Replenishment System"::Assembly, '', '');
+        LibraryInventory.CreateItem(FirstComponent);
+        LibraryInventory.CreateItem(SecondComponent);
+
+        LibraryInventory.CreateBOMComponent(
+          BOMComponent, TopItem."No.", BOMComponent.Type::Item, MidItem."No.", 1, '');
+        LibraryInventory.CreateBOMComponent(
+          BOMComponent, MidItem."No.", BOMComponent.Type::Item, FirstComponent."No.", 1, '');
+        LibraryInventory.CreateBOMComponent(
+          BOMComponent, MidItem."No.", BOMComponent.Type::Item, SecondComponent."No.", 1, '');
+
+        MidItem.Get(MidItem."No.");
+        MidItem.TestField("Assembly BOM", true);
+
+        // The three ranges are disjoint so the relationships the assertions depend on always hold:
+        ScarceQty := LibraryRandom.RandIntInRange(2, 20);
+        MidQty := LibraryRandom.RandIntInRange(100, 200);
+        AbundantQty := LibraryRandom.RandIntInRange(1000, 2000);
+
+        LibraryInventory.PostPositiveAdjustment(MidItem, '', '', '', MidQty, WorkDate(), 0);
+        LibraryInventory.PostPositiveAdjustment(FirstComponent, '', '', '', AbundantQty, WorkDate(), 0);
+        LibraryInventory.PostPositiveAdjustment(SecondComponent, '', '', '', ScarceQty, WorkDate(), 0);
+    end;
+
+    local procedure VerifyAbleToMake(ItemNo: Code[20]; ExpectedParentQty: Decimal; ExpectedTopQty: Decimal; MidQty: Decimal; ScarceQty: Decimal)
+    begin
+        BOMBuffer.Reset();
+        BOMBuffer.SetRange("No.", ItemNo);
+        BOMBuffer.FindFirst();
+        Assert.AreEqual(
+            ExpectedParentQty, BOMBuffer."Able to Make Parent",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), ItemNo, MidQty, ScarceQty));
+        Assert.AreEqual(
+            ExpectedTopQty, BOMBuffer."Able to Make Top Item",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), ItemNo, MidQty, ScarceQty));
+    end;
+
+    local procedure VerifyAbleToMakeParent(ItemNo: Code[20]; ExpectedParentQty: Decimal; MidQty: Decimal; ScarceQty: Decimal)
+    begin
+        BOMBuffer.Reset();
+        BOMBuffer.SetRange("No.", ItemNo);
+        BOMBuffer.FindFirst();
+        Assert.AreEqual(
+            ExpectedParentQty, BOMBuffer."Able to Make Parent",
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), ItemNo, MidQty, ScarceQty));
     end;
 
     local procedure CreateBOMItemWithSKUonLocation(var Item: Record Item; var SKU: Record "Stockkeeping Unit"; var LocationCOde: Code[10])
