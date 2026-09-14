@@ -43,7 +43,6 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportUserMsg: Label 'The expense report should be created for the requested expense user.';
         ExpenseReportDescriptionMsg: Label 'The expense report description should match the travel request purpose.';
         TravelRequestSystemIdMsg: Label 'The expense report should reference the travel request by SystemId.';
-        TravelRequestActionResultMsg: Label 'The travel request page action should return an updated result.';
         TravelRequestRejectedMsg: Label 'The travel request should be rejected through the page action.';
         TravelRequestRejectionUserMsg: Label 'The rejecting user should be recorded.';
         TravelRequestRejectionExpenseUserMsg: Label 'The rejecting expense user should be recorded.';
