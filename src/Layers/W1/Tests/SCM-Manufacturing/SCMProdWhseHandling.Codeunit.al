@@ -1930,69 +1930,6 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ProdOrderLine.FindFirst();
     end;
 
-    local procedure FindFirstProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; ProductionOrder: Record "Production Order")
-    begin
-        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComponent.FindFirst();
-    end;
-
-    local procedure CreateAndRegisterFullPick(var ProductionOrder: Record "Production Order"; LocationCode: Code[10])
-    var
-        WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WarehouseActivityLine: Record "Warehouse Activity Line";
-    begin
-        ProductionOrder.SetHideValidationDialog(true);
-        ProductionOrder.CreatePick(CopyStr(UserId(), 1, 50), 0, false, false, false);
-        FindWarehouseActivityLine(
-            WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
-            LocationCode, WarehouseActivityLine."Action Type"::Take);
-        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
-        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
-        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
-    end;
-
-    local procedure ReturnExcessBinQtyBeyondOtherClaim(LocationCode: Code[10]; ProdOrderComponent: Record "Prod. Order Component"; OtherClaimQtyBase: Decimal)
-    var
-        Bin: Record Bin;
-        ToBin: Record Bin;
-        BinContent: Record "Bin Content";
-        InternalMovementHeader: Record "Internal Movement Header";
-        InternalMovementLine: Record "Internal Movement Line";
-        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
-        WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WarehouseActivityLine: Record "Warehouse Activity Line";
-        QtyToReturnBase: Decimal;
-    begin
-        Bin.Get(LocationCode, ProdOrderComponent."Bin Code");
-        ToBin.SetRange("Location Code", LocationCode);
-        ToBin.SetFilter(Code, '<>%1', Bin.Code);
-        ToBin.FindFirst();
-
-        BinContent.Get(
-            LocationCode, ProdOrderComponent."Bin Code", ProdOrderComponent."Item No.",
-            ProdOrderComponent."Variant Code", ProdOrderComponent."Unit of Measure Code");
-        BinContent.CalcFields("Quantity (Base)");
-        QtyToReturnBase := BinContent."Quantity (Base)" - OtherClaimQtyBase;
-        if QtyToReturnBase <= 0 then
-            exit;
-
-        LibraryWarehouse.CreateInternalMovementHeader(InternalMovementHeader, LocationCode, ToBin.Code);
-        LibraryWarehouse.CreateInternalMovementLine(
-            InternalMovementHeader, InternalMovementLine, ProdOrderComponent."Item No.",
-            ProdOrderComponent."Bin Code", ToBin.Code, QtyToReturnBase);
-
-        CreateInventoryPickMovement.SetHideDialog(true);
-        CreateInventoryPickMovement.CreateInvtMvntWithoutSource(InternalMovementHeader);
-
-        FindWarehouseActivityLine(
-            WarehouseActivityLine, '', WarehouseActivityLine."Activity Type"::"Invt. Movement",
-            LocationCode, WarehouseActivityLine."Action Type"::Take);
-        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
-        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
-        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
-    end;
-
     local procedure FindWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceNo: Code[20]; ActivityType: Enum "Warehouse Activity Type"; LocationCode: Code[10]; ActionType: Enum "Warehouse Action Type")
     begin
         WarehouseActivityLine.SetRange("Source No.", SourceNo);
