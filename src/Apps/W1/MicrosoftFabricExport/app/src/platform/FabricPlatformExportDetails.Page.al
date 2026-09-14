@@ -183,14 +183,16 @@ page 48509 "Fabric Platform Export Details"
         if not Rec.FindFirst() then;
     end;
 
-    // Marks changed rows using three indexed filters instead of loading the
-    // full table and testing the predicate in AL for every row.
+    // Marks changed rows using three indexed filters; SetLoadFields limits
+    // each pass to the filtered column instead of the full row, and is reset
+    // afterwards so the page can display the remaining fields normally.
     local procedure MarkChangedRows()
     var
         SavedView: Text;
     begin
         SavedView := Rec.GetView(false);
 
+        Rec.SetLoadFields("Records Updated");
         Rec.SetFilter("Records Updated", '<>%1', 0);
         if Rec.FindSet() then
             repeat
@@ -198,6 +200,7 @@ page 48509 "Fabric Platform Export Details"
             until Rec.Next() = 0;
 
         Rec.SetRange("Records Updated");
+        Rec.SetLoadFields("Records Inserted");
         Rec.SetFilter("Records Inserted", '<>%1', 0);
         if Rec.FindSet() then
             repeat
@@ -205,12 +208,14 @@ page 48509 "Fabric Platform Export Details"
             until Rec.Next() = 0;
 
         Rec.SetRange("Records Inserted");
+        Rec.SetLoadFields("Records Deleted");
         Rec.SetFilter("Records Deleted", '<>%1', 0);
         if Rec.FindSet() then
             repeat
                 Rec.Mark(true);
             until Rec.Next() = 0;
 
+        Rec.SetLoadFields();
         Rec.SetView(SavedView);
     end;
 
