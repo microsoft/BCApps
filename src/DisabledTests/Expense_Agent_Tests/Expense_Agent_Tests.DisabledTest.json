@@ -110,16 +110,6 @@
     "method": "AgentVATSpecificationIsInsertedThroughAPI"
   },
   {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
-    "method": "D365BasicCanUpdateTravelRequestDetailsIndirectly"
-  },
-  {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
-    "method": "ExpenseAgentCanUpdateTravelRequestDetailsIndirectly"
-  },
-  {
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
     "method": "DefaultApproverFilterQuotesWildcardUserNo"
