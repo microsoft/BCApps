@@ -40,6 +40,8 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         SalesLine."Variant Code" := EDocSalesLine."[BC] Variant Code";
         SalesLine.Type := EDocSalesLine."[BC] Sales Line Type";
         SalesLine.Validate("No.", EDocSalesLine."[BC] Sales Line No.");
+        if EDocSalesLine."Requested Delivery Date" <> 0D then
+            SalesLine.Validate("Requested Delivery Date", EDocSalesLine."Requested Delivery Date");
         if (SalesLine.Type = SalesLine.Type::"G/L Account") and HasTotalDiscount then
             SalesLine.Validate("Allow Invoice Disc.", true);
         SalesLine.Description := EDocSalesLine.Description;

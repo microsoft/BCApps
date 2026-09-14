@@ -260,6 +260,7 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         this.AddNonEmptyNode(AddressNode, 'CountrySubentity', CountrySubentity, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(AddressNode, 'Country', '', CacNamespaceTok, CountryNode);
         this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, CbcNamespaceTok, ChildNode);
+        this.AddRequestedDeliveryPeriod(DeliveryNode, PurchaseHeader."Requested Receipt Date");
     end;
 
     local procedure AddPaymentTerms(PurchaseHeader: Record "Purchase Header")
@@ -368,6 +369,7 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         this.XMLDOMManagement.AddAttribute(ChildNode, 'unitCode', UnitCode);
         this.XMLDOMManagement.AddElement(LineItemNode, 'LineExtensionAmount', InvoiceLineExtensionAmount, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', InvLinePriceAmountCurrencyID);
+        this.AddRequestedDelivery(PurchaseLine, LineItemNode);
         this.XMLDOMManagement.AddElement(LineItemNode, 'Price', '', CacNamespaceTok, PriceNode);
         this.XMLDOMManagement.AddElement(PriceNode, 'PriceAmount', InvoiceLinePriceAmount, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', InvLinePriceAmountCurrencyID);
@@ -390,6 +392,32 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'Percent', InvoiceLineTaxPercent, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'TaxScheme', '', CacNamespaceTok, TaxSchemeNode);
         this.XMLDOMManagement.AddElement(TaxSchemeNode, 'ID', ClassifiedTaxCategorySchemeID, CbcNamespaceTok, ChildNode);
+    end;
+
+    local procedure AddRequestedDelivery(PurchaseLine: Record "Purchase Line"; LineItemNode: XmlNode)
+    var
+        DeliveryNode: XmlNode;
+    begin
+        if PurchaseLine."Requested Receipt Date" = 0D then
+            exit;
+
+        this.XMLDOMManagement.AddElement(LineItemNode, 'Delivery', '', CacNamespaceTok, DeliveryNode);
+        this.AddRequestedDeliveryPeriod(DeliveryNode, PurchaseLine."Requested Receipt Date");
+    end;
+
+    local procedure AddRequestedDeliveryPeriod(DeliveryNode: XmlNode; RequestedReceiptDate: Date)
+    var
+        RequestedDeliveryPeriodNode: XmlNode;
+        ChildNode: XmlNode;
+        RequestedReceiptDateText: Text;
+    begin
+        if RequestedReceiptDate = 0D then
+            exit;
+
+        RequestedReceiptDateText := Format(RequestedReceiptDate, 0, 9);
+        this.XMLDOMManagement.AddElement(DeliveryNode, 'RequestedDeliveryPeriod', '', CacNamespaceTok, RequestedDeliveryPeriodNode);
+        this.XMLDOMManagement.AddElement(RequestedDeliveryPeriodNode, 'StartDate', RequestedReceiptDateText, CbcNamespaceTok, ChildNode);
+        this.XMLDOMManagement.AddElement(RequestedDeliveryPeriodNode, 'EndDate', RequestedReceiptDateText, CbcNamespaceTok, ChildNode);
     end;
 
     local procedure AddPartyTaxScheme(PartyNode: XmlNode)

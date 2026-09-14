@@ -16,6 +16,8 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
 using Microsoft.Peppol;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -43,6 +45,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     var
         LibraryService: Codeunit "Library - Service";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
@@ -56,6 +59,67 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         WrongFileNameErr: Label 'File name should be: %1', Comment = '%1 - Client File Name';
         InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
         CreditNoteNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
+        OrderNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
+
+    [Test]
+    procedure ExportPurchaseOrderRequestedReceiptDates()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempBlob: Codeunit "Temp Blob";
+        HeaderRequestedReceiptDate: Date;
+        LineRequestedReceiptDate: Date;
+    begin
+        // [FEATURE] [Order] [Delivery Date]
+        // [SCENARIO] Requested receipt dates are exported as PEPPOL requested delivery periods
+        Initialize();
+
+        // [GIVEN] A purchase order with different requested receipt dates on the header and line
+        HeaderRequestedReceiptDate := WorkDate() + 1;
+        LineRequestedReceiptDate := WorkDate() + 2;
+        CreatePurchaseOrder(PurchaseHeader, PurchaseLine);
+        PurchaseHeader.Validate("Requested Receipt Date", HeaderRequestedReceiptDate);
+        PurchaseHeader.Modify(true);
+        PurchaseLine.Validate("Requested Receipt Date", LineRequestedReceiptDate);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The purchase order is exported to PEPPOL XML
+        ExportPurchaseOrderToBlob(PurchaseHeader, TempBlob);
+
+        // [THEN] Each date is exported as both the start and end of its requested delivery period
+        InitXPathXMLReader(TempBlob, OrderNamespaceTxt);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('/*/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(HeaderRequestedReceiptDate, 0, 9));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('/*/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(HeaderRequestedReceiptDate, 0, 9));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(LineRequestedReceiptDate, 0, 9));
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(LineRequestedReceiptDate, 0, 9));
+    end;
+
+    [Test]
+    procedure ExportPurchaseOrderWithoutRequestedReceiptDates()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [Order] [Delivery Date]
+        // [SCENARIO] Blank requested receipt dates do not create requested delivery periods
+        Initialize();
+
+        // [GIVEN] A purchase order without requested receipt dates
+        CreatePurchaseOrder(PurchaseHeader, PurchaseLine);
+        PurchaseHeader.Validate("Requested Receipt Date", 0D);
+        PurchaseHeader.Modify(true);
+        PurchaseLine.Validate("Requested Receipt Date", 0D);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The purchase order is exported to PEPPOL XML
+        ExportPurchaseOrderToBlob(PurchaseHeader, TempBlob);
+
+        // [THEN] No requested delivery period is exported at header or line level
+        InitXPathXMLReader(TempBlob, OrderNamespaceTxt);
+        LibraryXPathXMLReader.VerifyNodeAbsence('/*/cac:Delivery/cac:RequestedDeliveryPeriod');
+        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod');
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -1632,18 +1696,35 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             LibraryERMCountryData.CreateVATData();
             LibraryERMCountryData.UpdateGeneralLedgerSetup();
             LibraryERMCountryData.UpdateGeneralPostingSetup();
+            LibraryERMCountryData.UpdatePurchasesPayablesSetup();
             LibraryERMCountryData.UpdateSalesReceivablesSetup();
             LibraryERMCountryData.UpdateLocalData();
             UpdateElectronicDocumentFormatSetup();
             LibraryService.SetupServiceMgtNoSeries();
             LibrarySetupStorage.Save(DATABASE::"Company Information");
             LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
+            LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
 
             IsInitialized := true;
             LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
         end;
 
         ConfigureVATPostingSetup();
+    end;
+
+    local procedure CreatePurchaseOrder(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+    end;
+
+    local procedure ExportPurchaseOrderToBlob(PurchaseHeader: Record "Purchase Header"; var TempBlob: Codeunit "Temp Blob")
+    var
+        ExportPurchaseOrderPEPPOL30: Codeunit "Export Purchase Order PEPPOL30";
+    begin
+        ExportPurchaseOrderPEPPOL30.SetFormat(Enum::"PEPPOL 3.0 Purchase"::"PEPPOL 3.0 - Purchase");
+        ExportPurchaseOrderPEPPOL30.Run(PurchaseHeader);
+        ExportPurchaseOrderPEPPOL30.GetPurchaseOrderXML(TempBlob);
     end;
 
     local procedure AddCustPEPPOLIdentifier(CustNo: Code[20])

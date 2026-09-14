@@ -1363,6 +1363,65 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure FinishDraftSalesOrder_AppliesRequestedDeliveryDates()
+    var
+        EDocument: Record "E-Document";
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocSalesLine: Record "E-Document Sales Line";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        HeaderRequestedDeliveryDate: Date;
+        LineRequestedDeliveryDate: Date;
+    begin
+        // [SCENARIO] Requested delivery dates from a PEPPOL Order are applied to the Sales Order before BC calculates line dates.
+        Initialize(Enum::"Service Integration"::"Mock");
+        HeaderRequestedDeliveryDate := DMY2Date(15, 2, 2026);
+        LineRequestedDeliveryDate := DMY2Date(20, 2, 2026);
+
+        // [GIVEN] A PEPPOL Order with a header requested delivery date and a different date on its first line
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        LibraryEDoc.GetGenericItem(Item);
+        EDocSalesHeader.GetFromEDocument(EDocument);
+        EDocSalesHeader."[BC] Customer No." := Customer."No.";
+        EDocSalesHeader.Modify();
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if EDocSalesLine.FindSet() then
+            repeat
+                EDocSalesLine."[BC] Sales Line Type" := "Sales Line Type"::Item;
+                EDocSalesLine."[BC] Sales Line No." := Item."No.";
+                EDocSalesLine.Modify();
+            until EDocSalesLine.Next() = 0;
+
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        // [WHEN] The draft is applied to a Sales Order
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+
+        // [THEN] The header date is applied before lines and the first line date overrides it
+        SalesHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual(HeaderRequestedDeliveryDate, SalesHeader."Requested Delivery Date", 'The header Requested Delivery Date should match the PEPPOL Order.');
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindSet();
+        VerifySalesLineDates(SalesLine, LineRequestedDeliveryDate);
+
+        // [THEN] A line without its own date inherits the header date
+        SalesLine.Next();
+        VerifySalesLineDates(SalesLine, HeaderRequestedDeliveryDate);
+    end;
+
+    [Test]
     procedure FinishDraftSalesOrder_CanBeUndone()
     var
         EDocument: Record "E-Document";
@@ -1498,6 +1557,14 @@ codeunit 139883 "E-Doc Process Test"
         // [Cleanup]
         ExistingSalesHeader.Get(ExistingSalesHeader."Document Type"::Order, 'EDOC-DUP-SO-001');
         ExistingSalesHeader.Delete();
+    end;
+
+    local procedure VerifySalesLineDates(SalesLine: Record "Sales Line"; ExpectedRequestedDeliveryDate: Date)
+    begin
+        Assert.AreEqual(ExpectedRequestedDeliveryDate, SalesLine."Requested Delivery Date", 'The line Requested Delivery Date is incorrect.');
+        Assert.AreEqual(ExpectedRequestedDeliveryDate, SalesLine."Planned Delivery Date", 'The line Planned Delivery Date is incorrect.');
+        Assert.AreEqual(ExpectedRequestedDeliveryDate, SalesLine."Planned Shipment Date", 'The line Planned Shipment Date is incorrect.');
+        Assert.AreEqual(ExpectedRequestedDeliveryDate, SalesLine."Shipment Date", 'The line Shipment Date is incorrect.');
     end;
 
     #endregion
