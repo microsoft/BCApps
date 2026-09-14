@@ -67,7 +67,7 @@ table 6900 Expense
                         if not Employee.Get(ExpenseUser."Employee No.") then
                             Error(ExpenseUserMustBeLinkedToAnEmployeeErr, Rec."Expense User No.");
 
-                        Employee.TestField("Employee Posting Group");
+                        ApplyRule(false, true);
                     end;
 
                 CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
