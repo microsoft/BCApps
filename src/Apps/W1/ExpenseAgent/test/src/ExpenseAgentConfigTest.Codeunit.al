@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
+using System.Security.User;
 using System.TestLibraries.Security.AccessControl;
 
 codeunit 148361 "Expense Agent Config. Test"
@@ -22,8 +23,10 @@ codeunit 148361 "Expense Agent Config. Test"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         UserPermissionsLibrary: Codeunit "User Permissions Library";
+        AgentAdminPermissionSetTok: Label 'Agent - Admin', Locked = true;
         ExpenseAgentAppIdTok: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
+        ExpenseManagementAdminPermissionSetTok: Label 'Expense Mgmt. Admin', Locked = true;
         UnrelatedPermissionSetTok: Label 'D365 BASIC', Locked = true;
 
     [Test]
@@ -33,6 +36,7 @@ codeunit 148361 "Expense Agent Config. Test"
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OtherCompanyName: Text[30];
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating with another company permission adds the current company permission
         Initialize();
 
@@ -56,6 +60,7 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating a disabled Entra app preserves its existing current company permission
         Initialize();
 
@@ -78,6 +83,7 @@ codeunit 148361 "Expense Agent Config. Test"
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO 640454] Activating preserves an unrelated permission assigned to the Entra app user
         Initialize();
 
@@ -95,12 +101,13 @@ codeunit 148361 "Expense Agent Config. Test"
     end;
 
     [Test]
-    procedure ActivatingWithGlobalPermissionDoesNotAddCompanyPermission()
+    procedure ActivatingWithGlobalPermissionAddsCurrentCompanyPermission()
     var
         AadApplication: Record "AAD Application";
         ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
-        // [SCENARIO 640454] Activating with a global Expense Agent permission does not add a company permission
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640454] Activating with a global Expense Agent permission adds the current company permission
         Initialize();
 
         // [GIVEN] Enabled Entra app "EA" has a global Expense Agent permission
@@ -111,15 +118,184 @@ codeunit 148361 "Expense Agent Config. Test"
         // [WHEN] Activating the Expense Agent for the current company
         ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
 
-        // [THEN] "EA" remains enabled with only the global Expense Agent permission
+        // [THEN] The global grant is replaced by an explicit current-company grant
         VerifyAadApplicationState(AadApplication.State::Enabled);
-        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, '');
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, '');
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure DeactivatingPreservesOtherCompanyPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+        OtherCompanyName: Text[30];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640454] Deactivating preserves another company permission
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has Expense Agent permissions for the current company and company "B"
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        OtherCompanyName := GetOtherCompanyName();
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        AssignPermission(AadApplication, ExpenseAgentPermissionSetTok, OtherCompanyName);
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, OtherCompanyName);
+
+        // [WHEN] Deactivating the Expense Agent for the current company
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] The current permission is removed while company "B" is preserved
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+        VerifyPermissionExists(AadApplication, ExpenseAgentPermissionSetTok, OtherCompanyName);
+    end;
+
+    [Test]
+    procedure DeactivatingRemovesCurrentCompanyPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640454] Deactivating removes the current-company Expense Agent permission
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has the Expense Agent permission only for the current company
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+
+        // [WHEN] Deactivating the Expense Agent for the current company
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] The current-company Expense Agent permission is removed
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure DeactivatingPreservesUnrelatedPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640454] Deactivating preserves unrelated permissions
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has current Expense Agent and unrelated permissions
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        AssignPermission(AadApplication, UnrelatedPermissionSetTok, GetCurrentCompanyName());
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+
+        // [WHEN] Deactivating the Expense Agent for the current company
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] The Expense Agent permission is removed and the unrelated permission remains
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+        VerifyPermissionExists(AadApplication, UnrelatedPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure DeactivatingWithoutExpensePermissionPreservesUnrelatedPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640454] Deactivating without a current grant preserves unrelated permissions
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has only an unrelated permission
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        AssignPermission(AadApplication, UnrelatedPermissionSetTok, GetCurrentCompanyName());
+
+        // [WHEN] Deactivating the Expense Agent for the current company
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] The unrelated permission remains
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
+        VerifyPermissionExists(AadApplication, UnrelatedPermissionSetTok, GetCurrentCompanyName());
+    end;
+
+    [Test]
+    procedure DeactivatingRemovesGlobalPermission()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 640454] Deactivating removes a legacy global Expense Agent grant
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" has global and current-company Expense Agent permissions
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+        MakeCurrentExpenseAgentPermissionGlobal(AadApplication);
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+
+        // [WHEN] Deactivating the Expense Agent for the current company
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] Current and global Expense Agent grants are removed
+        VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, '');
         VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
     end;
 
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Agent Config. Test");
+        EnsureCurrentUserAgentAdminPermissionSetAssigned();
+        EnsureCurrentUserPermissionSetAssigned(ExpenseManagementAdminPermissionSetTok);
+        EnsureCurrentUserPermissionSetAssigned(ExpenseAgentPermissionSetTok);
+    end;
+
+    local procedure EnsureCurrentUserAgentAdminPermissionSetAssigned()
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        AggregatePermissionSet.SetRange("Role ID", AgentAdminPermissionSetTok);
+        AggregatePermissionSet.FindFirst();
+        if UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityId(),
+            GetCurrentCompanyName(),
+            AggregatePermissionSet."Role ID",
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID")
+        then
+            exit;
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl.Insert(true);
+    end;
+
+    local procedure EnsureCurrentUserPermissionSetAssigned(PermissionSetId: Code[20])
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        GetPermissionSet(AggregatePermissionSet, PermissionSetId);
+        if UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityId(),
+            GetCurrentCompanyName(),
+            AggregatePermissionSet."Role ID",
+            AggregatePermissionSet.Scope,
+            AggregatePermissionSet."App ID")
+        then
+            exit;
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl."Company Name" := GetCurrentCompanyName();
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl.Insert(true);
     end;
 
     local procedure PrepareAadApplication(var AadApplication: Record "AAD Application"; State: Option)
@@ -155,6 +331,7 @@ codeunit 148361 "Expense Agent Config. Test"
     var
         AccessControl: Record "Access Control";
     begin
+        AadApplication.Get(AadApplication."Client Id");
         AccessControl.Init();
         AccessControl."User Security ID" := AadApplication."User ID";
         AccessControl."Role ID" := AggregatePermissionSet."Role ID";
@@ -221,12 +398,17 @@ codeunit 148361 "Expense Agent Config. Test"
     end;
 
     local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set")
+    begin
+        GetPermissionSet(AggregatePermissionSet, ExpenseAgentPermissionSetTok);
+    end;
+
+    local procedure GetPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set"; PermissionSetId: Code[20])
     var
         ExpenseAgentAppId: Guid;
     begin
         Evaluate(ExpenseAgentAppId, ExpenseAgentAppIdTok);
         AggregatePermissionSet.SetRange("App ID", ExpenseAgentAppId);
-        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetTok);
+        AggregatePermissionSet.SetRange("Role ID", PermissionSetId);
         AggregatePermissionSet.FindFirst();
     end;
 
