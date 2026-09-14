@@ -55,6 +55,21 @@ codeunit 139097 "Power BI Test Subscriber"
         SynchronizerErrorExpected := InputSynchronizerErrorExpected;
     end;
 
+    procedure AddWorkspace(WorkspaceId: Guid; WorkspaceName: Text)
+    begin
+        PowerBIMockServiceProvider.AddWorkspace(WorkspaceId, WorkspaceName);
+    end;
+
+    procedure ClearWorkspaces()
+    begin
+        PowerBIMockServiceProvider.ClearWorkspaces();
+    end;
+
+    procedure GetLastTargetWorkspaceId(): Guid
+    begin
+        exit(PowerBIMockServiceProvider.GetLastTargetWorkspaceId());
+    end;
+
     var
         AssertCU: Codeunit Assert;
         PowerBIMockServiceProvider: Codeunit "Power BI Mock Service Provider";

@@ -2,6 +2,7 @@ namespace Microsoft.Integration.MDM;
 
 using Microsoft.Integration.SyncEngine;
 using System.Automation;
+using System.Integration;
 using System.Threading;
 using System.Upgrade;
 
@@ -13,11 +14,46 @@ codeunit 7238 "Master Data Mgt. Upgrade"
     Access = Internal;
     Subtype = Upgrade;
     Permissions = tabledata "Integration Field Mapping" = rimd,
-                  tabledata "Integration Table Mapping" = rimd;
+                  tabledata "Integration Table Mapping" = rimd,
+                  tabledata "Tenant Web Service" = rimd;
 
     trigger OnUpgradePerCompany()
     begin
         UpgradeJobQueueEntryFrequencies();
+    end;
+
+    trigger OnUpgradePerDatabase()
+    begin
+        RegisterCrossEnvSourceWebService();
+    end;
+
+    // Guaranteed provisioning path: install codeunits are skipped when BC is pre-baked into a package and mounted per tenant.
+    // NOT gated by an upgrade tag: SetAllUpgradeTags on a fresh install can set the tag without the service ever being
+    // created, which would permanently skip registration and 404 the source API. Ensure the record exists AND points at the
+    // right object and is published instead - idempotent and self-healing on every install and upgrade. Access stays gated by
+    // the "Cross Env" permission set, not by publishing.
+    internal procedure RegisterCrossEnvSourceWebService()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        WebServiceManagement: Codeunit "Web Service Management";
+    begin
+        if not TenantWebService.Get(TenantWebService."Object Type"::Codeunit, CrossEnvSourceWebServiceName()) then begin
+            WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Codeunit, Codeunit::"MDM Cross-Env Source API", CrossEnvSourceWebServiceName(), true);
+            exit;
+        end;
+
+        if (TenantWebService."Object ID" = Codeunit::"MDM Cross-Env Source API") and TenantWebService.Published then
+            exit;
+
+        // Repair a pre-existing row that points at the wrong object or is unpublished, rather than trusting the name alone.
+        TenantWebService.Validate("Object ID", Codeunit::"MDM Cross-Env Source API");
+        TenantWebService.Validate(Published, true);
+        TenantWebService.Modify(true);
+    end;
+
+    internal procedure CrossEnvSourceWebServiceName(): Text[240]
+    begin
+        exit('MDMCrossEnvSource');
     end;
 
     internal procedure UpgradeJobQueueEntryFrequencies()
