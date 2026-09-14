@@ -12,6 +12,7 @@ entitlement "Dynamics 365 Business Central Basic Financials BaseApp"
                          "D365 BASIC",
                          "D365 BASIC ISV",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 DIM CHANGE GLO",
                          "D365 MONITOR FIELDS",
                          "LOCAL",

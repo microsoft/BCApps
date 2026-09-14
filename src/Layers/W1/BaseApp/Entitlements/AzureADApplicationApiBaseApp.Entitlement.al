@@ -10,6 +10,7 @@ entitlement "Azure AD Application Api BaseApp"
     Id = 'API.ReadWrite.All';
     ObjectEntitlements = "BaseApp Objects - Exec",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 FULL ACCESS",
                          "D365 MONITOR FIELDS",
                          "D365 RAPIDSTART",
