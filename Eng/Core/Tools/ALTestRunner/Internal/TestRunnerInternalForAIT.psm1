@@ -390,8 +390,8 @@ function Export-AgentTaskLogs {
     $LoadAgentTaskLogsAction = $ClientContext.GetActionByName($Form, "LoadAgentTaskLogs")
     $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
     $AgentTaskLogText = ''
-    $ExportStopwatch = [Diagnostics.Stopwatch]::StartNew()
-    while (($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) -and ($ExportStopwatch.Elapsed -lt $script:AgentTaskLogExportTimeout)) {
+    $ExportTimeout = (Get-Date).Add($script:AgentTaskLogExportTimeout)
+    while (($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) -and ((Get-Date) -lt $ExportTimeout)) {
         $ClientContext.InvokeAction($LoadAgentTaskLogsAction)
         $AgentTaskLogText = $ClientContext.GetControlByName($Form, "Agent Task Log").StringValue
         if ($AgentTaskLogText -eq $script:NoMoreAgentTaskLogs) {
@@ -415,7 +415,6 @@ function Export-AgentTaskLogs {
         [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, [System.Text.UTF8Encoding]::new($false))
         Write-HostWithTimestamp "Exported Agent Task log to $FilePath"
     }
-    $ExportStopwatch.Stop()
 
     if ($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) {
         $FailureMessage = "Agent Task log export for suite $SuiteCode did not finish within $($script:AgentTaskLogExportTimeout.TotalMinutes) minutes."
