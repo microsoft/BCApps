@@ -931,7 +931,6 @@ page 6991 "Expense Agent Setup Wizard"
                 exit(false);
 
         VerifySchedulingMailboxAccess();
-        SynchronizePersistedAgentState();
 
         if AgentBeingEnabled() and StateChanged() then
             if not ActivateAgent() then
@@ -941,11 +940,7 @@ page 6991 "Expense Agent Setup Wizard"
             if not DeactivateAgent() then
                 exit(false);
 
-        if StateChanged() then
-            LockExpenseAgentEntraApplicationForReconciliation();
         PersistAgentState();
-        if StateChanged() then
-            ReconcileExpenseAgentEntraApplication();
         ApplyScheduleChange();
 
         exit(true);
@@ -1006,7 +1001,6 @@ page 6991 "Expense Agent Setup Wizard"
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
         ApprovalWorkflowConflictErr: Label 'You must turn off "%1" in Expense Agent Setup to enable Expense Agent.', Comment = '%1 = Field Caption';
-        AgentStateChangedErr: Label 'The Expense Agent state was changed by another session. Reopen the setup and try again.';
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
@@ -1356,11 +1350,8 @@ page 6991 "Expense Agent Setup Wizard"
             exit;
 
         Rec.ClearMailboxAndDependents();
-        if Rec."Enable Agent" then begin
+        if Rec."Enable Agent" then
             Rec.Validate("Enable Agent", false);
-            AgentSetupBuffer.Validate(State, AgentSetupBuffer.State::Disabled);
-            CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(AgentSetupBuffer);
-        end;
         Rec.Modify();
     end;
 
@@ -1456,7 +1447,7 @@ page 6991 "Expense Agent Setup Wizard"
             exit(false);
         if not UnregisterErpConfiguration() then
             exit(false);
-        ReconcileExpenseAgentEntraApplication();
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
         Rec.LogAgentDisabledTelemetry();
         exit(true);
     end;
@@ -1478,50 +1469,6 @@ page 6991 "Expense Agent Setup Wizard"
         AgentSetup.SaveChanges(AgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
-    end;
-
-    local procedure ReconcileExpenseAgentEntraApplication()
-    begin
-        OnReconcileExpenseAgentEntraApplication(AgentBeingEnabled());
-    end;
-
-    local procedure LockExpenseAgentEntraApplicationForReconciliation()
-    var
-        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
-    begin
-        ExpenseAgentEntraApp.LockAadApplicationForReconciliation();
-    end;
-
-    local procedure SynchronizePersistedAgentState()
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        PersistedState: Option;
-    begin
-        if StateChanged() then
-            exit;
-
-        LockExpenseAgentEntraApplicationForReconciliation();
-        ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
-        if not ExpenseAgentSetup.Get() then
-            exit;
-
-        if ExpenseAgentSetup."Enable Agent" then
-            PersistedState := AgentSetupBuffer.State::Enabled
-        else
-            PersistedState := AgentSetupBuffer.State::Disabled;
-        if AgentSetupBuffer.State = PersistedState then
-            exit;
-        if PersistedState = AgentSetupBuffer.State::Enabled then
-            Error(AgentStateChangedErr);
-
-        AgentSetupBuffer.Validate(State, PersistedState);
-        InitialState := AgentSetupBuffer.State;
-        CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(AgentSetupBuffer);
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnReconcileExpenseAgentEntraApplication(EnableAgent: Boolean)
-    begin
     end;
 
     local procedure ApplyScheduleChange()

@@ -70,19 +70,10 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         GetAadApplication(AadApplication);
     end;
 
-    internal procedure LockAadApplicationForReconciliation()
-    var
-        AadApplication: Record "AAD Application";
-    begin
-        AadApplication.LockTable();
-        GetAadApplication(AadApplication);
-    end;
-
     local procedure EnableAadApplicationForCurrentCompanyWithoutAuthorization()
     var
         AadApplication: Record "AAD Application";
     begin
-        AadApplication.LockTable();
         GetAadApplication(AadApplication);
 
         // Enabling creates the application user. Disable it again before changing permissions.
@@ -104,21 +95,11 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AadApplication.Modify(true);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Expense Agent Setup Wizard", OnReconcileExpenseAgentEntraApplication, '', false, false)]
-    local procedure OnReconcileExpenseAgentEntraApplication(EnableAgent: Boolean)
-    begin
-        if EnableAgent then
-            EnableAadApplicationForCurrentCompanyWithoutAuthorization()
-        else
-            DisableAadApplicationForCompany(GetCurrentCompanyName());
-    end;
-
     local procedure DisableAadApplicationForCompany(CompanyNameValue: Text[30])
     var
         AadApplication: Record "AAD Application";
         HasOtherEnabledCompany: Boolean;
     begin
-        AadApplication.LockTable();
         if not AadApplication.Get(GetAadAppId()) then
             exit;
 
