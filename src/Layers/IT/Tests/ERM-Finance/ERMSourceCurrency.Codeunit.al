@@ -2388,10 +2388,10 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] The posting completes without a source currency consistency error.
         GLEntry.SetRange("Document No.", PostedDocumentNo);
-        GLEntry.SetRange("Document Type", GLEntry."Document Type"::Payment);
         GLEntry.SetRange("G/L Account No.", PaymentMethod."Bal. Account No.");
         GLEntry.FindFirst();
-        
+        GLEntry.TestField("Document Type", GLEntry."Document Type"::Payment);
+
         GLEntry.TestField(Amount, ExpectedSourceCurrencyAmount);
         GLEntry.TestField("Source Currency Code", '');
         GLEntry.TestField("Source Currency Amount", ExpectedSourceCurrencyAmount);
