@@ -316,6 +316,10 @@ function Invoke-AITSuite
 ) {
     $NoOfPendingTests = 0
     $TestResult = @()
+    if ($ExportAgentTaskLogs) {
+        Initialize-AgentTaskLogFolder -AgentTaskLogFolder $AgentTaskLogFolder
+    }
+
     do {
         try {
             Write-HostWithTimestamp "Opening test runner page: $script:TestRunnerPage"
@@ -384,26 +388,61 @@ function Export-AgentTaskLogs {
 
     Write-HostWithTimestamp "Loading Agent Task logs for suite $SuiteCode"
     $LoadAgentTaskLogsAction = $ClientContext.GetActionByName($Form, "LoadAgentTaskLogs")
-    New-Item -ItemType Directory -Force -Path $AgentTaskLogFolder | Out-Null
-    while ($true) {
+    $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
+    $AgentTaskLogText = ''
+    $ExportStopwatch = [Diagnostics.Stopwatch]::StartNew()
+    while (($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) -and ($ExportStopwatch.Elapsed -lt $script:AgentTaskLogExportTimeout)) {
         $ClientContext.InvokeAction($LoadAgentTaskLogsAction)
         $AgentTaskLogText = $ClientContext.GetControlByName($Form, "Agent Task Log").StringValue
-        if ($AgentTaskLogText -eq 'No more Agent Task logs.') {
-            break
-        }
-        if ([string]::IsNullOrWhiteSpace($AgentTaskLogText)) {
-            throw "The Agent Task Log field is empty."
+        if ($AgentTaskLogText -eq $script:NoMoreAgentTaskLogs) {
+            continue
         }
 
         $Version = $ClientContext.GetControlByName($Form, "Agent Task Log Version").StringValue
         $TestLogEntryId = $ClientContext.GetControlByName($Form, "Agent Task Log Entry ID").StringValue
         $AgentTaskId = $ClientContext.GetControlByName($Form, "Agent Task ID").StringValue
-        $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
+        if ([string]::IsNullOrWhiteSpace($AgentTaskLogText)) {
+            $FailureMessage = "The Agent Task log file for suite $SuiteCode, version $Version, log entry $TestLogEntryId, and task $AgentTaskId could not be downloaded because the returned content was blank or empty."
+            $FailureFileName = '{0}_v{1}_log{2}_task{3}_download-error.txt' -f $SafeSuiteCode, $Version, $TestLogEntryId, $AgentTaskId
+            $FailureFilePath = Join-Path $AgentTaskLogFolder $FailureFileName
+            Write-HostWithTimestamp $FailureMessage
+            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, [System.Text.UTF8Encoding]::new($false))
+            continue
+        }
+
         $FileName = '{0}_v{1}_log{2}_task{3}.json' -f $SafeSuiteCode, $Version, $TestLogEntryId, $AgentTaskId
         $FilePath = Join-Path $AgentTaskLogFolder $FileName
         [System.IO.File]::WriteAllText($FilePath, $AgentTaskLogText, [System.Text.UTF8Encoding]::new($false))
         Write-HostWithTimestamp "Exported Agent Task log to $FilePath"
     }
+    $ExportStopwatch.Stop()
+
+    if ($AgentTaskLogText -ne $script:NoMoreAgentTaskLogs) {
+        $FailureMessage = "Agent Task log export for suite $SuiteCode did not finish within $($script:AgentTaskLogExportTimeout.TotalMinutes) minutes."
+        $FailureFilePath = Join-Path $AgentTaskLogFolder "$SafeSuiteCode`_download-timeout.txt"
+        Write-HostWithTimestamp $FailureMessage
+        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, [System.Text.UTF8Encoding]::new($false))
+    }
+}
+
+function Initialize-AgentTaskLogFolder {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $AgentTaskLogFolder
+    )
+
+    if ((Test-Path -Path $AgentTaskLogFolder) -and (Get-ChildItem -Path $AgentTaskLogFolder -File -Recurse -Force | Select-Object -First 1)) {
+        $ResolvedAgentTaskLogFolder = (Resolve-Path -Path $AgentTaskLogFolder).Path
+        $AgentTaskLogFolderParent = Split-Path -Path $ResolvedAgentTaskLogFolder -Parent
+        $AgentTaskLogFolderName = Split-Path -Path $ResolvedAgentTaskLogFolder -Leaf
+        $OldAgentTaskLogFolder = Join-Path $AgentTaskLogFolderParent "$AgentTaskLogFolderName-old"
+        $ArchiveFolder = Join-Path $OldAgentTaskLogFolder (Get-Date -Format 'yyyyMMdd_HHmmss_fff')
+        New-Item -ItemType Directory -Force -Path $OldAgentTaskLogFolder | Out-Null
+        Move-Item -Path $AgentTaskLogFolder -Destination $ArchiveFolder
+        Write-HostWithTimestamp "Moved existing Agent Task logs to $ArchiveFolder"
+    }
+
+    New-Item -ItemType Directory -Force -Path $AgentTaskLogFolder | Out-Null
 }
 
 # Run the next test in the suite
@@ -829,6 +868,8 @@ $script:DefaultServerInstance = "NAV"
 $script:DefaultClientSessionTimeout = 60;
 $script:DefaultTransactionTimeout = [timespan]::FromMinutes(60);
 $script:DefaultCulture = "en-US";
+$script:AgentTaskLogExportTimeout = [timespan]::FromMinutes(15);
+$script:NoMoreAgentTaskLogs = "No more Agent Task logs.";
 
 $script:TestRunnerPage = '149042'
 $script:ClientAssembly1 = "Microsoft.Dynamics.Framework.UI.Client.dll"
