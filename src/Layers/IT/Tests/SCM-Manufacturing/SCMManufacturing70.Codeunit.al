@@ -36,6 +36,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 using System.Utilities;
