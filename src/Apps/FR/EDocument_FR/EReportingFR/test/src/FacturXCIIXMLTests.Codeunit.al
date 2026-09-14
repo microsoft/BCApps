@@ -309,7 +309,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X CII XML uses buyer Registration Number (first 9 digits) with schemeID 0225 when FR Electronic Address is blank
+        // [SCENARIO] Factur-X CII XML uses buyer Registration Number with schemeID 0002 when FR Electronic Address is blank
         Initialize();
 
         // [GIVEN] Posted sales invoice with customer having no FR Electronic Address but having a Registration Number
@@ -324,8 +324,53 @@ codeunit 148148 "Factur-X CII XML Tests"
             GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
 
-        // [THEN] schemeID = '0225'
-        Assert.AreEqual('0225',
+        // [THEN] schemeID = '0002'
+        Assert.AreEqual('0002',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
+    end;
+
+    [Test]
+    procedure FacturXSalesInvoiceXMLHasSeparateBuyerSIRETAndSIREN()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X CII XML exports Customer SIRET and SIREN as separate legal identifiers
+        Initialize();
+
+        // [GIVEN] Customer "C" with coherent canonical SIREN and SIRET values
+        CustomerNo := CreateCustomer('');
+        Customer.Get(CustomerNo);
+        Customer."FR Electronic Address" := '12345678901234';
+        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::"0009";
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomer(CustomerNo));
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] BuyerTradeParty ID contains SIRET
+        Assert.AreEqual('12345678901234',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:ID'));
+
+        // [THEN] Buyer legal organization ID contains SIREN with scheme 0002
+        Assert.AreEqual('123456789',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID'));
+        Assert.AreEqual('0002',
+            GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID/@schemeID'));
+
+        // [THEN] Buyer endpoint falls back to SIRET with scheme 0009
+        Assert.AreEqual('12345678901234',
+            GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
+            StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
+        Assert.AreEqual('0009',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;
@@ -1306,6 +1351,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."VAT Registration No." := '533435789';
         Customer."Registration Number" := '';
         Customer."FR Electronic Address" := '123456789_FOREIGN';
+        Customer."FR Elec. Address Scheme" := Customer."FR Elec. Address Scheme"::"0225";
         Customer.Modify(true);
         CustomerNo := Customer."No.";
 
@@ -1574,7 +1620,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X uses SIREN extracted from French VAT as BuyerTradeParty URIID when FR Electronic Address and Registration Number are blank
+        // [SCENARIO] Factur-X uses French VAT as BuyerTradeParty URIID when legal and routing identifiers are blank
         Initialize();
 
         // [GIVEN] Customer "C" with French VAT but no FR Electronic Address or Registration Number
@@ -1595,13 +1641,13 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
 
-        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID = '945627890'
-        Assert.AreEqual('945627890',
+        // [THEN] BuyerTradeParty/URIUniversalCommunication/URIID contains the French VAT identifier
+        Assert.AreEqual('FR78945627890',
             GetCIINodeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID'));
 
-        // [THEN] schemeID = '0225'
-        Assert.AreEqual('0225',
+        // [THEN] schemeID = '9957'
+        Assert.AreEqual('9957',
             GetCIIAttributeValue(TempBlob, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'),
             StrSubstNo(IncorrectValueErr, '//ram:BuyerTradeParty/ram:URIUniversalCommunication/ram:URIID/@schemeID'));
     end;
@@ -2216,6 +2262,8 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer."Registration Number" := '123456789';
         Customer.Validate("FR Electronic Address", FRElecAddress);
+        if FRElecAddress <> '' then
+            Customer.Validate("FR Elec. Address Scheme", Customer."FR Elec. Address Scheme"::"0225");
         Customer.Modify(true);
         exit(Customer."No.");
     end;
