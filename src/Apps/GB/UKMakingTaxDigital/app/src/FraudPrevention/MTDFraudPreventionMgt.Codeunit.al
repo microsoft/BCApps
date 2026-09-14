@@ -410,7 +410,7 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         // allow-list is possible; this blocks the most dangerous internal targets while keeping arbitrary public endpoints.
         if not IsPublicIPServiceUrlAllowed(PublicIPServiceURL) then begin
             AuditLog.LogAuditMessage(SecurityAuditBlockedUrlTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('', HMRCFraudPreventHeadersTok, '', BlockedUrlTxt);
+            FeatureTelemetry.LogError('0000VEW', HMRCFraudPreventHeadersTok, '', BlockedUrlTxt);
             exit;
         end;
         HttpClient.Get(PublicIPServiceURL, HttpResponseMessage);
