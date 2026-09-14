@@ -833,13 +833,13 @@ codeunit 137107 "SCM Kitting - Able To Make"
         CalculateBOMTree.GenerateTreeForOneItem(TopItem, BOMBuffer, WorkDate(), "BOM Tree Type"::Availability);
 
         // [THEN] "M" contributes its own inventory plus what the scarcer component lets it assemble.
-        VerifyAbleToMake(MidItem."No.", MidQty + ScarceQty, MidQty + ScarceQty, MidQty, ScarceQty);
+        VerifyAbleToMake(MidItem."No.", MidQty + ScarceQty, MidQty + ScarceQty);
 
         // [THEN] The top item inherits that quantity.
-        VerifyAbleToMake(TopItem."No.", MidQty + ScarceQty, MidQty + ScarceQty, MidQty, ScarceQty);
+        VerifyAbleToMake(TopItem."No.", MidQty + ScarceQty, MidQty + ScarceQty);
 
         // [THEN] The scarcer component caps the assembly path.
-        VerifyAbleToMakeParent(SecondComponent."No.", ScarceQty, MidQty, ScarceQty);
+        VerifyAbleToMakeParent(SecondComponent."No.", ScarceQty);
     end;
 
     [Test]
@@ -873,10 +873,10 @@ codeunit 137107 "SCM Kitting - Able To Make"
         CalculateBOMTree.GenerateTreeForOneItem(TopItem, BOMBuffer, WorkDate(), "BOM Tree Type"::Availability);
 
         // [THEN] "M" contributes its inventory once, not twice.
-        VerifyAbleToMake(MidItem."No.", MidQty, MidQty, MidQty, ScarceQty);
+        VerifyAbleToMake(MidItem."No.", MidQty, MidQty);
 
         // [THEN] The top item inherits that quantity rather than the doubled figure reported in the case.
-        VerifyAbleToMake(TopItem."No.", MidQty, MidQty, MidQty, ScarceQty);
+        VerifyAbleToMake(TopItem."No.", MidQty, MidQty);
     end;
 
     local procedure CreateTwoLevelAssemblyStructure(var TopItem: Record Item; var MidItem: Record Item; var FirstComponent: Record Item; var SecondComponent: Record Item; var MidQty: Decimal; var ScarceQty: Decimal)
@@ -909,7 +909,7 @@ codeunit 137107 "SCM Kitting - Able To Make"
         LibraryInventory.PostPositiveAdjustment(SecondComponent, '', '', '', ScarceQty, WorkDate(), 0);
     end;
 
-    local procedure VerifyAbleToMake(ItemNo: Code[20]; ExpectedParentQty: Decimal; ExpectedTopQty: Decimal; MidQty: Decimal; ScarceQty: Decimal)
+    local procedure VerifyAbleToMake(ItemNo: Code[20]; ExpectedParentQty: Decimal; ExpectedTopQty: Decimal)
     begin
         BOMBuffer.Reset();
         BOMBuffer.SetRange("No.", ItemNo);
@@ -922,7 +922,7 @@ codeunit 137107 "SCM Kitting - Able To Make"
             StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), ItemNo));
     end;
 
-    local procedure VerifyAbleToMakeParent(ItemNo: Code[20]; ExpectedParentQty: Decimal; MidQty: Decimal; ScarceQty: Decimal)
+    local procedure VerifyAbleToMakeParent(ItemNo: Code[20]; ExpectedParentQty: Decimal)
     begin
         BOMBuffer.Reset();
         BOMBuffer.SetRange("No.", ItemNo);
