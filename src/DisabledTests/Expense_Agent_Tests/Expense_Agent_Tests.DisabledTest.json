@@ -112,32 +112,12 @@
   {
     "codeunitId": 148338,
     "codeunitName": "Expense Permissions Test",
-    "method": "ExpenseMgmtReadRetainsAppPermissions"
-  },
-  {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
-    "method": "ExpenseMgmtEditRetainsAppPermissions"
-  },
-  {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
-    "method": "ExpenseMgmtAdminRetainsAppPermissions"
-  },
-  {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
     "method": "D365BasicCanUpdateTravelRequestDetailsIndirectly"
   },
   {
     "codeunitId": 148338,
     "codeunitName": "Expense Permissions Test",
     "method": "ExpenseAgentCanUpdateTravelRequestDetailsIndirectly"
-  },
-  {
-    "codeunitId": 148338,
-    "codeunitName": "Expense Permissions Test",
-    "method": "TravelRequestApprovalFailsWithoutExpensePermissions"
   },
   {
     "codeunitId": 148339,
