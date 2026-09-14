@@ -51,12 +51,9 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
         ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
-        ResponseSchemaErr: Label 'The response from the EU VAT Registration No. validation service (VIES) was not in the expected format and was rejected.';
-        ResponseSchemaMsg: Label 'The VAT reg. no. validation failed. The response did not contain the expected identifiers.', Locked = true;
         ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) does not match the requested VAT registration number and was rejected.';
         ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
-        SecurityAuditResponseSchemaTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not contain the expected identifiers.', Locked = true;
         SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
         CountryCodePathTxt: Label 'descendant::vat:countryCode', Locked = true;
         VatNumberPathTxt: Label 'descendant::vat:vatNumber', Locked = true;
@@ -223,9 +220,11 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     end;
 
     /// <summary>
-    /// Validates the structure and integrity of a VIES response before its content is trusted.
-    /// Ensures the response echoes the country code and VAT registration number that were requested,
-    /// so that a tampered, swapped, or unrelated response received over the unauthenticated service is rejected.
+    /// Validates the integrity of a VIES response before its content is trusted.
+    /// When the response echoes the country code or VAT registration number, the echoed value must match
+    /// what was requested, so a swapped or unrelated response received over the unauthenticated service is rejected.
+    /// Responses that do not echo an identifier are left to the existing verification logic and are not rejected here,
+    /// so legitimate responses that simply omit those fields are never blocked.
     /// </summary>
     /// <param name="VATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
     /// <param name="XMLDoc">The parsed VIES response document.</param>
@@ -244,16 +243,9 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ResponseCountryCode := ExtractResponseValue(XMLDoc, CountryCodePathTxt, Namespace);
         ResponseVATNumber := ExtractResponseValue(XMLDoc, VatNumberPathTxt, Namespace);
 
-        // Schema / source expectation: a genuine VIES response echoes the queried country code and VAT number.
-        if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseSchemaTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('0000VER', ResponseSchemaMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
-            Error(ResponseSchemaErr);
-        end;
-
-        // Integrity: the echoed identifiers must match the values that were requested.
-        if (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetCountryCode())) or
-           (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo()))
+        // Integrity (validate-if-present): only reject when an echoed identifier is present and contradicts the request.
+        if ((ResponseCountryCode <> '') and (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetCountryCode()))) or
+           ((ResponseVATNumber <> '') and (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo())))
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);

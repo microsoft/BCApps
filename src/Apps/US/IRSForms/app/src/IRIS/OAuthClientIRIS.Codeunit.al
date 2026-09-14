@@ -21,7 +21,6 @@ codeunit 10046 "OAuth Client IRIS"
         Helper: Codeunit "Helper IRIS";
         Base64Convert: Codeunit "Base64 Convert";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        AuditLog: Codeunit "Audit Log";
         JWTSignAlgorithmTxt: Label 'RS256', Locked = true;
         GetTokensEventTxt: Label 'GetTokens', Locked = true;
         SubmitTransmEventTxt: Label 'SubmitTransmission', Locked = true;
@@ -37,9 +36,6 @@ codeunit 10046 "OAuth Client IRIS"
         HttpRequestSendErr: Label 'Error sending HTTP request.';
         HttpResponseErr: Label 'The IRIS service returned the error response.';
         HttpResponseDetailsErr: Label '\\Status: %1 %2 \Response: %3', Comment = '%1 - HTTP status code, %2 - reason phrase, %3 - response text';
-        ResponseTooLargeErr: Label 'The IRIS service returned a response that exceeded the maximum allowed size and was rejected.';
-        ResponseTooLargeTxt: Label 'The IRIS response exceeded the maximum allowed size and was rejected.', Locked = true;
-        SecurityAuditResponseTooLargeTxt: Label 'The IRIS service returned a response that exceeded the maximum allowed size.', Locked = true;
         GetAccessTokenErr: Label 'Could not get access token from response.';
         AccessTokenExpiredErr: Label 'Access token is expired.', Locked = true;
         UserIDMustBeSetErr: Label 'IRIS User ID must be specified. %1', Comment = '%1 - additional instructions';
@@ -198,11 +194,6 @@ codeunit 10046 "OAuth Client IRIS"
             ShowRequestSendError(HttpResponseMessage.IsBlockedByEnvironment());
             LogSecurityAuditEvent(SecurityAuditTokenRequestFailedTxt, SecurityOperationResult::Failure, AuditCategory::Authentication);
             exit;
-        end;
-        if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('0000VEL', Helper.GetIRISFeatureName(), GetTokensEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
-            Error(ResponseTooLargeErr);
         end;
         HttpResponseMessage.Content().ReadAs(ResponseText);
 
@@ -381,11 +372,6 @@ codeunit 10046 "OAuth Client IRIS"
         if not HttpResponseMessage.IsSuccessStatusCode() then
             exit;       // no need to show error here as both access and refresh tokens will be requested again
 
-        if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('0000VEM', Helper.GetIRISFeatureName(), GetTokensEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
-            Error(ResponseTooLargeErr);
-        end;
         HttpResponseMessage.Content().ReadAs(ResponseText);
         JObject.ReadFrom(ResponseText);
         ResponseSecretText := ResponseText;
@@ -424,11 +410,6 @@ codeunit 10046 "OAuth Client IRIS"
             FeatureTelemetry.LogError('0000PAH', Helper.GetIRISFeatureName(), SubmitTransmEventTxt, EmptyResponseErr, GetLastErrorCallStack());
             Message(EmptyResponseErr);
         end;
-        if StrLen(ResponseText) > GetMaxResponseSize() then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('0000VEN', Helper.GetIRISFeatureName(), SubmitTransmEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
-            Error(ResponseTooLargeErr);
-        end;
         Helper.WriteTextToTempBlob(ResponseContentBlob, ResponseText);
 
         FeatureTelemetry.LogUsage('0000PAJ', Helper.GetIRISFeatureName(), SubmitTransmEventTxt);
@@ -461,11 +442,6 @@ codeunit 10046 "OAuth Client IRIS"
         if ResponseText = '' then begin
             FeatureTelemetry.LogError('0000PAI', Helper.GetIRISFeatureName(), RequestTransmStatusOrAckEventTxt, EmptyResponseErr, GetLastErrorCallStack());
             Message(EmptyResponseErr);
-        end;
-        if StrLen(ResponseText) > GetMaxResponseSize() then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            FeatureTelemetry.LogError('0000VEO', Helper.GetIRISFeatureName(), RequestTransmStatusOrAckEventTxt, ResponseTooLargeTxt, GetLastErrorCallStack());
-            Error(ResponseTooLargeErr);
         end;
         Helper.WriteTextToTempBlob(ResponseBlob, ResponseText);
 
@@ -566,27 +542,6 @@ codeunit 10046 "OAuth Client IRIS"
         FeatureTelemetry.LogError('0000P7X', Helper.GetIRISFeatureName(), '', HttpRequestSendErr, GetLastErrorCallStack(), CustomDimensions);
         ErrorMessage := AddErrorDetails(HttpRequestSendErr, CustomDimensions);
         Message(ErrorMessage);
-    end;
-
-    local procedure IsResponseSizeAcceptable(var HttpResponseMessage: HttpResponseMessage): Boolean
-    var
-        ContentHeaders: HttpHeaders;
-        Values: array[10] of Text;
-        ContentLength: Integer;
-    begin
-        // Reject responses that declare a size larger than expected before their content is read and processed.
-        if not HttpResponseMessage.Content().GetHeaders(ContentHeaders) then
-            exit(true);
-        if not ContentHeaders.GetValues('Content-Length', Values) then
-            exit(true);
-        if not Evaluate(ContentLength, Values[1]) then
-            exit(true);
-        exit(ContentLength <= GetMaxResponseSize());
-    end;
-
-    local procedure GetMaxResponseSize(): Integer
-    begin
-        exit(10485760); // 10 MB - IRIS responses are small; larger responses are rejected as potentially malicious.
     end;
 
     local procedure ShowResponseError(HttpStatusCode: Integer; ReasonPhrase: Text; ResponseText: Text)
