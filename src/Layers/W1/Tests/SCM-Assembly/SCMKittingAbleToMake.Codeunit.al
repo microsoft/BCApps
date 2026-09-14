@@ -916,10 +916,10 @@ codeunit 137107 "SCM Kitting - Able To Make"
         BOMBuffer.FindFirst();
         Assert.AreEqual(
             ExpectedParentQty, BOMBuffer."Able to Make Parent",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), ItemNo, MidQty, ScarceQty));
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), ItemNo));
         Assert.AreEqual(
             ExpectedTopQty, BOMBuffer."Able to Make Top Item",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), ItemNo, MidQty, ScarceQty));
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Top Item"), ItemNo));
     end;
 
     local procedure VerifyAbleToMakeParent(ItemNo: Code[20]; ExpectedParentQty: Decimal; MidQty: Decimal; ScarceQty: Decimal)
@@ -929,7 +929,7 @@ codeunit 137107 "SCM Kitting - Able To Make"
         BOMBuffer.FindFirst();
         Assert.AreEqual(
             ExpectedParentQty, BOMBuffer."Able to Make Parent",
-            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), ItemNo, MidQty, ScarceQty));
+            StrSubstNo(WrongQtyErr, BOMBuffer.FieldCaption("Able to Make Parent"), ItemNo));
     end;
 
     local procedure CreateBOMItemWithSKUonLocation(var Item: Record Item; var SKU: Record "Stockkeeping Unit"; var LocationCOde: Code[10])
