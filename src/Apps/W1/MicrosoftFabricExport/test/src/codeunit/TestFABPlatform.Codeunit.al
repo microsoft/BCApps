@@ -659,6 +659,7 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The malformed response is rejected
         Assert.ExpectedError('malformed');
+        UnbindSubscription(PlatformTestSub);
     end;
 
     [Test]
@@ -692,6 +693,7 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The malformed response is rejected
         Assert.ExpectedError('malformed');
+        UnbindSubscription(PlatformTestSub);
     end;
 
     [Test]
@@ -724,6 +726,7 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The call completes without error
         Assert.IsTrue(Success, 'Expected AddServicePrincipalToWorkspace to succeed on a 200 response.');
+        UnbindSubscription(PlatformTestSub);
     end;
 
     [Test]
@@ -756,6 +759,7 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The already-a-member conflict is reported
         Assert.ExpectedError('already a member');
+        UnbindSubscription(PlatformTestSub);
     end;
 
     [TryFunction]
