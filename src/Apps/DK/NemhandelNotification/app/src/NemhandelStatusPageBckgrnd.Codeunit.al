@@ -67,7 +67,7 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         if ErrorMessage <> '' then begin
             Telemetry.LogMessage(
                 '0000L9W', ErrorMessage, Verbosity::Warning, DataClassification::SystemMetadata,
-                TelemetryScope::ExtensionPublisher, CustomDimensions);
+                TelemetryScope::All, CustomDimensions);
             CompanyStatus := "Nemhandel Company Status"::Unknown;
             exit;
         end;
