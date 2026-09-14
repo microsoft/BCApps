@@ -1626,7 +1626,7 @@ table 8059 "Subscription Line"
             "Service Partner"::Customer:
                 begin
                     ContractsItemManagement.CreateTempSalesHeader(TempSalesHeader, TempSalesHeader."Document Type"::Order, ServiceObject."End-User Customer No.", ServiceObject."Bill-to Customer No.", Rec."Subscription Line Start Date", Rec."Currency Code");
-                    ContractsItemManagement.CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, Rec."Subscription Line Start Date", ServiceObject."Variant Code");
+                    ContractsItemManagement.CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject, Rec."Subscription Line Start Date");
                     Rec."Calculation Base Amount" := ContractsItemManagement.CalculateUnitPrice(TempSalesHeader, TempSalesLine);
                 end;
             "Service Partner"::Vendor:
@@ -1873,6 +1873,23 @@ table 8059 "Subscription Line"
     internal procedure IsUsageBasedBillingValid(): Boolean
     begin
         exit(Rec."Usage Based Billing" and (Rec."Subscription Header No." <> ''));
+    end;
+
+    internal procedure GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate: Date; BillingToDate: Date) ChargeEndDate: Date
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        if not Rec.IsUsageBasedBillingValid() then
+            exit;
+
+        UsageDataBilling.SetCurrentKey("Subscription Line Entry No.", "Document Type", "Charge End Date");
+        UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
+        UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
+        UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+        UsageDataBilling.SetRange("Charge Start Date", BillingFromDate, BillingToDate);
+        UsageDataBilling.SetFilter("Charge End Date", '>%1', BillingToDate);
+        if UsageDataBilling.FindLast() then
+            ChargeEndDate := UsageDataBilling."Charge End Date";
     end;
 
     local procedure GetOriginalInvoicedToDateIfRebillingMetadataExist() OriginalInvoicedToDate: Date
