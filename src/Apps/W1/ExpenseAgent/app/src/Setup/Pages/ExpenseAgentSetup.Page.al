@@ -205,6 +205,9 @@ page 6996 "Expense Agent Setup"
                         end;
                     end;
                 }
+                field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                {
+                }
                 field("Do Not Allow Expenses Older Than"; Rec."Do Not Allow Exp. Older Than")
                 {
                 }

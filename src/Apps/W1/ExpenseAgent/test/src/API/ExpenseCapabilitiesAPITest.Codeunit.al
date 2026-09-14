@@ -22,6 +22,7 @@ codeunit 148318 "Expense Capabilities API Test"
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
+        ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -75,6 +76,25 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
+    end;
+
+    [Test]
+    procedure ApprovalConversationCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Approval conversation is advertised when the supporting API actions are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] ApprovalConversation is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, ApprovalConversationCapabilityNameTok, true),
+            'Response must contain an enabled approvalConversation capability row.');
     end;
 
     [Test]

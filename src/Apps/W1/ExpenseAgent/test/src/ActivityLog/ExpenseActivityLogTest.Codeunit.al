@@ -167,7 +167,7 @@ codeunit 148342 "Expense Activity Log Test"
         // [WHEN] The report is submitted, rejected, resubmitted, and approved.
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
         ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'Please explain the change.');
-        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", 'Updated the justification.');
         ExpenseReportApprovalMgt.Approve(ExpenseReportHeader, ApproverExpenseUser."No.");
 
         // [THEN] The report has the expected ordered activity entries.
@@ -184,9 +184,121 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.AreEqual('Please explain the change.', ExpenseActivityLogEntry.Comment, 'The rejection entry must preserve the approver comment.');
         ExpenseActivityLogEntry.Next();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Resubmitted, ExpenseActivityLogEntry."Event Type", 'The fourth entry must record resubmission.');
+        Assert.AreEqual('Updated the justification.', ExpenseActivityLogEntry.Comment, 'The resubmission entry must preserve the submitter comment.');
         ExpenseActivityLogEntry.Next();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Approved, ExpenseActivityLogEntry."Event Type", 'The fifth entry must record approval.');
         Assert.AreEqual(0, ExpenseActivityLogEntry.Next(), 'No additional approval lifecycle entries are expected.');
+    end;
+
+    [Test]
+    procedure ApprovalConversationKeepsLatestHeaderValuesAndCompleteHistory()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+        RejectedCount: Integer;
+        ResubmittedCount: Integer;
+    begin
+        // [SCENARIO] Header comments keep the latest exchange while activity entries preserve every cycle.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+
+        // [WHEN] The report is rejected and resubmitted twice.
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'First approver comment.');
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", 'First submitter response.');
+        ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'Second approver comment.');
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", 'Second submitter response.');
+
+        // [THEN] The header exposes only the latest value from each participant.
+        Assert.AreEqual('Second approver comment.', ExpenseReportHeader.GetApproverComment(), 'The header must keep the latest approver comment.');
+        Assert.AreEqual('Second submitter response.', ExpenseReportHeader.GetSubmitterComment(), 'The header must keep the latest submitter comment.');
+
+        // [THEN] Every comment remains in its state-change activity entry.
+        ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
+        ExpenseActivityLogEntry.FindSet();
+        repeat
+            case ExpenseActivityLogEntry."Event Type" of
+                ExpenseActivityLogEntry."Event Type"::Rejected:
+                    begin
+                        RejectedCount += 1;
+                        case RejectedCount of
+                            1:
+                                Assert.AreEqual('First approver comment.', ExpenseActivityLogEntry.Comment, 'The first rejection comment must remain unchanged.');
+                            2:
+                                Assert.AreEqual('Second approver comment.', ExpenseActivityLogEntry.Comment, 'The second rejection comment must be appended.');
+                        end;
+                    end;
+                ExpenseActivityLogEntry."Event Type"::Resubmitted:
+                    begin
+                        ResubmittedCount += 1;
+                        case ResubmittedCount of
+                            1:
+                                Assert.AreEqual('First submitter response.', ExpenseActivityLogEntry.Comment, 'The first submitter response must remain unchanged.');
+                            2:
+                                Assert.AreEqual('Second submitter response.', ExpenseActivityLogEntry.Comment, 'The second submitter response must be appended.');
+                        end;
+                    end;
+            end;
+        until ExpenseActivityLogEntry.Next() = 0;
+        Assert.AreEqual(2, RejectedCount, 'Exactly two rejection comments are expected.');
+        Assert.AreEqual(2, ResubmittedCount, 'Exactly two submitter responses are expected.');
+    end;
+
+    [Test]
+    procedure ResubmissionAllowsBlankComment()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] The conversation-specific submit operation accepts a blank comment.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseReportApprovalMgt.Reject(ExpenseReportHeader, ApproverExpenseUser."No.", 'Please explain the change.');
+        Commit();
+
+        // [WHEN] The submitter does not provide a response.
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.", '');
+
+        // [THEN] The report is resubmitted with an empty latest comment.
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'A blank response must not block resubmission.');
+        Assert.AreEqual('', ExpenseReportHeader.GetSubmitterComment(), 'The latest submitter comment must be empty.');
+    end;
+
+    [Test]
+    procedure ActivityCommentTruncationIncludesEllipsis()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        EntryNo: BigInteger;
+    begin
+        // [SCENARIO] An activity comment that exceeds storage capacity is truncated with an ellipsis.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+
+        // [WHEN] An event is logged with more than 2048 characters.
+        EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Rejected,
+            Enum::"Expense Activity Initiator"::User,
+            Enum::"Expense Activity Actor Role"::Approver,
+            ExpenseUser."No.",
+            PadStr('', 2049, 'X'));
+
+        // [THEN] The stored comment fills the field and signals truncation.
+        ExpenseActivityLogEntry.Get(EntryNo);
+        Assert.AreEqual(MaxStrLen(ExpenseActivityLogEntry.Comment), StrLen(ExpenseActivityLogEntry.Comment), 'The truncated comment must fill the storage field.');
+        Assert.AreEqual('...', CopyStr(ExpenseActivityLogEntry.Comment, StrLen(ExpenseActivityLogEntry.Comment) - 2), 'The truncated comment must end with an ellipsis.');
     end;
 
     [Test]

@@ -10,27 +10,12 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
 {
     layout
     {
-        modify("Requested By")
-        {
-            Visible = false;
-        }
-        modify("Currency Code")
-        {
-            Importance = Additional;
-        }
-        modify("Total Expected Amount (LCY)")
-        {
-            Importance = Additional;
-        }
-        modify(TotalSpentAmountLCY)
-        {
-            Importance = Additional;
-        }
         addafter("Requested By")
         {
             field("Requested For"; Rec."Requested For")
             {
                 ApplicationArea = Basic, Suite;
+                Visible = false;
             }
         }
         addafter(Lines)
@@ -38,6 +23,7 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
             group("Travel Details")
             {
                 Caption = 'Travel Details';
+                Visible = false;
                 field("Business Justification"; Rec."Business Justification")
                 {
                     ApplicationArea = Basic, Suite;
@@ -79,32 +65,18 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
+                Visible = false;
             }
             field("Actual End Date and Time"; Rec."Actual End Date and Time")
             {
                 ApplicationArea = Basic, Suite;
                 Importance = Additional;
+                Visible = false;
             }
-        }
-        modify("Approved by User Name")
-        {
-            Editable = false;
         }
     }
     actions
     {
-        modify(Approve)
-        {
-            Visible = false;
-        }
-        modify(Reject)
-        {
-            Visible = false;
-        }
-        modify(Print)
-        {
-            Visible = false;
-        }
         addlast(Navigation)
         {
             action("Travelers")
@@ -113,6 +85,7 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
                 Caption = 'Travelers';
                 ToolTip = 'View the travelers associated with this spend request.';
                 ApplicationArea = Basic, Suite;
+                Visible = false;
                 RunObject = page "Travelers";
                 RunPageLink = "Spend Request No." = field("No.");
             }
