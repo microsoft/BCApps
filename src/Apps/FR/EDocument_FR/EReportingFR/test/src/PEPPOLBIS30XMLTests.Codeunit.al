@@ -177,11 +177,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [WHEN] Export FR PEPPOL XML
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer EndpointID contains first 9 digits of Registration Number with scheme 0225
+        // [THEN] Buyer EndpointID contains Registration Number with scheme 0002
         Assert.AreEqual('123456789',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID'));
-        Assert.AreEqual('0225',
+        Assert.AreEqual('0002',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
@@ -257,7 +257,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         // [GIVEN] Customer with service participant using configured scheme 0002
         CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
-        EndpointId := '987654321_ABC';
+        EndpointId := '987654321';
         ServiceParticipant.Service := EDocumentService.Code;
         ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Customer;
         ServiceParticipant.Participant := CustomerNo;
@@ -291,8 +291,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects the buyer SIREN as the legal registration identifier
         Initialize();
 
-        // [GIVEN] Customer "C" with blank Registration Number and FR electronic address in SIREN_suffix format
-        CustomerNo := CreateCustomer('123456789_001', "Electronic Address Scheme"::"0225");
+        // [GIVEN] Customer "C" with blank Registration Number and a canonical SIRET
+        CustomerNo := CreateCustomer('12345678901234', "Electronic Address Scheme"::"0009");
         Customer.Get(CustomerNo);
         Customer.Validate("Registration Number", '');
         Customer.Modify(true);
@@ -301,13 +301,21 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        // [THEN] Buyer PartyLegalEntity CompanyID contains the SIREN from the FR electronic address with scheme 0002
+        // [THEN] Buyer PartyLegalEntity CompanyID contains the SIREN derived from SIRET with scheme 0002
         Assert.AreEqual('123456789',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'),
             StrSubstNo(IncorrectValueErr, 'Buyer CompanyID'));
         Assert.AreEqual('0002',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Buyer CompanyID schemeID'));
+
+        // [THEN] Buyer PartyIdentification contains the canonical SIRET with scheme 0009
+        Assert.AreEqual('12345678901234',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification ID'));
+        Assert.AreEqual('0009',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Buyer PartyIdentification schemeID'));
     end;
 
     [Test]
@@ -322,7 +330,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Initialize();
 
         // [GIVEN] Posted sales invoice for customer with FR electronic address and configured scheme 0009
-        CustomerAddress := '987654321_001';
+        CustomerAddress := '98765432101234';
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer(CustomerAddress, "Electronic Address Scheme"::"0009")));
 
         // [WHEN] Export FR PEPPOL XML

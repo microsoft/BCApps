@@ -179,11 +179,15 @@ codeunit 10978 "CII XML Builder"
 
     local procedure AddSellerTradeParty(var AgreementElement: XmlElement; CompanyInformation: Record "Company Information")
     var
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         SellerElement: XmlElement;
         IdElement: XmlElement;
         NameElement: XmlElement;
         LegalOrgElement: XmlElement;
         LegalOrgIdElement: XmlElement;
+        SellerElectronicAddress: Text[250];
+        SellerElectronicAddressScheme: Enum "Electronic Address Scheme";
+        SIRENNo: Text[9];
     begin
         SellerElement := XmlElement.Create('SellerTradeParty', RamNamespaceTok);
 
@@ -197,9 +201,10 @@ codeunit 10978 "CII XML Builder"
         SellerElement.Add(NameElement);
 
         // SIREN as legal organization ID (BT-30) - must be exactly 9 digits
-        if CompanyInformation."Registration No." <> '' then begin
+        SIRENNo := FREDocHelpers.GetCompanySIREN(CompanyInformation);
+        if SIRENNo <> '' then begin
             LegalOrgElement := XmlElement.Create('SpecifiedLegalOrganization', RamNamespaceTok);
-            LegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, CopyStr(CompanyInformation."Registration No.", 1, 9));
+            LegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, SIRENNo);
             LegalOrgIdElement.SetAttribute('schemeID', '0002');
             LegalOrgElement.Add(LegalOrgIdElement);
             SellerElement.Add(LegalOrgElement);
@@ -214,8 +219,8 @@ codeunit 10978 "CII XML Builder"
             CompanyInformation."Country/Region Code");
 
         // BT-34 Seller electronic address
-        if CompanyInformation."SIRET No." <> '' then
-            AddElectronicAddress(SellerElement, CompanyInformation."SIRET No.", '0009');
+        if FREDocHelpers.GetCompanyElectronicAddress(CompanyInformation, '', SellerElectronicAddress, SellerElectronicAddressScheme) then
+            AddElectronicAddress(SellerElement, SellerElectronicAddress, FREDocHelpers.GetElectronicAddressSchemeCode(SellerElectronicAddressScheme));
 
         // VAT registration
         if CompanyInformation."VAT Registration No." <> '' then
@@ -233,18 +238,40 @@ codeunit 10978 "CII XML Builder"
         NameElement: XmlElement;
         CustomerNo: Code[20];
         BuyerElectronicAddress: Text[250];
+        BuyerElectronicAddressScheme: Enum "Electronic Address Scheme";
         BuyerCountryCode: Text;
         VATRegistrationNo: Text;
+        BuyerSIRENNo: Text[9];
+        BuyerIdElement: XmlElement;
+        BuyerLegalOrgElement: XmlElement;
+        BuyerLegalOrgIdElement: XmlElement;
     begin
         BuyerElement := XmlElement.Create('BuyerTradeParty', RamNamespaceTok);
 
         if TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             CustomerNo := CustomerNoFieldRef.Value();
 
+        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "Registration Number", "VAT Registration No.");
+        if (CustomerNo <> '') and Customer.Get(CustomerNo) then begin
+            if FREDocHelpers.GetCustomerSIRET(Customer) <> '' then begin
+                BuyerIdElement := XmlElement.Create('ID', RamNamespaceTok, FREDocHelpers.GetCustomerSIRET(Customer));
+                BuyerElement.Add(BuyerIdElement);
+            end;
+            BuyerSIRENNo := FREDocHelpers.GetCustomerSIREN(Customer);
+        end;
+
         // Buyer name and postal address are taken from the posted document snapshot so that a later
         // edit to the customer master record does not change an already-issued legal document.
         NameElement := XmlElement.Create('Name', RamNamespaceTok, GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Customer Name', 'Name'));
         BuyerElement.Add(NameElement);
+
+        if BuyerSIRENNo <> '' then begin
+            BuyerLegalOrgElement := XmlElement.Create('SpecifiedLegalOrganization', RamNamespaceTok);
+            BuyerLegalOrgIdElement := XmlElement.Create('ID', RamNamespaceTok, BuyerSIRENNo);
+            BuyerLegalOrgIdElement.SetAttribute('schemeID', '0002');
+            BuyerLegalOrgElement.Add(BuyerLegalOrgIdElement);
+            BuyerElement.Add(BuyerLegalOrgElement);
+        end;
 
         AddPostalTradeAddress(
             BuyerElement,
@@ -256,10 +283,9 @@ codeunit 10978 "CII XML Builder"
 
         // BT-49 Buyer electronic routing address is held only on the live customer master record.
         // BR-FR-12: BT-49 is mandatory in French e-invoicing.
-        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
-        if (CustomerNo <> '') and Customer.Get(CustomerNo) then
-            if FREDocHelpers.GetBuyerElectronicAddress(Customer, BuyerElectronicAddress) then
-                AddElectronicAddress(BuyerElement, BuyerElectronicAddress, '0225');
+        if Customer."No." <> '' then
+            if FREDocHelpers.GetCustomerElectronicAddress(Customer, '', BuyerElectronicAddress, BuyerElectronicAddressScheme) then
+                AddElectronicAddress(BuyerElement, BuyerElectronicAddress, FREDocHelpers.GetElectronicAddressSchemeCode(BuyerElectronicAddressScheme));
 
         BuyerCountryCode := GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Country/Region Code', 'Country/Region Code');
         VATRegistrationNo := GetHeaderFieldText(SourceDocumentHeader, 'VAT Registration No.', '');
