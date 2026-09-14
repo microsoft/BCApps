@@ -161,7 +161,8 @@ codeunit 148361 "Expense Agent Config. Test"
         // [WHEN] Deactivating the Expense Agent for the current company
         ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
 
-        // [THEN] The current-company Expense Agent permission is removed
+        // [THEN] The current-company Expense Agent permission is removed and "EA" is disabled
+        VerifyAadApplicationState(AadApplication.State::Disabled);
         VerifyPermissionDoesNotExist(AadApplication, ExpenseAgentPermissionSetTok, GetCurrentCompanyName());
     end;
 
