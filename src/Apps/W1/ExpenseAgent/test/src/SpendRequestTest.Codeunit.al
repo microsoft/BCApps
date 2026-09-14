@@ -53,6 +53,8 @@ codeunit 148339 "Spend Request Test"
         UnassignedTravelRequestHiddenMsg: Label 'The approver should not see a travel request assigned to another approver.';
         DefaultTravelRequestVisibleMsg: Label 'The default approver should see travel requests without an assigned approver.';
         ApproverWithoutRequestsMsg: Label 'An approver without assigned travel requests should receive an empty result.';
+        ApproverFilterExpectedRequestErr: Label '%1 Requested For filter: %2. Expected request: %3.', Comment = '%1 = assertion message, %2 = Requested For filter, %3 = expected request number';
+        ApproverFilterUnexpectedRequestErr: Label '%1 Requested For filter: %2. Expected request: %3. Unauthorized request: %4.', Comment = '%1 = assertion message, %2 = Requested For filter, %3 = expected request number, %4 = unauthorized request number';
         SpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report line.';
         HeaderSpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report header.';
         HeaderCloseFlagMsg: Label 'The header should store the confirmed close flag.';
@@ -1015,22 +1017,115 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure ApproverFilterReturnsDefaultApproverTravelRequests()
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO] The default approver sees requests without an explicit approval assignment.
-        VerifyDefaultApproverFilter('', '');
+        Initialize();
+
+        VerifyDefaultApproverFilter('', '', true);
     end;
 
     [Test]
     procedure DefaultApproverFilterQuotesWildcardUserNo()
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO] A literal wildcard user number must not expose another approver's requests.
-        VerifyDefaultApproverFilter('*', 'TR-OTHER');
+        Initialize();
+
+        VerifyDefaultApproverFilter('*', 'TR-OTHER', true);
     end;
 
     [Test]
     procedure DefaultApproverFilterQuotesPipeUserNo()
     begin
+        // [FEATURE] [AI test 1.0]
         // [SCENARIO] A pipe in a user number must not become an OR filter for other users.
-        VerifyDefaultApproverFilter('TR-A|TR-B', 'TR-A');
+        Initialize();
+
+        VerifyDefaultApproverFilter('TR-A|TR-B', 'TR-A', true);
+    end;
+
+    [Test]
+    procedure ApproverFilterQuotesExplicitWildcardUserNo()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An explicitly assigned literal wildcard user must not expose another approver's requests.
+        Initialize();
+
+        VerifyDefaultApproverFilter('*', 'TR-OTHER', false);
+    end;
+
+    [Test]
+    procedure ApproverFilterQuotesExplicitPipeUserNo()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An explicitly assigned user with a pipe in its number must not expose another approver's requests.
+        Initialize();
+
+        VerifyDefaultApproverFilter('TR-A|TR-B', 'TR-A', false);
+    end;
+
+    [Test]
+    procedure ApproverFilterDoesNotIncludeUnassignedUserBetweenAssignedUsers()
+    var
+        FirstTravelRequest: Record "Spend Request";
+        LastTravelRequest: Record "Spend Request";
+        UnassignedTravelRequest: Record "Spend Request";
+        FilteredTravelRequest: Record "Spend Request";
+        FirstExpenseUser: Record "Expense User";
+        LastExpenseUser: Record "Expense User";
+        UnassignedExpenseUser: Record "Expense User";
+        AssignedApprover: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Adjacent approval setups must not expose a user between them who belongs to another default approver.
+        Initialize();
+
+        // [GIVEN] Approver "A" and default approver "B", with their user numbers outside the tested range.
+        ExpenseApprovalSetup.DeleteAll();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateApprover(AssignedApprover);
+        AssignedApprover.Rename('FILTER-APP-A');
+        CreateApprover(DefaultApprover);
+        DefaultApprover.Rename('FILTER-APP-B');
+        SetDefaultApprover(DefaultApprover."No.");
+
+        // [GIVEN] Released requests for "TR-A" and "TR-C" explicitly assigned to "A".
+        CreateReleasableSpendRequest(FirstTravelRequest, FirstExpenseUser);
+        FirstExpenseUser.Rename('TR-A');
+        FirstTravelRequest.Get(FirstTravelRequest."No.");
+        LibraryExpense.SetSpendRequestStatus(FirstTravelRequest, FirstTravelRequest.Status::Released);
+        ExpenseApprovalSetup.Get(FirstExpenseUser."No.");
+        ExpenseApprovalSetup.Validate("Approver No.", AssignedApprover."No.");
+        ExpenseApprovalSetup.Modify(true);
+        CreateReleasableSpendRequest(LastTravelRequest, LastExpenseUser);
+        LastExpenseUser.Rename('TR-C');
+        LastTravelRequest.Get(LastTravelRequest."No.");
+        LibraryExpense.SetSpendRequestStatus(LastTravelRequest, LastTravelRequest.Status::Released);
+        ExpenseApprovalSetup.Get(LastExpenseUser."No.");
+        ExpenseApprovalSetup.Validate("Approver No.", AssignedApprover."No.");
+        ExpenseApprovalSetup.Modify(true);
+
+        // [GIVEN] A released request for "TR-B" with no setup, so it belongs to default approver "B".
+        CreateReleasableSpendRequest(UnassignedTravelRequest, UnassignedExpenseUser);
+        UnassignedExpenseUser.Rename('TR-B');
+        UnassignedTravelRequest.Get(UnassignedTravelRequest."No.");
+        LibraryExpense.SetSpendRequestStatus(UnassignedTravelRequest, UnassignedTravelRequest.Status::Released);
+        ExpenseApprovalSetup.Get(UnassignedExpenseUser."No.");
+        ExpenseApprovalSetup.Delete(true);
+        VerifyApproverFilterRangeGapSetup(
+            FirstTravelRequest, LastTravelRequest, UnassignedTravelRequest, AssignedApprover."No.", DefaultApprover."No.");
+
+        // [WHEN] "A"'s filter is applied to pending travel requests.
+        FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
+        FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
+        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, AssignedApprover.SystemId);
+
+        // [THEN] The requests for "TR-A" and "TR-C" are visible, but the request for "TR-B" is hidden.
+        VerifyApproverFilterRangeGapResults(
+            FilteredTravelRequest, FirstTravelRequest."No.", LastTravelRequest."No.", UnassignedTravelRequest."No.");
     end;
 
     [Test]
@@ -1729,7 +1824,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseAgentSetup.Modify(true);
     end;
 
-    local procedure VerifyDefaultApproverFilter(DefaultExpenseUserNo: Code[20]; OtherExpenseUserNo: Code[20])
+    local procedure VerifyDefaultApproverFilter(DefaultExpenseUserNo: Code[20]; OtherExpenseUserNo: Code[20]; UseDefaultFallback: Boolean)
     var
         DefaultTravelRequest: Record "Spend Request";
         OtherTravelRequest: Record "Spend Request";
@@ -1738,11 +1833,13 @@ codeunit 148339 "Spend Request Test"
         OtherExpenseUser: Record "Expense User";
         DefaultApprover: Record "Expense User";
         OtherApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
         TravelRequestApproval: Codeunit "Travel Request Approval";
+        ExpectedApproverNo: Code[20];
     begin
-        Initialize();
-
-        // [GIVEN] A default approver, an unassigned request, and a request assigned to another approver.
+        // [GIVEN] Default approver "A", a request for "U", and another request assigned to approver "B".
+        // Initialize deletes expense users without their OnDelete trigger, leaving approval setups behind.
+        ExpenseApprovalSetup.DeleteAll();
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateApprover(DefaultApprover);
         SetDefaultApprover(DefaultApprover."No.");
@@ -1750,28 +1847,93 @@ codeunit 148339 "Spend Request Test"
         if DefaultExpenseUserNo <> '' then begin
             DefaultExpenseUser.Rename(DefaultExpenseUserNo);
             DefaultTravelRequest.Get(DefaultTravelRequest."No.");
-            DefaultTravelRequest.TestField("Requested For", DefaultExpenseUserNo);
+            Assert.AreEqual(DefaultExpenseUserNo, DefaultTravelRequest."Requested For", 'The request must retain the literal renamed user number.');
         end;
         LibraryExpense.SetSpendRequestStatus(DefaultTravelRequest, DefaultTravelRequest.Status::Released);
         CreateReleasableSpendRequest(OtherTravelRequest, OtherExpenseUser);
         if OtherExpenseUserNo <> '' then begin
             OtherExpenseUser.Rename(OtherExpenseUserNo);
             OtherTravelRequest.Get(OtherTravelRequest."No.");
-            OtherTravelRequest.TestField("Requested For", OtherExpenseUserNo);
+            Assert.AreEqual(OtherExpenseUserNo, OtherTravelRequest."Requested For", 'The other request must retain the literal renamed user number.');
         end;
         CreateApproverForExpenseUser(OtherApprover, OtherExpenseUser);
         LibraryExpense.SetSpendRequestStatus(OtherTravelRequest, OtherTravelRequest.Status::Released);
+
+        // [GIVEN] "U" is either explicitly assigned to "A" or has no setup and must use the default fallback.
+        // Both setting the default approver and inserting expense users create explicit assignments.
+        ExpenseApprovalSetup.Get(DefaultExpenseUser."No.");
+        Assert.AreEqual(DefaultApprover."No.", ExpenseApprovalSetup."Approver No.", 'The initial fixture must exercise the explicit-assignment path.');
+        ExpectedApproverNo := DefaultApprover."No.";
+        if UseDefaultFallback then begin
+            ExpenseApprovalSetup.Delete(true);
+            ExpectedApproverNo := '';
+        end;
+        DefaultExpenseUser.CalcFields("Approver No.");
+        Assert.AreEqual(ExpectedApproverNo, DefaultExpenseUser."Approver No.", 'The fixture must select the intended explicit-assignment or default-fallback path.');
+        ExpenseApprovalSetup.Get(OtherExpenseUser."No.");
+        Assert.AreEqual(OtherApprover."No.", ExpenseApprovalSetup."Approver No.", 'The other request must remain explicitly assigned to another approver.');
 
         // [WHEN] The default approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
         TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, DefaultApprover.SystemId);
 
-        // [THEN] Only the literal unassigned user's request is visible, not the other approver's request.
+        // [THEN] Only "U"'s literal request is visible, not the request assigned to "B".
         FilteredTravelRequest.SetRange("No.", DefaultTravelRequest."No.");
-        Assert.IsFalse(FilteredTravelRequest.IsEmpty(), DefaultTravelRequestVisibleMsg);
+        Assert.IsFalse(
+            FilteredTravelRequest.IsEmpty(),
+            StrSubstNo(ApproverFilterExpectedRequestErr,
+                DefaultTravelRequestVisibleMsg, FilteredTravelRequest.GetFilter("Requested For"), DefaultTravelRequest."No."));
         FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
-        Assert.IsTrue(FilteredTravelRequest.IsEmpty(), UnassignedTravelRequestHiddenMsg);
+        Assert.IsTrue(
+            FilteredTravelRequest.IsEmpty(),
+            StrSubstNo(ApproverFilterUnexpectedRequestErr,
+                UnassignedTravelRequestHiddenMsg, FilteredTravelRequest.GetFilter("Requested For"),
+                DefaultTravelRequest."No.", OtherTravelRequest."No."));
+    end;
+
+    local procedure VerifyApproverFilterRangeGapSetup(FirstTravelRequest: Record "Spend Request"; LastTravelRequest: Record "Spend Request"; UnassignedTravelRequest: Record "Spend Request"; AssignedApproverNo: Code[20]; DefaultApproverNo: Code[20])
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+    begin
+        Assert.AreEqual('TR-A', FirstTravelRequest."Requested For", 'The first request must use the lower range endpoint.');
+        Assert.AreEqual('TR-C', LastTravelRequest."Requested For", 'The last request must use the upper range endpoint.');
+        Assert.AreEqual('TR-B', UnassignedTravelRequest."Requested For", 'The unassigned request must lie between the assigned users.');
+        ExpenseApprovalSetup.Get(FirstTravelRequest."Requested For");
+        Assert.AreEqual(AssignedApproverNo, ExpenseApprovalSetup."Approver No.", 'The first user must be explicitly assigned.');
+        ExpenseApprovalSetup.Get(LastTravelRequest."Requested For");
+        Assert.AreEqual(AssignedApproverNo, ExpenseApprovalSetup."Approver No.", 'The last user must have the same explicit approver.');
+        Assert.IsFalse(ExpenseApprovalSetup.Get(UnassignedTravelRequest."Requested For"), 'The middle user must have no approval setup row.');
+        ExpenseUser.Get(UnassignedTravelRequest."Requested For");
+        ExpenseUser.CalcFields("Approver No.");
+        Assert.AreEqual('', ExpenseUser."Approver No.", 'The middle user must use the default approver fallback.');
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual(DefaultApproverNo, ExpenseAgentSetup."Default Approver No.", 'The middle user must belong to the other default approver.');
+        Assert.AreNotEqual(AssignedApproverNo, DefaultApproverNo, 'The explicit and default approvers must differ.');
+        ExpenseApprovalSetup.SetRange("Expense User No.", FirstTravelRequest."Requested For", LastTravelRequest."Requested For");
+        Assert.AreEqual(2, ExpenseApprovalSetup.Count(), 'Only the two assigned setup rows may exist in the tested range.');
+    end;
+
+    local procedure VerifyApproverFilterRangeGapResults(var FilteredTravelRequest: Record "Spend Request"; FirstTravelRequestNo: Code[20]; LastTravelRequestNo: Code[20]; UnassignedTravelRequestNo: Code[20])
+    begin
+        FilteredTravelRequest.SetRange("No.", FirstTravelRequestNo);
+        Assert.IsFalse(
+            FilteredTravelRequest.IsEmpty(),
+            StrSubstNo(ApproverFilterExpectedRequestErr,
+                AssignedTravelRequestVisibleMsg, FilteredTravelRequest.GetFilter("Requested For"), FirstTravelRequestNo));
+        FilteredTravelRequest.SetRange("No.", LastTravelRequestNo);
+        Assert.IsFalse(
+            FilteredTravelRequest.IsEmpty(),
+            StrSubstNo(ApproverFilterExpectedRequestErr,
+                AssignedTravelRequestVisibleMsg, FilteredTravelRequest.GetFilter("Requested For"), LastTravelRequestNo));
+        FilteredTravelRequest.SetRange("No.", UnassignedTravelRequestNo);
+        Assert.IsTrue(
+            FilteredTravelRequest.IsEmpty(),
+            StrSubstNo(ApproverFilterUnexpectedRequestErr,
+                UnassignedTravelRequestHiddenMsg, FilteredTravelRequest.GetFilter("Requested For"),
+                FirstTravelRequestNo, UnassignedTravelRequestNo));
     end;
 
     local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)

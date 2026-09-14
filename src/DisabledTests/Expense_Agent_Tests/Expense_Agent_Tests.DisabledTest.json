@@ -108,10 +108,5 @@
     "codeunitId": 148348,
     "codeunitName": "Expense VAT Spec. API Test",
     "method": "AgentVATSpecificationIsInsertedThroughAPI"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DefaultApproverFilterQuotesWildcardUserNo"
   }
 ]
