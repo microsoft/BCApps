@@ -214,7 +214,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
             exit;
 
         AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+        Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         Clear(TempBlob);
         Error(ResponseTooLargeErr);
     end;
@@ -229,7 +229,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     /// <param name="VATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
     /// <param name="XMLDoc">The parsed VIES response document.</param>
     /// <param name="Namespace">The VIES XML namespace used to resolve response nodes.</param>
-    procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
+    internal procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
     var
         AuditLog: Codeunit "Audit Log";
         ResponseCountryCode: Text;
@@ -248,7 +248,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
            ((ResponseVATNumber <> '') and (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo())))
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
+            Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
             Error(ResponseIntegrityErr);
         end;
     end;

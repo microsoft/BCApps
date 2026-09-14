@@ -10,7 +10,9 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         NemhandelMgt: Codeunit "Nemhandel Status Mgt.";
         EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - url, e.g. https://microsoft.com', Locked = true;
         ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - url, e.g. https://microsoft.com', Locked = true;
-        HttpResponseDetailsTxt: Label 'HTTP response: request URI: %1; Response (part): %2; Status code: %3; Reason: %4', Comment = '%1 - request URI, %2 - response text, %3 - status code, %4 - reason', Locked = true;
+        CompanyStatusCheckedTxt: Label 'Nemhandel company registration status was checked.', Locked = true;
+        ResponseRejectedTxt: Label 'The Nemhandelsregisteret response was rejected by response validation (size or schema).', Locked = true;
+        ServiceCallFailedTxt: Label 'The Nemhandelsregisteret company registration status lookup failed.', Locked = true;
         NemhandelsregisteretCategoryTxt: Label 'Nemhandelsregisteret', Locked = true;
         NemhandelCompanyStatusKeyLbl: Label 'NemhandelCompanyStatus', Locked = true;
         CVRNumberKeyLbl: Label 'CVRNumber', Locked = true;
@@ -46,7 +48,6 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         ContentString: Text;
         HttpStatusCode: Integer;
         HttpStatusReason: Text;
-        HttpResponseLogMessage: Text;
         ResponseBodyValid: Boolean;
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -73,35 +74,39 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         HttpStatusCode := 0;
         HttpStatusReason := '';
         ProcessHttpResponseMessage(HttpResponseMsgNemhandel, ResponseCVRNumber, ContentString, HttpStatusCode, HttpStatusReason, ResponseBodyValid);
-        HttpResponseLogMessage :=
-            StrSubstNo(HttpResponseDetailsTxt, HttpRequestMessage.GetRequestUri(), CopyStr(ContentString, 1, 50), HttpStatusCode, HttpStatusReason);
+        CustomDimensions.Add('HttpStatusCode', Format(HttpStatusCode));
+        CustomDimensions.Add('HttpStatusReason', HttpStatusReason);
 
         case HttpStatusCode of
             200:
-                begin
-                    if not ResponseBodyValid then
-                        CompanyStatus := "Nemhandel Company Status"::Unknown
-                    else
-                        if ResponseCVRNumber.Contains(CVRNumber) then
-                            CompanyStatus := "Nemhandel Company Status"::Registered
-                        else
-                            CompanyStatus := "Nemhandel Company Status"::NotRegistered;
+                if not ResponseBodyValid then begin
+                    // Oversized or schema-invalid response: an explicit rejection introduced by response validation.
+                    // Logged as a warning (and to environment telemetry) so it is distinguishable from a successful lookup.
+                    CompanyStatus := "Nemhandel Company Status"::Unknown;
                     Telemetry.LogMessage(
-                        '0000L9X', HttpResponseLogMessage, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
+                        '0000L9X', ResponseRejectedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+                        TelemetryScope::All, CustomDimensions);
+                end else begin
+                    if ResponseCVRNumber.Contains(CVRNumber) then
+                        CompanyStatus := "Nemhandel Company Status"::Registered
+                    else
+                        CompanyStatus := "Nemhandel Company Status"::NotRegistered;
+                    Telemetry.LogMessage(
+                        '0000L9X', CompanyStatusCheckedTxt, Verbosity::Normal, DataClassification::SystemMetadata,
                         TelemetryScope::ExtensionPublisher, CustomDimensions);
                 end;
             404:
                 begin
                     CompanyStatus := "Nemhandel Company Status"::NotRegistered;
                     Telemetry.LogMessage(
-                        '0000L9Y', HttpResponseLogMessage, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
+                        '0000L9Y', CompanyStatusCheckedTxt, Verbosity::Normal, DataClassification::SystemMetadata,
                         TelemetryScope::ExtensionPublisher, CustomDimensions);
                 end;
             else begin
                 CompanyStatus := "Nemhandel Company Status"::Unknown;
                 Telemetry.LogMessage(
-                    '0000L9Z', HttpResponseLogMessage, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
-                    TelemetryScope::ExtensionPublisher, CustomDimensions);
+                    '0000L9Z', ServiceCallFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+                    TelemetryScope::All, CustomDimensions);
             end;
         end;
     end;
