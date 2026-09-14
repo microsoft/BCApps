@@ -27,78 +27,10 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         EnableAadApplicationForCurrentCompanyWithoutAuthorization();
     end;
 
-    local procedure EnableAadApplicationForCurrentCompanyWithoutAuthorization()
-    var
-        AadApplication: Record "AAD Application";
-    begin
-        AadApplication.LockTable();
-        GetAadApplication(AadApplication);
-
-        // Enabling creates the application user. Disable it again before changing permissions.
-        if AadApplication.State <> AadApplication.State::Enabled then begin
-            AadApplication.Validate(State, AadApplication.State::Enabled);
-            AadApplication.Modify(true);
-        end;
-
-        if HasPermissionForCurrentCompany(AadApplication) and not HasGlobalPermission(AadApplication) then
-            exit;
-
-        AadApplication.Validate(State, AadApplication.State::Disabled);
-        AadApplication.Modify(true);
-
-        NormalizeGlobalPermission(AadApplication, true, GetCurrentCompanyName());
-        AddPermissionForCompany(AadApplication, GetCurrentCompanyName());
-
-        AadApplication.Validate(State, AadApplication.State::Enabled);
-        AadApplication.Modify(true);
-    end;
-
-    [EventSubscriber(ObjectType::Page, Page::"Expense Agent Setup Wizard", OnReconcileExpenseAgentEntraApplication, '', false, false)]
-    local procedure OnReconcileExpenseAgentEntraApplication(EnableAgent: Boolean)
-    begin
-        if EnableAgent then
-            EnableAadApplicationForCurrentCompanyWithoutAuthorization()
-        else
-            DisableAadApplicationForCompany(GetCurrentCompanyName());
-    end;
-
     internal procedure DisableAadApplicationForCurrentCompany()
     begin
         VerifyCanDisableAadApplicationForCurrentCompany();
         DisableAadApplicationForCompany(GetCurrentCompanyName());
-    end;
-
-    local procedure DisableAadApplicationForCompany(CompanyNameValue: Text[30])
-    var
-        AadApplication: Record "AAD Application";
-        HasOtherEnabledCompany: Boolean;
-    begin
-        AadApplication.LockTable();
-        if not AadApplication.Get(GetAadAppId()) then
-            exit;
-
-        HasOtherEnabledCompany := HasEnabledExpenseAgentForOtherCompany(CompanyNameValue);
-        if HasGlobalPermission(AadApplication) then begin
-            if AadApplication.State <> AadApplication.State::Disabled then begin
-                AadApplication.Validate(State, AadApplication.State::Disabled);
-                AadApplication.Modify(true);
-            end;
-            NormalizeGlobalPermission(AadApplication, false, CompanyNameValue);
-        end;
-        RemovePermissionForCompany(AadApplication, CompanyNameValue);
-        if HasOtherEnabledCompany then begin
-            GetAadApplication(AadApplication);
-            if AadApplication.State <> AadApplication.State::Enabled then begin
-                AadApplication.Validate(State, AadApplication.State::Enabled);
-                AadApplication.Modify(true);
-            end;
-            exit;
-        end;
-        if AadApplication.State = AadApplication.State::Disabled then
-            exit;
-
-        AadApplication.Validate(State, AadApplication.State::Disabled);
-        AadApplication.Modify(true);
     end;
 
     internal procedure IsCurrentUserExpenseAgent(): Boolean
@@ -144,6 +76,74 @@ codeunit 6913 "Expense Agent Entra App Mgt."
     begin
         AadApplication.LockTable();
         GetAadApplication(AadApplication);
+    end;
+
+    local procedure EnableAadApplicationForCurrentCompanyWithoutAuthorization()
+    var
+        AadApplication: Record "AAD Application";
+    begin
+        AadApplication.LockTable();
+        GetAadApplication(AadApplication);
+
+        // Enabling creates the application user. Disable it again before changing permissions.
+        if AadApplication.State <> AadApplication.State::Enabled then begin
+            AadApplication.Validate(State, AadApplication.State::Enabled);
+            AadApplication.Modify(true);
+        end;
+
+        if HasPermissionForCurrentCompany(AadApplication) and not HasGlobalPermission(AadApplication) then
+            exit;
+
+        AadApplication.Validate(State, AadApplication.State::Disabled);
+        AadApplication.Modify(true);
+
+        NormalizeGlobalPermission(AadApplication, true, GetCurrentCompanyName());
+        AddPermissionForCompany(AadApplication, GetCurrentCompanyName());
+
+        AadApplication.Validate(State, AadApplication.State::Enabled);
+        AadApplication.Modify(true);
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Expense Agent Setup Wizard", OnReconcileExpenseAgentEntraApplication, '', false, false)]
+    local procedure OnReconcileExpenseAgentEntraApplication(EnableAgent: Boolean)
+    begin
+        if EnableAgent then
+            EnableAadApplicationForCurrentCompanyWithoutAuthorization()
+        else
+            DisableAadApplicationForCompany(GetCurrentCompanyName());
+    end;
+
+    local procedure DisableAadApplicationForCompany(CompanyNameValue: Text[30])
+    var
+        AadApplication: Record "AAD Application";
+        HasOtherEnabledCompany: Boolean;
+    begin
+        AadApplication.LockTable();
+        if not AadApplication.Get(GetAadAppId()) then
+            exit;
+
+        HasOtherEnabledCompany := HasEnabledExpenseAgentForOtherCompany(CompanyNameValue);
+        if HasGlobalPermission(AadApplication) then begin
+            if AadApplication.State <> AadApplication.State::Disabled then begin
+                AadApplication.Validate(State, AadApplication.State::Disabled);
+                AadApplication.Modify(true);
+            end;
+            NormalizeGlobalPermission(AadApplication, false, CompanyNameValue);
+        end;
+        RemovePermissionForCompany(AadApplication, CompanyNameValue);
+        if HasOtherEnabledCompany then begin
+            GetAadApplication(AadApplication);
+            if AadApplication.State <> AadApplication.State::Enabled then begin
+                AadApplication.Validate(State, AadApplication.State::Enabled);
+                AadApplication.Modify(true);
+            end;
+            exit;
+        end;
+        if AadApplication.State = AadApplication.State::Disabled then
+            exit;
+
+        AadApplication.Validate(State, AadApplication.State::Disabled);
+        AadApplication.Modify(true);
     end;
 
     local procedure VerifyCurrentUserCanManageExpenseAgent()
