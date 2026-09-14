@@ -106,6 +106,12 @@ codeunit 333 "Req. Wksh.-Make Order"
         SuppressCommit: Boolean;
         HideProgressWindow: Boolean;
         PlanningResiliency: Boolean;
+        SimulationMode: Boolean;
+
+    internal procedure SetSimulationMode(NewSimulationMode: Boolean)
+    begin
+        SimulationMode := NewSimulationMode;
+    end;
 
     procedure CarryOutBatchAction(var ReqLine2: Record "Requisition Line")
     var
@@ -153,13 +159,15 @@ codeunit 333 "Req. Wksh.-Make Order"
         if not PlanningResiliency then
             ReqLine.LockTable();
 
-        if ReqLine."Planning Line Origin" <> ReqLine."Planning Line Origin"::"Order Planning" then
-            GetReqTemplate(ReqLine, ReqTemplate);
+        if not SimulationMode then
+            if ReqLine."Planning Line Origin" <> ReqLine."Planning Line Origin"::"Order Planning" then
+                GetReqTemplate(ReqLine, ReqTemplate);
 
-        if ReqTemplate.Recurring then begin
-            ReqLine.SetRange("Order Date", 0D, EndOrderDate);
-            ReqLine.SetFilter("Expiration Date", '%1 | %2..', 0D, WorkDate());
-        end;
+        if not SimulationMode then
+            if ReqTemplate.Recurring then begin
+                ReqLine.SetRange("Order Date", 0D, EndOrderDate);
+                ReqLine.SetFilter("Expiration Date", '%1 | %2..', 0D, WorkDate());
+            end;
 
         OnCodeOnAfterFilterReqLine(ReqLine, PlanningResiliency, SuppressCommit, PrintPurchOrders);
 
@@ -526,9 +534,9 @@ codeunit 333 "Req. Wksh.-Make Order"
           TempFailedReqLine,
           TempDocumentEntry);
         ReqWkshMakeOrders.SetSuppressCommit(SuppressCommit);
-        
+
         OnTryCarryOutReqLineActionOnBeforeRun(ReqLine);
-        if ReqWkshMakeOrders.Run(ReqLine) then begin
+        if RunReqWkshMakeOrder(ReqLine) then begin
             ReqWkshMakeOrders.GetTryParam(
               PurchOrderHeader,
               LineCount,
@@ -555,6 +563,17 @@ codeunit 333 "Req. Wksh.-Make Order"
             exit(true);
         end;
         exit(false)
+    end;
+
+    local procedure RunReqWkshMakeOrder(var ReqLine: Record "Requisition Line"): Boolean
+    begin
+        if SimulationMode then begin
+            ReqWkshMakeOrders.Run(ReqLine);
+            exit(true);
+        end;
+
+        if ReqWkshMakeOrders.Run(ReqLine) then
+            exit(true);
     end;
 
     procedure InitPurchOrderLine(var PurchOrderLine: Record "Purchase Line"; PurchOrderHeader: Record "Purchase Header"; RequisitionLine: Record "Requisition Line")

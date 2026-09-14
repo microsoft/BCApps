@@ -342,10 +342,12 @@
         PurchaseHeader: Record "Purchase Header";
         SalesHeader: Record "Sales Header";
         RequisitionLine: Record "Requisition Line";
+        ScenarioYear: Integer;
     begin
         // [FEATURE] [PlanningWorksheet] [Requisition Line] [Item] [Reordering Policy]
         // [SCENARIO 478131] Lot By Lot Item planing with specific quantity and date combination should lead to canceled status of 2 requisition lines.
         Initialize();
+        ScenarioYear := Date2DMY(WorkDate(), 3) + 1;
 
         // [GIVEN] Create Lot for Lot (Reordering Policy) Item and Stockkeeping Unit for Location Blue.
         CreateLotForLotItem(Item, Item."Replenishment System"::Purchase);
@@ -361,26 +363,26 @@
 
         // [GIVEN] Create Purchase Order with several purchase line with same item and different receipt date.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
-        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 613, DMY2Date(25, 5, Date2DMY(WorkDate(), 3)));
-        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(30, 6, Date2DMY(WorkDate(), 3)));
-        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(14, 9, Date2DMY(WorkDate(), 3)));
-        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1544, DMY2Date(14, 9, Date2DMY(WorkDate(), 3)));
-        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(29, 9, Date2DMY(WorkDate(), 3)));
-        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1552, DMY2Date(29, 9, Date2DMY(WorkDate(), 3)));
+        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 613, DMY2Date(25, 5, ScenarioYear));
+        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(30, 6, ScenarioYear));
+        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(14, 9, ScenarioYear));
+        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1544, DMY2Date(14, 9, ScenarioYear));
+        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(29, 9, ScenarioYear));
+        CreatePurchaseLineWithSpecificReceiptDate(PurchaseHeader, Item."No.", LocationBlue.Code, 1552, DMY2Date(29, 9, ScenarioYear));
 
         // [GIVEN] Create Sales Order with several lines with same item and different shipment date.
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
-        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1192, DMY2Date(6, 5, Date2DMY(WorkDate(), 3)));
-        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1500, DMY2Date(28, 6, Date2DMY(WorkDate(), 3)));
-        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(14, 7, Date2DMY(WorkDate(), 3)));
-        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(14, 9, Date2DMY(WorkDate(), 3)));
-        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(16, 10, Date2DMY(WorkDate(), 3)));
-        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1656, DMY2Date(15, 11, Date2DMY(WorkDate(), 3)));
+        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1192, DMY2Date(6, 5, ScenarioYear));
+        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1500, DMY2Date(28, 6, ScenarioYear));
+        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(14, 7, ScenarioYear));
+        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(14, 9, ScenarioYear));
+        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1256, DMY2Date(16, 10, ScenarioYear));
+        CreateSalesLineWithSpecificShipmentDate(SalesHeader, Item."No.", LocationBlue.Code, 1656, DMY2Date(15, 11, ScenarioYear));
 
         // [WHEN] Calculate regenerative Plan for Planning Worksheet.
         Item.SetRange("No.", Item."No.");
         Item.SetRange("Location Filter", LocationBlue.Code);
-        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, DMY2Date(1, 1, ScenarioYear), DMY2Date(31, 12, ScenarioYear));
 
         // [THEN] Two purchase lines should be marked with Action Message = 'Cancel'
         RequisitionLine.SetRange("No.", Item."No.");

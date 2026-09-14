@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +14,9 @@ codeunit 10920 "Create Expense G/L Account ES"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The country-specific Expense Agent demo data is being consolidated into a single app in W1 and will be removed in a future release.';
+    ObsoleteTag = '30.0';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense G/L Account", 'OnAfterAddGLAccountsForLocalization', '', false, false)]
     local procedure ModifyGLAccount()
@@ -151,3 +155,4 @@ codeunit 10920 "Create Expense G/L Account ES"
         exit(RoundingExpensesOperatingTok);
     end;
 }
+#endif

@@ -60,15 +60,15 @@ table 7100 "Expense Activity Log Entry"
         }
         field(8; "Event Type"; Enum "Expense Activity Event Type")
         {
-            Caption = 'Event Type';
+            Caption = 'Activity';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies what happened to the expense report.';
+            ToolTip = 'Specifies the activity that occurred for the expense report.';
         }
         field(9; "Occurred At"; DateTime)
         {
-            Caption = 'Occurred At';
+            Caption = 'Date and Time';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies when the activity occurred.';
+            ToolTip = 'Specifies the date and time when the activity occurred.';
         }
         field(10; "Initiated By"; Enum "Expense Activity Initiator")
         {
@@ -99,9 +99,9 @@ table 7100 "Expense Activity Log Entry"
         }
         field(14; "Actor Display Name"; Text[100])
         {
-            Caption = 'Actor Display Name';
+            Caption = 'Performed By';
             DataClassification = EndUserIdentifiableInformation;
-            ToolTip = 'Specifies the actor name captured when the activity occurred.';
+            ToolTip = 'Specifies the name of the user or agent that performed the activity.';
         }
         field(15; "Amount (LCY)"; Decimal)
         {
@@ -158,9 +158,9 @@ table 7100 "Expense Activity Log Entry"
         }
         field(50; Comment; Text[2048])
         {
-            Caption = 'Comment';
+            Caption = 'Details';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the message recorded with the activity.';
+            ToolTip = 'Specifies additional details recorded for the activity.';
         }
         field(51; Categories; Text[2048])
         {

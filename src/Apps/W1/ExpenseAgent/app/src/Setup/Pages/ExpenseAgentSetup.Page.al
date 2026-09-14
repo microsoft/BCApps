@@ -205,6 +205,9 @@ page 6996 "Expense Agent Setup"
                         end;
                     end;
                 }
+                field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                {
+                }
                 field("Do Not Allow Expenses Older Than"; Rec."Do Not Allow Exp. Older Than")
                 {
                 }
@@ -373,6 +376,22 @@ page 6996 "Expense Agent Setup"
                     RunObject = Page "Expense Users";
                     ToolTip = 'Opens the page to set up expense users.';
                 }
+                action("Expense Locations")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Locations';
+                    Image = CountryRegion;
+                    RunObject = Page "Expense Locations";
+                    ToolTip = 'Opens the page to set up expense locations.';
+                }
+                action("Expense Management Rules")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Management Rules';
+                    Image = Administration;
+                    RunObject = Page "Expense Management Rules";
+                    ToolTip = 'Opens the page to set up expense management rules.';
+                }
                 action("Expense Posting Groups")
                 {
                     ApplicationArea = Basic, Suite;
@@ -388,6 +407,14 @@ page 6996 "Expense Agent Setup"
                     Image = VATPostingSetup;
                     RunObject = Page "VAT Posting Setup";
                     ToolTip = 'Opens the page to define reduced VAT rates for expense management.';
+                }
+                action("Mileage Rate Setup")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Mileage Rate Setup';
+                    Image = CalculateConsumption;
+                    RunObject = Page "Mileage Rate Setup";
+                    ToolTip = 'Opens the page to set up time-valid mileage rates that apply based on the transaction date.';
                 }
                 action("Apply Default Settings")
                 {
@@ -419,6 +446,12 @@ page 6996 "Expense Agent Setup"
             {
             }
             actionref("Expense Categories_Promoted"; "Expense Categories")
+            {
+            }
+            actionref("Expense_Locations_Promoted"; "Expense Locations")
+            {
+            }
+            actionref("Expense_Management_Rules_Promoted"; "Expense Management Rules")
             {
             }
             actionref("Expense Posting Groups_Promoted"; "Expense Posting Groups")

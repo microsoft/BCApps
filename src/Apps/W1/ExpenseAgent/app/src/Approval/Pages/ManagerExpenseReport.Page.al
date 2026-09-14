@@ -208,7 +208,7 @@ page 6980 "Manager Expense Report"
             part(Activity; "Expense Activity Log FactBox")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Activity Log';
+                Caption = 'History';
                 SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
                               "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';
@@ -503,7 +503,7 @@ page 6980 "Manager Expense Report"
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
+            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
             if not UserSetup."Unlimited Expense Approval" then begin
                 CheckSetDefaultOwnerFilter();
                 ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();

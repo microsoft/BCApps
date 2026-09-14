@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Projects.Resources.Resource;
+using System.Utilities;
 
 page 6949 "Expense User"
 {
@@ -236,6 +237,15 @@ page 6949 "Expense User"
         exit(Rec.ConfirmApproverReassignment());
     end;
 
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        ConfirmManagement: Codeunit "Confirm Management";
+    begin
+        if Rec."Employee No." = '' then
+            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
+                exit(false);
+    end;
+
     trigger OnOpenPage()
     begin
         SetCodeFieldVisible();
@@ -250,6 +260,7 @@ page 6949 "Expense User"
     var
         NoFieldVisible: Boolean;
         IsCreateEmployeeVisible: Boolean;
+        CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()
     var
