@@ -1634,7 +1634,7 @@ table 39 "Purchase Line"
                                     TestField("No.", VATPostingSetup.GetPurchAccount(false));
                                 end;
                         end;
-                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::"G/L Account", Rec.Type::Item, Rec.Type::Resource]);
+                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::Item, Rec.Type::Resource]);
                     OnValidateVATProdPostingGroupOnAfterCalcShouldUpdateUnitCost(Rec, VATPostingSetup, ShouldUpdateUnitCost);
                     if ShouldUpdateUnitCost then
                         Validate("Direct Unit Cost",
