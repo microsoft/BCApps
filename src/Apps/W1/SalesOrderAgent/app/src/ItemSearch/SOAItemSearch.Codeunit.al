@@ -163,11 +163,11 @@ codeunit 4591 "SOA Item Search"
 
         if SOASetup."Incl. Capable to Promise" then 
           if OrderPromisingSetupExists() then begin
-            SOAShipmentDateMgt.SetParamenters(Item."No.", SalesLine."Variant Code", SalesLine."Location Code", SalesLine."Unit of Measure Code", SalesLine."Shipment Date", SalesLine.Quantity);
-            SOAShipmentDateMgt.Run();
-            if SOAShipmentDateMgt.GetEarliestShipmentDate() <= SalesLine."Shipment Date" then
-                exit;
-            Msg += StrSubstNo(NotificationCTPDateMsg, SOAShipmentDateMgt.GetEarliestShipmentDate());
+              SOAShipmentDateMgt.SetParamenters(Item."No.", SalesLine."Variant Code", SalesLine."Location Code", SalesLine."Unit of Measure Code", SalesLine."Shipment Date", SalesLine.Quantity);
+              SOAShipmentDateMgt.Run();
+              if SOAShipmentDateMgt.GetEarliestShipmentDate() <= SalesLine."Shipment Date" then
+                  exit;
+              Msg += StrSubstNo(NotificationCTPDateMsg, SOAShipmentDateMgt.GetEarliestShipmentDate());
           end;
 
         NotificationLifecycleMgt.RecallNotificationsForRecordWithAdditionalContext(SalesLine.RecordId, GetQuoteItemAvailabilityNotificationId(), true);
