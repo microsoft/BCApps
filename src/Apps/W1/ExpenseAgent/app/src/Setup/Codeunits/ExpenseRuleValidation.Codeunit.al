@@ -183,6 +183,7 @@ codeunit 6902 "Expense Rule Validation"
         if Expense."Expense User No." = '' then
             exit;
 
+        ExpenseUser.SetLoadFields("Employee No.");
         if not ExpenseUser.Get(Expense."Expense User No.") then
             exit;
 
