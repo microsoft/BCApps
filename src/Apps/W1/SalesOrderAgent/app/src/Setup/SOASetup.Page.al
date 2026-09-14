@@ -700,7 +700,7 @@ page 4400 "SOA Setup"
             exit;
 
         // Capable to Promise needs the Order Promising Setup template and worksheet; offer to configure it so the agent does not fail later.
-        if Confirm(StrSubstNo(OrderPromisingSetupMissingQst, OrderPromisingSetup.TableCaption()), false) then
+        if Confirm(OrderPromisingSetupMissingQst, false, OrderPromisingSetup.TableCaption()) then
             Page.RunModal(Page::"Order Promising Setup");
 
         if not SOAShipmentDateMgt.OrderPromisingSetupConfigured() then
@@ -887,5 +887,5 @@ page 4400 "SOA Setup"
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
         AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
-        OrderPromisingSetupMissingQst: Label ' %1 is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?', Comment = '%1 = Order Promising Setup caption';
+        OrderPromisingSetupMissingQst: Label '%1 is not fully configured and is required to include capable-to-promise items.\\Do you want to set it up now?', Comment = '%1 = Order Promising Setup caption';
 }
