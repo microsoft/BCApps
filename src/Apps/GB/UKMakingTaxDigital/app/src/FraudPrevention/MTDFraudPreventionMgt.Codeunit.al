@@ -416,6 +416,8 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
             exit;
         end;
         HttpClient.Get(PublicIPServiceURL, HttpResponseMessage);
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            exit; // a non-2xx error body must not be parsed for an IP address
         if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             FeatureTelemetry.LogError('0000VEJ', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
