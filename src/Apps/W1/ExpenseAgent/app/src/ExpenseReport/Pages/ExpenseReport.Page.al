@@ -118,7 +118,6 @@ page 6910 "Expense Report"
                 field("Employee Posting Group"; Rec."Employee Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ShowMandatory = true;
                     ToolTip = 'Specifies the employee posting group used when posting expenses for this expense report.';
                     Importance = Additional;
                 }
