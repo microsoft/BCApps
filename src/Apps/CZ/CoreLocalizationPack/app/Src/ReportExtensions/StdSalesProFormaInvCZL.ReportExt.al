@@ -87,6 +87,9 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
             column(VATBaseLbl_CZL; VATBaseLbl)
             {
             }
+            column(TotalLbl_CZL; TotalLbl)
+            {
+            }
             column(PmntSymbol1_CZL; PaymentSymbolLabelCZL[1])
             {
             }
@@ -235,6 +238,7 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
             {
                 DataItemTableView = sorting("VAT Identifier", "VAT Calculation Type", "Tax Group Code", "Use Tax", Positive);
                 UseTemporary = true;
+
                 column(VATIdentifier_VatAmountLine_CZL; "VAT Identifier")
                 {
                 }
@@ -339,6 +343,7 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
         PaymentMethodLbl: Label 'Payment Method';
         DocumentNoLbl: Label 'No.';
         VATBaseLbl: Label 'VAT Base';
+        TotalLbl: Label 'Total';
 
     local procedure FormatDocumentFieldsCZL(SalesHeader: Record "Sales Header")
     var
@@ -370,11 +375,21 @@ reportextension 11708 "Std. Sales - Pro Forma Inv CZL" extends "Standard Sales -
     local procedure CalcVATAmountLinesCZL(SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
+        TempSalesLine: Record "Sales Line" temporary;
     begin
         VATAmountLineCZL.DeleteAll();
+
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.CalcVATAmountLines(0, SalesHeader, SalesLine, VATAmountLineCZL);
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        if SalesLine.FindSet() then
+            repeat
+                TempSalesLine.Init();
+                TempSalesLine := SalesLine;
+                TempSalesLine.Insert(false);
+            until SalesLine.Next() = 0;
+
+        TempSalesLine.CalcVATAmountLines(0, SalesHeader, TempSalesLine, VATAmountLineCZL);
     end;
 
     local procedure FormatShipToAddressCZL(SalesHeader: Record "Sales Header")
