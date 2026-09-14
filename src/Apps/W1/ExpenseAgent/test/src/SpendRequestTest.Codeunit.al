@@ -414,6 +414,7 @@ codeunit 148339 "Spend Request Test"
         ReleaseSpendRequest.Release(SpendRequest);
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.FindFirst();
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -441,6 +442,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A normally posted report with offsetting amounts and a header-level request link.
         CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
         PostedExpenseReportHeader.TestField("Spend Request No.", SpendRequest."No.");
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -468,6 +470,7 @@ codeunit 148339 "Spend Request Test"
         PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
         PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportLine.FindFirst();
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -496,6 +499,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportLine.FindFirst();
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -643,6 +647,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An open request with its default date pair.
         LibraryExpense.CreateSpendRequest(SpendRequest);
+        Commit();
 
         // [WHEN] A start-only update exceeds the stored end.
         asserterror SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 1, 0D, true, false);
@@ -1794,7 +1799,7 @@ codeunit 148339 "Spend Request Test"
 
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        PostedExpenseReportHeader.Get(ExpenseReportHeader."Posting No.");
+        PostedExpenseReportHeader.Get(ExpenseReportHeader."Last Posting No.");
         SpendRequest.Get(SpendRequest."No.");
         SpendRequest.CalcFields("Total Spent Amount (LCY)");
         Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", 'Offsetting posted amounts must leave zero net spend.');
