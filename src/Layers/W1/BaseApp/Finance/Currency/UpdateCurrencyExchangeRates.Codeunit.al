@@ -127,7 +127,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         exit(10485760); // 10 MB - exchange rate feeds are small; larger responses are rejected as potentially malicious.
     end;
 
-    local procedure CheckServiceEndpointAllowed(ServiceUrl: Text)
+    local procedure CheckServiceEndpointAllowed(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; ServiceUrl: Text)
     var
         EnvironmentInformation: Codeunit "Environment Information";
         AuditLog: Codeunit "Audit Log";
@@ -150,12 +150,14 @@ codeunit 1281 "Update Currency Exchange Rates"
 
         AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         Session.LogMessage('', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
-        // Rejecting the configured URL is a recoverable setup problem, so make the error navigate to the setup page.
+        // Rejecting the configured URL is a recoverable setup problem, so make the error navigate to the specific
+        // service setup record whose URL was rejected (the setup table holds one row per exchange-rate service).
         BlockedEndpointErrInfo.Title := BlockedEndpointTitleTxt;
         BlockedEndpointErrInfo.Message := BlockedEndpointErr;
         BlockedEndpointErrInfo.DetailedMessage := BlockedEndpointDetailTxt;
         BlockedEndpointErrInfo.DataClassification := DataClassification::SystemMetadata;
         BlockedEndpointErrInfo.PageNo := Page::"Curr. Exch. Rate Service Card";
+        BlockedEndpointErrInfo.RecordId := CurrExchRateUpdateSetup.RecordId();
         BlockedEndpointErrInfo.AddNavigationAction(OpenCurrExchRateServiceSetupTxt);
         Error(BlockedEndpointErrInfo);
     end;
@@ -241,7 +243,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         URL: Text;
     begin
         CurrExchRateUpdateSetup.GetWebServiceURL(URL);
-        CheckServiceEndpointAllowed(URL);
+        CheckServiceEndpointAllowed(CurrExchRateUpdateSetup, URL);
         HttpWebRequestMgt.Initialize(URL);
         HttpWebRequestMgt.SetReturnType('application/xml,text/xml');
 
