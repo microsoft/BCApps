@@ -257,9 +257,7 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
             if IsImprovedLine(PriceListLine, BestPriceListLine) and not IsDegradedLine(PriceListLine, BestPriceListLine) then
                 if (AmountType <> AmountType::Discount) or DiscountIsDeclared then
                     Clear(BestPriceListLine);
-            if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) or
-               ((AmountType = AmountType::Discount) and DiscountIsDeclared and not BestPriceListLine.IsRealLine())
-            then begin
+            if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) then begin
                 BestPriceListLine := PriceListLine;
                 FoundBestLine := true;
             end;
@@ -298,7 +296,10 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
     procedure IsBetterLine(var PriceListLine: Record "Price List Line"; AmountType: Enum "Price Amount Type"; BestPriceListLine: Record "Price List Line") Result: Boolean;
     begin
         if AmountType = AmountType::Discount then
-            Result := PriceListLine."Line Discount %" > BestPriceListLine."Line Discount %"
+            Result :=
+                (PriceListLine."Line Discount %" > BestPriceListLine."Line Discount %") or
+                (((PriceListLine."Amount Type" = PriceListLine."Amount Type"::Discount) or (PriceListLine."Line Discount %" > 0)) and
+                 not BestPriceListLine.IsRealLine())
         else
             case PriceListLine."Price Type" of
                 PriceListLine."Price Type"::Sale:

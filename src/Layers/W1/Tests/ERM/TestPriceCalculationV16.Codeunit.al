@@ -28,6 +28,7 @@ codeunit 134159 "Test Price Calculation - V16"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         IsInitialized: Boolean;
+        DiscountVetoCallCount: Integer;
         AllowLineDiscErr: Label 'Allow Line Disc. must have a value in Sales Line';
         PickedWrongMinQtyErr: Label 'The quantity in the line is below the minimum quantity of the picked price list line.';
         CampaignActivatedMsg: Label 'Campaign %1 is now activated.';
@@ -6336,6 +6337,76 @@ codeunit 134159 "Test Price Calculation - V16"
         // [THEN] The highest variant discount wins, including when it is declared on an Any line.
         TempPriceListLine.TestField("Line No.", 40000);
         TempPriceListLine.TestField("Line Discount %", 10);
+    end;
+
+    [Test]
+    procedure OnAfterIsBetterLineCanVetoExplicitZeroDiscount()
+    begin
+        // [FEATURE] [UT] [Discount] [Event]
+        // [SCENARIO 649151] A subscriber can veto an explicit zero discount when there is no best line.
+        VerifyDiscountSelectionVeto("Price Amount Type"::Discount, 0);
+    end;
+
+    [Test]
+    procedure OnAfterIsBetterLineCanVetoPositiveDiscount()
+    begin
+        // [FEATURE] [UT] [Discount] [Event]
+        // [SCENARIO 649151] A subscriber can veto a positive discount when there is no best line.
+        VerifyDiscountSelectionVeto("Price Amount Type"::Discount, 30);
+    end;
+
+    [Test]
+    procedure OnAfterIsBetterLineCanVetoPositiveAnyDiscount()
+    begin
+        // [FEATURE] [UT] [Discount] [Event]
+        // [SCENARIO 649151] A subscriber can veto a positive discount on an Any line when there is no best line.
+        VerifyDiscountSelectionVeto("Price Amount Type"::Any, 30);
+    end;
+
+    local procedure VerifyDiscountSelectionVeto(AmountType: Enum "Price Amount Type"; DiscountPct: Decimal)
+    var
+        TempPriceListLine: Record "Price List Line" temporary;
+        PriceCalculationBufferMgt: Codeunit "Price Calculation Buffer Mgt.";
+        PriceCalculationV16: Codeunit "Price Calculation - V16";
+        TestPriceCalculationV16: Codeunit "Test Price Calculation - V16";
+        FoundBestLine: Boolean;
+    begin
+        Initialize();
+        MockBuffer("Price Type"::Purchase, '', 1, PriceCalculationBufferMgt);
+
+        // [GIVEN] A single eligible discount candidate and a subscriber rejecting discount selection.
+        AddDiscountCandidate(TempPriceListLine, 'V', AmountType, DiscountPct);
+        BindSubscription(TestPriceCalculationV16);
+
+        // [WHEN] Selection runs through CalcBestAmount, including the caller of IsBetterLine.
+        FoundBestLine := PriceCalculationV16.CalcBestAmount("Price Amount Type"::Discount, PriceCalculationBufferMgt, TempPriceListLine);
+        UnbindSubscription(TestPriceCalculationV16);
+
+        // [THEN] The subscriber is invoked and its veto prevents a winner from being selected.
+        Assert.AreEqual(1, TestPriceCalculationV16.GetDiscountVetoCallCount(), 'The discount veto subscriber must be invoked once.');
+        Assert.IsFalse(FoundBestLine, 'The discount candidate must not be selected after the subscriber vetoes it.');
+
+        // [THEN] Without the subscriber the same candidate is selected as a real winner.
+        Assert.IsTrue(
+            PriceCalculationV16.CalcBestAmount("Price Amount Type"::Discount, PriceCalculationBufferMgt, TempPriceListLine),
+            'The discount candidate must be selected when no subscriber vetoes it.');
+        TempPriceListLine.TestField("Line No.", 10000);
+        TempPriceListLine.TestField("Amount Type", AmountType);
+        TempPriceListLine.TestField("Line Discount %", DiscountPct);
+    end;
+
+    procedure GetDiscountVetoCallCount(): Integer
+    begin
+        exit(DiscountVetoCallCount);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Price Calculation - V16", 'OnAfterIsBetterLine', '', false, false)]
+    local procedure VetoDiscountOnAfterIsBetterLine(PriceListLine: Record "Price List Line"; AmountType: Enum "Price Amount Type"; BestPriceListLine: Record "Price List Line"; var Result: Boolean)
+    begin
+        if AmountType <> AmountType::Discount then
+            exit;
+        DiscountVetoCallCount += 1;
+        Result := false;
     end;
 
     local procedure VerifySalesExplicitZeroDiscount(ZeroDiscountFirst: Boolean; UseCurrency: Boolean)
