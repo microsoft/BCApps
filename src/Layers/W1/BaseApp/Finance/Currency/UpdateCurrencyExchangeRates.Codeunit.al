@@ -149,7 +149,7 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
-        Session.LogMessage('', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
+        Session.LogMessage('0000VF5', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
         // Rejecting the configured URL is a recoverable setup problem, so make the error navigate to the specific
         // service setup record whose URL was rejected (the setup table holds one row per exchange-rate service).
         BlockedEndpointErrInfo.Title := BlockedEndpointTitleTxt;
