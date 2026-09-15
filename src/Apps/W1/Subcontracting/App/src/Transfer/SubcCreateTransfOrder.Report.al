@@ -36,13 +36,18 @@ report 20501 "Subc. Create Transf. Order"
                 end;
             }
             trigger OnAfterGetRecord()
+            var
+                SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
             begin
                 "Purchase Header".CalcFields("Subc. Order");
                 if not "Subc. Order" then
                     Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
 
-                if not CheckTransferCreated() then
+                if not CheckTransferCreated() then begin
+                    if HasCoveredDemand then
+                        Error(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo("Purchase Header"));
                     Error(NothingToCreateErr);
+                end;
 
                 Vendor.Get("Purchase Header"."Buy-from Vendor No.");
             end;
@@ -78,6 +83,7 @@ report 20501 "Subc. Create Transf. Order"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
+        HasCoveredDemand: Boolean;
         PurchOrderNo: Code[20];
         LineNo: Integer;
         ExcessReservationsErr: Label 'The transfer quantity (%1) is less than the reserved quantity (%2) on the production order component for item %3. Cancel existing reservations on the component before creating a partial transfer.', Comment = '%1=Transfer Quantity, %2=Reserved Quantity, %3=Item No.';
@@ -175,6 +181,7 @@ report 20501 "Subc. Create Transf. Order"
     var
         PurchaseLine: Record "Purchase Line";
     begin
+        HasCoveredDemand := false;
         PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Document No.", PurchOrderNo);
         PurchaseLine.SetFilter("Prod. Order No.", '<>''''');
@@ -233,6 +240,12 @@ report 20501 "Subc. Create Transf. Order"
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent, Round(PurchaseLine.Quantity * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
                 ProdOrderComponent.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+                if (QtyToPost > 0) and
+                   (QtyToPost <= (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
+                                 ProdOrderComponent."Subc. Qty. in Transit (Base)" +
+                                 Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr")))
+                then
+                    HasCoveredDemand := true;
                 if QtyToPost > (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
                                 ProdOrderComponent."Subc. Qty. in Transit (Base)" +
                                 Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr"))
@@ -601,6 +614,9 @@ report 20501 "Subc. Create Transf. Order"
 
         PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
         OpenWIPLineQtyBase := GetOpenWIPTransferLineQtyBase(PurchaseLine, ProdOrderLine);
+
+        if (ExpectedQtyBase > 0) and ((PostedWIPQtyBase + OpenWIPLineQtyBase) >= ExpectedQtyBase) then
+            HasCoveredDemand := true;
 
         exit((PostedWIPQtyBase + OpenWIPLineQtyBase) < ExpectedQtyBase);
     end;
