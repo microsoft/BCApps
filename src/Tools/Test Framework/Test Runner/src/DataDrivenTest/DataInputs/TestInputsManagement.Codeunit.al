@@ -174,32 +174,6 @@ codeunit 130458 "Test Inputs Management"
         Session.LogMessage('0000NF1', 'Data Driven Test: Test Input Imported', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCD);
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
-    procedure UploadAndImportDataInputsFromJson()
-    begin
-        UploadAndImportDataInputs();
-    end;
-
-    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
-    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
-    begin
-        UploadAndImportDataInputs()
-    end;
-
-    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
-    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
-    begin
-        UploadAndImportDataInputs(FileName, TestInputInStream);
-    end;
-
-    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
-    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
-    begin
-        UploadAndImportDataInputs(FileName, TestInputInStream, ImportedByAppId);
-    end;
-#endif
-
     procedure ImportDataInputsFromText(var TestInputGroup: Record "Test Input Group"; DataInputText: Text)
     begin
         ParseDataInputs(DataInputText, TestInputGroup);
