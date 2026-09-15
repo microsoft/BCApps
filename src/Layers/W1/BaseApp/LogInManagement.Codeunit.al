@@ -207,7 +207,7 @@ codeunit 40 LogInManagement
         CompanyInformation: Record "Company Information";
         ChangeWorkDate: Boolean;
     begin
-        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
+        CompanyInformation.SetLoadFields("Demo Company", "Default Work Date", "Custom Work Date");
         if CompanyInformation.Get() then;
         ChangeWorkDate := CompanyInformation."Demo Company";
         if not ChangeWorkDate then
@@ -236,7 +236,7 @@ codeunit 40 LogInManagement
         if not CompanyInformation."Apply Work Date to Sessions" then
             exit(false);
 
-        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date", "Custom Work Date");
+        CompanyInformation.SetLoadFields("Demo Company", "Default Work Date", "Custom Work Date");
         if not CompanyInformation.Get() then
             exit(false);
 
@@ -244,7 +244,7 @@ codeunit 40 LogInManagement
             if not CompanyInformation.IsEvaluationCompany() then
                 exit(false);
 
-        if (CompanyInformation."Evaluation Work Date" = CompanyInformation."Evaluation Work Date"::Today) and
+        if (CompanyInformation."Default Work Date" = CompanyInformation."Default Work Date"::Today) and
            (CurrentClientType in [ClientType::Api, ClientType::ODataV4])
         then begin
             if not GetCurrentDateInUserTimeZone(DefaultWorkDate) then
@@ -260,8 +260,8 @@ codeunit 40 LogInManagement
     var
         GLEntry: Record "G/L Entry";
     begin
-        case CompanyInformation."Evaluation Work Date" of
-            CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date":
+        case CompanyInformation."Default Work Date" of
+            CompanyInformation."Default Work Date"::"Latest G/L Entry Posting Date":
                 begin
                     GLEntry.SetCurrentKey("Posting Date");
                     GLEntry.SecurityFiltering(SecurityFilter::Ignored);
@@ -272,9 +272,9 @@ codeunit 40 LogInManagement
 
                     exit(WorkDate());
                 end;
-            CompanyInformation."Evaluation Work Date"::Today:
+            CompanyInformation."Default Work Date"::Today:
                 exit(Today);
-            CompanyInformation."Evaluation Work Date"::"Custom Date":
+            CompanyInformation."Default Work Date"::"Custom Date":
                 begin
                     if CompanyInformation."Custom Work Date" = 0D then
                         exit(Today);

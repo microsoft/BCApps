@@ -438,13 +438,13 @@ page 1 "Company Information"
                     group(WorkDate)
                     {
                         ShowCaption = false;
-                        field("Evaluation Work Date"; Rec."Evaluation Work Date")
+                        field("Default Work Date"; Rec."Default Work Date")
                         {
                             ApplicationArea = Basic, Suite;
 
                             trigger OnValidate()
                             begin
-                                CustomWorkDateVisible := Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date";
+                                CustomWorkDateVisible := Rec."Default Work Date" = Rec."Default Work Date"::"Custom Date";
                                 CurrPage.Update(false);
                             end;
                         }
@@ -766,7 +766,7 @@ page 1 "Company Information"
         WorkDateSelectionVisible := Rec."Demo Company";
         if not WorkDateSelectionVisible then
             WorkDateSelectionVisible := Rec.IsEvaluationCompany();
-        CustomWorkDateVisible := WorkDateSelectionVisible and (Rec."Evaluation Work Date" = Rec."Evaluation Work Date"::"Custom Date");
+        CustomWorkDateVisible := WorkDateSelectionVisible and (Rec."Default Work Date" = Rec."Default Work Date"::"Custom Date");
     end;
 
     trigger OnClosePage()

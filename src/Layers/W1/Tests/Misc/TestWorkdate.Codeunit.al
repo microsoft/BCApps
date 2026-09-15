@@ -25,7 +25,7 @@ codeunit 139028 "Test Workdate"
         LatestPostingDate: Date;
     begin
         // [SCENARIO] An evaluation company uses the latest G/L entry posting date by default.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date", 0D);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::"Latest G/L Entry Posting Date", 0D);
         LatestPostingDate := CreateLatestGLEntry();
 
         Assert.AreEqual(LatestPostingDate, LogInManagement.GetDefaultWorkDate(), 'The latest G/L entry posting date should be used.');
@@ -39,7 +39,7 @@ codeunit 139028 "Test Workdate"
         LogInManagement: Codeunit LogInManagement;
     begin
         // [SCENARIO] An evaluation company can use today instead of the latest G/L entry posting date.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::Today, 0D);
         CreateLatestGLEntry();
 
         Assert.AreEqual(Today, LogInManagement.GetDefaultWorkDate(), 'Today should be used as the work date.');
@@ -55,7 +55,7 @@ codeunit 139028 "Test Workdate"
     begin
         // [SCENARIO] An evaluation company can use a custom work date.
         CustomWorkDate := CalcDate('<-1M>', Today);
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", CustomWorkDate);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::"Custom Date", CustomWorkDate);
         CreateLatestGLEntry();
 
         Assert.AreEqual(CustomWorkDate, LogInManagement.GetDefaultWorkDate(), 'The custom date should be used as the work date.');
@@ -69,7 +69,7 @@ codeunit 139028 "Test Workdate"
         LogInManagement: Codeunit LogInManagement;
     begin
         // [SCENARIO] An evaluation company with an invalid blank custom work date safely uses today.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", 0D);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::"Custom Date", 0D);
 
         Assert.AreEqual(Today, LogInManagement.GetDefaultWorkDate(), 'Today should be used when the custom work date is blank.');
     end;
@@ -82,7 +82,7 @@ codeunit 139028 "Test Workdate"
         LogInManagement: Codeunit LogInManagement;
     begin
         // [SCENARIO] The evaluation-company setting does not affect a regular company.
-        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::Today, 0D);
+        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Default Work Date"::Today, 0D);
         CreateLatestGLEntry();
 
         Assert.AreEqual(WorkDate(), LogInManagement.GetDefaultWorkDate(), 'The current work date should remain unchanged.');
@@ -100,7 +100,7 @@ codeunit 139028 "Test Workdate"
     begin
         // [SCENARIO] An evaluation company can apply its work date to all session types.
         CustomWorkDate := CalcDate('<-1M>', Today);
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", CustomWorkDate, true);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::"Custom Date", CustomWorkDate, true);
 
         ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
 
@@ -120,7 +120,7 @@ codeunit 139028 "Test Workdate"
         ApplyWorkDateToAllSessions: Boolean;
     begin
         // [SCENARIO] An API session uses today in the user's time zone when the work date applies to all sessions.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::Today, 0D, true);
         ExpectedWorkDate := DT2Date(TypeHelper.GetCurrentDateTimeInUserTimeZone());
 
         ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Api, DefaultWorkDate);
@@ -138,8 +138,8 @@ codeunit 139028 "Test Workdate"
         DefaultWorkDate: Date;
         ApplyWorkDateToAllSessions: Boolean;
     begin
-        // [SCENARIO] A regular company cannot apply the evaluation work date to all session types.
-        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Evaluation Work Date"::Today, 0D, true);
+        // [SCENARIO] A regular company cannot apply the default work date to all session types.
+        SetCompanyWorkDateSettings(CompanyInformation, false, false, CompanyInformation."Default Work Date"::Today, 0D, true);
 
         ApplyWorkDateToAllSessions := LogInManagement.GetDefaultWorkDateForAllSessions(ClientType::Background, DefaultWorkDate);
 
@@ -154,7 +154,7 @@ codeunit 139028 "Test Workdate"
         CompanyInformation: Record "Company Information";
     begin
         // [SCENARIO] A custom work date cannot be cleared.
-        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Evaluation Work Date"::"Custom Date", Today);
+        SetCompanyWorkDateSettings(CompanyInformation, true, false, CompanyInformation."Default Work Date"::"Custom Date", Today);
 
         asserterror CompanyInformation.Validate("Custom Work Date", 0D);
         Assert.ExpectedTestFieldError(CompanyInformation.FieldCaption("Custom Work Date"), '');
@@ -175,7 +175,7 @@ codeunit 139028 "Test Workdate"
 
         CompanyInformation.Get();
         CompanyInformation."Demo Company" := IsDemoCompany;
-        CompanyInformation."Evaluation Work Date" := EvaluationWorkDate;
+        CompanyInformation."Default Work Date" := EvaluationWorkDate;
         CompanyInformation."Custom Work Date" := CustomWorkDate;
         CompanyInformation."Apply Work Date to Sessions" := ApplyWorkDateToAllSessions;
         CompanyInformation.Modify();

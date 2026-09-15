@@ -440,17 +440,17 @@ table 79 "Company Information"
             Caption = 'Demo Company';
             Editable = false;
         }
-        field(101; "Evaluation Work Date"; Option)
+        field(101; "Default Work Date"; Option)
         {
-            Caption = 'Evaluation Work Date';
+            Caption = 'Default Work Date';
             DataClassification = SystemMetadata;
             OptionCaption = 'Latest G/L Entry Posting Date,Today,Custom Date';
             OptionMembers = "Latest G/L Entry Posting Date",Today,"Custom Date";
-            ToolTip = 'Specifies whether the work date is based on the latest G/L entry posting date, today, or a custom date.';
+            ToolTip = 'Specifies the work date used when this demo or evaluation company is opened. Choose the latest G/L entry posting date, today, or a custom date.';
 
             trigger OnValidate()
             begin
-                if ("Evaluation Work Date" = "Evaluation Work Date"::"Custom Date") and ("Custom Work Date" = 0D) then
+                if ("Default Work Date" = "Default Work Date"::"Custom Date") and ("Custom Work Date" = 0D) then
                     Validate("Custom Work Date", Today);
             end;
         }
@@ -458,7 +458,7 @@ table 79 "Company Information"
         {
             Caption = 'Custom Work Date';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies the date to use as the work date when Evaluation Work Date is set to Custom Date.';
+            ToolTip = 'Specifies the work date to use when Default Work Date is set to Custom Date.';
 
             trigger OnValidate()
             begin
@@ -469,7 +469,7 @@ table 79 "Company Information"
         {
             Caption = 'Apply Work Date to All Sessions';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies whether the evaluation work date applies to all new sessions, including background, API, and OData sessions.';
+            ToolTip = 'Specifies whether the selected work date is applied to all new sessions, including background, API, and OData sessions. Existing sessions are not changed.';
         }
         field(200; "Alternative Language Code"; Code[10])
         {
