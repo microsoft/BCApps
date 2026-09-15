@@ -224,7 +224,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         Clear(TempBlob);
-        ThrowInternalError(ResponseTooLargeErr);
+        Error(ResponseTooLargeErr);
     end;
 
     /// <summary>
@@ -257,7 +257,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-            ThrowInternalError(ResponseIntegrityErr);
+            Error(ResponseIntegrityErr);
         end;
     end;
 
@@ -282,18 +282,6 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         // A single checkVatApprox response is one company record (typically < 2 KB incl. SOAP envelope).
         // 64 KB leaves ample headroom for long trader details while still rejecting abnormally large payloads.
         exit(65536);
-    end;
-
-    local procedure ThrowInternalError(MessageText: Text)
-    var
-        ErrInfo: ErrorInfo;
-    begin
-        // The failure is a non-actionable, service-side condition from the unauthenticated VIES service; the specific
-        // reason is already captured in telemetry and the security audit, so surface it as an internal error.
-        ErrInfo.Message := MessageText;
-        ErrInfo.DataClassification := DataClassification::SystemMetadata;
-        ErrInfo.ErrorType := ErrorType::Internal;
-        Error(ErrInfo);
     end;
 
     local procedure CheckServiceEndpointAllowed(ServiceUrl: Text)
