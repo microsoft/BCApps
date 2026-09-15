@@ -176,7 +176,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine.Validate("Expense User No.", Expense."Expense User No.");
         ExpenseReportLine.Validate("Expense Category", Expense."Expense Category");
         ExpenseReportLine.Validate("Expense Subcategory Code", Expense."Expense Subcategory");
-        ExpenseReportLine.Validate("Expense Location", CopyStr(Expense."Expense Location", 1, 20));
+        ExpenseReportLine.Validate("Expense Location", CopyStr(Expense."Expense Location", 1, MaxStrLen(ExpenseReportLine."Expense Location")));
         if Expense.Description <> '' then
             ExpenseReportLine.Validate(Description, Expense.Description);
         if ExpenseReportLine."Expense Subcategory Code" <> '' then
