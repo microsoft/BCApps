@@ -64,7 +64,7 @@ table 322 "Tax Detail"
         {
             Caption = 'Tax Below Maximum';
             ToolTip = 'Specifies the percentage that will be used to calculate tax for all amounts or quantities below the maximum amount quantity in the Maximum Amount/Qty. field.';
-            DecimalPlaces = 1 : 3;
+            DecimalPlaces = 1 : 4;
             MinValue = 0;
             AutoFormatType = 0;
         }
@@ -75,7 +75,7 @@ table 322 "Tax Detail"
         {
             Caption = 'Tax Above Maximum';
             ToolTip = 'Specifies the percentage that will be used to calculate tax for all amounts or quantities above the maximum amount quantity in the Maximum Amount/Qty. field.';
-            DecimalPlaces = 1 : 3;
+            DecimalPlaces = 1 : 4;
             MinValue = 0;
             AutoFormatType = 0;
         }
@@ -94,6 +94,16 @@ table 322 "Tax Detail"
         {
             Caption = 'Calculate Tax on Tax';
             Editable = false;
+            Tooltip = 'Specifies whether tax is calculated on previously calculated taxes (compound taxation).';
+        }
+        /// <summary>
+        /// Indicates whether the expense/capitalize option is applied to this tax detail.
+        /// </summary>
+        field(10010; "Expense/Capitalize"; Boolean)
+        {
+            Caption = 'Expense/Capitalize';
+            DataClassification = SystemMetadata;
+            Tooltip = 'Specifies whether the expense/capitalize option is applied to this tax detail.';
         }
     }
 
