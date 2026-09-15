@@ -72,12 +72,25 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
     var
         TempRecordExportBuffer: Record "Record Export Buffer" temporary;
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        ZUGFeRDExportContext: Codeunit "ZUGFeRD Export Context";
     begin
         TempRecordExportBuffer.RecordID := DocumentRecordRef.RecordId;
         TempRecordExportBuffer."Electronic Document Format" := Format(EDocumentService."Document Format");
         TempRecordExportBuffer.Insert();
 
+        // The XML is built during report rendering, in a separate "Export ZUGFeRD Document" instance
+        // spawned by the report extension - a pre-Run setter cannot reach it. Carry the triggering
+        // service through the context so the report extension can push it onto that instance.
+        // Run is deliberately called as a statement: the error-catching form of Codeunit.Run is not
+        // permitted once the surrounding transaction has pending writes (which it has by the time the
+        // E-Document framework calls Create), so an export error propagates to the caller as before.
+        // Cleanup on that path is guaranteed by AL unbinding this local context instance when it goes
+        // out of scope, not by the explicit Stop() below.
+        ZUGFeRDExportContext.Start();
+        ZUGFeRDExportContext.SetEDocumentService(EDocumentService);
         ExportZUGFeRDDocument.Run(TempRecordExportBuffer);
+        ZUGFeRDExportContext.Stop();
+
         if not TempRecordExportBuffer."File Content".HasValue() then
             exit;
         TempBlob.FromRecord(TempRecordExportBuffer, TempRecordExportBuffer.FieldNo("File Content"));
