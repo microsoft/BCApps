@@ -4398,6 +4398,7 @@ table 37 "Sales Line"
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
         SuppressSalesHeaderExistsVerification: Boolean;
+        SkipUpdateQtyToAsm: Boolean;
         SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
