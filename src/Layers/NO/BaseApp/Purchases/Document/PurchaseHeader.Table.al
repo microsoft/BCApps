@@ -5806,7 +5806,7 @@ table 38 "Purchase Header"
     var
         PurchPost: Codeunit "Purch.-Post";
     begin
-        PurchPost.OnAfterPostPurchaseDoc(Rec, GenJnlPostLine, PurchRcpHdrNo, RetShptHdrNo, PurchInvHdrNo, PurchCrMemoHdrNo, false);
+        PurchPost.OnAfterPostPurchaseDoc(Rec, GenJnlPostLine, PurchRcpHdrNo, RetShptHdrNo, PurchInvHdrNo, PurchCrMemoHdrNo, false, false);
     end;
 
     /// <summary>
