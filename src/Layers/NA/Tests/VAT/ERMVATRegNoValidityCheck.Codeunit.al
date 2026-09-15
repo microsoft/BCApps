@@ -399,7 +399,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
     [Test]
     [Scope('OnPrem')]
-    procedure TestResponseIntegrityAllowsMissingIdentifiers()
+    procedure TestResponseIntegrityRejectsMissingIdentifiers()
     var
         Customer: Record Customer;
         VATRegistrationLog: Record "VAT Registration Log";
@@ -408,7 +408,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         ValidatedName: Text;
         ValidatedAddress: Text;
     begin
-        // [SCENARIO] A VIES response that omits the echoed country code and VAT number is not rejected by the integrity check
+        // [SCENARIO] A VIES response that omits the echoed country code and VAT number is rejected as an invalid schema
         Initialize();
         CreateCustomer(Customer);
         VATRegistrationLog.Ascending(false);
@@ -419,8 +419,9 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         // [GIVEN] A response that omits the country code and VAT number identifiers
         CreateValidVATCheckResponse(ResponseDoc, ValidatedName, ValidatedAddress);
 
-        // [THEN] The integrity validation passes without error (it is only enforced when identifiers are present)
-        VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        // [THEN] The response is rejected because the required identifiers are missing
+        asserterror VATLookupExtDataHndl.ValidateResponseIntegrity(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('did not include the requested identifiers');
 
         // Tear Down
         Customer.Delete();

@@ -54,6 +54,9 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
         ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not match the requested identifiers and was rejected.';
         ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
+        ResponseMissingIdentifiersErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not include the requested identifiers and was rejected.';
+        ResponseMissingIdentifiersMsg: Label 'The VAT reg. no. validation failed. The response did not include the requested identifiers.', Locked = true;
+        SecurityAuditResponseMissingIdentifiersTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not include the requested VAT registration number.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
         BlockedEndpointErr: Label 'The VAT registration service endpoint must be an external address. Internal, private, loopback, or link-local addresses are not allowed.';
@@ -229,10 +232,11 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
     /// <summary>
     /// Validates the integrity of a VIES response before its content is trusted.
-    /// When the response echoes the country code or VAT registration number, the echoed value must match
-    /// what was requested, so a swapped or unrelated response received over the unauthenticated service is rejected.
-    /// Responses that do not echo an identifier are left to the existing verification logic and are not rejected here,
-    /// so legitimate responses that simply omit those fields are never blocked.
+    /// A legitimate VIES checkVat response always echoes the queried country code and VAT registration number,
+    /// so a response that omits either identifier is treated as an invalid schema and rejected - this prevents a
+    /// response that only carries valid=true (with the identifiers stripped) from being accepted for any request.
+    /// When the identifiers are present, they must match what was requested, so a swapped or unrelated response
+    /// received over the unauthenticated service is rejected as well.
     /// </summary>
     /// <param name="RecVATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
     /// <param name="XMLDoc">The parsed VIES response document.</param>
@@ -251,9 +255,17 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ResponseCountryCode := ExtractResponseValue(XMLDoc, CountryCodePathTxt, Namespace);
         ResponseVATNumber := ExtractResponseValue(XMLDoc, VatNumberPathTxt, Namespace);
 
-        // Integrity (validate-if-present): only reject when an echoed identifier is present and contradicts the request.
-        if ((ResponseCountryCode <> '') and (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(RecVATRegistrationLog.GetCountryCode()))) or
-           ((ResponseVATNumber <> '') and (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(RecVATRegistrationLog.GetVATRegNo())))
+        // Schema: a legitimate response always echoes both identifiers. Reject a response that omits either one so a
+        // valid=true payload with the identifiers stripped cannot be trusted for the requested VAT number.
+        if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifiersTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('', ResponseMissingIdentifiersMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+            Error(ResponseMissingIdentifiersErr);
+        end;
+
+        // Integrity: both identifiers are present here, so reject when either echoed value contradicts the request.
+        if (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(RecVATRegistrationLog.GetCountryCode())) or
+           (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(RecVATRegistrationLog.GetVATRegNo()))
         then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
