@@ -5,6 +5,7 @@ using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
 using Microsoft.Assembly.Setup;
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -5664,6 +5665,74 @@ codeunit 148184 "Sustainability Posting Test"
         Assert.AreEqual(BaselineEntryNo + 1, SustainabilityLedgerEntry."Entry No.", EntryNoShouldBeBaselinePlusOneErr);
     end;
 
+    [Test]
+    procedure VerifySpecificCarbonTrackingUsesLotEmissionAfterTransfer()
+    var
+        Item: Record Item;
+        SustainabilityAccount: Record "Sustainability Account";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        ReservationEntry: Record "Reservation Entry";
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        LotNo: array[2] of Code[50];
+        AccountCode: Code[20];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        PostedInvoiceNo: Code[20];
+        Index: Integer;
+    begin
+        // [SCENARIO 648886] A Specific item keeps the selected lot's CO2e after transfer when the transfer has no additional emissions.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Value Chain Tracking is enabled and a lot-tracked Specific item has a default Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        LibraryItemTracking.CreateLotItem(Item);
+        EnsureGeneralPostingSetupForItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+        LibraryWarehouse.CreateTransferLocations(FromLocation, ToLocation, InTransitLocation);
+
+        // [GIVEN] LOT1 has 100 CO2e and LOT2 has 300 CO2e at the source location.
+        LotNo[1] := LibraryUtility.GenerateGUID();
+        LotNo[2] := LibraryUtility.GenerateGUID();
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, FromLocation.Code, AccountCode, '', 1, WorkDate(), '', LotNo[1], 100);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, FromLocation.Code, AccountCode, '', 1, WorkDate(), '', LotNo[2], 300);
+
+        // [GIVEN] Both lots are transferred without sustainability emissions on the transfer line.
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 2);
+        TransferLine.Validate("Sust. Account No.", '');
+        TransferLine.Validate("CO2e per Unit", 0);
+        TransferLine.Modify();
+        for Index := 1 to ArrayLen(LotNo) do
+            LibraryItemTracking.CreateTransferOrderItemTracking(ReservationEntry, TransferLine, '', LotNo[Index], 1);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [WHEN] LOT1 is sold from the destination location.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Location Code", ToLocation.Code);
+        SalesLine.Validate("Sust. Account No.", AccountCode);
+        SalesLine.Modify(true);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo[1], 1);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The Sustainability Value Entry use LOT1's 100 CO2e per unit, not the 200 CO2e average of both lots.
+        SustainabilityValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(100, SustainabilityValueEntry."CO2e per Unit", StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e per Unit"), 100, SustainabilityValueEntry.TableCaption()));
+        Assert.AreEqual(-100, SustainabilityValueEntry."CO2e Amount (Actual)", StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), -100, SustainabilityValueEntry.TableCaption()));
+    end;
+
     local procedure CreateUserSetup(var UserSetup: Record "User Setup"; UserID: Code[50])
     begin
         UserSetup.Init();
@@ -6103,6 +6172,29 @@ codeunit 148184 "Sustainability Posting Test"
             ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
 
         LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure VerifySustainabilityValueEntry(ItemNo: Code[20]; CO2eEmissionExpected: Decimal; CO2eEmissionActual: Decimal)
