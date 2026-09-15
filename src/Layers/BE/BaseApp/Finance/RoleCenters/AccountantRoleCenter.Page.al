@@ -182,7 +182,6 @@ page 9027 "Accountant Role Center"
                     Caption = '&Bank Detail Trial Balance';
                     Image = "Report";
                     RunObject = Report "Bank Acc. - Detail Trial Bal.";
-                    ToolTip = 'View, print, or send a report that shows a detailed trial balance for selected bank accounts. You can use the report at the close of an accounting period or fiscal year.';
                 }
                 action("&Account Schedule")
                 {
