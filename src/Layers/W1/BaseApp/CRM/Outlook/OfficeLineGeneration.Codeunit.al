@@ -160,35 +160,15 @@ codeunit 1639 "Office Line Generation"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Office Document Handler", 'OnCloseSuggestedLineItemsPage', '', false, false)]
     local procedure CreateLineItemsOnCloseSuggestedLineItems(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; PageCloseAction: Action)
     var
-        DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         OfficeMgt: Codeunit "Office Management";
         AddedCount: Integer;
-        InsertFailureErrorText: Text;
-        InsertFailed: Boolean;
     begin
         if PageCloseAction in [ACTION::OK, ACTION::LookupOK] then
             if TempOfficeSuggestedLineItem.FindSet() then begin
-                DisableAggregateTableUpdate.SetDisableAllRecords(true);
-                BindSubscription(DisableAggregateTableUpdate);
-                repeat
-                    if TempOfficeSuggestedLineItem.Add then
-                        if TryInsertLineItemAndCommit(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity) then
-                            AddedCount += 1
-                        else begin
-                            InsertFailureErrorText := GetLastErrorText();
-                            InsertFailed := true;
-                        end;
-                until InsertFailed or (TempOfficeSuggestedLineItem.Next() = 0);
-                if UnbindSubscription(DisableAggregateTableUpdate) then;
-
-                if AddedCount > 0 then begin
-                    UpdateAggregateTableFromHeader(HeaderRecRef);
+                InsertLineItemsAndUpdateAggregate(TempOfficeSuggestedLineItem, HeaderRecRef, AddedCount);
+                if AddedCount > 0 then
                     Commit();
-                end;
             end;
-
-        if InsertFailed then
-            Error(InsertFailureErrorText);
 
         Session.LogMessage('00001KJ', StrSubstNo(TelemetryClosedPageTxt, NewLine(),
             PageCloseAction,
@@ -196,11 +176,23 @@ codeunit 1639 "Office Line Generation"
             AddedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
     end;
 
-    [TryFunction]
-    local procedure TryInsertLineItemAndCommit(var HeaderRecRef: RecordRef; ItemNo: Text[50]; Quantity: Integer)
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
+    var
+        DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
     begin
-        InsertLineItem(HeaderRecRef, ItemNo, Quantity);
-        Commit();
+        DisableAggregateTableUpdate.SetDisableAllRecords(true);
+        BindSubscription(DisableAggregateTableUpdate);
+        repeat
+            if TempOfficeSuggestedLineItem.Add then begin
+                InsertLineItem(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity);
+                AddedCount += 1;
+            end;
+        until TempOfficeSuggestedLineItem.Next() = 0;
+        if UnbindSubscription(DisableAggregateTableUpdate) then;
+
+        if AddedCount > 0 then
+            UpdateAggregateTableFromHeader(HeaderRecRef);
     end;
 
     local procedure CalculateMatchStrength(ItemNo: Text[50]; Matches: Integer; SearchText: Text; AlreadyFound: Boolean) Strength: Decimal
