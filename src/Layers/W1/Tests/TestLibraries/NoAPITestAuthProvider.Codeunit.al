@@ -10,6 +10,8 @@
 /// </summary>
 codeunit 131024 "No API Test Auth Provider" implements "API Test Auth Provider"
 {
+    Access = Internal;
+
     /// <summary>
     /// Leaves the authentication context unchanged.
     /// </summary>

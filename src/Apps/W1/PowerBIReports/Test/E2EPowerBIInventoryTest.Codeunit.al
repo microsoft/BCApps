@@ -69,6 +69,7 @@ codeunit 139877 "E2E PowerBI Inventory Test"
 
     local procedure Initialize()
     begin
+        LibGraphMgt.SetLicenseSafeWorkDate();
         LibGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
