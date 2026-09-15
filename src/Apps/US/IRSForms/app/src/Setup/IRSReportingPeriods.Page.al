@@ -1,0 +1,174 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.VAT.Reporting;
+
+page 10031 "IRS Reporting Periods"
+{
+    PageType = List;
+    SourceTable = "IRS Reporting Period";
+    ApplicationArea = BasicCA, BasicUS;
+    UsageCategory = Administration;
+    AboutTitle = 'About reporting periods';
+    AboutText = 'Here you can set up the different periods and form boxes, vendor mapping, and statement for reporting per period.';
+    DelayedInsert = true;
+    RefreshOnActivate = true;
+    AnalysisModeEnabled = false;
+
+    layout
+    {
+        area(content)
+        {
+            repeater(Group)
+            {
+                field("No."; Rec."No.")
+                {
+                    Tooltip = 'Specifies a reporting period number.';
+                }
+                field("Starting Date"; Rec."Starting Date")
+                {
+                    ToolTip = 'Specifies a starting date of the reporting period.';
+                }
+                field("Ending Date"; Rec."Ending Date")
+                {
+                    ToolTip = 'Specifies a ending date of the reporting period.';
+                }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies a description of the reporting period.';
+                }
+                field("Forms In Period"; Rec."Forms In Period")
+                {
+                    ToolTip = 'Specifies a number of forms in the reporting period.';
+                }
+                field("IRIS Transmission"; Rec."IRIS Transmission")
+                {
+                    trigger OnDrillDown()
+                    var
+                        Transmission: Record "Transmission IRIS";
+                        TransmissionPage: Page "Transmissions IRIS";
+                    begin
+                        if not Rec."IRIS Transmission" then
+                            exit;
+
+                        Transmission.SetRange("Period No.", Rec."No.");
+                        TransmissionPage.SetTableView(Transmission);
+                        TransmissionPage.Run();
+                    end;
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(Forms)
+            {
+                Caption = 'Forms';
+                Image = Form;
+                Scope = Repeater;
+                ToolTip = 'Specifies the forms to be reported in this period.';
+                AboutTitle = 'About forms';
+                AboutText = 'Here you can set up all the forms and form boxes you want to report in the certain period. Form boxes will be used in the documents.';
+                RunObject = Page "IRS 1099 Forms";
+                RunPageLink = "Period No." = field("No.");
+            }
+            action(VendorSetup)
+            {
+                Caption = 'Vendor Setup';
+                Image = Vendor;
+                Scope = Repeater;
+                ToolTip = 'Specifies the setup for vendors to be reported in this period.';
+                AboutTitle = 'About vendor setup';
+                AboutText = 'Here you can set up mapping between vendors and forms for reporting in the certain period. When you create a document for a certain vendor, the system will use this setup to fill in the form boxes.';
+                RunObject = Page "IRS 1099 Vendor Form Box Setup";
+                RunPageLink = "Period No." = field("No.");
+            }
+            action(Adjustments)
+            {
+                Caption = 'Adjustments';
+                Image = AdjustEntries;
+                Scope = Repeater;
+                ToolTip = 'Specifies the adjustment amount for vendors and form boxes in this period';
+                AboutTitle = 'About adjustments';
+                AboutText = 'Here you specify the adjustment amount for vendors and form boxes. The adjustment amount will be added to the calculated amount in the form box when you create a form document.';
+                RunObject = Page "IRS 1099 Vend. Form Box Adjmts";
+                RunPageLink = "Period No." = field("No.");
+            }
+            action(Documents)
+            {
+                Caption = 'Documents';
+                Image = Document;
+                Scope = Repeater;
+                ToolTip = 'Specifies the documents to be reported in this period.';
+                AboutTitle = 'About document';
+                AboutText = 'Here you can create the form documents based on the vendor ledger entries with form boxes and adjustments. The documents will be used for reporting to the IRS.';
+                RunObject = Page "IRS 1099 Form Documents";
+                RunPageLink = "Period No." = field("No.");
+            }
+            action(CopyFrom)
+            {
+                Caption = 'Copy Setup';
+                Image = Copy;
+                ToolTip = 'Copy the setup from the current period. That includes forms with boxes, vendor setup, adjustments and form statement.';
+                trigger OnAction()
+                var
+                    IRSReportingPeriod: Codeunit "IRS Reporting Period";
+                begin
+                    IRSReportingPeriod.CopyReportingPeriodSetupFrom(Rec."No.");
+                end;
+            }
+            action(CreateIRISTransmission)
+            {
+                Caption = 'Create IRIS Transmission';
+                Image = ElectronicDoc;
+                ToolTip = 'Create the transmission document from all released forms that have not been submitted yet to the IRS for the given period. This document will be used later to create the XML file that is sent to the IRS using IRIS.';
+
+                trigger OnAction()
+                var
+                    Transmission: Record "Transmission IRIS";
+                    CreateTransmissionIRIS: Report "Create Transmission IRIS";
+                begin
+                    CreateTransmissionIRIS.SetPeriod(CopyStr(Rec."No.", 1, MaxStrLen(Transmission."Period No.")));
+                    CreateTransmissionIRIS.RunModal();
+                    Page.Run(Page::"Transmissions IRIS");
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+                actionref(CopyFrom_Promoted; CopyFrom)
+                {
+                }
+                actionref(Forms_Promoted; Forms)
+                {
+                }
+                actionref(VendorSetup_Promoted; VendorSetup)
+                {
+                }
+                actionref(Adjustments_Promoted; Adjustments)
+                {
+                }
+                actionref(Documents_Promoted; Documents)
+                {
+                }
+                actionref(CreateIRISTransmission_Promoted; CreateIRISTransmission)
+                {
+                }
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        IRSReportingPeriod: Codeunit "IRS Reporting Period";
+    begin
+        IRSReportingPeriod.ShowIRSFormsGuideNotificationIfRequired();
+    end;
+}

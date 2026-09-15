@@ -1,0 +1,3 @@
+Code,Description,UnrealizedGainsAcc,RealizedGainsAcc,UnrealizedLossesAcc,RealizedLossesAcc,InvoiceRoundingPrecision,AmountRoundingPrecision,Symbol,ISOCode
+TST,Test Currency,90001,90002,90003,90004,0.01,0.01,T$,TST
+ATC,Another Test Currency,90005,90006,90007,90008,0.01,0.01,A$,ATC

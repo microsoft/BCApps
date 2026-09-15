@@ -1,0 +1,767 @@
+[
+  {
+    "codeunitId": 134783,
+    "codeunitName": "Test Whse. Rcpt. Post Prev.",
+    "method": "CheckTransferOrderPostingWithLotItemAndUpdatingExpirationDate"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "CalcRegPlanAndCarryOutActMsg"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "CheckDueDateWhileCreatingPlannedProductionOrderFromPlanningWorksheet"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "CheckPlanningWorksheetPlanComponentwhenStockkeepingUnitsSetup"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "PlanningComponentsChangingQuantityPossibleNonInventoryItem"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "PrintMultipleProductionOrdersWhenUsingCarryOutActionMessage"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "ProdOrderOutputMissing"
+  },
+  {
+    "codeunitId": 137035,
+    "codeunitName": "SCM PS Bugs-I",
+    "method": "SalesOrderUnitCost"
+  },
+  {
+    "codeunitId": 137036,
+    "codeunitName": "SCM PS Bugs - II",
+    "method": "CertifyBOMInactiveVersionWithCyclicalReference"
+  },
+  {
+    "codeunitId": 137036,
+    "codeunitName": "SCM PS Bugs - II",
+    "method": "CertifyBOMWithCyclicalReferenceChildBOMHasActiveVersion"
+  },
+  {
+    "codeunitId": 137036,
+    "codeunitName": "SCM PS Bugs - II",
+    "method": "CertifyBOMWithCyclicalReferenceError"
+  },
+  {
+    "codeunitId": 137036,
+    "codeunitName": "SCM PS Bugs - II",
+    "method": "RequisitionWorksheetDropShipmentProdItem"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "PurchOrdCalcNetChange"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "SalesOrderCalcNetChange"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TransferOrdCalcNetChange"
+  },
+  {
+    "codeunitId": 137038,
+    "codeunitName": "SCM Transfers",
+    "method": "TransferPurchOrdeCalcNetChange"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "CapableToPromiseExecutedWithQuantityPerIsOneInFirmProdOrderAndBOMQuantityPerisZero"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "CheckBincodeForNonInventoryItemForPlanningWorksheet"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "PlanningLinesForMTOProdOrdersHaveSingleOrderNoInPlanningWhsht"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "ProdBOMWithComponentStartingDateIsNotPlannedWhenDateIsInvalid"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "ProdBOMWithComponentStartingDateIsPlannedWhenDateIsValid"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "ReservationSystemPlanning"
+  },
+  {
+    "codeunitId": 137045,
+    "codeunitName": "SCM Bugfixes",
+    "method": "ReservationSystemRequisition"
+  },
+  {
+    "codeunitId": 137068,
+    "codeunitName": "SCM Inventory Orders-II",
+    "method": "DropShipmentErrorHandling"
+  },
+  {
+    "codeunitId": 137156,
+    "codeunitName": "SCM Orders IV",
+    "method": "SalesLineDiscountStartingDateAfterEndingDateError"
+  },
+  {
+    "codeunitId": 137156,
+    "codeunitName": "SCM Orders IV",
+    "method": "SalesPriceStartingDateAfterEndingDateError"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "OpenCommentsFromTaskCardPage"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "UpdateDescriptionOnTaskCardOfSameOrganizerTaskOfContactByPage"
+  },
+  {
+    "codeunitId": 137158,
+    "codeunitName": "SCM Orders V",
+    "method": "VerifyDueDateTimeShouldBeUpdatedInProdOrderComponentWhenRoutingLinkCodeIsUpdatedInRoutingLine"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "CarryOutActionInsertProductionOrderTakesEarliestStartingDateTime"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "PurchaseOrderExpectedReceiptDateError"
+  },
+  {
+    "codeunitId": 137163,
+    "codeunitName": "SCM Orders VI",
+    "method": "VariantMandatoryBlocksOrderPromisingLine"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest1"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest10"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest2"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest3"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest4"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest5"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest6"
+  },
+  {
+    "codeunitId": 137200,
+    "codeunitName": "SCM Inventory Movement Test",
+    "method": "InventoryMovementTest7"
+  },
+  {
+    "codeunitId": 137207,
+    "codeunitName": "SCM Archive Orders",
+    "method": "SalesQuoteEmailDisabledArchiveSetup"
+  },
+  {
+    "codeunitId": 137207,
+    "codeunitName": "SCM Archive Orders",
+    "method": "SalesQuoteEmailEnabledArchiveSetup"
+  },
+  {
+    "codeunitId": 137229,
+    "codeunitName": "SCM Item Analysis View",
+    "method": "CheckUpdateOnPosting"
+  },
+  {
+    "codeunitId": 137274,
+    "codeunitName": "Item Jnl. Error Handling",
+    "method": "ItemSourceError"
+  },
+  {
+    "codeunitId": 137280,
+    "codeunitName": "SCM Inventory Basic",
+    "method": "CheckItemStatistics_SalesGrowth"
+  },
+  {
+    "codeunitId": 137280,
+    "codeunitName": "SCM Inventory Basic",
+    "method": "CheckVATBusPostingGrPriceAvailableOnItemCardWithAdvAppArea"
+  },
+  {
+    "codeunitId": 137293,
+    "codeunitName": "SCM Inventory Miscellaneous",
+    "method": "CalcOrderPlanRecalculateReqPlanWithFrozenZone"
+  },
+  {
+    "codeunitId": 137293,
+    "codeunitName": "SCM Inventory Miscellaneous",
+    "method": "PlanningLinesForBlankLocation"
+  },
+  {
+    "codeunitId": 137293,
+    "codeunitName": "SCM Inventory Miscellaneous",
+    "method": "PlanningLinesForBlankLocationWithPoductionForcast"
+  },
+  {
+    "codeunitId": 137293,
+    "codeunitName": "SCM Inventory Miscellaneous",
+    "method": "PlanningLinesForDemandLocation"
+  },
+  {
+    "codeunitId": 137293,
+    "codeunitName": "SCM Inventory Miscellaneous",
+    "method": "PlanningLinesForDemandLocationWithPoductionForcast"
+  },
+  {
+    "codeunitId": 137293,
+    "codeunitName": "SCM Inventory Miscellaneous",
+    "method": "PlanningLinesForNonDemandLocation"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "PickForProductionOrder"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "PlanningLinesForSalesOrder"
+  },
+  {
+    "codeunitId": 137294,
+    "codeunitName": "SCM Inventory Miscellaneous II",
+    "method": "UnitCostOnSalesOrderUsingProdOrderAndReservation"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ApplyFromItemZeroErrorOnSalesReturnOrder"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ApplyToItemZeroErrorOnPurchReturnOrder"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "CancelReservationFromBoundProductionOrder"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "DeleteApplOnPurchReturnOrderWithLot"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "DeleteApplOnPurchReturnOrderWithReservation"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "DeleteApplOnPurchReturnOrderWithSerial"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "PostedItemReceiptWithReasonCode"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "PostedItemShipmentWithReasonCode"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ProdOrderAutoReservation"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ProdOrderReservationCancel"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ReserveQtyErrorOnProdOrderAfterChangeStatus"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ReserveQtyErrorOnProdOrderFromSalesOrder"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ReserveQtyOnProdOrderAfterChangeStatus"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ReserveQtyOnProdOrderAfterUpdateQty"
+  },
+  {
+    "codeunitId": 137295,
+    "codeunitName": "SCM Inventory Misc. III",
+    "method": "ReserveQtyOnProdOrderFromSalesOrder"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "BiweeklyPhysInvCountingPeriodWithNoLastDate"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "DeleteItemVariantUsedInProdOrdComponentError"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "ExpCostAmountInValueEntry"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "GLEntryAfterPostCreditMemo"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "GLEntryAfterPostSalesOrder"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "ModifyReplenishSystemInPlanningWorksheet"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "PostOutputJournalFromRelProdOrder"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "PostOutputJournalWithAppliesToEntry"
+  },
+  {
+    "codeunitId": 137297,
+    "codeunitName": "SCM Inventory Misc. V",
+    "method": "CalcValueEntryCostAmountActualWithDifferentUOM"
+  },
+  {
+    "codeunitId": 137297,
+    "codeunitName": "SCM Inventory Misc. V",
+    "method": "CapacityLedgerEntryAfterPostPurchOrder"
+  },
+  {
+    "codeunitId": 137297,
+    "codeunitName": "SCM Inventory Misc. V",
+    "method": "CompItemLedgerEntryDocNoAfterPostSubcontractingPurchOrder"
+  },
+  {
+    "codeunitId": 137297,
+    "codeunitName": "SCM Inventory Misc. V",
+    "method": "UnitCostLCYOnPurchOrderWithCurrency"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "AsOfValueInInventoryValuationWIPReport"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "MultilevelPhantomBOMWithBOMVersion"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "MultilevelPhantomBOMWithDifferentUOM"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "DetailedCalculationReport"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "DetailedCalculationReportIncludesPhantomBOMComponents"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "InvValuationWIPReportForForCostPostedtoGLOnEndingPeriod"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithTypeItemAndVersion"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithTypeProdBomAndVersion"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusCertifiedAndGreaterThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusCertifiedAndLessThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusClosedAndGreaterThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithStatusClosedAndLessThanWorkDate"
+  },
+  {
+    "codeunitId": 137309,
+    "codeunitName": "SCM Reports",
+    "method": "DetailedCalculationWithProdBOMBelowItemLines"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "GLAccountDimensionCheckOnNewValueEntryWithZeroAmountShipment"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "GLAccountDimensionCheckOnNewValueEntryWithZeroAmountShipmentAndInvoice"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "InventoryValueOnInventoryValuationAfterAdjustCostItemEntries"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "InvtValuationCostSpecAfterRevaluation"
+  },
+  {
+    "codeunitId": 137350,
+    "codeunitName": "SCM Inventory Reports - III",
+    "method": "ValueOfWIPAfterRunningInventoryValuationWIPReport"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "ItemAgeCompositionReportAfterPostingSalesOrder"
+  },
+  {
+    "codeunitId": 137351,
+    "codeunitName": "SCM Inventory Reports - IV",
+    "method": "ItemBudgetReportWithWholeAmountOptionTrue"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "CalculatingWhseAdjustmentForMultipleSerialNos"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "ConsumptionWithTrackingPerformance"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "GetReceiptLinesInvoiceDiscountRecalculatedOnce"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "InsertMultipleSerialNosOnPurchaseLineBoundToTransferOrder"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "LookingThroughOnlyAdjustedSerialNosWhenCollectingItemTrackingForWhseAdjmt"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "PostingPurchaseWithMultipleSerialNosBoundToTransferOrder"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "PostingWhseReceiptWithManyLinesAndItemTrackingHasLinearComplexity"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "ProdOrderCapacityNeedRecalculatedOnce"
+  },
+  {
+    "codeunitId": 137380,
+    "codeunitName": "SCM Performance Tests",
+    "method": "UpdateDescriptionOnCreateRequisitionLine"
+  },
+  {
+    "codeunitId": 137400,
+    "codeunitName": "SCM Inventory - Orders",
+    "method": "CalculateAvailabilityAndCapability"
+  },
+  {
+    "codeunitId": 137400,
+    "codeunitName": "SCM Inventory - Orders",
+    "method": "CalculateAvailabilityAndCapabilityAfterPostingItemJournalLine"
+  },
+  {
+    "codeunitId": 137400,
+    "codeunitName": "SCM Inventory - Orders",
+    "method": "CalculateAvailabilityAndCapabilityAfterPostingItemJournalLineWithReserveQuantity"
+  },
+  {
+    "codeunitId": 137400,
+    "codeunitName": "SCM Inventory - Orders",
+    "method": "OrderPromisingOnSalesOrderWithRequestedDeliveryDate"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "DateCompressItemBudgetEntries"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "ItemBudgetEntryRoundingFactor"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "ItemBudgetEntryShowAsColumn"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "SalesAnalysisByDimMatrixForBudgetAmount"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "SalesBudgetEntryWithDeletion"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "SalesBudgetEntryWithoutDeletion"
+  },
+  {
+    "codeunitId": 137401,
+    "codeunitName": "SCM Item Budget",
+    "method": "SalesBudgetOverviewWithCompressedItemBudgetEntries"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "ChangeItemAttributeValueMappingName"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestClearingTheFilter"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestDeleteAttributeInUse"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestDeleteAttributeValueInUse"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestRenameAttributeInUse"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestRenameAttributeValueInUse"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestSpecifyingMultipleAttributesInFilter"
+  },
+  {
+    "codeunitId": 137413,
+    "codeunitName": "SCM Item Attributes",
+    "method": "TestVisibilityInApplicationAreas"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreview"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreviewWithMultipleLines"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreviewWithAutomaticCostPosting"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreviewWithBin"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestPhysInventoryJournalPostPreview"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestConsumptionPostPreview"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestPreviewOnProductionJournalDoesNotThrowException"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestPreviewPostingNotShowingErrorFromProductionJournal"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "DoNotUpdatePhysInvCountingPeriodOnPhysInventoryOutsideThePeriod"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "NextPhysInvtCountingPeriodIsAfterLastInventoryDateDoneOutsidePeriod"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "PurchLineDiscForVendorWithPartialQty"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "CreateInvtPickOnlyForReservedFromStockPurchaseReturnLines"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedFromStockStatesOnPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnLine"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "CreateInvtPickOnlyForReservedFromStockPurchaseReturnLines"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedFromStockStatesOnPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnLine"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "CreateInvtPickOnlyForReservedFromStockPurchaseReturnLines"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedFromStockStatesOnPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnHeader"
+  },
+  {
+    "codeunitId": 137014,
+    "codeunitName": "SCM Fulfillment",
+    "method": "ReservedQtyFromInventoryForPurchaseReturnLine"
+  }
+]

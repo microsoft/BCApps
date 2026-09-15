@@ -56,10 +56,25 @@ Describe "BuildOptimization" {
     }
 
     Context "Get-AffectedApps" {
-        It "returns 9 affected apps for E-Document Core change" {
+        It "returns the E-Document Core change as affecting the full connector/test/demo-data set" {
             $affected = Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $baseFolder -Graph $graph
-            $affected.Count | Should -Be 9
-            $affected | Should -Contain 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            # E-Document Core fans out to every connector, country demo-data, format and test app that depends on it.
+            # Derive the expected set from the graph (E-Document Core + all transitive dependents) so the
+            # assertion stays correct when new E-Document apps are added or removed.
+            $edocCoreId = 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            $expectedIds = [System.Collections.Generic.HashSet[string]]::new()
+            $bfsQueue = [System.Collections.Generic.Queue[string]]::new()
+            $bfsQueue.Enqueue($edocCoreId)
+            while ($bfsQueue.Count -gt 0) {
+                $current = $bfsQueue.Dequeue()
+                if ($expectedIds.Contains($current)) { continue }
+                [void]$expectedIds.Add($current)
+                foreach ($dep in $graph[$current].Dependents) {
+                    if (-not $expectedIds.Contains($dep)) { $bfsQueue.Enqueue($dep) }
+                }
+            }
+            $affected.Count | Should -Be $expectedIds.Count
+            $affected | Should -Contain $edocCoreId
         }
 
         It "includes all connectors and tests for E-Document Core change" {
@@ -312,15 +327,19 @@ Describe "BuildOptimization" {
             $affectedNames | Should -Contain 'E-Document Core'
         }
 
-        It "RunTestsInBcContainer scripts use Get-BaseFolder, not relative path resolution" {
+        It "RunTestsInBcContainer scripts delegate to Invoke-PerProjectTestRun, not relative path resolution" {
             $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot\..\..\projects").Path -Recurse -Filter 'RunTestsInBcContainer.ps1'
             $scripts.Count | Should -BeGreaterOrEqual 4
 
             foreach ($script in $scripts) {
                 $content = Get-Content $script.FullName -Raw
-                $content | Should -Match 'Get-BaseFolder' -Because "$($script.FullName) must use Get-BaseFolder for repo root"
+                $content | Should -Match 'Invoke-PerProjectTestRun' -Because "$($script.FullName) must delegate to Invoke-PerProjectTestRun, which resolves repo root via Get-BaseFolder"
                 $content | Should -Not -Match '\$baseFolder\s*=.*Join-Path.*\$PSScriptRoot' -Because "$($script.FullName) must not compute baseFolder via relative path"
             }
+
+            # The shared module that the per-project scripts delegate to must use Get-BaseFolder for repo root
+            $module = Get-Content (Resolve-Path "$PSScriptRoot\..\ParallelTestExecution.psm1").Path -Raw
+            $module | Should -Match 'Get-BaseFolder' -Because 'ParallelTestExecution.psm1 must resolve repo root via Get-BaseFolder'
         }
     }
 

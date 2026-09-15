@@ -1,0 +1,118 @@
+namespace Microsoft.DataMigration.GP;
+
+table 4095 "GP Item"
+{
+    ReplicateData = false;
+    Extensible = false;
+
+    fields
+    {
+        field(1; No; Code[75])
+        {
+            Caption = 'Item Number';
+            DataClassification = CustomerContent;
+        }
+        field(2; Description; Text[50])
+        {
+            Caption = 'Item Description';
+            DataClassification = CustomerContent;
+        }
+        field(3; SearchDescription; Code[50])
+        {
+            Caption = 'Search Description';
+            DataClassification = CustomerContent;
+        }
+        field(4; ShortName; Text[50])
+        {
+            Caption = 'Short Name';
+            DataClassification = CustomerContent;
+        }
+        field(5; BaseUnitOfMeasure; Code[10])
+        {
+            Caption = 'Base Unit of Measure';
+            DataClassification = CustomerContent;
+        }
+        field(6; ItemType; Integer)
+        {
+            Caption = 'Item Type';
+            DataClassification = CustomerContent;
+        }
+        field(7; CostingMethod; Text[50])
+        {
+            Caption = 'Costing Method';
+            DataClassification = CustomerContent;
+        }
+        field(8; CurrentCost; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Current Cost';
+            DataClassification = CustomerContent;
+        }
+        field(9; StandardCost; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Standard Cost';
+            DataClassification = CustomerContent;
+        }
+        field(10; UnitListPrice; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Unit List Price';
+            DataClassification = CustomerContent;
+        }
+        field(11; ShipWeight; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Shipping Weight';
+            DataClassification = CustomerContent;
+        }
+        field(12; InActive; Boolean)
+        {
+            Caption = 'Blocked';
+            DataClassification = CustomerContent;
+        }
+        field(13; QuantityOnHand; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Quantity on Hand';
+            DataClassification = CustomerContent;
+        }
+        field(14; SalesUnitOfMeasure; Code[10])
+        {
+            Caption = 'Sales Unit of Measure';
+            DataClassification = CustomerContent;
+        }
+        field(15; PurchUnitOfMeasure; Code[10])
+        {
+            Caption = 'Purchase Unit of Measure';
+            DataClassification = CustomerContent;
+        }
+        field(16; ItemTrackingCode; Code[10])
+        {
+            Caption = 'Item Tracking Code';
+            DataClassification = CustomerContent;
+        }
+        field(17; ITEMNMBR; Text[31])
+        {
+            Caption = 'ITEMNMBR';
+            DataClassification = CustomerContent;
+        }
+    }
+
+    keys
+    {
+        key(Key1; No)
+        {
+            Clustered = true;
+        }
+    }
+
+    fieldgroups
+    {
+    }
+
+    internal procedure ShouldSetPostingGroup(): Boolean
+    begin
+        exit(Rec.ItemType in [0, 2]);
+    end;
+}

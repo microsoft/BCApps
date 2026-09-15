@@ -1,0 +1,1435 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GroupingCategoryCode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="Grouping_Category_Code.xsd">
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.05.0.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Forfalte premier, brutto</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.05.0.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avgitte gjenforsikringspremier (negativt fortegn hvis kostnad)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.07.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Overføring av premiereserve, pensjonskapital mv. fra andre</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.10.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Renteinntekter mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.35.1.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte og andel av over-/ under-skudd, samt renter på obligasjons- og pengemarkedsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.1.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer (negativ hvis netto negative verdiendringer)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.1.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap (negativ hvis netto realisert tap)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.45.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Provisjoner og administrasjonsgebyrer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.55.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Driftsinntekter faste eiendommer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.65.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Øvrige forsikringsrelaterte inntekter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.00.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Øvrige inntekter i teknisk regnskap</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.05.0.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Erstatninger, Utbetalte erstatninger brutto</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.05.0.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Erstatninger, Gjenforsikringsandel</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.07.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Overføring av premiereserve og pensjonskapital mv. til andre forsikr-ingsforetak/pensjonskasser</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.08.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Resultatførte endringer i forsikringsforpliktelser (negativt fortegn hvis inntekt)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.09.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Midler tilordnet forsikringskontraktene</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.10.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Rentekostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.00.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Forsikringsrelaterte driftskostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.00.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Øvrige kostnader teknisk regnskap</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.10.1.21.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Renteinntekter mv., Bankinnskudd</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.10.1.40.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Renteinntekter mv., Rentebærende verdipapirer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.10.2.55.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Renteinntekter mv., Utlån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.10.0.88.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Renteinntekter mv., Finansielle derivater</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.10.0.91.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Renteinntekter mv., Andre finansielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.35.1.36.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte og andel av over-/underskudd, Aksjer, andeler og egenkapitalbevis, Obligasjons- og pengemarkedsfond, renter av andeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.35.1.36.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte og andel av over-/underskudd, Aksjer, andeler og egenkapitalbevis, Eiendomsselskaper, utbytte og konsernbidrag</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.35.1.36.70</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte og andel av over-/underskudd, Aksjer, andeler og egenkapitalbevis, resultatandel,Ek-.metoden (kan være negativ)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.35.1.36.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte og andel av over-/underskudd, Aksjer, andeler og egenkapitalbevis, Andre aksjer, utbytte og konsernbidrag</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.35.1.89.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte og andel av over-/underskudd, Andre verdipapirer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.1.36.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Aksjer, andeler og egenkapitalbevis, Obligasjons-/pengemarkedsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.1.36.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Aksjer, andeler og egenkapitalbevis, Eiendomsselskaper/-fond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.1.36.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Aksjer, andeler og egenkapitalbevis, Andre aksjer og fond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.1.40.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Rentebærende verdipapirer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.2.55.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Utlån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.4.85.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto positive verdiendringer, Immaterielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.4.85.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto negative verdiendringer, Immaterielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.5.86.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Bygninger og annen fast eiendom</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.5.87.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, maskiner, inventar og transportmidler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.0.88.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Finansielle derivater</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.60.0.91.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, Andre finansielle eiendeler/gjeld</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.1.36.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Aksjer, andeler og egenkapitalbevis, Obligasjons/-pengemarkedsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.1.36.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Aksjer, andeler og egenkapitalbevis, Eiendomsselskaper/-fond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.1.36.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Aksjer, andeler og egenkapitalbevis, Andre aksjer og fond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.1.40.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, rentebærende verdipapirer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.4.85.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Immaterielle eiendeler, realisert gevinst</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.4.85.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Immaterielle eiendeler, realisert tap</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.5.86.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Bygninger og annen fast eiendom</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.5.87.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto verdiendringer, maskiner, inventar og transportmidler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.0.88.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Finansielle derivater</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.70.0.91.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Netto realisert gevinst/tap, Andre finansielle eiendeler/gjeld</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.45.0.88.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Provisjoner og administrasjonsgebyrer, Provisjoner av finansielle tjenester (fulltegningsgarantiprovisjoner mv.)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.55.0.00.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Driftsinntekter faste eiendommer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.65.0.00.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Øvrige forsikringsrelaterte inntekter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.65.0.00.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Rente på skatt og andre inntekter i ikke-teknisk regnskap</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.10.8.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Rentekostnader, Ansvarlig lånekapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.10.0.88</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Rentekostnader, Finansielle derivater</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.10.0.91</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Rentekostnader, Andre finansielle forpliktelser</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.45.0.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Provisjoner, kurtasje mv., Provisjoner til agenter mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.45.0.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Provisjoner, kurtasje mv., Avgitt provisjoner for mottatt gjenforsikring (negativt fortegn hvis inntekt)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.45.0.30</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Provisjoner, kurtasje mv., Mottatte provisjoner for avgitt gjenforsikring og gevinstandeler (negativt fortegn hvis inntekt)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.45.0.88</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Provisjoner, kurtasje mv., Kurtasje mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.50.0.05</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader, Lønn og feriepenger til ansatte</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.50.0.21</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader, Arbeidsgiveravgift</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.50.0.28</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader, Pensjonskostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.50.0.50</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Lønns- og personalkostnader, Andre personalkostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.52.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Honorarer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.55.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Driftskostnader faste eiendommer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.65.0.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre ordinære driftskostnader, Leie og driftskostnader vedr. lokaler og maskiner mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.65.0.88</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre forsikringsrelaterte driftskostnader og kostnader knyttet til finansielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.71.4.85</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avskrivninger, Immaterielle eiendeler mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.71.5.86</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avskrivninger, Bygninger og annen fast eiendom</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.71.5.87</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avskrivninger, Maskiner, inventar og transportmidler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>6.65.0.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Emisjonskostnader, rente på skatt og andre kostnader i ikke-teknisk regnskap</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.05.0.05</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Skattekostnader, Periodeskatt</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.05.0.11</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Skattekostnader, For lite/mye(-) avsatt skatt  tidligere år (kan være negativ)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.05.0.92</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Skattekostnader, øvrig endring i forpliktelse ved utsatt skatt</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.91.0.30</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Estimatendinger knyttet til ytelsesbaserte pensjonsordninger</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.91.0.60</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fra finansielle eiendeler og forpliktelser</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.91.0.71</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Verdireguleringer på eiendom, anlegg og utstyr</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.91.0.72</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fra andre ikke-finansielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.91.0.80</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Justering av forsikringsforpliktelsene -  kun livsforsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.91.7.89</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Skatt på andre inntekter og kostnader som ikke blir omklassifisert</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.92.0.21</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Gevinster og tap på finansielle eiendeler tilgjengelig for salg</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.92.0.40</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Effektiv andel av nettogev. på sikrings-instrumenter i kontantstrømsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.92.0.60</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fra andre finansielle eiendeler og forpliktelser</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.92.0.70</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fra ikke-finansielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.92.0.80</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Justering av forsikringsforpliktelsene, kun livsforsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.92.7.89</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Skatt på andre inntekter og kostnader som kan bli omklassifisert</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.15.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Sedler og skillemynt</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.21.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Bankinnskudd</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.21</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Aksjer, ekskl. aksjer i eiendomsselskaper</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.22</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Aksjer i eiendomsselskaper</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.31</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i KS og ansvarlige selskaper, ekskl. andeler i eiendomsselskaper</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.32</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i eiendomsselskaper</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.33</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i indre eiendomsselskaper</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.34</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i andre indre selskaper (IS)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.82</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i aksjefond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.84</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i obligasjonsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.86</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i pengemarkedsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.88</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i kombinasjonsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.89</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andeler i andre fond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.36.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Egenkapitalbevis</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.40.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Rentebærende verdipapirer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.88.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Finansielle derivater</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>1.89.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre verdipapirer/finansielle eiendeler ekskl. utlån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.55.37</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utlån - Med pant i bolig</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.55.42</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utlån - Andre pantelån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.55.88</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utlån - Verdipapir-/ repolån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>2.55.92</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utlån - Andre utlån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.08.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Gjenforsikringsandel av forsikrings-forpliktelser i livsforsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.26.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Gjenforsikringsandel av ikke opptjent bruttopremie</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.27.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Gjenforsikringsandel av brutto erstatningsavsetning</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.62.70</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Opptjente, ikke forfalte leieinntekter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.62.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Opptjente, ikke forfalte andre inntekter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.63.50</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Forskuddsbetalte direkte salgskostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.63.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Forskuddsbetalte andre kostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.73.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">I regning med filial</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.75.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre fordringer - Tegnet, ikke innbetalt kapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.75.31</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre fordringer - Vedr. dir. forsikring, forsikringstakere</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.75.32</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre fordringer - Vedr. direkte forsikring, mellommenn</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.75.40</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre fordringer - Vedrørende gjenforsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.75.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre fordringer - Andre fordringer ellers</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.84.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Eiendeler ved skatt (utsatt skattefordel)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.89.50</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre eiendeler - Gjenforsikringsdepoter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>3.89.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre eiendeler - øvrige</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.85.11</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Immaterielle eiendeler - Goodwill</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>4.85.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Immaterielle eiendeler - Andre immaterielle eiendeler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.86.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Bygninger og annen fast eiendom, ekskl. aksjer i eiendomsselskaper- Investeringseiendommer</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.86.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Bygninger og annen fast eiendom, ekskl. aksjer i eiendomsselskaper- Eierbenyttet eiendom</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>5.87.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Maskiner, inventar og transportmidler</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.55.88</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Lån - Verdipapir-/repolån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.55.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Lån - Likviditetslån</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.62.80</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Påløpte, ikke forfalte kostnader - Lønn, ferielønn, honorarer o.l</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.62.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Påløpte, ikke forfalte kostnader - Andre kostnader</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.63.70</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Mottatte, ikke opptjente inntekter - Leieinntekter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.63.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Mottatte, ikke opptjente inntekter - Andre inntekter</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.71.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte, konsernbidrag o.l - Utbytte/ egenkapitalbevisrenter siste år</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.71.50</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Utbytte, konsernbidrag o.l - Konsernbidrag siste år</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.73.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">I regning med filial</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.75.30</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen gjeld - Vedrørende direkte forsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.75.40</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen gjeld - Vedrørende gjenforsikring</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.75.50</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen gjeld - Premiedepot fra gjenforsikr.foretak</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.75.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen gjeld - Annen gjeld ellers</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.88.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Finansielle derivater</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.90.11</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avsetninger o.l. - Periodeskatt (kan være negativ)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.90.13</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avsetninger o.l. - Forpliktelse ved utsatt skatt knyttet til forsikringsforpliktelser/forsikringstekniske avsetninger under egenkapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.90.15</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avsetninger o.l. - Andre forpliktelser ved utsatt skatt</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.90.70</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avsetninger o.l. - Pensjonsforpliktelser</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>7.75.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Avsetninger o.l. - Andre avsetninger</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.01.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Premiereserve og pensjonskapital mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.02.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Tilleggsavsetninger</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.03.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Kursreguleringsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.06.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Premiefond / innskuddsfond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.07.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fond for regulering av pensjoner mv.</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.09.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre tekniske avsetninger for skadeforsikringsvirksomheten</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.19.00</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Ufordelte overskuddsmidler til forsikringskontraktene</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.42.11</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Ansvarlig lånekapital i form av rentebærende omsettelige verdipapirer, netto - Evigvarende</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.42.22</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Ansvarlig lånekapital i form av rentebærende omsettelige verdipapirer, netto - Ordinære ikke-konvertible</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.42.24</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Ansvarlig lånekapital i form av rentebærende omsettelige verdipapirer, netto - Konvertible</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.49.11</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fondsobligasjoner - Evigvarende</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.55.11</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre ansvarlige lån - Evigvarende</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>8.55.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Andre ansvarlige lån - Andre</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.92.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Selskapskapital - Aksjekapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.92.12</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Selskapskapital - Eierandelskapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.92.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Selskapskapital - Garantifond</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.92.30</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Selskapskapital - Egne aksjer (negativ)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.92.32</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Selskapskapital - Egne eierandelskapital (negativ)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.93.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen innskutt egenkapital - Overkurs</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.93.25</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen innskutt egenkapital - Egenkapitalandel av sammensatte fin. Instrumenter o.a. egenkapitalinstrum</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.93.30</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen innskutt egenkapital - Annen innskutt egenkapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.93.49</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen innskutt egenkapital - Fondsobligasjonskapital</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.96.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fond mv. - Fond for vurderingsforskjeller</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.96.20</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fond mv. - Fond for urealiserte gevinster</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.96.30</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Fond mv. - Risikoutjevningsfond (liv)</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.98.10</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen opptjent egenkapital - Utbytte/grunnfondsbev.renter siste år</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.98.42</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen opptjent egenkapital - Renter på fondsobligasjoner siste år</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.98.50</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen opptjent egenkapital - Konsernbidrag siste år</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.98.90</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen opptjent egenkapital - øvrig</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+	<Account>
+		<GroupingCategory>RF-1501</GroupingCategory>
+		<CategoryDescription ISOLanguageCode="NOB">Næringsoppgave 6</CategoryDescription>
+		<CategoryDescription ISOLanguageCode="ENG">Income Statement 6</CategoryDescription>
+		<GroupingCode>9.98.99</GroupingCode>
+		<CodeDescription ISOLanguageCode="NOB">Annen opptjent egenkapital - Ikke disponert resultat (netto) - kun kvartal</CodeDescription>
+		<CodeDescription ISOLanguageCode="ENG">NA</CodeDescription>
+	</Account>
+</GroupingCategoryCode>

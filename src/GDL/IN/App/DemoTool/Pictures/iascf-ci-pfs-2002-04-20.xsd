@@ -1,0 +1,1518 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- V2 XBRL Taxonomy.  Created by XSI XBRL DOM. -->
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2001/instance" xmlns:link="http://www.xbrl.org/2001/XLink/xbrllinkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:iascf-pfs="http://www.xbrl.org/taxonomy/int/iascf/ci/pfs/2002-04-20" targetNamespace="http://www.xbrl.org/taxonomy/int/iascf/ci/pfs/2002-04-20" elementFormDefault="qualified">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="iascf-ci-pfs-2002-04-20-labels.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/linkprops/linkRef/label" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="iascf-ci-pfs-2002-04-20-references.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/linkprops/linkRef/reference" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="iascf-ci-pfs-2002-04-20-presentation.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/linkprops/linkRef/presentation" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="iascf-ci-pfs-2002-04-20-calculation.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/linkprops/linkRef/calculation" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" />
+      <link:linkbaseRef xlink:type="simple" xlink:href="iascf-ci-pfs-2002-04-20-definition.xml" xlink:actuate="onRequest" xlink:role="http://www.xbrl.org/linkprops/linkRef/definition" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" />
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2001/instance" schemaLocation="http://www.xbrl.org/2001/xbrl-instance.xsd" />
+  <element id="pls.ord.ttl" name="pls.ord.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="pls.ord.dto" name="pls.ord.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="pls.ord.cto" name="pls.ord.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="pls.ops.ttl" name="pls.ops.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>If entity does not have any discontinuing operations P/L from operating activities should be entered into the Total Profit (Loss) from Operations group</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.nat.ttl" name="pls.ops.nat.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended) This element is the same as "Profit (Loss) from continuing operations (by Function)"  May be tuple or weight=1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.nat.dto" name="pls.ops.nat.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended) This element is the same as "Profit (Loss) from continuing operations (by Function)" May be tuple or weight=1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.nat.cto" name="pls.ops.nat.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended) This element is the same as "Profit (Loss) from continuing operations (by Function)" May be tuple or weight=1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.fun.ttl" name="pls.ops.fun.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This element is the same as "Profit (Loss) from continuing operations (by Nature)". IAS recommended. May be tuple or weight=1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.fun.dto" name="pls.ops.fun.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended) This element is the same as "Profit (Loss) from continuing operations (by Nature)" May be tuple or weight=1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.fun.cto" name="pls.ops.fun.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This element is the same as "Profit (Loss) from continuing operations (by Nature)" May be tuple or weight=1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.dto" name="pls.ops.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>If entity does not have any discontinuing operations P/L from operating activities should be entered into the Total Profit (Loss) from Operations group</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.ops.cto" name="pls.ops.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>If entity does not have any discontinuing operations P/L from operating activities should be entered into the Total Profit (Loss) from Operations group</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.npl.apl.ttl" name="pls.npl.apl.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL Also from IS .sameAs3</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.npl.apl" name="pls.npl.apl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL Also from IS .sameAs3</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.npl" name="pls.npl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>The "transferred to equity" commentary is a best practice addition. This element will flow through to the changes of equity statement. .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="pls.atx.ttl" name="pls.atx.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="pls.atx.dto" name="pls.atx.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="pls.atx.cto" name="pls.atx.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="pls.atx" name="pls.atx" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="nas.mni" name="nas.mni" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.net" name="lia.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.prv" name="lia.ncr.prv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.pay.otr" name="lia.ncr.pay.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.otr" name="lia.ncr.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.net" name="lia.ncr.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.dtl" name="lia.ncr.dtl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.dic" name="lia.ncr.dic" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.brw.nib" name="lia.ncr.brw.nib" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.ncr.brw.ibr" name="lia.ncr.brw.ibr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.eqy" name="lia.eqy" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.trp.otr" name="lia.cur.trp.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.prv" name="lia.cur.prv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.otr" name="lia.cur.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.net" name="lia.cur.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.dic" name="lia.cur.dic" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.ctl" name="lia.cur.ctl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="lia.cur.brw" name="lia.cur.brw" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ist" name="ist" type="xbrli:stringItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.tax.ttl" name="inx.tax.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.tax.dto" name="inx.tax.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.tax.cto" name="inx.tax.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.mni.net.cfl" name="inx.mni.net.cfl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Link to income statement discloures .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inx.mni.net" name="inx.mni.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>.sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inx.fna.ttl" name="inx.fna.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.fna.dto" name="inx.fna.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.fna.cto" name="inx.fna.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.exi" name="inx.exi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Extraordinary item of income or expense</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inx.eqm.ttl" name="inx.eqm.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.eqm.cto" name="inx.eqm.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.dsp.dto.ttl" name="inx.dsp.dto.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inx.dsp.dto" name="inx.dsp.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="inc.rev.ttl" name="inc.rev.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Revenue in the by Function section .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.rev.gpt.ttl" name="inc.rev.gpt.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Revenue in the by Nature section .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.rev.gpt.dto" name="inc.rev.gpt.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Revenue in the by Nature section .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.rev.gpt.cto" name="inc.rev.gpt.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Revenue in the by Nature section .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.rev.dto" name="inc.rev.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Revenue in the by Function section .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.rev.cto" name="inc.rev.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Revenue in the by Function section .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.ops.ttl.otr" name="inc.ops.ttl.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element is the same as "Other operating income" by nature .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.ops.ttl.nat.otr" name="inc.ops.ttl.nat.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element is the same as "Other operating income" by function .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.ops.dto.otr" name="inc.ops.dto.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element is the same as "Other operating income" by nature .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.ops.dto.nat.otr" name="inc.ops.dto.nat.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element is the same as "Other operating income" by function .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.ops.cto.otr" name="inc.ops.cto.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element is the same as "Other operating income" by nature .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.ops.cto.nat.otr" name="inc.ops.cto.nat.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element is the same as "Other operating income" by function .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.gpt.ttl" name="inc.gpt.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.gpt.dto" name="inc.gpt.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="inc.gpt.cto" name="inc.gpt.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="iascf.pfs" name="iascf.pfs" type="xbrli:stringItemType" substitutionGroup="xbrli:item" />
+  <element id="flw.rwm.ttl" name="flw.rwm.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.rwm.dto" name="flw.rwm.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.rwm.cto" name="flw.rwm.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.inv.fng.wip.ttl" name="flw.inv.fng.wip.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.inv.fng.wip.dto" name="flw.inv.fng.wip.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.inv.fng.wip.cto" name="flw.inv.fng.wip.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.ica.ttl" name="flw.ica.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.ica.dto" name="flw.ica.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="flw.ica.cto" name="flw.ica.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.rdc.ttl" name="exp.rdc.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.rdc.cto" name="exp.rdc.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.ops.nat.ttl.otr" name="exp.ops.nat.ttl.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This includes the remaining by nature expenses</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.ops.nat.dto.otr" name="exp.ops.nat.dto.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This includes the remaining by nature expenses</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.ops.nat.cto.otr" name="exp.ops.nat.cto.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This includes the remaining by nature expenses</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.ops.fun.ttl.otr" name="exp.ops.fun.ttl.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This includes the remaining operating expenses by function</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.ops.fun.dto.otr" name="exp.ops.fun.dto.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This includes the remaining operating by function</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.ops.fun.cto.otr" name="exp.ops.fun.cto.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This includes the remaining operating by function</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.mkg.dcs.ttl" name="exp.mkg.dcs.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This element includes marketing for clarity purposes. The standard does not include this however the additional clarity is considered beneficial.</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.mkg.dcs.dto" name="exp.mkg.dcs.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This element includes marketing for clarity purposes. The standard does not include this however the additional clarity is considered beneficial.</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.mkg.dcs.cto" name="exp.mkg.dcs.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This element includes marketing for clarity purposes. The standard does not include this however the additional clarity is considered beneficial.</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.emp.ttl" name="exp.emp.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element was not named staff costs to ensure compliance with IAS 19 "Employee benefits"</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.emp.dto" name="exp.emp.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This element was not named staff costs to ensure compliance with IAS 19 "Employee benefits"</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.emp.cto" name="exp.emp.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This element was not named staff costs to ensure compliance with IAS 19 "Employee benefits"</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.dep.amz.ttl" name="exp.dep.amz.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.dep.amz.dto" name="exp.dep.amz.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.dep.amz.cto" name="exp.dep.amz.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.cgs.ttl" name="exp.cgs.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.cgs.dto" name="exp.cgs.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.cgs.cto" name="exp.cgs.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="exp.acs.ttl" name="exp.acs.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="exp.acs.dto" name="exp.acs.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="exp.acs.cto" name="exp.acs.cto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.tsh.end" name="eqy.tsh.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.tsh.beg" name="eqy.tsh.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.tsh" name="eqy.tsh" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.scp.end" name="eqy.scp.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.scp.beg" name="eqy.scp.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.scp.apc.ttl" name="eqy.scp.apc.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.rrv.prp" name="eqy.rrv.prp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.rrv.end" name="eqy.rrv.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.rrv.beg.net" name="eqy.rrv.beg.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.res.prp.otr" name="eqy.res.prp.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.res.end.otr" name="eqy.res.end.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.res.beg.net.otr" name="eqy.res.beg.net.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.prp.end.ttl" name="eqy.prp.end.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.tsh.acq.ttl" name="eqy.ofl.tsh.acq.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.tsh.acq" name="eqy.ofl.tsh.acq" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.ttl" name="eqy.ofl.scp.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.tfr.ttl" name="eqy.ofl.scp.tfr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.tfr" name="eqy.ofl.scp.tfr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.red.ttl" name="eqy.ofl.scp.red.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.red.net.ttl" name="eqy.ofl.scp.red.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.red.net" name="eqy.ofl.scp.red.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp.red" name="eqy.ofl.scp.red" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.scp" name="eqy.ofl.scp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.rrv.urz.rvs.ipl.ttl" name="eqy.ofl.rrv.urz.rvs.ipl.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.ofl.rrv.urz.rvs.ipl" name="eqy.ofl.rrv.urz.rvs.ipl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.ofl.rrv.urz.ipl.ttl" name="eqy.ofl.rrv.urz.ipl.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.rrv.urz.ipl" name="eqy.ofl.rrv.urz.ipl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.apc.trc" name="eqy.ofl.apc.trc" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.apc.red.net" name="eqy.ofl.apc.red.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.apc.red" name="eqy.ofl.apc.red" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ofl.apc" name="eqy.ofl.apc" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.net" name="eqy.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.isc.res" name="eqy.isc.res" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.tsh.net.ttl" name="eqy.ifl.tsh.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.tsh.net" name="eqy.ifl.tsh.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.otr.ttl" name="eqy.ifl.scp.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.otr" name="eqy.ifl.scp.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.opt.ttl" name="eqy.ifl.scp.opt.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.opt" name="eqy.ifl.scp.opt" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.net.ttl" name="eqy.ifl.scp.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.net" name="eqy.ifl.scp.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.ebp.ttl" name="eqy.ifl.scp.ebp.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.ebp" name="eqy.ifl.scp.ebp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.cnv.ttl" name="eqy.ifl.scp.cnv.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.cnv" name="eqy.ifl.scp.cnv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.acq.ttl" name="eqy.ifl.scp.acq.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.scp.acq" name="eqy.ifl.scp.acq" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.tfr.ttl" name="eqy.ifl.cpl.tfr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.tfr" name="eqy.ifl.cpl.tfr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.red.ttl" name="eqy.ifl.cpl.red.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.red" name="eqy.ifl.cpl.red" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.otr.ttl" name="eqy.ifl.cpl.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.otr" name="eqy.ifl.cpl.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.add.ttl" name="eqy.ifl.cpl.add.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.cpl.add" name="eqy.ifl.cpl.add" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.apc.net" name="eqy.ifl.apc.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.acp.otr" name="eqy.ifl.acp.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.acp.opt" name="eqy.ifl.acp.opt" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.acp.ebp" name="eqy.ifl.acp.ebp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.acp.cnv" name="eqy.ifl.acp.cnv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.ifl.acp.acq" name="eqy.ifl.acp.acq" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.hgr.prp" name="eqy.hgr.prp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.hgr.end" name="eqy.hgr.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.hgr.beg.net" name="eqy.hgr.beg.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.fxr.prp" name="eqy.fxr.prp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.fxr.end" name="eqy.fxr.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.fxr.beg.net" name="eqy.fxr.beg.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.tsh.otr.ttl" name="eqy.flw.tsh.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.tsh.otr" name="eqy.flw.tsh.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.tsh.net.ttl" name="eqy.flw.tsh.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.tsh.net" name="eqy.flw.tsh.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.scp.otr.ttl" name="eqy.flw.scp.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.scp.otr" name="eqy.flw.scp.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.scp.net" name="eqy.flw.scp.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>This will be repeated in the notes as ordinary preferred and (this) total share capital</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.urz.ppe.ttl" name="eqy.flw.rrv.urz.ppe.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.urz.ppe" name="eqy.flw.rrv.urz.ppe" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.urz.net.ttl.FIX" name="eqy.flw.rrv.urz.net.ttl.FIX" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Total Unrecognized Revaluation Reserves .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.urz.net" name="eqy.flw.rrv.urz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as Total Unrecognized Revaluation Reserves .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.urz.afs.ttl" name="eqy.flw.rrv.urz.afs.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.urz.afs" name="eqy.flw.rrv.urz.afs" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.rgz.ttl" name="eqy.flw.rrv.rgz.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.rgz.net.ttl" name="eqy.flw.rrv.rgz.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.rrv.rgz.net" name="eqy.flw.rrv.rgz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.rrv.rgz" name="eqy.flw.rrv.rgz" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.rrv.net.ttl" name="eqy.flw.rrv.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.rrv.net" name="eqy.flw.rrv.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.res.tfr.otr.ttl" name="eqy.flw.res.tfr.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.res.tfr.otr" name="eqy.flw.res.tfr.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.res.otr.ttl" name="eqy.flw.res.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.res.otr" name="eqy.flw.res.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.res.net.otr.ttl" name="eqy.flw.res.net.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.res.net.otr" name="eqy.flw.res.net.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.res.dcs.otr.ttl" name="eqy.flw.res.dcs.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.res.dcs.otr" name="eqy.flw.res.dcs.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.hgr.urz.net.ttl.FIX" name="eqy.flw.hgr.urz.net.ttl.FIX" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>.sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.hgr.urz.net" name="eqy.flw.hgr.urz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>.sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.hgr.urz.hdg.ttl" name="eqy.flw.hgr.urz.hdg.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.hgr.urz.hdg" name="eqy.flw.hgr.urz.hdg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.hgr.tfr.ttl" name="eqy.flw.hgr.tfr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.hgr.tfr" name="eqy.flw.hgr.tfr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.hgr.rgz.ttl" name="eqy.flw.hgr.rgz.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.hgr.rgz.net.ttl" name="eqy.flw.hgr.rgz.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.hgr.rgz.net" name="eqy.flw.hgr.rgz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.hgr.rgz" name="eqy.flw.hgr.rgz" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.hgr.net.ttl" name="eqy.flw.hgr.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.hgr.net" name="eqy.flw.hgr.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.fxr.urz.net.ttl.FIX" name="eqy.flw.fxr.urz.net.ttl.FIX" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>.sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.fxr.urz.net" name="eqy.flw.fxr.urz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>.sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.fxr.urz.fxm.ttl" name="eqy.flw.fxr.urz.fxm.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.fxr.urz.fxm" name="eqy.flw.fxr.urz.fxm" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Same as in SRGL</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.fxr.rgz.ttl" name="eqy.flw.fxr.rgz.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.fxr.rgz.net.ttl" name="eqy.flw.fxr.rgz.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.fxr.rgz.net" name="eqy.flw.fxr.rgz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.fxr.rgz" name="eqy.flw.fxr.rgz" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.fxr.net.ttl" name="eqy.flw.fxr.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.fxr.net" name="eqy.flw.fxr.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.cpl.trc.ttl" name="eqy.flw.cpl.trc.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.cpl.trc" name="eqy.flw.cpl.trc" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.cpl.net.ttl" name="eqy.flw.cpl.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.cpl.net" name="eqy.flw.cpl.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.chg" name="eqy.flw.chg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apl.ttl" name="eqy.flw.apl.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apl.tfr.ttl" name="eqy.flw.apl.tfr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apl.tfr" name="eqy.flw.apl.tfr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apl.otr.ttl" name="eqy.flw.apl.otr.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apl.otr" name="eqy.flw.apl.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apl.net.ttl" name="eqy.flw.apl.net.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.apl.net" name="eqy.flw.apl.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.flw.apl" name="eqy.flw.apl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apc.otr" name="eqy.flw.apc.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.flw.apc.net" name="eqy.flw.apc.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.cpl.end" name="eqy.cpl.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.cpl.beg" name="eqy.cpl.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.beg.ttl.net" name="eqy.beg.ttl.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.apl.prp.end" name="eqy.apl.prp.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.apl.end" name="eqy.apl.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Retained Earnings</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.apl.beg.net" name="eqy.apl.beg.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.apc.end" name="eqy.apc.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>ending balance</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="eqy.apc.beg" name="eqy.apc.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.adj.rsm.beg.ttl" name="eqy.adj.rsm.beg.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.adj.rrv.rsm.beg" name="eqy.adj.rrv.rsm.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.adj.res.rsm.beg.otr" name="eqy.adj.res.rsm.beg.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.adj.hgr.rsm.beg" name="eqy.adj.hgr.rsm.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.adj.fxr.rsm.beg" name="eqy.adj.fxr.rsm.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eqy.adj.apl.rsm.beg" name="eqy.adj.apl.rsm.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eps.cto.ido" name="eps.cto.ido" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eps.cto.edo" name="eps.cto.edo" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="eps.cto" name="eps.cto" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" />
+  <element id="eps" name="eps" type="xbrli:stringItemType" substitutionGroup="xbrli:item" />
+  <element id="dps.cto.ido" name="dps.cto.ido" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="dps.cto.edo" name="dps.cto.edo" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="dps.cto" name="dps.cto" type="xbrli:decimalItemType" substitutionGroup="xbrli:item" />
+  <element id="cne.ttl" name="cne.ttl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cne" name="cne" type="xbrli:stringItemType" substitutionGroup="xbrli:item" />
+  <element id="cfs" name="cfs" type="xbrli:stringItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.pls.npl" name="cfl.pls.npl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>.sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ops.otr" name="cfl.ops.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) same as</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ops.ofl.tax" name="cfl.ops.ofl.tax" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) same as</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ops.net" name="cfl.ops.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ops.ifl.tax" name="cfl.ops.ifl.tax" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) same as</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ops.exi" name="cfl.ops.exi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) same as</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ofl.int.fna" name="cfl.ofl.int.fna" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ofl.int" name="cfl.ofl.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ofl.div.fna" name="cfl.ofl.div.fna" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ofl.div" name="cfl.ofl.div" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.otr" name="cfl.iva.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) may be redundant in V2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.ofl.org" name="cfl.iva.ofl.org" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.net" name="cfl.iva.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.ifl.org" name="cfl.iva.ifl.org" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.exi" name="cfl.iva.exi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.trd" name="cfl.iva.dsp.trd" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.iva.dsp.sub" name="cfl.iva.dsp.sub" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.ppe" name="cfl.iva.dsp.ppe" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.net" name="cfl.iva.dsp.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>May want to add "Cash" to each item as a preface</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.jce" name="cfl.iva.dsp.jce" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) Net of cash if proportionately consolidate or gross of cash if equity accounting</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.ivp" name="cfl.iva.dsp.ivp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.int" name="cfl.iva.dsp.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.htm" name="cfl.iva.dsp.htm" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.bia" name="cfl.iva.dsp.bia" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.ast.otr" name="cfl.iva.dsp.ast.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.asc" name="cfl.iva.dsp.asc" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.dsp.afs" name="cfl.iva.dsp.afs" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.trd" name="cfl.iva.acq.trd" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.iva.acq.sub" name="cfl.iva.acq.sub" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.ppe" name="cfl.iva.acq.ppe" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.net" name="cfl.iva.acq.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>May want to add "Cash" to each item as a preface</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.jce" name="cfl.iva.acq.jce" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) Note: Net of cash if proportionately consolidate or gross of cash if equity accounting</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.ivp" name="cfl.iva.acq.ivp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.int" name="cfl.iva.acq.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.ica" name="cfl.iva.acq.ica" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) - self constructed assets</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.htm" name="cfl.iva.acq.htm" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.bia" name="cfl.iva.acq.bia" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.ast.otr" name="cfl.iva.acq.ast.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.asc" name="cfl.iva.acq.asc" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.iva.acq.afs" name="cfl.iva.acq.afs" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ifl.int.iva" name="cfl.ifl.int.iva" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ifl.int" name="cfl.ifl.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) same as</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ifl.div.iva" name="cfl.ifl.div.iva" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.ifl.div" name="cfl.ifl.div" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory) .sameAs1</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fxm" name="cfl.fxm" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.otr" name="cfl.fna.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ofl.tsh" name="cfl.fna.ofl.tsh" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ofl.net" name="cfl.fna.ofl.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.fna.ofl.lse" name="cfl.fna.ofl.lse" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.fna.ofl.eqi" name="cfl.fna.ofl.eqi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ofl.din" name="cfl.fna.ofl.din" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ofl.cfi" name="cfl.fna.ofl.cfi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.net" name="cfl.fna.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ifl.tsh" name="cfl.fna.ifl.tsh" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.fna.ifl.net" name="cfl.fna.ifl.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(exhaustive list)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ifl.eqi" name="cfl.fna.ifl.eqi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ifl.din" name="cfl.fna.ifl.din" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.ifl.cfi" name="cfl.fna.ifl.cfi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.exi" name="cfl.fna.exi" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Mandatory)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.fna.bod" name="cfl.fna.bod" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.cim.pre.wkp.net" name="cfl.cim.pre.wkp.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.net" name="cfl.cim.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.wck.otr" name="cfl.cim.chg.wck.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.wck.net" name="cfl.cim.chg.wck.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.trd" name="cfl.cim.chg.trd" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.rec" name="cfl.cim.chg.rec" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.pay" name="cfl.cim.chg.pay" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.inv" name="cfl.cim.chg.inv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.chg.csc.wip" name="cfl.cim.chg.csc.wip" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.otr" name="cfl.cim.adj.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.net" name="cfl.cim.adj.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.inx.tax" name="cfl.cim.adj.inx.tax" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Link to income statement disclsoures</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.inc.int" name="cfl.cim.adj.inc.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Alternative Disclosure label "Investment Income"</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.inc.div" name="cfl.cim.adj.inc.div" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.imp.rvs" name="cfl.cim.adj.imp.rvs" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) Other Refs  IAS 38 107(e)(iv) and (v) IAS 22 88(e)(vi) and (vii). This item will need links to numerous notes e.g. PPE intangible assets financial instruments etc.</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fxm.ulz" name="cfl.cim.adj.fxm.ulz" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) This is not foreign exchange effect on cash.</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.trd" name="cfl.cim.adj.fvl.ulz.trd" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.net" name="cfl.cim.adj.fvl.ulz.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.ivp" name="cfl.cim.adj.fvl.ulz.ivp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) This should link to the notes</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.hfi.net" name="cfl.cim.adj.fvl.ulz.hfi.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) This element may represent one or more of the child elements</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.hdg.fvr" name="cfl.cim.adj.fvl.ulz.hdg.fvr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.hdg.cfl" name="cfl.cim.adj.fvl.ulz.hdg.cfl" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) Link to note disclosure</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.hdg" name="cfl.cim.adj.fvl.ulz.hdg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.cim.adj.fvl.ulz.bia" name="cfl.cim.adj.fvl.ulz.bia" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.fvl.ulz.afs" name="cfl.cim.adj.fvl.ulz.afs" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) This must only appear in the CF statement if changes in fair value appear in the income statement Link to notes</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.eqm" name="cfl.cim.adj.eqm" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Link to income statement</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.dsp.ppe" name="cfl.cim.adj.dsp.ppe" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="cfl.cim.adj.dsp.int" name="cfl.cim.adj.dsp.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Link to notes</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.dsp.fia" name="cfl.cim.adj.dsp.fia" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.dsp.dto" name="cfl.cim.adj.dsp.dto" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Link to income statement disclosures.</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.dep" name="cfl.cim.adj.dep" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) Children are required for depreciation of PPE by class.  Link to note disclsoures</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.chg.prv" name="cfl.cim.adj.chg.prv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.chg.dic" name="cfl.cim.adj.chg.dic" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) e.g amortisation of lease incentives</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cim.adj.amz" name="cfl.cim.adj.amz" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice) Other refs including IAS 22 88(e)(v)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cdm.net" name="cfl.cdm.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cfl.cce.net" name="cfl.cce.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cce.ofl.cdm.vnd.cus.net" name="cce.ofl.cdm.vnd.cus.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cce.ofl.cdm.vnd" name="cce.ofl.cdm.vnd" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cce.ofl.cdm.emp" name="cce.ofl.cdm.emp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Best Practice)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="cce.ifl.cdm.cus" name="cce.ifl.cdm.cus" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(IAS Recommended)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="bst" name="bst" type="xbrli:stringItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.net" name="ast.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.trr.otr" name="ast.ncr.trr.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.sub" name="ast.ncr.sub" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.ppe" name="ast.ncr.ppe" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.otr" name="ast.ncr.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.net" name="ast.ncr.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.ivp" name="ast.ncr.ivp" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.int" name="ast.ncr.int" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.fia.otr" name="ast.ncr.fia.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.eqm" name="ast.ncr.eqm" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.dta" name="ast.ncr.dta" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.bia" name="ast.ncr.bia" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.ncr.asc" name="ast.ncr.asc" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cur.trr.otr" name="ast.cur.trr.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cur.otr" name="ast.cur.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cur.net" name="ast.cur.net" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cur.inv" name="ast.cur.inv" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cur.fia.otr" name="ast.cur.fia.otr" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cur.cta" name="ast.cur.cta" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>Changed 2002-01-31 from "Current Income Tax Assets"</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="ast.cur.cce" name="ast.cur.cce" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" />
+  <element id="ast.cce.end" name="ast.cce.end" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item) Same As link in V2</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="ast.cce.beg" name="ast.cce.beg" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item">
+    <annotation>
+      <appinfo>
+        <documentation>(Reconciling Item)</documentation>
+      </appinfo>
+    </annotation>
+  </element>
+  <element id="Name" name="Name" type="string" substitutionGroup="link:part" />
+  <element id="Number" name="Number" type="string" substitutionGroup="link:part" />
+  <element id="Chapter" name="Chapter" type="string" substitutionGroup="link:part" />
+  <element id="Paragraph" name="Paragraph" type="string" substitutionGroup="link:part" />
+  <element id="Subparagraph" name="Subparagraph" type="string" substitutionGroup="link:part" />
+</schema>

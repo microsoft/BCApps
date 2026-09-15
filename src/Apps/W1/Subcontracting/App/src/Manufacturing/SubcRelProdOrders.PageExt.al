@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
+pageextension 20505 "Subc. Rel. Prod. Orders" extends "Released Production Orders"
 {
     actions
     {
@@ -22,9 +22,6 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                 RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("No.");
                 ToolTip = 'Show purchase order lines for subcontracting.';
             }
-        }
-        addafter("&Warehouse Entries")
-        {
             action("Subc. Transfer Orders")
             {
                 ApplicationArea = Subcontracting;
@@ -39,6 +36,9 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                     SubcPurchFactboxMgmt.ShowTransferOrdersFromProductionOrder(Rec);
                 end;
             }
+        }
+        addafter("&Warehouse Entries")
+        {
             action("Subc. Transfer Entries")
             {
                 ApplicationArea = Subcontracting;

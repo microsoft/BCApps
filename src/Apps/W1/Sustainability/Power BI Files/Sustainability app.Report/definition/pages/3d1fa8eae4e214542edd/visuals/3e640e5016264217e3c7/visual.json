@@ -1,0 +1,143 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "3e640e5016264217e3c7",
+  "position": {
+    "x": 651.80887372013649,
+    "y": 387.03071672354952,
+    "z": 3000,
+    "height": 307,
+    "width": 600.81911262798633,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Calendar Year-Month"
+                    }
+                  },
+                  "Level": "Calendar Year"
+                }
+              },
+              "queryRef": "Date.Calendar Year-Month.Calendar Year",
+              "nativeQueryRef": "Calendar Year-Month Calendar Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Calendar Year-Month"
+                    }
+                  },
+                  "Level": "Calendar Month Year"
+                }
+              },
+              "queryRef": "Date.Calendar Year-Month.Calendar Month Year",
+              "nativeQueryRef": "Calendar Year-Month Calendar Month Year",
+              "active": false
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Ledger Entries"
+                    }
+                  },
+                  "Property": "Purchased Carbon Credits"
+                }
+              },
+              "queryRef": "Sustainability Ledger Entries.Purchased Carbon Credits",
+              "nativeQueryRef": "Purchased Carbon Credits"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "dataPoint": [
+        {
+          "properties": {},
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "invertAxis": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "categoryAxis": [
+        {
+          "properties": {
+            "concatenateLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Carbon Credit by Month Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

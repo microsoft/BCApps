@@ -1,0 +1,48 @@
+table 'Sustainability Account Category'
+	lineageTag: c3ba4558-e02a-404b-b4a1-a2903520532a
+
+	column 'Sustainability Account Category Description'
+		dataType: string
+		lineageTag: 6b744939-6d03-4b1d-ae58-32a1709bba2b
+		summarizeBy: none
+		sourceColumn: Sustainability Account Category Description
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Category Code'
+		dataType: string
+		isKey
+		lineageTag: ef380ee9-f918-4dcf-b5bf-b924227c40c2
+		summarizeBy: none
+		sourceColumn: Sustainability Account Category Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sustainability Account Category  Emission Scope'
+		dataType: string
+		lineageTag: de58ab2e-d6d1-4006-8b10-2a1eab736a7f
+		summarizeBy: none
+		sourceColumn: Sustainability Account Category  Emission Scope
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sustainability Account Category-94274dc9-2281-4ba8-adae-86acd137ae3a' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiSustainabilityAccountCategories",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"code", "Sustainability Account Category Code"}, {"description", "Sustainability Account Category Description"}, {"emissionScope", "Sustainability Account Category  Emission Scope"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

@@ -1,0 +1,1476 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by VI (GNIVC FNS RF) -->
+<!-- edited with XMLSPY v2004 rel. 4 U (http://www.xmlspy.com) by Home (Home) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="Файл">
+		<xs:annotation>
+			<xs:documentation>Файл обмена</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Документ">
+					<xs:annotation>
+						<xs:documentation>Состав и структура документа</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СвНП">
+								<xs:annotation>
+									<xs:documentation>Сведения о налогоплательщике</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:choice>
+										<xs:element name="НПЮЛ">
+											<xs:annotation>
+												<xs:documentation>Налогоплательщик - юридическое лицо</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НаимОрг" use="required">
+													<xs:annotation>
+														<xs:documentation>Наименование организации</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="1000"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ИННЮЛ" type="ИННЮЛТип" use="required">
+													<xs:annotation>
+														<xs:documentation>ИНН организации</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="КПП" type="КППТип" use="required">
+													<xs:annotation>
+														<xs:documentation>КПП</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="НПФЛ">
+											<xs:annotation>
+												<xs:documentation>Налогоплательщик - физическое лицо</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="ФИО" type="ФИОТип">
+														<xs:annotation>
+															<xs:documentation>Фамилия, имя, отчество физического лица</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="ИННФЛ" type="ИННФЛТип" use="required">
+													<xs:annotation>
+														<xs:documentation>ИНН физического лица</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:choice>
+									<xs:attribute name="ОКВЭД" type="ОКВЭДТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКВЭД </xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="Тлф" use="optional">
+										<xs:annotation>
+											<xs:documentation>Номер контактного телефона</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="20"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Подписант">
+								<xs:annotation>
+									<xs:documentation>Сведения о лице, подписавшем документ</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ФИО" type="ФИОТип" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Фамилия, Имя, Отчество</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="СвПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Сведения о представителе налогоплательщика</xs:documentation>
+												<xs:documentation>Обязательно для «ПрПодп»=2</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НаимДок" use="required">
+													<xs:annotation>
+														<xs:documentation>Наименование документа, подтверждающего полномочия представителя налогоплательщика </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="120"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НаимОрг" use="optional">
+													<xs:annotation>
+														<xs:documentation>Наименование организации </xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="1000"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ПрПодп" use="required">
+										<xs:annotation>
+											<xs:documentation>Признак лица, подписавшего документ</xs:documentation>
+											<xs:documentation>Принимает значение:
+1 – налогоплательщик   |
+2 – представитель налогоплательщика</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="1"/>
+												<xs:enumeration value="2"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element ref="НДС"/>
+						</xs:sequence>
+						<xs:attribute name="КНД" use="required">
+							<xs:annotation>
+								<xs:documentation>Код формы отчетности по КНД</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="КНДТип">
+									<xs:enumeration value="1151001"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДатаДок" type="ДатаТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Дата формирования документа</xs:documentation>
+								<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="Период" use="required">
+							<xs:annotation>
+								<xs:documentation>Налоговый период (код)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="2"/>
+									<xs:enumeration value="21"/>
+									<xs:enumeration value="22"/>
+									<xs:enumeration value="23"/>
+									<xs:enumeration value="24"/>
+									<xs:enumeration value="51"/>
+									<xs:enumeration value="54"/>
+									<xs:enumeration value="55"/>
+									<xs:enumeration value="56"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ОтчетГод" type="xs:gYear" use="required">
+							<xs:annotation>
+								<xs:documentation>Отчетный год</xs:documentation>
+								<xs:documentation>
+Год в формате ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="КодНО" type="СОНОТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Код налогового органа</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="НомКорр" use="required">
+							<xs:annotation>
+								<xs:documentation>Номер корректировки</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+									<xs:maxLength value="3"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ПоМесту" use="required">
+							<xs:annotation>
+								<xs:documentation>Код места, по которому представляется документ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="3"/>
+									<xs:enumeration value="400"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="ИдФайл" use="required">
+				<xs:annotation>
+					<xs:documentation>Идентификатор файла</xs:documentation>
+					<xs:documentation>Повторяет имя передаваемого файла (без расширения)</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="100"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ВерсПрог" use="required">
+				<xs:annotation>
+					<xs:documentation>Версия передающей программы</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="40"/>
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ВерсФорм" use="required">
+				<xs:annotation>
+					<xs:documentation>Версия формата</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="5"/>
+						<xs:enumeration value="5.01"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="НДС">
+		<xs:annotation>
+			<xs:documentation>Налоговая декларация по налогу на добавленную стоимость</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="СумУплНП">
+					<xs:annotation>
+						<xs:documentation>Сумма налога, подлежащая уплате в бюджет (возмещению из бюджета), по данным налогоплательщика</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="ОКАТО" type="ОКАТОТип" use="optional">
+							<xs:annotation>
+								<xs:documentation>Код по ОКАТО</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="КБК" type="КБКТип" use="optional">
+							<xs:annotation>
+								<xs:documentation>Код бюджетной классификации</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="СумПУ_173.5" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная к уплате в бюджет в соответствии с п. 5 ст. 173 НК РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумПУ_173.1" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная к уплате в бюджет (со знаком "-" исчисленная к возмещению из бюджета) в соответствии с п. 1 ст. 173 НК РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="СумУплНА" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Сумма налога, подлежащая уплате в бюджет, по данным налогового агента</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:choice>
+							<xs:element name="СведПродЮЛ" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Сведения о налогоплательщике - продавце (юридическом лице)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="НаимПрод" use="required">
+										<xs:annotation>
+											<xs:documentation>Наименование налогоплательщика - продавца</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="1000"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ИННЮЛПрод" type="ИННЮЛТип" use="optional">
+										<xs:annotation>
+											<xs:documentation>ИНН налогоплательщика - продавца</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="СведПродФЛ" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Сведения о налогоплательщике - продавце (физическом лице)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ФИОПрод" type="ФИОТип">
+											<xs:annotation>
+												<xs:documentation>Фамилия, имя, отчество налогоплательщика - продавца</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ИННФЛПрод" type="ИННФЛТип" use="optional">
+										<xs:annotation>
+											<xs:documentation>ИНН налогоплательщика - продавца</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:choice>
+						<xs:attribute name="КППИно" type="КППТип" use="optional">
+							<xs:annotation>
+								<xs:documentation>КПП подразделения иностранной организации, состоящей на учете налоговых органах</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="КБК" type="КБКТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Код бюджетной классификации</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="ОКАТО" type="ОКАТОТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Код по ОКАТО</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="СумИсчисл" use="required">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная к уплате в бюджет</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="КодОпер" use="required">
+							<xs:annotation>
+								<xs:documentation>Код операции</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="7"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумИсчислОтгр" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная при отгрузке товаров (выполнении работ, оказании услуг, передачи имущественных прав)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумИсчислОпл" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная при получении оплаты, частичной оплаты в счет предстоящей отгрузки товаров (выполнения  работ, оказания услуг, передачи имущественных прав)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумИсчислНА" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная налоговым агентом с оплаты, частичной оплаты при отгрузке товаров (выполнении  работ, оказании услуг, передаче имущественных прав) в счет этой оплаты, частичной оплаты </xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="СумУпл164" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Расчет суммы налога, подлежащей уплате в бюджет по операциям, облагаемым по налоговым ставкам, предусмотренным п.п. 2 - 4 ст. 164 НК РФ</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СумНалОб" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расчет общей суммы налога по налогооблагаемым объектам</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="РеалТов18" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Реализация (передача для собственных нужд) товаров (работ, услуг), передача имущественных прав по ставке налога 18%,  всего</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="РеалТов10" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Реализация (передача для собственных нужд) товаров (работ, услуг), передача имущественных прав по ставке налога 10%,  всего</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="РеалТов118" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Реализация (передача для собственных нужд) товаров (работ, услуг), передача имущественных прав по ставке налога 18/118,  всего</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="РеалТов110" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Реализация (передача для собственных нужд) товаров (работ, услуг), передача имущественных прав по ставке налога 10/110,  всего</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="РеалПредИК" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Реализация предприятия в целом как имущественного  комплекса</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ВыпСМРСоб" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Выполнение строительно-монтажных работ для собственного потребления по ставке налога 18%</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ОплПредПост" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы полученной оплаты, частичной оплаты в счет предстоящих поставок товаров (выполнения работ, оказания услуг), передачи имущественных прав</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ОплНОТовар" type="СведСумНал" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы, связанные с расчетами по оплате налогооблагаемых товаров (работ, услуг)</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="СумНалВосст" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы налога, подлежащие восстановлению</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="СумНалВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Сумма НДС, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="СумНалСтав0" use="optional">
+													<xs:annotation>
+														<xs:documentation>Суммы налога, подлежащие восстановлению при совершении операций, облагаемых по налоговой ставке 0 процентов</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="СумНал170" use="optional">
+													<xs:annotation>
+														<xs:documentation>Суммы налога, подлежащие восстановлению в соответствии с подпунктом 3 пункта 3 статьи 170 НК РФ</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="НалВосстОбщ" use="required">
+										<xs:annotation>
+											<xs:documentation>Общая сумма НДС, исчисленная с учетом восстановленных сумм налога</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="СумНалВыч" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расчет общей суммы налога подлежащей вычету</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="НалВыч171" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Суммы налога, подлежащие вычету в соответствии с п. 2, 5 ст. 171 НК РФ</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НалВыч171Общ" use="required">
+													<xs:annotation>
+														<xs:documentation>Сумма налога, предъявленная налогоплательщику при приобретении на территории Российской Федерации товаров (работ, услуг ), имущественных прав, подлежащая вычету в соответствии с п. 2 ст. 171 НК РФ, а также сумма налога, подлежащая вычету в соответствии с п. 5 ст. 171 НК РФ</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НалВычКапСтр" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма налога, предъявленная налогоплательщику подрядными организациями (заказчиками-застройщиками) по выполненным работам при проведении капитального строительства</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="НалВычТамож" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Сумма налога, уплаченная налогоплательщиком при ввозе товаров на таможенную территорию 
+Российской Федерации, подлежащая вычету</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НалВычВс" use="required">
+													<xs:annotation>
+														<xs:documentation>Сумма налога, уплаченная налогоплательщиком при ввозе товаров на таможенную территорию 
+Российской Федерации, подлежащая вычету, всего</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НалУплТО" use="optional">
+													<xs:annotation>
+														<xs:documentation> Сумма налога, уплаченная налогоплательщиком таможенным органам по товарам, ввезенным в таможенных режимах выпуска для внутреннего потребления, временного ввоза и переработки вне таможенной территории</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НалУплНО" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма налога, уплаченная налогоплательщиком налоговым органам при ввозе товаров с территории Республики Беларусь</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="НалВычОбщ" use="required">
+										<xs:annotation>
+											<xs:documentation>Общая сумма НДС, подлежащая вычету</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалПредНППок" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, предъявленная налогоплательщику - покупателю при перечислении суммы оплаты, частичной оплаты  в счет предстоящих поставок товаров (выполнения работ, оказания услуг), передачи имущественных прав, подлежащая вычету у покупателя</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалИсчСМР" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, исчисленная при выполнении строительно-монтажных работ для собственного потребления, подлежащая вычету</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалИсчПрод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, исчисленная продавцом с сумм оплаты, частичной оплаты, подлежащая вычету у продавца с даты отгрузки соответствующих товаров (выполнения работ, оказания услуг)</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалУплПокНА" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, уплаченная в бюджет налогоплательщиком в качестве покупателя – налогового агента, подлежащая вычету</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="СумВосУпл" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Сумма НДС, подлежащая восстановлению и уплате в бюджет за отчетный год и предыдущие отчетные годы</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="АдрМННед" type="АдрРФТип">
+											<xs:annotation>
+												<xs:documentation>Адрес местонахождения объекта недвижимости</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="СведНалГод" maxOccurs="10">
+											<xs:annotation>
+												<xs:documentation>Сведения по сумме НДС, подлежащей восстановлению и уплате в бюджет за календарный год (истекшие календарные годы)</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="ГодОтч" type="xs:gYear" use="required">
+													<xs:annotation>
+														<xs:documentation>Отчетный год
+(предыдущий отчетный год)</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="ДатаИсп170" type="ДатаТип" use="optional">
+													<xs:annotation>
+														<xs:documentation>Дата начала использования объекта недвижимости для 
+операций, указанных
+в п.2 ст.170 НК РФ</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="ДоляНеОбл" use="optional">
+													<xs:annotation>
+														<xs:documentation>Доля отгруженных товаров (работ, услуг), имущественных прав, не облагаемых НДС, в общей стоимости отгрузки</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:decimal">
+															<xs:totalDigits value="4"/>
+															<xs:fractionDigits value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="НалГод" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма НДС, подлежащая восстановлению и уплате в бюджет за календарный год (истекшие календарные годы)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="НаимНедв" use="required">
+										<xs:annotation>
+											<xs:documentation>Наименование объекта недвижимости</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="100"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="КодОпНедв" use="required">
+										<xs:annotation>
+											<xs:documentation>Код операции по объекту недвижимости</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="7"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="ДатаВводОН" type="ДатаТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Дата ввода объекта недвижимости в эксплуатацию для исчисления амортизации</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ДатаНачАмОтч" type="ДатаТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Дата начала начисления амортизационных отчислений по объекту недвижимости</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="СтВводОН" use="required">
+										<xs:annotation>
+											<xs:documentation>Стоимость объекта недвижимости на дату ввода объекта в эксплуатацию без учета НДС</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВычОН" use="required">
+										<xs:annotation>
+											<xs:documentation>Сумма НДС, принятая к вычету по объекту недвижимости</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="СумВычИн" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы налога, исчисленной по операциям по реализации товаров (работ, услуг), передаче имущественных прав и суммы налога, подлежащей вычету, иностранной организацией, осуществляющей предпринимательскую деятельность на территории Российской Федерации через свои подразделения (представительства, отделения)</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="СведНалГодИ" maxOccurs="unbounded">
+											<xs:annotation>
+												<xs:documentation>Сведения по суммам налогов по подразделениям иностранной организации</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="КППИнУч" type="КППТип" use="required">
+													<xs:annotation>
+														<xs:documentation>КПП подразделений иностранной организации, состоящей на учете в налоговых органах РФ</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="СумНалИсч" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма налога, исчисленная по операциям, подлежащим налогообложению</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="СумНалВыч" use="optional">
+													<xs:annotation>
+														<xs:documentation>Сумма налоговых вычетов</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:integer">
+															<xs:totalDigits value="14"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="НалПУ164" use="required">
+							<xs:annotation>
+								<xs:documentation>Итого сумма НДС, исчисленная к уплате в бюджет (со знаком "-" исчисленная к уменьшению) по данному разделу</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="НалПодтв0" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Расчет суммы налога по операциям по реализации товаров (работ, услуг), обоснованность  применения налоговой  ставки 0 процентов по которым документально подтверждена</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СумОпер4" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы налога, подлежащей восстановлению, по коду операции</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="КодОпер" use="required">
+										<xs:annotation>
+											<xs:documentation>Код операции</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="7"/>
+												<xs:enumeration value="1010401"/>
+												<xs:enumeration value="1010402"/>
+												<xs:enumeration value="1010403"/>
+												<xs:enumeration value="1010404"/>
+												<xs:enumeration value="1010405"/>
+												<xs:enumeration value="1010407"/>
+												<xs:enumeration value="1010408"/>
+												<xs:enumeration value="1010409"/>
+												<xs:enumeration value="1010411"/>
+												<xs:enumeration value="1010412"/>
+												<xs:enumeration value="1010413"/>
+												<xs:enumeration value="1010414"/>
+												<xs:enumeration value="1010415"/>
+												<xs:enumeration value="1010416"/>
+												<xs:enumeration value="1010417"/>
+												<xs:enumeration value="1010418"/>
+												<xs:enumeration value="1010419"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБаза" use="required">
+										<xs:annotation>
+											<xs:documentation>Налоговая база</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВычПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговые вычеты по операциям, обоснованность применения  налоговой  ставки 0 процентов  по  которым документально  подтверждена</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалНеПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, ранее исчисленная  по  операциям, обоснованность  применения налоговой  ставки 0 процентов по которым ранее не была документально  подтверждена</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВосст" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налога, ранее принятая к вычету и подлежащая восстановлению</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="СумУменИтог" use="optional">
+							<xs:annotation>
+								<xs:documentation>Итого, сумма налога, исчисленная к уменьшению  по данному разделу</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="НалВычПред0" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Расчет суммы налоговых вычетов по операциям по реализации товаров (работ, услуг), обоснованность применения  налоговой  ставки 0 процентов по  которым ранее документально подтверждена (не  подтверждена)</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СумОпер5" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы налога, подлежащей восстановлению, по коду операции</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="КодОпер" use="required">
+										<xs:annotation>
+											<xs:documentation>Код операции</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="7"/>
+												<xs:enumeration value="1010401"/>
+												<xs:enumeration value="1010402"/>
+												<xs:enumeration value="1010403"/>
+												<xs:enumeration value="1010404"/>
+												<xs:enumeration value="1010405"/>
+												<xs:enumeration value="1010407"/>
+												<xs:enumeration value="1010408"/>
+												<xs:enumeration value="1010409"/>
+												<xs:enumeration value="1010411"/>
+												<xs:enumeration value="1010412"/>
+												<xs:enumeration value="1010413"/>
+												<xs:enumeration value="1010414"/>
+												<xs:enumeration value="1010415"/>
+												<xs:enumeration value="1010416"/>
+												<xs:enumeration value="1010417"/>
+												<xs:enumeration value="1010418"/>
+												<xs:enumeration value="1010419"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБазаПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговая база по  операциям, обоснованность  применения  налоговой ставки 0 процентов  по  которым  документально подтверждена  в  предыдущих  налоговых  периодах</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВычПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговые вычеты по  операциям, обоснованность  применения  налоговой ставки 0 процентов  по  которым  документально подтверждена  в  предыдущих  налоговых  периодах</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБазаНеПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговая база по  операциям, обоснованность  применения  налоговой ставки 0 процентов  по  которым  документально не подтверждена  в  предыдущих  налоговых  периодах</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВычНеПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Налоговые вычеты по  операциям, обоснованность  применения  налоговой ставки 0 процентов  по  которым  документально не подтверждена  в  предыдущих  налоговых  периодах</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="ОтчетГод" type="xs:gYear" use="required">
+							<xs:annotation>
+								<xs:documentation>Отчетный год</xs:documentation>
+								<xs:documentation>
+Год в формате ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="Период" use="required">
+							<xs:annotation>
+								<xs:documentation>Налоговый период (код)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="2"/>
+									<xs:enumeration value="01"/>
+									<xs:enumeration value="02"/>
+									<xs:enumeration value="03"/>
+									<xs:enumeration value="04"/>
+									<xs:enumeration value="05"/>
+									<xs:enumeration value="06"/>
+									<xs:enumeration value="07"/>
+									<xs:enumeration value="08"/>
+									<xs:enumeration value="09"/>
+									<xs:enumeration value="10"/>
+									<xs:enumeration value="11"/>
+									<xs:enumeration value="12"/>
+									<xs:enumeration value="21"/>
+									<xs:enumeration value="22"/>
+									<xs:enumeration value="23"/>
+									<xs:enumeration value="24"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумУменПод" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная к уменьшению по данному разделу по операциям, обоснованность применения налоговой ставки 0 процентов по которым документально подтверждена в предыдущих налоговых периодах</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумУменНеПод" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налога, исчисленная к уменьшению по данному разделу по операциям, обоснованность применения налоговой ставки 0 процентов по которым документально не подтверждена в предыдущих налоговых периодах</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="НалНеПодтв0" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Расчет суммы налога по операциям по реализации товаров (работ, услуг), обоснованность применения налоговой  ставки 0 процентов по которым документально не подтверждена</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СумОпер6" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы налога по коду операции</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="КодОпер" use="required">
+										<xs:annotation>
+											<xs:documentation>Код операции</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="7"/>
+												<xs:enumeration value="1010401"/>
+												<xs:enumeration value="1010402"/>
+												<xs:enumeration value="1010403"/>
+												<xs:enumeration value="1010404"/>
+												<xs:enumeration value="1010405"/>
+												<xs:enumeration value="1010407"/>
+												<xs:enumeration value="1010408"/>
+												<xs:enumeration value="1010409"/>
+												<xs:enumeration value="1010411"/>
+												<xs:enumeration value="1010412"/>
+												<xs:enumeration value="1010413"/>
+												<xs:enumeration value="1010414"/>
+												<xs:enumeration value="1010415"/>
+												<xs:enumeration value="1010416"/>
+												<xs:enumeration value="1010417"/>
+												<xs:enumeration value="1010418"/>
+												<xs:enumeration value="1010419"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалБаза" use="required">
+										<xs:annotation>
+											<xs:documentation>Налоговая база</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумНал164" use="required">
+										<xs:annotation>
+											<xs:documentation>Суммы НДС, исчисленные по налоговым ставкам, предусмотренным п. 2-3 ст. 164 НК РФ</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалВычНеПод" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма налоговых вычетов по операциям по реализации товаров (работ, услуг), обоснованность применения налоговой ставки 0 процентов по которым документально не подтверждена</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="НалБазаИт" use="required">
+							<xs:annotation>
+								<xs:documentation>Налоговая база, итого</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="СумНал164Ит" use="required">
+							<xs:annotation>
+								<xs:documentation>Суммы НДС, исчисленные по налоговым ставкам, предусмотренным п. 2-3 ст. 164 НК РФ, итого</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалВычНеПодИт" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма налоговых вычетов по операциям по реализации товаров (работ, услуг), обоснованность применения налоговой ставки 0 процентов по которым документально не подтверждена, итого</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="НалИсчислИт" use="required">
+							<xs:annotation>
+								<xs:documentation>Итого, сумма налога, исчисленная к уплате в бюджет (со знаком "-" исчисленная к уменьшению) по данному разделу</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ОперНеНал" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Операции, не подлежащие налогообложению (освобождаемые от налогообложения); операции, не признаваемые объектом налогообложения; операции по реализации товаров (работ, услуг), местом реализации которых не признается территория Российской Федерации; а также суммы оплаты, частичной оплаты в счет предстоящих поставок товаров (выполнения работ, оказания услуг), длительность производственного цикла изготовления которых составляет свыше шести месяцев</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СумОпер7" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Расчет суммы налога по коду операции</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="КодОпер" use="required">
+										<xs:annotation>
+											<xs:documentation>Код операции</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="7"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтРеалТов" use="required">
+										<xs:annotation>
+											<xs:documentation>Стоимость реализованных (переданных) товаров (работ, услуг), без НДС</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СтПриобТов" use="optional">
+										<xs:annotation>
+											<xs:documentation>Стоимость приобретенных товаров (работ, услуг), не облагаемых НДС</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="НалНеВыч" use="optional">
+										<xs:annotation>
+											<xs:documentation>Сумма НДС по приобретенным товарам (работам, услугам), не подлежащая вычету</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="14"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="ОплПостСв6Мес" use="optional">
+							<xs:annotation>
+								<xs:documentation>Сумма полученной оплаты, частичной оплаты в счет предстоящих поставок товаров (выполнения работ, оказания услуг), длительность производственного цикла изготовления которых составляет свыше шести месяцев, по перечню, определяемому Правительством РФ</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:integer">
+									<xs:totalDigits value="14"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="СведСумНал">
+		<xs:annotation>
+			<xs:documentation>Сведения по сумме налога</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="НалБаза" use="required">
+			<xs:annotation>
+				<xs:documentation>Налоговая база</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="14"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="СумНал" use="required">
+			<xs:annotation>
+				<xs:documentation>Сумма НДС</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="14"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="АдрРФТип">
+		<xs:annotation>
+			<xs:documentation>Адрес в Российской Федерации </xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Индекс" use="optional">
+			<xs:annotation>
+				<xs:documentation>Индекс</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:length value="6"/>
+					<xs:pattern value="[0-9]{6}"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="КодРегион" use="required">
+			<xs:annotation>
+				<xs:documentation>Код Региона</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="CCРФТип"/>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Район" use="optional">
+			<xs:annotation>
+				<xs:documentation>Район</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="50"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Город" use="optional">
+			<xs:annotation>
+				<xs:documentation>Город</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:maxLength value="50"/>
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="НаселПункт" use="optional">
+			<xs:annotation>
+				<xs:documentation>Населенный пункт</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="50"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Улица" use="optional">
+			<xs:annotation>
+				<xs:documentation>Улица</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="50"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Дом" use="optional">
+			<xs:annotation>
+				<xs:documentation>Дом</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="8"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Корпус" use="optional">
+			<xs:annotation>
+				<xs:documentation>Корпус</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="8"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Кварт" use="optional">
+			<xs:annotation>
+				<xs:documentation>Квартира</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="8"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ФИОТип">
+		<xs:annotation>
+			<xs:documentation>Фамилия, Имя, Отчество</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Фамилия" use="required">
+			<xs:annotation>
+				<xs:documentation>Фамилия</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Имя" use="required">
+			<xs:annotation>
+				<xs:documentation>Имя</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Отчество" use="optional">
+			<xs:annotation>
+				<xs:documentation>Отчество</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="ИННФЛТип">
+		<xs:annotation>
+			<xs:documentation>Идентификационный номер налогоплательщика - физического лица</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="12"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{10}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ИННЮЛТип">
+		<xs:annotation>
+			<xs:documentation>Идентификационный номер налогоплательщика - юридического лица</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{8}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КППТип">
+		<xs:annotation>
+			<xs:documentation>Код причины постановки на учет (КПП)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="9"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КНДТип">
+		<xs:annotation>
+			<xs:documentation>Код из Классификатора налоговой документации</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="7"/>
+			<xs:pattern value="[0-9]{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КБКТип">
+		<xs:annotation>
+			<xs:documentation>Код из Классификатора бюджетной классификации</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="20"/>
+			<xs:pattern value="[0-9]{20}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКАТОТип">
+		<xs:annotation>
+			<xs:documentation>Коды из Классификатора объектов административно-территориального деления</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="11"/>
+			<xs:pattern value="[0-9]{11}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКВЭДТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора видов экономической деятельности</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="8"/>
+			<xs:minLength value="2"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{1}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{1}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CCРФТип">
+		<xs:annotation>
+			<xs:documentation>Код из Справочника субъекта Российской Федерации </xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="2"/>
+			<xs:pattern value="[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="СОНОТип">
+		<xs:annotation>
+			<xs:documentation>Коды из Классификатора системы обозначений налоговых органов</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="4"/>
+			<xs:pattern value="[0-9]{4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ДатаТип">
+		<xs:annotation>
+			<xs:documentation>Дата в формате ДД.ММ.ГГГГ (01.01.1800 - 31.12.2099)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="(((0[1-9]{1}|[1-2]{1}[0-9]{1})\.(0[1-9]{1}|1[0-2]{1}))|((30)\.(0[1,3-9]{1}|1[0-2]{1}))|((31)\.(0[1,3,5,7,8]{1}|1[0,2]{1})))\.(18[0-9]{2}|19[0-9]{2}|20[0-9]{2})"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

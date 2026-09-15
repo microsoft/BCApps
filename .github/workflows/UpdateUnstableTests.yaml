@@ -1,0 +1,111 @@
+name: Update Unstable Tests List
+run-name: "Detect unstable tests from recent CI/CD runs and PR builds across official branches"
+
+# Maintains the per-branch unstable-tests artifact from two complementary signals, combined into a
+# single artifact write per branch:
+#
+#   Path A - CI/CD sliding window (authoritative recompute):
+#     Fetches the last few completed CI/CD runs on the branch and marks every test that failed in at
+#     least one of them as unstable. Because it fully recomputes, tests that stop failing across the
+#     window drop off the list (self-healing).
+#
+#   Path B - cross-PR detection (additive):
+#     Looks at PR builds created in the last few hours - completed OR still running - and additively
+#     adds any test that failed across multiple distinct PRs. A test failing on a single PR is
+#     ambiguous (could be that PR's own change); the same test failing across several unrelated PRs is
+#     almost always an instability. Including running builds lets an instability be caught as soon as a
+#     build's test job has uploaded results, before the whole build completes.
+#
+# PR builds consume the resulting per-branch artifact to tolerate known-unstable test failures,
+# preventing unstable tests from blocking unrelated pull requests. The workflow runs on a schedule so
+# both signals stay fresh (the cross-PR window is only a few hours), and can be dispatched manually.
+
+on:
+  workflow_dispatch:
+    inputs:
+      runLimit:
+        description: 'Path A: number of recent CI/CD runs to examine'
+        required: false
+        type: number
+      filterPush:
+        description: 'Path A: include CI/CD runs triggered by push'
+        required: false
+        type: boolean
+        default: false
+      filterWorkflowDispatch:
+        description: 'Path A: include CI/CD runs triggered by workflow_dispatch'
+        required: false
+        type: boolean
+        default: true
+      windowHours:
+        description: 'Path B: how many hours of recent PR builds to examine'
+        required: false
+        type: number
+      minDistinctPrs:
+        description: 'Path B: minimum number of distinct PRs a test must fail on to be marked unstable'
+        required: false
+        type: number
+  schedule:
+    - cron: '15 * * * *'  # Hourly, at minute 15 - keeps the few-hour cross-PR window fresh.
+
+permissions: read-all
+
+jobs:
+  GetBranches:
+    name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    outputs:
+      updateBranches: ${{ steps.ensureArray.outputs.branchesJson }}
+    steps:
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: "['main', 'releases/*']"
+
+      - name: Ensure JSON array
+        id: ensureArray
+        shell: pwsh
+        run: |
+          $raw = '${{ steps.getOfficialBranches.outputs.branchesJson }}'
+          $parsed = @($raw | ConvertFrom-Json)
+          # The leading unary comma forces array context so a single branch still serializes as a JSON
+          # array (e.g. ["main"]) and an empty result serializes as []. Either way the downstream matrix
+          # always receives valid JSON.
+          $json = ,@($parsed) | ConvertTo-Json -Compress
+          Write-Host "Branches: $json"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "branchesJson=$json"
+
+  UpdateUnstableTests:
+    name: "[${{ matrix.branch }}] Update Unstable Tests"
+    if: github.repository_owner == 'microsoft' && needs.GetBranches.outputs.updateBranches != '[]' && needs.GetBranches.outputs.updateBranches != ''
+    runs-on: windows-latest
+    needs: GetBranches
+    # Serialize runs per branch. The hourly schedule can overlap when a branch's run takes longer than an
+    # hour (heavy 'gh api'/'gh run download' work, or API rate limiting). Without this, two runs for the
+    # same branch would race to read the 'latest' unstable-tests artifact and upload their own copy, which
+    # could let a slightly older recompute land after a newer one and transiently reintroduce tests that
+    # were just removed. cancel-in-progress: false queues the newer run behind the in-progress one, so the
+    # newest recompute is always the last to upload. Each branch uses its own group (artifacts are
+    # branch-scoped), so 'main' and 'releases/*' never block each other.
+    concurrency:
+      group: unstable-tests-${{ matrix.branch }}
+      cancel-in-progress: false
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Update unstable tests
+        uses: microsoft/BCApps/.github/actions/UpdateUnstableTestsCombined@main
+        with:
+          branch: ${{ matrix.branch }}
+          run-limit: ${{ inputs.runLimit || 3 }}
+          filter-push: ${{ inputs.filterPush || false }}
+          filter-workflow-dispatch: ${{ inputs.filterWorkflowDispatch || true }}
+          window-hours: ${{ inputs.windowHours || 6 }}
+          min-distinct-prs: ${{ inputs.minDistinctPrs || 3 }}

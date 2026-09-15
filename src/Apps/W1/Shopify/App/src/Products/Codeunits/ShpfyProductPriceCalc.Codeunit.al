@@ -166,7 +166,7 @@ codeunit 30182 "Shpfy Product Price Calc."
     /// <param name="ShopifyShop">Parameter of type Record "Shopify Shop".</param>
     internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
     begin
-        if (Shop.Code <> ShopifyShop.Code) or (Shop.SystemModifiedAt < ShopifyShop.SystemModifiedAt) then begin
+        if (Shop.Code <> ShopifyShop.Code) or (Shop.SystemModifiedAt < ShopifyShop.SystemModifiedAt) or (TempSalesHeader."Document Date" <> WorkDate()) then begin
             Shop := ShopifyShop;
             SetParameters(Shop);
             Clear(TempSalesHeader);

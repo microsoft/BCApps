@@ -1,0 +1,3 @@
+Code,Description,MaxNoOfReminders,PostInterest,PostAdditionalFee,MinimumAmountLCY,PostAddFeePerLine
+TRT1,Test Reminder Terms 1,3,false,false,0,false
+TRT2,Test Reminder Terms 2,5,true,true,100,true

@@ -151,6 +151,13 @@ table 30119 "Shpfy Order Line"
             Editable = false;
             AutoFormatType = 0;
         }
+        field(22; "Is Exchange Item"; Boolean)
+        {
+            Caption = 'Is Exchange Item';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies that this line was added to the order as the new item in a return-with-exchange. Lines marked as exchange items are excluded from BC sales documents created from the Shopify order, because the corresponding credit memo will offset their value via the linked refund.';
+        }
         field(1000; "Item No."; Code[20])
         {
             Caption = 'Item No.';

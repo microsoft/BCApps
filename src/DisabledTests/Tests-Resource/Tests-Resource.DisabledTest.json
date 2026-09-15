@@ -1,0 +1,202 @@
+[
+  {
+    "codeunitId": 135400,
+    "codeunitName": "Basic HR Plan-based E2E",
+    "method": "E2EBasicHREmployeeAsTeamMember"
+  },
+  {
+    "codeunitId": 135400,
+    "codeunitName": "Basic HR Plan-based E2E",
+    "method": "E2EBasicHREmployeeAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 136400,
+    "codeunitName": "Resource Employee",
+    "method": "EmployeeCardPaymentsTab"
+  },
+  {
+    "codeunitId": 136402,
+    "codeunitName": "Resource Batch Jobs",
+    "method": "DateCompressWithStartEndDate"
+  },
+  {
+    "codeunitId": 136402,
+    "codeunitName": "Resource Batch Jobs",
+    "method": "DeleteEmptyResourceRegisters"
+  },
+  {
+    "codeunitId": 136404,
+    "codeunitName": "Resource Matrix Management",
+    "method": "ResourceAllocatedPerServiceOrder"
+  },
+  {
+    "codeunitId": 136404,
+    "codeunitName": "Resource Matrix Management",
+    "method": "ResourceGroupAllocatedPerServiceOrder"
+  },
+  {
+    "codeunitId": 136503,
+    "codeunitName": "RES Time Sheets Creation",
+    "method": "TimesheetManagerArchivePage"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "AdjustCostItemEntriesWithDiffUOMAndAverageCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "AdjustCostItemEntriesWithDiffUOMAndFIFOCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "AdjustCostItemEntriesWithDiffUOMAndLIFOCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "AdjustCostItemEntriesWithDiffUOMAndSpecificCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "AdjustCostItemEntriesWithDiffUOMAndStandardCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "ErrorOnRenamingResourceBaseUnitOfMeasure"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "ErrorOnRenamingResourceBaseUnitOfMeasureAfterPurchase"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "GetReceiptLinesOnPurchaseInvoiceWithJob"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "GetSourceDocumentsOnWhseShipmentWithMultipleItems"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "JobPlngLinesAfterInvoicingPurchaseOrder"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "JobPlngLinesAfterInvoicingPurchOrdWithPartialQty"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "JobPlngLinesAfterShippingPurchOrdWithPartialQty"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "PostPurchaseReturnOrderUsingCopyDocumentWithJob"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "PurchaseReturnOrderUsingCopyDocumentWithJob"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "SelectContractLinesOnServiceContract"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "TaskForContactWithSalesPerson"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "TaskForContactWithSalesPersonAndTeamCode"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UndoConsumptionAfterPostServiceOrder"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UnitPriceResLedgerEntryAfterPostSalesInvoiceSalesLineQuantityNegative"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UnitPriceResLedgerEntryAfterPostSalesInvoiceSalesLineQuantityPositive"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UnitPriceResLedgerEntryAfterPostSalesInvoiceSalesLineUnitPriceNegative"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateItemAnalysisViewAfterPostSalesOrder"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostReportAfterPostPurchaseOrder"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithMultiplePOAndLIFOCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithPartialPOAndSpecificCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithPOAndAverageCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithPOAndFIFOCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithPOAndLIFOCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithPOAndSpecificCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateJobItemCostWithPOAndStandardCosting"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "VerifyManualSalesPriceNotResetWhenQuantityChanged"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateItemAnalysisViewAfterPostJobJournal"
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "@odata.count": 1,
+  "value": [
+    {
+      "id": "test-message-id-headers-001",
+      "conversationId": "test-conversation-id-headers-001",
+      "subject": "Test Email With Headers",
+      "receivedDateTime": "2026-04-21T10:00:00Z",
+      "sentDateTime": "2026-04-21T09:55:00Z",
+      "sender": {
+        "emailAddress": {
+          "name": "Test Sender",
+          "address": "sender@test.com"
+        }
+      },
+      "body": {
+        "contentType": "HTML",
+        "content": "<p>Body</p>"
+      },
+      "hasAttachments": false,
+      "isRead": false,
+      "isDraft": false,
+      "internetMessageHeaders": [
+        {
+          "name": "Authentication-Results",
+          "value": "spf=pass smtp.mailfrom=test.com; dkim=pass; dmarc=pass action=none header.from=test.com; compauth=pass reason=100"
+        },
+        {
+          "name": "X-MS-Exchange-Organization-AuthAs",
+          "value": "Internal"
+        },
+        {
+          "name": "Received",
+          "value": "from MX1.test.com by EX1.test.com"
+        },
+        {
+          "name": "Received",
+          "value": "from sender.test.com by MX1.test.com"
+        }
+      ]
+    }
+  ]
+}

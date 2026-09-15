@@ -1,0 +1,721 @@
+cultureInfo cs-CZ
+	translations
+		model Model
+			table 'Sustainability Account Category'
+				caption: Kategorie finančního účtu
+				column 'Sustainability Account Category Description'
+					caption: Popis kategorie finančního účtů
+				column 'Sustainability Account Category Code'
+					caption: Kód kategorie účtu udržitelnosti
+				column 'Sustainability Account Category  Emission Scope'
+					caption: Rozsah emisí kategorie účtu udržitelnosti
+			table 'Dimension Sets'
+				caption: Sady dimenzí
+				column 'Global Dimension 1'
+					caption: Globální dimenze 1
+				column 'Global Dimension 2'
+					caption: Globální dimenze 2
+				column 'Shortcut Dimension 3'
+					caption: Zkratka dimenze 3
+				column 'Shortcut Dimension 4'
+					caption: Zkratka dimenze 4
+				column 'Shortcut Dimension 5'
+					caption: Zkratka dimenze 5
+				column 'Shortcut Dimension 6'
+					caption: Zkratka dimenze 6
+				column 'Shortcut Dimension 7'
+					caption: Zkratka dimenze 7
+				column 'Shortcut Dimension 8'
+					caption: Zkratka dimenze 8
+				column id
+					caption: ID
+			table Date
+				caption: Datum
+				column 'Week Day'
+					caption: Den v týdnu
+				column 'Day Type'
+					caption: Typ dne
+				column 'Calendar Year'
+					caption: Kalendářní rok
+				column 'Calendar Quarter'
+					caption: Kalendářní kvartál
+				column 'Calendar Quarter Year'
+					caption: Rok kalendářního kvartálu
+				column 'Calendar Month'
+					caption: Kalendářní měsíc
+				column 'Calendar Month Year'
+					caption: Kalendářní měsíc v roce
+				column 'Calendar Week'
+					caption: Kalendářní týden
+				column 'Calendar Week Year'
+					caption: Kalendářní týden a rok
+				column 'Calendar RelativeWeekPos'
+					caption: Relativní pozice kalendářního týdne
+				column 'Calendar RelativeMonthPos'
+					caption: Relativní pozice kalendářního měsíce
+				column 'Calendar RelativeQuarterPos'
+					caption: Relativní pozice kalendářního kvartálu
+				column 'Calendar RelativeYearPos'
+					caption: Relativní pozice kalendářního roku
+				column 'Calendar StartOfMonth'
+					caption: Začátek kalendářního měsíce
+				column 'Calendar EndOfMonth'
+					caption: Konec kalendářního měsíce
+				column 'Calendar StartOfQuarter'
+					caption: Začátek kalendářního kvartálu
+				column 'Calendar EndOfQuarter'
+					caption: Konec kalendářního kvartálu
+				column 'Calendar StartOfYear'
+					caption: Začátek kalendářního roku
+				column 'Calendar EndOfYear'
+					caption: Konec kalendářního roku
+				column 'Calendar MonthDays'
+					caption: Kalendářní dny v měsíci
+				column 'Calendar QuarterDays'
+					caption: Dny kalendářního kvartálu
+				column 'Calendar YearDays'
+					caption: Dny kalendářního roku
+				column 'Calendar DayOfMonthNumber'
+					caption: Číslo dne v kalendářním měsíci
+				column 'Calendar DayOfQuarterNumber'
+					caption: Číslo dne v kalendářním kvartálu
+				column 'Calendar DayOfYearNumber'
+					caption: Číslo dne v kalendářním roce
+				column 'Calendar DatePreviousWeek'
+					caption: Datum v předchozím kalendářním týdnu
+				column 'Calendar DatePreviousMonth'
+					caption: Datum v předchozím kalendářním měsíci
+				column 'Calendar DatePreviousQuarter'
+					caption: Datum v předchozím kalendářním kvartálu
+				column 'Calendar DatePreviousYear'
+					caption: Datum v předchozím kalendářním roce
+				column 'Fiscal Year'
+					caption: Fiskální rok
+				column 'Fiscal Quarter'
+					caption: Fiskální kvartál
+				column 'Fiscal Quarter Year'
+					caption: FIskální rok kvartálu
+				column 'Fiscal Month'
+					caption: Fiskální měsíc
+				column 'Fiscal Month Year'
+					caption: FIskální rok měsíce
+				column 'Fiscal Week'
+					caption: Fiskální týden
+				column 'Fiscal Week Year'
+					caption: Fiskální týden a rok
+				column 'Fiscal RelativeWeekPos'
+					caption: Relativní pozice fiskálního týdne
+				column 'Fiscal RelativeMonthPos'
+					caption: Relativní pozice fiskálního měsíce
+				column 'Fiscal RelativeQuarterPos'
+					caption: Relativní pozice fiskálního kvartálu
+				column 'Fiscal RelativeYearPos'
+					caption: Relativní pozice fiskálního roku
+				column 'Fiscal StartOfMonth'
+					caption: Začátek fiskálního měsíce
+				column 'Fiscal EndOfMonth'
+					caption: Konec fiskálního měsíce
+				column 'Fiscal StartOfQuarter'
+					caption: Začátek fiskálního kvartálu
+				column 'Fiscal EndOfQuarter'
+					caption: Konec fiskálního kvartálu
+				column 'Fiscal StartOfYear'
+					caption: Začátek fiskálního roku
+				column 'Fiscal EndOfYear'
+					caption: Konec fiskálního roku
+				column 'Fiscal MonthDays'
+					caption: Dny fiskálního měsíce
+				column 'Fiscal QuarterDays'
+					caption: Dny fiskálního kvartálu
+				column 'Fiscal YearDays'
+					caption: Dny fiskálního roku
+				column 'Fiscal DayOfMonthNumber'
+					caption: Číslo dne ve fiskálním měsíci
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Číslo dne ve fiskálním kvartálu
+				column 'Fiscal DayOfYearNumber'
+					caption: Číslo dne ve fiskálním roce
+				column 'Fiscal DatePreviousWeek'
+					caption: Datum v předchozím fiskálním týdnu
+				column 'Fiscal DatePreviousMonth'
+					caption: Datum v předchozím fiskálním měsíci
+				column 'Fiscal DatePreviousQuarter'
+					caption: Datum v předchozím fiskálním kvartálu
+				column 'Fiscal DatePreviousYear'
+					caption: Datum v předchozím fiskálním roce
+				column 'FW Year'
+					caption: Rok FT
+				column 'FW Quarter'
+					caption: Kvartál FT
+				column 'FW Quarter Year'
+					caption: Rok kvartálu FT
+				column 'FW Month'
+					caption: Měsíc FT
+				column 'FW Month Year'
+					caption: Rok měsíce FT
+				column 'FW Week'
+					caption: Týden FT
+				column 'FW Period'
+					caption: Období FT
+				column 'FW Week Year'
+					caption: Týden a rok FT
+				column 'FW StartOfWeek'
+					caption: Začátek týdne FT
+				column 'FW EndOfWeek'
+					caption: Konec týdne FT
+				column 'FW RelativeWeekPos'
+					caption: Relativní pozice týdne FT
+				column 'FW RelativeMonthPos'
+					caption: Relativní pozice měsíce FT
+				column 'FW RelativeQuarterPos'
+					caption: Relativní pozice kvartálu FT
+				column 'FW RelativeYearPos'
+					caption: Relativní pozice roku FT
+				column 'FW StartOfMonth'
+					caption: Začátek měsíce FT
+				column 'FW EndOfMonth'
+					caption: Konec měsíce FT
+				column 'FW StartOfQuarter'
+					caption: Začátek kvartálu FT
+				column 'FW EndOfQuarter'
+					caption: Konec kvartálu FT
+				column 'FW StartOfYear'
+					caption: Začátek roku FT
+				column 'FW EndOfYear'
+					caption: Konec roku FT
+				column 'FW MonthDays'
+					caption: Dny v měsíci FT
+				column 'FW QuarterDays'
+					caption: Dny kvartálu FT
+				column 'FW YearDays'
+					caption: Dny roku FT
+				column 'FW DayOfMonthNumber'
+					caption: Číslo dne v měsíci FT
+				column 'FW DayOfQuarterNumber'
+					caption: Číslo dne v kvartálu FT
+				column 'FW DayOfYearNumber'
+					caption: Číslo dne v roce FT
+				column 'FW DatePreviousWeek'
+					caption: Datum v předchozím týdnu FT
+				column 'FW DatePreviousMonth'
+					caption: Datum v předchozím měsíci FT
+				column 'FW DatePreviousQuarter'
+					caption: Datum v předchozím kvartálu FT
+				column 'FW DatePreviousYear'
+					caption: Datum v předchozím roce FT
+				column 'Relative Day'
+					caption: Relativní den
+				column Sequential365DayNumber
+					caption: Pořadové číslo dne 365
+				measure 'No. of Days'
+					caption: Počet dnů
+				measure 'Working Days'
+					caption: Pracovní dny
+				measure Ranged
+					caption: V rozsahu
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fiskální rok-kvartál-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Quarter Year'
+						caption: FIskální rok kvartálu
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalendářní rok-kvartál-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Quarter Year'
+						caption: Rok kalendářního kvartálu
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Rok-kvartál-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'Fiscal Year-Month'
+					caption: Fiskální rok-měsíc
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fiskální rok-měsíc-týden
+					level 'Fiscal Year'
+						caption: Fiskální rok
+					level 'Fiscal Month Year'
+						caption: FIskální rok měsíce
+					level 'Fiscal Week Year'
+						caption: Fiskální týden a rok
+				hierarchy 'Calendar Year-Month'
+					caption: Kalendářní rok-měsíc
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalendářní rok-měsíc-týden
+					level 'Calendar Year'
+						caption: Kalendářní rok
+					level 'Calendar Month Year'
+						caption: Kalendářní měsíc v roce
+					level 'Calendar Week Year'
+						caption: Kalendářní týden a rok
+				hierarchy 'FW Year-Month-Week'
+					caption: Rok-měsíc-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Month Year'
+						caption: Rok měsíce FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Rok-kvartál-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Quarter Year'
+						caption: Rok kvartálu FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+				hierarchy 'FW Year-Week'
+					caption: Rok-týden FT
+					level 'FW Year'
+						caption: Rok FT
+					level 'FW Week Year'
+						caption: Týden a rok FT
+			table 'Localized Labels'
+				measure 'My Report Title'
+					caption: Můj nadpis sestavy
+				measure 'My Button Caption'
+					caption: Popisek mého tlačítka
+				measure 'My Visual Title'
+					caption: Název mého vizuálu
+				measure 'Inactive Employees'
+					caption: Neaktivní zaměstnanci
+				measure 'Terminated Employees'
+					caption: Zaměstnanci, kteří ukončili pracovní poměr
+				measure 'Employees in Unions'
+					caption: Zaměstnanci ve svazech
+				measure 'Social Analysis'
+					caption: Sociální analýza
+				measure 'Gender Distribution'
+					caption: Distribuce podle pohlaví
+				measure 'Age Distribution'
+					caption: Distribuce podle věku
+				measure 'Employees Qualifications'
+					caption: Kvalifikace zaměstnanců
+				measure 'Realized Emissions vs Target'
+					caption: Realizované emise vs. cílová hodnota
+				measure 'CO2e Emissions by Scope'
+					caption: Emise CO2e podle rozsahu
+				measure 'Gas Emissions by Category'
+					caption: Emise plynu podle kategorie
+				measure 'Realized Emissions vs Baseline'
+					caption: Realizované emise vs. základní hodnota
+				measure 'CO2e Emissions vs Baseline'
+					caption: Emise CO2e vs. základní hodnota
+				measure 'CO2e Emissions by Account'
+					caption: Emise CO2e podle účtu
+				measure 'Water and Waste Analysis'
+					caption: Voda a odpad podle analýzy
+				measure 'Water by Facility Location'
+					caption: Voda podle lokace zařízení
+				measure 'Water by Facility Capacity'
+					caption: Voda podle kapacity zařízení
+				measure 'Water and Waste by Type'
+					caption: Voda a odpad podle typu
+				measure 'Water and Waste Intensity by Type'
+					caption: Intenzita vody a odpadu podle typu
+				measure 'Water and Waste Intensity by Facility'
+					caption: Intenzita vody a odpadu podle zařízení
+				measure 'Emissions by Category and Scope'
+					caption: Emise podle kategorie a rozsahu
+				measure 'Emissions by Category'
+					caption: Emise podle kategorie
+				measure 'Emissions by Scope'
+					caption: Emise podle rozsahu
+				measure 'CO2e Analysis'
+					caption: Analýza CO2e
+				measure 'CO2e Emissions by Category'
+					caption: Emise CO2e podle kategorie
+				measure 'Carbon Credit by Month'
+					caption: Uhlíkový kredit podle měsíce
+				measure 'CO2e Equivalent Emission by Month and Revenue'
+					caption: Ekvivalentní emise CO2e podle měsíce a výnosů
+				measure 'Employee Entries Drillthrough'
+					caption: Podrobné procházení položek zaměstnanců
+				measure 'Employee Ledger Entries'
+					caption: Položky zaměstnanců
+				measure 'Sustainability Ledger Entries'
+					caption: Položky udržitelnosti
+				measure 'Sustainability Ledger Entries Drillthrough'
+					caption: Podrobné procházení položek udržitelnosti
+				measure 'Employee Ledger Entries Drillthrough'
+					caption: Podrobné procházení položek zaměstnanců
+				measure 'Sustainability Overview'
+					caption: Přehled udržitelnosti
+				measure 'Sustainability Analytics'
+					caption: Analýzy udržitelnosti
+				measure 'CO2e Emissions by Month'
+					caption: Emise CO2e podle měsíce
+				measure 'Scopes 1 and 2 Analysis by Categories Per Year'
+					caption: Analýza rozsahů 1 a 2 podle kategorií za rok
+				measure 'CO2e Emissions by Department'
+					caption: Emise CO2e podle oddělení
+				measure 'Journey to Net-Zero Carbon'
+					caption: Cesta k nulovým emisím uhlíku
+				measure 'CO2e Emissions by Business Group'
+					caption: Emise CO2e podle obchodní skupiny
+				measure 'Renewable Energy Usage'
+					caption: Využití obnovitelné energie
+				measure 'CO2e Emissions Over Time'
+					caption: Emise CO2e v průběhu času
+				measure 'CO2e Smart Review'
+					caption: Chytrá kontrola CO2e
+				measure 'CO2e Emissions by Global Dimension One'
+					caption: Emise CO2e podle globální dimenze jedna
+				measure 'CO2e Emissions by Global Dimension Two'
+					caption: Emise CO2e podle globální dimenze dvě
+				measure 'CO2e Equivalent Emissions by Month'
+					caption: Ekvivalentní emise CO2e podle měsíce
+				measure 'Company Name'
+					caption: Název společnosti
+				measure 'Last Refreshed'
+					caption: Naposledy aktualizováno
+				measure 'Released Employees'
+					caption: Propuštění zaměstnanci
+				measure 'CO2e Decomposition Tree'
+					caption: Strom dekompozice CO2e
+				measure 'CO2e Key Influences'
+					caption: Klíčové vlivy CO2e
+				measure 'Water and Waste Yearly and Daily Change'
+					caption: Roční a denní změna vody a odpadu
+			table COMPANY
+				caption: SPOLEČNOST
+				measure 'Company Label'
+					caption: Popisek společnosti
+			table 'Sustainability Ledger Entries'
+				caption: Položky udržitelnosti
+				column 'Entry No.'
+					caption: Číslo položky
+				column Description
+					caption: Popis
+				column 'Wat. Intensity'
+					caption: Intenzita voda
+				column 'Water Type'
+					caption: Typ vody
+				column 'Wate/Waste Intensity Type'
+					caption: Typ intenzity vody/odpadu
+				column 'Document Type'
+					caption: Typ dokladu
+				measure 'CO2 Emissions'
+					caption: Emise CO2
+				measure 'CH4 Emissions'
+					caption: Emise CH4
+				measure 'CO2 Emissions Balance'
+					caption: Zůstatek emisí CO2
+				measure 'CO2 Emissions Balance at Date'
+					caption: Zůstatek emisí CO2 do data
+				measure 'N2O Emissions'
+					caption: Emise N2O
+				measure 'CO2e Emissions'
+					caption: Emise CO2e
+				measure 'CH4 Emissions Balance at Date'
+					caption: Zůstatek emisí CH4 do data
+				measure 'CH4 Emissions Balance'
+					caption: Zůstatek emisí CH4
+				measure 'Water Intensity'
+					caption: Intenzita voda
+				measure 'Waste Intensity'
+					caption: Intenzita odpadu
+				measure 'Discharged Into Water'
+					caption: Vypuštěno do vody
+				measure 'CO2e Emissions Balance'
+					caption: Zůstatek emisí CO2e
+				measure 'CO2e Emissions Balance at Date'
+					caption: Zůstatek emisí CO2e do data
+				measure 'Discharged Into Water Balance at Date'
+					caption: Zůstatek vypuštění do vody k datu
+				measure 'Discharged Into Water Balance'
+					caption: Zůstatek vypuštění do vody
+				measure 'N2O Emissions Balance'
+					caption: Zůstatek emisí N2O
+				measure 'N2O Emissions Balance at Date'
+					caption: Zůstatek emisí N2O do data
+				measure 'Waste Intensity Balance at Date'
+					caption: Intenzita odpadu zůstatku k datu
+				measure 'Waste Intensity Balance'
+					caption: Intenzita odpadu zůstatku
+				measure 'Water Intensity Balance'
+					caption: Zůstatek intenzity vody
+				measure 'Water Intensity Balance at Date'
+					caption: Zůstatek intenzity vody k datu
+				measure 'CO2 Baseline'
+					caption: Základní hodnota CO2
+				measure 'CH4 Baseline'
+					caption: Základní hodnota CH4
+				measure 'CH4 vs Baseline (%)'
+					caption: CH4 vs. základní hodnota (%)
+				measure 'N2O Baseline'
+					caption: Základní hodnota N2O
+				measure 'N2O vs Baseline (%)'
+					caption: N2O vs. základní hodnota (%)
+				measure 'CO2 vs Baseline (%)'
+					caption: CO2 vs. základní hodnota (%)
+				measure 'Water Baseline'
+					caption: Základní hodnota vody
+				measure 'Waste Baseline'
+					caption: Základní hodnota odpadu
+				measure 'Water vs Baseline (%)'
+					caption: Voda vs. základní hodnota (%)
+				measure 'Waste vs Baseline (%)'
+					caption: Odpad vs. základní hodnota (%)
+				measure 'CO2e Baseline'
+					caption: Základní hodnota CO2e
+				measure 'CO2e vs Baseline (%)'
+					caption: CO2e vs. základní hodnota (%)
+				measure 'Purchased Carbon Credits'
+					caption: Zakoupené uhlíkové kredity
+				measure 'Discharged Into Water Baseline'
+					caption: Základní hodnota vypuštěné vody
+				measure 'Discharged Into Water vs Baseline (%)'
+					caption: Vypuštěná voda vs. základní hodnota (%)
+				measure 'CO2e Emissions (Excl Credits)'
+					caption: Emise CO2e (bez kreditů)
+				measure 'Water Intensity PY'
+					caption: Intenzity voda PR
+				measure 'Water Intensity YOY'
+					caption: MR pohyb vody
+				measure 'Waste Intensity PY'
+					caption: Odpad PR
+				measure 'Waste Intensity YOY'
+					caption: MR změna odpadu
+				measure 'Discharged Into Water PY'
+					caption: Vypuštěno do vody PR
+				measure 'Discharged Into Water YOY'
+					caption: Vypuštěno do vody MR
+				measure 'Discharged Into Water PD'
+					caption: Vypuštěno do vody VD
+				measure 'Waste Intensity PD'
+					caption: Odpad VD
+				measure 'Water Intensity PD'
+					caption: Intenzity voda VD
+				measure 'Water Intensity DOD'
+					caption: MZD pohyb vody
+				measure 'Waste Intensity DOD'
+					caption: MZD změna odpadu
+				measure 'Discharged Into Water DOD'
+					caption: Vypuštěno do vody MZD
+				measure 'Base Link'
+					caption: Základní odkaz
+				measure 'Sustainability Ledger Entries Link'
+					caption: Odkaz na položky udržitelnosti
+				measure 'Months in Context'
+					caption: Měsíce v kontextu
+			table 'Sustainability Accounts'
+				caption: Účty udržitelnosti
+				column 'Sustainability Account No.'
+					caption: Číslo účtu udržitelnosti
+				column 'Sustainability Account Name'
+					caption: Název účtu udržitelnosti
+				column 'Sustainability Account Category'
+					caption: Kategorie účtu udržitelnosti
+				column 'Sustainability Account Sub-Category'
+					caption: Podkategorie účtu udržitelnosti
+			table Country/Region
+				caption: Země/oblast
+				column 'Country Region Code'
+					caption: Kód země/oblasti
+				column 'Country Region Name'
+					caption: Název země/oblasti
+			table 'Responsibility Centre'
+				caption: Centrum odpovědnosti
+				column 'Responsibility Centre Code'
+					caption: Kód centra odpovědnosti
+				column 'Responsibility Centre Name'
+					caption: Název centra odpovědnosti
+				measure 'Facility Capacity'
+					caption: Kapacita zařízení
+			table 'Sustainability Goals'
+				caption: Cíle udržitelnosti
+				column 'Score Card No.'
+					caption: Číslo přehledu výkonnostních metrik
+				column 'No.'
+					caption: Č.
+				column Name
+					caption: Název
+				column Owner
+					caption: Vlastník
+				column 'Target Value For CO2'
+					caption: Cílová hodnota pro CO2
+				column 'Target Value For CH4'
+					caption: Cílová hodnota pro CH4
+				column 'Target Value For N2O'
+					caption: Cílová hodnota pro N2O
+				column 'Target Value For Water Intensity'
+					caption: Cílová hodnota pro intenzitu vody
+				column 'Target Value For Waste Intensity'
+					caption: Cílová hodnota pro intenzitu odpadu
+				column 'Main Goal'
+					caption: Hlavní cíl
+				column 'Start Date'
+					caption: Počáteční datum
+				column 'End Date'
+					caption: Koncové datum
+				column 'Baseline Start Date'
+					caption: Základní počáteční datum
+				column 'Baseline End Date'
+					caption: Základní koncové datum
+				measure 'CO2 Target'
+					caption: Cílová hodnota CO2
+				measure 'CO2 Realized (%)'
+					caption: Realizovaná hodnota CO2 (%)
+				measure 'CH4 Target'
+					caption: Cílová hodnota CH4
+				measure 'N2O Target'
+					caption: Cílová hodnota N2O
+				measure 'CH4 Realized (%)'
+					caption: Realizovaná hodnota CH4 (%)
+				measure 'N2O Realized (%)'
+					caption: Realizovaná hodnota N2O (%)
+				measure 'Water Target'
+					caption: Cílová hodnota vody
+				measure 'Waste Target'
+					caption: Cílová hodnota odpadu
+				measure 'Water Realized (%)'
+					caption: Realizovaná hodnota vody (%)
+				measure 'Waste Realized (%)'
+					caption: Realizovaná hodnota odpadu (%)
+				measure 'CO2e Realized (%)'
+					caption: Realizovaný hodnota CO2e (%)
+				measure 'CO2 Current Value'
+					caption: Aktuální hodnota CO2
+				measure 'CH4 Current Value'
+					caption: Aktuální hodnota CH4
+				measure 'N2O Current Value'
+					caption: Aktuální hodnota N2O
+				measure 'CO2e Current Value'
+					caption: Aktuální hodnota CO2e
+			table 'Employee Ledger Entries'
+				caption: Položky zaměstnanců
+				column 'Entry No.'
+					caption: Číslo položky
+				column 'Document Type'
+					caption: Typ dokladu
+				column 'Document No.'
+					caption: Číslo dokladu
+				column Description
+					caption: Popis
+				measure 'Employee Amount'
+					caption: Částka
+				measure 'Employee Ledger Entries Link'
+					caption: Odkaz na položky zaměstnanců
+			table 'Employee Qualifications'
+				caption: Kvalifikace zaměstnance
+				column 'Employee Qualification Codes'
+					caption: Kódy kvalifikace zaměstnanců
+				measure 'Employee Qualifications'
+					caption: Počet kvalifikací zaměstnanců
+			table 'Emission Fees'
+				caption: Emisní poplatky
+				column 'Emission Type'
+					caption: Typ emise
+				column 'Scope Type'
+					caption: Typ rozsahu
+				column 'Starting Date'
+					caption: Počáteční datum
+				column 'Ending Date'
+					caption: Koncové datum
+				column 'Country Region Code'
+					caption: Kód země/oblasti
+				column 'Responsibility Centre'
+					caption: Centrum odpovědnosti
+				column 'Carbon Fee'
+					caption: Poplatek za uhlík
+				column 'Carbon Equivalent Factor'
+					caption: Faktor ekvivalentu uhlíku
+				measure 'CO2e Target'
+					caption: Cílové CO2e
+				measure 'CO2 Carbon Equivalent'
+					caption: Ekvivalent uhlíku CO2
+				measure 'CH4 Carbon Equivalent'
+					caption: Ekvivalent uhlíku CH4
+				measure 'N2O Carbon Equivalent'
+					caption: Ekvivalent uhlíku N2O
+			table 'Employee Absences'
+				caption: Absence zaměstnanců
+				column 'Entry No'
+					caption: Číslo položky
+				column 'From Date'
+					caption: Od data
+				column 'To Date'
+					caption: Do data
+				column 'Cause of Absence'
+					caption: Důvod absence
+				column Description
+					caption: Popis
+				measure 'Employee Absences'
+					caption: Množství
+				measure 'Absence Hours (%)'
+					caption: Doba absence (%)
+			table 'Sustainability Sub-Account Categories'
+				caption: Kategorie podúčtu udržitelnosti
+				column 'Sub-Category Description'
+					caption: Popis podkategorie
+				column 'Renewable Energy'
+					caption: Obnovitelná energie
+			table Employees
+				caption: Zaměstnanci
+				column 'Employee No.'
+					caption: Číslo zaměstnance
+				column 'Employee Full Name'
+					caption: Celé jméno zaměstnance
+				column 'Employee First Name'
+					caption: Křestní jméno zaměstnance
+				column 'Employee Last Name'
+					caption: Příjmení zaměstnance
+				column 'Employee Gender'
+					caption: Pohlaví zaměstnance
+				column 'Employee Union Code'
+					caption: Kód svazu zaměstnance
+				column 'Employee Status'
+					caption: Stav zaměstnance
+				column 'Employee Cause of Inactivity'
+					caption: Důvod pasivity zaměstnance
+				column 'Employee Inactive Date'
+					caption: Datum pasivity zaměstnance
+				column 'Employee Grounds for Termination'
+					caption: Důvody ukončení zaměstnance
+				column 'Employee Date of Birth'
+					caption: Datum narození zaměstnance
+				column Age
+					caption: Věk
+				column 'Age Distribution'
+					caption: Distribuce podle věku
+				measure 'No. of Employees'
+					caption: Počet zaměstnanců
+				measure 'No. of Male Employees'
+					caption: Počet zaměstnanců mužského pohlaví
+				measure 'No. of Female Employees'
+					caption: Počet zaměstnanců ženského pohlaví
+				measure 'No. of Other Employees'
+					caption: Počet ostatních zaměstnanců
+				measure 'Male Employees (%)'
+					caption: Zaměstnanci mužského pohlaví (%)
+				measure 'Female Employees (%)'
+					caption: Zaměstnanci ženského pohlaví (%)
+				measure 'Other Employees (%)'
+					caption: Ostatní zaměstnanci (%)
+			table ENVIRONMENT
+				caption: PROSTŘEDÍ
+

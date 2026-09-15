@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PEPPOL BIS Ordering 3.0 — Order with OriginatorCustomerParty.
+     Tests that OriginatorCustomerParty/Party/PartyName/Name is staged in "Originator Company Name".
+     OriginatorCustomerParty is NOT pushed to the BC Sales Header; it is staging-only. -->
+<Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order:3</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:ordering:01:1.0</cbc:ProfileID>
+    <cbc:ID>ORD-1005</cbc:ID>
+    <cbc:IssueDate>2026-03-10</cbc:IssueDate>
+    <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+    <cac:BuyerCustomerParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="0088">1234567890128</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Buyer Corp AS</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:BuyerCustomerParty>
+    <cac:SellerSupplierParty>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>Seller Ltd.</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:SellerSupplierParty>
+    <cac:OriginatorCustomerParty>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>Originator Department GmbH</cbc:Name>
+            </cac:PartyName>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>Originator Dept. — Legal Name</cbc:RegistrationName>
+            </cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:OriginatorCustomerParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="XYZ">250.00</cbc:TaxAmount>
+    </cac:TaxTotal>
+    <cac:AnticipatedMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+        <cbc:AllowanceTotalAmount currencyID="XYZ">0.00</cbc:AllowanceTotalAmount>
+        <cbc:PayableAmount currencyID="XYZ">1250.00</cbc:PayableAmount>
+    </cac:AnticipatedMonetaryTotal>
+    <cac:OrderLine>
+        <cac:LineItem>
+            <cbc:ID>1</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">200.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget A</cbc:Name>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+</Order>

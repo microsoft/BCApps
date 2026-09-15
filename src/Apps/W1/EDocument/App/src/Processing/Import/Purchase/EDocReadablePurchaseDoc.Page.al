@@ -131,10 +131,10 @@ page 6182 "E-Doc. Readable Purchase Doc."
                     Caption = 'Purchase Order No.';
                     ToolTip = 'Specifies the purchase order number.';
                 }
-                field("Applies-to Ext. Invoice No."; Rec."Applies-to Ext. Invoice No.")
+                field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
                     Caption = 'Applies-to Ext. Invoice No.';
-                    ToolTip = 'Specifies the vendor''s original invoice number that this credit memo references.';
+                    ToolTip = 'Specifies the external invoice number that the document applies to.';
                 }
                 field("Invoice Date"; Rec."Invoice Date")
                 {
@@ -249,7 +249,13 @@ page 6182 "E-Doc. Readable Purchase Doc."
             Error('');
     end;
 
-    internal procedure SetBuffer(var EDocumentPurchaseHeader: Record "E-Document Purchase Header" temporary; var EDocumentPurchaseLine: Record "E-Document Purchase Line" temporary)
+    /// <summary>
+    /// Loads the readable purchase document page from the provided temporary header and line buffers.
+    /// Intended for format readers that present extracted E-Document data without persisting a draft.
+    /// </summary>
+    /// <param name="EDocumentPurchaseHeader">The temporary header buffer to display.</param>
+    /// <param name="EDocumentPurchaseLine">The temporary line buffer to display.</param>
+    procedure SetBuffer(var EDocumentPurchaseHeader: Record "E-Document Purchase Header" temporary; var EDocumentPurchaseLine: Record "E-Document Purchase Line" temporary)
     begin
         Clear(Rec);
         Rec := EDocumentPurchaseHeader;

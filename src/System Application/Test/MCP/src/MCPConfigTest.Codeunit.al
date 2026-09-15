@@ -5,8 +5,9 @@
 
 namespace System.Test.MCP;
 
+using System.AI;
 using System.MCP;
-using System.Reflection;
+using System.TestLibraries.AI;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
 using System.Text;
@@ -86,8 +87,9 @@ codeunit 130130 "MCP Config Test"
         MCPConfiguration: Record "MCP Configuration";
         ConfigId: Guid;
     begin
-        // [GIVEN] Configuration is created
+        // [GIVEN] Configuration is created with API Tools enabled (Dynamic Tool Mode requires it)
         ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, true);
 
         // [WHEN] Enable tool search mode is called
         MCPConfig.EnableDynamicToolMode(ConfigId, true);
@@ -251,6 +253,82 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
+    #region API Tools
+
+    [Test]
+    procedure TestEnableAPITools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, true);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableApiTools, 'API Tools should be enabled');
+    end;
+
+    [Test]
+    procedure TestDisableAPITools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
+    end;
+
+    [Test]
+    procedure TestDisableAPIToolsDisablesDynamicToolMode()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration with API Tools, Dynamic Tool Mode, and Discover Read-Only Objects on
+        ConfigId := CreateMCPConfig(false, true, true, true);
+        MCPConfig.EnableAPITools(ConfigId, true);
+
+        // [WHEN] API Tools is disabled
+        MCPConfig.EnableAPITools(ConfigId, false);
+
+        // [THEN] Dynamic Tool Mode and Discover Read-Only Objects cascade off with it
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableApiTools, 'API Tools should be disabled');
+        Assert.IsFalse(MCPConfiguration.EnableDynamicToolMode, 'Dynamic Tool Mode should cascade off');
+        Assert.IsFalse(MCPConfiguration.DiscoverReadOnlyObjects, 'Discover Read-Only Objects should cascade off');
+    end;
+
+    #endregion
+
+    #region Data Query Tools
+
+    [Test]
+    procedure TestEnableDataQueryTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableDataQueryTools(ConfigId, true);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be enabled');
+    end;
+
+    [Test]
+    procedure TestDisableDataQueryTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableDataQueryTools(ConfigId, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.EnableAlQueryTools, 'Data Query Tools should be disabled');
+    end;
+
+    #endregion
+
     #region Tools
 
     [Test]
@@ -314,14 +392,11 @@ codeunit 130130 "MCP Config Test"
     [Test]
     procedure TestGetHighestAPIVersionSingleVersion()
     var
-        PageMetadata: Record "Page Metadata";
         HighestVersion: Text[30];
     begin
-        // [GIVEN] A page metadata with single API version
-        PageMetadata.Get(Page::"Mock API");
-
+        // [GIVEN] An API page with a single API version
         // [WHEN] GetHighestAPIVersion is called
-        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(PageMetadata);
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(Page::"Mock API");
 
         // [THEN] The single version is returned
         Assert.AreEqual('v0.1', HighestVersion, 'Should return the single version');
@@ -330,14 +405,11 @@ codeunit 130130 "MCP Config Test"
     [Test]
     procedure TestGetHighestAPIVersionMultipleVersions()
     var
-        PageMetadata: Record "Page Metadata";
         HighestVersion: Text[30];
     begin
-        // [GIVEN] A page metadata with multiple API versions (v1.0,v2.0,beta)
-        PageMetadata.Get(Page::"Mock API Multi Version");
-
+        // [GIVEN] An API page with multiple API versions (v1.0,v2.0,beta)
         // [WHEN] GetHighestAPIVersion is called
-        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(PageMetadata);
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIPageVersion(Page::"Mock API Multi Version");
 
         // [THEN] The highest version is returned
         Assert.AreEqual('v2.0', HighestVersion, 'Should return v2.0 as highest version');
@@ -412,7 +484,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestAllowBoundActions()
+    procedure TestAllowActions()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ToolId: Guid;
@@ -420,8 +492,8 @@ codeunit 130130 "MCP Config Test"
         // [GIVEN] Configuration tool is created
         ToolId := CreateMCPConfigTool(CreateMCPConfig(false, false, true, false));
 
-        // [WHEN] Allow Bound Actions is set to true
-        MCPConfig.AllowBoundActions(ToolId, true);
+        // [WHEN] Allow Actions is set to true
+        MCPConfig.AllowActions(ToolId, true);
 
         // [THEN] Allow Bound Actions is true
         MCPConfigurationTool.GetBySystemId(ToolId);
@@ -429,39 +501,13 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    [HandlerFunctions('LookupAPIPageToolsOKHandler')]
-    procedure TestLookupAPIPageTools()
-    var
-        PageMetadata: Record "Page Metadata";
-        Result: Boolean;
+    [HandlerFunctions('LookupAPIObjectsOKHandler')]
+    procedure TestLookupAPIObjects()
     begin
-        // [GIVEN] No preselected page
-
-        // [WHEN] Lookup API tools is called and a page is selected
-        Result := MCPConfigTestLibrary.LookupAPIPageTools(PageMetadata);
-
-        // [THEN] Correct page is selected
-        Assert.IsTrue(Result, 'Result is not true');
-        PageMetadata.FindFirst();
-        Assert.AreEqual(Page::"Mock API", PageMetadata.ID, 'PageId mismatch');
-    end;
-
-    [Test]
-    [HandlerFunctions('LookupAPIQueryToolsOKHandler')]
-    procedure TestLookupAPIQueryTools()
-    var
-        QueryMetadata: Record "Query Metadata";
-        Result: Boolean;
-    begin
-        // [GIVEN] No preselected query
-
-        // [WHEN] Lookup API query tools is called and a query is selected
-        Result := MCPConfigTestLibrary.LookupAPIQueryTools(QueryMetadata);
-
-        // [THEN] Correct query is selected
-        Assert.IsTrue(Result, 'Result is not true');
-        QueryMetadata.FindFirst();
-        Assert.AreEqual(Query::"Mock API Query", QueryMetadata.ID, 'QueryId mismatch');
+        // [GIVEN] No preselected object
+        // [WHEN] The unified API lookup (pages + queries) is opened and an object is selected
+        // [THEN] A selection is returned
+        Assert.IsTrue(MCPConfigTestLibrary.LookupAPIObjects(), 'The lookup did not return a selection');
     end;
 
     [Test]
@@ -566,7 +612,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfig.AllowCreate(ToolId, true);
         MCPConfig.AllowModify(ToolId, true);
         MCPConfig.AllowDelete(ToolId, true);
-        MCPConfig.AllowBoundActions(ToolId, true);
+        MCPConfig.AllowActions(ToolId, true);
 
         // [WHEN] Disable create, update and delete tools is called
         MCPConfig.AllowCreateUpdateDeleteTools(ConfigId, false);
@@ -681,7 +727,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    procedure TestQueryToolDoesNotAllowBoundActions()
+    procedure TestQueryToolDoesNotAllowActions()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         ConfigId: Guid;
@@ -692,12 +738,112 @@ codeunit 130130 "MCP Config Test"
         ToolId := CreateMCPQueryConfigTool(ConfigId);
         Commit();
 
-        // [WHEN] AllowBoundActions is called on a query tool
-        MCPConfig.AllowBoundActions(ToolId, true);
+        // [WHEN] AllowActions is called on a query tool
+        MCPConfig.AllowActions(ToolId, true);
 
         // [THEN] Allow Bound Actions remains false (not applicable for query tools)
         MCPConfigurationTool.GetBySystemId(ToolId);
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should remain false for query tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowRead()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowRead is called on a codeunit tool
+        MCPConfig.AllowRead(ToolId, true);
+
+        // [THEN] Allow Read remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Read", 'Allow Read should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowCreate()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowCreate is called on a codeunit tool
+        MCPConfig.AllowCreate(ToolId, true);
+
+        // [THEN] Allow Create remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowModify()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowModify is called on a codeunit tool
+        MCPConfig.AllowModify(ToolId, true);
+
+        // [THEN] Allow Modify remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolDoesNotAllowDelete()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowDelete is called on a codeunit tool
+        MCPConfig.AllowDelete(ToolId, true);
+
+        // [THEN] Allow Delete remains false (not applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete should remain false for codeunit tools');
+    end;
+
+    [Test]
+    procedure TestCodeunitToolAllowsActions()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration and codeunit tool is created
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        ToolId := CreateMCPCodeunitConfigTool(ConfigId);
+        Commit();
+
+        // [WHEN] AllowActions is called on a codeunit tool
+        MCPConfig.AllowActions(ToolId, true);
+
+        // [THEN] Allow Bound Actions is true (applicable for codeunit tools)
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.IsTrue(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions should be true for codeunit tools');
     end;
 
     #endregion
@@ -928,11 +1074,14 @@ codeunit 130130 "MCP Config Test"
         ConfigJson: JsonObject;
         JsonToken: JsonToken;
     begin
-        // [GIVEN] Configuration with two tools is created
+        // [GIVEN] Configuration with two tools and both tool features enabled is created
         ConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(ConfigId);
         CreateMCPConfigTool(ConfigId);
         MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfiguration.EnableApiTools := true;
+        MCPConfiguration.EnableAlQueryTools := true;
+        MCPConfiguration.Modify();
 
         // [WHEN] Export configuration is called
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
@@ -948,6 +1097,12 @@ codeunit 130130 "MCP Config Test"
 
         ConfigJson.Get('enableDynamicToolMode', JsonToken);
         Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableDynamicToolMode mismatch');
+
+        ConfigJson.Get('enableApiTools', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableApiTools mismatch');
+
+        ConfigJson.Get('enableAlQueryTools', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableAlQueryTools mismatch');
 
         ConfigJson.Get('tools', JsonToken);
         Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
@@ -966,10 +1121,14 @@ codeunit 130130 "MCP Config Test"
         NewName: Text[100];
         NewDescription: Text[250];
     begin
-        // [GIVEN] Configuration with two tools is created and exported
+        // [GIVEN] Configuration with two tools and both tool features enabled is created and exported
         SourceConfigId := CreateMCPConfig(false, true, true, true);
         CreateMCPConfigTool(SourceConfigId);
         CreateMCPConfigTool(SourceConfigId);
+        MCPConfiguration.GetBySystemId(SourceConfigId);
+        MCPConfiguration.EnableApiTools := true;
+        MCPConfiguration.EnableAlQueryTools := true;
+        MCPConfiguration.Modify();
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         MCPConfig.ExportConfiguration(SourceConfigId, OutStream);
@@ -987,6 +1146,8 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfiguration.Active, 'Imported config should be inactive');
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
+        Assert.IsTrue(MCPConfiguration.EnableApiTools, 'EnableApiTools mismatch');
+        Assert.IsTrue(MCPConfiguration.EnableAlQueryTools, 'EnableAlQueryTools mismatch');
 
         // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
@@ -1077,8 +1238,6 @@ codeunit 130130 "MCP Config Test"
         Assert.IsFalse(MCPConfigCard.Name.Editable(), 'Name field is editable');
         Assert.IsFalse(MCPConfigCard.Description.Editable(), 'Description field is editable');
         Assert.IsFalse(MCPConfigCard.Active.Editable(), 'Active field is editable');
-        Assert.IsFalse(MCPConfigCard.EnableDynamicToolMode.Editable(), 'EnableDynamicToolMode field is editable');
-        Assert.IsFalse(MCPConfigCard.DiscoverReadOnlyObjects.Editable(), 'DiscoverReadOnlyObjects field is editable');
         Assert.IsFalse(MCPConfigCard.ToolList.Visible(), 'ToolList is visible');
     end;
 
@@ -1227,6 +1386,105 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
+    #region Server Features
+
+    [Test]
+    procedure TestServerFeaturesListShowsAllFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A non-default configuration
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+
+        // [WHEN] The configuration card is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] The Server Features list shows all three features in enum order
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.First(), 'Server Features list is empty');
+        Assert.AreEqual('API Tools', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected first feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Dynamic Tool Mode row is missing');
+        Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected second feature');
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Next(), 'Data Query Tools row is missing');
+        Assert.AreEqual('Data Query Tools (Preview)', MCPConfigCard.ServerFeatureList.Feature.Value, 'Unexpected third feature');
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Next(), 'Unexpected extra feature rows');
+    end;
+
+    [Test]
+    procedure TestConfigureEnabledOnlyForDynamicToolMode()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A non-default configuration with Dynamic Tool Mode active (so its row is configurable + active)
+        ConfigId := CreateMCPConfig(false, true, true, false);
+        MCPConfiguration.GetBySystemId(ConfigId);
+
+        // [WHEN] The configuration card is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] Configure is enabled only on Dynamic Tool Mode (the one feature with settings).
+        // NOTE: API Tools / Data Query are also inactive here (mock), which on its own disables Configure;
+        // Dynamic Tool Mode isolates the Configurable (HasSettings) gate since it is active.
+        MCPConfigCard.ServerFeatureList.First(); // API Tools
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for API Tools');
+        MCPConfigCard.ServerFeatureList.Next(); // Dynamic Tool Mode
+        Assert.IsTrue(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be enabled for Dynamic Tool Mode');
+        MCPConfigCard.ServerFeatureList.Next(); // Data Query Tools
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Configure.Enabled(), 'Configure should be disabled for Data Query Tools');
+    end;
+
+    [Test]
+    procedure TestActivateDynamicToolModeFromServerFeatures()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A non-default configuration with API Tools enabled (Dynamic Tool Mode requires it) and
+        // Dynamic Tool Mode off
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableAPITools(ConfigId, true);
+        MCPConfiguration.GetBySystemId(ConfigId);
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [WHEN] Activate is invoked on the Dynamic Tool Mode row
+        MCPConfigCard.ServerFeatureList.First(); // API Tools
+        MCPConfigCard.ServerFeatureList.Next(); // Dynamic Tool Mode
+        Assert.AreEqual('Dynamic Tool Mode', MCPConfigCard.ServerFeatureList.Feature.Value, 'Not positioned on the Dynamic Tool Mode row');
+        MCPConfigCard.ServerFeatureList.Activate.Invoke();
+
+        // [THEN] The row turns Active and the configuration field is set
+        Assert.AreEqual('Active', MCPConfigCard.ServerFeatureList.Status.Value, 'Dynamic Tool Mode row is not Active');
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode was not set');
+    end;
+
+    [Test]
+    procedure TestServerFeaturesListHiddenOnDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigCard: TestPage "MCP Config Card";
+    begin
+        // [GIVEN] The default configuration
+        MCPConfiguration.Get('');
+
+        // [WHEN] The configuration card is opened
+        MCPConfigCard.OpenEdit();
+        MCPConfigCard.GoToRecord(MCPConfiguration);
+
+        // [THEN] The Server Features list is not shown
+        Assert.IsFalse(MCPConfigCard.ServerFeatureList.Visible(), 'Server Features list should be hidden on the default configuration');
+    end;
+
+    #endregion
+
     #region Connection String
 
     [Test]
@@ -1364,6 +1622,22 @@ codeunit 130130 "MCP Config Test"
         exit(MCPConfigurationTool.SystemId);
     end;
 
+    local procedure CreateMCPCodeunitConfigTool(ConfigId: Guid): Guid
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        MCPConfigurationTool.ID := ConfigId;
+        MCPConfigurationTool."Object Id" := Any.IntegerInRange(1, 100);
+        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
+        MCPConfigurationTool."Allow Read" := false;
+        MCPConfigurationTool."Allow Create" := false;
+        MCPConfigurationTool."Allow Modify" := false;
+        MCPConfigurationTool."Allow Delete" := false;
+        MCPConfigurationTool."Allow Bound Actions" := false;
+        MCPConfigurationTool.Insert();
+        exit(MCPConfigurationTool.SystemId);
+    end;
+
     local procedure EnsureSystemDefaultExists()
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -1386,17 +1660,10 @@ codeunit 130130 "MCP Config Test"
 
 
     [ModalPageHandler]
-    procedure LookupAPIPageToolsOKHandler(var MCPAPIConfigToolLookup: TestPage "MCP API Config Tool Lookup")
+    procedure LookupAPIObjectsOKHandler(var MCPAPIObjectLookup: TestPage "MCP API Object Lookup")
     begin
-        MCPAPIConfigToolLookup.GoToKey(Page::"Mock API");
-        MCPAPIConfigToolLookup.OK().Invoke();
-    end;
-
-    [ModalPageHandler]
-    procedure LookupAPIQueryToolsOKHandler(var MCPQueryConfigToolLookup: TestPage "MCP Query Config Tool Lookup")
-    begin
-        MCPQueryConfigToolLookup.GoToKey(Query::"Mock API Query");
-        MCPQueryConfigToolLookup.OK().Invoke();
+        MCPAPIObjectLookup.First();
+        MCPAPIObjectLookup.OK().Invoke();
     end;
 
     [ModalPageHandler]
@@ -1412,6 +1679,46 @@ codeunit 130130 "MCP Config Test"
         MCPToolsByAPIGroup.APIPublisher.SetValue('mock');
         MCPToolsByAPIGroup.APIGroup.SetValue('mcp');
         MCPToolsByAPIGroup.OK().Invoke();
+    end;
+
+    #endregion
+
+    #region Capability
+
+    [Test]
+    procedure TestMCPCapabilityIsRegisteredAfterInstall()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+        CopilotTestLibrary: Codeunit "Copilot Test Library";
+    begin
+        // [GIVEN] The MCP Server capability is registered under the MCP app id
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId());
+
+        // [THEN] The MCP Server capability is registered against the MCP app id
+        Assert.IsTrue(
+            CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
+            'Expected MCP Server capability to be registered after install.');
+    end;
+
+    [Test]
+    procedure TestMCPCapabilityIsActiveByDefault()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+        CopilotTestLibrary: Codeunit "Copilot Test Library";
+    begin
+        // [GIVEN] The MCP Server capability is registered under the MCP app id
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId());
+
+        // [THEN] The MCP Server capability is Active by default so the feature works out of the box
+        Assert.IsTrue(
+            CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
+            'Expected MCP Server capability to be Active by default after install.');
+    end;
+
+    local procedure GetMCPAppId(): Guid
+    begin
+        // App id of the MCP module (src/System Application/App/MCP/app.json).
+        exit('5767db24-c02e-46e8-9132-44de8be7fc57');
     end;
 
     #endregion

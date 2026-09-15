@@ -38,6 +38,7 @@ codeunit 5594 "Create Quality Lookup Value"
         ContosoQualityManagement.InsertQualityTestLookupValue(TypeOfCar(), ICar(), InternalOrVendorLbl);
         ContosoQualityManagement.InsertQualityTestLookupValue(TypeOfCar(), SCar(), CustomerLbl);
 
+        ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectNone(), CoffeeDefectNoneDescLbl);
         ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectColor(), CoffeeDefectColorDescLbl);
         ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectForeign(), CoffeeDefectForeignDescLbl);
         ContosoQualityManagement.InsertQualityTestLookupValue(CoffeeDefect(), CoffeeDefectInsect(), CoffeeDefectInsectDescLbl);
@@ -173,6 +174,11 @@ codeunit 5594 "Create Quality Lookup Value"
         exit(SCarTok);
     end;
 
+    procedure CoffeeDefectNone(): Code[100]
+    begin
+        exit(CoffeeDefectNoneTok);
+    end;
+
     procedure CoffeeDefectColor(): Code[100]
     begin
         exit(CoffeeDefectColorTok);
@@ -235,6 +241,7 @@ codeunit 5594 "Create Quality Lookup Value"
         ACarTok: Label 'ACAR', Locked = true, MaxLength = 100;
         ICarTok: Label 'ICAR', Locked = true, MaxLength = 100;
         SCarTok: Label 'SCAR', Locked = true, MaxLength = 100;
+        CoffeeDefectNoneTok: Label 'NONE', Locked = true, MaxLength = 100;
         CoffeeDefectColorTok: Label 'COLOR', Locked = true, MaxLength = 100;
         CoffeeDefectForeignTok: Label 'FOREIGN', Locked = true, MaxLength = 100;
         CoffeeDefectInsectTok: Label 'INSECT', Locked = true, MaxLength = 100;
@@ -260,6 +267,7 @@ codeunit 5594 "Create Quality Lookup Value"
         AuditLbl: Label 'Audit', MaxLength = 250;
         InternalOrVendorLbl: Label 'Internal or Vendor', MaxLength = 250;
         CustomerLbl: Label 'Customer', MaxLength = 250;
+        CoffeeDefectNoneDescLbl: Label 'No visible defects', MaxLength = 250;
         CoffeeDefectColorDescLbl: Label 'Black or discolored beans', MaxLength = 250;
         CoffeeDefectForeignDescLbl: Label 'Stones, sticks, or other non-coffee debris', MaxLength = 250;
         CoffeeDefectInsectDescLbl: Label 'Insect-Damaged Beans: visible holes or eaten portions', MaxLength = 250;

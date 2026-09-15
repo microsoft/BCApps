@@ -4,13 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001501 "Subcontract. - Objs"
+permissionset 20501 "Subcontract. - Objs"
 {
     Caption = 'Subcontracting - Objects';
     Assignable = true;
     Access = Internal;
     Permissions =
         // Tables
+        table "Subc. Standard Task Comment" = X,
+        table "Subc. Routing Comment Line" = X,
+        table "Subc. Prod. Rtng. Comment" = X,
         table "Subcontractor Price" = X,
         table "Subcontractor WIP Ledger Entry" = X,
 
@@ -77,14 +80,20 @@ permissionset 99001501 "Subcontract. - Objs"
 #endif
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
         codeunit "Subc. Worksheet Handler" = X,
+        codeunit "Subc. Attachment Details Ext." = X,
+        codeunit "Subc. Routing Line Ext." = X,
 
         // Pages
+        page "Subc. Standard Task Comments" = X,
+        page "Subc. Routing Comments" = X,
+        page "Subc. Prod. Rtng. Comments" = X,
         page "Subc. Prod. Order Components" = X,
         page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,
         page "Subc. Routing Info Factbox" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
+        page "Subcontracting Setup Wizard" = X,
         page "Subc. WIP Adjustment" = X,
         page "Subc. WIP Ledger Entries" = X,
 
@@ -92,6 +101,5 @@ permissionset 99001501 "Subcontract. - Objs"
         report "Subc. Calculate Subcontracts" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
-        report "Subc. Detailed Calculation" = X,
         report "Subc. Dispatching List" = X;
 }

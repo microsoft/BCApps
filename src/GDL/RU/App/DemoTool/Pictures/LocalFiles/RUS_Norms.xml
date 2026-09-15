@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<NormJurisdictionSetup>
+	<NormJurisdiction>
+		<Code>НОРМЫ</Code>
+		<Description>Налоговые нормы</Description>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ВЫРУЧКА</Code>
+			<Description>Выручка от реализации</Description>
+			<SearchDetail>По состоянию на дату</SearchDetail>
+			<StoringMethod>Расчет</StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ВЫРУЧКА</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>31.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ВЫРУЧКАТ</Code>
+			<Description>Выручка от реализации товаров</Description>
+			<SearchDetail>По состоянию на дату</SearchDetail>
+			<StoringMethod>Расчет</StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ВЫРУЧКАТ</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>31.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ДОБМЕДСТРХ</Code>
+			<Description>Добровольное медицинское страхование</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>2</Level>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ЗАРПЛАТА</Code>
+			<Description>Фонд оплаты труда</Description>
+			<SearchDetail>По состоянию на дату</SearchDetail>
+			<StoringMethod>Расчет</StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ЗАРПЛАТА</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>31.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>НОРМАДМЕДС</Code>
+			<Description>Норма расходов на добровольное медиц. страхование</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>НОРМАДМЕДС</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,10</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>НОРМАР_СД</Code>
+			<Description>Норма резерва по сомнительным долгам</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>НОРМАР_СД</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,10</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>НОРМПРЕДСТ</Code>
+			<Description>Норма представительских расходов</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>НОРМПРЕДСТ</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,04</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>НОРМРЕКЛАМ</Code>
+			<Description>Норма расходов на рекламу</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>НОРМРЕКЛАМ</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,01</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ОТПУСК_П</Code>
+			<Description>Фонд оплаты труда (план)</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ОТПУСК_П</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3400000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ОТПУСК_П</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3500000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>СНП</Code>
+			<Description>Налог на прибыль</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>СНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>20,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>СНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>20,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>СНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.11</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>20,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>СТАВКАНП</Code>
+			<Description>Ставка налога на прибыль</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>СТАВКАНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,20</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>СТАВКАНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,20</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>СТАВКАНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.11</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,20</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ТНП</Code>
+			<Description>Территориальный налог на прибыль</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ТНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>18,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ТНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>18,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ФНП</Code>
+			<Description>Федеральный налог на прибыль</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ФНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>2,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ФНП</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>2,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+			<Code>ФОТ_П</Code>
+			<Description>Фонд оплаты труда</Description>
+			<SearchDetail>До даты</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ФОТ_П</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3700000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<NormGroupCode>ФОТ_П</NormGroupCode>
+				<NormType>Сумма</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3800000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+	</NormJurisdiction>
+</NormJurisdictionSetup>

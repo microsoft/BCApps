@@ -53,14 +53,18 @@ codeunit 30113 "Shpfy Cust. By Email/Phone" implements "Shpfy ICustomer Mapping"
             if AllowCreate then begin
                 CustomerAddress.SetRange("Customer Id", CustomerId);
                 CustomerAddress.SetRange(Default, true);
-                if CustomerAddress.FindFirst() then begin
-                    CreateCustomer.SetShop(ShopCode);
-                    CreateCustomer.SetTemplateCode(TemplateCode);
-                    CustomerAddress.SetRecFilter();
-                    CreateCustomer.Run(CustomerAddress);
-                    ShopifyCustomer.CalcFields("Customer No.");
-                    exit(ShopifyCustomer."Customer No.");
+                if not CustomerAddress.FindFirst() then begin
+                    CustomerAddress.SetRange(Default);
+                    if not CustomerAddress.FindFirst() then
+                        exit('');
                 end;
+                CreateCustomer.SetShop(ShopCode);
+                CreateCustomer.SetTemplateCode(TemplateCode);
+                CustomerAddress.SetRecFilter();
+                CreateCustomer.Run(CustomerAddress);
+                ShopifyCustomer.Get(CustomerId);
+                ShopifyCustomer.CalcFields("Customer No.");
+                exit(ShopifyCustomer."Customer No.");
             end;
 
         end else begin

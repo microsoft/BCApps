@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<NormJurisdictionSetup>
+	<NormJurisdiction>
+		<Code>NORMS</Code>
+		<Description>Tax Norms</Description>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>ADVNORM</Code>
+			<Description>Advertising Expenses Norms</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>ADVNORM</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,01</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>MEDINS</Code>
+			<Description>Voluntary Medical Insurance</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>2</Level>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>MEDNORM</Code>
+			<Description>Voluntary Medical Insurance Expense Norm</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>NORMORVERD</Code>
+			<Description>Norm Overdue Reserv</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>PT</Code>
+			<Description>Profits Tax</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>PT</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>20,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>PTF</Code>
+			<Description>Federal Profits Tax</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>PTF</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>2,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>PTRATE</Code>
+			<Description>Profits Tax Rate</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>PTRATE</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,20</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>PTT</Code>
+			<Description>Territorial Profits Tax</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>PTT</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>18,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>REPNORM</Code>
+			<Description>Representative Expenses Norms</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>REVENUE</Code>
+			<Description>Revenue from Sales</Description>
+			<SearchDetail>As of Date</SearchDetail>
+			<StoringMethod>Calculation</StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>REVENUE</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>31.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>REVENUEI</Code>
+			<Description>Revenue from Items Sales</Description>
+			<SearchDetail>As of Date</SearchDetail>
+			<StoringMethod>Calculation</StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>REVENUEI</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>31.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>SALARY</Code>
+			<Description>Salary Fund</Description>
+			<SearchDetail>As of Date</SearchDetail>
+			<StoringMethod>Calculation</StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>SALARY</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>31.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>0,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>SALARY_P</Code>
+			<Description>Salary Fund Plan</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>SALARY_P</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3700000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>SALARY_P</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3800000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+		<NormGroup>
+			<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+			<Code>VACATION_P</Code>
+			<Description>Vacation Fund Plan</Description>
+			<SearchDetail>To Date</SearchDetail>
+			<StoringMethod> </StoringMethod>
+			<Check>No</Check>
+			<Level>1</Level>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>VACATION_P</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.09</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3400000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+			<NormDetail>
+				<NormJurisdictionCode>NORMS</NormJurisdictionCode>
+				<NormGroupCode>VACATION_P</NormGroupCode>
+				<NormType>Amount</NormType>
+				<EffectiveDate>01.01.10</EffectiveDate>
+				<Maximum>0,00</Maximum>
+				<Norm>3500000,00</Norm>
+				<NormAboveMaximum>0,00</NormAboveMaximum>
+			</NormDetail>
+		</NormGroup>
+	</NormJurisdiction>
+</NormJurisdictionSetup>

@@ -1,0 +1,9 @@
+No.,Name,Address,Address 2,City,Post Code,Country/Region Code,Phone No.,E-Mail,Home Page,Customer Posting Group,Gen. Bus. Posting Group,Payment Terms Code,Currency Code,Language Code,Credit Limit (LCY),Blocked
+C00001,Contoso Ltd.,1 Main St,Suite 100,Seattle,98101,US,555-0100,info@contoso.test,https://contoso.test,DOMESTIC,DOMESTIC,30 DAYS,,ENU,10000,0
+C00002,Fabrikam Inc.,2 Market St,,Redmond,98052,US,555-0200,info@fabrikam.test,https://fabrikam.test,DOMESTIC,DOMESTIC,14 DAYS,USD,ENU,5000,0
+C00003,Adventure Works,3 Pine Rd,Bldg A,Portland,97201,US,555-0300,sales@adv.test,,DOMESTIC,DOMESTIC,30 DAYS,USD,ENU,25000,1
+C00004,Northwind Traders,10 Oxford St,,London,W1A 1AA,GB,020-7946-0001,orders@northwind.test,https://northwind.test,EU,EU,14 DAYS,GBP,ENG,15000,0
+C00005,Wide World Importers,20 Berliner Allee,,Berlin,10115,DE,030-555-2000,kontakt@wwi.test,,EU,EU,30 DAYS,EUR,DEU,50000,0
+C00006,Tailspin Toys,42 Hobby Ln,,Austin,78701,US,,,,DOMESTIC,DOMESTIC,30 DAYS,,ENU,0,2
+C00007,Lucerne Publishing,99 Lake Rd,Floor 3,Geneva,1201,CH,022-555-9900,info@lucerne.test,https://lucerne.test,EXPORT,EU,COD,EUR,FRA,7500,0
+C00008,Blue Yonder Airlines,1 Hangar Way,,Dallas,75201,US,555-7700,fleet@blueyonder.test,,DOMESTIC,DOMESTIC,30 DAYS,USD,ENU,100000,3

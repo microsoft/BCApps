@@ -1,0 +1,3 @@
+Code,Description,BalAccountType,BalAccountNo,DirectDebit,DirectDebitPmtTermsCode
+TPM1,Test Payment Method 1,0,,false,
+TPM2,Test Payment Method 2,0,,false,

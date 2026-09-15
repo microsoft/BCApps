@@ -1,0 +1,544 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "774afda36a1b89ed54b9",
+  "position": {
+    "x": 26.428571428571431,
+    "y": 66.428571428571431,
+    "z": 1000,
+    "height": 632.14285714285722,
+    "width": 1226.4285714285716,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "decompositionTreeVisual",
+    "query": {
+      "queryState": {
+        "Analyze": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Ledger Entries"
+                    }
+                  },
+                  "Property": "CO2e Emissions"
+                }
+              },
+              "queryRef": "Sustainability Ledger Entries.Net Change CO2e Emissions",
+              "nativeQueryRef": "Net Change CO2e Emissions"
+            }
+          ]
+        },
+        "ExplainBy": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Responsibility Centre"
+                    }
+                  },
+                  "Property": "Responsibility Centre Code"
+                }
+              },
+              "queryRef": "Responsibility Centre.Responsibility Centre Code",
+              "nativeQueryRef": "Responsibility Centre Code",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Account Category"
+                    }
+                  },
+                  "Property": "Sustainability Account Category  Emission Scope"
+                }
+              },
+              "queryRef": "Sustainability Account Category.Sustainability Account Category  Emission Scope",
+              "nativeQueryRef": "Sustainability Account Category  Emission Scope",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Category"
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account Category",
+              "nativeQueryRef": "Sustainability Account Category",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Sub-Category"
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account Sub-Category",
+              "nativeQueryRef": "Sustainability Account Sub-Category",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account No."
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account No.",
+              "nativeQueryRef": "Sustainability Account No.",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Goals"
+                    }
+                  },
+                  "Property": "Score Card No."
+                }
+              },
+              "queryRef": "Sustainability Goals.Score Card No.",
+              "nativeQueryRef": "Score Card No.",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Sub-Account Categories"
+                    }
+                  },
+                  "Property": "Renewable Energy"
+                }
+              },
+              "queryRef": "Sustainability Sub-Account Categories.Renewable Energy",
+              "nativeQueryRef": "Renewable Energy",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Sub-Account Categories"
+                    }
+                  },
+                  "Property": "Sub-Category Code"
+                }
+              },
+              "queryRef": "Sustainability Sub-Account Categories.Sub-Category Code",
+              "nativeQueryRef": "Sub-Category Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Account Category"
+                    }
+                  },
+                  "Property": "Sustainability Account Category Code"
+                }
+              },
+              "queryRef": "Sustainability Account Category.Sustainability Account Category Code",
+              "nativeQueryRef": "Sustainability Account Category Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Emission Fees"
+                    }
+                  },
+                  "Property": "Country Region Code"
+                }
+              },
+              "queryRef": "Emission Fees.Country Region Code",
+              "nativeQueryRef": "Country Region Code",
+              "active": false
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Name"
+                }
+              },
+              "queryRef": "Sustainability Accounts.Sustainability Account Name",
+              "nativeQueryRef": "Sustainability Account Name",
+              "active": false
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Sustainability Ledger Entries"
+                  }
+                },
+                "Property": "CO2e Emissions"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "ExplainBy"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Responsibility Centre.Responsibility Centre Code"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Responsibility Centre"
+                    }
+                  },
+                  "Property": "Responsibility Centre Code"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Account Category.Sustainability Account Category  Emission Scope"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Account Category"
+                    }
+                  },
+                  "Property": "Sustainability Account Category  Emission Scope"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Accounts.Sustainability Account Category"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Category"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Accounts.Sustainability Account Sub-Category"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Sub-Category"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Accounts.Sustainability Account No."
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Goals.Score Card No."
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Sub-Account Categories.Renewable Energy"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Sub-Account Categories.Sub-Category Code"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Sustainability Account Category.Sustainability Account Category Code"
+            ],
+            "isCollapsed": true
+          },
+          {
+            "queryRefs": [
+              "Emission Fees.Country Region Code"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Emission Fees"
+                    }
+                  },
+                  "Property": "Country Region Code"
+                }
+              }
+            ]
+          },
+          {
+            "queryRefs": [
+              "Sustainability Accounts.Sustainability Account Name"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sustainability Accounts"
+                    }
+                  },
+                  "Property": "Sustainability Account Name"
+                }
+              }
+            ]
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "null"
+                  }
+                }
+              ],
+              "isToggled": true,
+              "children": [
+                {
+                  "identityValues": [
+                    {
+                      "Literal": {
+                        "Value": "'Scope 1'"
+                      }
+                    }
+                  ],
+                  "isToggled": true,
+                  "children": [
+                    {
+                      "identityValues": [
+                        {
+                          "Literal": {
+                            "Value": "'MOBILE-DISTANCE'"
+                          }
+                        }
+                      ],
+                      "isToggled": true,
+                      "children": [
+                        {
+                          "identityValues": [
+                            {
+                              "Literal": {
+                                "Value": "'TRUCK-LH'"
+                              }
+                            }
+                          ],
+                          "isToggled": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "tree": [
+        {
+          "properties": {
+            "effectiveBarsPerLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "8L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "analysis": [
+        {
+          "properties": {
+            "aiMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'relative'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "insights": [
+        {
+          "properties": {
+            "isAINode": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Sustainability Account Category"
+                          }
+                        },
+                        "Property": "Sustainability Account Category  Emission Scope"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Scope 3'"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Sustainability Accounts"
+                          }
+                        },
+                        "Property": "Sustainability Account Name"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Contoso Hotel - 4 stars'"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Emission Fees"
+                          }
+                        },
+                        "Property": "Country Region Code"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "''"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {}
+        }
+      ]
+    }
+  }
+}

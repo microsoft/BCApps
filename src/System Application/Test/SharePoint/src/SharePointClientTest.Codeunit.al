@@ -399,6 +399,45 @@ codeunit 132970 "SharePoint Client Test"
         Assert.IsTrue(TempSharePointFolder.OdataId.EndsWith('_api/Web/GetFolderByServerRelativePath(decodedurl=''' + ParentUrl + '/Lists/Test Documents/Attachments/TestSubfolder'')'), StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("OdataId")));
         Assert.AreEqual('SP.Folder', TempSharePointFolder.OdataType, StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("OdataType")));
         Assert.IsTrue(TempSharePointFolder."Server Relative Url".EndsWith('/Lists/Test Documents/Attachments/TestSubfolder'), StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("Server Relative Url")));
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
+    end;
+
+    [Test]
+    procedure TestCreateListRequestDigestUsesSiteScopedUrl()
+    var
+        TempSharePointList: Record "SharePoint List" temporary;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] CreateList requests the digest from the site-scoped URL, not the tenant root, so it works under Sites.Selected
+        Initialize();
+
+        // [WHEN] CreateList is called for a site-scoped account (BaseUrl contains a "/sites/<site>" segment)
+        IsSuccess := SharePointClient.CreateList('Test Sample List Title', 'Test Sample List Description', TempSharePointList);
+        Assert.AreEqual(true, IsSuccess, 'Successfull operation expected');
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
+    end;
+
+    [Test]
+    procedure TestCreateListItemRequestDigestUsesSiteScopedUrl()
+    var
+        TempSharePointListItem: Record "SharePoint List Item" temporary;
+        Guid: Guid;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] CreateListItem requests the digest from the site-scoped URL, not the tenant root, so it works under Sites.Selected
+        Initialize();
+        Evaluate(Guid, '{854D7F21-1C6A-43AB-A081-20404894B449}');
+
+        // [WHEN] CreateListItem is called for a site-scoped account (BaseUrl contains a "/sites/<site>" segment)
+        IsSuccess := SharePointClient.CreateListItem(Guid, 'SP.Data.My_x0020_Test_x0020_DocumentsListItem', 'Test List Item', TempSharePointListItem);
+        Assert.AreEqual(true, IsSuccess, 'Successfull operation expected');
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
     end;
 
     [Test]
@@ -472,6 +511,28 @@ codeunit 132970 "SharePoint Client Test"
         Assert.AreEqual(401, SharepointDiagnostics.GetHttpStatusCode(), 'Different status expected');
         Assert.AreEqual('Unauthorized', SharepointDiagnostics.GetResponseReasonPhrase(), 'Different reason phrase expected');
         Assert.AreEqual('Invalid JWT token. The token is expired.', SharepointDiagnostics.GetErrorMessage(), 'Different error description expected');
+    end;
+
+    [Test]
+    procedure TestVerboseErrorResponse()
+    var
+        TempSharePointListItem: Record "SharePoint List Item" temporary;
+        SharepointDiagnostics: Interface "HTTP Diagnostics";
+        Guid: Guid;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] GetListItems by list Id operation fails with an OData v3 verbose error payload (error.message.value)
+        Initialize();
+
+        Evaluate(Guid, '{7A1F0E2B-8C4D-4E6F-9A0B-1C2D3E4F5A6B}');
+        IsSuccess := SharePointClient.GetListItems(Guid, TempSharePointListItem);
+        Assert.AreEqual(false, IsSuccess, 'Unsuccessfull operation expected');
+        Assert.AreEqual(0, TempSharePointListItem.Count(), 'Expected 0 records');
+
+        SharepointDiagnostics := SharePointClient.GetDiagnostics();
+        Assert.AreEqual(403, SharepointDiagnostics.GetHttpStatusCode(), 'Different status expected');
+        Assert.AreEqual('Forbidden', SharepointDiagnostics.GetResponseReasonPhrase(), 'Different reason phrase expected');
+        Assert.AreEqual('Access denied. You do not have permission to perform this action.', SharepointDiagnostics.GetErrorMessage(), 'Different error description expected');
     end;
 
     local procedure Initialize()

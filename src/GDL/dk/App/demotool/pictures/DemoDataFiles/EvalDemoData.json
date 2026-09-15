@@ -1,0 +1,4600 @@
+{
+	"Version": "DK",
+	"Type": "Evaluation",
+	"PackageID": "CHARTOFACCOUNTS",
+
+	"tables": [{
+		"table": 324,
+		"Options": {
+			
+		},
+		"rows": [{
+			"Code": {
+				"@": "{855103CF-64EF-4C9A-B7AA-C660FC4BFFF8}",
+				"ENU": "STANDARD",
+				"DAN": "STANDARD"
+			},
+			"Description": {
+				"@": "{01233CA8-D14F-4B8B-BF14-D34AFD6A5C86}",
+				"ENU": "Standard VAT (25%)",
+				"DAN": "Standardmoms (25 %)"
+			}
+		},
+		{
+			"Code": {
+				"@": "{45CF66EB-C50E-46FF-8B54-23609BA5C247}",
+				"ENU": "ZERO",
+				"DAN": "ZERO"
+			},
+			"Description": {
+				"@": "{55A5C830-76D6-49E8-AE3D-D781A6BB7BA0}",
+				"ENU": "No VAT",
+				"DAN": "Momsfri"
+			}
+		},
+		{
+			"Code": {
+				"@": "{45CF66EB-C50E-46FF-8B54-23619BA5C247}",
+				"ENU": "VAT25SERV",
+				"DAN": "VAT25SERV"
+			},
+			"Description": {
+				"@": "{53A5C830-76D6-49E8-AE3D-D781A6BB7BA0}",
+				"ENU": "",
+				"DAN": ""
+			}
+		}]
+	},
+	{
+		"table": 323,
+		"Options": {
+			
+		},
+		"rows": [{
+			"Code": {
+				"@": "{321E16EC-4EB4-4B47-BB5B-A3CA5CD0A56E}",
+				"ENU": "DOMESTIC",
+				"DAN": "INDENLANDS"
+			},
+			"Description": {
+				"@": "{3AD391BE-DB5D-441B-9942-6F07CCF59DF7}",
+				"ENU": "Domestic customers and vendors",
+				"DAN": "Indenlandske debitorer/kreditorer"
+			}
+		},
+		{
+			"Code": {
+				"@": "{927D6CD9-A030-4603-9C18-99C23047DE54}",
+				"ENU": "EU",
+				"DAN": "EU"
+			},
+			"Description": {
+				"@": "{D165A40B-8DA1-40A7-A483-143DB512DCB4}",
+				"ENU": "Customers and vendors in EU",
+				"DAN": "Debitorer/kreditorer i EU-lande/-omr†der"
+			}
+		},
+		{
+			"Code": {
+				"@": "{0F9C724F-B22B-45F2-8BB1-D90558ECFF6D}",
+				"ENU": "EXPORT",
+				"DAN": "UDLAND"
+			},
+			"Description": {
+				"@": "{C499EF64-B85D-4459-A3E5-56A824D1FE7E}",
+				"ENU": "Other customers and vendors (not EU)",
+				"DAN": "Debitorer/kreditorer i lande/omr†der uden for EU"
+			}
+		}]
+	},
+	{
+		"table": 250,
+		"FieldMetaData": {
+			"Refrences": {
+				"Def. VAT Bus. Posting Group": "323/Code"
+			}
+		},
+		"rows": [{
+			"Code": {
+				"@": "{440EF9F9-0465-4857-AF5F-731D5C64EE68}",
+				"ENU": "DOMESTIC",
+				"DAN": "INDENLANDS"
+			},
+			"Description": {
+				"@": "{5F9CA60E-5A3A-44CD-A6B2-A7634478834B}",
+				"ENU": "Domestic customers and vendors",
+				"DAN": "Indenlandske debitorer/kreditorer"
+			},
+			"Def. VAT Bus. Posting Group": "DOMESTIC",
+			"Auto Insert Default": "Yes"
+		},
+		{
+			"Code": {
+				"@": "{440EF9F9-0465-4857-AF5F-731D5C64EE69}",
+				"ENU": "EU",
+				"DAN": "EU"
+			},
+			"Description": {
+				"@": "{440EF9F9-0465-4857-AF5F-931D5C64EE71}",
+				"ENU": "Customers and vendors in EU",
+				"DAN": "Debitorer/kreditorer i EU-lande/-omr†der"
+			},
+			"Def. VAT Bus. Posting Group": "EU",
+			"Auto Insert Default": "Yes"
+		},
+		{
+			"Code": {
+				"@": "{440EF9F9-0465-4857-AF5F-731D5C64EE70}",
+				"ENU": "INTERCOMP",
+				"DAN": "INTHANDEL"
+			},
+			"Description": {
+				"@": "{A9EAB477-9577-4862-A446-3CF40D188823}",
+				"ENU": "Intercompany",
+				"DAN": "Koncernintern"
+			},
+			"Def. VAT Bus. Posting Group": "",
+			"Auto Insert Default": "Yes"
+		},
+		{
+			"Code": {
+				"@": "{440EF9F9-0465-4857-AF5F-731D5C64EE71}",
+				"ENU": "EXPORT",
+				"DAN": "UDLAND"
+			},
+			"Description": {
+				"@": "{2DBC3843-EB1A-4757-AFF0-8E6791C38C57}",
+				"ENU": "Other customers and vendors (not EU)",
+				"DAN": "Debitorer/kreditorer i lande/omr†der uden for EU"
+			},
+			"Def. VAT Bus. Posting Group": "EXPORT",
+			"Auto Insert Default": "Yes"
+		}]
+	},
+	{
+		"table": 251,
+		"FieldMetaData": {
+			"Refrences": {
+				"Def. VAT Prod. Posting Group": "324/Code"
+			}
+		},
+		"rows": [{
+			"Code": {
+				"@": "{176AF3B0-77C5-4BA6-83D5-60AA7EA4930E}",
+				"ENU": "FREIGHT",
+				"DAN": "FRAGT"
+			},
+			"Description": {
+				"@": "{0D524B87-6521-422B-BD5B-0D3551434178}",
+				"ENU": "Freight, etc.",
+				"DAN": "Fragt etc"
+			},
+			"Def. VAT Prod. Posting Group": "STANDARD",
+			"Auto Insert Default": "Yes"
+		},
+		{
+			"Code": {
+				"@": "{EFAB3DF3-25EC-4FD1-9DEC-EDE9F336992D}",
+				"ENU": "RETAIL",
+				"DAN": "DETAIL"
+			},
+			"Description": {
+				"@": "{AF3D48AD-63A0-453C-900C-CE1B60B64C95}",
+				"ENU": "Retail",
+				"DAN": "Detail"
+			},
+			"Def. VAT Prod. Posting Group": "STANDARD",
+			"Auto Insert Default": "Yes"
+		},
+		{
+			"Code": {
+				"@": "{779F9BA8-ABA0-44FA-B8B6-A0990867A7DB}",
+				"ENU": "SERVICE",
+				"DAN": "SERVICE"
+			},
+			"Description": {
+				"@": "{C43D708E-4F87-439B-AEF0-333644E2854F}",
+				"ENU": "Resources, etc.",
+				"DAN": "Ressourcer m.m."
+			},
+			"Def. VAT Prod. Posting Group": "VAT25SERV",
+			"Auto Insert Default": "Yes"
+		},
+		{
+			"Code": {
+				"@": "{9E224FDB-4FBD-40F8-8245-E3D797DA9970}",
+				"ENU": "ZERO",
+				"DAN": "ZERO"
+			},
+			"Description": {
+				"@": "{6FC7B57C-7A80-4ED5-A5D3-4E26F10119FA}",
+				"ENU": "Miscellaneous without VAT",
+				"DAN": "Momsfri varer"
+			},
+			"Def. VAT Prod. Posting Group": "ZERO",
+			"Auto Insert Default": "Yes"
+		}]
+	},
+	{
+		"table": 15,
+		"FieldMetaData": {
+			"Options": {
+				"Account Type": {
+					"@": 0,
+					"ENU": "Posting,Heading,Total,Begin-Total,End-Total",
+					"DAN": "Konto,Overskrift,Sum,Fra-sum,Til-sum"
+				},
+				"Income/Balance": {
+					"@": 1,
+					"ENU": "Income Statement,Balance Sheet",
+					"DAN": "Resultatopgørelse,Balance"
+				},
+				"Account Category": {
+					"@": 2,
+					"ENU": " ,Assets,Liabilities,Equity,Income,Cost of Goods Sold,Expense",
+					"DAN": " ,Aktiver,Gæld,Egenkapital,Indtægter,Vareforbrug,Udgifter"
+				},
+				"Gen. Posting Type": {
+					"@": 3,
+					"ENU": " ,Purchase,Sale",
+					"DAN": " ,Køb,Salg"
+				}
+			},
+			"Refrences": {
+				"Gen. Bus. Posting Group": "250/Code",
+				"Gen. Prod. Posting Group": "251/Code"
+			}
+		},
+		"rows": [{
+			"No.": "00001",
+			"Name": {
+				"@": "823eb5aa-bccc-45e6-af64-3e1fc3bee705",
+				"ENU": "PROFIT AND LOSS STATEMENT",
+				"DAN": "RESULTATOPGØRELSE"
+			},
+			"Account Type": "Heading",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "01000",
+			"Name": {
+				"@": "879a0a11-b417-4fe2-860b-9b2f74ace151",
+				"ENU": "REVENUE",
+				"DAN": "OMSÆTNING"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "01010",
+			"Name": {
+				"@": "453ae7c7-9f78-4323-98f0-368c343fc7df",
+				"ENU": "Domestic Sales of Goods and Services",
+				"DAN": "Salg af vare og ydelser Indland"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "01020",
+			"Name": {
+				"@": "5cd9d85d-928a-4adf-947b-37419da3d382",
+				"ENU": "EU Sales of Goods and Services",
+				"DAN": "Salg af vare og ydelser EU"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "EU",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "01030",
+			"Name": {
+				"@": "b2c574ba-fea1-4724-9b45-7ee0521fafb6",
+				"ENU": "Sales of Goods and Services to other Countries",
+				"DAN": "Salg af vare og ydelser andre lande"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "EXPORT",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "01200",
+			"Name": {
+				"@": "a16b2e60-50c9-4771-87c5-9e1838072760",
+				"ENU": "Freight",
+				"DAN": "Fragt"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "FREIGHT"
+		},
+		{
+			"No.": "01500",
+			"Name": {
+				"@": "83503c43-d949-4b17-a7fb-c21220a3865e",
+				"ENU": "On-Account Invoicing",
+				"DAN": "Acontofaktureringer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "01600",
+			"Name": {
+				"@": "340dad72-4f83-442c-94f3-441e0173fe5d",
+				"ENU": "Charge ex. Sales Tax",
+				"DAN": "Gebyr uden moms"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "SERVICE"
+		},
+		{
+			"No.": "01610",
+			"Name": {
+				"@": "9caf45a3-6c48-487a-820f-ed85ea3677ad",
+				"ENU": "Charge incl. Sales Tax",
+				"DAN": "Gebyr med moms"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "01700",
+			"Name": {
+				"@": "7bd40d9b-c773-48df-9d7f-f84a63d11e54",
+				"ENU": "Discounts Granted",
+				"DAN": "Afgivne rabatter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "22",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "01997",
+			"Name": {
+				"@": "66aa49d9-3165-493b-aacd-64c6a1c29e07",
+				"ENU": "TOTAL REVENUE",
+				"DAN": "OMSÆTNING I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02000",
+			"Name": {
+				"@": "aa9b5992-ffef-411a-9313-b7ad0a0e39e0",
+				"ENU": "COST OF GOODS SOLD",
+				"DAN": "VAREFORBRUG"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02010",
+			"Name": {
+				"@": "a03e1c23-5753-484b-885e-299a33a09bac",
+				"ENU": "Cost of Goods Sold",
+				"DAN": "Vareforbrug"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02020",
+			"Name": {
+				"@": "9e1c4f6b-a063-479d-8292-1777873c527c",
+				"ENU": "Item Purchases",
+				"DAN": "Varekøb"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02100",
+			"Name": {
+				"@": "463c15e7-3bc0-40fb-bb93-2fdcdfd3edb2",
+				"ENU": "Foreign Labor",
+				"DAN": "Fremmed arbejde"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02200",
+			"Name": {
+				"@": "6a9990c8-2567-4ab9-b105-8aa931eb385c",
+				"ENU": "Freight",
+				"DAN": "Fragt"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02030",
+			"Name": {
+				"@": "7ac5c542-e9bc-4ed4-a784-04a1a1eaa379",
+				"ENU": "Misc. Consumption",
+				"DAN": "Forbrug diverse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02300",
+			"Name": {
+				"@": "adb24ff2-da9e-40f6-a1a1-6555497a46fe",
+				"ENU": "Profit & Loss Inventory",
+				"DAN": "Tab/vind Lager"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02600",
+			"Name": {
+				"@": "7d0edc9f-4843-4a7e-a3a3-dce69eb365f8",
+				"ENU": "Charge before Sales Tax",
+				"DAN": "Gebyr før moms"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02610",
+			"Name": {
+				"@": "632ca889-875d-4451-a98b-6d406c00de1c",
+				"ENU": "Charge after Sales Tax",
+				"DAN": "Gebyr efter moms"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02700",
+			"Name": {
+				"@": "701a9e8e-467f-4f5c-a4c6-15e9993b203b",
+				"ENU": "Discounts Received",
+				"DAN": "Modtagne rabatter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02800",
+			"Name": {
+				"@": "5de5b11e-d0f1-4c83-851d-66d0e0c585c3",
+				"ENU": "Item Inventory Adjustment",
+				"DAN": "Varelagerregulering"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "29",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02820",
+			"Name": {
+				"@": "b97e436b-3fe5-47a3-a195-7b95bf16afda",
+				"ENU": "Purchase Variance",
+				"DAN": "Købsafvigelse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02897",
+			"Name": {
+				"@": "aee8d6b5-d2c5-46d2-a4c4-570e319a6f17",
+				"ENU": "TOTAL COST OF GOODS SOLD",
+				"DAN": "VAREFORBRUG I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "26",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02900",
+			"Name": {
+				"@": "497a8bea-5410-4236-ab12-c08d01222ba0",
+				"ENU": "PROJECT COSTS",
+				"DAN": "PROJEKTOMKOSTNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "30",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02910",
+			"Name": {
+				"@": "c8fac827-22e1-45ae-8866-2bf086ab0446",
+				"ENU": "Travel Fee",
+				"DAN": "Rejseomkostninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "30",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02920",
+			"Name": {
+				"@": "34248d49-67f7-4aa0-a6ce-f694b6e041a4",
+				"ENU": "Material Costs",
+				"DAN": "Materialeomkostninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "30",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02930",
+			"Name": {
+				"@": "9ce8a7fa-838f-4ce9-bf38-e5dfcc370727",
+				"ENU": "Project Hours",
+				"DAN": "Projekt timer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "30",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02950",
+			"Name": {
+				"@": "101bcee4-cf16-4c0a-bf91-310194d4718b",
+				"ENU": "Adjustment of WIP",
+				"DAN": "Regulering igangværende arbejde"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "30",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "02997",
+			"Name": {
+				"@": "51aa8741-46de-4a6b-8c0d-eb6dc92bbc79",
+				"ENU": "TOTAL PROJECT COSTS",
+				"DAN": "PROJEKTOMKOSTNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Cost of Goods Sold",
+			"Account Subcategory Entry No.": "30",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03000",
+			"Name": {
+				"@": "7462cc8d-3451-4174-84b5-7150ada8873a",
+				"ENU": "PERSONNEL COSTS",
+				"DAN": "PERSONALEOMKOSTNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03010",
+			"Name": {
+				"@": "9953b8e8-76bf-4707-92bf-57bb525952d1",
+				"ENU": "Salaries",
+				"DAN": "Lønninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03020",
+			"Name": {
+				"@": "45786ca9-b607-4091-a404-ddec437fff4d",
+				"ENU": "Vacation Compensation",
+				"DAN": "Feriepenge"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03040",
+			"Name": {
+				"@": "b0ba2205-2cb0-45e8-8836-669dbdbf3df4",
+				"ENU": "Salaries, Vacation Compensation",
+				"DAN": "Gager feriepenge"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03050",
+			"Name": {
+				"@": "2bcc7dc8-3716-4493-ac47-18f4b24886bd",
+				"ENU": "Salaries, Production",
+				"DAN": "Gager produktion"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03060",
+			"Name": {
+				"@": "38570e59-0c76-4628-b1a7-0254e97ec85e",
+				"ENU": "Director's Fee",
+				"DAN": "Bestyrelseshonorar"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03070",
+			"Name": {
+				"@": "99881e00-17b1-43b1-9159-77ea9065aad2",
+				"ENU": "Anniversary Gift",
+				"DAN": "Jubilæumsgratiale"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03080",
+			"Name": {
+				"@": "d7b4f27c-1e7e-42e3-a4cb-b638baf7bd52",
+				"ENU": "Severance Pay",
+				"DAN": "Fratrædelsesgodtgørelse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03090",
+			"Name": {
+				"@": "acebd2a6-2f87-496a-bf56-8950ecccbee4",
+				"ENU": "Pension, Company",
+				"DAN": "Pension, firma"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03100",
+			"Name": {
+				"@": "9f10b2fb-59b6-44b0-87fd-e73218fa0c93",
+				"ENU": "Labor Market Pension, Company",
+				"DAN": "Arbejdsmarkedspension, firma"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03120",
+			"Name": {
+				"@": "d9135204-c0fb-4bcb-89e6-a15ae5c34f77",
+				"ENU": "Optional Pay Account Savings",
+				"DAN": "Fritvalgskonto opsparing"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03130",
+			"Name": {
+				"@": "5cf53846-33bf-4553-9de4-58e70648f16f",
+				"ENU": "Employee art club",
+				"DAN": "Kunstforening"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03140",
+			"Name": {
+				"@": "28813f96-ed54-4137-b9fb-a8e2194713c2",
+				"ENU": "Gift Fund",
+				"DAN": "Gavekasse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03150",
+			"Name": {
+				"@": "6e59919b-9b30-4831-8f5a-896043d5b289",
+				"ENU": "Lunch",
+				"DAN": "Frokost"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03160",
+			"Name": {
+				"@": "3ffd5cfb-99f1-4257-b436-bb06d4b47594",
+				"ENU": "DA - Maternity/Paternity Leave Premium",
+				"DAN": "DA-Barsels bidrag"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03170",
+			"Name": {
+				"@": "8344ccd0-e3ff-4000-91c7-02014dd35ca6",
+				"ENU": "ATP, Employee",
+				"DAN": "ATP lønmodtager"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03180",
+			"Name": {
+				"@": "3e2a68f7-8817-407b-8c0a-e142772d11c3",
+				"ENU": "Mileage Rate",
+				"DAN": "Kørselsgodtgørelse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03190",
+			"Name": {
+				"@": "74c2e692-43bd-4309-a052-8b9c75d1c3e8",
+				"ENU": "Refunds",
+				"DAN": "Refusioner"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03200",
+			"Name": {
+				"@": "bf5f65e4-2e60-4050-a422-1cb7277b5f2f",
+				"ENU": "ATP, Employer",
+				"DAN": "ATP arbejdsgiver"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03210",
+			"Name": {
+				"@": "4e602047-a933-4063-9d15-bde2f6fa605f",
+				"ENU": "Project Hours Spent",
+				"DAN": "Forbrug projekttimer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03220",
+			"Name": {
+				"@": "115db6e2-a7df-40a4-abab-b27674b2f1c9",
+				"ENU": "Project Hours Allocated to Operating Result",
+				"DAN": "Driftsført projekttimer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03230",
+			"Name": {
+				"@": "1bb0b5b8-ee79-40b7-a6c6-606ea9219e41",
+				"ENU": "Consumption for Own Production",
+				"DAN": "Forbrug til egenproduktion"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03240",
+			"Name": {
+				"@": "e151b265-c3ed-4c2d-8f63-36dc479ac9a4",
+				"ENU": "Social Sec. Benefits Alloc. to Operating Result",
+				"DAN": "Driftsførte soc. ydelser"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03250",
+			"Name": {
+				"@": "907ba971-30e2-43e3-870d-4142c0a01035",
+				"ENU": "Transferred SSBs to Production",
+				"DAN": "Ovf. soc. ydelser til produktion"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03260",
+			"Name": {
+				"@": "2cf1e3e6-146e-4cc2-b95e-8473524a8322",
+				"ENU": "Training Expenses",
+				"DAN": "Kursusudgifter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03270",
+			"Name": {
+				"@": "148614ac-6dd1-4788-859b-631d9bb1af1b",
+				"ENU": "Other Personnel Costs",
+				"DAN": "Andre personaleomkostninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03297",
+			"Name": {
+				"@": "bb695139-8000-40a2-9971-f7e9bd7202c0",
+				"ENU": "TOTAL PERSONNEL COSTS",
+				"DAN": "PERSONALEOMKOSTNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "37",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03600",
+			"Name": {
+				"@": "c7cf9296-ced3-4b15-b12c-f5a689596a32",
+				"ENU": "MARKETING COSTS",
+				"DAN": "MARKEDSFØRINGSOMKOSTNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03610",
+			"Name": {
+				"@": "5abec82e-7d1a-401a-9e5c-1fbd1b4b83e4",
+				"ENU": "Advertisements and Commercials",
+				"DAN": "Annoncer og reklamer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "33",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03630",
+			"Name": {
+				"@": "702fc197-3a44-4f04-9eee-c4eb7ea28fed",
+				"ENU": "Ent., Wine / Tobacco / Spirits",
+				"DAN": "Repr. vin/tobak/spiritus"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03640",
+			"Name": {
+				"@": "888fc77a-9068-4d08-8128-bfb8e5f7ef40",
+				"ENU": "Ent., gifts and flowers",
+				"DAN": "Repr. gaver og blomster"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03650",
+			"Name": {
+				"@": "b3630826-42e9-4c3d-9828-3c951598ba11",
+				"ENU": "Traveling, Trade Fairs etc.",
+				"DAN": "Rejser, messer m.v."
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "44",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03660",
+			"Name": {
+				"@": "26e2eba4-7061-40d7-8984-48a842a13cf6",
+				"ENU": "Restaurant Dining",
+				"DAN": "Restaurationsbesøg"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03670",
+			"Name": {
+				"@": "33fdc7c3-f9b4-4487-a456-b1449f684d77",
+				"ENU": "Decoration",
+				"DAN": "Dekoration"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "40",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03997",
+			"Name": {
+				"@": "01207f1a-a3b3-4920-8054-8c178def9a20",
+				"ENU": "TOTAL MARKETING COSTS",
+				"DAN": "MARKEDSFØRINGSOMKOSTNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "03999",
+			"Name": {
+				"@": "21136c7a-ed54-4352-a87d-a02a0e675f95",
+				"ENU": "MARKETING CONTRIBUTIONS",
+				"DAN": "MARKEDSFØRINGSBIDRAG"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "0",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04000",
+			"Name": {
+				"@": "6dc16732-8409-4ea6-8239-de6741db8744",
+				"ENU": "AUTOMOBILE OPERATIONS, CARS",
+				"DAN": "AUTODRIFT PERSONBILER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04010",
+			"Name": {
+				"@": "0dc9c6a0-c213-4a0e-b4f1-c8ef222cbec5",
+				"ENU": "Rental & Leasing Fee",
+				"DAN": "Leje- og Leasingafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04020",
+			"Name": {
+				"@": "90050bfd-0050-4fef-868a-8a19b0bcefab",
+				"ENU": "Gas",
+				"DAN": "Brændstof"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04030",
+			"Name": {
+				"@": "9e407613-8f63-4412-8e9e-fd6a46e8542c",
+				"ENU": "Insurance",
+				"DAN": "Forsikring"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04040",
+			"Name": {
+				"@": "4bf5002c-4632-40cd-8443-6b213679923d",
+				"ENU": "Gas Consumption Tax etc.",
+				"DAN": "Grøn ejerafgift mv."
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04050",
+			"Name": {
+				"@": "16a996da-6058-4591-a51b-ad86d0f89927",
+				"ENU": "Rep. & Maintenance",
+				"DAN": "Rep. og vedligeholdelse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04060",
+			"Name": {
+				"@": "1eb6df1d-ddce-4b92-9205-bb5c96d23bfe",
+				"ENU": "Ferry Tickets & Bridge Tolls",
+				"DAN": "Færgebillet og broafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04097",
+			"Name": {
+				"@": "cffd9dcc-037e-4ae0-ab38-6df7c1a9927e",
+				"ENU": "TOTAL VEHICLE OPERATIONS",
+				"DAN": "AUTODRIFT I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04200",
+			"Name": {
+				"@": "177b734b-7426-42ce-8a5e-0a1feb5079c8",
+				"ENU": "VANS",
+				"DAN": "VAREBILER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04210",
+			"Name": {
+				"@": "81c7731b-54ed-47b0-8126-43bececd31dc",
+				"ENU": "Rental & Leasing Fee",
+				"DAN": "Leje- og Leasingafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04220",
+			"Name": {
+				"@": "e49768ba-b8d9-47c0-806f-aa58285886b9",
+				"ENU": "Gas",
+				"DAN": "Brændstof"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04230",
+			"Name": {
+				"@": "834ca720-fe61-4e62-b102-c79984ecc802",
+				"ENU": "Gas Consumption Tax etc.",
+				"DAN": "Grøn ejerafgift mv."
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04240",
+			"Name": {
+				"@": "0df9ecb6-cef5-4494-932e-f318483e5d6c",
+				"ENU": "Insurances",
+				"DAN": "Forsikringer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04250",
+			"Name": {
+				"@": "30b2c55b-5bce-49ad-a0f8-807a1a2a1448",
+				"ENU": "Rep. & Maintenance",
+				"DAN": "Rep. og vedligeholdelse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04260",
+			"Name": {
+				"@": "42df1f58-4861-45c7-b93e-01349cafcc85",
+				"ENU": "Ferry Tickets & Bridge Tolls",
+				"DAN": "Færgebillet og broafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04297",
+			"Name": {
+				"@": "5d3be259-ee99-4c9f-9395-86fde0c1dfe0",
+				"ENU": "VANS, TOTAL",
+				"DAN": "VAREBILER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04400",
+			"Name": {
+				"@": "7ed37018-0bde-4235-a603-d9eed0c755f1",
+				"ENU": "MACHINES",
+				"DAN": "MASKINER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04410",
+			"Name": {
+				"@": "d0b770fb-90e2-4f48-a46c-942c7f518669",
+				"ENU": "Rental & Leasing Fee",
+				"DAN": "Leje- og Leasingafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04420",
+			"Name": {
+				"@": "3322c449-d921-4b91-b857-492da54e87fe",
+				"ENU": "Machine Operating Costs",
+				"DAN": "Driftsomk. maskiner"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04430",
+			"Name": {
+				"@": "4edccd80-003f-4d3f-98df-0c86083b10cc",
+				"ENU": "Mach. Repairs and Maintenance",
+				"DAN": "Rep. og vedligehold. maskiner"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04440",
+			"Name": {
+				"@": "fa99b782-32f1-4b50-83d9-fcc0e86840c6",
+				"ENU": "Machinery Insurance",
+				"DAN": "Forsikringer maskiner"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "04997",
+			"Name": {
+				"@": "733e2045-9436-4fed-a3ce-43a44a14fb2f",
+				"ENU": "MACHINES, TOTAL",
+				"DAN": "MASKINER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "45",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "05000",
+			"Name": {
+				"@": "0f263b0f-4862-4990-9310-0c85c2c2b855",
+				"ENU": "COST OF OFFICE & WORKSHOP SPACE",
+				"DAN": "LOKALEOMKOSTNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "05010",
+			"Name": {
+				"@": "e9b51106-2251-43f7-8547-a4d383abe038",
+				"ENU": "Rent",
+				"DAN": "Husleje"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "32",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05020",
+			"Name": {
+				"@": "e9a52c58-a889-4620-a68f-c94e6914f065",
+				"ENU": "Repairs and Maintenance",
+				"DAN": "Reparation og vedligeholdelse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "40",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05030",
+			"Name": {
+				"@": "0eaa7a6a-c032-4d06-a03a-977c47c99582",
+				"ENU": "Cleaning",
+				"DAN": "Rengøring"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "40",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05040",
+			"Name": {
+				"@": "edf80a9d-fbb8-48b3-a8d2-fb69bb29c8fd",
+				"ENU": "Insurance",
+				"DAN": "Forsikring"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "36",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05110",
+			"Name": {
+				"@": "43470459-2260-4f8d-8ab8-aed1cec30143",
+				"ENU": "Electricity ",
+				"DAN": "Elektricitet "
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "41",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05120",
+			"Name": {
+				"@": "38c6e461-dffc-412d-a152-d54a3ef9ee04",
+				"ENU": "Water",
+				"DAN": "Vand"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "41",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05130",
+			"Name": {
+				"@": "4c7f7942-8a17-4c05-a93f-5a833dc92588",
+				"ENU": "Heating",
+				"DAN": "Varme"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "41",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05140",
+			"Name": {
+				"@": "2f9f051d-e83d-403b-93af-9c7722aa4605",
+				"ENU": "Natural Gas",
+				"DAN": "Gas"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "41",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05150",
+			"Name": {
+				"@": "f27c502a-6da4-4c3d-99d6-80696c30155b",
+				"ENU": "Taxes",
+				"DAN": "Afgifter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05200",
+			"Name": {
+				"@": "3acece2e-916f-45ba-989c-77a80db018d8",
+				"ENU": "New Acquisitions",
+				"DAN": "Nyanskaffelser"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05297",
+			"Name": {
+				"@": "6d96d050-3f35-4f09-8e4e-99d10dda038b",
+				"ENU": "TOTAL COST OF OFFICE & WORKSHOP SPACE",
+				"DAN": "LOKALEOMKOSTNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "05600",
+			"Name": {
+				"@": "6315c7f7-ca8a-4bed-a3bd-f211ace91600",
+				"ENU": "ADMINISTRATIVE COSTS",
+				"DAN": "ADMINISTRATIONSOMKOSTNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "05610",
+			"Name": {
+				"@": "d22f55ba-5fb9-47a0-b56c-e813fe8eac41",
+				"ENU": "Phones & Cell Phones",
+				"DAN": "Telefon og mobiltelefon"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05620",
+			"Name": {
+				"@": "28742fca-5b59-4fa9-a505-f292bed2567e",
+				"ENU": "Internet & Website",
+				"DAN": "Internet og hjemmeside"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05630",
+			"Name": {
+				"@": "dbde9a76-80a9-49b4-a9f1-6d10476ae5c3",
+				"ENU": "Newspapers & Magazines",
+				"DAN": "Aviser og tidsskrifter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05640",
+			"Name": {
+				"@": "8275b97b-2d5b-4f06-866c-9977e379e40e",
+				"ENU": "Subscriptions & Membership Fees",
+				"DAN": "Abonnementer og kontingenter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05650",
+			"Name": {
+				"@": "7744b488-c1cd-4dfa-ae70-2bdb400eece6",
+				"ENU": "Office Stationary",
+				"DAN": "Kontorartikler"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05660",
+			"Name": {
+				"@": "71d79ede-6444-48d8-806f-391a2481a416",
+				"ENU": "Postage & Fees",
+				"DAN": "Porto og gebyrer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "ZERO"
+		},
+		{
+			"No.": "05670",
+			"Name": {
+				"@": "88d34db8-79a0-4b8a-ad41-758678433c8c",
+				"ENU": "Insurances",
+				"DAN": "Forsikringer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "36",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05680",
+			"Name": {
+				"@": "6b15879c-44d3-4527-9b9d-9737806f6352",
+				"ENU": "Minor Acquisitions",
+				"DAN": "Småanskaffelser"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05690",
+			"Name": {
+				"@": "cdbc8e1d-622b-40b5-a2ba-54e71ed247be",
+				"ENU": "Conference Expenses",
+				"DAN": "Mødeudgifter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05720",
+			"Name": {
+				"@": "89e52984-949e-4c33-922b-24a6eb659cb6",
+				"ENU": "Accounting Costs",
+				"DAN": "Bogføringsomkostninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05730",
+			"Name": {
+				"@": "05af21f1-7aae-4f30-9f80-21166bc52930",
+				"ENU": "Auditing & Accounting Assistance",
+				"DAN": "Revision og regnskabsassistance"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05740",
+			"Name": {
+				"@": "a586ccea-6c9e-480f-a3eb-024fecf0ef6b",
+				"ENU": "Cash Discrepancies",
+				"DAN": "Kassedifferencer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05750",
+			"Name": {
+				"@": "a4f312e8-b9c8-405f-88fb-6e1671f8b100",
+				"ENU": "Lawyer",
+				"DAN": "Advokat"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05760",
+			"Name": {
+				"@": "d741643b-e166-471d-a09a-b5b24fba4c63",
+				"ENU": "Legal Aid",
+				"DAN": "Juridisk assistance"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05800",
+			"Name": {
+				"@": "0d3c8bce-4829-4e36-b503-2a08b8fcc36e",
+				"ENU": "Repairs and Maintenance, Furniture & Equipment",
+				"DAN": "Rep. og vedligehold. inventar"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05810",
+			"Name": {
+				"@": "e0b9bf60-e786-4a6a-9af3-e3536904a346",
+				"ENU": "IT Expenses",
+				"DAN": "EDB-udgifter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05820",
+			"Name": {
+				"@": "49199ccf-3876-4c69-9633-8521528daf0a",
+				"ENU": "Salary Costs",
+				"DAN": "Omkostninger vedr. løn"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05830",
+			"Name": {
+				"@": "dc23aa91-f237-4f69-9566-7bc2c3c7c3d5",
+				"ENU": "Freight",
+				"DAN": "Fragt"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05840",
+			"Name": {
+				"@": "b07969ad-3724-4618-b972-f4f493dc19de",
+				"ENU": "Charges",
+				"DAN": "Gebyrer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05850",
+			"Name": {
+				"@": "db91c0ab-a0b3-40c8-8220-03bbfbf34b68",
+				"ENU": "Machinery Rental & Leasing Fee",
+				"DAN": "Leje- og Leasingafgift af maskiner"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "32",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "05997",
+			"Name": {
+				"@": "c6b5f055-cb01-4eed-9c41-b4f4f720dbe8",
+				"ENU": "TOTAL ADMINISTRATIVE COSTS",
+				"DAN": "ADMINISTRATIONSOMKOSTNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "05998",
+			"Name": {
+				"@": "3dd38faa-0a30-4cf7-b5d3-9e4ceeabe6fc",
+				"ENU": "TOTAL COSTS",
+				"DAN": "OMKOSTNINGER I ALT"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "05999",
+			"Name": {
+				"@": "4ffa149a-be77-4a4f-a068-f22fe90b10f0",
+				"ENU": "RES. BEFORE DEPRECIATION",
+				"DAN": "RES. FØR AFSKRIVNINGER"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06000",
+			"Name": {
+				"@": "48288a8b-757c-4279-8389-3898f5904858",
+				"ENU": "DEPRECIATION",
+				"DAN": "AFSKRIVNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06100",
+			"Name": {
+				"@": "27ff7180-87ed-451c-97a5-6861d5b532f0",
+				"ENU": "Land and Buildings",
+				"DAN": "Grunde og bygninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06200",
+			"Name": {
+				"@": "452ecf63-b98d-46ec-98f6-ecc710805b0f",
+				"ENU": "Operating Equipment",
+				"DAN": "Driftsmidler"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06300",
+			"Name": {
+				"@": "bb66e20b-2dad-4989-bc0b-c0bb178440dc",
+				"ENU": "Vans",
+				"DAN": "Varebiler"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06400",
+			"Name": {
+				"@": "172b6c28-eaa8-444f-bf97-48c6938c579c",
+				"ENU": "Cars",
+				"DAN": "Pesonbiler"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06500",
+			"Name": {
+				"@": "cde5441d-0103-4beb-936f-3c84dc653cd9",
+				"ENU": "Furniture & Equipment",
+				"DAN": "Inventar"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06900",
+			"Name": {
+				"@": "9f149d88-4c25-4210-a142-390929ae3a9e",
+				"ENU": "Goodwill",
+				"DAN": "Goodwill"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06997",
+			"Name": {
+				"@": "51d37163-9db9-41a1-8c3f-2bd68fe87408",
+				"ENU": "TOTAL DEPRECIATION",
+				"DAN": "AFSKRIVNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "06999",
+			"Name": {
+				"@": "6f6f2853-dcb8-4b41-a3c2-0ec30a36b2db",
+				"ENU": "RES. BEFORE FINANCIAL ITEMS",
+				"DAN": "RES. FØR FINANSIELLE POSTER"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07000",
+			"Name": {
+				"@": "5be9aebc-b062-4329-8796-16c384952530",
+				"ENU": "FINANCIAL ITEMS",
+				"DAN": "FINANSIELLE POSTER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07100",
+			"Name": {
+				"@": "bcd32156-8565-457c-8587-751849573495",
+				"ENU": "OPERATING INCOME",
+				"DAN": "FINANSIELLE INDTÆGTER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07110",
+			"Name": {
+				"@": "83038ad1-bc45-4c67-a155-e1eb8a170780",
+				"ENU": "Bank Interest",
+				"DAN": "Renter pengeinstitut mv."
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "24",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07120",
+			"Name": {
+				"@": "7e5f4477-d3e4-4a1c-bc52-b76aadab329e",
+				"ENU": "Accounts Receivable, Interest",
+				"DAN": "Debitorrenter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "24",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07310",
+			"Name": {
+				"@": "9a4819ab-386d-4f1a-aa51-9a8c86c7f8f1",
+				"ENU": "Unrealized FX Gains",
+				"DAN": "Urealiseret gevinst valuta"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "42",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07330",
+			"Name": {
+				"@": "5bb7e443-7d38-48b2-9318-779195e866ce",
+				"ENU": "Realized FX Gains",
+				"DAN": "Realiseret gevinst valuta"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "42",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07497",
+			"Name": {
+				"@": "3060a399-bca1-4eef-9895-ca4056469b76",
+				"ENU": "TOTAL OPERATING INCOME",
+				"DAN": "FINANSIELLE INDTÆGTER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Income",
+			"Account Subcategory Entry No.": "18",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07500",
+			"Name": {
+				"@": "d335e51b-ae5a-435e-a164-0cfbfa9598eb",
+				"ENU": "FINANCIAL EXPENSES",
+				"DAN": "FINANSIELLE UDGIFTER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07510",
+			"Name": {
+				"@": "4add93a4-0dcc-4a6a-9a37-8bbdb01b3526",
+				"ENU": "Bank Interest",
+				"DAN": "Renter pengeinstitut mv."
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "34",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07520",
+			"Name": {
+				"@": "5eae36c7-2483-4c5f-a089-c2c7c6e3be5a",
+				"ENU": "Accounts Payable, Interest",
+				"DAN": "Kreditorrenter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "34",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07530",
+			"Name": {
+				"@": "020a46df-5098-4da3-86a5-204152b875cf",
+				"ENU": "Accounts Payable, Charges",
+				"DAN": "Kreditorgebyrer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "42",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07540",
+			"Name": {
+				"@": "4ecaec4f-ea2f-4342-8e14-a89b135db0d2",
+				"ENU": "Additional Interest Expenses",
+				"DAN": "Andre renteudgifter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "34",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07550",
+			"Name": {
+				"@": "e78d0e0c-6995-48d9-803b-07eb430e5a4e",
+				"ENU": "Mortgage Interest",
+				"DAN": "Prioritetsrenter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "34",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07570",
+			"Name": {
+				"@": "cc084e26-d876-4231-b397-262bc8785ab5",
+				"ENU": "Cent Discrepancies",
+				"DAN": "Øredifferencer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "42",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "ZERO"
+		},
+		{
+			"No.": "07580",
+			"Name": {
+				"@": "58b17d26-2722-4df5-9829-e00c8b9acca5",
+				"ENU": "Disallowed Interest Deductions",
+				"DAN": "Ej fradragsb. renter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "34",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07720",
+			"Name": {
+				"@": "379f5c8d-c5c6-4567-a640-5a47a6be89ce",
+				"ENU": "Unrealized FX Losses",
+				"DAN": "Urealiseret tab valuta"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "42",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07740",
+			"Name": {
+				"@": "5e7fcce1-a875-4811-90d8-f76d610b4ad5",
+				"ENU": "Realized FX Losses",
+				"DAN": "Realiseret tab valuta"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "42",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07997",
+			"Name": {
+				"@": "c892c145-f6f5-4b69-844c-4b59019bfd43",
+				"ENU": "TOTAL FINANCIAL EXPENSES",
+				"DAN": "FINANSIELLE UDGIFTER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07998",
+			"Name": {
+				"@": "1a11b3ee-b0e1-4c7f-a746-c65169b577ca",
+				"ENU": "TOTAL FINANCIAL ITEMS",
+				"DAN": "FINANSIELLE POSTER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "07999",
+			"Name": {
+				"@": "1a3f9124-4745-4646-a61f-2675b1509a65",
+				"ENU": "RESULT BEFORE TAX",
+				"DAN": "RESULTAT FØR SKAT"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "09000",
+			"Name": {
+				"@": "255ed6c6-179c-4e35-89f8-d7852ca8635c",
+				"ENU": "TAXES",
+				"DAN": "SKATTER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "09100",
+			"Name": {
+				"@": "86fc6b49-4f77-4c79-b834-7309f42b1aef",
+				"ENU": "Taxes",
+				"DAN": "Skatter"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "43",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "09997",
+			"Name": {
+				"@": "a5b23002-2a40-42a1-a1a2-94410a087005",
+				"ENU": "TOTAL TAXES",
+				"DAN": "SKATTER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": "Expense",
+			"Account Subcategory Entry No.": "31",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "09999",
+			"Name": {
+				"@": "c4fb9421-46d0-424b-aad8-8343669237d8",
+				"ENU": "PERIOD EARNINGS",
+				"DAN": "PERIODENS RESULTAT"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Income Statement",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "0",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10000",
+			"Name": {
+				"@": "8bcf9890-b100-4146-8d03-f430fcd79f92",
+				"ENU": "BALANCE",
+				"DAN": "BALANCEN"
+			},
+			"Account Type": "Heading",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "0",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10100",
+			"Name": {
+				"@": "68b18392-fa06-499f-b072-0a778bb0fd36",
+				"ENU": "ASSETS",
+				"DAN": "AKTIVER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "0",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10200",
+			"Name": {
+				"@": "7b56b08c-adcd-4e85-8c2c-b7ceda0962d0",
+				"ENU": "FIXED ASSETS",
+				"DAN": "ANLÆGSAKTIVER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10500",
+			"Name": {
+				"@": "831eb8c5-1801-4d06-ba5f-685b2927375e",
+				"ENU": "GOODWILL",
+				"DAN": "GOODWILL"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10510",
+			"Name": {
+				"@": "29a62eb6-b0f2-4b87-add4-525db478749a",
+				"ENU": "Opening Balance",
+				"DAN": "Saldo primo"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10520",
+			"Name": {
+				"@": "39ea0d64-5d41-43d4-b06c-c322afb9b31f",
+				"ENU": "Depreciation",
+				"DAN": "Afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10597",
+			"Name": {
+				"@": "47b4b710-d0d9-4995-a0f9-a2de2723ca80",
+				"ENU": "TOTAL GOODWILL",
+				"DAN": "GOODWILL I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10699",
+			"Name": {
+				"@": "ef290be2-1d3a-437f-936e-2ac64dc0442a",
+				"ENU": "TOTAL INTANGIBLE FIXED ASSETS",
+				"DAN": "IMATERIELLE ANLÆGSAKTIVER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10800",
+			"Name": {
+				"@": "86a50133-a1a3-42e6-adb1-8186cfd1eede",
+				"ENU": "FINANCIAL FIXED ASSETS",
+				"DAN": "FINANSIELLE ANKÆGSAKTIVER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10850",
+			"Name": {
+				"@": "21b6634d-8f86-4882-81c3-6a48f31831c4",
+				"ENU": "SECURITIES",
+				"DAN": "VÆRDIPAPIRER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10860",
+			"Name": {
+				"@": "6f234a01-39a8-4632-af84-4b5f6002afb4",
+				"ENU": "Common Stock",
+				"DAN": "Aktier"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10870",
+			"Name": {
+				"@": "18572f43-a0ba-4b68-b9ea-93eb2d26b604",
+				"ENU": "Bonds",
+				"DAN": "Obligationer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10998",
+			"Name": {
+				"@": "6ac2e521-d6c7-4948-87ed-2445573a8358",
+				"ENU": "TOTAL SECURITIES",
+				"DAN": "VÆRDIPAPIRER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "10999",
+			"Name": {
+				"@": "a907eb6c-c463-4652-b199-4bb45c2ce373",
+				"ENU": "TOTAL FINANCIAL FIXED ASSETS",
+				"DAN": "FINANSIELLE ANLÆGSAKTIVER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "11000",
+			"Name": {
+				"@": "276fa13d-af76-49df-a132-46c2d3997816",
+				"ENU": "TANGIBLE FIXED ASSETS",
+				"DAN": "MATERIELLE ANLÆGSAKTIVER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "12000",
+			"Name": {
+				"@": "56c83c92-c5d4-4bdc-bd64-0c96c28b5a60",
+				"ENU": "LAND AND BUILDINGS",
+				"DAN": "GRUNDE OG BYGNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "12100",
+			"Name": {
+				"@": "3b2d7779-e0ba-41e6-9d98-32c8657cdaed",
+				"ENU": "Acquisition Cost",
+				"DAN": "Anskaffelsessum"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "12200",
+			"Name": {
+				"@": "409b9085-52c9-4476-9c8c-e1137b8520ee",
+				"ENU": "Addition",
+				"DAN": "Tilgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "12300",
+			"Name": {
+				"@": "996a6626-0c01-47f7-bdcb-0d7673480e85",
+				"ENU": "Output",
+				"DAN": "Afgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "12400",
+			"Name": {
+				"@": "51a1a14f-71db-47f3-a135-1f27ced154c1",
+				"ENU": "Acc. Depreciation",
+				"DAN": "Akk. afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "12500",
+			"Name": {
+				"@": "e83b479f-f059-4565-b100-fa6d5ea4696a",
+				"ENU": "Depreciation for the Year",
+				"DAN": "Årets afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "12997",
+			"Name": {
+				"@": "747f2702-c46b-43f5-8b04-3ed508c435d8",
+				"ENU": "TOTAL LAND AND BUILDINGS",
+				"DAN": "GRUNDE OG BYGNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13000",
+			"Name": {
+				"@": "018a588e-8afe-4893-bd0d-7942272f0ff9",
+				"ENU": "CARS",
+				"DAN": "PERSONBILER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13010",
+			"Name": {
+				"@": "3be0335f-4d71-478a-b5d8-d597bdca02b6",
+				"ENU": "Acquisition Cost",
+				"DAN": "Anskaffelsessum"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13020",
+			"Name": {
+				"@": "f732980b-eca6-482f-b332-1ebfdf0edfd1",
+				"ENU": "Addition",
+				"DAN": "Tilgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13030",
+			"Name": {
+				"@": "8aabbc6b-8555-4784-9904-2ca457aa999b",
+				"ENU": "Output",
+				"DAN": "Afgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "13050",
+			"Name": {
+				"@": "9b29698b-7bb1-4c25-83e0-83cbc7f4833e",
+				"ENU": "Acc. Depreciation",
+				"DAN": "Akk. afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "13060",
+			"Name": {
+				"@": "6043d481-46eb-4fa1-a81b-580a8a3020be",
+				"ENU": "Depreciation for the Year",
+				"DAN": "Årets afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13297",
+			"Name": {
+				"@": "d0f9332e-1656-493b-a5f0-97f065ad762b",
+				"ENU": "CARS, TOTAL",
+				"DAN": "PERSONBILER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13400",
+			"Name": {
+				"@": "60d725b6-9396-47af-93a4-9dd4f691ae82",
+				"ENU": "VANS",
+				"DAN": "VAREBILER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13410",
+			"Name": {
+				"@": "2891180e-e20f-4ed2-8140-3baf84e27a67",
+				"ENU": "Acquisition Cost",
+				"DAN": "Anskaffelsessum"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13420",
+			"Name": {
+				"@": "7ad8f187-5bc1-4d4c-be72-f8fce10572de",
+				"ENU": "Addition",
+				"DAN": "Tilgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13430",
+			"Name": {
+				"@": "03614269-d283-4ebd-b9e2-ac1919f89f58",
+				"ENU": "Output",
+				"DAN": "Afgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "13440",
+			"Name": {
+				"@": "cfd8fb68-836d-48b0-a416-4f3a5daebe79",
+				"ENU": "Acc. Depreciation",
+				"DAN": "Akk. afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "13450",
+			"Name": {
+				"@": "65432e67-849d-4150-b53e-49cfb621cbf9",
+				"ENU": "Depreciation for the Year",
+				"DAN": "Årets afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13597",
+			"Name": {
+				"@": "939a7427-e5e9-468d-9942-4dd73db7cca3",
+				"ENU": "VANS, TOTAL",
+				"DAN": "VAREBILER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13700",
+			"Name": {
+				"@": "56d0b017-adec-4685-a41b-d577b13e836d",
+				"ENU": "OPERATING EQUIPMENT",
+				"DAN": "DRIFTSMIDLER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13710",
+			"Name": {
+				"@": "336b1058-f699-4a16-82db-60b767390bd7",
+				"ENU": "Acquisition Cost",
+				"DAN": "Anskaffelsessum"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13720",
+			"Name": {
+				"@": "419ed0db-afd2-4284-8bf0-327c618d6294",
+				"ENU": "Addition",
+				"DAN": "Tilgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13730",
+			"Name": {
+				"@": "ee36041a-433a-4c42-aac9-5f56a683f4cd",
+				"ENU": "Output",
+				"DAN": "Afgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "13740",
+			"Name": {
+				"@": "36f8078d-814f-498d-bcdd-16a63f2d339f",
+				"ENU": "Acc. Depreciation",
+				"DAN": "Akk. afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "13750",
+			"Name": {
+				"@": "2b54dabf-f803-41ad-929a-b33d4b73abe0",
+				"ENU": "Depreciation for the Year",
+				"DAN": "Årets afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "13997",
+			"Name": {
+				"@": "f454c3c1-aecf-44ec-ab77-c7f9029d8606",
+				"ENU": "TOTAL OPERATING EQUIPMENT",
+				"DAN": "DRIFTSMIDLER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "14000",
+			"Name": {
+				"@": "9be4712b-37a6-4c9c-a45d-77bac5fe4e35",
+				"ENU": "FURNITURE & EQUIPMENT",
+				"DAN": "INVENTAR"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "14100",
+			"Name": {
+				"@": "88629a42-6b34-4645-a118-ee4ecce613cb",
+				"ENU": "Acquisition Cost",
+				"DAN": "Anskaffelsessum"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "14200",
+			"Name": {
+				"@": "34135b9f-156b-418e-ab87-4e1db89c01c2",
+				"ENU": "Addition",
+				"DAN": "Tilgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "14300",
+			"Name": {
+				"@": "6172f6be-aab5-47f8-9da1-51695f5b3f55",
+				"ENU": "Output",
+				"DAN": "Afgang"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Purchase",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "14400",
+			"Name": {
+				"@": "5f34f58f-5b38-471e-b9e1-ea661b221678",
+				"ENU": "Acc. Depreciation",
+				"DAN": "Akk. afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": "Sale",
+			"Gen. Bus. Posting Group": "DOMESTIC",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "14500",
+			"Name": {
+				"@": "671f90ad-e446-46fc-a1ff-b52083559c42",
+				"ENU": "Depreciation for the Year",
+				"DAN": "Årets afskrivninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "14997",
+			"Name": {
+				"@": "72c8eb1c-febf-44f7-98d9-7d039ddb73fd",
+				"ENU": "TOTAL FURNITURE & EQUIPMENT",
+				"DAN": "INVENTAR I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "9",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "15998",
+			"Name": {
+				"@": "1a86767c-5c21-4d78-8291-b0a30cbbe9a7",
+				"ENU": "TOTAL TANGIBLE FIXED ASSETS",
+				"DAN": "MATERIELLE ANLÆGSAKTIVER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "7",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16000",
+			"Name": {
+				"@": "f108656e-7bf2-429f-9fcf-24147d3ff562",
+				"ENU": "CURRENT ASSETS",
+				"DAN": "OMSÆTNINGSAKTIVER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16100",
+			"Name": {
+				"@": "7bc049cf-e766-44ca-9f18-4b764d94de6e",
+				"ENU": "INVENTORY",
+				"DAN": "VARELAGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16200",
+			"Name": {
+				"@": "34aafa4f-3f78-488f-a935-23d6fa68ec93",
+				"ENU": "Inventory",
+				"DAN": "Varelager"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16300",
+			"Name": {
+				"@": "b7f95df7-252c-467c-ace0-a58d6c104986",
+				"ENU": "Finished Goods",
+				"DAN": "Færdigvarer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16400",
+			"Name": {
+				"@": "c9252bcc-cfa0-4ff5-b671-005d77b9b629",
+				"ENU": "Raw Materials",
+				"DAN": "Råvarer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16500",
+			"Name": {
+				"@": "8d5deee1-4083-48a9-a17c-13e8139df6bc",
+				"ENU": "Inventory Adjustment",
+				"DAN": "Regulering varelager"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16600",
+			"Name": {
+				"@": "6ff95ecd-c4dc-4808-98c1-096e6b845cdb",
+				"ENU": "Item Received",
+				"DAN": "Varemodtaget"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16700",
+			"Name": {
+				"@": "24c4212b-7b8c-4c3a-a65e-99da7690f530",
+				"ENU": "Item Shipped",
+				"DAN": "Vareleveret"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "16997",
+			"Name": {
+				"@": "22423078-c4cf-4a7a-b586-14b7e7ce5a57",
+				"ENU": "TOTAL INVENTORY",
+				"DAN": "VARELAGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17000",
+			"Name": {
+				"@": "2cb15236-3b29-49cc-97dd-fab75ca58179",
+				"ENU": "RECEIVABLES",
+				"DAN": "TILGODEHAVENDER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "6",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17100",
+			"Name": {
+				"@": "aac9f5ca-38fb-4925-9e23-154a9315a112",
+				"ENU": "Accounts Receivable",
+				"DAN": "Debitorer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "4",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17200",
+			"Name": {
+				"@": "8e107834-b8c8-4fbc-ad03-ed1df195c6a1",
+				"ENU": "Other Receivables",
+				"DAN": "Øvrige tilgodehavender"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "4",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17300",
+			"Name": {
+				"@": "45388b4e-7d54-4015-9c07-f649cf858eb2",
+				"ENU": "Deferred",
+				"DAN": "Periodeafgrænsning"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "4",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17400",
+			"Name": {
+				"@": "85c00854-e397-4ee3-aaaa-90d403545e4e",
+				"ENU": "Prepayments",
+				"DAN": "Forudbetalinger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "4",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17500",
+			"Name": {
+				"@": "fdda1d45-7f03-4913-8ab0-ad7dd362fb0f",
+				"ENU": "DEPOSITS",
+				"DAN": "DEPOSITA"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "4",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "17510",
+			"Name": {
+				"@": "6a6d3f77-0271-43cc-8e13-f46a76c3ce90",
+				"ENU": "Deposits, Tenancy",
+				"DAN": "Deposita, Lejede lokaler"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17597",
+			"Name": {
+				"@": "ebe579e1-fbfd-47c8-8aac-97ce9c7b99b1",
+				"ENU": "TOTAL DEPOSITS",
+				"DAN": "DEPOSITA I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17700",
+			"Name": {
+				"@": "75906695-2557-4297-ada0-89253000cdf6",
+				"ENU": "WORK IN PROCESS",
+				"DAN": "IGANGVÆRENDE ARBEJDER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17710",
+			"Name": {
+				"@": "9b1649c4-efa8-4041-8fe0-8357a7a60bee",
+				"ENU": "Work in Process",
+				"DAN": "Igangværende arbejder"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17720",
+			"Name": {
+				"@": "a083a7d6-f03b-4f9d-bb94-1ee0ef428ee7",
+				"ENU": "Invoiced On-Account",
+				"DAN": "A-conto faktureret"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17997",
+			"Name": {
+				"@": "8838d3ef-cbfc-41ff-9221-270cfbee1905",
+				"ENU": "TOTAL WORK IN PROCESS",
+				"DAN": "IGANGVÆRENDE ARB. I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "17999",
+			"Name": {
+				"@": "51c7c09b-501d-4a72-bed2-00271844a679",
+				"ENU": "TOTAL RECEIVABLES",
+				"DAN": "TILGODEHAVENDER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "18000",
+			"Name": {
+				"@": "95960253-cb8d-4104-944e-94ce61183eb1",
+				"ENU": "CASHFLOW FUNDS",
+				"DAN": "LIKVIDE MIDLER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "3",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "18100",
+			"Name": {
+				"@": "f36bce81-c724-4622-8567-8e29b3fb5bc9",
+				"ENU": "Checkout",
+				"DAN": "Kasse"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "3",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": "",
+			"Reconciliation Account": "Yes"
+		},
+		{
+			"No.": "18200",
+			"Name": {
+				"@": "4c20acb9-5e2b-49c6-a70f-fd87316e7d1d",
+				"ENU": "Bank",
+				"DAN": "Bank"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "3",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "18400",
+			"Name": {
+				"@": "761559b6-5315-4133-bb5c-bb0b9a2875c2",
+				"ENU": "Bank Account CURRENCIES",
+				"DAN": "Bankkonto VALUTA"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "3",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "18997",
+			"Name": {
+				"@": "29d7e9c0-82d9-4b04-a274-ff26774ae641",
+				"ENU": "TOTAL CASHFLOW FUNDS",
+				"DAN": "LIKVIDE MIDLER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "3",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "18998",
+			"Name": {
+				"@": "cb6cff34-39c4-4c32-8986-24ec1d8e5119",
+				"ENU": "TOTAL CURRENT ASSETS",
+				"DAN": "OMSÆTNINGSAKTIVER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "2",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "19999",
+			"Name": {
+				"@": "474eb751-4745-4ae8-b228-59c6a65aa341",
+				"ENU": "TOTAL ASSETS",
+				"DAN": "AKTIVER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Assets",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20000",
+			"Name": {
+				"@": "69825bbe-cfb8-4897-9813-2c3c1cd6fd3e",
+				"ENU": "LIABILITIES AND EQUITY",
+				"DAN": "PASSIVER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "1",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20100",
+			"Name": {
+				"@": "019a345d-1622-43d7-9ed1-0ebf2d4a81a1",
+				"ENU": "EQUITY",
+				"DAN": "EGENKAPITAL"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "0",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20200",
+			"Name": {
+				"@": "1ce95099-05be-4c35-bfab-d89bc49a3db5",
+				"ENU": "Opening Equity",
+				"DAN": "Egenkapital primo"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20300",
+			"Name": {
+				"@": "a5ab5002-5528-48a8-a817-7a23bd746ed9",
+				"ENU": "Capital Stock",
+				"DAN": "Aktiekapital"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "15",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20400",
+			"Name": {
+				"@": "6dbae245-54d1-43d4-9e8e-3d8c31897dd8",
+				"ENU": "Retained Earnings for the Year",
+				"DAN": "Overf. resultat indev. år"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "15",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20500",
+			"Name": {
+				"@": "7ca1dbde-172a-46cb-9197-1fcdefa858fd",
+				"ENU": "PRIVATE WITHDRAWALS ETC.",
+				"DAN": "PRIVATE HÆVNINGER MV."
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "16",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20600",
+			"Name": {
+				"@": "4521660d-ba90-4f79-9c12-bcc9fee9ab93",
+				"ENU": "Paid B Taxes/Labor Market Contribution",
+				"DAN": "Betalt B-skat/AM-bidrag"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20700",
+			"Name": {
+				"@": "3bff9ed2-4361-4540-8f23-57b104e07606",
+				"ENU": "Private Phone Usage",
+				"DAN": "Privat andel telefon"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20800",
+			"Name": {
+				"@": "53ff958e-7278-4708-a643-d879b229db5f",
+				"ENU": "Withdrawal for Personal Use",
+				"DAN": "Hævet privat"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20997",
+			"Name": {
+				"@": "8f0fa327-d45c-4833-919d-9bfedbef41c3",
+				"ENU": "TOTAL PRIVATE WITHDRAWALS",
+				"DAN": "PRIVATE HÆVNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "20998",
+			"Name": {
+				"@": "04be4de1-9ef4-40b4-acae-54c4648c2b51",
+				"ENU": "EQUITY AT END OF YEAR",
+				"DAN": "EGENKAPITAL ULTIMO"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Equity",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "21000",
+			"Name": {
+				"@": "74b5eaf1-a998-4a49-b69a-6b4046ad6d8a",
+				"ENU": "LONG-TERM LIABILITIES",
+				"DAN": "LANGFRISTET GÆLD"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "14",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "21100",
+			"Name": {
+				"@": "b4559845-2485-4472-95b0-90b0633caf03",
+				"ENU": "Mortgage Debt",
+				"DAN": "Prioritetsgæld"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "13",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "21200",
+			"Name": {
+				"@": "7274f04e-5b51-4034-beb1-468fb2f0327e",
+				"ENU": "Bank Debt",
+				"DAN": "Bankgæld"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "13",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "21999",
+			"Name": {
+				"@": "161522df-3e22-41c2-9bd3-2abe4f0d7626",
+				"ENU": "TOTAL LONG-TERM LIABILITIES",
+				"DAN": "LANGFRISTET GÆLD I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "13",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "22000",
+			"Name": {
+				"@": "3098af8a-3242-426c-b1ef-9998c538413b",
+				"ENU": "SHORT-TERM LIABILITIES",
+				"DAN": "KORTFRISTET GÆLD"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "13",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "23000",
+			"Name": {
+				"@": "79143035-1fb4-48bb-aa3e-116baa45b280",
+				"ENU": "DEBT TO FINANCIAL INSTITUTION",
+				"DAN": "GÆLD PENGEINSTITUT"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "23100",
+			"Name": {
+				"@": "fc31af5e-b0e5-4059-ab2c-f1489cd8b212",
+				"ENU": "Revolving Credit",
+				"DAN": "Kassekredit"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "23997",
+			"Name": {
+				"@": "6e431eac-537f-4094-8174-9ac690214061",
+				"ENU": "TOTAL DEBT TO FINANCIAL INSTITUTION",
+				"DAN": "GÆLD PENGEINSTITUT I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24000",
+			"Name": {
+				"@": "ed59e26f-089d-4a6a-8f1f-6ec8fcdc5d9e",
+				"ENU": "SALES TAX AND OTHER TAXES",
+				"DAN": "MOMS OG AFGIFTER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24010",
+			"Name": {
+				"@": "a74c6fa7-7869-4d5c-9431-3e9b4ac70aff",
+				"ENU": "Sales Tax Payable (Sales Tax)",
+				"DAN": "Udgående moms (salgsmoms)"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24020",
+			"Name": {
+				"@": "2d016d0d-9e31-4819-8285-af6ad4241383",
+				"ENU": "Sales Tax Receivable (Input Tax)",
+				"DAN": "Indgående moms (købsmoms)"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24030",
+			"Name": {
+				"@": "a6489fc2-7b8e-4c4d-9731-5625d3ebed10",
+				"ENU": "Sales Tax on Overseas Purchases",
+				"DAN": "Moms af varekøb i udlandet"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24040",
+			"Name": {
+				"@": "32a6960e-95fa-4ed2-8024-2f5057d2fa2b",
+				"ENU": "EU Acquisition Tax",
+				"DAN": "EU Erhvervelsesmoms"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24210",
+			"Name": {
+				"@": "a1dfe6ca-37ab-49f6-8f6d-ad87fc2406c8",
+				"ENU": "Oil Tax",
+				"DAN": "Olieafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24220",
+			"Name": {
+				"@": "2e583a1f-446d-49be-8078-9143c961ee4d",
+				"ENU": "Electricity Tax",
+				"DAN": "El-afgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24230",
+			"Name": {
+				"@": "b1f8e015-fcd2-4bdd-8a03-225b4adf9525",
+				"ENU": "CO2 Tax",
+				"DAN": "Co2-afgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24240",
+			"Name": {
+				"@": "04c5dfe5-9fc6-419f-a7bf-537ef34d15a4",
+				"ENU": "Natural Gas Tax",
+				"DAN": "Gasafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24250",
+			"Name": {
+				"@": "914233f5-65dc-4c63-8108-51abba600c6e",
+				"ENU": "Water Tax",
+				"DAN": "Vandafgift"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24300",
+			"Name": {
+				"@": "955942aa-5318-400f-a608-257be123477f",
+				"ENU": "Sales Tax Settlement Account",
+				"DAN": "Momsafregningskonto"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "24997",
+			"Name": {
+				"@": "34118bc8-7dc4-4ea6-b895-acad24fcdcd8",
+				"ENU": "TOTAL SALES TAX",
+				"DAN": "MOMS I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25000",
+			"Name": {
+				"@": "ae72a7d8-c6ff-4f28-aecf-dc45899eb9ad",
+				"ENU": "ACCOUNTS PAYABLE",
+				"DAN": "KREDITORER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25100",
+			"Name": {
+				"@": "348d3cec-cc21-4f87-9f0c-2bc2e3a796d9",
+				"ENU": "Accounts Payable",
+				"DAN": "Kreditorer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25200",
+			"Name": {
+				"@": "131fbde3-9b1a-47de-8331-0343951f58ec",
+				"ENU": "Accrued Tax",
+				"DAN": "Skyldig Skat"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25300",
+			"Name": {
+				"@": "d891b0c8-d1b0-4365-9bf9-5c687c43cc2e",
+				"ENU": "Additional Costs",
+				"DAN": "Øvrige omkostninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25400",
+			"Name": {
+				"@": "d8c548f5-091b-4591-8a5d-aa944fecee60",
+				"ENU": "Prepayments",
+				"DAN": "Forudbetalinger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25997",
+			"Name": {
+				"@": "7440c958-bb0d-4d24-8396-a7b0231484c9",
+				"ENU": "TOTAL ACCOUNTS PAYABLE",
+				"DAN": "KREDITORER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "26000",
+			"Name": {
+				"@": "d25ff92f-a6b3-4fc4-8a60-b1ae847affaa",
+				"ENU": "ACCRUED COSTS",
+				"DAN": "SKYLDIGE OMKOSTNINGER"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "26200",
+			"Name": {
+				"@": "b18bb4ef-69c4-4ed3-b7b7-3444f0dece85",
+				"ENU": "Accrued Costs",
+				"DAN": "Skyldige omkostninger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "26300",
+			"Name": {
+				"@": "30fb7660-7a58-4344-92b4-509b845c2f01",
+				"ENU": "Deferrals",
+				"DAN": "Periodiseringer"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "26400",
+			"Name": {
+				"@": "b033e55f-84e9-4ad1-b6b1-3da73c2f0d5c",
+				"ENU": "Prepayments",
+				"DAN": "Forudbetalinger"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "26997",
+			"Name": {
+				"@": "7c804ebc-6587-4aa7-adf9-65ed39b86754",
+				"ENU": "TOTAL ACCRUED COSTS",
+				"DAN": "SKYLDIGE OMKOSTNINGER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": "RETAIL"
+		},
+		{
+			"No.": "27000",
+			"Name": {
+				"@": "06896042-c2f9-43b9-b40a-aeffc0a02b84",
+				"ENU": "PAYROLL LIABILITIES",
+				"DAN": "SKYLDIG LØN"
+			},
+			"Account Type": "Begin-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27100",
+			"Name": {
+				"@": "b514f8a0-65c5-4d05-8b61-881523c4b4b4",
+				"ENU": "Withholding Taxes Payable",
+				"DAN": "Skyldig a-skat"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27200",
+			"Name": {
+				"@": "d2286922-cc1e-4e54-8dce-06bb1c44f9c8",
+				"ENU": "Labor Market Contribution Payable",
+				"DAN": "Skyldig am-bidrag"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27300",
+			"Name": {
+				"@": "fb70b6f7-e069-4eba-a5c1-c5a29f68aafd",
+				"ENU": "Payroll Taxes Payable",
+				"DAN": "Skyldig ATP"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27400",
+			"Name": {
+				"@": "7e9588a7-1622-4bf4-b591-8d1b13a43543",
+				"ENU": "Retirement Plan Contributions Payable",
+				"DAN": "Skyldige pensionsbidrag"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27500",
+			"Name": {
+				"@": "6fd07084-46cf-47fb-9a43-648b425dd189",
+				"ENU": "Payroll Liabilities",
+				"DAN": "Skyldig løn"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27600",
+			"Name": {
+				"@": "235d5160-4e21-4f4e-b159-ecbfe33a770a",
+				"ENU": "Vacation Compensation Payable",
+				"DAN": "Skyldige feriepenge"
+			},
+			"Account Type": "Posting",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "12",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "27997",
+			"Name": {
+				"@": "238acad9-5fa5-4800-897a-add7b655e583",
+				"ENU": "TOTAL PAYROLL LIABILITIES",
+				"DAN": "SKYLDIG LØN I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "25799",
+			"Name": {
+				"@": "5ba8bc6d-c1dd-4d78-8519-f57ba7888ae6",
+				"ENU": "TOTAL SHORT-TERM LIABILITIES",
+				"DAN": "KORTFRISTET GÆLD I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "29997",
+			"Name": {
+				"@": "e550b36e-0005-431f-acfa-6cfde4a192a4",
+				"ENU": "TOTAL LIABILITIES AND EQUITY",
+				"DAN": "PASSIVER I ALT"
+			},
+			"Account Type": "End-Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": "Liabilities",
+			"Account Subcategory Entry No.": "11",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		},
+		{
+			"No.": "29999",
+			"Name": {
+				"@": "d72875aa-8499-4701-8a0e-d7cccdc24504",
+				"ENU": "***** ALL NULL *****",
+				"DAN": "***** ALT LIG NUL *****"
+			},
+			"Account Type": "Total",
+			"Income/Balance": "Balance Sheet",
+			"Account Category": " ",
+			"Account Subcategory Entry No.": "10",
+			"Gen. Posting Type": " ",
+			"Gen. Bus. Posting Group": "",
+			"Gen. Prod. Posting Group": ""
+		}]
+	}]
+}

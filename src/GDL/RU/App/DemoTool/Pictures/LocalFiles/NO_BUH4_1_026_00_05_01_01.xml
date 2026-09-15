@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by VI (GNIVC FNS RF) -->
+<!-- edited with XMLSPY v2004 rel. 4 U (http://www.xmlspy.com) by Home (Home) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="Файл">
+		<xs:annotation>
+			<xs:documentation>Файл обмена</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Документ">
+					<xs:annotation>
+						<xs:documentation>Состав и структура документа</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="СвНП">
+								<xs:annotation>
+									<xs:documentation>Сведения о налогоплательщике</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="НПЮЛ">
+											<xs:annotation>
+												<xs:documentation>Налогоплательщик - юридическое лицо</xs:documentation>
+											</xs:annotation>
+											<xs:complexType>
+												<xs:attribute name="НаимОрг" use="required">
+													<xs:annotation>
+														<xs:documentation>Наименование организации</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+															<xs:maxLength value="1000"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="ИННЮЛ" type="ИННЮЛТип" use="required">
+													<xs:annotation>
+														<xs:documentation>ИНН организации</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="КПП" type="КППТип" use="required">
+													<xs:annotation>
+														<xs:documentation>КПП</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ОКВЭД" type="ОКВЭДТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКВЭД </xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ОКОПФ" type="ОКОПФТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКОПФ</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ОКФС" type="ОКФСТип" use="required">
+										<xs:annotation>
+											<xs:documentation>Код по ОКФС</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="ОКПО" type="ОКПОТип" use="optional">
+										<xs:annotation>
+											<xs:documentation>Код по ОКПО</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Подписант" maxOccurs="2">
+								<xs:annotation>
+									<xs:documentation>Сведения о лице, подписавшем документ</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ФИО" type="ФИОТип">
+											<xs:annotation>
+												<xs:documentation>Фамилия, Имя, Отчество</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="ПрПодп" use="required">
+										<xs:annotation>
+											<xs:documentation>Признак лица, подписавшего документ</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:length value="1"/>
+												<xs:enumeration value="3"/>
+												<xs:enumeration value="4"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element ref="ДвижениеДен"/>
+						</xs:sequence>
+						<xs:attribute name="КНД" use="required">
+							<xs:annotation>
+								<xs:documentation>Код формы отчетности по КНД</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="КНДТип">
+									<xs:enumeration value="0710004"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ДатаДок" type="ДатаТип" use="required">
+							<xs:annotation>
+								<xs:documentation>Дата формирования документа</xs:documentation>
+								<xs:documentation>
+Дата в формате ДД.ММ.ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="Период" use="required">
+							<xs:annotation>
+								<xs:documentation>Отчетный период</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:length value="2"/>
+									<xs:enumeration value="34"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="ОтчетГод" type="xs:gYear" use="required">
+							<xs:annotation>
+								<xs:documentation>Отчетный год</xs:documentation>
+								<xs:documentation>
+Год в формате ГГГГ</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="ИдФайл" use="required">
+				<xs:annotation>
+					<xs:documentation>Идентификатор файла</xs:documentation>
+					<xs:documentation>Повторяет имя передаваемого файла (без расширения)</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="100"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ВерсПрог" use="required">
+				<xs:annotation>
+					<xs:documentation>Версия передающей программы</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:maxLength value="40"/>
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="ВерсФорм" use="required">
+				<xs:annotation>
+					<xs:documentation>Версия формата</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+						<xs:maxLength value="5"/>
+						<xs:enumeration value="5.01"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="ДвижениеДен">
+		<xs:annotation>
+			<xs:documentation>Отчет о движении денежных средств (форма 4)</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="ОстНач" type="ДанОтчПред" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Остаток денежных средств на начало года</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="ДвижТекДеят" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Движение денежных средств по текущей деятельности</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Приход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Приход (поступления) по текущей деятельности</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ОтПокупЗак" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Средства, полученные от покупателей, заказчиков</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПрочДох" type="ДанПокНаим" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Прочие доходы (поступления) по текущей деятельности  </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Расход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Денежные средства, направленные на расходы по текущей деятельности</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Приобр" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Денежные средства, направленные на оплату приобретенных товаров, работ, услуг, сырья и иных оборотных активов </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ОплТруд" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Денежные средства, направленные на оплату труда</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ВыплДив" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Денежные средства, направленные на выплату дивидендов, процентов</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="Налоги" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Денежные средства, направленные на расчеты по налогам и сборам </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПрочРас" type="ДанПокНаим" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Прочие расходы по текущей деятельности</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="СумОтч" use="required">
+										<xs:annotation>
+											<xs:documentation>За отчетный</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="12"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="СумПред" use="optional">
+										<xs:annotation>
+											<xs:documentation>За  предыдущий</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:integer">
+												<xs:totalDigits value="12"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ЧистСр" type="ДанОтчПред" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Чистые денежные средства от текущей деятельности</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ДвижИнвДеят" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Движение денежных средств по инвестиционной деятельности</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Приход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Приход (поступления) по инвестиционной деятельности</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ВырПродАктив" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Выручка от продажи объектов основных средств и иных внеоборотных активов</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ВырПродЦБ" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Выручка от продажи ценных бумаг и иных финансовых вложений</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПолучДив" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Полученные дивиденды</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПолучПроц" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Полученные проценты </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПогашЗайм" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Поступления от погашения займов, предоставленных другим организациям </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПрочДох" type="ДанПокНаим" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Прочие доходы (поступления) по инвестиционной деятельности</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Расход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Денежные средства, направленные на расходы по инвестиционной деятельности</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ПриобрДочОрг" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Приобретение дочерних организаций</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПриобрАктив" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Приобретение объектов основных средств, доходных вложений в материальные ценности и нематериальных активов</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПриобрЦБ" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Приобретение ценных бумаг и иных финансовых вложений</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПредЗайм" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Займы, предоставленные другим организациям</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПрочРас" type="ДанПокНаим" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Прочие расходы по инвестиционной деятельности</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ЧистСр" type="ДанОтчПред" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Чистые денежные средства от инвестиционной деятельности</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ДвижФинДеят" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Движение денежных средств по финансовой деятельности</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Приход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Приход (поступления) по финансовой деятельности</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ПостЭмис" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Поступления от эмиссии акций или иных долевых бумаг</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПостЗаймОрг" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Поступления от займов и кредитов, предоставленных другими организациями </xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПрочДох" type="ДанПокНаим" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Прочие доходы (поступления) по финансовой деятельности</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="Расход" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Денежные средства, направленные на расходы по финансовой деятельности</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ПогашЗаймБП" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Погашение займов и кредитов (без процентов)</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПогашФинАр" type="ДанОтчПред" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Погашение обязательств по финансовой аренде</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+										<xs:element name="ПрочРас" type="ДанПокНаим" minOccurs="0">
+											<xs:annotation>
+												<xs:documentation>Прочие расходы по финансовой деятельности</xs:documentation>
+											</xs:annotation>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ЧистСр" type="ДанОтчПред" minOccurs="0">
+								<xs:annotation>
+									<xs:documentation>Чистые денежные средства от финансовой деятельности</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ЧистУвУмСр" type="ДанОтчПред" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Чистое увеличение (уменьшение) денежных средств и их эквивалентов</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="ОстКон" type="ДанОтчПред" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Остаток денежных средств на конец отчетного периода</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="ВлиянКурс" type="ДанОтчПред" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Величина влияния изменений курса иностранной валюты по отношению к рублю </xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="ОКЕИ" use="required">
+				<xs:annotation>
+					<xs:documentation>Код по ОКЕИ</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="ОКЕИТип">
+						<xs:enumeration value="384"/>
+						<xs:enumeration value="385"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="ДанОтчПред">
+		<xs:annotation>
+			<xs:documentation>Данные по отчетному и аналогичному предыдущему периодам (годам)</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="СумОтч" use="required">
+			<xs:annotation>
+				<xs:documentation>За отчетный</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="12"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="СумПред" use="optional">
+			<xs:annotation>
+				<xs:documentation>За  предыдущий</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="12"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ДанПокНаим">
+		<xs:annotation>
+			<xs:documentation>Данные по показателю (с дополнительными наименованиями)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="ВтчНаим" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>В том числе по наименованиям</xs:documentation>
+				</xs:annotation>
+				<xs:complexType>
+					<xs:attribute name="СумОтч" use="required">
+						<xs:annotation>
+							<xs:documentation>За отчетный</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:integer">
+								<xs:totalDigits value="12"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="СумПред" use="optional">
+						<xs:annotation>
+							<xs:documentation>За  предыдущий</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:integer">
+								<xs:totalDigits value="12"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+					<xs:attribute name="Наименование" use="required">
+						<xs:annotation>
+							<xs:documentation>Наименование</xs:documentation>
+						</xs:annotation>
+						<xs:simpleType>
+							<xs:restriction base="xs:string">
+								<xs:minLength value="1"/>
+								<xs:maxLength value="255"/>
+							</xs:restriction>
+						</xs:simpleType>
+					</xs:attribute>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="СумОтч" use="required">
+			<xs:annotation>
+				<xs:documentation>За отчетный</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="12"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="СумПред" use="optional">
+			<xs:annotation>
+				<xs:documentation>За  предыдущий</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:integer">
+					<xs:totalDigits value="12"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="ФИОТип">
+		<xs:annotation>
+			<xs:documentation>Фамилия, Имя, Отчество</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="Фамилия" use="required">
+			<xs:annotation>
+				<xs:documentation>Фамилия</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Имя" use="required">
+			<xs:annotation>
+				<xs:documentation>Имя</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="Отчество" use="optional">
+			<xs:annotation>
+				<xs:documentation>Отчество</xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+					<xs:maxLength value="60"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:simpleType name="КНДТип">
+		<xs:annotation>
+			<xs:documentation>Код из Классификатора налоговой документации</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="7"/>
+			<xs:pattern value="[0-9]{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКЕИТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора единиц измерения</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="3"/>
+			<xs:pattern value="[0-9]{3}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКОПФТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора организационно-правовых форм хозяйствующих субъектов</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="2"/>
+			<xs:pattern value="[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКПОТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора предприятий и организаций</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:minLength value="8"/>
+			<xs:maxLength value="10"/>
+			<xs:pattern value="[0-9]{8}"/>
+			<xs:pattern value="[0-9]{10}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКФСТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора форм собственности</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="2"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКАТОТип">
+		<xs:annotation>
+			<xs:documentation>Коды из Классификатора объектов административно-территориального деления</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="11"/>
+			<xs:pattern value="[0-9]{11}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ИННФЛТип">
+		<xs:annotation>
+			<xs:documentation>Идентификационный номер налогоплательщика - физического лица</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="12"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{10}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ИННЮЛТип">
+		<xs:annotation>
+			<xs:documentation>Идентификационный номер налогоплательщика - юридического лица</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{8}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="КППТип">
+		<xs:annotation>
+			<xs:documentation>Код причины постановки на учет (КПП)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="9"/>
+			<xs:pattern value="([0-9]{1}[1-9]{1}|[1-9]{1}[0-9]{1})[0-9]{7}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ОКВЭДТип">
+		<xs:annotation>
+			<xs:documentation>Код из Общероссийского классификатора видов экономической деятельности</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="8"/>
+			<xs:minLength value="2"/>
+			<xs:pattern value="[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{1}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{1}"/>
+			<xs:pattern value="[0-9]{2}\.[0-9]{2}\.[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="СОНОТип">
+		<xs:annotation>
+			<xs:documentation>Коды из Классификатора системы обозначений налоговых органов</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="4"/>
+			<xs:pattern value="[0-9]{4}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ДатаТип">
+		<xs:annotation>
+			<xs:documentation>Дата в формате ДД.ММ.ГГГГ (01.01.1800 - 31.12.2099)</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:length value="10"/>
+			<xs:pattern value="(((0[1-9]{1}|[1-2]{1}[0-9]{1})\.(0[1-9]{1}|1[0-2]{1}))|((30)\.(01|0[3-9]{1}|1[0-2]{1}))|((31)\.(01|03|05|07|08|10|12)))\.(18[0-9]{2}|19[0-9]{2}|20[0-9]{2})"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

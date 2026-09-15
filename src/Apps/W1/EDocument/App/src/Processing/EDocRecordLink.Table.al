@@ -5,7 +5,9 @@
 namespace Microsoft.EServices.EDocument.Processing;
 
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 
 /// <summary>
 /// This table is used to link records together.
@@ -89,6 +91,11 @@ table 6141 "E-Doc. Record Link"
     internal procedure InsertEDocumentLineLink(EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
         InsertLinkBetweenEDocumentRecords(Database::"E-Document Purchase Line", EDocumentPurchaseLine.SystemId, Database::"Purchase Line", PurchaseLine.SystemId, EDocumentPurchaseLine."E-Document Entry No.");
+    end;
+
+    internal procedure InsertEDocumentSalesLineLink(EDocumentSalesLine: Record "E-Document Sales Line"; SalesLine: Record "Sales Line")
+    begin
+        InsertLinkBetweenEDocumentRecords(Database::"E-Document Sales Line", EDocumentSalesLine.SystemId, Database::"Sales Line", SalesLine.SystemId, EDocumentSalesLine."E-Document Entry No.");
     end;
 
     local procedure InsertLinkBetweenEDocumentRecords(SourceTableNo: Integer; SourceSystemId: Guid; TargetTableNo: Integer; TargetSystemId: Guid; EDocumentEntryNo: Integer)

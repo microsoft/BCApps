@@ -11,7 +11,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 
-codeunit 99001534 "Subc. Purchase Line Ext"
+codeunit 20534 "Subc. Purchase Line Ext"
 {
     var
 #if not CLEAN29
@@ -83,6 +83,48 @@ codeunit 99001534 "Subc. Purchase Line Ext"
 
         if CurrFieldNo <> 0 then
             SubcSynchronizeManagement.SynchronizeExpectedReceiptDate(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Planned Receipt Date", false, false)]
+    local procedure OnAfterValidatePlannedReceiptDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary() then
+            exit;
+
+        if GetExecutionContext() = ExecutionContext::Upgrade then
+            exit;
+
+        if Rec."Planned Receipt Date" = xRec."Planned Receipt Date" then
+            exit;
+
+        GetSubcontractingPrice(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Order Date", false, false)]
+    local procedure OnAfterValidateOrderDate(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary() then
+            exit;
+
+        if GetExecutionContext() = ExecutionContext::Upgrade then
+            exit;
+
+        if Rec."Order Date" = xRec."Order Date" then
+            exit;
+
+        GetSubcontractingPrice(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]

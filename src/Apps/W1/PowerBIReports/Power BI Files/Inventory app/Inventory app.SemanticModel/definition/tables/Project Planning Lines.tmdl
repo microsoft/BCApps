@@ -18,13 +18,30 @@ table 'Project Planning Lines'
 			VAR Endpoint = "&page=1007&"
 			VAR BaseLink = [Base Link] & Endpoint
 			VAR PlanningLineBaseLink = BaseLink & "filter='Job Planning Line'.'Type' IS 'Item' "
-			// Filter Context
-			VAR ItemNo = CONCATENATEX(VALUES('Project Planning Lines'[itemNo]),'Project Planning Lines'[itemNo], "|")
-			
-			VAR ItemNoFilter = " AND 'Job Planning Line'.'No.' IS '" & ItemNo & "'"
-			VAR DateFilter = " AND 'Job Planning Line'.'Planning Date' IS '" & [Ranged] & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR ProjectedLength =
+			    LEN ( PlanningLineBaseLink )
+			    + LEN ( " AND 'Job Planning Line'.'No.' IS ''" )
+			    + SUMX ( VALUES ( 'Project Planning Lines'[itemNo] ), LEN ( 'Project Planning Lines'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Job Planning Line'.'Planning Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			PlanningLineBaseLink & ItemNoFilter & DateFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        PlanningLineBaseLink
+			            & " AND 'Job Planning Line'.'No.' IS '" & CONCATENATEX(VALUES('Project Planning Lines'[itemNo]),'Project Planning Lines'[itemNo], "|") & "'"
+			            & " AND 'Job Planning Line'.'Planning Date' IS '" & [Ranged] & "'",
+			        BaseLink
+			    )
 		displayFolder: _Back Link
 		lineageTag: 9469fbd0-0d17-444b-af4c-9772a71e60d0
 

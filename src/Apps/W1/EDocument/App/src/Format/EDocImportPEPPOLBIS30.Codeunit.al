@@ -611,7 +611,13 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Log", 'OnBeforeExportDataStorage', '', false, false)]
     local procedure SetFileExt(EDocumentLog: Record "E-Document Log"; var FileName: Text)
+    var
+        FileManagement: Codeunit "File Management";
     begin
+        if EDocumentLog."Document Format" <> Enum::"E-Document Format"::"PEPPOL BIS 3.0" then
+            exit;
+        if FileManagement.GetExtension(FileName) <> '' then
+            exit;
         FileName += '.xml';
     end;
 

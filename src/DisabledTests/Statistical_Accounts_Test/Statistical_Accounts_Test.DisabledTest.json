@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "AccountRangeShouldRecognizedForTotalingTypeStatisticalAccountInFinancialReport"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "AmtInAllocAccPreviewCantHaveRoundingValueWhereBreakDownAccBalIsZero"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "TestGLAndStatisticalAccountsAnalysisView"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "TestStatisticalAccountsAnalysisView"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "VerifyShortcutDimensionClearWhenNewLineSetupOnStatisticalAccountJournal"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "VerifyShortcutDimensionsInTheStatisticalAccountsJournal"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "TestPostTransactionsToStatisticalAccount"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "JnlLinesBindToNewBatchAfterPostingInOldBatch"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "TestBalancesAreShownCorrectlyOnStatisticalAccount"
+  },
+  {
+    "codeunitId": 139683,
+    "codeunitName": "Statistical Account Test",
+    "method": "VerifyStatisticalAccountBalanceWithExcludeAndBalanceAtDate"
+  }
+]

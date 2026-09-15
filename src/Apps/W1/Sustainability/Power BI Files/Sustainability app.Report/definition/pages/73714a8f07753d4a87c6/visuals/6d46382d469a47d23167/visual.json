@@ -1,0 +1,185 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "6d46382d469a47d23167",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 2000,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Employee No."
+                }
+              },
+              "queryRef": "Employee Ledger Entries.employeeNo",
+              "nativeQueryRef": "employeeNo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employees"
+                    }
+                  },
+                  "Property": "Employee Full Name"
+                }
+              },
+              "queryRef": "Employees.Employee Full Name",
+              "nativeQueryRef": "Employee Full Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Entry No."
+                }
+              },
+              "queryRef": "Employee Ledger Entries.entryNo",
+              "nativeQueryRef": "entryNo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Employee Ledger Entries.documentNo",
+              "nativeQueryRef": "documentNo"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Document Type"
+                }
+              },
+              "queryRef": "Employee Ledger Entries.documentType",
+              "nativeQueryRef": "documentType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Description"
+                }
+              },
+              "queryRef": "Employee Ledger Entries.description",
+              "nativeQueryRef": "description"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Employee Amount"
+                }
+              },
+              "queryRef": "Employee Ledger Entries.Amoun1t",
+              "nativeQueryRef": "Amoun1t"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "webURL": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Employee Ledger Entries"
+                    }
+                  },
+                  "Property": "Employee Ledger Entries Link"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 0
+                }
+              }
+            ],
+            "metadata": "Employee Ledger Entries.Amoun1t"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Employee Ledger Entries Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

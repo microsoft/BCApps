@@ -25,6 +25,7 @@ codeunit 1266 "Cryptography Management"
     /// </summary>
     /// <param name="InputString">The value to encrypt.</param>
     /// <returns>Encrypted value.</returns>
+    [NonDebuggable]
     procedure EncryptText(InputString: Text[215]): Text
     begin
         exit(CryptographyManagementImpl.Encrypt(InputString));
@@ -35,6 +36,7 @@ codeunit 1266 "Cryptography Management"
     /// </summary>
     /// <param name="EncryptedString">The value to decrypt.</param>
     /// <returns>Plain text.</returns>
+    [NonDebuggable]
     procedure Decrypt(EncryptedString: Text): Text
     begin
         exit(CryptographyManagementImpl.Decrypt(EncryptedString));

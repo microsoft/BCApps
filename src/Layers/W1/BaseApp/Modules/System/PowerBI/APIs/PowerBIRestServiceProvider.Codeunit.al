@@ -1,0 +1,98 @@
+namespace System.Integration.PowerBI;
+
+using System;
+
+codeunit 6321 "Power BI Rest Service Provider" implements "Power BI Service Provider"
+{
+    Access = Internal;
+
+    var
+        PowerBiRestServiceWrapper: DotNet PowerBiRestServiceWrapper;
+        NotInitializedErr: Label 'The Power BI Service has not been initialized.';
+
+    procedure Initialize(AzureAccessToken: SecretText; PowerBIUrl: Text)
+    begin
+        PowerBiRestServiceWrapper := PowerBiRestServiceWrapper.PowerBiRestServiceWrapper(AzureAccessToken, PowerBIUrl);
+    end;
+
+    procedure StartImport(BlobStream: Instream; ReportName: Text; Overwrite: Boolean; WorkspaceId: Guid; var ImportId: Guid; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.StartImport(
+                BlobStream,
+                ReportName,
+                Overwrite,
+                WorkspaceId,
+                ImportId);
+    end;
+
+    procedure CheckUserLicense(var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.CheckUserLicense();
+    end;
+
+    procedure GetImport(ImportID: Guid; WorkspaceId: Guid; var ImportState: Text; var ReturnedReport: DotNet ReturnedReport; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.GetImport(ImportID, WorkspaceId, ImportState, ReturnedReport);
+    end;
+
+    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; WorkspaceId: Guid; var OperationResult: DotNet OperationResult)
+    var
+        ParamsDictionary: Dotnet GenericDictionary2;
+        ParamKey: Text;
+    begin
+        EnsureServiceWrapper();
+        ParamsDictionary := ParamsDictionary.Dictionary();
+        foreach ParamKey in Parameters.Keys() do
+            ParamsDictionary.Add(ParamKey, Parameters.Get(ParamKey));
+
+        OperationResult := PowerBiRestServiceWrapper.UpdateDatasetParameters(DatasetId, ParamsDictionary, WorkspaceId);
+    end;
+
+    procedure GetDatasource(DatasetId: Text; WorkspaceId: Guid; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.GetDatasource(DatasetId, WorkspaceId, DataSourceId, GatewayId);
+    end;
+
+    procedure UpdateDatasourceCredentials(DataSourceId: Guid; GatewayId: Guid; BusinessCentralAccessToken: SecretText; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.UpdateDatasourceCredentials(DataSourceId, GatewayId, BusinessCentralAccessToken);
+    end;
+
+    procedure RefreshDataset(DatasetId: Text; WorkspaceId: Guid; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.RefreshDataset(DatasetId, WorkspaceId);
+    end;
+
+    procedure GetReportsInMyWorkspace(var ReturnedReportList: DotNet ReturnedReportList; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+
+        // TODO: this is temporary because at the moment the overload without timeout does not work
+        OperationResult := PowerBiRestServiceWrapper.GetReportsInMyWorkspace(ReturnedReportList, 1000 * 1000);
+    end;
+
+    procedure GetReportsInWorkspace(WorkspaceId: Guid; var ReturnedReportList: DotNet ReturnedReportList; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.GetReportsInWorkspace(WorkspaceId, ReturnedReportList);
+    end;
+
+    procedure GetWorkspaces(var ReturnedWorkspaceList: DotNet ReturnedWorkspaceList; var OperationResult: DotNet OperationResult)
+    begin
+        EnsureServiceWrapper();
+        OperationResult := PowerBiRestServiceWrapper.GetWorkspaces(ReturnedWorkspaceList);
+    end;
+
+    local procedure EnsureServiceWrapper()
+    begin
+        if IsNull(PowerBiRestServiceWrapper) then
+            Error(NotInitializedErr);
+    end;
+
+}

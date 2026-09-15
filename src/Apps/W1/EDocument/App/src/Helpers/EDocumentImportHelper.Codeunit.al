@@ -18,6 +18,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -282,6 +283,19 @@ codeunit 6109 "E-Document Import Helper"
     begin
         CompanyInformation.Get();
 
+        if (EDocument."Receiving Company Reg. No." <> '') and
+           CompanyInformation."Use Reg. No. in E-Document" and
+           (CompanyInformation.GLN = '') and
+           (CompanyInformation."VAT Registration No." = '') and
+           (EDocument."Receiving Company GLN" = '') and
+           (EDocument."Receiving Company VAT Reg. No." = '')
+        then begin
+            if CompanyInformation."Registration No." <> EDocument."Receiving Company Reg. No." then
+                EDocErrorHelper.LogErrorMessage(
+                    EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration No."), InvalidCompanyInfoRegistrationNoErr);
+            exit;
+        end;
+
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
             ValidateReceivingCompanyInfoByNameAndAddress(EDocument);
             exit;
@@ -430,6 +444,19 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="VATRegistrationNo">Vendor's VAT registration number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]): Code[20]
+    begin
+        exit(FindVendor(VendorNoText, GLN, VATRegistrationNo, ''));
+    end;
+
+    /// <summary>
+    /// Use it to find a vendor by number, GLN, VAT registration number or registration number.
+    /// </summary>
+    /// <param name="VendorNoText">Vendor's number.</param>
+    /// <param name="GLN">Vendor's GLN.</param>
+    /// <param name="VATRegistrationNo">Vendor's VAT registration number.</param>
+    /// <param name="RegistrationNo">Vendor's registration number.</param>
+    /// <returns>Vendor number if exists or empty string.</returns>
+    procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]; RegistrationNo: Text[20]): Code[20]
     var
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
@@ -449,6 +476,12 @@ codeunit 6109 "E-Document Import Helper"
         VendorNo := FindVendorByVATRegistrationNo(VATRegistrationNo);
         if VendorNo <> '' then begin
             EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
+            exit(VendorNo);
+        end;
+
+        VendorNo := FindVendorByRegistrationNo(RegistrationNo);
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Registration No.');
             exit(VendorNo);
         end;
     end;
@@ -519,6 +552,34 @@ codeunit 6109 "E-Document Import Helper"
         if VATRegistrationNo = '' then
             exit('');
         VendorNo := Vendor.FindVendorByVATRegistrationNo(VATRegistrationNo);
+        exit(VendorNo);
+    end;
+
+    /// <summary>
+    /// Use it to find a vendor by registration number.
+    /// </summary>
+    /// <param name="RegistrationNo">Vendor's registration number.</param>
+    /// <returns>Vendor number if exists or empty string.</returns>
+    procedure FindVendorByRegistrationNo(RegistrationNo: Text[20]): Code[20]
+    var
+        Vendor: Record Vendor;
+        VendorNo: Code[20];
+    begin
+        if RegistrationNo = '' then
+            exit('');
+
+        Vendor.SetCurrentKey("Registration Number");
+        Vendor.SetRange("Registration Number", RegistrationNo);
+        Vendor.SetRange("Use Reg. No. in E-Document", true);
+        Vendor.SetRange(GLN, '');
+        Vendor.SetRange("VAT Registration No.", '');
+        if not Vendor.FindSet() then
+            exit('');
+
+        VendorNo := Vendor."No.";
+        if Vendor.Next() <> 0 then
+            Error(MultipleVendorsWithRegistrationNoErr);
+
         exit(VendorNo);
     end;
 
@@ -598,6 +659,33 @@ codeunit 6109 "E-Document Import Helper"
 
         if NameOnlyCandidateFound then
             EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
+    end;
+
+    /// <summary>
+    /// Use it to find a customer by name and address using fuzzy matching.
+    /// </summary>
+    /// <param name="CustomerName">Name of a customer.</param>
+    /// <param name="CustomerAddress">Address of a customer.</param>
+    /// <returns>Customer number if found or empty string.</returns>
+    procedure FindCustomerByNameAndAddress(CustomerName: Text; CustomerAddress: Text): Code[20]
+    var
+        Customer: Record Customer;
+        RecordMatchMgt: Codeunit "Record Match Mgt.";
+        NameNearness: Integer;
+        AddressNearness: Integer;
+    begin
+        Customer.SetCurrentKey(Blocked);
+        Customer.SetLoadFields(Name, Address);
+        if Customer.FindSet() then
+            repeat
+                NameNearness := RecordMatchMgt.CalculateStringNearness(CustomerName, Customer.Name, MatchThreshold(), NormalizingFactor());
+                if CustomerAddress = '' then
+                    AddressNearness := RequiredNearness()
+                else
+                    AddressNearness := RecordMatchMgt.CalculateStringNearness(CustomerAddress, Customer.Address, MatchThreshold(), NormalizingFactor());
+                if (NameNearness >= RequiredNearness()) and (AddressNearness >= RequiredNearness()) then
+                    exit(Customer."No.");
+            until Customer.Next() = 0;
     end;
 
     /// <summary>
@@ -1052,6 +1140,8 @@ codeunit 6109 "E-Document Import Helper"
         MissingCompanyInfoSetupErr: Label 'You must fill either GLN or VAT Registration No. in the Company Information window.';
         InvalidCompanyInfoGLNErr: Label 'The customer''s GLN %1 on the electronic document does not match the GLN in the Company Information window.', Comment = '%1 = GLN (13 digit number)';
         InvalidCompanyInfoVATRegNoErr: Label 'The customer''s VAT registration number %1 on the electronic document does not match the VAT Registration No. in the Company Information window.', Comment = '%1 VAT Registration Number (format could be AB###### or ###### or AB##-##-###)';
+        InvalidCompanyInfoRegistrationNoErr: Label 'The receiving company registration number does not match Company Information.';
+        MultipleVendorsWithRegistrationNoErr: Label 'Multiple vendors match the registration number on the electronic document. Make the registration number unique for vendors that use it in electronic documents.';
         InvalidCompanyInfoNameErr: Label 'The customer name ''%1'' on the electronic document does not match the name in the Company Information window.', Comment = '%1 = customer name';
         InvalidCompanyInfoAddressErr: Label 'The customer''s address ''%1'' on the electronic document does not match the Address in the Company Information window.', Comment = '%1 = customer address, street name';
         UnableToApplyDiscountErr: Label 'The invoice discount of %1 cannot be applied. Invoice discount must be allowed on at least one invoice line and invoice total must not be 0.', Comment = '%1 - a decimal number';

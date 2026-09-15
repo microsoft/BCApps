@@ -152,7 +152,14 @@ function New-GitHubPullRequest
 
     Write-Host "gh pr create $parameters"
     $prLink = Invoke-Expression "gh pr create $parameters"
-    gh pr merge --auto --squash --delete-branch | Out-Null
+
+    # Enabling auto-merge can fail due repository configuration or transient GitHub API issues.
+    # A PR has already been created at this point, so the automation should continue.
+    $mergeOutput = @(gh pr merge --auto --squash 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "::Warning::Failed to enable auto-merge for PR '$prLink'. Continuing without auto-merge. Details: $($mergeOutput -join ' ')"
+        $global:LASTEXITCODE = 0
+    }
 
     return $prLink
 }

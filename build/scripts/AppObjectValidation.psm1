@@ -10,27 +10,39 @@
     An array of paths to the source code directories to be scanned for AL files.
     .PARAMETER AllowedDuplicateObjects
     An array of object signatures (in the format "<object type> <object id>") that are allowed to have duplicates.
+    .PARAMETER AllowedOutOfRangeTestObjects
+    An array of test object IDs that are allowed to be outside the valid range (e.g. country-specific test objects).
     .PARAMETER MinTestObjectId
     The minimum valid object ID for test objects. Default is 130000.
     .PARAMETER MaxTestObjectId
     The maximum valid object ID for test objects. Default is 149999.
+    .PARAMETER SkipDuplicateCheck
+    If specified, the duplicate object ID check is skipped.
 #>
 function Test-ObjectIDsAreValid {
     param(
         [string[]] $SourceCodePaths = @(),
         [string[]] $AllowedDuplicateObjects = @(),
+        [int[]] $AllowedOutOfRangeTestObjects = @(),
         [int] $MinTestObjectId = 130000,
-        [int] $MaxTestObjectId = 149999
+        [int] $MaxTestObjectId = 149999,
+        [switch] $SkipDuplicateCheck
     )
 
     $ApplicationObjects = Get-FilesCollection -SourceCodePaths $SourceCodePaths
-    $IntroducedDuplicates = @($ApplicationObjects.DuplicateObjects | Where-Object { -not ($AllowedDuplicateObjects -contains $_) })
+
+    $IntroducedDuplicates = @()
+    if (-not $SkipDuplicateCheck) {
+        $IntroducedDuplicates = @($ApplicationObjects.DuplicateObjects | Where-Object { -not ($AllowedDuplicateObjects -contains $_) })
+    }
 
     $offendingObjects = @()
     foreach ($TestObject in $ApplicationObjects.TestObjects) {
         $ObjectID = GetObjectId $TestObject
         if (($ObjectID -lt $MinTestObjectId) -or ($ObjectID -gt $MaxTestObjectId)) {
-            $offendingObjects += $ObjectID
+            if (-not ($AllowedOutOfRangeTestObjects -contains $ObjectID)) {
+                $offendingObjects += $ObjectID
+            }
         }
     }
 
@@ -218,7 +230,7 @@ function GetALObjectInformation
     This function scans the specified path for app.json files, extracts the application and platform versions,
     and checks if they match the expected values. If any discrepancies are found, an error is thrown.
     .PARAMETER Path
-    The path to the source code directory to be scanned for app.json files.
+    An array of paths to the source code directories to be scanned for app.json files.
     .PARAMETER ExpectedAppVersion
     The expected application version that should be present in the app manifests.
     .PARAMETER ExpectedPlatformVersion
@@ -226,7 +238,7 @@ function GetALObjectInformation
 #>
 function Test-ApplicationManifests {
     param(
-        [string] $Path,
+        [string[]] $Path,
         [string] $ExpectedAppVersion,
         [string[]] $ExpectedPlatformVersions
     )

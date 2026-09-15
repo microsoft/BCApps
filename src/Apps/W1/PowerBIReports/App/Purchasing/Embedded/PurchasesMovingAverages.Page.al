@@ -11,8 +11,8 @@ page 37012 "Purchases Moving Averages"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Moving Averages';
-    AboutTitle = 'About Purchases Moving Averages';
+    Caption = 'Purchases Moving Averages (Power BI)';
+    AboutTitle = 'About Purchases Moving Averages (Power BI)';
     AboutText = 'The Purchases Moving Average report visualizes the 30-day moving average of purchase amounts over time. This helps identify trends by smoothing out fluctuations and highlighting overall patterns.';
 
     layout

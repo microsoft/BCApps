@@ -754,8 +754,8 @@ table 30102 "Shpfy Shop"
         }
         field(120; "Auto Create Catalog"; Boolean)
         {
-            Caption = 'Auto Create Catalog';
-            ToolTip = 'Specifies whether a catalog is automatically created for new companies.';
+            Caption = 'Auto Create B2B Catalog';
+            ToolTip = 'Specifies whether a B2B catalog is automatically created for new companies.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -901,7 +901,9 @@ table 30102 "Shpfy Shop"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
 #endif

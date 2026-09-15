@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data-set-c_Municipio xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Municipio>
+		<Code>001</Code>
+		<State>AGU</State>
+		<Descripcion>Aguascalientes</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>BCN</State>
+		<Descripcion>Ensenada</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>BCS</State>
+		<Descripcion>Comondú</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>CAM</State>
+		<Descripcion>Calkiní</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>COA</State>
+		<Descripcion>Abasolo</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>COL</State>
+		<Descripcion>Armería</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>CHH</State>
+		<Descripcion>Ahumada</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>CHP</State>
+		<Descripcion>Acacoyagua</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>001</Code>
+		<State>DUR</State>
+		<Descripcion>Canatlán</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>567</Code>
+		<State>OAX</State>
+		<Descripcion>Zapotitlán Lagunas</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>568</Code>
+		<State>OAX</State>
+		<Descripcion>Zapotitlán Palmas</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>569</Code>
+		<State>OAX</State>
+		<Descripcion>Santa Inés de Zaragoza</Descripcion>
+	</Municipio>
+	<Municipio>
+		<Code>570</Code>
+		<State>OAX</State>
+		<Descripcion>Zimatlán de Álvarez</Descripcion>
+	</Municipio>
+</data-set-c_Municipio>

@@ -1,0 +1,78 @@
+{
+    "W1": null,
+    "APAC": {
+        "baseLayer": "W1"
+    },
+    "NA": {
+        "baseLayer": "W1"
+    },
+    "DACH": {
+        "baseLayer": "W1"
+    },
+    "AT": {
+        "baseLayer": "DACH"
+    },
+    "AU": {
+        "baseLayer": "APAC"
+    },
+    "BE": {
+        "baseLayer": "W1"
+    },
+    "CA": {
+        "baseLayer": "NA"
+    },
+    "CH": {
+        "baseLayer": "DACH"
+    },
+    "CZ": {
+        "baseLayer": "W1"
+    },
+    "DE": {
+        "baseLayer": "DACH"
+    },
+    "DK": {
+        "baseLayer": "W1"
+    },
+    "ES": {
+        "baseLayer": "W1"
+    },
+    "FI": {
+        "baseLayer": "W1"
+    },
+    "FR": {
+        "baseLayer": "W1"
+    },
+    "GB": {
+        "baseLayer": "W1"
+    },
+    "IN": {
+        "baseLayer": "W1"
+    },
+    "IS": {
+        "baseLayer": "W1"
+    },
+    "IT": {
+        "baseLayer": "W1"
+    },
+    "MX": {
+        "baseLayer": "NA"
+    },
+    "NL": {
+        "baseLayer": "W1"
+    },
+    "NO": {
+        "baseLayer": "W1"
+    },
+    "NZ": {
+        "baseLayer": "APAC"
+    },
+    "RU": {
+        "baseLayer": "W1"
+    },
+    "SE": {
+        "baseLayer": "W1"
+    },
+    "US": {
+        "baseLayer": "NA"
+    }
+}
