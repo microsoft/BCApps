@@ -93,21 +93,15 @@ page 20413 "Qlty. Inspection Lines"
                 {
                     AccessByPermission = tabledata "Record Link" = R;
                     Caption = 'Note';
-                    Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 
                     trigger OnAssistEdit()
                     begin
-                        if not CanEditLineNotes then
-                            Rec.RunModalReadOnlyComment()
-                        else
-                            Rec.RunModalEditMeasurementNote();
+                        Rec.RunModalEditMeasurementNote();
                     end;
 
                     trigger OnValidate()
                     begin
-                        if not CanEditLineNotes then
-                            exit;
                         Rec.SetMeasurementNote(MeasurementNote);
                     end;
                 }
@@ -134,19 +128,12 @@ page 20413 "Qlty. Inspection Lines"
             {
                 ApplicationArea = Notes;
                 AccessByPermission = tabledata "Record Link" = R;
-                Enabled = CanEditLineNotes;
             }
         }
     }
 
     var
-        CanEditLineNotes: Boolean;
         MeasurementNote: Text;
-
-    trigger OnOpenPage()
-    begin
-        CanEditLineNotes := CurrPage.Editable();
-    end;
 
     trigger OnAfterGetRecord()
     begin

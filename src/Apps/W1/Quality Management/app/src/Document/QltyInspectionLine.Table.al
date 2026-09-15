@@ -606,18 +606,6 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Opens the current measurement note in a read-only dialog.
-    /// </summary>
-    internal procedure RunModalReadOnlyComment()
-    var
-        QltyEditLargeText: Page "Qlty. Edit Large Text";
-        Note: Text;
-    begin
-        Note := GetMeasurementNote();
-        QltyEditLargeText.RunModalWith(Note);
-    end;
-
-    /// <summary>
     /// Allows subscribers to replace numeric test-value evaluation.
     /// </summary>
     /// <param name="QltyInspectionLine">The inspection line being evaluated.</param>
