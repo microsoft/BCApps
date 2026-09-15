@@ -77,7 +77,7 @@ tableextension 20510 "Subc. RequisitionLine" extends "Requisition Line"
         }
         field(20519; "Subc. UoM for Pricelist"; Code[10])
         {
-            Access = Internal;
+            Access = Public;
             Caption = 'UoM for Price list';
             DataClassification = CustomerContent;
             TableRelation = "Unit of Measure";
