@@ -61,6 +61,7 @@ page 149042 "AIT CommandLine Card"
                             Error(CannotFindAITSuiteErr, AITCode);
 
                         Clear(LineNoFilter);
+                        ResetAITRunDataExport();
 
                         AITTestSuite.Validate("Run Language ID", AITTestSuiteLanguage.GetLanguageIDByTag(LanguageTagFilter));
                         AITTestSuite.Modify(true);
@@ -177,6 +178,13 @@ page 149042 "AIT CommandLine Card"
                     Caption = 'AI Eval Run Data File Path';
                     Editable = false;
                     ToolTip = 'Specifies the relative path where the current AI Eval run data file should be stored.';
+                }
+                field("AIT Run Data File Error"; AITRunDataFileError)
+                {
+                    Caption = 'AI Eval Run Data File Error';
+                    Editable = false;
+                    MultiLine = true;
+                    ToolTip = 'Specifies why the current Agent Task detail file could not be exported. The file contains an error instead of task details.';
                 }
             }
             group("Test Method Lines Group")
@@ -337,14 +345,19 @@ page 149042 "AIT CommandLine Card"
         InputDatasetFilename: Text;
         AITRunDataLogEntry: Record "AIT Log Entry";
         AITRunDataAgentTaskLog: Record "Agent Task Log";
+        AITRunDataExport: Codeunit "AIT Run Data Export";
+        AITRunDataTaskFiles: Dictionary of [Text, Boolean];
         AITRunDataFileText: Text;
         AITRunDataFilePath: Text;
+        AITRunDataFileError: Text;
         AITRunDataExportStage: Option Summary,Evaluation,AgentTaskDetails;
         AITRunDataExportInitialized: Boolean;
         AITRunDataExportCompleted: Boolean;
         AITRunDataLogEntryPositioned: Boolean;
+        AITRunDataAgentTaskLogPositioned: Boolean;
         AITRunDataVersion: Integer;
         NoMoreAITRunDataFilesTxt: Label 'No more AI Eval run data files.', Locked = true;
+        AgentTaskExportFailedErr: Label 'Agent task %1 could not be exported. %2', Comment = '%1 = Agent Task ID, %2 = Error details.';
 
     local procedure StartAITSuite()
     var
@@ -413,10 +426,11 @@ page 149042 "AIT CommandLine Card"
     local procedure LoadNextAITRunDataFile()
     var
         SummaryLogEntry: Record "AIT Log Entry";
-        AITRunDataExport: Codeunit "AIT Run Data Export";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        AgentTaskDetails: Text;
+        AgentTaskFilePath: Text;
     begin
         VerifyTestSuiteCode();
+        Clear(AITRunDataFileError);
         if AITRunDataExportCompleted then begin
             SetNoMoreAITRunDataFiles();
             exit;
@@ -428,38 +442,53 @@ page 149042 "AIT CommandLine Card"
                 exit;
             end;
 
-        case AITRunDataExportStage of
-            AITRunDataExportStage::Summary:
-                begin
-                    SummaryLogEntry.Copy(AITRunDataLogEntry);
-                    SetAITRunDataFile(
-                        AITRunDataExport.GetResultsFilePath(AITCode, GetAITRunDataVersion()),
-                        AITRunDataExport.GetRunResults(SummaryLogEntry));
-                    AITRunDataExportStage := AITRunDataExportStage::Evaluation;
-                end;
-            AITRunDataExportStage::Evaluation:
-                begin
-                    if not FindNextAITRunDataLogEntry() then begin
-                        SetNoMoreAITRunDataFiles();
-                        exit;
-                    end;
-
-                    SetAITRunDataFile(
-                        AITRunDataExport.GetEvaluationResultFilePath(AITRunDataLogEntry),
-                        AITRunDataExport.GetEvaluationResult(AITRunDataLogEntry));
-                    PrepareAgentTaskDetails();
-                end;
-            AITRunDataExportStage::AgentTaskDetails:
-                begin
-                    SetAITRunDataFile(
-                        AITRunDataExport.GetAgentTaskDetailsFilePath(AITRunDataLogEntry, AITRunDataAgentTaskLog."Agent Task ID"),
-                        AgentTestContextImpl.GetAgentTaskLog(AITRunDataAgentTaskLog."Agent Task ID"));
-                    if AITRunDataAgentTaskLog.Next() = 0 then
-                        AITRunDataExportStage := AITRunDataExportStage::Evaluation;
-                end;
+        if AITRunDataExportStage = AITRunDataExportStage::Summary then begin
+            SummaryLogEntry.Copy(AITRunDataLogEntry);
+            SetAITRunDataFile(
+                AITRunDataExport.GetResultsFilePath(AITCode, GetAITRunDataVersion()),
+                AITRunDataExport.GetRunResults(SummaryLogEntry));
+            AITRunDataExportStage := AITRunDataExportStage::Evaluation;
+            CurrPage.Update(false);
+            exit;
         end;
 
+        if AITRunDataExportStage = AITRunDataExportStage::Evaluation then
+            if FindNextAITRunDataLogEntry() then begin
+                SetAITRunDataFile(
+                    AITRunDataExport.GetEvaluationResultFilePath(AITRunDataLogEntry),
+                    AITRunDataExport.GetEvaluationResult(AITRunDataLogEntry));
+                CurrPage.Update(false);
+                exit;
+            end else begin
+                AITRunDataExportStage := AITRunDataExportStage::AgentTaskDetails;
+                AITRunDataLogEntryPositioned := false;
+            end;
+
+        repeat
+            if not FindNextAITRunDataAgentTaskLog() then begin
+                SetNoMoreAITRunDataFiles();
+                exit;
+            end;
+            AgentTaskFilePath := AITRunDataExport.GetAgentTaskDetailsFilePath(AITRunDataLogEntry, AITRunDataAgentTaskLog."Agent Task ID");
+        until not AITRunDataTaskFiles.ContainsKey(AgentTaskFilePath);
+        AITRunDataTaskFiles.Add(AgentTaskFilePath, true);
+
+        ClearLastError();
+        if not TryGetAgentTaskDetails(AITRunDataAgentTaskLog."Agent Task ID", AgentTaskDetails) then begin
+            AITRunDataFileError := StrSubstNo(AgentTaskExportFailedErr, AITRunDataAgentTaskLog."Agent Task ID", GetLastErrorText());
+            ClearLastError();
+            AgentTaskDetails := AITRunDataExport.GetAgentTaskExportError(AITRunDataAgentTaskLog."Agent Task ID", AITRunDataFileError);
+        end;
+        SetAITRunDataFile(AgentTaskFilePath, AgentTaskDetails);
         CurrPage.Update(false);
+    end;
+
+    [TryFunction]
+    local procedure TryGetAgentTaskDetails(AgentTaskID: BigInteger; var AgentTaskDetails: Text)
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+    begin
+        AgentTaskDetails := AgentTestContextImpl.GetAgentTaskLog(AgentTaskID);
     end;
 
     local procedure InitializeAITRunDataExport(): Boolean
@@ -494,14 +523,22 @@ page 149042 "AIT CommandLine Card"
         exit(AITRunDataLogEntry.Next() <> 0);
     end;
 
-    local procedure PrepareAgentTaskDetails()
+    local procedure FindNextAITRunDataAgentTaskLog(): Boolean
     begin
-        Clear(AITRunDataAgentTaskLog);
-        AITRunDataAgentTaskLog.SetRange("Test Log Entry ID", AITRunDataLogEntry."Entry No.");
-        if AITRunDataAgentTaskLog.FindFirst() then
-            AITRunDataExportStage := AITRunDataExportStage::AgentTaskDetails
-        else
-            AITRunDataExportStage := AITRunDataExportStage::Evaluation;
+        if AITRunDataAgentTaskLogPositioned then
+            if AITRunDataAgentTaskLog.Next() <> 0 then
+                exit(true);
+
+        AITRunDataAgentTaskLogPositioned := false;
+        while FindNextAITRunDataLogEntry() do begin
+            Clear(AITRunDataAgentTaskLog);
+            AITRunDataAgentTaskLog.SetRange("Test Log Entry ID", AITRunDataLogEntry."Entry No.");
+            if AITRunDataAgentTaskLog.FindFirst() then begin
+                AITRunDataAgentTaskLogPositioned := true;
+                exit(true);
+            end;
+        end;
+        exit(false);
     end;
 
     local procedure GetAITRunDataVersion(): Integer
@@ -519,12 +556,16 @@ page 149042 "AIT CommandLine Card"
     begin
         Clear(AITRunDataLogEntry);
         Clear(AITRunDataAgentTaskLog);
+        Clear(AITRunDataExport);
+        Clear(AITRunDataTaskFiles);
         Clear(AITRunDataFileText);
         Clear(AITRunDataFilePath);
+        Clear(AITRunDataFileError);
         AITRunDataExportStage := AITRunDataExportStage::Summary;
         AITRunDataExportInitialized := false;
         AITRunDataExportCompleted := false;
         AITRunDataLogEntryPositioned := false;
+        AITRunDataAgentTaskLogPositioned := false;
         Clear(AITRunDataVersion);
     end;
 

@@ -9,6 +9,7 @@ using System.Agents;
 using System.Agents.Troubleshooting;
 using System.Environment;
 using System.TestTools.TestRunner;
+using System.Utilities;
 
 codeunit 149049 "Agent Test Context Impl."
 {

@@ -17,11 +17,13 @@ codeunit 149051 "AIT Run Data Export"
         RunResults: JsonObject;
         ResultText: Text;
     begin
+        InitializeEvaluationFolderNames(AITLogEntry);
         if not AITLogEntry.FindSet() then
             exit;
 
         RunResults.Add(SuiteTok, AITLogEntry."Test Suite Code");
         RunResults.Add(VersionTok, AITLogEntry.Version);
+        RunResults.Add(ExportStatusFileTok, ExportStatusFileTxt);
         RunResults.Add(AnalysisGuidanceTok, AnalysisGuidanceTxt);
         repeat
             Clear(EvaluationResult);
@@ -40,6 +42,18 @@ codeunit 149051 "AIT Run Data Export"
 
         RunResults.Add(EvaluationsTok, EvaluationResults);
         RunResults.WriteTo(ResultText);
+        exit(ResultText);
+    end;
+
+    procedure GetAgentTaskExportError(AgentTaskID: BigInteger; ErrorText: Text): Text
+    var
+        ExportError: JsonObject;
+        ResultText: Text;
+    begin
+        ExportError.Add(AgentTaskIDTok, AgentTaskID);
+        ExportError.Add(ExportStatusTok, FailedTxt);
+        ExportError.Add(ErrorTok, ErrorText);
+        ExportError.WriteTo(ResultText);
         exit(ResultText);
     end;
 
@@ -124,6 +138,112 @@ codeunit 149051 "AIT Run Data Export"
 
     local procedure GetEvaluationFolderName(AITLogEntry: Record "AIT Log Entry"): Text
     var
+        FolderName: Text;
+    begin
+        if not EvaluationFolderNames.Get(GetDatasetIdentity(AITLogEntry), FolderName) then
+            Error(FolderNamesNotInitializedErr);
+        exit(FolderName);
+    end;
+
+    local procedure InitializeEvaluationFolderNames(var AITLogEntry: Record "AIT Log Entry")
+    var
+        OriginalView: Text;
+        FolderName: Text;
+    begin
+        Clear(EvaluationFolderNames);
+        Clear(AllocatedFolderNames);
+        Clear(FolderNameSuffixes);
+        MaximumFolderNameLength := 255;
+        OriginalView := AITLogEntry.GetView(false);
+        AITLogEntry.SetCurrentKey("Entry No.");
+        AITLogEntry.Ascending(true);
+
+        if AITLogEntry.FindSet() then
+            repeat
+                FolderName := GetFullEvaluationFolderName(AITLogEntry);
+                if StrLen(FolderName) <= MaximumFolderNameLength then
+                    if not AllocatedFolderNames.ContainsKey(FolderName.ToUpper()) then
+                        AllocatedFolderNames.Add(FolderName.ToUpper(), false);
+            until AITLogEntry.Next() = 0;
+
+        if AITLogEntry.FindSet() then
+            repeat
+                AllocateEvaluationFolderName(AITLogEntry);
+            until AITLogEntry.Next() = 0;
+
+        AITLogEntry.SetView(OriginalView);
+    end;
+
+    local procedure AllocateEvaluationFolderName(AITLogEntry: Record "AIT Log Entry")
+    var
+        DatasetIdentity: Text;
+        FullFolderName: Text;
+        FolderName: Text;
+        AbbreviationKey: Text;
+        Suffix: Text;
+        SuffixNumber: Integer;
+        Allocated: Boolean;
+    begin
+        DatasetIdentity := GetDatasetIdentity(AITLogEntry);
+        if EvaluationFolderNames.ContainsKey(DatasetIdentity) then
+            exit;
+
+        FullFolderName := GetFullEvaluationFolderName(AITLogEntry);
+        if AllocatedFolderNames.Get(FullFolderName.ToUpper(), Allocated) then
+            if not Allocated then begin
+                AllocatedFolderNames.Set(FullFolderName.ToUpper(), true);
+                EvaluationFolderNames.Add(DatasetIdentity, FullFolderName);
+                exit;
+            end;
+
+        FolderName := AbbreviateFolderName(FullFolderName, MaximumFolderNameLength);
+        AbbreviationKey := FolderName.ToUpper();
+        if not FolderNameSuffixes.Get(AbbreviationKey, SuffixNumber) then
+            SuffixNumber := 1;
+        while AllocatedFolderNames.ContainsKey(FolderName.ToUpper()) do begin
+            SuffixNumber += 1;
+            Suffix := '-' + Format(SuffixNumber, 0, 9);
+            FolderName := AbbreviateFolderName(FullFolderName, MaximumFolderNameLength - StrLen(Suffix)) + Suffix;
+        end;
+
+        if FolderNameSuffixes.ContainsKey(AbbreviationKey) then
+            FolderNameSuffixes.Set(AbbreviationKey, SuffixNumber)
+        else
+            FolderNameSuffixes.Add(AbbreviationKey, SuffixNumber);
+        AllocatedFolderNames.Add(FolderName.ToUpper(), true);
+        EvaluationFolderNames.Add(DatasetIdentity, FolderName);
+    end;
+
+    local procedure AbbreviateFolderName(FolderName: Text; MaximumLength: Integer): Text
+    var
+        LastCharacter: Char;
+    begin
+        FolderName := CopyStr(FolderName, 1, MaximumLength);
+        if FolderName.EndsWith('%') then
+            FolderName := CopyStr(FolderName, 1, StrLen(FolderName) - 1)
+        else
+            if (StrLen(FolderName) > 1) and (FolderName[StrLen(FolderName) - 1] = '%') then
+                FolderName := CopyStr(FolderName, 1, StrLen(FolderName) - 2);
+
+        LastCharacter := FolderName[StrLen(FolderName)];
+        if (LastCharacter >= 55296) and (LastCharacter <= 56319) then
+            FolderName := CopyStr(FolderName, 1, StrLen(FolderName) - 1);
+        exit(FolderName);
+    end;
+
+    local procedure GetDatasetIdentity(AITLogEntry: Record "AIT Log Entry"): Text
+    var
+        DatasetIdentity: JsonArray;
+        IdentityText: Text;
+    begin
+        DatasetIdentity.Add(AITLogEntry."Test Input Group Code");
+        DatasetIdentity.Add(AITLogEntry."Test Input Code");
+        DatasetIdentity.WriteTo(IdentityText);
+        exit(IdentityText);
+    end;
+
+    local procedure GetFullEvaluationFolderName(AITLogEntry: Record "AIT Log Entry"): Text
+    var
         DatasetGroupCode: Text;
     begin
         DatasetGroupCode := RemoveDatasetFileExtension(AITLogEntry."Test Input Group Code");
@@ -150,13 +270,13 @@ codeunit 149051 "AIT Run Data Export"
     begin
         LowerCaseDatasetGroupCode := DatasetGroupCode.ToLower();
         if LowerCaseDatasetGroupCode.EndsWith(YamlExtensionTxt) then
-            exit(DatasetGroupCode.Substring(1, DatasetGroupCode.Length() - YamlExtensionTxt.Length()));
+            exit(DatasetGroupCode.Substring(1, StrLen(DatasetGroupCode) - StrLen(YamlExtensionTxt)));
         if LowerCaseDatasetGroupCode.EndsWith(YmlExtensionTxt) then
-            exit(DatasetGroupCode.Substring(1, DatasetGroupCode.Length() - YmlExtensionTxt.Length()));
+            exit(DatasetGroupCode.Substring(1, StrLen(DatasetGroupCode) - StrLen(YmlExtensionTxt)));
         if LowerCaseDatasetGroupCode.EndsWith(JsonlExtensionTxt) then
-            exit(DatasetGroupCode.Substring(1, DatasetGroupCode.Length() - JsonlExtensionTxt.Length()));
+            exit(DatasetGroupCode.Substring(1, StrLen(DatasetGroupCode) - StrLen(JsonlExtensionTxt)));
         if LowerCaseDatasetGroupCode.EndsWith(JsonExtensionTxt) then
-            exit(DatasetGroupCode.Substring(1, DatasetGroupCode.Length() - JsonExtensionTxt.Length()));
+            exit(DatasetGroupCode.Substring(1, StrLen(DatasetGroupCode) - StrLen(JsonExtensionTxt)));
         exit(DatasetGroupCode);
     end;
 
@@ -217,9 +337,14 @@ codeunit 149051 "AIT Run Data Export"
     end;
 
     var
+        EvaluationFolderNames: Dictionary of [Text, Text];
+        AllocatedFolderNames: Dictionary of [Text, Boolean];
+        FolderNameSuffixes: Dictionary of [Text, Integer];
+        MaximumFolderNameLength: Integer;
         AccuracyTok: Label 'accuracy', Locked = true;
         AgentTaskCountTok: Label 'agentTaskCount', Locked = true;
         AgentTaskDetailsTok: Label 'agentTaskDetails', Locked = true;
+        AgentTaskIDTok: Label 'agentTaskId', Locked = true;
         AIEvalLogIDTok: Label 'aiEvalLogId', Locked = true;
         AnalysisGuidanceTok: Label 'analysisGuidance', Locked = true;
         CodeunitIDTok: Label 'codeunitId', Locked = true;
@@ -231,7 +356,10 @@ codeunit 149051 "AIT Run Data Export"
         DurationMsTok: Label 'durationMs', Locked = true;
         EndTimeTok: Label 'endTime', Locked = true;
         ErrorCallStackTok: Label 'errorCallStack', Locked = true;
+        ErrorTok: Label 'error', Locked = true;
         EvaluationsTok: Label 'evaluations', Locked = true;
+        ExportStatusTok: Label 'exportStatus', Locked = true;
+        ExportStatusFileTok: Label 'exportStatusFile', Locked = true;
         GroupCodeTok: Label 'groupCode', Locked = true;
         InputCodeTok: Label 'inputCode', Locked = true;
         InputTok: Label 'input', Locked = true;
@@ -257,7 +385,10 @@ codeunit 149051 "AIT Run Data Export"
         TurnsPassedTok: Label 'turnsPassed', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
         VersionTok: Label 'version', Locked = true;
-        AnalysisGuidanceTxt: Label 'Analyze each evaluation result first. Open agentTaskDetails only for failures, uncertainty, or deeper causal analysis.', Locked = true;
+        AnalysisGuidanceTxt: Label 'Check exportStatusFile for export completeness before analysis. Analyze each evaluation result first. Open agentTaskDetails only for failures, uncertainty, or deeper causal analysis.', Locked = true;
+        ExportStatusFileTxt: Label 'export-status.json', Locked = true;
+        FailedTxt: Label 'Failed', Locked = true;
+        FolderNamesNotInitializedErr: Label 'Generate the run results before exporting evaluation file paths so that dataset folder names are initialized.';
         SuccessTxt: Label 'Success', Locked = true;
         ErrorTxt: Label 'Error', Locked = true;
         SkippedTxt: Label 'Skipped', Locked = true;

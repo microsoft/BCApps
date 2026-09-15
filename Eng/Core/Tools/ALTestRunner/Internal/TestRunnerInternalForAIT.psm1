@@ -317,7 +317,7 @@ function Invoke-AITSuite
     $NoOfPendingTests = 0
     $TestResult = @()
     if ($ExportAITRunData) {
-        New-Item -ItemType Directory -Force -Path $AITRunDataFolder | Out-Null
+        [System.IO.Directory]::CreateDirectory((Get-AITRunDataOutputRoot $AITRunDataFolder)) | Out-Null
     }
 
     do {
@@ -386,17 +386,151 @@ function Export-AITRunData {
         [ClientLogicalForm] $Form
     )
 
+    $ExportState = @{
+        SuiteCode = $SuiteCode
+        SuiteSegment = ''
+        Version = ''
+        Root = $AITRunDataFolder
+        RunFolder = ''
+        CurrentPath = ''
+        DiagnosticPath = ''
+        DiagnosticWriteFailed = $false
+        VersionLock = $null
+        Status = 'InProgress'
+        FilesWritten = 0
+        Errors = [System.Collections.Generic.List[object]]::new()
+    }
     try {
-        Export-AITRunDataFiles -SuiteCode $SuiteCode -AITRunDataFolder $AITRunDataFolder -ClientContext $ClientContext -Form $Form
+        $ExportState.Root = Get-AITRunDataOutputRoot $AITRunDataFolder
+        [System.IO.Directory]::CreateDirectory($ExportState.Root) | Out-Null
+        Export-AITRunDataFiles -SuiteCode $SuiteCode -ClientContext $ClientContext -Form $Form -ExportState $ExportState
     }
     catch {
-        $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
-        $FailureMessage = "AI Eval run data export for suite $SuiteCode failed: $($_.Exception.Message)"
-        $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_export-error.txt"
-        Write-HostWithTimestamp $FailureMessage
-        New-Item -ItemType Directory -Force -Path $AITRunDataFolder | Out-Null
-        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
+        $Failure = $_
+        $DiagnosticWriteFailed = $ExportState.DiagnosticWriteFailed
+        Add-AITRunDataExportError -ExportState $ExportState -Path $ExportState.CurrentPath -Message "AI Eval run data export for suite $SuiteCode failed: $($Failure.Exception.Message)"
+        if ($DiagnosticWriteFailed) {
+            throw $Failure
+        }
     }
+    finally {
+        if ($null -ne $ExportState.VersionLock) {
+            $ExportState.VersionLock.Dispose()
+        }
+    }
+}
+
+function Get-AITRunDataOutputRoot([string] $Path) {
+    $FullPath = [System.IO.Path]::GetFullPath($Path)
+    # Windows PowerShell's legacy IO needs an extended path for bounded 255-character components.
+    if ($PSVersionTable.PSVersion.Major -lt 6 -and -not $FullPath.StartsWith('\\?\')) {
+        if ($FullPath.StartsWith('\\')) {
+            return '\\?\UNC\' + $FullPath.Substring(2)
+        }
+        return '\\?\' + $FullPath
+    }
+    return $FullPath
+}
+
+function Assert-AITRunDataPathComponent([string] $Component) {
+    if ([string]::IsNullOrWhiteSpace($Component) -or
+        $Component -in @('.', '..') -or
+        $Component -match '[<>:"/\\|?*\x00-\x1f]' -or
+        $Component -match '[. ]$' -or
+        $Component -match '^(CON|PRN|AUX|NUL|COM[1-9\u00b9\u00b2\u00b3]|LPT[1-9\u00b9\u00b2\u00b3])(\.|$)' -or
+        $Component.Length -gt 255) {
+        throw "Invalid AI Eval export path component '$Component'."
+    }
+}
+
+function Assert-AITRunDataLiteralPath([string] $Root, [string] $Path) {
+    $RootPrefix = [System.IO.Path]::GetFullPath($Root).TrimEnd('\', '/') + '\'
+    $FullPath = [System.IO.Path]::GetFullPath($Path)
+    if (-not $FullPath.StartsWith($RootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "AI Eval export path '$Path' resolves outside the output folder."
+    }
+    $CurrentPath = $FullPath
+    while ($CurrentPath.Length -ge $RootPrefix.Length) {
+        if (Test-Path -LiteralPath $CurrentPath) {
+            $Item = Get-Item -LiteralPath $CurrentPath -Force -ErrorAction Stop
+            if ($Item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
+                throw "AI Eval export path '$CurrentPath' is a reparse point."
+            }
+        }
+        $CurrentPath = [System.IO.Path]::GetDirectoryName($CurrentPath)
+    }
+}
+
+function Write-AITRunDataAtomicJson([string] $Path, [object] $Value) {
+    $StagingPath = [System.IO.Path]::Combine([System.IO.Path]::GetDirectoryName($Path), ('.ait-' + [guid]::NewGuid().ToString('N') + '.json'))
+    try {
+        [System.IO.File]::WriteAllText($StagingPath, (ConvertTo-Json -InputObject $Value -Depth 10), $script:AITRunDataFileEncodingWithoutBOM)
+        if (Test-Path -LiteralPath $Path) {
+            [System.IO.File]::Replace($StagingPath, $Path, [System.Management.Automation.Language.NullString]::Value)
+        }
+        else {
+            [System.IO.File]::Move($StagingPath, $Path)
+        }
+    }
+    finally {
+        if (Test-Path -LiteralPath $StagingPath) {
+            Remove-Item -LiteralPath $StagingPath -Force -ErrorAction Stop
+        }
+    }
+}
+
+function Open-AITRunDataLock([string] $Root, [string] $Path) {
+    Assert-AITRunDataLiteralPath -Root $Root -Path $Path
+    $LockTimeout = (Get-Date).AddSeconds(10)
+    # Keep the lock file in place; deleting it after release can race with another waiter.
+    while ($true) {
+        try {
+            return [System.IO.File]::Open($Path, [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+        }
+        catch [System.IO.IOException] {
+            if ((Get-Date) -ge $LockTimeout) {
+                throw "Unable to acquire AI Eval export lock '$Path': $($_.Exception.Message)"
+            }
+            Start-Sleep -Milliseconds 100
+        }
+    }
+}
+
+function Write-AITRunDataExportStatus([hashtable] $ExportState) {
+    $ExportState.DiagnosticWriteFailed = $true
+    try {
+        if ($ExportState.RunFolder) {
+            $StatusPath = [System.IO.Path]::Combine($ExportState.RunFolder, 'export-status.json')
+        }
+        else {
+            if (-not $ExportState.DiagnosticPath) {
+                $ExportState.DiagnosticPath = [System.IO.Path]::Combine($ExportState.Root, ('export-error-' + [guid]::NewGuid().ToString('N') + '.json'))
+            }
+            $StatusPath = $ExportState.DiagnosticPath
+        }
+        Assert-AITRunDataLiteralPath -Root $ExportState.Root -Path $StatusPath
+        [System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($StatusPath)) | Out-Null
+        Write-AITRunDataAtomicJson -Path $StatusPath -Value ([ordered]@{
+            suiteCode = $ExportState.SuiteCode
+            suiteFolder = $ExportState.SuiteSegment
+            version = $ExportState.Version
+            status = $ExportState.Status
+            filesWritten = $ExportState.FilesWritten
+            errors = @($ExportState.Errors.ToArray())
+        })
+        $ExportState.DiagnosticWriteFailed = $false
+    }
+    catch {
+        Write-HostWithTimestamp "Unable to persist AI Eval export status: $($_.Exception.Message)"
+        throw
+    }
+}
+
+function Add-AITRunDataExportError([hashtable] $ExportState, [string] $Path, [string] $Message) {
+    Write-HostWithTimestamp $Message
+    $ExportState.Errors.Add([ordered]@{ path = $Path; message = $Message })
+    $ExportState.Status = 'Partial'
+    Write-AITRunDataExportStatus -ExportState $ExportState
 }
 
 function Export-AITRunDataFiles {
@@ -404,111 +538,135 @@ function Export-AITRunDataFiles {
         [Parameter(Mandatory = $true)]
         [string] $SuiteCode,
         [Parameter(Mandatory = $true)]
-        [string] $AITRunDataFolder,
-        [Parameter(Mandatory = $true)]
         [ClientContext] $ClientContext,
         [Parameter(Mandatory = $true)]
-        [ClientLogicalForm] $Form
+        [ClientLogicalForm] $Form,
+        [Parameter(Mandatory = $true)]
+        [hashtable] $ExportState
     )
 
     Write-HostWithTimestamp "Loading AI Eval run data for suite $SuiteCode"
-    $LoadAITRunDataFileAction = $ClientContext.GetActionByName($Form, "LoadAITRunDataFile")
-    $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
-    $AITRunDataFileText = ''
     $ExportTimeout = (Get-Date).Add($script:AITRunDataExportTimeout)
-    $ExpectedRunFolder = ''
-    $FailureCount = 0
-    $ResolvedAITRunDataFolder = [System.IO.Path]::GetFullPath($AITRunDataFolder).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
-    while (($AITRunDataFileText -ne $script:NoMoreAITRunDataFiles) -and ((Get-Date) -lt $ExportTimeout)) {
-        $ClientContext.InvokeAction($LoadAITRunDataFileAction)
-        $AITRunDataFileText = $ClientContext.GetControlByName($Form, "AIT Run Data File").StringValue
-        if ($AITRunDataFileText -eq $script:NoMoreAITRunDataFiles) {
-            continue
+    $LoadAITRunDataFileAction = $ClientContext.GetActionByName($Form, "LoadAITRunDataFile")
+    $WrittenPaths = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    while ($true) {
+        $ExportState.CurrentPath = ''
+        if ((Get-Date) -ge $ExportTimeout) {
+            throw "AI Eval run data export for suite $SuiteCode did not finish within $($script:AITRunDataExportTimeout.TotalMinutes) minutes."
         }
-
-        $AITRunDataFilePath = $ClientContext.GetControlByName($Form, "AIT Run Data File Path").StringValue
-        if ([string]::IsNullOrWhiteSpace($AITRunDataFilePath)) {
-            $FailureCount++
-            $FailureMessage = "An AI Eval run data file for suite $SuiteCode could not be downloaded because its path was blank or empty."
-            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
-            Write-HostWithTimestamp $FailureMessage
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-            continue
+        $null = $ClientContext.InvokeAction($LoadAITRunDataFileAction)
+        if ((Get-Date) -ge $ExportTimeout) {
+            throw "AI Eval run data export for suite $SuiteCode did not finish within $($script:AITRunDataExportTimeout.TotalMinutes) minutes."
         }
-
-        $PathSegments = $AITRunDataFilePath -split '[\\/]'
-        if ($PathSegments.Count -lt 3) {
-            $FailureCount++
-            $FailureMessage = "The AI Eval run data file path '$AITRunDataFilePath' is invalid."
-            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
-            Write-HostWithTimestamp $FailureMessage
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-            continue
-        }
-
-        $RunFolder = [System.IO.Path]::GetFullPath((Join-Path (Join-Path $AITRunDataFolder $PathSegments[0]) $PathSegments[1]))
-        $FilePath = [System.IO.Path]::GetFullPath((Join-Path $AITRunDataFolder $AITRunDataFilePath))
-        if ((-not $RunFolder.StartsWith("$ResolvedAITRunDataFolder\", [System.StringComparison]::OrdinalIgnoreCase)) -or
-            (-not $FilePath.StartsWith("$RunFolder\", [System.StringComparison]::OrdinalIgnoreCase))) {
-            $FailureCount++
-            $FailureMessage = "The AI Eval run data file path '$AITRunDataFilePath' resolves outside the output folder."
-            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
-            Write-HostWithTimestamp $FailureMessage
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-            continue
-        }
-
-        if ([string]::IsNullOrWhiteSpace($ExpectedRunFolder)) {
-            if (($PathSegments.Count -ne 3) -or ($PathSegments[2] -ne 'results.json')) {
-                $FailureCount++
-                $FailureMessage = "The first AI Eval run data file must be the version results.json file."
-                $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-error-$FailureCount.txt"
-                Write-HostWithTimestamp $FailureMessage
-                [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-                continue
+        $TextControl = $ClientContext.GetControlByName($Form, "AIT Run Data File")
+        $AITRunDataFileText = $TextControl.StringValue
+        if ($AITRunDataFileText -ceq $script:NoMoreAITRunDataFiles) {
+            if (-not $ExportState.RunFolder) {
+                throw 'AI Eval run data export ended without a version results.json file.'
             }
+            if ($ExportState.Errors.Count -eq 0) {
+                $ExportState.Status = 'Completed'
+            }
+            Write-AITRunDataExportStatus -ExportState $ExportState
+            return
+        }
 
-            $ExpectedRunFolder = $RunFolder
-            if (Test-Path -Path $RunFolder) {
-                Remove-Item -Path $RunFolder -Recurse -Force
+        $PathControl = $ClientContext.GetControlByName($Form, "AIT Run Data File Path")
+        $ErrorControl = $ClientContext.GetControlByName($Form, "AIT Run Data File Error")
+        $AITRunDataFilePath = $PathControl.StringValue
+        $ExportState.CurrentPath = $AITRunDataFilePath
+        $ValidationError = ''
+        try {
+            if ($null -eq $TextControl -or $null -eq $PathControl -or $null -eq $ErrorControl) {
+                throw 'An AI Eval run data response is missing a required file, path, or error control.'
+            }
+            if ([string]::IsNullOrWhiteSpace($AITRunDataFileText)) {
+                throw "The AI Eval run data file '$AITRunDataFilePath' has blank or empty content."
+            }
+            $PathSegments = $AITRunDataFilePath -split '[\\/]'
+            if ($PathSegments.Count -lt 3 -or $PathSegments[1] -cnotmatch '^version-[0-9]+$') {
+                throw "The AI Eval run data file path '$AITRunDataFilePath' is invalid."
+            }
+            foreach ($Component in $PathSegments) {
+                Assert-AITRunDataPathComponent -Component $Component
+            }
+            $IsSummary = $PathSegments.Count -eq 3 -and $PathSegments[2] -ceq 'results.json'
+            $IsEvaluation = $PathSegments.Count -eq 4 -and $PathSegments[3] -cmatch '^evaluation-result-[0-9]+\.json$'
+            $IsTask = $PathSegments.Count -eq 5 -and $PathSegments[3] -ceq 'agent-task-details' -and $PathSegments[4] -cmatch '^task-[0-9]+\.json$'
+            if (-not ($IsSummary -or $IsEvaluation -or $IsTask)) {
+                throw "The AI Eval run data file path '$AITRunDataFilePath' is not a supported export file."
+            }
+            if (-not $ExportState.RunFolder) {
+                if (-not $IsSummary) {
+                    throw 'The first AI Eval run data file must be the version results.json file.'
+                }
+            }
+            elseif ($PathSegments[0] -cne $ExportState.SuiteSegment -or $PathSegments[1] -cne $ExportState.Version) {
+                throw "The AI Eval run data file path '$AITRunDataFilePath' does not belong to the current suite version."
+            }
+        }
+        catch {
+            $ValidationError = $_.Exception.Message
+        }
+        if ($ValidationError) {
+            if ($null -ne $ErrorControl -and -not [string]::IsNullOrEmpty($ErrorControl.StringValue)) {
+                Add-AITRunDataExportError -ExportState $ExportState -Path $AITRunDataFilePath -Message $ErrorControl.StringValue
+            }
+            Add-AITRunDataExportError -ExportState $ExportState -Path $AITRunDataFilePath -Message $ValidationError
+            continue
+        }
+
+        if (-not $ExportState.RunFolder) {
+            $ExportState.SuiteSegment = $PathSegments[0]
+            $ExportState.Version = $PathSegments[1]
+            $SuiteFolder = [System.IO.Path]::Combine($ExportState.Root, $ExportState.SuiteSegment)
+            Assert-AITRunDataLiteralPath -Root $ExportState.Root -Path $SuiteFolder
+            [System.IO.Directory]::CreateDirectory($SuiteFolder) | Out-Null
+            $ExportState.VersionLock = Open-AITRunDataLock -Root $ExportState.Root -Path ([System.IO.Path]::Combine($SuiteFolder, ('.' + $ExportState.Version + '.export.lock')))
+            $RunFolder = [System.IO.Path]::Combine($SuiteFolder, $ExportState.Version)
+            Assert-AITRunDataLiteralPath -Root $ExportState.Root -Path $RunFolder
+            if (Test-Path -LiteralPath $RunFolder) {
+                if (-not (Get-Item -LiteralPath $RunFolder -Force -ErrorAction Stop).PSIsContainer) {
+                    throw "The AI Eval export version path '$RunFolder' is not a directory."
+                }
+                $ReparsePoints = @(Get-ChildItem -LiteralPath $RunFolder -Force -Recurse -ErrorAction Stop | Where-Object {
+                    $_.Attributes -band [System.IO.FileAttributes]::ReparsePoint
+                })
+                if ($ReparsePoints.Count -gt 0) {
+                    throw "The existing AI Eval export '$RunFolder' contains reparse points."
+                }
+                Remove-Item -LiteralPath $RunFolder -Recurse -Force -ErrorAction Stop
                 Write-HostWithTimestamp "Removed existing AI Eval run data from $RunFolder"
             }
-        }
-        elseif ($RunFolder -ne $ExpectedRunFolder) {
-            $FailureCount++
-            $FailureMessage = "The AI Eval run data file path '$AITRunDataFilePath' does not belong to the current suite version."
-            $FailureFilePath = Join-Path $ExpectedRunFolder "download-error-$FailureCount.txt"
-            Write-HostWithTimestamp $FailureMessage
-            New-Item -ItemType Directory -Force -Path $ExpectedRunFolder | Out-Null
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-            continue
+            $ExportState.RunFolder = $RunFolder
+            Write-AITRunDataExportStatus -ExportState $ExportState
         }
 
-        if ([string]::IsNullOrWhiteSpace($AITRunDataFileText)) {
-            $FailureCount++
-            $FailureMessage = "The AI Eval run data file '$AITRunDataFilePath' could not be downloaded because its content was blank or empty."
-            $FailureFilePath = Join-Path $ExpectedRunFolder "download-error-$FailureCount.txt"
-            Write-HostWithTimestamp $FailureMessage
-            New-Item -ItemType Directory -Force -Path $ExpectedRunFolder | Out-Null
-            [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-            continue
+        if (-not [string]::IsNullOrEmpty($ErrorControl.StringValue)) {
+            Add-AITRunDataExportError -ExportState $ExportState -Path $AITRunDataFilePath -Message $ErrorControl.StringValue
         }
-
-        New-Item -ItemType Directory -Force -Path (Split-Path -Path $FilePath -Parent) | Out-Null
-        [System.IO.File]::WriteAllText($FilePath, $AITRunDataFileText, $script:AITRunDataFileEncodingWithoutBOM)
-        Write-HostWithTimestamp "Exported AI Eval run data to $FilePath"
-    }
-
-    if ($AITRunDataFileText -ne $script:NoMoreAITRunDataFiles) {
-        $FailureMessage = "AI Eval run data export for suite $SuiteCode did not finish within $($script:AITRunDataExportTimeout.TotalMinutes) minutes."
-        if ([string]::IsNullOrWhiteSpace($ExpectedRunFolder)) {
-            $FailureFilePath = Join-Path $AITRunDataFolder "$SafeSuiteCode`_download-timeout.txt"
+        $FilePath = [System.IO.Path]::Combine($ExportState.RunFolder, ($PathSegments[2..($PathSegments.Count - 1)] -join '\'))
+        $WriteError = ''
+        try {
+            Assert-AITRunDataLiteralPath -Root $ExportState.Root -Path $FilePath
+            if ($WrittenPaths.Contains($FilePath)) {
+                throw "Duplicate AI Eval run data file '$AITRunDataFilePath'."
+            }
+            [System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($FilePath)) | Out-Null
+            [System.IO.File]::WriteAllText($FilePath, $AITRunDataFileText, $script:AITRunDataFileEncodingWithoutBOM)
+            $null = $WrittenPaths.Add($FilePath)
+            $ExportState.FilesWritten++
+        }
+        catch {
+            $WriteError = $_.Exception.Message
+        }
+        if ($WriteError) {
+            Add-AITRunDataExportError -ExportState $ExportState -Path $AITRunDataFilePath -Message $WriteError
         }
         else {
-            $FailureFilePath = Join-Path $ExpectedRunFolder "download-timeout.txt"
+            Write-AITRunDataExportStatus -ExportState $ExportState
+            Write-HostWithTimestamp "Exported AI Eval run data to $FilePath"
         }
-        Write-HostWithTimestamp $FailureMessage
-        [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
     }
 }
 

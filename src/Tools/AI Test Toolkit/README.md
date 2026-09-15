@@ -26,7 +26,7 @@ The BC Copilot Eval Toolkit lets developers write and run automated evals for co
 1. You can also use the API (page 149038 "AIT Log Entry API") to get the result for a suite
 1. Open AL Test Tool and switch to the created eval suite to execute each eval manually
 
-The _AI Eval Command Line Runner_ can export structured run data for the latest suite version. Repeatedly use the _Load Next AI Eval Run Data File_ action and read the _AI Eval Run Data File_ and _AI Eval Run Data File Path_ fields until the content contains `No more AI Eval run data files.`. Pass `-ExportAITRunData` to `Invoke-AITTests` to make the PowerShell test runner perform this loop. The output defaults to the `AITRunData` folder next to the test runner module and can be changed with `-AITRunDataFolder`.
+The _AI Eval Command Line Runner_ can export structured run data for the latest suite version. Repeatedly use the _Load Next AI Eval Run Data File_ action and read the _AI Eval Run Data File_, _AI Eval Run Data File Path_, and _AI Eval Run Data File Error_ fields until the content contains `No more AI Eval run data files.`. Pass `-ExportAITRunData` to `Invoke-AITTests` to make the PowerShell test runner perform this loop using the existing client session and form. The output defaults to the `AITRunData` folder next to the test runner module and can be changed with `-AITRunDataFolder`.
 
 The export uses the following structure:
 
@@ -34,13 +34,32 @@ The export uses the following structure:
 <suite>\
   version-<version>\
     results.json
+    export-status.json
     <dataset-group-without-extension>-<test-input-code>\
       evaluation-result-<AI-Eval-log-ID>.json
       agent-task-details\
         task-<Agent-Task-ID>.json
 ```
 
-`results.json` is the entry point for analysis. Each evaluation result contains the original dataset identifiers, input, output, status, metrics, errors, and references to optional Agent Task troubleshooting details. Known dataset file extensions are removed only from folder names; persisted dataset codes are unchanged. Existing data for the same suite version is deleted before that version is exported again. Other versions are preserved. Export stops after 20 minutes; blank responses, invalid paths, and timeouts are logged and written to text files in the output folder.
+`results.json` is the entry point for analysis. Its `exportStatusFile` property identifies the writer's completion report, `export-status.json`. Check this report before treating the package as complete. Each evaluation result contains the original dataset identifiers, input, output, status, metrics, errors, and references to optional Agent Task troubleshooting details. Multiline messages and call stacks retain their line endings and whitespace.
+
+The stream emits `results.json`, then **all evaluation results**, and only then Agent Task details. This ordering does not change the folder hierarchy. Evaluations for the same dataset can reference the same task file, which is emitted once per export; the same task in different dataset folders still has a file in each folder. If a task cannot be exported, its `task-<ID>.json` contains an explicit error object with `agentTaskId`, `exportStatus: "Failed"`, and `error` instead of task details. The _AI Eval Run Data File Error_ field also contains the error, and the next action advances to the next task. Existing Agent Management authorization and troubleshooting redaction checks still apply.
+
+The PowerShell writer creates `export-status.json` with `InProgress` status, tracks written files and errors, and records `Completed` only after receiving the final sentinel without failures. Recoverable file errors, task-detail errors, timeouts, and exceptions produce `Partial` status with diagnostic details. An interrupted process can leave `InProgress`; neither that nor a missing status file indicates a complete export. Export status is separate from evaluation success or failure. Programmatic consumers implementing their own download loop must maintain this writer-owned completion report; it is not emitted by the AL action.
+
+Known dataset file extensions are removed only from folder names; persisted dataset codes are unchanged. Generated dataset folder components longer than 255 characters are abbreviated. Dictionary mappings reuse the same names throughout an export, reserving ordinary names before allocating abbreviations and adding `-2`, `-3`, and subsequent suffixes for collisions. Distinct original group/input pairs remain distinct even when extension removal or joining their names produces a collision. The same serializer instance is used for the summary and subsequent file paths so that all relative references agree. Actual suite codes are limited to 10 characters, so suite folders need no abbreviation or persistent mapping file.
+
+Existing data for the exact same suite version is deleted before that version is exported again; other suites and versions are preserved. The export loop has a 20-minute deadline checked between actions; it does not cancel an action already in progress. A deeply nested output root can still exceed a runtime's full-path limit; use a shorter `-AITRunDataFolder` when necessary.
+
+### Export regression coverage
+
+From the repository root, run the standalone PowerShell regression suite with:
+
+```powershell
+pwsh -NoProfile -File .\Eng\Core\Tools\ALTestRunner\Tests\AITRunDataExport.Tests.ps1
+```
+
+The script also supports Windows PowerShell 5.1 and uses isolated temporary folders and mocked client responses, without a BC instance. The AL test app in `Eng\Core\Tools\ALTestRunner\Tests\AL` covers serializer mappings, BLOB text round trips, and page streaming/reset behavior. Compile it against the current AI Test Toolkit and Library Assert packages, then run codeunit `149052 "AIT Run Data Export Tests"` with the AL test runner in an isolated BC test instance.
 
 
 ## Writing data-driven AI evals
