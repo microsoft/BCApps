@@ -176,10 +176,11 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit(true);
 
         if Host.Contains(':') then begin
-            // IPv4-mapped IPv6 literal (::ffff:127.0.0.1): re-check the embedded IPv4 address.
-            if Host.StartsWith('::ffff:') then
-                exit(IsInternalHost(CopyStr(Host, 8)));
-            // IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
+            // Any IPv6 literal that embeds a dotted IPv4 tail (e.g. ::127.0.0.1, ::ffff:127.0.0.1,
+            // 0:0:0:0:0:0:127.0.0.1) is re-checked against the embedded IPv4 address.
+            if Host.Contains('.') then
+                exit(IsInternalHost(CopyStr(Host, Host.LastIndexOf(':') + 1)));
+            // Pure IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
             if Host.StartsWith('fc') or Host.StartsWith('fd') then
                 exit(true);
             if Host.StartsWith('fe8') or Host.StartsWith('fe9') or Host.StartsWith('fea') or Host.StartsWith('feb') then
