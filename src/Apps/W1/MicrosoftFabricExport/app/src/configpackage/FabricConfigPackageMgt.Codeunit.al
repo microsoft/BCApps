@@ -19,6 +19,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         PackageReappliedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Comment = '%1 = package code, %2 = version', Locked = true;
         PackageRegisteredViaCodeMsg: Label 'Config package v%1 registered via code.', Comment = '%1 = version', Locked = true;
         PackageReapplySkippedMsg: Label 'Config package reapply skipped during install/upgrade: %1', Comment = '%1 = error message', Locked = true;
+        PackageReapplyCapacityErr: Label 'reapply would exceed the %1-table export limit', Comment = '%1 = maximum number of tables', Locked = true;
 
     internal procedure Activate(var Pkg: Record "Fabric Config Package")
     var
@@ -212,20 +213,32 @@ codeunit 48521 "Fabric Config Package Mgt"
     end;
 
     // Reapply can fail (e.g. 500-table cap) — that must not abort install/upgrade.
+    // TryFunction can't be used here: AL disallows database writes (Insert/Modify/Delete)
+    // inside a TryFunction's call tree, and Reapply/ClaimTable write to Tenant Fabric Tables.
+    // So the capacity is checked up front instead of catching the error from Reapply.
     local procedure ReapplyAfterRegister(var Pkg: Record "Fabric Config Package"; var RemovedTableIds: List of [Integer]; PackageCode: Code[20])
     var
+        PackageLine: Record "Fabric Config Package Line";
+        TenantFabricTables: Record "Tenant Fabric Tables";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         TableId: Integer;
+        NewTableCount: Integer;
     begin
         foreach TableId in RemovedTableIds do
             FabricPlatformMgt.ReleaseTable(TableId, "Fabric Table Claim Source"::Package, PackageCode);
-        if not TryReapply(Pkg) then
-            LogReapplySkipped(PackageCode, GetLastErrorText());
-    end;
 
-    [TryFunction]
-    local procedure TryReapply(var Pkg: Record "Fabric Config Package")
-    begin
+        PackageLine.SetRange("Package Code", PackageCode);
+        if PackageLine.FindSet() then
+            repeat
+                if not TenantFabricTables.Get(PackageLine."Table ID") then
+                    NewTableCount += 1;
+            until PackageLine.Next() = 0;
+
+        if FabricPlatformMgt.SelectedTableCount() + NewTableCount > FabricPlatformMgt.MaxTableCount() then begin
+            LogReapplySkipped(PackageCode, StrSubstNo(PackageReapplyCapacityErr, FabricPlatformMgt.MaxTableCount()));
+            exit;
+        end;
+
         Reapply(Pkg);
     end;
 
