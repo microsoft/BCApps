@@ -89,6 +89,8 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ImpactMissingTransferLineErr: Label 'Impact list does not contain Transfer Order %1 line %2.', Comment = '%1 = Transfer Order No., %2 = Line No.';
         ImpactUnexpectedSalesLineErr: Label 'Impact list unexpectedly contains Sales Order %1 line %2.', Comment = '%1 = Sales Order No., %2 = Line No.';
         CannotFindImpactedDocumentsErr: Label 'Cannot find impacted documents. Please make sure the document line you are simulating on has reservations and try again.';
+        ExpectedCheckProdOrderStatusWarningErr: Label 'Expected Check Prod. Order Status warning to be displayed once.';
+        CheckProdOrderStatusWarningCount: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -3316,9 +3318,144 @@ codeunit 137080 "SCM Planning And Manufacturing"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure RevalidateItemNoOnSalesLineWithLinkedProdOrderDoesNotThrowWriteTransactionError()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Re-entering the same manufactured item into Sales Line "No." when a Released Prod. Order is linked does not throw write transaction error.
+        Initialize();
+
+        // [GIVEN] A manufactured item and a sales order with 1 line
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+        // [GIVEN] A Released Production Order linked to the Sales Line demand
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // [WHEN] Clearing the Sales Line "No." and re-validating the same Item "No."
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        asserterror SalesLine.Validate("No.", '');
+        SalesLine.Reset();
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        LibraryVariableStorage.Enqueue(true);
+        SalesLine.Validate("No.", SalesLine."No.");
+
+        // [THEN] The sales line is successfully updated without any transaction errors
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.TestField(Quantity, 1);
+        SalesLine.TestField("Quantity (Base)", 1);
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+    end;
+
+    [Test]
+    procedure QuantityRecalculationOccursCorrectlyWhenValidatingNoWithExistingQuantity()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        // [SCENARIO] Validating "No." on a line with existing quantity recalculates Quantity (Base) and unit of measure relations.
+        Initialize();
+
+        // [GIVEN] An item with an alternate UOM (Qty. per UOM = 5)
+        CreateManufacturedItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 5);
+        Item.Validate("Sales Unit of Measure", ItemUnitOfMeasure.Code);
+        Item.Modify(true);
+
+        // [GIVEN] A sales line with Quantity = 3
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 3);
+
+        // [WHEN] Re-validating "No."
+        SalesLine.Validate("No.", Item."No.");
+
+        // [THEN] Quantity (Base) is recalculated as 3 * 5 = 15
+        SalesLine.TestField(Quantity, 3);
+        SalesLine.TestField("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        SalesLine.TestField("Qty. per Unit of Measure", 5);
+        SalesLine.TestField("Quantity (Base)", 15);
+    end;
+
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure ProdOrderStatusWarningExecutesOnDirectQuantityValidationOnSalesLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Modifying Quantity directly on a Sales Line linked to a Released Prod. Order triggers the status check warning.
+        Initialize();
+
+        // [GIVEN] Sales Line linked to a Released Production Order
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // [WHEN] Directly validating Quantity
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        SalesLine.Validate(Quantity, 2);
+
+        // [THEN] Warning handler was invoked and quantity was updated
+        SalesLine.TestField(Quantity, 2);
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('SimpleMessageHandler,SalesOrderPlanningPageHandler,CreateReleasedOrderFromSalesModalPageHandler,CheckProdOrderStatusModalPageHandlerCount')]
+    procedure Regression_ClearAndReenterManufacturedItemOnSalesLineWithReleasedProdOrder()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+        ProdOrder: Record "Production Order";
+    begin
+        // [SCENARIO] Full end-to-end repro of BC 28.4 bug report
+        Initialize();
+
+        // Step 1-4: Create Sales Order and line with manufactured item
+        CreateManufacturedItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+
+        // Step 5: Create Released Production Order from demand
+        CreateReleasedProdOrderForSalesLine(ProdOrder, SalesLine);
+        Commit();
+
+        // Step 6-10: Clear "No." and enter same item number again
+        CheckProdOrderStatusWarningCount := 0;
+        LibraryVariableStorage.Enqueue(true);
+        asserterror SalesLine.Validate("No.", '');
+        SalesLine.Reset();
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        LibraryVariableStorage.Enqueue(true);
+        SalesLine.Validate("No.", Item."No.");
+
+        // Validation succeeds and fields are intact
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.TestField(Quantity, 1);
+        SalesLine.TestField("Outstanding Quantity", 1);
+        Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
+        ManufacturingSetup: Record "Manufacturing Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Planning And Manufacturing");
@@ -3328,6 +3465,11 @@ codeunit 137080 "SCM Planning And Manufacturing"
         LibraryApplicationArea.EnablePremiumSetup();
 
         PlanningErrorLog.DeleteAll();
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
+
+        CheckProdOrderStatusWarningCount := 0;
 
         // Lazy Setup.
         if isInitialized then
@@ -4961,6 +5103,31 @@ codeunit 137080 "SCM Planning And Manufacturing"
         Assert.AreEqual(ExpectedStatus, ProdOrderLine.Status, 'Wrong status is set on production order.');
     end;
 
+    local procedure CreateManufacturedItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Manufacturing Policy", Item."Manufacturing Policy"::"Make-to-Order");
+        Item.Modify(true);
+    end;
+
+    local procedure CreateReleasedProdOrderForSalesLine(var ProdOrder: Record "Production Order"; var SalesLine: Record "Sales Line")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder."Pla&nning".Invoke();
+        SalesOrder.Close();
+
+        ProdOrder.SetRange("Source Type", ProdOrder."Source Type"::Item);
+        ProdOrder.SetRange("Source No.", SalesLine."No.");
+        ProdOrder.SetRange(Status, ProdOrder.Status::Released);
+        ProdOrder.FindLast();
+    end;
+
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure ConfirmHandler(ConfirmMessage: Text[1024]; var Reply: Boolean)
@@ -5038,6 +5205,36 @@ codeunit 137080 "SCM Planning And Manufacturing"
     procedure CheckProdOrderStatusModalPageHandler(var CheckProdOrderStatus: TestPage "Check Prod. Order Status")
     begin
         CheckProdOrderStatus.Yes().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure CheckProdOrderStatusModalPageHandlerCount(var CheckProdOrderStatus: TestPage "Check Prod. Order Status")
+    var
+        UserResponse: Boolean;
+    begin
+        CheckProdOrderStatusWarningCount += 1;
+        UserResponse := LibraryVariableStorage.DequeueBoolean();
+        if UserResponse then
+            CheckProdOrderStatus.Yes().Invoke()
+        else
+            CheckProdOrderStatus.No().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure SalesOrderPlanningPageHandler(var SalesOrderPlanning: TestPage "Sales Order Planning")
+    begin
+        SalesOrderPlanning."&Create Prod. Order".Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure CreateReleasedOrderFromSalesModalPageHandler(var CreateOrderFromSales: TestPage "Create Order From Sales")
+    begin
+        CreateOrderFromSales.Status.SetValue(Enum::"Production Order Status"::Released);
+        CreateOrderFromSales.OrderType.SetValue(0);
+        CreateOrderFromSales.Yes().Invoke();
     end;
 
     [ReportHandler]
