@@ -334,7 +334,7 @@ table 6900 Expense
                 CreateDimFromDefaultDim(Rec.FieldNo("Billable to Customer"));
             end;
         }
-        field(23; "Expense Location"; Code[30])
+        field(23; "Expense Location"; Code[30]) // NB: Expense Location Code has length 20.
         {
             Caption = 'Expense Location';
             TableRelation = "Expense Location";

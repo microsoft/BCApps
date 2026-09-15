@@ -2311,12 +2311,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GLEntry."Source Currency Amount" := AmountSrcCurr;
         end;
 
+        // Net-of-VAT source amount applies only to the account's own line, not to system-created VAT split entries (which already carry their correct source amount).
         if not (GLAcc."Source Currency Code" in ['', GLSetup."LCY Code"]) and
             not (GenJnlLine."Currency Code" in ['', GLSetup."LCY Code"]) and
             not (GenJnlLine."Additional-Currency Posting" = GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only") and
-            not IsVendorPayableAccount(GLAcc."No.")
+            not SystemCreatedEntry
         then
-            GLEntry."Source Currency Amount" := GenJnlLine.Amount / (1 + GenJnlLine."VAT %" / 100);
+            if not IsVendorPayableAccount(GLAcc."No.") then
+                GLEntry."Source Currency Amount" := GenJnlLine.Amount / (1 + GenJnlLine."VAT %" / 100);
 
         OnAfterInitGLEntry(GLEntry, GenJnlLine, Amount, AmountAddCurr, UseAmountAddCurr, CurrencyFactor, GLReg);
     end;
