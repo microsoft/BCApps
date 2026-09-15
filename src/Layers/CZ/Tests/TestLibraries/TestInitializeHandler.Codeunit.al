@@ -12,6 +12,14 @@ codeunit 143060 "Test Initialize Handler"
         UpdateReportSelections();
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Sales", 'OnBeforePostSalesDocument', '', false, false)]
+    local procedure CreateVATDataOnBeforePostSalesDocument()
+    var
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+    begin
+        LibraryERMCountryData.CreateVATData();
+    end;
+
     local procedure UpdatePurchasesPayablesSetup()
     var
         PurchSetup: Record "Purchases & Payables Setup";
