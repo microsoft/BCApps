@@ -350,14 +350,43 @@ codeunit 6212 "Sustainability Post Mgt"
     var
         TransferInILE: Record "Item Ledger Entry";
         TransferOutILE: Record "Item Ledger Entry";
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         SustainabilityValueEntry: Record "Sustainability Value Entry";
+        ShowAppliedEntries: Codeunit "Show Applied Entries";
     begin
-        TransferInILE.SetLoadFields("Entry Type", Quantity, "Item Register No.", "Item No.", "Lot No.", "Serial No.");
+        TransferInILE.SetLoadFields("Entry No.", "Entry Type", Quantity, "Order No.", "Order Line No.", "Item Register No.", "Item No.", "Lot No.", "Serial No.");
         if not TransferInILE.Get(ItemLedgerEntryNo) then
             exit;
 
-        if (TransferInILE."Entry Type" <> TransferInILE."Entry Type"::Transfer) or (TransferInILE.Quantity <= 0) then
+        if TransferInILE."Entry Type" <> TransferInILE."Entry Type"::Transfer then
             exit;
+
+        if TransferInILE.Quantity < 0 then begin
+            ShowAppliedEntries.FindAppliedEntries(TransferInILE, TempItemLedgerEntry);
+            if TempItemLedgerEntry.FindSet() then
+                repeat
+                    if (TempItemLedgerEntry."Lot No." = TransferInILE."Lot No.") and
+                       (TempItemLedgerEntry."Serial No." = TransferInILE."Serial No.")
+                    then
+                        GetCO2eAmountAndQuantity(TempItemLedgerEntry."Entry No.", CO2eAmount, CO2eQuantity);
+                until TempItemLedgerEntry.Next() = 0;
+            exit;
+        end;
+
+        if TransferInILE."Order No." <> '' then begin
+            TransferOutILE.SetRange("Order No.", TransferInILE."Order No.");
+            TransferOutILE.SetRange("Order Line No.", TransferInILE."Order Line No.");
+            TransferOutILE.SetRange("Item No.", TransferInILE."Item No.");
+            TransferOutILE.SetRange("Entry Type", TransferOutILE."Entry Type"::Transfer);
+            TransferOutILE.SetFilter(Quantity, '<%1', 0);
+            TransferOutILE.SetFilter("Entry No.", '<%1', TransferInILE."Entry No.");
+            TransferOutILE.SetRange("Lot No.", TransferInILE."Lot No.");
+            TransferOutILE.SetRange("Serial No.", TransferInILE."Serial No.");
+            if TransferOutILE.FindLast() then begin
+                GetCO2eAmountAndQuantity(TransferOutILE."Entry No.", CO2eAmount, CO2eQuantity);
+                exit;
+            end;
+        end;
 
         // Reclassification transfer-in ILEs lack SVEs; resolve from the transfer-out counterpart.
         TransferOutILE.SetRange("Item Register No.", TransferInILE."Item Register No.");

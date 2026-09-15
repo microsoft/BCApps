@@ -40,6 +40,7 @@ codeunit 139879 "E2E PowerBI Project Test"
 
     local procedure Initialize()
     begin
+        LibGraphMgt.SetLicenseSafeWorkDate();
         LibGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;

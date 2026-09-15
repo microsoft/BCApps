@@ -132,6 +132,7 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
