@@ -320,7 +320,7 @@ codeunit 7201 "CDS Integration Impl."
         VTSetCompanyIdTxt: Label 'Set company id in the virtual tables config.', Locked = true;
         VTSetTenantIdTxt: Label 'Set tenant id in the virtual tables config.', Locked = true;
         VTSetAadUserIdTxt: Label 'Set user id in the virtual tables config.', Locked = true;
-        VTAppNotInstalledTxt: Label 'The Business Central Virtual Table app is not installed in Dataverse. You must install the app from Microsoft AppSource before you can enable business events.';
+        VTAppNotInstalledTxt: Label 'The Business Central Virtual Table app is not installed in Dataverse. You must install the app from Microsoft Marketplace before you can enable business events.';
         VTAppSourceLinkTxt: Label 'https://appsource.microsoft.com/%1/product/dynamics-365/microsoftdynsmb.businesscentral_virtualentity', Locked = true;
         CRMEntityUrlTemplateTxt: Label '%1/main.aspx?pagetype=entityrecord&etn=%2&id=%3', Locked = true;
         CRMEntityWithAppUrlTemplateTxt: Label '%1/main.aspx?appname=%2&pagetype=entityrecord&etn=%3&id=%4', Locked = true;
