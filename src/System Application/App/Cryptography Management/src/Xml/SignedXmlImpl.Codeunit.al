@@ -47,6 +47,11 @@ codeunit 1461 "SignedXml Impl."
         DotNetReference := DotNetReference.Reference(Uri);
     end;
 
+    procedure SetReferenceType(Type: Text)
+    begin
+        DotNetReference.Type := Type;
+    end;
+
     procedure SetDigestMethod(DigestMethod: Text)
     begin
         DotNetReference.DigestMethod := DigestMethod;
