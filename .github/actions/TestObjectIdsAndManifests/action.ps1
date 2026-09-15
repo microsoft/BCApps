@@ -1,4 +1,5 @@
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\AppObjectValidation.psm1" -Force
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\BuildOptimization.psm1" -Force
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
 $sourceCodeFolder = Join-Path (Get-BaseFolder) "src" -Resolve
@@ -10,12 +11,23 @@ $w1Apps = @(Join-Path $sourceCodeFolder "Apps\W1")
 $w1Layers = @(Join-Path $sourceCodeFolder "Layers\W1")
 # All Folders (For Apps)
 $allApps = @(Join-Path $sourceCodeFolder "Apps")
+$allBaseApps = @(
+    Get-ChildItem -Path (Join-Path $sourceCodeFolder 'Layers') -Directory |
+        ForEach-Object { Join-Path $_.FullName 'BaseApp' } |
+        Where-Object { Test-Path -Path $_ }
+)
 
 # Build path sets for different validations
 # Some folders (e.g. Layers) only exist on main and not on release branches, so filter out
 # any paths that do not exist to avoid Get-ChildItem failing on missing directories.
 [string[]] $w1OnlyPaths = @($baseFolders + $w1Apps + $w1Layers | Where-Object { Test-Path -Path $_ })
 [string[]] $allPaths = @($baseFolders + $allApps + $w1Layers | Where-Object { Test-Path -Path $_ })
+[string[]] $objectIdValidationPaths = @(
+    $allBaseApps
+    (Join-Path $sourceCodeFolder 'Business Foundation\App')
+    (Join-Path $sourceCodeFolder 'System Application\App')
+    $allApps
+) | Where-Object { Test-Path -Path $_ }
 
 # Define exceptions
 $AllowedDuplicateObjects = @(
@@ -82,3 +94,26 @@ Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMi
 
 # Test that we are not adding new uncategorized tests (W1 only) - Disabled for now
 # Test-ApplicationTestTypes -SourceCodePaths $w1OnlyPaths -Exceptions $allowedUncategorizedTests
+
+# Test object IDs declared in newly added production AL files.
+$AllowedObjectIdRanges = @(
+    [PSCustomObject]@{ From = 1;        To = 49999 },
+    [PSCustomObject]@{ From = 99000750; To = 99001048 }
+)
+
+$addedFiles = @(Get-ChangedFilesForCI -DiffFilter 'A' -CompareFromMergeBase -RequireChangeDetection)
+if ($addedFiles.Count -eq 0) {
+    Write-Host "No newly added files were found; skipping the production object ID range validation."
+}
+else {
+    $repositoryRoot = (Resolve-Path -Path (Get-BaseFolder)).Path
+    $addedFilePaths = @($addedFiles | ForEach-Object { Join-Path -Path $repositoryRoot -ChildPath $_ })
+    $testFolderPaths = Get-ALGoTestFolders `
+        -ProjectsPath (Join-Path -Path $repositoryRoot -ChildPath 'build\projects') `
+        -ProjectsJsonPath (Join-Path -Path $repositoryRoot -ChildPath 'build\projects.json') `
+        -RepositoryRoot $repositoryRoot
+    $allowedRangesText = ($AllowedObjectIdRanges | ForEach-Object { "$($_.From)..$($_.To)" }) -join ', '
+    Write-Host "Validating object IDs in newly added production AL files (allowed ranges: $allowedRangesText)."
+
+    Test-ObjectIDsInAddedALFilesAreInAllowedRange -FilePaths $addedFilePaths -SourceCodePaths $objectIdValidationPaths -TestFolderPaths $testFolderPaths -AllowedRanges $AllowedObjectIdRanges
+}
