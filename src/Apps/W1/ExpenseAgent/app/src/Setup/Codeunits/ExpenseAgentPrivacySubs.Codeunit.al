@@ -90,5 +90,15 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::Traveler);
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Mileage Rate Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Vehicle Type");
+
+        // Corporate Card tables
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Batch");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Exception");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card MCC Map");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Merchant Rule");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Provider");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EA Corp Card Trans Detail");
     end;
 }
