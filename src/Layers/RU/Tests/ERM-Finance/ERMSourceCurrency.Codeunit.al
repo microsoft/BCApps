@@ -19,7 +19,6 @@ codeunit 134897 "ERM Source Currency"
         UnexpectedAccountNoErr: Label 'Unexpected G/L Account No. %1', Locked = true;
         TotalSCYAmountNotZeroErr: Label 'The sum of Source Currency Amount should be 0', Locked = true;
         SourceCurrencyCodeErr: Label 'The Source Currency Code should be equal to the Currency Code on the General Journal Line', Locked = true;
-        SourceCurrencyCodeFXGainLossErr: Label 'The Source Currency Code should be empty on the G/L Entry for FX Gain/Loss', Locked = true;
         SourceCurrencyAmountShouldBeZeroErr: Label 'The Source Currency Amount should be 0', Locked = true;
         SourceCurrencyAmountShouldMatchEnteredAmountErr: Label 'Source Currency Amount should match manually entered amount', Locked = true;
         SourceCurrencyVATAmountNotZeroErr: Label 'Source Currency VAT Amount should not be zero', Locked = true;
@@ -887,244 +886,14 @@ codeunit 134897 "ERM Source Currency"
 
     [Test]
     procedure PurchaseInvoiceNormalVATFCYPaymentLoss()
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchaseHeader: Record "Purchase Header";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        Currency: Record Currency;
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        VendorNo: Code[20];
-        PostedPurchaseInvoiceNo: Code[20];
-        ExchRateAdjmDocNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
-        AmountLCY: Decimal;
-        AmountLCYUnrealisedLoss: Decimal;
-        AmountLCYRealisedLoss: Decimal;
     begin
         exit;
-        
-        Initialize();
-
-        // [GIVEN] Vendor with new posting groups with normal VAT.
-        VendorNo := CreateVendorWithNewPostingGroups(VendorPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-
-        // [GIVEN] A posted Purchase Invoice for a G/L Account.
-        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
-        CreatePurchaseInvoice(PurchaseHeader, VendorNo, GLAccount."No.", true);
-        Currency.Get(PurchaseHeader."Currency Code");
-        AmountLCY := Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(WorkDate(), PurchaseHeader."Currency Code", PurchaseHeader."Amount Including VAT", PurchaseHeader."Currency Factor"), 0.01, '=');
-        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // [GIVEN] Higher currency exchange rate.
-        UpdateExchangeRate(CurrencyExchangeRate, PurchaseHeader."Currency Code", LibraryRandom.RandInt(50));
-        AmountLCYUnrealisedLoss := Round(AmountLCY - (PurchaseHeader."Amount Including VAT" * CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount"), 0.01, '=');
-
-        // [WHEN] Adjust Exchange Rate batch job is executed.
-#pragma warning disable AA0139
-        ExchRateAdjmDocNo := LibraryRandom.RandText(20);
-#pragma warning restore AA0139
-        LibraryERM.RunExchRateAdjustmentForDocNo(PurchaseHeader."Currency Code", ExchRateAdjmDocNo);
-
-        GetGLEntries(GLEntry, ExchRateAdjmDocNo, GLEntry."Document Type"::" ");
-        repeat
-            // [THEN] Source Currency Code on G/L Entries should be empty.
-            Assert.AreEqual(PurchaseHeader."Currency Code", GLEntry."Source Currency Code", SourceCurrencyCodeFXGainLossErr);
-
-            // [THEN] Source Currency Amount on G/L Entries should be 0.
-            Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-
-            case GLEntry."G/L Account No." of
-                VendorPostingGroup.GetPayablesAccount():
-                    Assert.AreEqual(AmountLCYUnrealisedLoss, GLEntry.Amount, 'The Amount should be equal to the unrealised loss amount');
-                Currency."Unrealized Losses Acc.":
-                    Assert.AreEqual(-AmountLCYUnrealisedLoss, GLEntry.Amount, 'The Amount should be equal to the unrealised loss amount');
-                else
-                    Error(UnexpectedAccountNoErr, GLEntry."G/L Account No.");
-            end;
-        until GLEntry.Next() = 0;
-
-        // [WHEN] A payment is posted for the Purchase Invoice with another exchange rate.
-        AmountLCYRealisedLoss := -AmountLCYUnrealisedLoss + LibraryRandom.RandInt(50);
-        CreateGeneralJournalLine(
-            GenJournalLine, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor,
-            VendorNo, PurchaseHeader."Currency Code", PurchaseHeader."Amount Including VAT", AmountLCY + AmountLCYRealisedLoss, WorkDate());
-
-        VendorLedgerEntry.SetAutoCalcFields(Amount, "Amount (LCY)");
-        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, PostedPurchaseInvoiceNo);
-        GenJournalLine.Validate("Applies-to Doc. Type", VendorLedgerEntry."Document Type");
-        GenJournalLine.Validate("Applies-to Doc. No.", VendorLedgerEntry."Document No.");
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        GetGLEntries(GLEntry, GenJournalLine."Document No.", GLEntry."Document Type"::Payment);
-        repeat
-            Factor := GLEntry.Amount / Abs(GLEntry.Amount);
-            case GLEntry."G/L Account No." of
-                VendorPostingGroup.GetPayablesAccount():
-                    // [THEN] Source Currency Amount on G/L Entry for Payables Account No. should be equal to the amount incl. VAT on the purchase invoice.
-                    case GLEntry.Amount of
-                        GenJournalLine."Amount (LCY)":
-                            Assert.AreEqual(-VendorLedgerEntry.Amount, GLEntry."Source Currency Amount", 'The Source Currency Amount should be equal to the amount including VAT on the purchase invoice');
-                        -AmountLCYUnrealisedLoss:
-                            Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                        -AmountLCYRealisedLoss:
-                            Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                    // else
-                    //    Error('The amount %1 on the payables account was unpexpected. Expected: Payment amount %2, Unrealised loss %3, Realised loss: %4', GLEntry.Amount, GenJournalLine.Amount, AmountLCYUnrealisedLoss, AmountLCYRealisedLoss);
-                    end;
-                GenJournalLine."Bal. Account No.":
-                    // begin
-                    // [THEN] Source Currency Amount on G/L Entries for Bal. Account No. should be equal to the negative amount on the general journal line.
-                    Assert.AreEqual(-GenJournalLine."Amount (LCY)", GLEntry.Amount, 'The G/L entry amount on the balance account no. should be equal to the negative LCY amount on the general journal line');
-                // Assert.AreEqual(-GenJournalLine.Amount, GLEntry."Source Currency Amount", 'The G/L Entry source currency amount should be equal to the negative amount on the general journal line');
-                // end;
-                Currency."Unrealized Losses Acc.":
-                    begin
-                        // [THEN] Source Currency Amount on G/L Entries for Unrealized Losses Account No. should be equal to the unrealised loss amount.
-                        Assert.AreEqual(AmountLCYUnrealisedLoss, GLEntry.Amount, 'The G/L entry amount on the unrealised losses account no. should be equal to the unrealised loss amount');
-                        Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                    end;
-                Currency."Realized Losses Acc.":
-                    begin
-                        // [THEN] Source Currency Amount on G/L Entries for Realized Losses Account No. should be equal to the realised loss amount.
-                        Assert.AreEqual(AmountLCYRealisedLoss, GLEntry.Amount, 'The G/L entry amount on the realised losses account should be equal to the realised loss amount');
-                        Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                    end;
-                else
-                    Error(UnexpectedAccountNoErr, GLEntry."G/L Account No.");
-            end;
-            SCYBalance += GLEntry."Source Currency Amount";
-        until GLEntry.Next() = 0;
-
-        // [THEN] Source Currency Amount on G/L Entries should balance to 0.
-        // Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
     end;
 
     [Test]
     procedure PurchaseInvoiceNormalVATFCYPaymentGain()
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchaseHeader: Record "Purchase Header";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        Currency: Record Currency;
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        GenJournalLine: Record "Gen. Journal Line";
-        VendorNo: Code[20];
-        PostedPurchaseInvoiceNo: Code[20];
-        ExchRateAdjmDocNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
-        AmountLCY: Decimal;
-        AmountLCYUnrealisedGain: Decimal;
-        AmountLCYRealisedGain: Decimal;
     begin
         exit;
-
-        Initialize();
-
-        // [GIVEN] Vendor with new posting groups with normal VAT.
-        VendorNo := CreateVendorWithNewPostingGroups(VendorPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-
-        // [GIVEN] A posted Purchase Invoice for a G/L Account.
-        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
-        CreatePurchaseInvoice(PurchaseHeader, VendorNo, GLAccount."No.", true);
-        Currency.Get(PurchaseHeader."Currency Code");
-        AmountLCY := Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(WorkDate(), PurchaseHeader."Currency Code", PurchaseHeader."Amount Including VAT", PurchaseHeader."Currency Factor"), 0.01, '=');
-        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // [GIVEN] Lower currency exchange rate.
-        UpdateExchangeRate(CurrencyExchangeRate, PurchaseHeader."Currency Code", -LibraryRandom.RandInt(50));
-        AmountLCYUnrealisedGain := Round(AmountLCY - (PurchaseHeader."Amount Including VAT" * CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount"), 0.01, '=');
-
-        // [WHEN] Adjust Exchange Rate batch job is executed.
-#pragma warning disable AA0139
-        ExchRateAdjmDocNo := LibraryRandom.RandText(20);
-#pragma warning restore AA0139
-        LibraryERM.RunExchRateAdjustmentForDocNo(PurchaseHeader."Currency Code", ExchRateAdjmDocNo);
-
-        GetGLEntries(GLEntry, ExchRateAdjmDocNo, GLEntry."Document Type"::" ");
-        repeat
-            // [THEN] Source Currency Code on G/L Entries should be empty.
-            Assert.AreEqual(PurchaseHeader."Currency Code", GLEntry."Source Currency Code", SourceCurrencyCodeFXGainLossErr);
-
-            // [THEN] Source Currency Amount on G/L Entries should be 0.
-            Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-
-            case GLEntry."G/L Account No." of
-                VendorPostingGroup.GetPayablesAccount():
-                    Assert.AreEqual(AmountLCYUnrealisedGain, GLEntry.Amount, 'The Amount should be equal to the unrealised gain amount');
-                Currency."Unrealized Gains Acc.":
-                    Assert.AreEqual(-AmountLCYUnrealisedGain, GLEntry.Amount, 'The Amount should be equal to the unrealised gain amount');
-                else
-                    Error(UnexpectedAccountNoErr, GLEntry."G/L Account No.");
-            end;
-        until GLEntry.Next() = 0;
-
-        // [WHEN] A payment is posted for the Purchase Invoice with another exchange rate.
-        AmountLCYRealisedGain := -AmountLCYUnrealisedGain - LibraryRandom.RandInt(50);
-        CreateGeneralJournalLine(
-            GenJournalLine, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor,
-            VendorNo, PurchaseHeader."Currency Code", PurchaseHeader."Amount Including VAT", AmountLCY + AmountLCYRealisedGain, WorkDate());
-
-        VendorLedgerEntry.SetAutoCalcFields(Amount, "Amount (LCY)");
-        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, PostedPurchaseInvoiceNo);
-        GenJournalLine.Validate("Applies-to Doc. Type", VendorLedgerEntry."Document Type");
-        GenJournalLine.Validate("Applies-to Doc. No.", VendorLedgerEntry."Document No.");
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        GetGLEntries(GLEntry, GenJournalLine."Document No.", GLEntry."Document Type"::Payment);
-        repeat
-            Factor := GLEntry.Amount / Abs(GLEntry.Amount);
-            case GLEntry."G/L Account No." of
-                VendorPostingGroup.GetPayablesAccount():
-                    // [THEN] Source Currency Amount on G/L Entry for Payables Account No. should be equal to the amount incl. VAT on the purchase invoice.
-                    case GLEntry.Amount of
-                        GenJournalLine."Amount (LCY)":
-                            Assert.AreEqual(-VendorLedgerEntry.Amount, GLEntry."Source Currency Amount", 'The Source Currency Amount should be equal to the amount including VAT on the purchase invoice');
-                        -AmountLCYUnrealisedGain:
-                            Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                        -AmountLCYRealisedGain:
-                            Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                    // else
-                    //    Error('The amount %1 on the payables account was unpexpected. Expected: Payment amount %2, Unrealised gain %3, Realised gain: %4', GLEntry.Amount, GenJournalLine.Amount, AmountLCYUnrealisedGain, AmountLCYRealisedGain);
-                    end;
-                GenJournalLine."Bal. Account No.":
-                    // begin
-                    // [THEN] Source Currency Amount on G/L Entries for Bal. Account No. should be equal to the negative amount on the general journal line.
-                    Assert.AreEqual(-GenJournalLine."Amount (LCY)", GLEntry.Amount, 'The G/L entry amount on the balance account no. should be equal to the negative LCY amount on the general journal line');
-                // Assert.AreEqual(-GenJournalLine.Amount, GLEntry."Source Currency Amount", 'The G/L Entry source currency amount should be equal to the negative amount on the general journal line');
-                // end;
-                Currency."Unrealized Gains Acc.":
-                    begin
-                        // [THEN] Source Currency Amount on G/L Entries for Unrealized Gains Account No. should be equal to the unrealised gain amount.
-                        Assert.AreEqual(AmountLCYUnrealisedGain, GLEntry.Amount, 'The G/L entry amount on the unrealised gains account no. should be equal to the unrealised gains amount');
-                        Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                    end;
-                Currency."Realized Gains Acc.":
-                    begin
-                        // [THEN] Source Currency Amount on G/L Entries for Realized Gains Account No. should be equal to the realised gai amount.
-                        Assert.AreEqual(AmountLCYRealisedGain, GLEntry.Amount, 'The G/L entry amount on the realised gains account should be equal to the realised gains amount');
-                        Assert.AreEqual(0, GLEntry."Source Currency Amount", SourceCurrencyAmountShouldBeZeroErr);
-                    end;
-                else
-                    Error(UnexpectedAccountNoErr, GLEntry."G/L Account No.");
-            end;
-            SCYBalance += GLEntry."Source Currency Amount";
-        until GLEntry.Next() = 0;
-
-        // [THEN] Source Currency Amount on G/L Entries should balance to 0.
-        // Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
     end;
 
     [Test]
@@ -1778,43 +1547,11 @@ codeunit 134897 "ERM Source Currency"
         GenJournalLine.Modify(true);
     end;
 
-    local procedure CreateGeneralJournalLine(
-            var GenJournalLine: Record "Gen. Journal Line";
-            GenJournalDocumentType: Enum "Gen. Journal Document Type";
-            GenJournalAccountType: Enum "Gen. Journal Account Type";
-            AccountNo: Code[20];
-            CurrencyCode: Code[10];
-            Amount: Decimal;
-            AmountLCY: Decimal;
-            PostingDate: Date)
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-    begin
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLine(
-          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalDocumentType,
-          GenJournalAccountType, AccountNo, Amount);
-        GenJournalLine.Validate("Posting Date", PostingDate);
-        GenJournalLine.Validate("Currency Code", CurrencyCode);
-        GenJournalLine.Validate("Amount (LCY)", AmountLCY);
-    end;
-
     local procedure GetGLEntries(var GLEntry: Record "G/L Entry"; DocumentNumber: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
     begin
         GLEntry.SetRange("Document No.", DocumentNumber);
         GLEntry.SetRange("Document Type", DocumentType);
         GLEntry.FindSet();
-    end;
-
-    local procedure UpdateExchangeRate(var CurrencyExchangeRate: Record "Currency Exchange Rate"; CurrencyCode: Code[10]; ExchRateAmount: Decimal)
-    begin
-        CurrencyExchangeRate.SetRange("Currency Code", CurrencyCode);
-        CurrencyExchangeRate.FindFirst();
-        CurrencyExchangeRate.Validate(
-          "Relational Exch. Rate Amount", CurrencyExchangeRate."Relational Exch. Rate Amount" + ExchRateAmount);
-        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", CurrencyExchangeRate."Relational Exch. Rate Amount");
-        CurrencyExchangeRate.Modify(true);
     end;
 
     local procedure CreateDeferralTemplate(var DeferralTemplate: Record "Deferral Template")

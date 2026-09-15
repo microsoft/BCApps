@@ -3,7 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#pragma warning disable AS0011 // Accepted: renaming this existing object to add the mandatory affix would break references. Tracked by AB#640773.
 codeunit 148026 "Test Bank Imp. Gen. Jnl. Line"
+#pragma warning restore AS0011
 {
     Subtype = Test;
     TestType = IntegrationTest;
