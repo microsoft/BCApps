@@ -30,6 +30,7 @@ page 6996 "Expense Agent Setup"
                 field("Enable Agent"; Rec."Enable Agent")
                 {
                     Editable = false;
+                    Visible = false;
                     ToolTip = 'Specifies whether the agent is active in this company. Use the Configure Expense Agent wizard from the agent avatar to activate or deactivate the agent; this page only reflects the current state.';
                 }
                 field(Mailbox; Rec."Email Address")
@@ -221,8 +222,14 @@ page 6996 "Expense Agent Setup"
                 field("Display Anti-Corruption attestation"; Rec."Enable Anti-Corp. Statement")
                 {
                 }
+            }
+            group(Approval)
+            {
+                Caption = 'Approval';
+
                 field("Enable Approval Workflow"; Rec."Enable Approval Workflow")
                 {
+                    Importance = Additional;
                 }
                 field(DefaultApprover; Rec."Default Approver Name")
                 {
