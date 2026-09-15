@@ -1,0 +1,53 @@
+{
+  "id": "253123a6-af7e-466b-9a0c-2bafe6596981",
+  "name": "Sales FR Tests",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "Tests for Sales FR extension",
+  "description": "Tests for Sales FR extension",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://learn.microsoft.com/en-us/dynamics365/business-central/localfunctionality/france/finance-sales-invoice-specifics",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2204541",
+  "url": "https://go.microsoft.com/fwlink/?linkid=2204541",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [{
+      "id": "8df591a3-d767-4475-8bff-44b8b5527477",
+      "name": "Sales FR",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
+      "publisher": "Microsoft",
+      "name": "Library Variable Storage",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 148004,
+      "to": 148006
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "runtime": "17.0",
+  "features": [
+    "TranslationFile",
+    "NoImplicitWith"
+  ],
+  "target": "OnPrem"
+}
