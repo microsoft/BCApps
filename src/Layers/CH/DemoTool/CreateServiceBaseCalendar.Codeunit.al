@@ -108,7 +108,9 @@ codeunit 117507 "Create Service Base Calendar"
 
     procedure GetPeriodNoOneDate(SkipDirection: Text[1]): Date
     begin
+#pragma warning disable AA0205 // Accepted: this public legacy helper is retained for downstream compatibility, and its externally observable state-dependent behavior must remain unchanged. Tracked by AB#640773.
         Date.Get(Date."Period Type"::Date, StartDate);
+#pragma warning restore AA0205
         if Date."Period No." <> 1 then
             repeat
                 Date.Find(SkipDirection);
