@@ -72,17 +72,26 @@ function Write-ApiTestPassword {
 
     $created = $false
     $bytes = $null
+    $characters = $null
+    $passwordBuffer = [IntPtr]::Zero
     try {
         # Write directly to the shared mount. Copy-FileToBcContainer would introduce
         # another host staging copy with inherited permissions.
         $stream = New-ApiTestPasswordFileStream -FilePath $filePath
         $created = $true
         try {
-            $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($Credential.GetNetworkCredential().Password)
+            $passwordBuffer = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Credential.Password)
+            $characters = [char[]]::new($Credential.Password.Length)
+            [System.Runtime.InteropServices.Marshal]::Copy($passwordBuffer, $characters, 0, $characters.Length)
+            $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($characters)
             $stream.Write($bytes, 0, $bytes.Length)
         }
         finally {
             if ($null -ne $bytes) { [Array]::Clear($bytes, 0, $bytes.Length) }
+            if ($null -ne $characters) { [Array]::Clear($characters, 0, $characters.Length) }
+            if ($passwordBuffer -ne [IntPtr]::Zero) {
+                [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordBuffer)
+            }
             $stream.Dispose()
         }
     }
