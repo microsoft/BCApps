@@ -668,13 +668,18 @@ table 10837 "Payment Line FR"
         CustomerLine: Record "Payment Line FR";
         HasCreditMemo: Boolean;
         FoundInvoice: Boolean;
+        InvoiceCount: Integer;
     begin
         Clear(SharedInvoiceLine);
         CreditMemoAmount := 0;
 
+        if Rec."Applies-to ID" = '' then
+            exit(false);
+
         CustomerLine.SetRange("No.", Rec."No.");
         CustomerLine.SetRange("Account Type", CustomerLine."Account Type"::Customer);
         CustomerLine.SetRange("Account No.", Rec."Account No.");
+        CustomerLine.SetRange("Applies-to ID", Rec."Applies-to ID");
         if not CustomerLine.FindSet() then
             exit(false);
         repeat
@@ -685,13 +690,16 @@ table 10837 "Payment Line FR"
                         CreditMemoAmount += CustomerLine."Credit Amount" - CustomerLine."Debit Amount";
                     end;
                 CustomerLine."Applies-to Doc. Type"::Invoice:
-                    if (not FoundInvoice) and (CustomerLine."Applies-to ID" <> '') then begin
-                        SharedInvoiceLine := CustomerLine;
-                        FoundInvoice := true;
+                    begin
+                        InvoiceCount += 1;
+                        if (not FoundInvoice) then begin
+                            SharedInvoiceLine := CustomerLine;
+                            FoundInvoice := true;
+                        end;
                     end;
             end;
         until CustomerLine.Next() = 0;
-        exit(HasCreditMemo and FoundInvoice);
+        exit(HasCreditMemo and (InvoiceCount = 1));
     end;
 
     procedure GetCurrency()
