@@ -964,6 +964,145 @@ codeunit 139197 DocumentSendingPostTests
     end;
 
     [Test]
+    [HandlerFunctions('SelectSendingOptionHandler')]
+    [Scope('OnPrem')]
+    procedure SendPostedSalesInvoiceElectronicDocDefaultSettingsHidesEmailDialog()
+    var
+        Customer: Record Customer;
+        DocumentSendingProfile: Record "Document Sending Profile";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [SCENARIO 9009] Sending a posted sales invoice with E-Mail Attachment = "Electronic Document" and
+        // E-Mail = "Yes (Use Default Settings)" sends the e-mail directly without showing the Email Editor dialog
+        Initialize();
+
+        // [GIVEN] a default document sending profile with E-Mail Attachment = Electronic Document and E-Mail = Yes (Use Default Settings)
+        InitializeDocumentSendingProfile(DocumentSendingProfile, DocumentSendingProfile."E-Mail Attachment"::"Electronic Document",
+          DocumentSendingProfile.Printer::No,
+          DocumentSendingProfile."E-Mail"::"Yes (Use Default Settings)");
+        LibraryVariableStorage.Enqueue(DocumentSendingProfile);
+
+        // [GIVEN] a posted sales invoice for a customer set up for electronic documents with the document sending profile assigned
+        CreateAndPostSalesInvoiceForElectronicDocCustomer(DocumentSendingProfile.Code, Customer, SalesInvoiceHeader);
+
+        // [WHEN] Annie sends the posted sales invoice
+        SalesInvoiceHeader.SetRecFilter();
+        SalesInvoiceHeader.SendRecords();
+
+        // [THEN] no Email Editor dialog appears (an unhandled modal page would fail the test) and the e-mail with the electronic document attached is sent
+        VerifyEmailWithAttachmentSent(SalesInvoiceHeader);
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectSendingOptionHandler,EmailDialogHandlerNo,CloseEmailEditorHandler')]
+    [Scope('OnPrem')]
+    procedure SendPostedSalesInvoiceElectronicDocPromptSettingsShowsEmailDialog()
+    var
+        Customer: Record Customer;
+        DocumentSendingProfile: Record "Document Sending Profile";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        // [SCENARIO 9009] Sending a posted sales invoice with E-Mail Attachment = "Electronic Document" and
+        // E-Mail = "Yes (Prompt for Settings)" still shows the Email Editor dialog
+        Initialize();
+
+        // [GIVEN] a default document sending profile with E-Mail Attachment = Electronic Document and E-Mail = Yes (Prompt for Settings)
+        InitializeDocumentSendingProfile(DocumentSendingProfile, DocumentSendingProfile."E-Mail Attachment"::"Electronic Document",
+          DocumentSendingProfile.Printer::No,
+          DocumentSendingProfile."E-Mail"::"Yes (Prompt for Settings)");
+        LibraryVariableStorage.Enqueue(DocumentSendingProfile);
+
+        // [GIVEN] a posted sales invoice for a customer set up for electronic documents with the document sending profile assigned
+        CreateAndPostSalesInvoiceForElectronicDocCustomer(DocumentSendingProfile.Code, Customer, SalesInvoiceHeader);
+
+        // for EmailDialogHandlerNo
+        LibraryVariableStorage.Enqueue(SalesInvoiceHeader."Sell-to E-Mail");
+        LibraryVariableStorage.Enqueue(SalesInvoiceHeader."No.");
+
+        // [WHEN] Annie sends the posted sales invoice
+        // [THEN] the Email Editor dialog opens; verification is in EmailDialogHandlerNo
+        SalesInvoiceHeader.SetRecFilter();
+        SalesInvoiceHeader.SendRecords();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectSendingOptionHandler')]
+    [Scope('OnPrem')]
+    procedure SendPurchaseOrderElectronicDocDefaultSettingsHidesEmailDialog()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        DocumentSendingPostTests: Codeunit DocumentSendingPostTests;
+    begin
+        // [SCENARIO 9009] Sending a purchase order with E-Mail Attachment = "Electronic Document" and
+        // E-Mail = "Yes (Use Default Settings)" sends the e-mail directly without showing the Email Editor dialog
+        Initialize();
+        // purchase documents have no electronic document format usage in W1 - map them to a dummy format via subscribers
+        BindSubscription(DocumentSendingPostTests);
+
+        // [GIVEN] a default document sending profile with E-Mail Attachment = Electronic Document and E-Mail = Yes (Use Default Settings)
+        InitializeDocumentSendingProfile(DocumentSendingProfile, DocumentSendingProfile."E-Mail Attachment"::"Electronic Document",
+          DocumentSendingProfile.Printer::No,
+          DocumentSendingProfile."E-Mail"::"Yes (Use Default Settings)");
+        DocumentSendingProfile.Validate("E-Mail Format", CreateDummyElectronicDocumentFormat());
+        DocumentSendingProfile.Modify(true);
+        LibraryVariableStorage.Enqueue(DocumentSendingProfile);
+
+        // [GIVEN] a purchase order for a vendor with e-mail and the document sending profile assigned
+        Vendor.Get(CreateVendorWithDocumentProfile(DocumentSendingProfile.Code));
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+
+        // [WHEN] Annie sends the purchase order
+        PurchaseHeader.SetRecFilter();
+        PurchaseHeader.SendRecords();
+
+        // [THEN] no Email Editor dialog appears (an unhandled modal page would fail the test) and the e-mail with the electronic document attached is sent
+        VerifyEmailWithAttachmentSent(PurchaseHeader);
+        UnbindSubscription(DocumentSendingPostTests);
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectSendingOptionHandler,EmailDialogHandlerNo,CloseEmailEditorHandler')]
+    [Scope('OnPrem')]
+    procedure SendPurchaseOrderElectronicDocPromptSettingsShowsEmailDialog()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        DocumentSendingPostTests: Codeunit DocumentSendingPostTests;
+    begin
+        // [SCENARIO 9009] Sending a purchase order with E-Mail Attachment = "Electronic Document" and
+        // E-Mail = "Yes (Prompt for Settings)" still shows the Email Editor dialog
+        Initialize();
+        // purchase documents have no electronic document format usage in W1 - map them to a dummy format via subscribers
+        BindSubscription(DocumentSendingPostTests);
+
+        // [GIVEN] a default document sending profile with E-Mail Attachment = Electronic Document and E-Mail = Yes (Prompt for Settings)
+        InitializeDocumentSendingProfile(DocumentSendingProfile, DocumentSendingProfile."E-Mail Attachment"::"Electronic Document",
+          DocumentSendingProfile.Printer::No,
+          DocumentSendingProfile."E-Mail"::"Yes (Prompt for Settings)");
+        DocumentSendingProfile.Validate("E-Mail Format", CreateDummyElectronicDocumentFormat());
+        DocumentSendingProfile.Modify(true);
+        LibraryVariableStorage.Enqueue(DocumentSendingProfile);
+
+        // [GIVEN] a purchase order for a vendor with e-mail and the document sending profile assigned
+        Vendor.Get(CreateVendorWithDocumentProfile(DocumentSendingProfile.Code));
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+
+        // for EmailDialogHandlerNo
+        LibraryVariableStorage.Enqueue(Vendor."E-Mail");
+        LibraryVariableStorage.Enqueue(PurchaseHeader."No.");
+
+        // [WHEN] Annie sends the purchase order
+        // [THEN] the Email Editor dialog opens; verification is in EmailDialogHandlerNo
+        PurchaseHeader.SetRecFilter();
+        PurchaseHeader.SendRecords();
+
+        UnbindSubscription(DocumentSendingPostTests);
+    end;
+
+    [Test]
     [HandlerFunctions('PostAndSendHandlerYesWithOverride,EmailDialogHandlerNo,CloseEmailEditorHandler,PrintCreditMemoHandler,SelectSendingOptionHandler')]
     [Scope('OnPrem')]
     procedure TestEmailAndPrintCreditMemoByUsingDefaultRule()
@@ -4470,6 +4609,54 @@ codeunit 139197 DocumentSendingPostTests
         Customer.Modify();
     end;
 
+    local procedure CreateAndPostSalesInvoiceForElectronicDocCustomer(DocumentSendingProfileCode: Code[20]; var Customer: Record Customer; var SalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateCustomerWithEmail(Customer);
+        Customer.Validate("Document Sending Profile", DocumentSendingProfileCode);
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        UpdateYourReferenceSalesHeader(SalesHeader, LibraryUtility.GenerateGUID());
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure VerifyEmailWithAttachmentSent(SourceDocument: Variant)
+    var
+        TempEmailOutbox: Record "Email Outbox" temporary;
+        TempSentEmail: Record "Sent Email" temporary;
+        Email: Codeunit Email;
+        EmailMessage: Codeunit "Email Message";
+        MessageId: Guid;
+        NullGuid: Guid;
+    begin
+        Email.GetEmailOutboxForRecord(SourceDocument, TempEmailOutbox);
+        if TempEmailOutbox.FindFirst() then
+            MessageId := TempEmailOutbox.GetMessageId()
+        else begin
+            Email.GetSentEmailsForRecord(SourceDocument, TempSentEmail);
+            if TempSentEmail.FindFirst() then
+                MessageId := TempSentEmail.GetMessageId();
+        end;
+        Assert.AreNotEqual(NullGuid, MessageId, 'E-mail message for the sent document was not found.');
+        EmailMessage.Get(MessageId);
+        Assert.IsTrue(EmailMessage.Attachments_First(), 'The e-mail must have an attachment.');
+    end;
+
+    local procedure CreateDummyElectronicDocumentFormat() FormatCode: Code[20]
+    var
+        ElectronicDocumentFormat: Record "Electronic Document Format";
+    begin
+        FormatCode := LibraryUtility.GenerateGUID();
+        ElectronicDocumentFormat.InsertElectronicFormat(
+          FormatCode, FormatCode, Codeunit::"Dummy Electronic Doc. Export", 0,
+          ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
+    end;
+
     local procedure CreateCustomerWithEmailWithCustomNo(var Customer: Record Customer; CustomerNo: Code[20])
     begin
         CreateCustomerWithEmail(Customer);
@@ -5535,6 +5722,27 @@ codeunit 139197 DocumentSendingPostTests
     local procedure EnableTestModeOnIsTestMode(var TestMode: Boolean)
     begin
         TestMode := true
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentFormatUsageCaseElse', '', false, false)]
+    local procedure MapPurchaseHeaderOnGetDocumentFormatUsageCaseElse(DocumentRecordRef: RecordRef; var DocumentFormatUsage: Enum "Electronic Document Format Usage"; var IsHandled: Boolean)
+    begin
+        // W1 has no electronic document format usage for purchase documents - reuse the "Sales Invoice" usage for the dummy format
+        if DocumentRecordRef.Number = Database::"Purchase Header" then begin
+            DocumentFormatUsage := DocumentFormatUsage::"Sales Invoice";
+            IsHandled := true;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnGetDocumentNoCaseElse', '', false, false)]
+    local procedure GetPurchaseHeaderNoOnGetDocumentNoCaseElse(DocumentVariant: Variant; var DocumentNo: Code[20]; var IsHandled: Boolean; DocumentRecordRef: RecordRef)
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        if DocumentRecordRef.Number = Database::"Purchase Header" then begin
+            DocumentNo := DocumentRecordRef.Field(PurchaseHeader.FieldNo("No.")).Value();
+            IsHandled := true;
+        end;
     end;
 }
 
