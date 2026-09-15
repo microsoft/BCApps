@@ -275,6 +275,9 @@ codeunit 148185 "Sustainability API Tests"
         if IsInitialized then
             exit;
 
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibrarySustainability.CleanUpBeforeTesting();
 
         IsInitialized := true;

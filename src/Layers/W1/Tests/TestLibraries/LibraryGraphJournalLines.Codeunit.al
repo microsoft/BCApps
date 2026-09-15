@@ -235,6 +235,11 @@ codeunit 130622 "Library - Graph Journal Lines"
     begin
         JournalName := LibraryUtility.GenerateRandomCode(GenJournalBatch.FieldNo(Name), DATABASE::"Gen. Journal Batch");
         LibraryAPIGeneralJournal.EnsureGenJnlBatchExists(GraphMgtJournal.GetDefaultVendorPaymentsTemplateName(), JournalName);
+        GenJournalBatch.Get(GraphMgtJournal.GetDefaultVendorPaymentsTemplateName(), JournalName);
+        if GenJournalBatch."No. Series" = '' then begin
+            GenJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
+            GenJournalBatch.Modify(true);
+        end;
         exit(JournalName);
     end;
 
@@ -321,4 +326,3 @@ codeunit 130622 "Library - Graph Journal Lines"
         Assert.AreEqual(NewDate, GenJournalLine."Posting Date", 'Journal Line ' + PostingDateNameTxt + ' should be changed');
     end;
 }
-

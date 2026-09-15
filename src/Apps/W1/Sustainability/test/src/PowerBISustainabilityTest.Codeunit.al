@@ -31,6 +31,12 @@ codeunit 148215 "PowerBI Sustainability Test"
         FieldHiddenMsg: Label '''%1'' field should be hidden.', Comment = '%1 - field caption';
         FieldShownMsg: Label '''%1'' field should be shown.', Comment = '%1 - field caption';
 
+    local procedure Initialize()
+    begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     [Test]
     procedure TestSustainLedgerEntry()
     var
@@ -38,6 +44,8 @@ codeunit 148215 "PowerBI Sustainability Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Insert a Sustainability Ledger Entry
         SustainabilityLedgerEntry.Init();
         SustainabilityLedgerEntry."Account No." := LibUtility.GenerateGUID();
@@ -103,6 +111,8 @@ codeunit 148215 "PowerBI Sustainability Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Insert a Sustainability Ledger Entry
         EmployeeLedgerEntry.Init();
         DetailEmployLedgEntry.Init();
@@ -159,6 +169,8 @@ codeunit 148215 "PowerBI Sustainability Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Insert a Sustainability Goal
 
         if not UserSetup.Get(UserId()) then begin
