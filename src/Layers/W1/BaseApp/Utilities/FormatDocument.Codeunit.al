@@ -13,6 +13,7 @@ using Microsoft.Foundation.Shipping;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
 using System.Text;
 
 codeunit 368 "Format Document"
@@ -106,6 +107,11 @@ codeunit 368 "Format Document"
         end;
 
         OnAfterSetTotalLabels(CurrencyCode, TotalText, TotalInclVATText, TotalExclVATText);
+    end;
+
+    procedure SetLogoPosition(LogoPosition: Enum "Logo Position on Documents"; var CompanyInfo1: Record "Company Information"; var CompanyInfo2: Record "Company Information"; var CompanyInfo3: Record "Company Information")
+    begin
+        SetLogoPosition(LogoPosition.AsInteger(), CompanyInfo1, CompanyInfo2, CompanyInfo3);
     end;
 
     procedure SetLogoPosition(LogoPosition: Option "No Logo",Left,Center,Right; var CompanyInfo1: Record "Company Information"; var CompanyInfo2: Record "Company Information"; var CompanyInfo3: Record "Company Information")
