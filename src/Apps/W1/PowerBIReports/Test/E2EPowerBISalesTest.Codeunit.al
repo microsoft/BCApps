@@ -50,6 +50,7 @@ codeunit 139881 "E2E PowerBI Sales Test"
 
     local procedure Initialize()
     begin
+        LibGraphMgt.SetLicenseSafeWorkDate();
         if IsInitialized then
             exit;
 
