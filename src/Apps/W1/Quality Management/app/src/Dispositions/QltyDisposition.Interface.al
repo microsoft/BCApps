@@ -15,6 +15,8 @@ using Microsoft.QualityManagement.Document;
 /// </summary>
 interface "Qlty. Disposition"
 {
+    Access = Internal;
+
     /// <summary>
     /// Executes the disposition action for a quality inspection.
     /// </summary>
