@@ -19,6 +19,7 @@ interface "Shpfy ICustomer Mapping"
     /// <param name="ShopCode">Code[20].</param>
     /// <returns>Return value of type Code[20].</returns>
     procedure DoMapping(CustomerId: BigInteger; JCustomerInfo: JsonObject; ShopCode: Code[20]): Code[20]
+
     /// <summary>
     /// DoMapping.
     /// </summary>

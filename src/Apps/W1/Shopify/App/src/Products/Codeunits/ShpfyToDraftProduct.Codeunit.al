@@ -16,7 +16,7 @@ codeunit 30187 "Shpfy ToDraftProduct" implements "Shpfy IRemoveProductAction"
     /// RemoveProductAction.
     /// </summary>
     /// <param name="Product">VAR Record "Shopify Product".</param>
-    internal procedure RemoveProductAction(var Product: Record "Shpfy Product")
+    procedure RemoveProductAction(var Product: Record "Shpfy Product")
     var
         TempProduct: Record "Shpfy Product" temporary;
         ProductApi: Codeunit "Shpfy Product API";
