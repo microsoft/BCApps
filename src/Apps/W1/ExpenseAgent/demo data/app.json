@@ -78,12 +78,16 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 8201,
-      "to": 8222
+      "to": 8399
+    },
+    {
+      "from": 8400,
+      "to": 8499
     }
   ],
   "target": "OnPrem",

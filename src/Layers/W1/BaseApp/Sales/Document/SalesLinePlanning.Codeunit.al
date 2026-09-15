@@ -68,7 +68,6 @@ codeunit 99000850 "Sales Line-Planning"
     begin
         if UnplannedDemand."Demand Type" = UnplannedDemand."Demand Type"::Sales then begin
             SalesLine.Get(UnplannedDemand."Demand SubType", UnplannedDemand."Demand Order No.", UnplannedDemand."Demand Line No.");
-            // Use new overload to set Reservation status instead of default Prospect to match Calculate Plan behavior
             ItemTrackingManagement.CopyItemTracking(SalesLine.RowID1(), RequisitionLine.RowID1(), true);
         end;
     end;

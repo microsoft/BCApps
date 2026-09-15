@@ -58,12 +58,13 @@ codeunit 137155 "SCM Warehouse - Shipping II"
         OrderExpectedTxt: Label 'Order should be created.';
         BeforeWorkDateMsg: Label 'is before work date %1 in one or more of the assembly lines', Comment = '%1 = Work Date';
         CannotChangePurchasingCodeErr: Label 'You cannot change the purchasing code for a sales line that has been completely shipped.';
-        ItemTrackingMode: Option " ",AssignLotNo,SelectEntries,AssignSerialNo,ApplyFromItemEntry,AssignAutoSerialNo,AssignAutoLotAndSerialNo,AssignManualLotNo,AssignManualTwoLotNo,AssignTwoLotNo,SelectEntriesForMultipleLines,UpdateQty,PartialAssignManualTwoLotNo;
+        ItemTrackingMode: Option " ",AssignLotNo,SelectEntries,AssignSerialNo,ApplyFromItemEntry,AssignAutoSerialNo,AssignAutoLotAndSerialNo,AssignManualLotNo,AssignManualTwoLotNo,AssignTwoLotNo,SelectEntriesForMultipleLines,UpdateQty,PartialAssignManualTwoLotNo,AssignManualPackageNo;
         AvailabilityWarningsQst: Label 'You do not have enough inventory to meet the demand for items in one or more lines';
         ReservationMode: Option " ",ReserveFromCurrentLine,AutoReserve;
         BinValidationErr: Label 'Location code validation in the Production Order must prioritize Default Bin codes';
         NoOfPostedOrdersMsg: Label 'All the documents were posted.', Comment = '%1: Count(Sales Header)';
         VendorHistBuyFromFactBoxMustBeNonEditableTxt: Label 'Vendor Hist. Buy-from FactBox Must Be NonEditable.';
+        WarehouseShipmentCreatedTxt: Label 'Warehouse Shipment Header has been created.';
 
     [Test]
     [HandlerFunctions('ItemTrackingLinesPageHandler,SelectLotOnItemTrackingSummaryPageHandler')]
@@ -2682,6 +2683,204 @@ codeunit 137155 "SCM Warehouse - Shipping II"
         LibraryWarehouse.ReleaseWarehouseShipment(WarehouseShipmentHeader);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler')]
+    [Scope('OnPrem')]
+    procedure TransferReceiptWithWhseShipmentUsesSelectedLotForApplication()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        InvtPostingDate: Date;
+        TransferPostingDate: Date;
+        FromLocationCode: Code[10];
+        ToLocationCode: Code[10];
+        InTransitLocationCode: Code[10];
+        TrackingCode: Code[10];
+        FromLocationName: Text[100];
+        ToLocationName: Text[100];
+        LotNo1: Code[50];
+        LotNo2: Code[50];
+        QtyLot1: Decimal;
+        QtyLot2: Decimal;
+    begin
+        // [SCENARIO 617646] Transfer with warehouse shipment and manually selected lot keeps application on the selected lot after receive.
+        Initialize();
+
+        // [GIVEN] Randomized quantities, dates, and codes for isolated test data.
+        QtyLot1 := LibraryRandom.RandIntInRange(20, 100);
+        QtyLot2 := LibraryRandom.RandIntInRange(2, 10);
+        InvtPostingDate := WorkDate();
+        TransferPostingDate := CalcDate('<' + Format(LibraryRandom.RandIntInRange(1, 30)) + 'D>', InvtPostingDate);
+        FromLocationCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(FromLocationCode));
+        ToLocationCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(ToLocationCode));
+        InTransitLocationCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(InTransitLocationCode));
+        TrackingCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(TrackingCode));
+        FromLocationName := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(FromLocationName));
+        ToLocationName := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ToLocationName));
+        LotNo1 := CopyStr('L' + DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(LotNo1));
+        LotNo2 := CopyStr('L' + DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(LotNo2));
+
+        // [GIVEN] Two locations and one in-transit location are prepared for transfer flow.
+        CreateTransferTestLocation(FromLocation, FromLocationCode, FromLocationName, true, true, false, false, false, false);
+        CreateTransferTestLocation(ToLocation, ToLocationCode, ToLocationName, false, false, false, false, false, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        InTransitLocation.Rename(InTransitLocationCode);
+
+        // [GIVEN] Lot-tracked item with strict expiration handling.
+        CreateLotAllTrackingCode(ItemTrackingCode, TrackingCode);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Description, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Item.Description)));
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Positive inventory is posted in two distinct lots at the source location.
+        PostPositiveAdjmtWithLotAndExpiration(
+            Item, FromLocation.Code, QtyLot1, LotNo1, InvtPostingDate,
+            CalcDate('<' + Format(LibraryRandom.RandIntInRange(365, 1460)) + 'D>', TransferPostingDate));
+        PostPositiveAdjmtWithLotAndExpiration(
+            Item, FromLocation.Code, QtyLot2, LotNo2, InvtPostingDate,
+            CalcDate('<' + Format(LibraryRandom.RandIntInRange(30, 364)) + 'D>', TransferPostingDate));
+
+        // [WHEN] Transfer order is created and released for the exact quantity of the second lot.
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        TransferHeader.Validate("Posting Date", TransferPostingDate);
+        TransferHeader.Validate("Shipment Date", TransferPostingDate);
+        TransferHeader.Validate("Receipt Date", TransferPostingDate);
+        TransferHeader.Validate("Direct Transfer", false);
+        TransferHeader.Modify(true);
+
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", QtyLot2);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+
+        // [WHEN] Outbound transfer line item tracking is explicitly set to the second lot.
+        FindTransferLine(TransferLine, TransferHeader."No.");
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::AssignManualLotNo);
+        LibraryVariableStorage.Enqueue(LotNo2);
+        TransferLine.OpenItemTrackingLines("Transfer Direction"::Outbound);
+
+        // [WHEN] Warehouse shipment is created and posted.
+        LibraryVariableStorage.Enqueue(WarehouseShipmentCreatedTxt);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        FindWarehouseShipmentLine(WarehouseShipmentLine, WarehouseShipmentLine."Source Document"::"Outbound Transfer", TransferHeader."No.");
+        PostWarehouseShipment(WarehouseShipmentLine."Source Document"::"Outbound Transfer", TransferHeader."No.", false);
+
+        // [WHEN] Transfer receipt is posted.
+        TransferHeader.Get(TransferHeader."No.");
+        LibraryVariableStorage.Enqueue(StrSubstNo(TransferOrderDeletedTxt, TransferHeader."No."));
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] Remaining quantity for the first lot stays unchanged.
+        VerifyRemainingQtyByLotAtLocation(Item."No.", FromLocation.Code, LotNo1, QtyLot1);
+
+        // [THEN] Remaining quantity for the transferred lot becomes 0 at source location.
+        VerifyRemainingQtyByLotAtLocation(Item."No.", FromLocation.Code, LotNo2, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler')]
+    [Scope('OnPrem')]
+    procedure TransferReceiptWithWhseShipmentUsesSelectedPackageForApplication()
+    var
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        InvtPostingDate: Date;
+        TransferPostingDate: Date;
+        FromLocationCode: Code[10];
+        ToLocationCode: Code[10];
+        InTransitLocationCode: Code[10];
+        TrackingCode: Code[10];
+        FromLocationName: Text[100];
+        ToLocationName: Text[100];
+        PackageNo1: Code[50];
+        PackageNo2: Code[50];
+        QtyPackage1: Decimal;
+        QtyPackage2: Decimal;
+    begin
+        // [SCENARIO 617646] Transfer with warehouse shipment and manually selected package keeps application on the selected package after receive.
+        Initialize();
+
+        // [GIVEN] Randomized quantities, dates, and codes for isolated test data.
+        QtyPackage1 := LibraryRandom.RandIntInRange(20, 100);
+        QtyPackage2 := LibraryRandom.RandIntInRange(2, 10);
+        InvtPostingDate := WorkDate();
+        TransferPostingDate := CalcDate('<' + Format(LibraryRandom.RandIntInRange(1, 30)) + 'D>', InvtPostingDate);
+        FromLocationCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(FromLocationCode));
+        ToLocationCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(ToLocationCode));
+        InTransitLocationCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(InTransitLocationCode));
+        TrackingCode := CopyStr(DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(TrackingCode));
+        FromLocationName := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(FromLocationName));
+        ToLocationName := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ToLocationName));
+        PackageNo1 := CopyStr('P' + DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(PackageNo1));
+        PackageNo2 := CopyStr('P' + DelChr(LibraryUtility.GenerateGUID(), '=', '-'), 1, MaxStrLen(PackageNo2));
+
+        // [GIVEN] Two locations and one in-transit location are prepared for transfer flow.
+        CreateTransferTestLocation(FromLocation, FromLocationCode, FromLocationName, true, true, false, false, false, false);
+        CreateTransferTestLocation(ToLocation, ToLocationCode, ToLocationName, false, false, false, false, false, false);
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        InTransitLocation.Rename(InTransitLocationCode);
+
+        // [GIVEN] Package-tracked item with strict expiration handling.
+        CreatePackageAllTrackingCode(ItemTrackingCode, TrackingCode);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate(Description, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Item.Description)));
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Positive inventory is posted in two distinct packages at the source location.
+        PostPositiveAdjmtWithPackageAndExpiration(
+            Item, FromLocation.Code, QtyPackage1, PackageNo1, InvtPostingDate,
+            CalcDate('<' + Format(LibraryRandom.RandIntInRange(365, 1460)) + 'D>', TransferPostingDate));
+        PostPositiveAdjmtWithPackageAndExpiration(
+            Item, FromLocation.Code, QtyPackage2, PackageNo2, InvtPostingDate,
+            CalcDate('<' + Format(LibraryRandom.RandIntInRange(30, 364)) + 'D>', TransferPostingDate));
+
+        // [WHEN] Transfer order is created and released for the exact quantity of the second package.
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code, InTransitLocation.Code);
+        TransferHeader.Validate("Posting Date", TransferPostingDate);
+        TransferHeader.Validate("Shipment Date", TransferPostingDate);
+        TransferHeader.Validate("Receipt Date", TransferPostingDate);
+        TransferHeader.Validate("Direct Transfer", false);
+        TransferHeader.Modify(true);
+
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", QtyPackage2);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+
+        // [WHEN] Outbound transfer line item tracking is explicitly set to the second package.
+        FindTransferLine(TransferLine, TransferHeader."No.");
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::AssignManualPackageNo);
+        LibraryVariableStorage.Enqueue(PackageNo2);
+        TransferLine.OpenItemTrackingLines("Transfer Direction"::Outbound);
+
+        // [WHEN] Warehouse shipment is created and posted.
+        LibraryVariableStorage.Enqueue(WarehouseShipmentCreatedTxt);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        FindWarehouseShipmentLine(WarehouseShipmentLine, WarehouseShipmentLine."Source Document"::"Outbound Transfer", TransferHeader."No.");
+        PostWarehouseShipment(WarehouseShipmentLine."Source Document"::"Outbound Transfer", TransferHeader."No.", false);
+
+        // [WHEN] Transfer receipt is posted.
+        TransferHeader.Get(TransferHeader."No.");
+        LibraryVariableStorage.Enqueue(StrSubstNo(TransferOrderDeletedTxt, TransferHeader."No."));
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] Remaining quantity for the first package stays unchanged.
+        VerifyRemainingQtyByPackageAtLocation(Item."No.", FromLocation.Code, PackageNo1, QtyPackage1);
+
+        // [THEN] Remaining quantity for the transferred package becomes 0 at source location.
+        VerifyRemainingQtyByPackageAtLocation(Item."No.", FromLocation.Code, PackageNo2, 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4617,6 +4816,16 @@ codeunit 137155 "SCM Warehouse - Shipping II"
         ItemTrackingLines."Lot No.".SetValue(LotNo);
     end;
 
+    local procedure UpdatePackageNoOnItemTrackingLine(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    var
+        DequeueVariable: Variant;
+        PackageNo: Code[50];
+    begin
+        LibraryVariableStorage.Dequeue(DequeueVariable);
+        PackageNo := DequeueVariable;
+        ItemTrackingLines."Package No.".SetValue(PackageNo);
+    end;
+
     local procedure UpdateReserveOnItem(var Item: Record Item)
     begin
         Item.Validate(Reserve, Item.Reserve::Always);
@@ -5225,6 +5434,128 @@ codeunit 137155 "SCM Warehouse - Shipping II"
         SalesLine.Modify(true);
     end;
 
+    local procedure CreateLotAllTrackingCode(var ItemTrackingCode: Record "Item Tracking Code"; TrackingCode: Code[10])
+    begin
+        if not ItemTrackingCode.Get(TrackingCode) then begin
+            LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+            ItemTrackingCode.Rename(TrackingCode);
+        end;
+        ItemTrackingCode.Validate("Lot Specific Tracking", false);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", false);
+        ItemTrackingCode.Validate("Use Expiration Dates", true);
+        ItemTrackingCode.Validate("Man. Expir. Date Entry Reqd.", true);
+        ItemTrackingCode.Validate("Strict Expiration Posting", true);
+        ItemTrackingCode.Modify(true);
+    end;
+
+    local procedure CreatePackageAllTrackingCode(var ItemTrackingCode: Record "Item Tracking Code"; TrackingCode: Code[10])
+    begin
+        if not ItemTrackingCode.Get(TrackingCode) then begin
+            LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false, true);
+            ItemTrackingCode.Rename(TrackingCode);
+        end;
+        ItemTrackingCode.Validate("Package Specific Tracking", true);
+        ItemTrackingCode.Validate("Package Warehouse Tracking", false);
+        ItemTrackingCode.Validate("Use Expiration Dates", true);
+        ItemTrackingCode.Validate("Man. Expir. Date Entry Reqd.", true);
+        ItemTrackingCode.Validate("Strict Expiration Posting", true);
+        ItemTrackingCode.Modify(true);
+    end;
+
+    local procedure CreateTransferTestLocation(var Location: Record Location; LocationCode: Code[10]; LocationName: Text[100]; RequireReceive: Boolean; RequireShipment: Boolean; RequirePutAway: Boolean; RequirePick: Boolean; BinMandatory: Boolean; UseAsInTransit: Boolean)
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Location.Rename(LocationCode);
+        Location.Validate(Name, LocationName);
+        Location.Validate("Require Receive", RequireReceive);
+        Location.Validate("Require Shipment", RequireShipment);
+        Location.Validate("Require Put-away", RequirePutAway);
+        Location.Validate("Require Pick", RequirePick);
+        Location.Validate("Bin Mandatory", BinMandatory);
+        Location.Validate("Use As In-Transit", UseAsInTransit);
+        Location.Modify(true);
+    end;
+
+    local procedure PostPositiveAdjmtWithLotAndExpiration(Item: Record Item; LocationCode: Code[10]; Quantity: Decimal; LotNo: Code[50]; PostingDate: Date; ExpirationDate: Date)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        CreateItemJournalLine(ItemJournalLine, Item."No.", LocationCode, Quantity, PostingDate, '', Item."Base Unit of Measure");
+        ItemJournalLine.Validate("Entry Type", ItemJournalLine."Entry Type"::"Positive Adjmt.");
+        ItemJournalLine.Modify(true);
+
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::AssignManualLotNo);
+        LibraryVariableStorage.Enqueue(LotNo);
+        ItemJournalLine.OpenItemTrackingLines(false);
+        UpdateExpirationDateOnReservationEntryForLot(Item."No.", LotNo, ExpirationDate);
+
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure PostPositiveAdjmtWithPackageAndExpiration(Item: Record Item; LocationCode: Code[10]; Quantity: Decimal; PackageNo: Code[50]; PostingDate: Date; ExpirationDate: Date)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        CreateItemJournalLine(ItemJournalLine, Item."No.", LocationCode, Quantity, PostingDate, '', Item."Base Unit of Measure");
+        ItemJournalLine.Validate("Entry Type", ItemJournalLine."Entry Type"::"Positive Adjmt.");
+        ItemJournalLine.Modify(true);
+
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::AssignManualPackageNo);
+        LibraryVariableStorage.Enqueue(PackageNo);
+        ItemJournalLine.OpenItemTrackingLines(false);
+        UpdateExpirationDateOnReservationEntryForPackage(Item."No.", PackageNo, ExpirationDate);
+
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure UpdateExpirationDateOnReservationEntryForLot(ItemNo: Code[20]; LotNo: Code[50]; ExpirationDate: Date)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        ReservationEntry.FindSet();
+        repeat
+            ReservationEntry.Validate("Expiration Date", ExpirationDate);
+            ReservationEntry.Modify(true);
+        until ReservationEntry.Next() = 0;
+    end;
+
+    local procedure UpdateExpirationDateOnReservationEntryForPackage(ItemNo: Code[20]; PackageNo: Code[50]; ExpirationDate: Date)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        ReservationEntry.SetRange("Package No.", PackageNo);
+        ReservationEntry.FindSet();
+        repeat
+            ReservationEntry.Validate("Expiration Date", ExpirationDate);
+            ReservationEntry.Modify(true);
+        until ReservationEntry.Next() = 0;
+    end;
+
+    local procedure VerifyRemainingQtyByLotAtLocation(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; ExpectedRemainingQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.SetRange("Lot No.", LotNo);
+        ItemLedgerEntry.CalcSums("Remaining Quantity");
+        Assert.AreEqual(ExpectedRemainingQty, ItemLedgerEntry."Remaining Quantity", ValueMustBeEqualTxt);
+    end;
+
+    local procedure VerifyRemainingQtyByPackageAtLocation(ItemNo: Code[20]; LocationCode: Code[10]; PackageNo: Code[50]; ExpectedRemainingQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.SetRange("Package No.", PackageNo);
+        ItemLedgerEntry.CalcSums("Remaining Quantity");
+        Assert.AreEqual(ExpectedRemainingQty, ItemLedgerEntry."Remaining Quantity", ValueMustBeEqualTxt);
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure EnterQuantityToCreatePageHandler(var EnterQuantityToCreate: TestPage "Enter Quantity to Create")
@@ -5317,6 +5648,11 @@ codeunit 137155 "SCM Warehouse - Shipping II"
                     ItemTrackingLines.Next();
                     UpdateLotNoOnItemTrackingLine(ItemTrackingLines);
                     ItemTrackingLines."Quantity (Base)".SetValue(ItemTrackingLines.Quantity3.AsDecimal() / 3);
+                end;
+            ItemTrackingMode::AssignManualPackageNo:
+                begin
+                    UpdatePackageNoOnItemTrackingLine(ItemTrackingLines);
+                    ItemTrackingLines."Quantity (Base)".SetValue(ItemTrackingLines.Quantity3.AsDecimal());
                 end;
         end;
         ItemTrackingLines.OK().Invoke();

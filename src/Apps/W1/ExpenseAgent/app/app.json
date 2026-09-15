@@ -130,7 +130,7 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "idRanges": [
     {
@@ -139,7 +139,7 @@
     },
     {
       "from": 7073,
-      "to": 7127
+      "to": 7137
     }
   ],
   "features": [
