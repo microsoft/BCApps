@@ -211,6 +211,37 @@ codeunit 139762 "SMTP Account Auth Tests"
         // [THEN] The message handler verifies that message is about failed authentication.
     end;
 
+    [Test]
+    [HandlerFunctions('VerifyAuthenticationFailMessageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CheckAuthenticationWithUnparseableTokenShowsFailMsgTest()
+    var
+        OAuth2SMTPAuthentication: Codeunit "OAuth2 SMTP Authentication";
+        SMTPAccountAuthTests: Codeunit "SMTP Account Auth Tests";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        UnparseableToken: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When a nonempty but unparseable access token is in the cache,
+        // CheckOAuth2Authentication should show AuthenticationFailedMsg ("Could not authenticate.")
+        // instead of propagating the parse error from GetUserName.
+        // (Reproduces bug: GetUserName is called as a bare TryFunction statement, so its error is not trapped.)
+
+        // [GIVEN] Environment is on-prem and an unparseable token is in the cache.
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        SetAuthFlowProvider(Codeunit::"SMTP Account Auth Tests");
+
+        // The token has no dot-separated sections, so AccessTokenSections.Get(2) inside GetUserName raises.
+        UnparseableToken := 'notavalidtoken';
+        SMTPAccountAuthTests.SetTokenCache(UnparseableToken);
+        BindSubscription(SMTPAccountAuthTests);
+
+        // [WHEN] CheckOAuth2Authentication is called.
+        OAuth2SMTPAuthentication.CheckOAuth2Authentication();
+
+        // [THEN] The message handler verifies that the failure message was shown (not a raw parse error).
+    end;
+
 
     #region SMTP Account page tests
     [Test]
