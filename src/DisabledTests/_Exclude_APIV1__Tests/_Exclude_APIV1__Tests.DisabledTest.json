@@ -57,31 +57,6 @@
   {
     "codeunitId": 139734,
     "codeunitName": "APIV1 - Sales Inv. Lines E2E",
-    "method": "TestGettingLinesWithDifferentTypes"
-  },
-  {
-    "codeunitId": 139734,
-    "codeunitName": "APIV1 - Sales Inv. Lines E2E",
-    "method": "TestPatchingTheIdToItemChangesLineType"
-  },
-  {
-    "codeunitId": 139735,
-    "codeunitName": "APIV1 - Sales Order Lines E2E",
-    "method": "TestGettingLinesWithDifferentTypes"
-  },
-  {
-    "codeunitId": 139735,
-    "codeunitName": "APIV1 - Sales Order Lines E2E",
-    "method": "TestPatchingTheIdToItemChangesLineType"
-  },
-  {
-    "codeunitId": 139739,
-    "codeunitName": "APIV1 - Item Variants E2E",
-    "method": "TestDeleteInUse"
-  },
-  {
-    "codeunitId": 139734,
-    "codeunitName": "APIV1 - Sales Inv. Lines E2E",
     "method": "TestPostingBlankLineDefaultsToItemType"
   },
   {
