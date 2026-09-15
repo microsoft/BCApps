@@ -323,10 +323,10 @@ codeunit 130619 "Library - Graph Document Tools"
         LibraryGraphMgt.GetObjectIDFromJSON(JSONResponse, 'totalTaxAmount', totalTaxAmountTxt);
         LibraryGraphMgt.GetObjectIDFromJSON(JSONResponse, 'totalAmountIncludingTax', totalAmountIncludingTaxTxt);
 
-        Evaluate(discountAmount, discountAmountTxt);
-        Evaluate(totalAmountExcludingTax, totalAmountExcludingTaxTxt);
-        Evaluate(totalTaxAmount, totalTaxAmountTxt);
-        Evaluate(totalAmountIncludingTax, totalAmountIncludingTaxTxt);
+        Evaluate(discountAmount, discountAmountTxt, 9);
+        Evaluate(totalAmountExcludingTax, totalAmountExcludingTaxTxt, 9);
+        Evaluate(totalTaxAmount, totalTaxAmountTxt, 9);
+        Evaluate(totalAmountIncludingTax, totalAmountIncludingTaxTxt, 9);
 
         Assert.AreEqual(
           ExpectedOrderDiscountType, SalesHeader."Invoice Discount Calculation", 'Wrong Invoice Discount type on the header');
@@ -361,10 +361,10 @@ codeunit 130619 "Library - Graph Document Tools"
         LibraryGraphMgt.GetObjectIDFromJSON(JSONResponse, 'totalTaxAmount', totalTaxAmountTxt);
         LibraryGraphMgt.GetObjectIDFromJSON(JSONResponse, 'totalAmountIncludingTax', totalAmountIncludingTaxTxt);
 
-        Evaluate(discountAmount, discountAmountTxt);
-        Evaluate(totalAmountExcludingTax, totalAmountExcludingTaxTxt);
-        Evaluate(totalTaxAmount, totalTaxAmountTxt);
-        Evaluate(totalAmountIncludingTax, totalAmountIncludingTaxTxt);
+        Evaluate(discountAmount, discountAmountTxt, 9);
+        Evaluate(totalAmountExcludingTax, totalAmountExcludingTaxTxt, 9);
+        Evaluate(totalTaxAmount, totalTaxAmountTxt, 9);
+        Evaluate(totalAmountIncludingTax, totalAmountIncludingTaxTxt, 9);
 
         Assert.AreEqual(
           ExpectedOrderDiscountType, PurchaseHeader."Invoice Discount Calculation", 'Wrong Invoice Discount type on the header');
@@ -380,13 +380,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifyCustomerBillingAddress(Customer: Record Customer; SalesHeader: Record "Sales Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'billingPostalAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'billingPostalAddress', JSONAddressValue),
           'Could not find the billingPostalAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'billingPostalAddress should not be blank in ' + ResponseText);
 
@@ -404,13 +402,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifySalesDocumentSellToAddress(Customer: Record Customer; SalesHeader: Record "Sales Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'sellingPostalAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'sellingPostalAddress', JSONAddressValue),
           'Could not find the sellingPostalAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'sellingPostalAddress should not be blank in ' + ResponseText);
 
@@ -432,13 +428,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifySalesDocumentBillToAddress(Customer: Record Customer; SalesHeader: Record "Sales Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'billingPostalAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'billingPostalAddress', JSONAddressValue),
           'Could not find the billingPostalAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'billingPostalAddress should not be blank in ' + ResponseText);
 
@@ -460,13 +454,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifySalesDocumentShipToAddress(Customer: Record Customer; SalesHeader: Record "Sales Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'shippingPostalAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'shippingPostalAddress', JSONAddressValue),
           'Could not find the shippingPostalAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'shippingPostalAddress should not be blank in ' + ResponseText);
 
@@ -488,13 +480,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifyPurchaseDocumentBuyFromAddress(Vendor: Record Vendor; PurchaseHeader: Record "Purchase Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'buyFromAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'buyFromAddress', JSONAddressValue),
           'Could not find the buyFromAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'buyFromAddress should not be blank in ' + ResponseText);
 
@@ -516,13 +506,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifyPurchaseDocumentPayToAddress(Vendor: Record Vendor; PurchaseHeader: Record "Purchase Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'payToAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'payToAddress', JSONAddressValue),
           'Could not find the payToAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'payToAddress should not be blank in ' + ResponseText);
 
@@ -544,13 +532,11 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifyPurchaseDocumentShipToAddress(Vendor: Record Vendor; PurchaseHeader: Record "Purchase Header"; ResponseText: Text; EmptyData: Boolean; PartiallyEmptyData: Boolean)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         JSONAddressValue: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'shipToAddress', JSONAddressValue),
+        JObject.ReadFrom(ResponseText);
+        Assert.IsTrue(TryGetJsonText(JObject, 'shipToAddress', JSONAddressValue),
           'Could not find the shipToAddress property in' + ResponseText);
         Assert.AreNotEqual('', JSONAddressValue, 'shipToAddress should not be blank in ' + ResponseText);
 
@@ -643,41 +629,34 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifySalesObjectTxtDescription(SalesLine: Record "Sales Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JObjectTxt);
         VerifySalesObjectDescription(SalesLine, JsonObject);
     end;
 
     [Scope('OnPrem')]
     procedure VerifySalesObjectTxtDescriptionWithoutComplexTypes(SalesLine: Record "Sales Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JObjectTxt);
         VerifySalesObjectTypeAndSequence(SalesLine, JsonObject);
     end;
 
     [Scope('OnPrem')]
-    procedure VerifySalesObjectDescription(var SalesLine: Record "Sales Line"; var JObject: DotNet JObject)
+    procedure VerifySalesObjectDescription(var SalesLine: Record "Sales Line"; var JObject: JsonObject)
     var
-        JSONManagement: Codeunit "JSON Management";
         GraphMgtComplexTypes: Codeunit "Graph Mgt - Complex Types";
         objectDetailsTxt: Text;
         No: Code[20];
         Description: Text[50];
         Name: Text[100];
     begin
-        JSONManagement.InitializeObjectFromJObject(JObject);
-
         VerifySalesObjectTypeAndSequence(SalesLine, JObject);
 
         Assert.IsTrue(
-          JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, LineDetailsFieldNameTxt, objectDetailsTxt),
+          TryGetJsonText(JObject, LineDetailsFieldNameTxt, objectDetailsTxt),
           'Could not find ' + LineDetailsFieldNameTxt);
 
         case SalesLine.Type of
@@ -691,17 +670,16 @@ codeunit 130619 "Library - Graph Document Tools"
         end;
     end;
 
-    local procedure VerifySalesObjectTypeAndSequence(SalesLine: Record "Sales Line"; JObject: Dotnet JObject)
+    local procedure VerifySalesObjectTypeAndSequence(SalesLine: Record "Sales Line"; JObject: JsonObject)
     var
         SalesInvoiceLineAggregate: Record "Sales Invoice Line Aggregate";
-        JSONManagement: Codeunit "JSON Management";
         sequenceTxt: Text;
         objectTypeTxt: Text;
         xmlConvert: DotNet XmlConvert;
     begin
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'sequence', sequenceTxt), 'Could not find sequence');
+        Assert.IsTrue(TryGetJsonText(JObject, 'sequence', sequenceTxt), 'Could not find sequence');
         Assert.IsTrue(
-          JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, LineTypeFieldNameTxt, objectTypeTxt),
+          TryGetJsonText(JObject, LineTypeFieldNameTxt, objectTypeTxt),
           'Could not find ' + LineTypeFieldNameTxt);
 
         SalesInvoiceLineAggregate."API Type" := SalesLine.Type;
@@ -712,41 +690,34 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifyPurchaseObjectTxtDescription(PurchaseLine: Record "Purchase Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JObjectTxt);
         VerifyPurchaseObjectDescription(PurchaseLine, JsonObject);
     end;
 
     [Scope('OnPrem')]
     procedure VerifyPurchaseObjectTxtDescriptionWithoutComplexType(PurchaseLine: Record "Purchase Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JObjectTxt);
         VerifyPurchaseObjectTypeAndSequence(PurchaseLine, JsonObject);
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyPurchaseObjectDescription(var PurchaseLine: Record "Purchase Line"; var JObject: DotNet JObject)
+    procedure VerifyPurchaseObjectDescription(var PurchaseLine: Record "Purchase Line"; var JObject: JsonObject)
     var
-        JSONManagement: Codeunit "JSON Management";
         GraphMgtComplexTypes: Codeunit "Graph Mgt - Complex Types";
         objectDetailsTxt: Text;
         No: Code[20];
         Description: Text[50];
         Name: Text[100];
     begin
-        JSONManagement.InitializeObjectFromJObject(JObject);
-
         VerifyPurchaseObjectTypeAndSequence(PurchaseLine, JObject);
 
         Assert.IsTrue(
-          JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, LineDetailsFieldNameTxt, objectDetailsTxt),
+          TryGetJsonText(JObject, LineDetailsFieldNameTxt, objectDetailsTxt),
           'Could not find ' + LineDetailsFieldNameTxt);
 
         case PurchaseLine.Type of
@@ -760,17 +731,16 @@ codeunit 130619 "Library - Graph Document Tools"
         end;
     end;
 
-    local procedure VerifyPurchaseObjectTypeAndSequence(PurchaseLine: Record "Purchase Line"; JObject: Dotnet JObject)
+    local procedure VerifyPurchaseObjectTypeAndSequence(PurchaseLine: Record "Purchase Line"; JObject: JsonObject)
     var
         PurchInvLineAggregate: Record "Purch. Inv. Line Aggregate";
-        JSONManagement: Codeunit "JSON Management";
         sequenceTxt: Text;
         objectTypeTxt: Text;
         xmlConvert: DotNet XmlConvert;
     begin
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'sequence', sequenceTxt), 'Could not find sequence');
+        Assert.IsTrue(TryGetJsonText(JObject, 'sequence', sequenceTxt), 'Could not find sequence');
         Assert.IsTrue(
-          JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, LineTypeFieldNameTxt, objectTypeTxt),
+          TryGetJsonText(JObject, LineTypeFieldNameTxt, objectTypeTxt),
           'Could not find ' + LineTypeFieldNameTxt);
         PurchInvLineAggregate."API Type" := PurchaseLine.Type;
         Assert.AreEqual(xmlConvert.DecodeName(objectTypeTxt), Format(PurchInvLineAggregate."API Type"), 'Wrong value for the API Type');
@@ -780,27 +750,23 @@ codeunit 130619 "Library - Graph Document Tools"
     [Scope('OnPrem')]
     procedure VerifySalesIdsSetFromTxt(SalesLine: Record "Sales Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JObjectTxt);
         VerifySalesIdsSet(SalesLine, JsonObject);
     end;
 
     [Scope('OnPrem')]
     procedure VerifyPurchaseIdsSetFromTxt(PurchaseLine: Record "Purchase Line"; JObjectTxt: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JObjectTxt);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(JObjectTxt);
         VerifyPurchaseIdsSet(PurchaseLine, JsonObject);
     end;
 
     [Scope('OnPrem')]
-    procedure VerifySalesIdsSet(var SalesLine: Record "Sales Line"; var JObject: DotNet JObject)
+    procedure VerifySalesIdsSet(var SalesLine: Record "Sales Line"; var JObject: JsonObject)
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -835,7 +801,7 @@ codeunit 130619 "Library - Graph Document Tools"
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyPurchaseIdsSet(var PurchaseLine: Record "Purchase Line"; var JObject: DotNet JObject)
+    procedure VerifyPurchaseIdsSet(var PurchaseLine: Record "Purchase Line"; var JObject: JsonObject)
     var
         Item: Record Item;
         GLAccount: Record "G/L Account";
@@ -870,29 +836,39 @@ codeunit 130619 "Library - Graph Document Tools"
     end;
 
     [Scope('OnPrem')]
-    procedure VerifyIdsSet(var JObject: DotNet JObject; var ItemId: Text; var AccountId: Text)
-    var
-        JSONManagement: Codeunit "JSON Management";
+    procedure VerifyIdsSet(var JObject: JsonObject; var ItemId: Text; var AccountId: Text)
     begin
-        JSONManagement.InitializeObjectFromJObject(JObject);
-
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'itemId', ItemId), 'Could not find itemId');
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'accountId', AccountId), 'Could not find accountId');
+        Assert.IsTrue(TryGetJsonText(JObject, 'itemId', ItemId), 'Could not find itemId');
+        Assert.IsTrue(TryGetJsonText(JObject, 'accountId', AccountId), 'Could not find accountId');
     end;
 
     [Scope('OnPrem')]
     procedure VerifyValidDiscountAmount(ResponseText: Text; ExpectedDiscountAmount: Decimal)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
+        JsonText: Text;
         ActualInvoiceDiscountAmount: Decimal;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JsonObject);
+        JsonObject.ReadFrom(ResponseText);
         Assert.IsTrue(
-          JSONManagement.GetDecimalPropertyValueFromJObjectByName(JsonObject, DiscountAmountFieldTxt, ActualInvoiceDiscountAmount),
+          TryGetJsonText(JsonObject, DiscountAmountFieldTxt, JsonText) and Evaluate(ActualInvoiceDiscountAmount, JsonText, 9),
           'Could not find the invoice discount amount in the response');
         Assert.AreEqual(ExpectedDiscountAmount, ActualInvoiceDiscountAmount, 'Invoice discount amount was not set');
     end;
-}
 
+    local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit(false);
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit(true);
+            Value := JsonToken.AsValue().AsText();
+        end else
+            JsonToken.WriteTo(Value);
+        exit(true);
+    end;
+}

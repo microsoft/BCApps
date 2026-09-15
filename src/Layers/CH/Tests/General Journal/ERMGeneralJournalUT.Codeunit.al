@@ -7261,15 +7261,11 @@ codeunit 134920 "ERM General Journal UT"
 
     local procedure GetGenJnlBatchJson(NewGenJnlBatchName: Code[10]; GenJnlTemplateName: Code[10]) GenJnlBatchJson: Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
     begin
-        JSONManagement.InitializeEmptyObject();
-        JSONManagement.GetJSONObject(JsonObject);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Name', NewGenJnlBatchName);
-        JSONManagement.AddJPropertyToJObject(JsonObject, 'Journal_Template_Name', GenJnlTemplateName);
-
-        GenJnlBatchJson := JSONManagement.WriteObjectToString();
+        JsonObject.Add('Name', NewGenJnlBatchName);
+        JsonObject.Add('Journal_Template_Name', GenJnlTemplateName);
+        JsonObject.WriteTo(GenJnlBatchJson);
     end;
 
     local procedure CreateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; SeriesCode: Code[20]; StartDate: Date)
@@ -7372,4 +7368,3 @@ codeunit 134920 "ERM General Journal UT"
         IsHandled := true;
     end;
 }
-

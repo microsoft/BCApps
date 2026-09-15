@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Document;
 using System.Telemetry;
-using System.Text;
 using System.Utilities;
 
 codeunit 6369 "Pagero Processing"
@@ -333,16 +332,15 @@ codeunit 6369 "Pagero Processing"
 
     local procedure GetNumberOfReceivedDocuments(InputTxt: Text): Integer
     var
-        JsonManagement: Codeunit "JSON Management";
-        Value: Text;
+        ResponseJson: JsonObject;
+        ItemsToken: JsonToken;
     begin
-        if not JsonManagement.InitializeFromString(InputTxt) then
+        if not ResponseJson.ReadFrom(InputTxt) then
             exit(0);
 
-        JsonManagement.GetArrayPropertyValueAsStringByName('items', Value);
-        JsonManagement.InitializeCollection(Value);
-
-        exit(JsonManagement.GetCollectionCount());
+        if not ResponseJson.Get('items', ItemsToken) or not ItemsToken.IsArray() then
+            exit(0);
+        exit(ItemsToken.AsArray().Count());
     end;
 
     local procedure CheckIfDocumentStatusSuccessful(EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var HttpRequestMessage: HttpRequestMessage; var HttpResponse: HttpResponseMessage): Boolean
@@ -384,51 +382,55 @@ codeunit 6369 "Pagero Processing"
 
     local procedure IsFilePartsDocumentProcessed(HttpResponse: HttpResponseMessage; var Status: Text; var FilepartID: Text; var ErrorDescription: Text): Boolean
     var
-        JsonManagement: Codeunit "JSON Management";
         HttpContentResponse: HttpContent;
-        IncrementalTable, Result, Value : Text;
+        ResponseJson: JsonObject;
+        ItemJson: JsonObject;
+        ErrorJson: JsonObject;
+        ItemsToken: JsonToken;
+        ErrorToken: JsonToken;
+        Result: Text;
     begin
         HttpContentResponse := HttpResponse.Content;
         Result := ParseJsonString(HttpContentResponse);
         if Result = '' then
             Error(ParseErr);
 
-        if not JsonManagement.InitializeFromString(Result) then
+        if not ResponseJson.ReadFrom(Result) then
             Error(ParseErr);
 
-        JsonManagement.GetArrayPropertyValueAsStringByName('items', Value);
-        JsonManagement.InitializeCollection(Value);
+        if not ResponseJson.Get('items', ItemsToken) or not ItemsToken.IsArray() then
+            Error(ParseErr);
 
         // A Filepart which has been successfully processed will not be visible in the API.
-        if JsonManagement.GetCollectionCount() = 0 then
+        if ItemsToken.AsArray().Count() = 0 then
             exit(true);
 
-        JsonManagement.GetObjectFromCollectionByIndex(IncrementalTable, 0);
-        JsonManagement.InitializeObject(IncrementalTable);
-
-        JsonManagement.GetStringPropertyValueByName('status', Status);
-        JsonManagement.GetStringPropertyValueByName('id', FilepartID);
-        JsonManagement.GetArrayPropertyValueAsStringByName('error', ErrorDescription);
-        JsonManagement.InitializeFromString(ErrorDescription);
-        JsonManagement.GetArrayPropertyValueAsStringByName('description', ErrorDescription);
+        ItemsToken.AsArray().Get(0, ItemsToken);
+        if not ItemsToken.IsObject() then
+            Error(ParseErr);
+        ItemJson := ItemsToken.AsObject();
+        Status := ItemJson.GetText('status', true);
+        FilepartID := ItemJson.GetText('id', true);
+        if ItemJson.Get('error', ErrorToken) and ErrorToken.IsObject() then begin
+            ErrorJson := ErrorToken.AsObject();
+            if ErrorJson.Get('description', ErrorToken) and ErrorToken.IsArray() then
+                ErrorToken.AsArray().WriteTo(ErrorDescription);
+        end;
         exit(false);
     end;
 
     local procedure ParseSendFileResponse(HttpContentResponse: HttpContent): Text
     var
-        JsonManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         Result: Text;
-        Value: Text;
     begin
         Result := ParseJsonString(HttpContentResponse);
         if Result = '' then
             exit('');
 
-        if not JsonManagement.InitializeFromString(Result) then
+        if not ResponseJson.ReadFrom(Result) then
             exit('');
-
-        JsonManagement.GetStringPropertyValueByName('id', Value);
-        exit(Value);
+        exit(ResponseJson.GetText('id', true));
     end;
 
     local procedure SetEDocumentFileID(EDocEntryNo: Integer; FileId: Text)
@@ -484,29 +486,13 @@ codeunit 6369 "Pagero Processing"
     procedure ParseJsonString(HttpContentResponse: HttpContent): Text
     var
         ResponseJObject: JsonObject;
-        ResponseJson: Text;
         Result: Text;
-        IsJsonResponse: Boolean;
     begin
         HttpContentResponse.ReadAs(Result);
-        IsJsonResponse := ResponseJObject.ReadFrom(Result);
-        if IsJsonResponse then
-            ResponseJObject.WriteTo(ResponseJson)
-        else
-            exit('');
-
-        if not TryInitJson(ResponseJson) then
+        if not ResponseJObject.ReadFrom(Result) then
             exit('');
 
         exit(Result);
-    end;
-
-    [TryFunction]
-    local procedure TryInitJson(JsonTxt: Text)
-    var
-        JsonManagement: Codeunit "JSON Management";
-    begin
-        JSONManagement.InitializeObject(JsonTxt);
     end;
 
     local procedure SelectEDocumentService() EDocumentService: Record "E-Document Service"

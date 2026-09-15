@@ -91,6 +91,15 @@ codeunit 134297 "Http Web Req. Mgt. Tests"
         // No validation - other than the function passes
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestParseFaultJsonResponseWithoutErrorReturnsBlank()
+    var
+        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+    begin
+        Assert.AreEqual('', HttpWebRequestMgt.ParseFaultJsonResponse('{}'), 'A response without an Error object must return blank.');
+    end;
+
     [Scope('OnPrem')]
     procedure Initialize()
     begin
@@ -109,4 +118,3 @@ codeunit 134297 "Http Web Req. Mgt. Tests"
         Url := RewritenUrlTok;
     end;
 }
-

@@ -1,6 +1,8 @@
-﻿namespace System.IO;
+namespace System.IO;
 
+#if not CLEAN30
 using System;
+#endif
 using System.Reflection;
 using System.Utilities;
 
@@ -65,7 +67,17 @@ table 1236 "JSON Buffer"
 
     var
         DevMsgNotTemporaryErr: Label 'This function can only be used when the record is temporary.';
+        InvalidJSONErr: Label 'The JSON text is invalid.';
+        UnsupportedJSONValueErr: Label 'The JSON text contains a value that is not supported by standard JSON.';
+        SystemBooleanTxt: Label 'System.Boolean', Locked = true;
+        SystemDateTimeTxt: Label 'System.DateTime', Locked = true;
+        SystemDoubleTxt: Label 'System.Double', Locked = true;
+        SystemInt64Txt: Label 'System.Int64', Locked = true;
+        SystemStringTxt: Label 'System.String', Locked = true;
+        StrictJSONScalarPatternTxt: Label '^(?:"(?:\\["\\/bfnrt]|\\u[0-9A-Fa-f]{4}|[^"\\\x00-\x1F])*"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?|true|false|null)$', Locked = true;
 
+#if not CLEAN30
+    [Obsolete('Use ReadFromBlobStrict for standard JSON. Json.NET-only syntax is not supported by the strict parser.', '30.0')]
     procedure ReadFromBlob(BlobFieldRef: FieldRef)
     var
         TypeHelper: Codeunit "Type Helper";
@@ -74,9 +86,12 @@ table 1236 "JSON Buffer"
     begin
         TempBlob.FromRecordRef(BlobFieldRef.Record(), BlobFieldRef.Number);
         TempBlob.CreateInStream(InStream, TEXTENCODING::UTF8);
+#pragma warning disable AL0432
         ReadFromText(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator()));
+#pragma warning restore AL0432
     end;
 
+    [Obsolete('Use ReadFromTextStrict for standard JSON. Json.NET-only syntax is not supported by the strict parser.', '30.0')]
     procedure ReadFromText(JSONText: Text)
     var
         JSONTextReader: DotNet JsonTextReader;
@@ -112,6 +127,293 @@ table 1236 "JSON Buffer"
                 Path := JSONTextReader.Path;
                 Insert();
             until not JSONTextReader.Read();
+    end;
+#endif
+
+    procedure ReadFromBlobStrict(BlobFieldRef: FieldRef)
+    var
+        TypeHelper: Codeunit "Type Helper";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+    begin
+        TempBlob.FromRecordRef(BlobFieldRef.Record(), BlobFieldRef.Number);
+        TempBlob.CreateInStream(InStream, TEXTENCODING::UTF8);
+        ReadFromTextStrict(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.CRLFSeparator()));
+    end;
+
+    procedure ReadFromTextStrict(JSONText: Text)
+    var
+        JSONToken: JsonToken;
+    begin
+        if not IsTemporary then
+            Error(DevMsgNotTemporaryErr);
+        DeleteAll();
+
+        if JSONText.Trim() = '' then
+            exit;
+
+        if ContainsJSONComment(JSONText) or ContainsUnquotedPropertyName(JSONText) then
+            Error(InvalidJSONErr);
+
+        if not TryReadJSONToken(JSONText, JSONToken) then
+            Error(InvalidJSONErr);
+
+        ReadJSONToken(JSONToken, 0);
+    end;
+
+    local procedure TryReadJSONToken(JSONText: Text; var JSONToken: JsonToken): Boolean
+    var
+        JSONArray: JsonArray;
+        JSONObject: JsonObject;
+        JSONValue: JsonValue;
+    begin
+        case CopyStr(JSONText.Trim(), 1, 1) of
+            '{':
+                begin
+                    if not JSONObject.ReadFrom(JSONText) then
+                        exit(false);
+                    JSONToken := JSONObject.AsToken();
+                end;
+            '[':
+                begin
+                    if not JSONArray.ReadFrom(JSONText) then
+                        exit(false);
+                    JSONToken := JSONArray.AsToken();
+                end;
+            else begin
+                if not IsStrictJSONScalar(JSONText) then
+                    exit(false);
+                if not JSONValue.ReadFrom(JSONText) then
+                    exit(false);
+                JSONToken := JSONValue.AsToken();
+            end;
+        end;
+        exit(true);
+    end;
+
+    local procedure IsStrictJSONScalar(JSONText: Text): Boolean
+    var
+        Regex: Codeunit Regex;
+    begin
+        exit(Regex.IsMatch(JSONText.Trim(), StrictJSONScalarPatternTxt));
+    end;
+
+    local procedure ReadJSONToken(JSONToken: JsonToken; TokenDepth: Integer)
+    var
+        ChildJSONToken: JsonToken;
+        JSONArray: JsonArray;
+        JSONObject: JsonObject;
+        ArrayIndex: Integer;
+        PropertyName: Text;
+    begin
+        case true of
+            JSONToken.IsObject():
+                begin
+                    InsertJSONBufferRow(TokenDepth, "Token type"::"Start Object", '', '', JSONToken.Path());
+                    JSONObject := JSONToken.AsObject();
+                    foreach PropertyName in JSONObject.Keys() do begin
+                        JSONObject.Get(PropertyName, ChildJSONToken);
+                        InsertJSONBufferRow(TokenDepth + 1, "Token type"::"Property Name", PropertyName, SystemStringTxt, ChildJSONToken.Path());
+                        ReadJSONToken(ChildJSONToken, TokenDepth + 1);
+                    end;
+                    InsertJSONBufferRow(TokenDepth, "Token type"::"End Object", '', '', JSONToken.Path());
+                end;
+            JSONToken.IsArray():
+                begin
+                    InsertJSONBufferRow(TokenDepth, "Token type"::"Start Array", '', '', JSONToken.Path());
+                    JSONArray := JSONToken.AsArray();
+                    for ArrayIndex := 0 to JSONArray.Count() - 1 do begin
+                        JSONArray.Get(ArrayIndex, ChildJSONToken);
+                        ReadJSONToken(ChildJSONToken, TokenDepth + 1);
+                    end;
+                    InsertJSONBufferRow(TokenDepth, "Token type"::"End Array", '', '', JSONToken.Path());
+                end;
+            JSONToken.IsValue():
+                ReadJSONValue(JSONToken, TokenDepth);
+            else
+                Error(UnsupportedJSONValueErr);
+        end;
+    end;
+
+    local procedure ReadJSONValue(JSONToken: JsonToken; TokenDepth: Integer)
+    var
+        JSONValue: JsonValue;
+        BigIntegerValue: BigInteger;
+        BooleanValue: Boolean;
+        DecimalValue: Decimal;
+        SerializedValue: Text;
+        ValueText: Text;
+    begin
+        JSONValue := JSONToken.AsValue();
+        if JSONValue.IsNull() then begin
+            InsertJSONBufferRow(TokenDepth, "Token type"::Null, '', '', JSONToken.Path());
+            exit;
+        end;
+        if JSONValue.IsUndefined() then
+            Error(UnsupportedJSONValueErr);
+
+        JSONToken.WriteTo(SerializedValue);
+        case SerializedValue of
+            'true',
+            'false':
+                begin
+                    BooleanValue := JSONValue.AsBoolean();
+                    if BooleanValue then
+                        ValueText := 'Yes'
+                    else
+                        ValueText := 'No';
+                    InsertJSONBufferRow(TokenDepth, "Token type"::Boolean, ValueText, SystemBooleanTxt, JSONToken.Path());
+                end;
+            else
+                if SerializedValue.StartsWith('"') then begin
+                    ValueText := JSONValue.AsText();
+                    if IsJSONDateTime(ValueText) then
+                        InsertJSONBufferRow(TokenDepth, "Token type"::Date, ValueText, SystemDateTimeTxt, JSONToken.Path())
+                    else
+                        InsertJSONBufferRow(TokenDepth, "Token type"::String, ValueText, SystemStringTxt, JSONToken.Path());
+                end else
+                    if (StrPos(SerializedValue, '.') = 0) and (StrPos(LowerCase(SerializedValue), 'e') = 0) then begin
+                        BigIntegerValue := JSONValue.AsBigInteger();
+                        InsertJSONBufferRow(TokenDepth, "Token type"::Integer, Format(BigIntegerValue), SystemInt64Txt, JSONToken.Path());
+                    end else begin
+                        DecimalValue := JSONValue.AsDecimal();
+                        InsertJSONBufferRow(TokenDepth, "Token type"::Decimal, Format(DecimalValue), SystemDoubleTxt, JSONToken.Path());
+                    end;
+        end;
+    end;
+
+    local procedure InsertJSONBufferRow(TokenDepth: Integer; TokenType: Option; NewValue: Text; NewValueType: Text; TokenPath: Text)
+    begin
+        Init();
+        "Entry No." += 1;
+        Depth := TokenDepth;
+        "Token type" := TokenType;
+        SetValueWithoutModifying(NewValue);
+        "Value Type" := CopyStr(NewValueType, 1, MaxStrLen("Value Type"));
+        Path := CopyStr(TokenPath, 1, MaxStrLen(Path));
+        Insert();
+    end;
+
+    local procedure IsJSONDateTime(ValueText: Text): Boolean
+    var
+        DateTimeValue: DateTime;
+        ValueToEvaluate: Text;
+    begin
+        if (StrLen(ValueText) < 19) or
+           (CopyStr(ValueText, 5, 1) <> '-') or
+           (CopyStr(ValueText, 8, 1) <> '-') or
+           (CopyStr(ValueText, 11, 1) <> 'T') or
+           (CopyStr(ValueText, 14, 1) <> ':') or
+           (CopyStr(ValueText, 17, 1) <> ':')
+        then
+            exit(false);
+
+        if Evaluate(DateTimeValue, ValueText, 9) then
+            exit(true);
+
+        ValueToEvaluate := ValueText;
+        if not HasJSONTimeZone(ValueToEvaluate) then
+            ValueToEvaluate += 'Z';
+
+        exit(Evaluate(DateTimeValue, ValueToEvaluate, 9));
+    end;
+
+    local procedure HasJSONTimeZone(ValueText: Text): Boolean
+    var
+        TimeZoneText: Text;
+    begin
+        if ValueText.EndsWith('Z') or ValueText.EndsWith('z') then
+            exit(true);
+        if StrLen(ValueText) <= 19 then
+            exit(false);
+
+        TimeZoneText := CopyStr(ValueText, 20);
+        exit(TimeZoneText.Contains('+') or TimeZoneText.Contains('-'));
+    end;
+
+    local procedure ContainsJSONComment(JSONText: Text): Boolean
+    var
+        Character: Text[1];
+        NextCharacter: Text[1];
+        CharacterIndex: Integer;
+        EscapedCharacter: Boolean;
+        InString: Boolean;
+    begin
+        for CharacterIndex := 1 to StrLen(JSONText) do begin
+            Character := CopyStr(JSONText, CharacterIndex, 1);
+            if InString then
+                if EscapedCharacter then
+                    EscapedCharacter := false
+                else
+                    case Character of
+                        '\':
+                            EscapedCharacter := true;
+                        '"':
+                            InString := false;
+                    end
+            else
+                case Character of
+                    '"':
+                        InString := true;
+                    '/':
+                        begin
+                            NextCharacter := CopyStr(JSONText, CharacterIndex + 1, 1);
+                            if (NextCharacter = '/') or (NextCharacter = '*') then
+                                exit(true);
+                        end;
+                end;
+        end;
+    end;
+
+    local procedure ContainsUnquotedPropertyName(JSONText: Text): Boolean
+    var
+        Character: Text[1];
+        ContainerStack: Text;
+        CurrentContainer: Text[1];
+        PreviousCharacter: Text[1];
+        CharacterIndex: Integer;
+        EscapedCharacter: Boolean;
+        InString: Boolean;
+    begin
+        for CharacterIndex := 1 to StrLen(JSONText) do begin
+            Character := CopyStr(JSONText, CharacterIndex, 1);
+            if InString then begin
+                if EscapedCharacter then
+                    EscapedCharacter := false
+                else
+                    case Character of
+                        '\':
+                            EscapedCharacter := true;
+                        '"':
+                            InString := false;
+                    end;
+                continue;
+            end;
+
+            if Character.Trim() = '' then
+                continue;
+
+            Clear(CurrentContainer);
+            if ContainerStack <> '' then
+                CurrentContainer := CopyStr(ContainerStack, StrLen(ContainerStack), 1);
+            if CurrentContainer = '{' then
+                if (PreviousCharacter = '{') or (PreviousCharacter = ',') then
+                    if not (Character in ['"', '}']) then
+                        exit(true);
+
+            case Character of
+                '"':
+                    InString := true;
+                '{',
+                '[':
+                    ContainerStack += Character;
+                '}',
+                ']':
+                    if ContainerStack <> '' then
+                        ContainerStack := DelStr(ContainerStack, StrLen(ContainerStack), 1);
+            end;
+            PreviousCharacter := Character;
+        end;
     end;
 
     procedure FindArray(var TempJSONBuffer: Record "JSON Buffer" temporary; ArrayName: Text): Boolean
@@ -199,7 +501,7 @@ table 1236 "JSON Buffer"
         if not "Value BLOB".HasValue() then
             exit(Value);
 
-        "Value BLOB".CreateInStream(InStream, TEXTENCODING::Windows);
+        "Value BLOB".CreateInStream(InStream, TEXTENCODING::UTF8);
         exit(TypeHelper.ReadAsTextWithSeparator(InStream, TypeHelper.LFSeparator()));
     end;
 
@@ -220,8 +522,7 @@ table 1236 "JSON Buffer"
         if NewValue = '' then
             exit;
 
-        "Value BLOB".CreateOutStream(OutStream, TEXTENCODING::Windows);
+        "Value BLOB".CreateOutStream(OutStream, TEXTENCODING::UTF8);
         OutStream.Write(NewValue);
     end;
 }
-
