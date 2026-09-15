@@ -180,19 +180,29 @@ codeunit 1639 "Office Line Generation"
     local procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
+        LastItemNo: Text[50];
+        LastQuantity: Integer;
+        LastLinePending: Boolean;
     begin
         DisableAggregateTableUpdate.SetDisableAllRecords(true);
         BindSubscription(DisableAggregateTableUpdate);
         repeat
             if TempOfficeSuggestedLineItem.Add then begin
-                InsertLineItem(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity);
-                AddedCount += 1;
+                if LastLinePending then begin
+                    InsertLineItem(HeaderRecRef, LastItemNo, LastQuantity);
+                    AddedCount += 1;
+                end;
+                LastItemNo := TempOfficeSuggestedLineItem."Item No.";
+                LastQuantity := TempOfficeSuggestedLineItem.Quantity;
+                LastLinePending := true;
             end;
         until TempOfficeSuggestedLineItem.Next() = 0;
         if UnbindSubscription(DisableAggregateTableUpdate) then;
 
-        if AddedCount > 0 then
-            UpdateAggregateTableFromHeader(HeaderRecRef);
+        if LastLinePending then begin
+            InsertLineItem(HeaderRecRef, LastItemNo, LastQuantity);
+            AddedCount += 1;
+        end;
     end;
 
     local procedure CalculateMatchStrength(ItemNo: Text[50]; Matches: Integer; SearchText: Text; AlreadyFound: Boolean) Strength: Decimal
@@ -444,27 +454,6 @@ codeunit 1639 "Office Line Generation"
         PurchaseLine.Validate("No.", CopyStr(ItemNo, 1, 20));
         PurchaseLine.Validate(Quantity, Quantity);
         PurchaseLine.Insert(true);
-    end;
-
-    local procedure UpdateAggregateTableFromHeader(var HeaderRecRef: RecordRef)
-    var
-        SalesHeader: Record "Sales Header";
-        PurchaseHeader: Record "Purchase Header";
-    begin
-        case HeaderRecRef.Number of
-            DATABASE::"Sales Header":
-                begin
-                    HeaderRecRef.SetTable(SalesHeader);
-                    if SalesHeader.Find() then
-                        SalesHeader.Modify();
-                end;
-            DATABASE::"Purchase Header":
-                begin
-                    HeaderRecRef.SetTable(PurchaseHeader);
-                    if PurchaseHeader.Find() then
-                        PurchaseHeader.Modify();
-                end;
-        end;
     end;
 
     local procedure NewLine() CrLf: Text[2]
