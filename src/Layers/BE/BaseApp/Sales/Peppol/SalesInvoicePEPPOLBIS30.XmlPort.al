@@ -1267,6 +1267,12 @@ xmlport 1610 "Sales Invoice - PEPPOL BIS 3.0"
                 {
                     XmlName = 'AllowanceChargeReasonCode';
                     NamespacePrefix = 'cbc';
+
+                    trigger OnBeforePassVariable()
+                    begin
+                        if AllowanceChargeReasonCodePaymentDiscount = '' then
+                            currXMLport.Skip();
+                    end;
                 }
                 textelement(AllowanceChargeReasonPaymentDiscount)
                 {
@@ -2185,6 +2191,8 @@ xmlport 1610 "Sales Invoice - PEPPOL BIS 3.0"
             else
                 OnGetTotals(SourceRecRef, SalesLine, TempVATAmtLine, TempVATProductPostingGroup, ProcessedDocType);
         end;
+
+        PEPPOLMgt.AddPaymentDiscountCompensation(TempVATAmtLine);
     end;
 
     local procedure FindNextInvoiceRec(Position: Integer) Found: Boolean

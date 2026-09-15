@@ -1557,34 +1557,83 @@
     "bug": "RU: shared W1 test fails under RU base-app behavior in the merged RU build; runs+passes for W1/other countries. Disabled globally (low value, RU pipeline enablement)."
   },
   {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "LayoutLevelAssignmentResolvesAsThisLayout",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
-  }
-  ,
-  {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "HeaderAndThemeResolveIndependently",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxItems"
   },
   {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "MoreSpecificLevelWinsOverGlobal",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxItemsFiltersToCurrentUser"
   },
   {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "PageShowsDecodedPartNamesNotComposite",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPatchReportInboxItemMarksRead"
   },
   {
-    "codeunitId": 134619,
-    "codeunitName": "Composite Layout Tests",
-    "method": "ShowInfoReportsPartDetailsAndUsage",
-    "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxItemsNotAllowed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxContentRequiresKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxContentByKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxContentNotAllowed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileRequiresKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileByKey"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxFileNotAllowed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxCompanies"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxItemsAcrossCompanies"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileForEntryInAnotherCompanyIsNotWidenedSilently"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxFileForEntryInAnotherCompanyWhenNamed"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestGetReportInboxContentDoesNotResolveAnotherCompany"
+  },
+  {
+    "codeunitId": 135549,
+    "codeunitName": "Report Inbox API E2E",
+    "method": "TestPostReportInboxCompaniesNotAllowed"
   }
 ]

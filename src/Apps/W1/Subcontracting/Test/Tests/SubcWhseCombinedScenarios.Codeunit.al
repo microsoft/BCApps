@@ -260,7 +260,9 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
 
         // [GIVEN] The not-last operation has no operational bin or inventory quantity
 #pragma warning disable AA0210
+#pragma warning disable AA0210
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+#pragma warning restore AA0210
 #pragma warning restore AA0210
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual('', WarehouseReceiptLine."Bin Code", 'Not-last operation should not use a bin');
@@ -331,8 +333,9 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
             Item, Location, ProductionOrder, PurchaseHeader, ReceiveBin, WarehouseReceiptHeader, WorkCenter, Quantity);
         WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
         WarehouseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
-#pragma warning disable AA0210        
+#pragma warning disable AA0210
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+#pragma warning restore AA0210
 #pragma warning restore AA0210
         WarehouseReceiptLine.FindFirst();
 

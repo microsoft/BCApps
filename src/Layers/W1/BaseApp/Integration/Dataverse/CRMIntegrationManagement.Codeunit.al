@@ -1254,6 +1254,7 @@ codeunit 5330 "CRM Integration Management"
             exit;
         end;
 
+        OnRemoveCouplingOnBeforeGetIntegrationTableMappingForUncoupling(IntegrationTableMapping, LocalRecordRef);
         if GetIntegrationTableMappingForUncoupling(IntegrationTableMapping, LocalRecordRef.Number()) then
             if Schedule then
                 ScheduleUncoupling(IntegrationTableMapping, IntegrationRecordSynch.GetTableViewForLocalRecords(LocalRecordRef), '')
@@ -1340,6 +1341,7 @@ codeunit 5330 "CRM Integration Management"
             exit;
         end;
 
+        OnMatchBasedCouplingOnBeforeGetIntegrationTableMappingForMatchBasedCoupling(IntegrationTableMapping, LocalRecordRef);
         if GetIntegrationTableMappingForCoupling(IntegrationTableMapping, LocalRecordRef.Number()) then begin
             IntegrationFieldMapping.SetMatchBasedCouplingFilters(IntegrationTableMapping);
             if Page.RunModal(Page::"Match Based Coupling Criteria", IntegrationFieldMapping) = Action::LookupOK then
@@ -4255,6 +4257,16 @@ codeunit 5330 "CRM Integration Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRescheduleJobQueueEntries(TableNo: Integer; var RescheduleOffSetInMs: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRemoveCouplingOnBeforeGetIntegrationTableMappingForUncoupling(var IntegrationTableMapping: Record "Integration Table Mapping"; LocalRecordRef: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMatchBasedCouplingOnBeforeGetIntegrationTableMappingForMatchBasedCoupling(var IntegrationTableMapping: Record "Integration Table Mapping"; LocalRecordRef: RecordRef)
     begin
     end;
 }

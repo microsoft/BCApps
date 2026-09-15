@@ -5,6 +5,61 @@
     "method": "UnlinkedExpenseUserIsHiddenFromAPI"
   },
   {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIPreservesAndUpdatesDates"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAreScopedByEmployeeNumber"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ExpenseReportAPIExposesLinkedTravelRequest"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPIExposesTypeAndCategory"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproverViewReturnsOnlyAssignedTravelRequests"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIAllowsOwnerOnInsertAndUnchangedPatch"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIRejectsLifecycleFieldChanges"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIAllowsUnchangedOwner"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIRejectsTravelRequestOwnerChange"
+  },
+  {
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "CapabilitiesProjectsEnabledViaAPI"
@@ -23,6 +78,11 @@
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "ActivityLogCapabilityEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "TravelRequestCapabilityEnabledViaAPI"
   },
   {
     "codeunitId": 148343,
@@ -203,5 +263,10 @@
     "codeunitId": 148319,
     "codeunitName": "Cancel Posted Exp. Report Test",
     "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148348,
+    "codeunitName": "Expense VAT Spec. API Test",
+    "method": "AgentVATSpecificationIsInsertedThroughAPI"
   }
 ]

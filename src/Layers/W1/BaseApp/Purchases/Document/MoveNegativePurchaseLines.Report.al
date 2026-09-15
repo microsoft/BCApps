@@ -46,7 +46,7 @@ report 6698 "Move Negative Purchase Lines"
                             ApplicationArea = Basic, Suite;
                             Caption = 'To Document Type';
                             Editable = DropDownForRetOrderAndCrMemoEd;
-                            OptionCaption = ',,Order,Invoice';
+                            OptionCaption = ',,Order,Invoice,,';
                             ToolTip = 'Specifies which document type you want to move the negative purchase lines to.';
                         }
                     }

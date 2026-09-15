@@ -1,6 +1,7 @@
 namespace Microsoft.Sustainability.Purchase;
 
 using Microsoft.Purchases.Document;
+using Microsoft.Sustainability.Calculation;
 using Microsoft.Sustainability.Setup;
 
 pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
@@ -14,6 +15,11 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
                 Visible = SustainabilityVisible;
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the value of the Sustainability Account No. field.';
+
+                trigger OnValidate()
+                begin
+                    SetFormulaInputEditability();
+                end;
             }
             field("Energy Source Code"; Rec."Energy Source Code")
             {
@@ -32,30 +38,35 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
             }
             field("Fuel/Electricity"; Rec."Fuel/Electricity")
             {
+                Editable = FuelElectricityEditable;
                 Visible = SustainabilityFormulasFieldVisible;
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the fuel or electricity of the purchase line.';
             }
             field(Distance; Rec.Distance)
             {
+                Editable = DistanceEditable;
                 Visible = SustainabilityFormulasFieldVisible;
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the distance of the purchase line.';
             }
             field("Custom Amount"; Rec."Custom Amount")
             {
+                Editable = CustomAmountEditable;
                 Visible = SustainabilityFormulasFieldVisible;
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the custom amount of the purchase line.';
             }
             field("Installation Multiplier"; Rec."Installation Multiplier")
             {
+                Editable = InstallationMultiplierEditable;
                 Visible = SustainabilityFormulasFieldVisible;
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the installation multiplier of the purchase line.';
             }
             field("Time Factor"; Rec."Time Factor")
             {
+                Editable = TimeFactorEditable;
                 Visible = SustainabilityFormulasFieldVisible;
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the time factor of the purchase line.';
@@ -122,6 +133,16 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
         VisibleSustainabilityControls();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        SetFormulaInputEditability();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetFormulaInputEditability();
+    end;
+
     local procedure VisibleSustainabilityControls()
     var
         SustainabilitySetup: Record "Sustainability Setup";
@@ -132,7 +153,18 @@ pageextension 6211 "Sust. Purch. Order Subform" extends "Purchase Order Subform"
         SustainabilityFormulasFieldVisible := SustainabilitySetup."Use Formulas In Purch. Docs";
     end;
 
+    local procedure SetFormulaInputEditability()
+    begin
+        if not SustainabilityFormulasFieldVisible then
+            exit;
+
+        SustainabilityCalcMgt.GetFormulaInputEditability(Rec, FuelElectricityEditable, DistanceEditable, CustomAmountEditable, InstallationMultiplierEditable, TimeFactorEditable);
+    end;
+
     var
+        SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
         SustainabilityVisible: Boolean;
         SustainabilityFormulasFieldVisible: Boolean;
+        FuelElectricityEditable, DistanceEditable, CustomAmountEditable : Boolean;
+        InstallationMultiplierEditable, TimeFactorEditable : Boolean;
 }

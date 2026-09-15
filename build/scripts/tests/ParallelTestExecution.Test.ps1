@@ -253,3 +253,361 @@ Describe "ParallelTestExecution warmup dispatch" {
         }
     }
 }
+
+Describe "ParallelTestExecution failed-app rerun scheduling" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "re-runs a failed app on a different tenant than the one it failed on" {
+        # A failed app is retried once, and never on the tenant it failed on: tests are not
+        # guaranteed to clean up after themselves, so residue from the failed run could
+        # re-trigger the same failure and make the retry worthless.
+        InModuleScope ParallelTestExecution {
+            $script:dispatched = [System.Collections.Generic.List[object]]::new()
+            $script:failed = $false
+
+            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Invoke-WarmupDispatch { @($Pending) }
+            Mock Get-AppRerunBudget { 1 }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+            Mock Wait-ForFreeTenant {
+                # 'default' is always free; the exclusion must push the rerun onto 'tenant2'.
+                @('default', 'tenant2') | Where-Object { $_ -ne $excludeTenant } | Select-Object -First 1
+            }
+            Mock Start-TestAppDispatch {
+                $script:dispatched.Add([PSCustomObject]@{ App = $AppName; Tenant = $Tenant; Suffix = $FileSuffix })
+                # 'Big' fails on its first dispatch, exactly once.
+                if ($AppName -eq 'Big' -and -not $script:failed) {
+                    $script:failed = $true
+                    Register-TestJobOutcome -State $State -Result ([PSCustomObject]@{
+                        Outcome = 'Failed'; AppName = $AppName; Tenant = $Tenant; JobState = 'Failed'
+                    })
+                }
+            }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $result = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Small')
+
+            $rerun = $script:dispatched | Where-Object { $_.Suffix }
+            $rerun.App | Should -Be 'Big'
+            $rerun.Tenant | Should -Be 'tenant2'
+            $rerun.Suffix | Should -Be 'rerun1'
+            # The rerun passed, so the run as a whole passed.
+            $result | Should -BeTrue
+        }
+    }
+
+    It "fails the run when the rerun budget is already spent" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 1; tenantCount = 4
+            }
+            $failure = [PSCustomObject]@{ Outcome = 'Failed'; AppName = 'A'; Tenant = 'default'; JobState = 'Failed' }
+
+            Register-TestJobOutcome -Result $failure -State $state
+            $state.rerun.Count | Should -Be 1
+            $state.hasFailures | Should -BeFalse
+
+            # Budget is spent, so a second failing app is final.
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'B'; Tenant = 'tenant2'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 1
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+
+    It "does not re-run an app that already had its rerun" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{ A = $true }
+                rerunBudget = 1; tenantCount = 4
+            }
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'A'; Tenant = 'tenant2'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 0
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+
+    It "does not re-run when there is only one tenant, since a different one cannot be used" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 1; tenantCount = 1
+            }
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'A'; Tenant = 'default'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 0
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+}
+
+Describe "ParallelTestExecution rerun budget is limited to pull request builds" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    BeforeEach {
+        $script:savedEvent = $env:GITHUB_EVENT_NAME
+        $script:savedSettings = $env:settings
+        # Get-ALGoSetting reads the merged AL-Go settings out of $env:settings.
+        $env:settings = '{ "maxTestAppReruns": 2 }'
+    }
+
+    AfterEach {
+        $env:GITHUB_EVENT_NAME = $script:savedEvent
+        $env:settings = $script:savedSettings
+    }
+
+    It "grants the configured budget on pull request builds" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Get-AppRerunBudget | Should -Be 2
+    }
+
+    It "grants no rerun budget on push (CI/CD) builds even when the setting is present" {
+        # CI/CD runs are the signal for the real state of the branch and feed the unstable-tests
+        # data, so a failure there must stay a failure.
+        $env:GITHUB_EVENT_NAME = 'push'
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "grants no rerun budget for schedule, merge_group or workflow_dispatch builds" {
+        foreach ($evt in @('schedule', 'merge_group', 'workflow_dispatch')) {
+            $env:GITHUB_EVENT_NAME = $evt
+            Get-AppRerunBudget | Should -Be 0
+        }
+    }
+
+    It "grants no rerun budget outside of GitHub Actions" {
+        $env:GITHUB_EVENT_NAME = $null
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "grants no rerun budget when the setting is missing" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $env:settings = '{ }'
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "honours a budget of 0 as a way to switch reruns off" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $env:settings = '{ "maxTestAppReruns": 0 }'
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "re-runs several different apps up to the configured budget" {
+        # The budget caps how many DIFFERENT apps may be re-run; an individual app is still only
+        # ever re-run once.
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 2; tenantCount = 4
+            }
+            foreach ($app in @('A', 'B')) {
+                Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                    Outcome = 'Failed'; AppName = $app; Tenant = 'tenant2'; JobState = 'Failed'
+                })
+            }
+            $state.rerun.Count | Should -Be 2
+            $state.rerun.suffix | Should -Be @('rerun1', 'rerun2')
+            $state.hasFailures | Should -BeFalse
+
+            # Budget spent: a third app is a final failure.
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'C'; Tenant = 'tenant3'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 2
+            $state.hasFailures | Should -BeTrue
+        }
+    }
+
+    It "discards a stale rerun result file when the rerun is re-dispatched after a transient race" {
+        # Sequence: app fails -> rerun on another tenant -> that rerun hits the platform race ->
+        # app is re-dispatched through the NORMAL queue, writing to a tenant file. Tenant files
+        # merge before rerun files, so the stale rerun file would otherwise overwrite the newer
+        # (passing) result and report a passing app as failed.
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        InModuleScope ParallelTestExecution {
+            $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $dir | Out-Null
+            try {
+                $params = @{
+                    containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                    tenant = 'default'
+                    JUnitResultFileName = (Join-Path $dir 'results.xml')
+                }
+                $staleFile = Join-Path $dir 'results-rerun1.xml'
+                Set-Content -Path $staleFile -Value '<testsuites />'
+
+                $script:raced = $false
+                Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+                Mock Get-BcContainerAppInfo { @([PSCustomObject]@{ IsInstalled = $true; Name = 'A'; AppId = 'id-A' }) }
+                Mock Invoke-WarmupDispatch { @($Pending) }
+                Mock Wait-ForAllTestJobs { }
+                Mock Merge-TenantTestResults { }
+                Mock Wait-ForFreeTenant { 'tenant2' }
+                Mock Start-TestAppDispatch {
+                    if ($FileSuffix -and -not $script:raced) {
+                        # The rerun job hits the platform race.
+                        $script:raced = $true
+                        $State.transient = @($State.transient) + @($AppName)
+                    }
+                }
+                # Pre-seed the state as though 'A' already had its rerun dispatched.
+                Mock Register-TestJobOutcome { }
+
+                $state = [PSCustomObject]@{
+                    jobs = @(); hasFailures = $false; transient = @(); retried = @{}
+                    rerun = @(); rerunDone = @{}; rerunBudget = 1; tenantCount = 2
+                }
+                $state.rerunDone['A'] = 'rerun1'
+                $state.transient = @('A')
+
+                # Exercise just the promotion path the loop performs.
+                foreach ($appName in @($state.transient)) {
+                    if ($state.rerunDone.ContainsKey($appName)) {
+                        Remove-RerunResultFile -parameters $params -suffix $state.rerunDone[$appName]
+                    }
+                }
+
+                Test-Path $staleFile | Should -BeFalse
+            }
+            finally {
+                Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    It "records the rerun suffix so a stale rerun file can be found later" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 2; tenantCount = 4
+            }
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'A'; Tenant = 'tenant2'; JobState = 'Failed'
+            })
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'B'; Tenant = 'tenant3'; JobState = 'Failed'
+            })
+            $state.rerunDone['A'] | Should -Be 'rerun1'
+            $state.rerunDone['B'] | Should -Be 'rerun2'
+            $state.rerun.suffix | Should -Be @('rerun1', 'rerun2')
+        }
+    }
+
+    It "does not re-dispatch a failed app on a CI/CD build" {
+        # End-to-end guard: the budget gate must actually suppress the rerun dispatch, not just
+        # return 0 from the helper.
+        $env:GITHUB_EVENT_NAME = 'push'
+        InModuleScope ParallelTestExecution {
+            $script:dispatched = [System.Collections.Generic.List[object]]::new()
+            $script:failed = $false
+
+            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-BcContainerAppInfo {
+                @('Big', 'Small') | ForEach-Object {
+                    [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
+                }
+            }
+            Mock Invoke-WarmupDispatch { @($Pending) }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch {
+                $script:dispatched.Add($AppName)
+                if ($AppName -eq 'Big' -and -not $script:failed) {
+                    $script:failed = $true
+                    Register-TestJobOutcome -State $State -Result ([PSCustomObject]@{
+                        Outcome = 'Failed'; AppName = $AppName; Tenant = $Tenant; JobState = 'Failed'
+                    })
+                }
+            }
+
+            $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
+            $result = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
+                -testType 'Legacy' -appNamesToTest @('Big', 'Small')
+
+            # Each app dispatched exactly once, and the failure is final.
+            $script:dispatched | Should -Be @('Big', 'Small')
+            $result | Should -BeFalse
+        }
+    }
+}
+
+Describe "ParallelTestExecution result merging" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+
+        function New-JUnitFile {
+            param([string]$Path, [string]$SuiteName, [int]$Failures)
+            @"
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="$SuiteName" tests="1" failures="$Failures" />
+</testsuites>
+"@ | Set-Content -Path $Path -Encoding UTF8
+        }
+    }
+
+    It "lets a rerun's results replace those of the run it re-ran" {
+        # The rerun runs the whole app again on another tenant and writes its own file. Without
+        # replace-by-name the merged report would contain the app twice - once failed, once
+        # passed - and the failed copy would fail the build.
+        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $dir | Out-Null
+        try {
+            $failedRun = Join-Path $dir 'results-tenant2.xml'
+            $rerun = Join-Path $dir 'results-rerun1.xml'
+            $target = Join-Path $dir 'results.xml'
+
+            New-JUnitFile -Path $failedRun -SuiteName '134000 Some Codeunit' -Failures 1
+            New-JUnitFile -Path $rerun -SuiteName '134000 Some Codeunit' -Failures 0
+
+            Merge-TestResultFiles -targetFile $target -sourceFiles @($failedRun, $rerun)
+
+            $merged = [xml](Get-Content $target -Raw)
+            $suites = @($merged.SelectNodes('//testsuites/testsuite'))
+            $suites.Count | Should -Be 1
+            $suites[0].failures | Should -Be '0'
+        }
+        finally {
+            Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    It "keeps results for different codeunits side by side" {
+        $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $dir | Out-Null
+        try {
+            $first = Join-Path $dir 'results-default.xml'
+            $second = Join-Path $dir 'results-tenant2.xml'
+            $target = Join-Path $dir 'results.xml'
+
+            New-JUnitFile -Path $first -SuiteName '134000 One' -Failures 0
+            New-JUnitFile -Path $second -SuiteName '134001 Two' -Failures 0
+
+            Merge-TestResultFiles -targetFile $target -sourceFiles @($first, $second)
+
+            $merged = [xml](Get-Content $target -Raw)
+            @($merged.SelectNodes('//testsuites/testsuite')).Count | Should -Be 2
+        }
+        finally {
+            Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}

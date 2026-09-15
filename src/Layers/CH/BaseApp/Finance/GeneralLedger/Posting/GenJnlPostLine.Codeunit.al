@@ -1033,7 +1033,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 CreateGLEntry(
                     GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"),
                     VATPostingParameters."Deductible VAT Amount", VATPostingParameters."Deductible VAT Amount ACY", true,
-                    GenJnlLine."Source Curr. VAT Amount")
+                   GenJnlLine."Source Curr. VAT Amount" - CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Non-Deductible VAT Amount"))
             else
                 CreateGLEntry(
                     GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"),
@@ -2311,12 +2311,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GLEntry."Source Currency Amount" := AmountSrcCurr;
         end;
 
+        // Net-of-VAT source amount applies only to the account's own line, not to system-created VAT split entries (which already carry their correct source amount).
         if not (GLAcc."Source Currency Code" in ['', GLSetup."LCY Code"]) and
             not (GenJnlLine."Currency Code" in ['', GLSetup."LCY Code"]) and
             not (GenJnlLine."Additional-Currency Posting" = GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only") and
-            not IsVendorPayableAccount(GLAcc."No.")
+            not SystemCreatedEntry
         then
-            GLEntry."Source Currency Amount" := GenJnlLine.Amount / (1 + GenJnlLine."VAT %" / 100);
+            if not IsVendorPayableAccount(GLAcc."No.") then
+                GLEntry."Source Currency Amount" := GenJnlLine.Amount / (1 + GenJnlLine."VAT %" / 100);
 
         OnAfterInitGLEntry(GLEntry, GenJnlLine, Amount, AmountAddCurr, UseAmountAddCurr, CurrencyFactor, GLReg);
     end;
@@ -5509,7 +5511,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         CustomerPostingGroup: Record "Customer Posting Group";
         EmployeePostingGroup: Record "Employee Posting Group";
-        VendorPostingGroup: Record "Vendor Posting Group";
         AccNo2: Code[20];
         AccNo3: Code[20];
         IsHandled: Boolean;
@@ -5548,12 +5549,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     AccNo2 := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
                                     AccNo3 := GetCustomerReceivablesAccount(GenJournalLine, CustomerPostingGroup);
                                 end;
-                            GenJournalLine."Account Type"::Vendor:
-                                begin
-                                    GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
-                                    AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                    AccNo3 := GetVendorPayablesAccount(GenJournalLine, VendorPostingGroup);
-                                end;
                             GenJournalLine."Account Type"::Employee:
                                 begin
                                     EmployeePostingGroup.Get(GenJournalLine."Posting Group");
@@ -5561,8 +5556,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     AccNo3 := GetEmployeePayablesAccount(GenJournalLine, EmployeePostingGroup);
                                 end;
                         end;
-                        CreateGLEntryGainLoss(GenJournalLine, AccNo2, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
-                        CreateGLEntryGainLoss(GenJournalLine, AccNo3, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                        if AccNo2 <> AccNo3 then begin
+                            CreateGLEntryGainLoss(GenJournalLine, AccNo2, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                            CreateGLEntryGainLoss(GenJournalLine, AccNo3, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                        end;
                     end;
 
                     if not Unapply then
