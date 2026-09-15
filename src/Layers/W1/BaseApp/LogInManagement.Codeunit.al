@@ -265,6 +265,7 @@ codeunit 40 LogInManagement
                 begin
                     GLEntry.SetCurrentKey("Posting Date");
                     GLEntry.SecurityFiltering(SecurityFilter::Ignored);
+                    GLEntry.SetLoadFields("Posting Date");
                     if GLEntry.FindLast() then begin
                         LogInWorkDate := NormalDate(GLEntry."Posting Date");
                         exit(NormalDate(GLEntry."Posting Date"));
