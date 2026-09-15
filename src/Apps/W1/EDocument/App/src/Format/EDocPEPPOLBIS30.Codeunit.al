@@ -273,24 +273,18 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     var
         EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
-        if Rec."Document Format" = Rec."Document Format"::"PEPPOL BIS 3.0" then begin
-            EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
-            if EDocServiceSupportedType.IsEmpty() then begin
-                EDocServiceSupportedType.Init();
-                EDocServiceSupportedType."E-Document Service Code" := Rec.Code;
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Invoice";
-                EDocServiceSupportedType.Insert();
+        if Rec."Document Format" <> Rec."Document Format"::"PEPPOL BIS 3.0" then
+            exit;
 
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Sales Credit Memo";
-                EDocServiceSupportedType.Insert();
+        EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
+        if not EDocServiceSupportedType.IsEmpty() then
+            exit;
 
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Invoice";
-                EDocServiceSupportedType.Insert();
-
-                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Credit Memo";
-                EDocServiceSupportedType.Insert();
-            end;
-        end;
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Sales Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Sales Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Invoice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
+        EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Remittance Advice", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
     end;
 
     [IntegrationEvent(false, false)]

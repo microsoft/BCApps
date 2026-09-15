@@ -708,6 +708,11 @@ codeunit 6140 "E-Doc. Import"
             end;
         end;
 
+        if not EDocExport.IsDocumentTypeSupportedForImport(EDocumentService, EDocument."Document Type") then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocumentTypeNotSupportedForImportErr, EDocument."Document Type", EDocumentService.Code));
+            exit;
+        end;
+
         // Commit before getting full info with error handling (if Codeunit.Run then )
         Commit();
         EDocInterface := EDocumentService."Document Format";
@@ -915,6 +920,7 @@ codeunit 6140 "E-Doc. Import"
         DocCreatePOMsg: Label 'Creating Purchase Order';
         DocAlreadyExistsMsg: Label 'The document already exists.';
         DocTypeIsNotSupportedErr: Label 'Document type %1 is not supported.', Comment = '%1 - Document Type';
+        DocumentTypeNotSupportedForImportErr: Label 'Document type %1 is not permitted for the Incoming direction on E-Document Service %2.', Comment = '%1 - E-Document Type, %2 - E-Document Service Code';
         FailedToFindVendorErr: Label 'No vendor is set for Edocument';
         CannotProcessEDocumentMsg: Label 'Cannot process E-Document %1 with Purchase Order %2 before Purchase Order has been matched and posted for E-Document %3.', Comment = '%1 - E-Document entry no, %2 - Purchase Order number, %3 - EDocument entry no.';
         NoExtractedDataErr: Label 'There is no extracted data to display for this e-document. Please check if it is a valid invoice or could not be read.';
