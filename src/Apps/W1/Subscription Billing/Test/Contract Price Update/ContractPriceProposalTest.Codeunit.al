@@ -44,6 +44,7 @@ codeunit 139690 "Contract Price Proposal Test"
         Assert: Codeunit Assert;
         ContractTestLibrary: Codeunit "Contract Test Library";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -703,6 +704,54 @@ codeunit 139690 "Contract Price Proposal Test"
         Assert.RecordIsNotEmpty(ContractPriceUpdateLine);
         ContractPriceUpdateLine.FindFirst();
         Assert.AreEqual(PriceListLine."Direct Unit Cost", ContractPriceUpdateLine."New Calculation Base", 'New Calculation Base must equal the purchase price of the G/L Account');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    procedure CreateCustomerPriceUpdateProposalUsesPriceOfSubscriptionUnitOfMeasure()
+    var
+        CustomerContract: Record "Customer Subscription Contract";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLineForBaseUnitOfMeasure: Record "Price List Line";
+        PriceListLineForSubscriptionUnitOfMeasure: Record "Price List Line";
+    begin
+        // [SCENARIO 648553] The price update proposal must use the price of the Subscription unit of measure instead of the lowest price of all units of measure.
+        Initialize();
+
+        // [GIVEN] A customer contract with a Subscription that uses a unit of measure other than the base unit of measure
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', false);
+        Item.Get(ServiceObject."Source No.");
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 1);
+        ServiceObject.Validate("Unit of Measure", ItemUnitOfMeasure.Code);
+        ServiceObject.Modify(true);
+
+        // [GIVEN] An active sales price list with a lower price for the base unit of measure and a higher price for the Subscription unit of measure
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+        LibraryPriceCalculation.CreateSalesPriceLine(PriceListLineForBaseUnitOfMeasure, PriceListHeader.Code, "Price Source Type"::"All Customers", '', "Price Asset Type"::Item, Item."No.");
+        PriceListLineForBaseUnitOfMeasure.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+        PriceListLineForBaseUnitOfMeasure.Validate("Unit Price", 10);
+        PriceListLineForBaseUnitOfMeasure.Modify(true);
+
+        LibraryPriceCalculation.CreateSalesPriceLine(PriceListLineForSubscriptionUnitOfMeasure, PriceListHeader.Code, "Price Source Type"::"All Customers", '', "Price Asset Type"::Item, Item."No.");
+        PriceListLineForSubscriptionUnitOfMeasure.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        PriceListLineForSubscriptionUnitOfMeasure.Validate("Unit Price", 100);
+        PriceListLineForSubscriptionUnitOfMeasure.Modify(true);
+
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        PriceListHeader.Modify(true);
+
+        // [WHEN] Create a price update proposal with the Recent Item Prices method
+        ContractTestLibrary.CreatePriceUpdateTemplate(PriceUpdateTemplateCustomer, "Service Partner"::Customer, "Price Update Method"::"Recent Item Prices", 0, '<12M>', '<12M>', '<12M>');
+        PriceUpdateManagement.CreatePriceUpdateProposal(PriceUpdateTemplateCustomer.Code, CalcDate(PriceUpdateTemplateCustomer.InclContrLinesUpToDateFormula, WorkDate()), WorkDate());
+
+        // [THEN] The new calculation base is taken from the price list line of the Subscription unit of measure
+        ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateCustomer.Code);
+        Assert.RecordIsNotEmpty(ContractPriceUpdateLine);
+        ContractPriceUpdateLine.FindSet();
+        repeat
+            Assert.AreEqual(PriceListLineForSubscriptionUnitOfMeasure."Unit Price", ContractPriceUpdateLine."New Calculation Base", 'New Calculation Base must equal the sales price of the Subscription unit of measure');
+        until ContractPriceUpdateLine.Next() = 0;
     end;
 
     #endregion Tests
