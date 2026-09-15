@@ -293,5 +293,53 @@
     "codeunitId": 148348,
     "codeunitName": "Expense VAT Spec. API Test",
     "method": "AgentVATSpecificationIsInsertedThroughAPI"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithPostedReportIsBlocked"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "DeleteTravelRequestWithPostedLineIsBlocked"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportRejectsPostedHeader"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportRejectsPostedLine"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportAllowsOtherPostedTraveler"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ReapproveTravelRequestWithPostedHeader"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ReapproveTravelRequestWithPostedLine"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "AutoReapproveTravelRequestWithPostedHistory"
   }
 ]

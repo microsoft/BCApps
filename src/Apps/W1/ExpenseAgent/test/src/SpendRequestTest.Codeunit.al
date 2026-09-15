@@ -184,11 +184,13 @@ codeunit 148339 "Spend Request Test"
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         Traveler.Validate("Spend Request No.", SpendRequest."No.");
         Traveler."Line No." := 20000;
+        Commit();
 
         asserterror Traveler.ValidateEmployeeNo(ExpenseUser."Employee No.");
         Assert.ExpectedError(DuplicateTravelerMappingErr);
 
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+        Commit();
         asserterror Traveler.ValidateEmployeeNo(ExpenseUser."Employee No.");
         Assert.ExpectedError(StatusNotOpenErr);
 
@@ -580,6 +582,7 @@ codeunit 148339 "Spend Request Test"
         ReleaseSpendRequest.Release(SpendRequest);
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.FindFirst();
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -607,6 +610,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A normally posted report with offsetting amounts and a header-level request link.
         CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
         PostedExpenseReportHeader.TestField("Spend Request No.", SpendRequest."No.");
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -634,6 +638,7 @@ codeunit 148339 "Spend Request Test"
         PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
         PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportLine.FindFirst();
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -662,6 +667,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportLine.FindFirst();
+        Commit();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -809,6 +815,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An open request with its default date pair.
         LibraryExpense.CreateSpendRequest(SpendRequest);
+        Commit();
 
         // [WHEN] A start-only update exceeds the stored end.
         asserterror SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 1, 0D, true, false);
@@ -834,6 +841,7 @@ codeunit 148339 "Spend Request Test"
 
         // [WHEN] A released request receives a valid new pair.
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        Commit();
         asserterror SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 30, WorkDate() + 33, true, true);
 
         // [THEN] The existing status guard still rejects the edit.
@@ -917,8 +925,8 @@ codeunit 148339 "Spend Request Test"
         Initialize();
 
         // [GIVEN] Request "R" has posted header history for user "U", zero net spend, and no draft.
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         ExpenseUser.Get(SpendRequest."Requested For");
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         Assert.AreEqual(SpendRequest."No.", PostedExpenseReportHeader."Spend Request No.", 'The posted header must link the request.');
@@ -957,8 +965,8 @@ codeunit 148339 "Spend Request Test"
         Initialize();
 
         // [GIVEN] Only posted lines link request "R" to user "U", with zero net spend and no draft.
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, false);
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         ExpenseUser.Get(SpendRequest."Requested For");
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         Assert.AreEqual('', PostedExpenseReportHeader."Spend Request No.", 'The posted header must not link the request in the line-only fixture.');
@@ -1035,7 +1043,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.ApproveTravelRequest(ActionContext, ApproverExpenseUser."No.");
 
         // [THEN] The request is approved with its audit fields and a linked report.
-        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
+        Assert.AreEqual(Format(WebServiceActionResultCode::Updated), Format(ActionContext.GetResultCode()), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, 'The travel request should be approved through the page action.');
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", 'The approving user should be recorded.');
@@ -1070,7 +1078,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.CreateExpenseReport(ActionContext);
 
         // [THEN] A new linked report is returned for the requested Expense User.
-        Assert.AreEqual(WebServiceActionResultCode::Created, ActionContext.GetResultCode(), 'The action must return a created result.');
+        Assert.AreEqual(Format(WebServiceActionResultCode::Created), Format(ActionContext.GetResultCode()), 'The action must return a created result.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.FindFirst();
         ExpenseReportHeader.TestField("Expense User No.", ExpenseUser."No.");
@@ -1142,19 +1150,31 @@ codeunit 148339 "Spend Request Test"
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
     procedure CreateExpenseReportRejectsPostedHeader()
+    var
+        SpendRequest: Record "Spend Request";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
     begin
         // [SCENARIO] Posting a linked report must not permit recreation for the same traveler.
         Initialize();
-        AssertPostedReportPreventsRecreation(true);
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
+        Assert.AreEqual(SpendRequest."No.", PostedExpenseReportHeader."Spend Request No.", 'The posted header must link the request.');
+        Commit();
+        AssertPostedReportPreventsRecreation(SpendRequest, PostedExpenseReportHeader);
     end;
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
     procedure CreateExpenseReportRejectsPostedLine()
+    var
+        SpendRequest: Record "Spend Request";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
     begin
         // [SCENARIO] A posted line-only travel request link also prevents recreation.
         Initialize();
-        AssertPostedReportPreventsRecreation(false);
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, false);
+        Assert.AreEqual('', PostedExpenseReportHeader."Spend Request No.", 'Only the posted lines must link the request.');
+        Commit();
+        AssertPostedReportPreventsRecreation(SpendRequest, PostedExpenseReportHeader);
     end;
 
     [Test]
@@ -1182,29 +1202,22 @@ codeunit 148339 "Spend Request Test"
 
         TravelRequestsAPI.CreateExpenseReport(ActionContext);
 
-        Assert.AreEqual(WebServiceActionResultCode::Created, ActionContext.GetResultCode(), 'A different traveler must be able to create a report.');
+        Assert.AreEqual(Format(WebServiceActionResultCode::Created), Format(ActionContext.GetResultCode()), 'A different traveler must be able to create a report.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         ExpenseReportHeader.FindFirst();
         ExpenseReportHeader.TestField("Expense User No.", OtherExpenseUser."No.");
         Assert.IsTrue(PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No."), 'The other traveler''s posted report must remain.');
     end;
 
-    local procedure AssertPostedReportPreventsRecreation(AssignOnHeader: Boolean)
+    local procedure AssertPostedReportPreventsRecreation(SpendRequest: Record "Spend Request"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
     var
-        SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
-        PostedExpenseReportHeader: Record "Posted Expense Report Header";
         TravelRequestsAPI: Page "Travel Requests API";
         ActionContext: WebServiceActionContext;
     begin
-        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, AssignOnHeader);
         ExpenseUser.Get(PostedExpenseReportHeader."Expense User No.");
         SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-        if AssignOnHeader then
-            PostedExpenseReportHeader.TestField("Spend Request No.", SpendRequest."No.")
-        else
-            PostedExpenseReportHeader.TestField("Spend Request No.", '');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         Assert.RecordIsEmpty(ExpenseReportHeader);
         SetOwnerScopedTravelRequest(TravelRequestsAPI, SpendRequest, ExpenseUser.SystemId);
@@ -1262,7 +1275,7 @@ codeunit 148339 "Spend Request Test"
         asserterror TravelRequestsAPI.CreateExpenseReport(ActionContext);
 
         // [THEN] The action requires Requested For.
-        Assert.ExpectedError(FieldRequiredErr);
+        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption("Requested For"), '');
     end;
 
     [Test]
@@ -1310,7 +1323,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.SubmitTravelRequest(ActionContext, ExpenseUser."No.");
 
         // [THEN] The request is released with its submission audit fields.
-        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
+        Assert.AreEqual(Format(WebServiceActionResultCode::Updated), Format(ActionContext.GetResultCode()), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The travel request should be released through the page action.');
         Assert.AreEqual(ExpenseUser."No.", SpendRequest."Submitted By Expense User No.", 'The submitting expense user should be recorded.');
@@ -1419,7 +1432,7 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI.RejectTravelRequest(ActionContext, ApproverExpenseUser."No.", RejectReason);
 
         // [THEN] The action returns Updated and the request records the rejection details.
-        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
+        Assert.AreEqual(Format(WebServiceActionResultCode::Updated), Format(ActionContext.GetResultCode()), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, TravelRequestRejectedMsg);
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", TravelRequestRejectionUserMsg);
@@ -2133,10 +2146,13 @@ codeunit 148339 "Spend Request Test"
 
     local procedure Initialize()
     var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Spend Request Test");
+        // Clear approval mappings together with the expense users between tests.
+        ExpenseApprovalSetup.DeleteAll();
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         CloseConfirmCount := 0;
@@ -2355,7 +2371,7 @@ codeunit 148339 "Spend Request Test"
 
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
-        PostedExpenseReportHeader.Get(ExpenseReportHeader."Posting No.");
+        PostedExpenseReportHeader.Get(ExpenseReportHeader."Last Posting No.");
         SpendRequest.Get(SpendRequest."No.");
         SpendRequest.CalcFields("Total Spent Amount (LCY)");
         Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", 'Offsetting posted amounts must leave zero net spend.');
