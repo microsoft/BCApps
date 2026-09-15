@@ -454,6 +454,7 @@ codeunit 4509 "Email - Outlook API Helper"
         EmailInbox."Sender Address" := CopyStr(SenderEmail, 1, MaxStrLen(EmailInbox."Sender Address"));
         EmailInbox."Is Read" := IsRead;
         EmailInbox."Is Draft" := IsDraft;
+        OnCreateEmailInboxFromJsonObjectOnBeforeInsert(EmailInbox, EmailJsonObject);
         EmailInbox.Insert();
         EmailInbox.Mark(true);
     end;
@@ -830,6 +831,11 @@ codeunit 4509 "Email - Outlook API Helper"
         BodyJson := JToken.AsObject();
         BodyJson.Get('content', JToken);
         exit(JToken.AsValue().AsText());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateEmailInboxFromJsonObjectOnBeforeInsert(var EmailInbox: Record "Email Inbox"; EmailJsonObject: JsonObject)
+    begin
     end;
 
 #if not CLEAN28
