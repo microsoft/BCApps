@@ -531,6 +531,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
         // [GIVEN] A valid response echoing a VAT number that does not match the request
         CreateVATCheckResponseWithIdentifiers(ResponseDoc, VATRegistrationLog.GetCountryCode(), '00000000');
+        Commit(); // Keep the created customer past the asserterror rollback so tear-down can delete it.
 
         // [THEN] The response is rejected as tampered/unrelated through the supported entry point
         asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
@@ -557,6 +558,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
         // [GIVEN] A valid response echoing the requested VAT number but a wrong country code
         CreateVATCheckResponseWithIdentifiers(ResponseDoc, 'XX', VATRegistrationLog.GetVATRegNo());
+        Commit(); // Keep the created customer past the asserterror rollback so tear-down can delete it.
 
         // [THEN] The response is rejected as tampered/unrelated through the supported entry point
         asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
@@ -587,6 +589,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
         // [GIVEN] A valid=true response that omits the country code and VAT number identifiers
         CreateValidVATCheckResponse(ResponseDoc, ValidatedName, ValidatedAddress);
+        Commit(); // Keep the created customer past the asserterror rollback so tear-down can delete it.
 
         // [THEN] The response is rejected because the required identifiers are missing, through the supported entry point
         asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
