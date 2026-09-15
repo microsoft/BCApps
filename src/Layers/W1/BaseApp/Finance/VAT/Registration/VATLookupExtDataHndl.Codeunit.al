@@ -259,7 +259,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         // valid=true payload with the identifiers stripped cannot be trusted for the requested VAT number.
         if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
             AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifiersTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('', ResponseMissingIdentifiersMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+            Session.LogMessage('0000VF6', ResponseMissingIdentifiersMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
             Error(ResponseMissingIdentifiersErr);
         end;
 
