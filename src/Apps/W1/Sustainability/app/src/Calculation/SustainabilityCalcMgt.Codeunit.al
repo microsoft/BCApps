@@ -325,15 +325,9 @@ codeunit 6218 "Sustainability Calc. Mgt."
     end;
 
     local procedure GetTotalGLEntryAmount(var GLEntry: Record "G/L Entry"): Decimal
-    var
-        TotalAmount: Decimal;
     begin
-        if GLEntry.FindSet() then
-            repeat
-                TotalAmount += GLEntry.Amount;
-            until GLEntry.Next() = 0;
-
-        exit(Abs(TotalAmount));
+        GLEntry.CalcSums(Amount);
+        exit(Abs(GLEntry.Amount));
     end;
 
     [IntegrationEvent(false, false)]
