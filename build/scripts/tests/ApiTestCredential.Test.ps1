@@ -91,6 +91,31 @@ Describe 'API test credential materialization' {
         Should -Invoke -ModuleName ApiTestCredential Add-Content -Times 0
     }
 
+    It 'preserves Unicode passwords while clearing the written byte buffer' {
+        $characters = [char[]]@(0x0061, 0x00E9, 0xD83D, 0xDD10)
+        $password = [System.Security.SecureString]::new()
+        try {
+            foreach ($character in $characters) { $password.AppendChar($character) }
+            $password.MakeReadOnly()
+            $credential = [PSCredential]::new('unit-test', $password)
+
+            Write-ApiTestPassword -ContainerName 'unit-test' -Credential $credential
+
+            $script:stream.Written | Should -Be (-join $characters)
+            @($script:stream.Buffer | Where-Object { $_ -ne 0 }).Count | Should -Be 0
+        }
+        finally {
+            $password.Dispose()
+        }
+    }
+
+    It 'does not materialize an immutable plaintext password string in the writer' {
+        $source = Get-Content (Join-Path $PSScriptRoot '..\ApiTestCredential.psm1') -Raw
+        $source | Should -Not -Match 'GetNetworkCredential|PtrToString'
+        $source | Should -Match 'SecureStringToBSTR'
+        $source | Should -Match 'ZeroFreeBSTR'
+    }
+
     It 'fails closed on an unresolved mount in CI and locally' {
         Mock -ModuleName ApiTestCredential Get-BcContainerSharedFolders { @{} }
         foreach ($environmentPath in @('unused-github-env', '')) {
