@@ -51,6 +51,7 @@ codeunit 139876 "E2E PowerBI Finance Test"
 
     local procedure Initialize()
     begin
+        LibGraphMgt.SetLicenseSafeWorkDate();
         LibGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
