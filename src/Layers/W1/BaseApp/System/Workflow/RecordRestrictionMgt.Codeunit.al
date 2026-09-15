@@ -157,9 +157,17 @@ codeunit 1550 "Record Restriction Mgt."
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterModifyEvent', '', false, false)]
     procedure RestrictGenJournalLineAfterModify(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line"; RunTrigger: Boolean)
+    var
+        IsHandled: Boolean;
     begin
         if Format(Rec) = Format(xRec) then
             exit;
+
+        IsHandled := false;
+        OnBeforeRestrictGenJournalLineAfterModify(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
         RestrictGenJournalLine(Rec);
     end;
 
@@ -815,6 +823,11 @@ codeunit 1550 "Record Restriction Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJournalLineCheckGenJournalLinePostRestrictions(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeRestrictGenJournalLineAfterModify(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
