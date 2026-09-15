@@ -25,6 +25,7 @@ table 4767 "FA Module Setup"
         }
         field(2; "Default Depreciation Book"; Code[10])
         {
+            DataClassification = CustomerContent;
             Caption = 'Default Depreciation Book';
             TableRelation = "Depreciation Book";
         }

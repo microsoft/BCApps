@@ -24,6 +24,7 @@ table 5296 "EService Demo Data Setup"
         }
         field(2; "Invoice Field Name"; Text[100])
         {
+            DataClassification = CustomerContent;
             Caption = 'Invoice File Name';
             ToolTip = 'Specifies the Invoice File Name for the Incoming Document.';
         }
