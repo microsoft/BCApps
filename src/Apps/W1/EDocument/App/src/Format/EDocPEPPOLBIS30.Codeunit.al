@@ -1,9 +1,9 @@
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.EServices.EDocument.Format;
 using Microsoft.eServices.EDocument.RemittanceAdvice;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Peppol;
