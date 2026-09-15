@@ -540,9 +540,11 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine."Adjustment Applies-to" := SalesHeader."Adjustment Applies-to";
 
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
-        GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
-        GenJnlLine."VAT Amount (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount");
-        GenJnlLine."VAT Difference (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference");
+        if GLSetup."Additional Reporting Currency" <> '' then begin
+            GenJnlLine."VAT Base (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Base Amount");
+            GenJnlLine."VAT Amount (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Amount");
+            GenJnlLine."VAT Difference (ACY)" := VATExchangeAmtLCYToACY(GenJnlLine."Posting Date", InvoicePostingBuffer."VAT Difference");
+        end;
         GenJnlLine."Amount Including VAT (ACY)" := GenJnlLine."VAT Base (ACY)" + GenJnlLine."VAT Amount (ACY)";
         if GLSetup."Journal Templ. Name Mandatory" then
             GenJnlLine."Journal Template Name" := InvoicePostingBuffer."Journal Templ. Name";
@@ -843,7 +845,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
     begin
         if AmountLCY = 0 then
             exit(0);
-        GetACYCurrency();
+        if not GetACYCurrency() then
+            exit(0);
         exit(
             Round(
                 CurrExchRate.ExchangeAmtLCYToFCY(
@@ -852,12 +855,15 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 ACYCurrency."Amount Rounding Precision", ACYCurrency.VATRoundingDirection()));
     end;
 
-    local procedure GetACYCurrency()
+    local procedure GetACYCurrency(): Boolean
     begin
         GLSetup.Get();
+        if GLSetup."Additional Reporting Currency" = '' then
+            exit(false);
         GLSetup.TestField("Additional Reporting Currency");
         ACYCurrency.Get(GLSetup."Additional Reporting Currency");
         ACYCurrency.TestField("Amount Rounding Precision");
+        exit(true);
     end;
 
     local procedure UpdateInvoicePostingBufferGST(SalesLine: Record "Sales Line"; InvoicePostingBuffer: Record "Invoice Posting Buffer")
