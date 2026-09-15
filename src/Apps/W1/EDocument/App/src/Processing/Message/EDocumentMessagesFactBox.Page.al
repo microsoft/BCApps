@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
+using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 /// <summary>
@@ -89,6 +90,51 @@ page 6434 "E-Document Messages FactBox"
 
     var
         FileNameTok: Label 'E-Document_%1_Response_%2.xml', Comment = '%1 = E-Document number, %2 = human-readable response type', Locked = true;
+
+    internal procedure SetSourceRecordId(SourceRecordId: RecordId)
+    var
+        EDocument: Record "E-Document";
+        FilterTxt: TextBuilder;
+    begin
+        EDocument.SetLoadFields("Entry No");
+        EDocument.SetRange("Document Record ID", SourceRecordId);
+        if EDocument.ReadPermission() then
+            if EDocument.FindSet() then
+                repeat
+                    if FilterTxt.Length() > 0 then
+                        FilterTxt.Append('|');
+                    FilterTxt.Append(Format(EDocument."Entry No"));
+                until EDocument.Next() = 0;
+
+        if FilterTxt.Length() > 0 then
+            Rec.SetFilter("E-Document Entry No.", FilterTxt.ToText())
+        else
+            // No e-documents bound to the source record: filter to a value that cannot exist so the FactBox stays empty.
+            Rec.SetRange("E-Document Entry No.", -1);
+        CurrPage.Update(false);
+    end;
+
+    internal procedure SetSourceDocumentIdentity(DocumentNo: Code[20]; PostingDate: Date; PartnerNo: Code[20]; EDocumentDirection: Enum "E-Document Direction"; DocumentType: Enum "E-Document Type")
+    var
+        EDocument: Record "E-Document";
+        FilterTxt: TextBuilder;
+    begin
+        EDocument.SetLoadFields("Entry No");
+        EDocument.SetDocumentIdentityFilters(EDocument, DocumentNo, PostingDate, PartnerNo, EDocumentDirection, DocumentType);
+        if EDocument.ReadPermission() then
+            if EDocument.FindSet() then
+                repeat
+                    if FilterTxt.Length() > 0 then
+                        FilterTxt.Append('|');
+                    FilterTxt.Append(Format(EDocument."Entry No"));
+                until EDocument.Next() = 0;
+
+        if FilterTxt.Length() > 0 then
+            Rec.SetFilter("E-Document Entry No.", FilterTxt.ToText())
+        else
+            Rec.SetRange("E-Document Entry No.", -1);
+        CurrPage.Update(false);
+    end;
 
     local procedure BuildFileName(): Text
     var
