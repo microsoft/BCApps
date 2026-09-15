@@ -75,6 +75,11 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
         IPv4LoopbackIPAddressTxt: Label '127.0.0.1', Locked = true;
         IPv6LoopbackIPAddressTxt: Label '::1', Locked = true;
         IPAddressRegExPatternTxt: Label '[0-9]{1,3}(\.[0-9]{1,3}){3}|([0-9A-Fa-f]{0,4}:){2,7}([0-9A-Fa-f]{1,4})', Locked = true;
+        ResponseTooLargeTxt: Label 'The public IP service response exceeded the maximum allowed size and was rejected.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The public IP service returned a response that exceeded the maximum allowed size.', Locked = true;
+        BlockedUrlTxt: Label 'The configured public IP service URL was rejected; it must be an external HTTPS endpoint.', Locked = true;
+        SecurityAuditBlockedUrlTxt: Label 'The configured public IP service URL was rejected as it is not an allowed external HTTPS endpoint (non-HTTPS or internal/private/loopback host).', Locked = true;
+        BlockedUrlErr: Label 'The User IP Address Service URL must be an external HTTPS endpoint. Internal, private, loopback, or link-local addresses are not allowed.';
 
     internal procedure AddFraudPreventionHeaders(var RequestJSON: Text)
     var
@@ -395,16 +400,135 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
     var
         Matches: Record Matches;
         Regex: Codeunit Regex;
+        AuditLog: Codeunit "Audit Log";
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
         Content: Text;
     begin
         ServerIPAddress := '';
+        // SSRF mitigation: the URL is an admin-configurable setup value, so reject non-HTTPS or internal/private/loopback
+        // targets before issuing the server-side request. The endpoint host is fully owned/chosen by the customer, so no
+        // allow-list is possible; this blocks the most dangerous internal targets while keeping arbitrary public endpoints.
+        if not IsPublicIPServiceUrlAllowed(PublicIPServiceURL) then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+            AuditLog.LogAuditMessage(SecurityAuditBlockedUrlTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            FeatureTelemetry.LogError('0000VEW', HMRCFraudPreventHeadersTok, '', BlockedUrlTxt);
+            exit;
+        end;
         HttpClient.Get(PublicIPServiceURL, HttpResponseMessage);
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            exit; // a non-2xx error body must not be parsed for an IP address
+        if not IsResponseSizeAcceptable(HttpResponseMessage) then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            FeatureTelemetry.LogError('0000VEJ', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
+            exit;
+        end;
         HttpResponseMessage.Content().ReadAs(Content);
+        // Reject oversized responses before running the pattern match, so an IP-like substring in a large
+        // malicious payload from the unauthenticated service cannot be extracted and trusted.
+        if StrLen(Content) > GetMaxResponseSize() then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            FeatureTelemetry.LogError('0000VEK', HMRCFraudPreventHeadersTok, '', ResponseTooLargeTxt);
+            exit;
+        end;
         Regex.Match(Content, IPAddressRegExPatternTxt, 0, Matches);
         if Matches.FindFirst() then
             ServerIPAddress := Matches.ReadValue();
+    end;
+
+    local procedure IsResponseSizeAcceptable(var HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        ContentHeaders: HttpHeaders;
+        Values: array[10] of Text;
+        ContentLength: Integer;
+    begin
+        if not HttpResponseMessage.Content().GetHeaders(ContentHeaders) then
+            exit(true);
+        if not ContentHeaders.GetValues('Content-Length', Values) then
+            exit(true);
+        if not Evaluate(ContentLength, Values[1]) then
+            exit(true);
+        exit(ContentLength <= GetMaxResponseSize());
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        // The public IP service returns a short IP address string (a few bytes). 4 KB leaves ample headroom
+        // for simple JSON/text wrappers while rejecting abnormally large payloads.
+        exit(4096);
+    end;
+
+    local procedure IsPublicIPServiceUrlAllowed(PublicIPServiceURL: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+        Host: Text;
+    begin
+        // URL restrictions apply online (SaaS) only; on-prem admins control their own network egress (e.g. internal proxies).
+        if not EnvironmentInformation.IsSaaS() then
+            exit(true);
+        if not TryInitUri(Uri, PublicIPServiceURL) then
+            exit(false);
+        // Require HTTPS so the response cannot be tampered with in transit and to reduce the redirect surface.
+        if LowerCase(Uri.GetScheme()) <> 'https' then
+            exit(false);
+        Host := LowerCase(Uri.GetHost());
+        if Host = '' then
+            exit(false);
+        exit(not IsInternalHost(Host));
+    end;
+
+    [TryFunction]
+    local procedure TryInitUri(var Uri: Codeunit Uri; Url: Text)
+    begin
+        Uri.Init(Url);
+    end;
+
+    local procedure IsInternalHost(Host: Text): Boolean
+    begin
+        // Strip IPv6 literal brackets so bracketed forms (e.g. [::ffff:127.0.0.1]) are checked the same as bare hosts.
+        Host := DelChr(Host, '=', '[]');
+        if Host in ['localhost', '127.0.0.1', '::1'] then
+            exit(true);
+
+        if Host.Contains(':') then begin
+            // Any IPv6 literal that embeds a dotted IPv4 tail (e.g. ::127.0.0.1, ::ffff:127.0.0.1,
+            // 0:0:0:0:0:0:127.0.0.1) is re-checked against the embedded IPv4 address.
+            if Host.Contains('.') then
+                exit(IsInternalHost(CopyStr(Host, Host.LastIndexOf(':') + 1)));
+            // Pure IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
+            if Host.StartsWith('fc') or Host.StartsWith('fd') then
+                exit(true);
+            if Host.StartsWith('fe8') or Host.StartsWith('fe9') or Host.StartsWith('fea') or Host.StartsWith('feb') then
+                exit(true);
+            exit(false);
+        end;
+
+        // IPv4 loopback (127.0.0.0/8), link-local incl. cloud IMDS (169.254.0.0/16), and RFC1918 private ranges.
+        if Host.StartsWith('127.') then
+            exit(true);
+        if Host.StartsWith('169.254.') then
+            exit(true);
+        if Host.StartsWith('10.') then
+            exit(true);
+        if Host.StartsWith('192.168.') then
+            exit(true);
+        exit(IsPrivate172Range(Host));
+    end;
+
+    local procedure IsPrivate172Range(Host: Text): Boolean
+    var
+        Octets: List of [Text];
+        SecondOctet: Integer;
+    begin
+        // Private range 172.16.0.0 - 172.31.255.255.
+        if not Host.StartsWith('172.') then
+            exit(false);
+        Octets := Host.Split('.');
+        if Octets.Count() < 2 then
+            exit(false);
+        if not Evaluate(SecondOctet, Octets.Get(2)) then
+            exit(false);
+        exit((SecondOctet >= 16) and (SecondOctet <= 31));
     end;
 
     internal procedure TestPublicIPServiceURL(url: Text)
@@ -415,6 +539,10 @@ codeunit 10541 "MTD Fraud Prevention Mgt."
     begin
         if url = '' then
             exit;
+
+        // Surface the specific SSRF-rejection reason to the admin instead of the generic empty-IP error below.
+        if not IsPublicIPServiceUrlAllowed(url) then
+            Error(BlockedUrlErr);
 
         // test getting server public IP address
         if not GetServerPublicIPFromExternalService(ServerIPAddress, url) then

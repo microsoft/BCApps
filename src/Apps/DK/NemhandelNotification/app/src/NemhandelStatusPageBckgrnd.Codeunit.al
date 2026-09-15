@@ -1,6 +1,7 @@
 namespace Microsoft.EServices;
 
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 13608 "Nemhandel Status Page Bckgrnd"
 {
@@ -8,12 +9,16 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
 
     var
         NemhandelMgt: Codeunit "Nemhandel Status Mgt.";
-        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - url, e.g. https://microsoft.com', Locked = true;
-        ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - url, e.g. https://microsoft.com', Locked = true;
-        HttpResponseDetailsTxt: Label 'HTTP response: request URI: %1; Response (part): %2; Status code: %3; Reason: %4', Comment = '%1 - request URI, %2 - response text, %3 - status code, %4 - reason', Locked = true;
+        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 - host, e.g. microsoft.com', Locked = true;
+        ConnectionErr: Label 'Could not connect to the remote service %1.', Comment = '%1 - host, e.g. microsoft.com', Locked = true;
+        CompanyStatusCheckedTxt: Label 'Nemhandel company registration status was checked.', Locked = true;
+        ResponseRejectedTxt: Label 'The Nemhandelsregisteret response was rejected by response validation (size or schema).', Locked = true;
+        ServiceCallFailedTxt: Label 'The Nemhandelsregisteret company registration status lookup failed.', Locked = true;
         NemhandelsregisteretCategoryTxt: Label 'Nemhandelsregisteret', Locked = true;
         NemhandelCompanyStatusKeyLbl: Label 'NemhandelCompanyStatus', Locked = true;
         CVRNumberKeyLbl: Label 'CVRNumber', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The Nemhandelsregisteret service returned a response that exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseSchemaTxt: Label 'The Nemhandelsregisteret service returned a response that did not contain the expected data.', Locked = true;
 
     trigger OnRun()
     var
@@ -44,7 +49,7 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         ContentString: Text;
         HttpStatusCode: Integer;
         HttpStatusReason: Text;
-        HttpResponseLogMessage: Text;
+        ResponseBodyValid: Boolean;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if CVRNumber = '' then
@@ -56,46 +61,53 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         HttpRequestURI := HttpClientNemhandel.GetRequestURI(CVRNumber);
         if not HttpClientNemhandel.SendGetRequest(HttpRequestURI, HttpRequestMessage, HttpResponseMsgNemhandel) then
             if HttpResponseMsgNemhandel.IsBlockedByEnvironment() then
-                ErrorMessage := StrSubstNo(EnvironmentBlocksErr, HttpRequestMessage.GetRequestUri())
+                ErrorMessage := StrSubstNo(EnvironmentBlocksErr, GetHostFromUri(HttpRequestURI))
             else
-                ErrorMessage := StrSubstNo(ConnectionErr, HttpRequestMessage.GetRequestUri());
+                ErrorMessage := StrSubstNo(ConnectionErr, GetHostFromUri(HttpRequestURI));
         if ErrorMessage <> '' then begin
             Telemetry.LogMessage(
-                '0000L9W', ErrorMessage, Verbosity::Warning, DataClassification::OrganizationIdentifiableInformation,
-                TelemetryScope::ExtensionPublisher, CustomDimensions);
+                '0000L9W', ErrorMessage, Verbosity::Warning, DataClassification::SystemMetadata,
+                TelemetryScope::All, CustomDimensions);
             CompanyStatus := "Nemhandel Company Status"::Unknown;
             exit;
         end;
 
         HttpStatusCode := 0;
         HttpStatusReason := '';
-        ProcessHttpResponseMessage(HttpResponseMsgNemhandel, ResponseCVRNumber, ContentString, HttpStatusCode, HttpStatusReason);
-        HttpResponseLogMessage :=
-            StrSubstNo(HttpResponseDetailsTxt, HttpRequestMessage.GetRequestUri(), CopyStr(ContentString, 1, 50), HttpStatusCode, HttpStatusReason);
+        ProcessHttpResponseMessage(HttpResponseMsgNemhandel, ResponseCVRNumber, ContentString, HttpStatusCode, HttpStatusReason, ResponseBodyValid);
+        CustomDimensions.Add('HttpStatusCode', Format(HttpStatusCode));
+        CustomDimensions.Add('HttpStatusReason', HttpStatusReason);
 
         case HttpStatusCode of
             200:
-                begin
-                    if ResponseCVRNumber.Contains(CVRNumber) then
+                if not ResponseBodyValid then begin
+                    // Oversized or schema-invalid response: an explicit rejection introduced by response validation.
+                    // Logged as a warning (and to environment telemetry) so it is distinguishable from a successful lookup.
+                    CompanyStatus := "Nemhandel Company Status"::Unknown;
+                    Telemetry.LogMessage(
+                        '0000VEV', ResponseRejectedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+                        TelemetryScope::All, CustomDimensions);
+                end else begin
+                    if UpperCase(ResponseCVRNumber.Trim()) = UpperCase(CVRNumber.Trim()) then
                         CompanyStatus := "Nemhandel Company Status"::Registered
                     else
                         CompanyStatus := "Nemhandel Company Status"::NotRegistered;
                     Telemetry.LogMessage(
-                        '0000L9X', HttpResponseLogMessage, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
+                        '0000L9X', CompanyStatusCheckedTxt, Verbosity::Normal, DataClassification::SystemMetadata,
                         TelemetryScope::ExtensionPublisher, CustomDimensions);
                 end;
             404:
                 begin
                     CompanyStatus := "Nemhandel Company Status"::NotRegistered;
                     Telemetry.LogMessage(
-                        '0000L9Y', HttpResponseLogMessage, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
+                        '0000L9Y', CompanyStatusCheckedTxt, Verbosity::Normal, DataClassification::SystemMetadata,
                         TelemetryScope::ExtensionPublisher, CustomDimensions);
                 end;
             else begin
                 CompanyStatus := "Nemhandel Company Status"::Unknown;
                 Telemetry.LogMessage(
-                    '0000L9Z', HttpResponseLogMessage, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
-                    TelemetryScope::ExtensionPublisher, CustomDimensions);
+                    '0000L9Z', ServiceCallFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+                    TelemetryScope::All, CustomDimensions);
             end;
         end;
     end;
@@ -115,23 +127,71 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         NemhandelMgt.SetHttpClient(HttpClientNemhandel);
     end;
 
-    local procedure ProcessHttpResponseMessage(HttpResponseMsgNemhandel: Interface "Http Response Msg Nemhandel"; var ResponseCVRNumber: Text; var ContentString: Text; var HttpStatusCode: Integer; var HttpStatusReason: Text)
+    local procedure ProcessHttpResponseMessage(HttpResponseMsgNemhandel: Interface "Http Response Msg Nemhandel"; var ResponseCVRNumber: Text; var ContentString: Text; var HttpStatusCode: Integer; var HttpStatusReason: Text; var ResponseBodyValid: Boolean)
     var
-        Result: Boolean;
-        ContentJson: JsonObject;
-        CVRNumberToken: JsonToken;
+        AuditLog: Codeunit "Audit Log";
     begin
-        Result := HttpResponseMsgNemhandel.IsSuccessStatusCode();
+        ResponseBodyValid := false;
         HttpStatusCode := HttpResponseMsgNemhandel.HttpStatusCode();
         HttpStatusReason := HttpResponseMsgNemhandel.ReasonPhrase();
 
-        if not Result then
+        if not HttpResponseMsgNemhandel.IsSuccessStatusCode() then
             exit;
 
         ContentString := HttpResponseMsgNemhandel.GetResponseBodyAsText();
 
-        ContentJson := HttpResponseMsgNemhandel.GetResponseBody();
-        if ContentJson.Get('cvrNummer', CVRNumberToken) then
-            if CVRNumberToken.WriteTo(ResponseCVRNumber) then;
+        // Size limit: reject abnormally large responses from the unauthenticated Nemhandelsregisteret service before parsing.
+        if StrLen(ContentString) > GetMaxResponseSize() then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+            AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            exit;
+        end;
+
+        // Schema / source expectation: the response must be a JSON object that exposes the 'cvrNummer' field.
+        if not TryExtractCVRNumber(ContentString, ResponseCVRNumber) then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseSchemaTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            exit;
+        end;
+
+        ResponseBodyValid := true;
+    end;
+
+    local procedure TryExtractCVRNumber(ContentString: Text; var ResponseCVRNumber: Text): Boolean
+    var
+        ContentJson: JsonObject;
+        CVRNumberToken: JsonToken;
+    begin
+        if not ContentJson.ReadFrom(ContentString) then
+            exit(false);
+        if not ContentJson.Get('cvrNummer', CVRNumberToken) then
+            exit(false);
+        // Require a scalar value (reject nested objects/arrays) so a tampered payload cannot smuggle the CVR number.
+        if not CVRNumberToken.IsValue() then
+            exit(false);
+        ResponseCVRNumber := CVRNumberToken.AsValue().AsText();
+        exit(true);
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        // A lookup returns a single company record (typically < 1 KB). 64 KB leaves ample headroom
+        // while still rejecting abnormally large payloads from the unauthenticated service.
+        exit(65536);
+    end;
+
+    local procedure GetHostFromUri(RequestUri: Text): Text
+    var
+        Uri: Codeunit Uri;
+    begin
+        // Return only the host so the CVR-number-bearing request URI is not emitted verbatim to telemetry.
+        if not TryInitUri(Uri, RequestUri) then
+            exit('');
+        exit(Uri.GetHost());
+    end;
+
+    [TryFunction]
+    local procedure TryInitUri(var Uri: Codeunit Uri; RequestUri: Text)
+    begin
+        Uri.Init(RequestUri);
     end;
 }

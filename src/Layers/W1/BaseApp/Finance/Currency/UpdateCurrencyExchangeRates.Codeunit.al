@@ -6,9 +6,11 @@ namespace Microsoft.Finance.Currency;
 
 using Microsoft.Utilities;
 using System;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
 using System.IO;
+using System.Telemetry;
 using System.Utilities;
 using System.Xml;
 
@@ -44,6 +46,15 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning restore AA0470
         ExchRatesUpdatedTxt: Label 'The user updated currency exchange rates via a currency exchange rate service.', Locked = true;
         TelemetryCategoryTok: Label 'AL Exchange Rate Service', Locked = true;
+        ResponseTooLargeErr: Label 'The response from the currency exchange rate service exceeded the maximum allowed size and was rejected.';
+        ResponseTooLargeTxt: Label 'The currency exchange rate update failed. The response exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The currency exchange rate service returned a response that exceeded the maximum allowed size.', Locked = true;
+        BlockedEndpointErr: Label 'The currency exchange rate service web service URL must be an external address. Internal, private, loopback, or link-local addresses are not allowed.';
+        BlockedEndpointTitleTxt: Label 'Web service URL not allowed';
+        BlockedEndpointDetailTxt: Label 'Open the currency exchange rate service setup and change the Web Service URL to a valid external address before updating exchange rates.';
+        OpenCurrExchRateServiceSetupTxt: Label 'Open the currency exchange rate service setup';
+        BlockedEndpointMsg: Label 'The currency exchange rate update failed. The configured web service URL targets an internal address and was rejected.', Locked = true;
+        SecurityAuditBlockedEndpointTxt: Label 'The currency exchange rate service web service URL was rejected because it targets an internal address.', Locked = true;
 
     local procedure SyncCurrencyExchangeRates()
     var
@@ -89,8 +100,120 @@ codeunit 1281 "Update Currency Exchange Rates"
             exit;
 
         ExecuteWebServiceRequest(CurrExchRateUpdateSetup, ResponseInStream);
+        // ResponseInStream is created from TempBlobResponse above, so ExecuteWebServiceRequest (via
+        // Http Web Request Mgt.GetResponse -> CopyTo) writes the downloaded payload into TempBlobResponse's
+        // backing blob. TempBlobResponse.Length() therefore reflects the actual response on the default HTTP path
+        // (same Temp Blob pattern as Http Web Request Mgt.SendRequestAndReadResponse), and drives the size check.
+        CheckResponseSize();
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
+    end;
+
+    local procedure CheckResponseSize()
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        if TempBlobResponse.Length() <= GetMaxResponseSize() then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+        Session.LogMessage('0000VEP', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
+        Clear(TempBlobResponse);
+        Error(ResponseTooLargeErr);
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        exit(10485760); // 10 MB - exchange rate feeds are small; larger responses are rejected as potentially malicious.
+    end;
+
+    local procedure CheckServiceEndpointAllowed(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; ServiceUrl: Text)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        AuditLog: Codeunit "Audit Log";
+        Uri: Codeunit Uri;
+        BlockedEndpointErrInfo: ErrorInfo;
+        Host: Text;
+    begin
+        // SSRF mitigation: the web service URL is an admin-configurable setup value. Online (SaaS), reject internal/
+        // private/loopback targets so the setup cannot redirect this server-side call to an internal address. On-prem
+        // admins control their own network egress (e.g. internal proxies), so no restriction is applied there.
+        if not EnvironmentInformation.IsSaaS() then
+            exit;
+        if not TryInitUri(Uri, ServiceUrl) then
+            exit; // a malformed URL is handled by the existing request/error path
+        Host := LowerCase(Uri.GetHost());
+        if Host = '' then
+            exit;
+        if not IsInternalHost(Host) then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+        Session.LogMessage('0000VF5', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
+        // Rejecting the configured URL is a recoverable setup problem, so make the error navigate to the specific
+        // service setup record whose URL was rejected (the setup table holds one row per exchange-rate service).
+        BlockedEndpointErrInfo.Title := BlockedEndpointTitleTxt;
+        BlockedEndpointErrInfo.Message := BlockedEndpointErr;
+        BlockedEndpointErrInfo.DetailedMessage := BlockedEndpointDetailTxt;
+        BlockedEndpointErrInfo.DataClassification := DataClassification::SystemMetadata;
+        BlockedEndpointErrInfo.PageNo := Page::"Curr. Exch. Rate Service Card";
+        BlockedEndpointErrInfo.RecordId := CurrExchRateUpdateSetup.RecordId();
+        BlockedEndpointErrInfo.AddNavigationAction(OpenCurrExchRateServiceSetupTxt);
+        Error(BlockedEndpointErrInfo);
+    end;
+
+    [TryFunction]
+    local procedure TryInitUri(var Uri: Codeunit Uri; Url: Text)
+    begin
+        Uri.Init(Url);
+    end;
+
+    local procedure IsInternalHost(Host: Text): Boolean
+    begin
+        // Strip IPv6 literal brackets so bracketed forms (e.g. [::ffff:127.0.0.1]) are checked the same as bare hosts.
+        Host := DelChr(Host, '=', '[]');
+        if Host in ['localhost', '127.0.0.1', '::1'] then
+            exit(true);
+
+        if Host.Contains(':') then begin
+            // Any IPv6 literal that embeds a dotted IPv4 tail (e.g. ::127.0.0.1, ::ffff:127.0.0.1,
+            // 0:0:0:0:0:0:127.0.0.1) is re-checked against the embedded IPv4 address.
+            if Host.Contains('.') then
+                exit(IsInternalHost(CopyStr(Host, Host.LastIndexOf(':') + 1)));
+            // Pure IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
+            if Host.StartsWith('fc') or Host.StartsWith('fd') then
+                exit(true);
+            if Host.StartsWith('fe8') or Host.StartsWith('fe9') or Host.StartsWith('fea') or Host.StartsWith('feb') then
+                exit(true);
+            exit(false);
+        end;
+
+        // IPv4 loopback (127.0.0.0/8), link-local incl. cloud IMDS (169.254.0.0/16), and RFC1918 private ranges.
+        if Host.StartsWith('127.') then
+            exit(true);
+        if Host.StartsWith('169.254.') then
+            exit(true);
+        if Host.StartsWith('10.') then
+            exit(true);
+        if Host.StartsWith('192.168.') then
+            exit(true);
+        exit(IsPrivate172Range(Host));
+    end;
+
+    local procedure IsPrivate172Range(Host: Text): Boolean
+    var
+        Octets: List of [Text];
+        SecondOctet: Integer;
+    begin
+        // Private range 172.16.0.0 - 172.31.255.255.
+        if not Host.StartsWith('172.') then
+            exit(false);
+        Octets := Host.Split('.');
+        if Octets.Count() < 2 then
+            exit(false);
+        if not Evaluate(SecondOctet, Octets.Get(2)) then
+            exit(false);
+        exit((SecondOctet >= 16) and (SecondOctet <= 31));
     end;
 
     local procedure CreateDataExchange(var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"; ResponseInStream: InStream; SourceName: Text[250])
@@ -121,6 +244,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         URL: Text;
     begin
         CurrExchRateUpdateSetup.GetWebServiceURL(URL);
+        CheckServiceEndpointAllowed(CurrExchRateUpdateSetup, URL);
         HttpWebRequestMgt.Initialize(URL);
         HttpWebRequestMgt.SetReturnType('application/xml,text/xml');
 

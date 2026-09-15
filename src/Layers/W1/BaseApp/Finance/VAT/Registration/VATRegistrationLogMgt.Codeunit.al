@@ -13,6 +13,7 @@ using Microsoft.Utilities;
 using System;
 using System.Environment;
 using System.Reflection;
+using System.Telemetry;
 using System.Xml;
 
 /// <summary>
@@ -37,6 +38,14 @@ codeunit 249 "VAT Registration Log Mgt."
         PostcodePathTxt: Label 'descendant::vat:traderPostcode', Locked = true;
         StreetPathTxt: Label 'descendant::vat:traderStreet', Locked = true;
         CityPathTxt: Label 'descendant::vat:traderCity', Locked = true;
+        CountryCodePathTxt: Label 'descendant::vat:countryCode', Locked = true;
+        VatNumberPathTxt: Label 'descendant::vat:vatNumber', Locked = true;
+        ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not match the requested identifiers and was rejected.';
+        ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
+        ResponseMissingIdentifiersErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not include the requested identifiers and was rejected.';
+        ResponseMissingIdentifiersMsg: Label 'The VAT reg. no. validation failed. The response did not include the requested identifiers.', Locked = true;
+        SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
+        SecurityAuditResponseMissingIdentifiersTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not include the requested VAT registration number.', Locked = true;
         ValidVATNoMsg: Label 'The specified VAT registration number is valid.';
         InvalidVatRegNoMsg: Label 'We didn''t find a match for this VAT registration number. Please verify that you specified the right number.';
         NotVerifiedVATRegMsg: Label 'We couldn''t verify the VAT registration number. Please try again later.';
@@ -134,6 +143,8 @@ codeunit 249 "VAT Registration Log Mgt."
         case LowerCase(FoundXmlNode.InnerText) of
             'true':
                 begin
+                    ValidateResponseIntegrity(VATRegistrationLog, XMLDoc, Namespace);
+
                     VATRegistrationLog."Entry No." := 0;
                     VATRegistrationLog.Status := VATRegistrationLog.Status::Valid;
                     VATRegistrationLog."Verified Date" := CurrentDateTime;
@@ -385,6 +396,47 @@ codeunit 249 "VAT Registration Log Mgt."
         if not XMLDOMMgt.FindNodeWithNamespace(XMLDoc.DocumentElement, Xpath, 'vat', Namespace, FoundXmlNode) then
             exit('');
         exit(FoundXmlNode.InnerText);
+    end;
+
+    /// <summary>
+    /// Validates the integrity of a VIES response before its content is trusted as valid.
+    /// A legitimate VIES checkVat response always echoes the queried country code and VAT registration number,
+    /// so a response that omits either identifier is treated as an invalid schema and rejected - this prevents a
+    /// response that only carries valid=true (with the identifiers stripped) from being accepted for any request.
+    /// When the identifiers are present, they must match what was requested, so a swapped or unrelated response
+    /// received over the unauthenticated service is rejected as well.
+    /// </summary>
+    local procedure ValidateResponseIntegrity(var VATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
+    var
+        AuditLog: Codeunit "Audit Log";
+        ResponseCountryCode: Text;
+        ResponseVATNumber: Text;
+    begin
+        ResponseCountryCode := ExtractValue(CountryCodePathTxt, XMLDoc, Namespace);
+        ResponseVATNumber := ExtractValue(VatNumberPathTxt, XMLDoc, Namespace);
+
+        // Schema: a legitimate response always echoes both identifiers. Reject a response that omits either one so a
+        // valid=true payload with the identifiers stripped cannot be trusted for the requested VAT number.
+        if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifiersTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+            Session.LogMessage('0000VF6', ResponseMissingIdentifiersMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+            Error(ResponseMissingIdentifiersErr);
+        end;
+
+        // Integrity: both identifiers are present here, so reject when either echoed value contradicts the request.
+        if (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(VATRegistrationLog.GetCountryCode())) or
+           (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(VATRegistrationLog.GetVATRegNo()))
+        then begin
+            AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+            Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+            Error(ResponseIntegrityErr);
+        end;
+    end;
+
+    local procedure NormalizeIdentifier(Value: Text): Text
+    begin
+        Value := UpperCase(Value);
+        exit(DelChr(Value, '=', DelChr(Value, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')));
     end;
 
     /// <summary>
