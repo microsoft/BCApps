@@ -1928,3 +1928,4 @@ codeunit 134897 "ERM Source Currency"
         Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
     end;
 }
+
