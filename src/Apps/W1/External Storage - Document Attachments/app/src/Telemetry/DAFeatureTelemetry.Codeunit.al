@@ -52,12 +52,14 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNS', ExternalStorageTok, 'File Downloaded', Dimensions);
     end;
 
-    internal procedure LogFileDownloadFailed(DocumentAttachment: Record "Document Attachment")
+    internal procedure LogFileDownloadFailed(DocumentAttachment: Record "Document Attachment"; ErrorText: Text; ErrorCallStack: Text)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
         GetFailureTelemetryDimensions(DocumentAttachment, 'Download', Dimensions);
-        FeatureTelemetry.LogError('0000RNY', ExternalStorageTok, 'File Download Failed', FileDownloadFailedTelemetryErr, '', Dimensions);
+        if ErrorText = '' then
+            ErrorText := FileDownloadFailedTelemetryErr;
+        FeatureTelemetry.LogError('0000RNY', ExternalStorageTok, 'Downloading file from external storage', ErrorText, ErrorCallStack, Dimensions);
     end;
 
     internal procedure LogFileDeleted(DocumentAttachment: Record "Document Attachment")
@@ -121,10 +123,10 @@ codeunit 8754 "DA Feature Telemetry"
         Clear(Dimensions);
         Dimensions.Add('Category', ExternalStorageCategoryLbl);
         Dimensions.Add('Operation', Operation);
-        Dimensions.Add('Table ID', Format(DocumentAttachment."Table ID"));
-        Dimensions.Add('Stored Externally', Format(DocumentAttachment."Stored Externally"));
-        Dimensions.Add('Stored Internally', Format(DocumentAttachment."Stored Internally"));
-        Dimensions.Add('Has External Path', Format(DocumentAttachment."External File Path" <> ''));
+        Dimensions.Add('TableId', Format(DocumentAttachment."Table ID"));
+        Dimensions.Add('StoredExternally', Format(DocumentAttachment."Stored Externally"));
+        Dimensions.Add('StoredInternally', Format(DocumentAttachment."Stored Internally"));
+        Dimensions.Add('HasExternalPath', Format(DocumentAttachment."External File Path" <> ''));
     end;
 
     [TryFunction]

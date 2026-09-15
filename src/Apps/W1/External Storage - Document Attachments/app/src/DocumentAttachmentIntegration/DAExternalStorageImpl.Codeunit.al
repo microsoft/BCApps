@@ -860,7 +860,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         if not ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream) then begin
-            DAFeatureTelemetry.LogFileDownloadFailed(DocumentAttachment);
+            DAFeatureTelemetry.LogFileDownloadFailed(DocumentAttachment, GetLastErrorText(), GetLastErrorCallStack());
             Error(CannotRetrieveExternalFileErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension");
         end;
         IsHandled := true;
@@ -883,7 +883,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit;
 
         if not ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob) then begin
-            DAFeatureTelemetry.LogFileDownloadFailed(DocumentAttachment);
+            DAFeatureTelemetry.LogFileDownloadFailed(DocumentAttachment, GetLastErrorText(), GetLastErrorCallStack());
             Error(CannotRetrieveExternalFileErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension");
         end;
         IsHandled := true;
