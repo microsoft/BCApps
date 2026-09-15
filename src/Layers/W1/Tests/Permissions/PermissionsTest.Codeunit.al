@@ -509,6 +509,114 @@ codeunit 139400 "Permissions Test"
         RecRef.Delete();
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure PopulatePermissionBufferPrefersSpecificObjectOverWildcard()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        PermissionBuffer: Record "Permission Buffer" temporary;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        SpecificPageId: Integer;
+    begin
+        // [SCENARIO 615963] A specific object permission is displayed instead of the wildcard permission
+        // [GIVEN] A permission set with an indirect wildcard permission
+        SpecificPageId := Page::"Customer Card";
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := 0;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Indirect;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The same permission set grants direct access to a specific page
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := SpecificPageId;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Yes;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The permission set is assigned to the current user
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := CompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The permission buffer is populated for the specific page
+        EffectivePermissionsMgt.PopulatePermissionBuffer(
+            PermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+
+        // [THEN] The specific page permission is displayed
+        PermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(PermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        Assert.AreEqual(
+            PermissionBuffer."Execute Permission"::Yes, PermissionBuffer."Execute Permission",
+            'The specific page permission should override the wildcard permission.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure PopulatePermissionBufferPrefersSpecificEmptyOverWildcard()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        AccessControl: Record "Access Control";
+        PermissionBuffer: Record "Permission Buffer" temporary;
+        EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
+        SpecificPageId: Integer;
+    begin
+        // [SCENARIO 615963] A specific exclusion is displayed instead of the wildcard permission
+        // [GIVEN] A permission set with a wildcard permission
+        SpecificPageId := Page::"Customer Card";
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, LibraryUtility.GenerateGUID(), NullGuid);
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := 0;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::Yes;
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The same permission set excludes a specific page
+        TenantPermission.Init();
+        TenantPermission."App ID" := NullGuid;
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::Page;
+        TenantPermission."Object ID" := SpecificPageId;
+        TenantPermission."Execute Permission" := TenantPermission."Execute Permission"::" ";
+        TenantPermission.Insert(true);
+
+        // [GIVEN] The permission set is assigned to the current user
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := TenantPermissionSet."Role ID";
+        AccessControl.Scope := AccessControl.Scope::Tenant;
+        AccessControl."Company Name" := CompanyName();
+        AccessControl.Insert(true);
+
+        // [WHEN] The permission buffer is populated for the specific page
+        EffectivePermissionsMgt.PopulatePermissionBuffer(
+            PermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+
+        // [THEN] The specific page exclusion is displayed
+        PermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(PermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        Assert.AreEqual(
+            PermissionBuffer."Execute Permission"::" ", PermissionBuffer."Execute Permission",
+            'The specific page exclusion should override the wildcard permission.');
+    end;
+
     //[Test] ignore 426467
     [HandlerFunctions('SendResolveNotificationHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
