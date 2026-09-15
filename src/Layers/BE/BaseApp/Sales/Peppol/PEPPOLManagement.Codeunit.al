@@ -53,6 +53,9 @@ codeunit 1605 "PEPPOL Management"
         BICTxt: Label 'BIC', Locked = true;
         AllowanceChargeReasonCodeTxt: Label '104', Locked = true;
         AllowanceChargePaymentDiscountReasonCodeTxt: Label '95', Locked = true;
+        PmtDiscCompChargeReasonTxt: Label 'Payment discount not deducted from the amount payable';
+        PmtDiscCompExemptionReasonTxt: Label 'Conditional early-payment discount, not part of the taxable amount';
+        PmtDiscCompVATIdentifierTxt: Label 'ESCOMPTE-COMP', Locked = true;
         PaymentMeansFundsTransferCodeTxt: Label '31', Locked = true;
         GTINTxt: Label '0160', Locked = true;
         UoMforPieceINUNECERec20ListIDTxt: Label 'EA', Locked = true;
@@ -1025,6 +1028,20 @@ codeunit 1605 "PEPPOL Management"
     /// <param name="AllowanceChargeTaxSchemeID">Returns the tax scheme identifier.</param>
     procedure GetAllowanceChargeInfoPaymentDiscount(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
     begin
+        if IsPmtDiscCompensationLine(VATAmtLine) then begin
+            ChargeIndicator := 'true';
+            AllowanceChargeReasonCode := '';
+            AllowanceChargeListID := '';
+            AllowanceChargeReason := PmtDiscCompChargeReasonTxt;
+            Amount := Format(VATAmtLine."VAT Base", 0, 9);
+            AllowanceChargeCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
+            TaxCategoryID := VATAmtLine."Tax Category";
+            TaxCategorySchemeID := '';
+            Percent := Format(VATAmtLine."VAT %", 0, 9);
+            AllowanceChargeTaxSchemeID := VATTxt;
+            exit;
+        end;
+
         if VATAmtLine."Pmt. Discount Amount" = 0 then begin
             ChargeIndicator := '';
             exit;
@@ -1210,6 +1227,19 @@ codeunit 1605 "PEPPOL Management"
     /// <param name="PayableAmountCurrencyID">Returns the currency code for payable amount.</param>
     procedure GetLegalMonetaryInfo(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
     begin
+        if HasPmtDiscCompensationLine(VATAmtLine) then begin
+            CalcLegalMonetaryInfoWithCompensation(
+                SalesHeader, TempSalesLine, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID,
+                TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID,
+                AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID,
+                PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID,
+                PayableAmount, PayableAmountCurrencyID);
+            OnAfterGetLegalMonetaryInfoWithInvRounding(
+              SalesHeader, TempSalesLine, VATAmtLine, LineExtensionAmount, TaxExclusiveAmount, TaxInclusiveAmount,
+              AllowanceTotalAmount, ChargeTotalAmount, PrepaidAmount, PayableRoundingAmount, PayableAmount);
+            exit;
+        end;
+
         VATAmtLine.Reset();
         VATAmtLine.CalcSums("Line Amount", "VAT Base", "Amount Including VAT", "Invoice Discount Amount");
 
@@ -1683,6 +1713,101 @@ codeunit 1605 "PEPPOL Management"
             end;
     end;
 
+    procedure AddPaymentDiscountCompensation(var VATAmtLine: Record "VAT Amount Line")
+    var
+        TotalPmtDiscount: Decimal;
+    begin
+        VATAmtLine.Reset();
+        VATAmtLine.CalcSums("Pmt. Discount Amount");
+        TotalPmtDiscount := VATAmtLine."Pmt. Discount Amount";
+        if TotalPmtDiscount = 0 then
+            exit;
+
+        VATAmtLine.Init();
+        VATAmtLine."VAT Identifier" := GetPmtDiscCompensationVATIdentifier();
+        VATAmtLine."VAT Calculation Type" := VATAmtLine."VAT Calculation Type"::"Normal VAT";
+        VATAmtLine.Positive := true;
+        VATAmtLine."Tax Category" := CopyStr(GetTaxCategoryE(), 1, MaxStrLen(VATAmtLine."Tax Category"));
+        VATAmtLine."VAT %" := 0;
+        VATAmtLine."VAT Base" := TotalPmtDiscount;
+        VATAmtLine."Amount Including VAT" := TotalPmtDiscount;
+        VATAmtLine."VAT Amount" := 0;
+        VATAmtLine."Pmt. Discount Amount" := 0;
+        VATAmtLine."Invoice Discount Amount" := 0;
+        VATAmtLine.Insert();
+    end;
+
+    local procedure GetPmtDiscCompensationVATIdentifier(): Code[20]
+    begin
+        exit(CopyStr(PmtDiscCompVATIdentifierTxt, 1, 20));
+    end;
+
+    local procedure IsPmtDiscCompensationLine(VATAmtLine: Record "VAT Amount Line"): Boolean
+    begin
+        exit(VATAmtLine."VAT Identifier" = GetPmtDiscCompensationVATIdentifier());
+    end;
+
+    local procedure HasPmtDiscCompensationLine(var VATAmtLine: Record "VAT Amount Line"): Boolean
+    var
+        Found: Boolean;
+    begin
+        VATAmtLine.Reset();
+        VATAmtLine.SetRange("VAT Identifier", GetPmtDiscCompensationVATIdentifier());
+        Found := not VATAmtLine.IsEmpty();
+        VATAmtLine.Reset();
+        exit(Found);
+    end;
+
+    local procedure CalcLegalMonetaryInfoWithCompensation(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
+    var
+        CompensationAmount: Decimal;
+        RealVATBase: Decimal;
+        RealInvDiscount: Decimal;
+        RealPmtDiscount: Decimal;
+        RealAmtInclVAT: Decimal;
+        CurrencyId: Text;
+    begin
+        VATAmtLine.Reset();
+        if VATAmtLine.FindSet() then
+            repeat
+                if IsPmtDiscCompensationLine(VATAmtLine) then
+                    CompensationAmount += VATAmtLine."VAT Base"
+                else begin
+                    RealVATBase += VATAmtLine."VAT Base";
+                    RealInvDiscount += VATAmtLine."Invoice Discount Amount";
+                    RealPmtDiscount += VATAmtLine."Pmt. Discount Amount";
+                    RealAmtInclVAT += VATAmtLine."Amount Including VAT";
+                end;
+            until VATAmtLine.Next() = 0;
+
+        CurrencyId := GetSalesDocCurrencyCode(SalesHeader);
+
+        LineExtensionAmount := Format(Round(RealVATBase, 0.01) + Round(RealInvDiscount, 0.01), 0, 9);
+        LegalMonetaryTotalCurrencyID := CurrencyId;
+        TaxExclusiveAmount := Format(Round(RealVATBase - RealPmtDiscount + CompensationAmount, 0.01), 0, 9);
+        TaxExclusiveAmountCurrencyID := CurrencyId;
+        TaxInclusiveAmount := Format(Round(RealAmtInclVAT - RealPmtDiscount + CompensationAmount, 0.01, '>'), 0, 9);
+        TaxInclusiveAmountCurrencyID := CurrencyId;
+        AllowanceTotalAmount := Format(Round(RealInvDiscount + RealPmtDiscount, 0.01), 0, 9);
+        AllowanceTotalAmountCurrencyID := CurrencyId;
+        ChargeTotalAmount := Format(Round(CompensationAmount, 0.01), 0, 9);
+        ChargeTotalAmountCurrencyID := CurrencyId;
+        PrepaidAmount := '0.00';
+        PrepaidCurrencyID := CurrencyId;
+
+        if TempSalesLine."Line No." = 0 then begin
+            PayableRoundingAmount := Format(RealAmtInclVAT - Round(RealAmtInclVAT, 0.01), 0, 9);
+            PayableRndingAmountCurrencyID := CurrencyId;
+            PayableAmount := Format(Round(RealAmtInclVAT - RealPmtDiscount + CompensationAmount, 0.01), 0, 9);
+            PayableAmountCurrencyID := CurrencyId;
+        end else begin
+            PayableRoundingAmount := Format(TempSalesLine."Amount Including VAT", 0, 9);
+            PayableRndingAmountCurrencyID := CurrencyId;
+            PayableAmount := Format(Round(RealAmtInclVAT + TempSalesLine."Amount Including VAT" - RealPmtDiscount + CompensationAmount, 0.01), 0, 9);
+            PayableAmountCurrencyID := CurrencyId;
+        end;
+    end;
+
     /// <summary>
     /// Retrieves and accumulates tax categories from sales lines into a buffer.
     /// </summary>
@@ -1733,6 +1858,8 @@ codeunit 1605 "PEPPOL Management"
             exit;
         if VATProductPostingGroupCategory.Get(TaxCategoryID) then
             TaxExemptionReasonTxt := VATProductPostingGroupCategory.Description;
+        if (TaxExemptionReasonTxt = '') and (TaxCategoryID = GetTaxCategoryE()) then
+            TaxExemptionReasonTxt := PmtDiscCompExemptionReasonTxt;
     end;
 
     /// <summary>
