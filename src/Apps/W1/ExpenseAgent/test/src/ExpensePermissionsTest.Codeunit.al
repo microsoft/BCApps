@@ -28,7 +28,7 @@ codeunit 148338 "Expense Permissions Test"
         D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
         DetailOnlyPermissionSetTok: Label 'Exp. Detail Test', Locked = true;
-        HeaderModifyPermissionErr: Label 'TableData %1 %2 Modify', Comment = '%1 = Spend Request table ID, %2 = Spend Request table caption', Locked = true;
+        HeaderModifyPermissionErr: Label 'TableData %1 %2 IndirectModify', Comment = '%1 = Spend Request table ID, %2 = Spend Request table caption', Locked = true;
         RequestMustBeOpenErr: Label 'The %1 %2 must have the status %3.', Comment = '%1 = document type description, %2 = document number, %3 = Open status';
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
@@ -91,6 +91,7 @@ codeunit 148338 "Expense Permissions Test"
         // [GIVEN] An open request "R" with a committed detail "D" worth 10.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 10);
         Commit();
         LibraryLowerPermissions.StartLoggingNAVPermissions();
         LibraryLowerPermissions.SetExactPermissionSet(DetailOnlyPermissionSetTok);
@@ -131,6 +132,7 @@ codeunit 148338 "Expense Permissions Test"
         // [GIVEN] A released request "R" with a committed detail "D" worth 10.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 10);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
         Commit();
         LibraryLowerPermissions.StartLoggingNAVPermissions();
