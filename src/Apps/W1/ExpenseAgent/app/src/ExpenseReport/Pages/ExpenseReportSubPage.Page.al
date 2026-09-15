@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 
 page 6999 "Expense Report SubPage"
 {
@@ -285,6 +284,17 @@ page 6999 "Expense Report SubPage"
                 field("Round Trip"; Rec."Round Trip")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = IsMileageCategory;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
+                }
+                field("Vehicle Type"; Rec."Vehicle Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense. The matching vehicle-specific mileage rate is applied, or the generic rate when none exists. Available when the expense requires mileage details.';
                     Editable = IsMileageCategory;
 
                     trigger OnValidate()
@@ -601,9 +611,9 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this expense report line.';
-                    RunObject = Page "Spend Request Card";
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this expense report line.';
+                    RunObject = Page "Travel Request Card";
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }

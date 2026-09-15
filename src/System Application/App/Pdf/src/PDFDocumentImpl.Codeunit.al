@@ -356,6 +356,7 @@ codeunit 3109 "PDF Document Impl."
         Clear(this.SaveFormat);
     end;
 
+    [NonDebuggable]
     procedure ToJson(RenderingPayload: JsonObject): JsonObject
     var
         JsonElement: JsonObject;

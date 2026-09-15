@@ -145,10 +145,12 @@ codeunit 4589 "SOA Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetSetDailyEmailLimitTag()) then begin
-            if SOASetup.FindFirst() then begin
-                SOASetup."Message Limit" := SOASetup.GetDefaultMessageLimit();
-                SOASetup.Modify();
-            end;
+            // Every agent gets the limit, because the tag is set afterwards and this never runs again.
+            if SOASetup.FindSet() then
+                repeat
+                    SOASetup."Message Limit" := SOASetup.GetDefaultMessageLimit();
+                    SOASetup.Modify();
+                until SOASetup.Next() = 0;
 
             UpgradeTag.SetUpgradeTag(GetSetDailyEmailLimitTag());
         end;
@@ -160,10 +162,12 @@ codeunit 4589 "SOA Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetSetMarkEmailAsReadTag()) then begin
-            if SOASetup.FindFirst() then begin
-                SOASetup."Mark Email As Read" := true;
-                SOASetup.Modify();
-            end;
+            // Every agent is upgraded, because the tag is set afterwards and this never runs again.
+            if SOASetup.FindSet() then
+                repeat
+                    SOASetup."Mark Email As Read" := true;
+                    SOASetup.Modify();
+                until SOASetup.Next() = 0;
 
             UpgradeTag.SetUpgradeTag(GetSetMarkEmailAsReadTag());
         end;

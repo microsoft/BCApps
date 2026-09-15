@@ -65,6 +65,7 @@ page 186 "Exch.Rate Adjmt. Ledg.Entries"
                 field("Currency Factor"; Rec."Currency Factor")
                 {
                     ApplicationArea = Suite;
+                    DecimalPlaces = 4 : 5;
                 }
                 field("Base Amount"; Rec."Base Amount")
                 {
@@ -82,11 +83,13 @@ page 186 "Exch.Rate Adjmt. Ledg.Entries"
                 field("Register No."; Rec."Register No.")
                 {
                     ApplicationArea = Basic, Suite;
+                    Caption = 'Register No.';
                     Visible = false;
                 }
                 field("Detailed Ledger Entry No."; Rec."Detailed Ledger Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
+                    DecimalPlaces = 0 : 0;
                     Visible = false;
                 }
             }

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
+
 page 7103 "Travelers API"
 {
     APIGroup = 'expense';
@@ -19,6 +21,7 @@ page 7103 "Travelers API"
     SourceTable = Traveler;
     AboutText = 'Provides access to data from the Traveler table';
     AutoSplitKey = true;
+    Permissions = tabledata "Spend Request" = r;
 
     layout
     {
@@ -33,7 +36,8 @@ page 7103 "Travelers API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
+                    Editable = false;
                 }
                 field(lineNo; Rec."Line No.")
                 {

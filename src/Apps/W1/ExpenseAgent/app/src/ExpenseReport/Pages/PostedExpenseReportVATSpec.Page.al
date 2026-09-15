@@ -50,6 +50,24 @@ page 7093 "Posted Expense Report VAT Spec"
                     Caption = 'VAT Amount';
                     ToolTip = 'Specifies the VAT amount for this rate.';
                 }
+                field("Amount (RCY)"; Rec."Amount (RCY)")
+                {
+                    Caption = 'Amount (RCY)';
+                    ToolTip = 'Specifies the total amount for this rate in reimbursement currency.';
+                    Visible = ShowRCYFields;
+                }
+                field("VAT Base Amount (RCY)"; Rec."VAT Base Amount (RCY)")
+                {
+                    Caption = 'VAT Base Amount (RCY)';
+                    ToolTip = 'Specifies the net amount this VAT rate applies to in reimbursement currency.';
+                    Visible = ShowRCYFields;
+                }
+                field("VAT Amount (RCY)"; Rec."VAT Amount (RCY)")
+                {
+                    Caption = 'VAT Amount (RCY)';
+                    ToolTip = 'Specifies the VAT amount for this rate in reimbursement currency.';
+                    Visible = ShowRCYFields;
+                }
                 field(Reclaimable; Rec.Reclaimable)
                 {
                     Caption = 'Reclaimable';
@@ -68,6 +86,12 @@ page 7093 "Posted Expense Report VAT Spec"
                 {
                     Caption = 'Reclaim VAT Amount (LCY)';
                 }
+                field("Reclaim VAT Amount (RCY)"; Rec."Reclaim VAT Amount (RCY)")
+                {
+                    Caption = 'Reclaim VAT Amount (RCY)';
+                    ToolTip = 'Specifies the reclaimable VAT amount for this row in reimbursement currency.';
+                    Visible = ShowRCYFields;
+                }
                 field("Reclaim Status"; Rec."Reclaim Status")
                 {
                     Caption = 'Reclaim Status';
@@ -76,4 +100,19 @@ page 7093 "Posted Expense Report VAT Spec"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+    begin
+        if Rec.GetFilter("Expense Report No.") = '' then
+            exit;
+
+        PostedExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
+        if PostedExpenseReportHeader.Get(Rec.GetRangeMin("Expense Report No.")) then
+            ShowRCYFields := PostedExpenseReportHeader."Reimbursement Currency Code" <> '';
+    end;
+
+    var
+        ShowRCYFields: Boolean;
 }
