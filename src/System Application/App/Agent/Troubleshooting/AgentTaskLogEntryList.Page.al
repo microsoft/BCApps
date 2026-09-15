@@ -6,7 +6,6 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
-
 page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
@@ -150,6 +149,9 @@ page 4303 "Agent Task Log Entry List"
             actionref(Refresh_Promoted; Refresh)
             {
             }
+            actionref(Export_Promoted; Export)
+            {
+            }
             actionref(Feedback_Promoted; Feedback)
             {
             }
@@ -199,6 +201,23 @@ page 4303 "Agent Task Log Entry List"
                 trigger OnAction()
                 begin
                     Page.Run(Page::"Agent Task Log Entry", Rec);
+                end;
+            }
+            action(Export)
+            {
+                ApplicationArea = All;
+                Caption = 'Export selected';
+                ToolTip = 'Download the selected log entries and their troubleshooting details as a JSON file.';
+                Image = ExportFile;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    SelectedAgentTaskLogEntry: Record "Agent Task Log Entry";
+                    AgentTaskLogExport: Codeunit "Agent Task Log Export";
+                begin
+                    CurrPage.SetSelectionFilter(SelectedAgentTaskLogEntry);
+                    AgentTaskLogExport.ExportToJsonFile(SelectedAgentTaskLogEntry);
                 end;
             }
         }

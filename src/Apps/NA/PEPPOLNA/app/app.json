@@ -6,7 +6,7 @@
   "brief": "PEPPOL BIS 3.0 NA localization.",
   "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "application": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",

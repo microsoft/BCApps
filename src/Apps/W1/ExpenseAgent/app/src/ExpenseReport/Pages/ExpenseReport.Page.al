@@ -115,6 +115,12 @@ page 6910 "Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
+                field("Employee Posting Group"; Rec."Employee Posting Group")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee posting group used when posting expenses for this expense report.';
+                    Importance = Additional;
+                }
                 field("Spend Request No."; Rec."Spend Request No.")
                 {
                     ApplicationArea = Basic, Suite;

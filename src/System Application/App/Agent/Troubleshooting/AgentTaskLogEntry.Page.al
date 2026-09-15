@@ -6,7 +6,6 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
-using System.Security.AccessControl;
 
 page 4312 "Agent Task Log Entry"
 {
@@ -281,7 +280,7 @@ page 4312 "Agent Task Log Entry"
         MemoryEntry.Details.CreateInStream(ContentInStream, AgentTaskLogEntry.GetDefaultEncoding());
         ContentInStream.Read(MemoryEntryDetailsTxt);
 
-        SetAgentName();
+        AgentName := AgentTaskLogEntry.GetAgentName(Rec);
         ParseDetails();
         GetPageContext();
 
@@ -301,57 +300,22 @@ page 4312 "Agent Task Log Entry"
 
     local procedure ParseDetails()
     var
-        RootObj: JsonObject;
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        Success: Boolean;
     begin
-        if not RootObj.ReadFrom(MemoryEntryDetailsTxt) then
-            exit;
-
-        IsSuccess := RootObj.Contains(SuccessLbl)
-            ? Format(RootObj.GetBoolean(SuccessLbl, true))
-            : '';
-    end;
-
-    local procedure SetAgentName()
-    var
-        Agent: Record Agent;
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
-    begin
-        if not AgentTaskImpl.TryGetAgentRecordFromTaskId(Rec."Task ID", Agent) then begin
-            AgentName := '';
+        if not AgentTaskLogEntry.GetSuccess(MemoryEntryDetailsTxt, Success) then begin
+            IsSuccess := '';
             exit;
         end;
 
-        AgentName := Agent."Display Name";
+        IsSuccess := Format(Success, 0, 9);
     end;
 
     local procedure SetIsAgentAction()
     var
-        User: Record User;
-        Default: Boolean;
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
     begin
-        Default := false;
-
-        case Rec.Type of
-            // Operations always performed by a user.
-            Rec.Type::"Input Message",
-            Rec.Type::Resume,
-            Rec.Type::"User Intervention":
-                IsAgentAction := false;
-            // Operations always performed by the agent.
-            Rec.Type::"Page Operation",
-            Rec.Type::"Output Message",
-            Rec.Type::"Output Message Draft",
-            Rec.Type::"User Intervention Request":
-                IsAgentAction := true;
-            // Operations performed by a user or the agent.
-            Rec.Type::Stop:
-                IsAgentAction := User.Get(Rec."User Security ID")
-                    ? User."License Type" = User."License Type"::Agent
-                    : Default;
-            // By default, consider it was a user action.
-            else
-                IsAgentAction := Default;
-        end;
+        IsAgentAction := AgentTaskLogEntry.IsAgentAction(Rec);
     end;
 
     local procedure GetPageContext()
@@ -367,7 +331,6 @@ page 4312 "Agent Task Log Entry"
     begin
         ContextTxt := AgentTaskLogEntry.ReadContext(Rec);
         if ContextTxt = '' then
-            // Fallback to memory entry context.
             ContextTxt := AgentTaskLogEntry.ReadContext(MemoryEntry);
 
         IsSerializedPageVisible := ContextTxt <> '';
@@ -385,9 +348,7 @@ page 4312 "Agent Task Log Entry"
         else
             IsSerializedPageVisible := false;
 
-        IsDecisionTxt := Root.Contains(IsDecisionPointLbl)
-            ? Format(Root.GetBoolean(IsDecisionPointLbl, true))
-            : Format(false);
+        IsDecisionTxt := Format(AgentTaskLogEntry.GetDecisionPoint(Root));
 
         AgentTaskLogEntry.ExtractPageStack(TempPageStacksRecords, Root);
         IsCurrentPageStackVisible := TempPageStacksRecords.Count() > 0;
@@ -458,8 +419,6 @@ page 4312 "Agent Task Log Entry"
         IsLogPageVisible: Boolean;
         GlobalCurrentID: Integer;
         SerializedPageLbl: Label 'serializedPage', Locked = true;
-        IsDecisionPointLbl: Label 'isDecisionPoint', Locked = true;
         TaskPageContextLbl: Label 'taskPageContext', Locked = true;
-        SuccessLbl: Label 'success', Locked = true;
         PageCaptionLbl: Label 'Log %1 - %2', Comment = '%1 is the id, and %2 is the description of it.';
 }

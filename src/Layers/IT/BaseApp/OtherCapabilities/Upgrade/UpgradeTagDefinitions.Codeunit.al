@@ -217,7 +217,6 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerDatabaseUpgradeTags.Add(GetBCUserGroupUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetRenderWordReportsInPlatformFeatureKeyUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetRegisterBankAccRecCopilotCapabilityUpgradeTag());
-        PerDatabaseUpgradeTags.Add(GetCompositeReportPartsUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"API Data Upgrade", 'OnGetAPIUpgradeTags', '', false, false)]
@@ -1297,10 +1296,5 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
     begin
         exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
-    end;
-
-    internal procedure GetCompositeReportPartsUpgradeTag(): Code[250]
-    begin
-        exit('MS-647452-CompositeReportPartsUpgradeTag-20260820');
     end;
 }

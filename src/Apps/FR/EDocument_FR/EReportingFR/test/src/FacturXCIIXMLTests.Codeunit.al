@@ -34,7 +34,6 @@ codeunit 148148 "Factur-X CII XML Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [Factur-X FR E-document]
     end;
 
     var
@@ -185,6 +184,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller name from Company Information
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -203,6 +203,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller VAT registration number with scheme VA
         Initialize();
 
+        // [GIVEN] Posted sales invoice / Company information with VAT Registration No.
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -481,6 +482,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller electronic address (BT-34) as SIRET with schemeID 0009
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -739,6 +741,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has SpecifiedTradeSettlementPaymentMeans with TypeCode 58 (SEPA credit transfer)
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -1000,6 +1003,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML line BilledQuantity has unitCode attribute (BT-130)
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -1018,6 +1022,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML line-level ApplicableTradeTax has TypeCode = 'VAT'
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -1295,6 +1300,9 @@ codeunit 148148 "Factur-X CII XML Tests"
         EnsureCountryRegionExists('DE');
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", 'DE');
+        Customer.Address := 'Test Address';
+        Customer."Post Code" := '10115';
+        Customer.City := 'Berlin';
         Customer."VAT Registration No." := '533435789';
         Customer."Registration Number" := '';
         Customer."FR Electronic Address" := '123456789_FOREIGN';
@@ -1318,6 +1326,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [GIVEN] Posted sales credit memo "CM" with a single financial line
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", 1);
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Validate("Unit of Measure Code", GetUnitOfMeasureCode());
@@ -2016,6 +2026,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", Customer."No.");
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
         SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
         SalesHeader.Validate("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesHeader.Modify(true);
@@ -2052,6 +2063,10 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        if Customer.Address = '' then
+            Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
+        if Customer."Post Code" = '' then
+            Customer.Validate("Post Code", '75001');
         Customer.Modify(true);
         LibrarySales.CreateSalesHeader(SalesHeader, DocType, CustomerNo);
         if CurrencyCode <> '' then begin
@@ -2092,6 +2107,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer.Modify(true);
 
         if ApplyInvoiceDiscount then begin
+            EnsureSalesInvoiceDiscountAccount(GLAccount."Gen. Bus. Posting Group", GLAccount."Gen. Prod. Posting Group");
             LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, CustomerNo, '', 0);
             CustInvoiceDisc.Validate("Discount %", 10);
             CustInvoiceDisc.Modify(true);
@@ -2194,6 +2210,9 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
+        Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
+        Customer.Validate("Post Code", '75001');
+        Customer.City := 'Paris';
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer."Registration Number" := '123456789';
         Customer.Validate("FR Electronic Address", FRElecAddress);
@@ -2455,6 +2474,10 @@ codeunit 148148 "Factur-X CII XML Tests"
             UnitOfMeasure.Code := 'EA';
             UnitOfMeasure.Description := 'Each';
             UnitOfMeasure.Insert(true);
+        end;
+        if UnitOfMeasure."International Standard Code" <> 'C62' then begin
+            UnitOfMeasure.Validate("International Standard Code", 'C62');
+            UnitOfMeasure.Modify(true);
         end;
         exit(UnitOfMeasure.Code);
     end;
