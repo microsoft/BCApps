@@ -9,6 +9,7 @@ codeunit 48526 "Fabric Platform Admin Client"
 
     var
         RetrieveWorkspacesTransportErr: Label 'Failed to retrieve workspaces: transport error.';
+        RetrieveWorkspacesHttpGenericErr: Label 'Failed to retrieve workspaces. Contact your administrator if the problem persists.';
         RetrieveWorkspacesHttpErr: Label 'Failed to retrieve workspaces. HTTP %1.', Comment = '%1 = HTTP status code';
         RetrieveWorkspacesMalformedErr: Label 'Failed to retrieve workspaces: malformed response from Microsoft Fabric.';
         WorkspaceRequiredForMirroredDbErr: Label 'Select a workspace before choosing an Open Mirroring database.';
@@ -55,7 +56,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(RetrieveWorkspacesTransportErr);
         if not Resp.GetIsSuccessStatusCode() then
-            Error(RetrieveWorkspacesHttpErr, Resp.GetHttpStatusCode());
+            Error(CreateRetrieveWorkspacesHttpErrorInfo(Resp.GetHttpStatusCode()));
 
         RootObj.ReadFrom(Resp.GetContent().AsText());
         if not RootObj.Get('value', ArrayToken) then
@@ -92,7 +93,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         NameToken: JsonToken;
         JsonArr: JsonArray;
         TelemetryDimensions: Dictionary of [Text, Text];
-        ResponseText: Text;
         WorkspaceIdForUrl: Text;
         i: Integer;
     begin
@@ -117,8 +117,6 @@ codeunit 48526 "Fabric Platform Admin Client"
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(RetrieveMirroredDbsTransportErr);
         if not Resp.GetIsSuccessStatusCode() then begin
-            ResponseText := Resp.GetContent().AsText();
-            TelemetryDimensions.Add('HttpResponseBody', ResponseText);
             Telemetry.LogFailureEvent('FAB-120', StrSubstNo(RetrieveMirroredDbsHttpStatusErr, Resp.GetHttpStatusCode()), TelemetryDimensions);
             Error(CreateMirroredDbsHttpErrorInfo(Resp.GetHttpStatusCode()));
         end;
@@ -186,6 +184,14 @@ codeunit 48526 "Fabric Platform Admin Client"
         if Resp.GetHttpStatusCode() = 409 then
             Error(SPAlreadyMemberErr);
         Error(CreateAddSPHttpErrorInfo(Resp.GetHttpStatusCode()));
+    end;
+
+    local procedure CreateRetrieveWorkspacesHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo
+    begin
+        ErrInfo.Message(RetrieveWorkspacesHttpGenericErr);
+        ErrInfo.DetailedMessage(StrSubstNo(RetrieveWorkspacesHttpErr, StatusCode));
+        ErrInfo.DataClassification(DataClassification::SystemMetadata);
+        ErrInfo.ErrorType(ErrorType::Internal);
     end;
 
     local procedure CreateMirroredDbsHttpErrorInfo(StatusCode: Integer) ErrInfo: ErrorInfo

@@ -59,6 +59,13 @@ page 48507 "Fabric API Setup"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.EnsureSetup(Rec);
+    end;
+
     [ServiceEnabled]
     [Caption('Enable the Fabric export')]
     [Scope('Cloud')]

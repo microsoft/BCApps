@@ -4,6 +4,8 @@ using System.RestClient;
 
 codeunit 48525 "Fabric Platform Http Client"
 {
+    Access = Internal;
+
     internal procedure CreateClientWithBearer(AccessToken: SecretText) RestClientResult: Codeunit "Rest Client"
     begin
         RestClientResult := CreateClient();
@@ -29,7 +31,7 @@ codeunit 48525 "Fabric Platform Http Client"
     end;
 
     /// <summary>Raised before the HTTP client handler is created. Bind a subscriber to inject a mock handler in tests.</summary>
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     local procedure OnBeforeGetHttpClientHandler(var HttpClientHandler: Interface "Http Client Handler"; var IsHandled: Boolean)
     begin
     end;

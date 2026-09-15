@@ -12,7 +12,7 @@ permissionset 48530 "Fabric Exp Admin"
         tabledata "Fabric Config Package" = RIMD,
         table "Fabric Config Package Line" = X,
         tabledata "Fabric Config Package Line" = RIMD,
-        tabledata "Fabric Table Claim" = RIMD,
+        tabledata "Fabric Table Claim" = Rimd,
         tabledata "Tenant Fabric Companies" = R,
         tabledata "Tenant Fabric Enum Mapping" = R,
         tabledata "Tenant Fabric Export Details" = R,

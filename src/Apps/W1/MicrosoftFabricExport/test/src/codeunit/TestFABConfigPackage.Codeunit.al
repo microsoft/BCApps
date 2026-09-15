@@ -711,6 +711,50 @@ codeunit 140011 "Test FAB Config Package"
         Assert.ExpectedError('valid package definition');
     end;
 
+    [Test]
+    procedure EnsureMsStdPackageRegistersBuiltInPackage()
+    var
+        FabricInstall: Codeunit "Fabric Install";
+    begin
+        //[SCENARIO] Install/upgrade registers the built-in MS-STD configuration package
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The built-in package is (re)registered, as happens on install/upgrade
+        FabricInstall.EnsureMsStdPackage();
+
+        //[THEN] The package header and its full curated table set are registered
+        VerifyMsStdPackageRegistered();
+    end;
+
+    local procedure VerifyMsStdPackageRegistered()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+    begin
+        Assert.IsTrue(Pkg.Get('MS-STD'), 'Expected the MS-STD package header to exist.');
+        Assert.AreEqual('Microsoft Standard', Pkg.Description, 'Expected the package description to match.');
+        Assert.AreEqual('1.0', Pkg.Version, 'Expected the package version to match.');
+
+        // Catches an accidental addition/removal in the hard-coded table list.
+        PackageLine.SetRange("Package Code", 'MS-STD');
+        Assert.AreEqual(256, PackageLine.Count(), 'Expected the full curated MS-STD table set to be registered.');
+
+        VerifyPackageLineExists(PackageLine, 18);   // Customer
+        VerifyPackageLineExists(PackageLine, 27);   // Item
+        VerifyPackageLineExists(PackageLine, 79);   // Company Information
+        VerifyPackageLineExists(PackageLine, 91);   // User Setup
+        VerifyPackageLineExists(PackageLine, 5050);  // Contact
+    end;
+
+    local procedure VerifyPackageLineExists(var PackageLine: Record "Fabric Config Package Line"; TableId: Integer)
+    begin
+        Assert.IsTrue(PackageLine.Get('MS-STD', TableId), StrSubstNo('Expected table %1 to be part of the MS-STD package.', TableId));
+    end;
+
     #region Handlers
 
     [MessageHandler]

@@ -352,10 +352,13 @@ codeunit 140012 "Test FAB Platform"
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
     begin
         //[SCENARIO] Enable is rejected when no Client ID has been configured
         //[GIVEN] Initialize
         Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] No client ID configured
         CredMgt.SetClientId('');
         //[GIVEN] Lower permissions
@@ -374,10 +377,13 @@ codeunit 140012 "Test FAB Platform"
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
     begin
         //[SCENARIO] Enable is rejected when the configured Client ID is not a valid GUID
         //[GIVEN] Initialize
         Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] A non-GUID client ID is configured
         CredMgt.SetClientId('not-a-guid');
         //[GIVEN] Lower permissions
@@ -396,10 +402,13 @@ codeunit 140012 "Test FAB Platform"
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
     begin
         //[SCENARIO] Enable is rejected when no Client Secret has been configured
         //[GIVEN] Initialize
         Initialize();
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
         //[GIVEN] A valid Client ID but no Client Secret configured
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
         //[GIVEN] Lower permissions

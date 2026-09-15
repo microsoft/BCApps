@@ -14,10 +14,11 @@ codeunit 48521 "Fabric Config Package Mgt"
         ImportMissingCodeErr: Label 'The package file does not contain a package code.';
         InvalidPackageFileErr: Label 'The file could not be read as a valid package definition.';
         CategoryTok: Label 'MicrosoftFabricExport', Locked = true;
-        PackageActivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Comment = '%1 = package code, %2 = version';
-        PackageDeactivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Comment = '%1 = package code';
-        PackageReappliedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Comment = '%1 = package code, %2 = version';
-        PackageRegisteredViaCodeMsg: Label 'Config package v%1 registered via code.', Comment = '%1 = version';
+        PackageActivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 (v%2) activated.', Comment = '%1 = package code, %2 = version', Locked = true;
+        PackageDeactivatedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 deactivated.', Comment = '%1 = package code', Locked = true;
+        PackageReappliedAuditMsg: Label 'Microsoft Fabric Open Mirroring - configuration package %1 reapplied (v%2).', Comment = '%1 = package code, %2 = version', Locked = true;
+        PackageRegisteredViaCodeMsg: Label 'Config package v%1 registered via code.', Comment = '%1 = version', Locked = true;
+        PackageReapplySkippedMsg: Label 'Config package reapply skipped during install/upgrade: %1', Comment = '%1 = error message', Locked = true;
 
     internal procedure Activate(var Pkg: Record "Fabric Config Package")
     var
@@ -148,11 +149,22 @@ codeunit 48521 "Fabric Config Package Mgt"
     procedure RegisterPackage(PackageCode: Code[20]; Description: Text[100]; Version: Code[10]; TableIds: List of [Integer])
     var
         Pkg: Record "Fabric Config Package";
-        PackageLine: Record "Fabric Config Package Line";
-        AllObj: Record AllObjWithCaption;
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         RemovedTableIds: List of [Integer];
-        TableId: Integer;
+    begin
+        if not UpsertPackageHeader(Pkg, PackageCode, Description, Version) then
+            exit; // Already registered at this version — nothing to do
+
+        RebuildPackageLines(PackageCode, TableIds, RemovedTableIds);
+
+        // If it was already active, release claims on dropped tables and reapply so
+        // the platform tables stay aligned with the current package definition.
+        if Pkg.Active then
+            ReapplyAfterRegister(Pkg, RemovedTableIds, PackageCode);
+
+        LogPackageEvent('FAB-155', StrSubstNo(PackageRegisteredViaCodeMsg, Version), PackageCode);
+    end;
+
+    local procedure UpsertPackageHeader(var Pkg: Record "Fabric Config Package"; PackageCode: Code[20]; Description: Text[100]; Version: Code[10]): Boolean
     begin
         if not Pkg.Get(PackageCode) then begin
             Pkg.Init();
@@ -160,17 +172,27 @@ codeunit 48521 "Fabric Config Package Mgt"
             Pkg.Validate(Description, Description);
             Pkg.Validate(Version, Version);
             Pkg.Insert(true);
-        end else begin
-            if Pkg.Version = Version then
-                exit; // Already registered at this version — nothing to do
-            Pkg.Validate(Description, Description);
-            Pkg.Validate(Version, Version);
-            Pkg.Modify(true);
+            exit(true);
         end;
 
-        // Rebuild lines. Record table IDs dropped from the new set so their package
-        // claim can be released below — otherwise a table removed from the package
-        // keeps its stale claim and stays exported forever.
+        if Pkg.Version = Version then
+            exit(false);
+
+        Pkg.Validate(Description, Description);
+        Pkg.Validate(Version, Version);
+        Pkg.Modify(true);
+        exit(true);
+    end;
+
+    local procedure RebuildPackageLines(PackageCode: Code[20]; TableIds: List of [Integer]; var RemovedTableIds: List of [Integer])
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        AllObj: Record AllObjWithCaption;
+        TableId: Integer;
+    begin
+        // Record table IDs dropped from the new set so their package claim can be
+        // released by the caller — otherwise a removed table keeps its stale claim
+        // and stays exported forever.
         PackageLine.SetRange("Package Code", PackageCode);
         if PackageLine.FindSet() then
             repeat
@@ -187,16 +209,33 @@ codeunit 48521 "Fabric Config Package Mgt"
                 PackageLine.Insert(false);
             end else
                 LogSkippedTableWarning(PackageCode, TableId);
+    end;
 
-        // If it was already active, release claims on dropped tables and reapply so
-        // the platform tables stay aligned with the current package definition.
-        if Pkg.Active then begin
-            foreach TableId in RemovedTableIds do
-                FabricPlatformMgt.ReleaseTable(TableId, "Fabric Table Claim Source"::Package, PackageCode);
-            Reapply(Pkg);
-        end;
+    // Reapply can fail (e.g. 500-table cap) — that must not abort install/upgrade.
+    local procedure ReapplyAfterRegister(var Pkg: Record "Fabric Config Package"; var RemovedTableIds: List of [Integer]; PackageCode: Code[20])
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TableId: Integer;
+    begin
+        foreach TableId in RemovedTableIds do
+            FabricPlatformMgt.ReleaseTable(TableId, "Fabric Table Claim Source"::Package, PackageCode);
+        if not TryReapply(Pkg) then
+            LogReapplySkipped(PackageCode, GetLastErrorText());
+    end;
 
-        LogPackageEvent('FAB-155', StrSubstNo(PackageRegisteredViaCodeMsg, Version), PackageCode);
+    [TryFunction]
+    local procedure TryReapply(var Pkg: Record "Fabric Config Package")
+    begin
+        Reapply(Pkg);
+    end;
+
+    local procedure LogReapplySkipped(PackageCode: Code[20]; ErrorMessage: Text)
+    var
+        Telemetry: Codeunit "Fabric Platform Telemetry";
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('PackageCode', PackageCode);
+        Telemetry.LogFailureEvent('FAB-157', StrSubstNo(PackageReapplySkippedMsg, ErrorMessage), Dimensions);
     end;
 
     local procedure LogPackageEvent(EventId: Text; EventMessage: Text; PackageCode: Code[20])

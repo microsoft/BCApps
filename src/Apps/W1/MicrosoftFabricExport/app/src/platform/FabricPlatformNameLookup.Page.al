@@ -29,7 +29,7 @@ page 48516 "Fabric Platform Name Lookup"
         }
     }
 
-    procedure SetSource(var TempBuffer: Record "Name/Value Buffer" temporary)
+    internal procedure SetSource(var TempBuffer: Record "Name/Value Buffer" temporary)
     begin
         Rec.Copy(TempBuffer, true);
         if Rec.FindFirst() then;

@@ -265,7 +265,7 @@ codeunit 48520 "Fabric Platform Mgt"
             if ClientIdText = '' then
                 Error(CreateSetupErrorInfo(ClientIdRequiredErr));
             if not Evaluate(ClientId, ClientIdText) then
-                Error(ClientIdInvalidErr, ClientIdText);
+                Error(CreateSetupErrorInfo(StrSubstNo(ClientIdInvalidErr, ClientIdText)));
             if not CredMgt.IsClientSecretSet() then
                 Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
