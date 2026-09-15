@@ -114,6 +114,9 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         UserPermissions: Codeunit "User Permissions";
     begin
+        if UserPermissions.IsSuper(UserSecurityId()) then
+            exit;
+
         GetAgentAdminPermissionSet(AggregatePermissionSet);
         if not UserPermissions.HasUserPermissionSetAssigned(
             UserSecurityId(),
@@ -122,10 +125,10 @@ codeunit 6913 "Expense Agent Entra App Mgt."
             AggregatePermissionSet.Scope,
             AggregatePermissionSet."App ID")
         then
-            Error(AgentAdminPermissionRequiredErr);
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
 
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
-            Error(AgentAdminPermissionRequiredErr);
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
 
         GetExpenseManagementAdminPermissionSet(AggregatePermissionSet);
         if not UserPermissions.HasUserPermissionSetAssigned(
@@ -135,7 +138,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
             AggregatePermissionSet.Scope,
             AggregatePermissionSet."App ID")
         then
-            Error(ExpenseManagementAdminPermissionRequiredErr);
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
 
         if not HasSecurityPermission(UserPermissions) then
             Error(SecurityPermissionRequiredErr);
@@ -148,7 +151,7 @@ codeunit 6913 "Expense Agent Entra App Mgt."
             AggregatePermissionSet.Scope,
             AggregatePermissionSet."App ID")
         then
-            Error(ExpenseAgentPermissionRequiredErr);
+            Error(PermissionSetRequiredErr, AggregatePermissionSet.Name);
     end;
 
     local procedure HasSecurityPermission(UserPermissions: Codeunit "User Permissions"): Boolean
@@ -156,9 +159,6 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         AccessControl: Record "Access Control";
         NullGuid: Guid;
     begin
-        if UserPermissions.IsSuper(UserSecurityId()) then
-            exit(true);
-
         exit(UserPermissions.HasUserPermissionSetAssigned(
             UserSecurityId(),
             GetCurrentCompanyName(),
@@ -298,10 +298,8 @@ codeunit 6913 "Expense Agent Entra App Mgt."
         ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
         ExpenseManagementAdminPermissionSetLbl: Label 'Expense Mgmt. Admin', Locked = true;
         SecurityPermissionSetLbl: Label 'SECURITY', Locked = true;
-        AgentAdminPermissionRequiredErr: Label 'You must be assigned the Agent - Admin permission set to manage the Expense Agent Microsoft Entra application.';
         AadApplicationMissingErr: Label 'The Expense Agent Microsoft Entra application is not configured.';
-        ExpenseAgentPermissionRequiredErr: Label 'You must be assigned the Expense Agent permission set to manage the Expense Agent Microsoft Entra application.';
-        ExpenseManagementAdminPermissionRequiredErr: Label 'You must be assigned the Expense Management - Admin permission set to manage the Expense Agent Microsoft Entra application.';
+        PermissionSetRequiredErr: Label 'You must be assigned the %1 permission set to manage the Expense Agent Microsoft Entra application.', Comment = '%1 = permission set name';
         PermissionSetMissingErr: Label 'The %1 permission set is not available.', Comment = '%1 = permission set ID';
         SecurityPermissionRequiredErr: Label 'You must be assigned either the SUPER or SECURITY permission set to manage the Expense Agent Microsoft Entra application.';
 }
