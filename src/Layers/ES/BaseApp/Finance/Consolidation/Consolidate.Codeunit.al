@@ -1618,7 +1618,15 @@ codeunit 432 Consolidate
         TempSubsidGLEntry.SetRange("G/L Account No.", TempSubsidGLAcc."No.");
     end;
 
-    internal procedure GetGLAccounts(var TempGLAccount: Record "G/L Account" temporary)
+    /// <summary>
+    /// Returns the current temporary subsidiary G/L account buffer populated during the consolidation run.
+    /// Pass an empty temporary G/L Account record; the buffer entries are copied into it.
+    /// </summary>
+    /// <remarks>
+    /// This procedure is public to support external integration with the consolidation process.
+    /// It is a supported, stable API surface; do not change the signature without following the obsolescence lifecycle.
+    /// </remarks>
+    procedure GetGLAccounts(var TempGLAccount: Record "G/L Account" temporary)
     begin
         if not TempSubsidGLAcc.FindSet() then
             exit;
