@@ -348,7 +348,7 @@ function Invoke-AITSuite
             $NoOfPendingTests = [int] $NoOfPendingTests.StringValue
 
             if ($ExportAITRunData) {
-                Export-AITRunData -SuiteCode $SuiteCode -SuiteLineNo $SuiteLineNo -AITRunDataFolder $AITRunDataFolder
+                Export-AITRunData -SuiteCode $SuiteCode -AITRunDataFolder $AITRunDataFolder -ClientContext $clientContext -Form $form
             }
         }
         catch {
@@ -378,23 +378,16 @@ function Export-AITRunData {
     param (
         [Parameter(Mandatory = $true)]
         [string] $SuiteCode,
-        [string] $SuiteLineNo,
         [Parameter(Mandatory = $true)]
-        [string] $AITRunDataFolder
+        [string] $AITRunDataFolder,
+        [Parameter(Mandatory = $true)]
+        [ClientContext] $ClientContext,
+        [Parameter(Mandatory = $true)]
+        [ClientLogicalForm] $Form
     )
 
     try {
-        $clientContext = Open-ClientSessionWithWait -DisableSSLVerification:$script:DisableSSLVerification -AuthorizationType $script:AuthorizationType -Credential $script:Credential -ServiceUrl $script:ServiceUrl -ClientSessionTimeout $script:ClientSessionTimeout -TransactionTimeout $script:AITRunDataExportTimeout -Culture $script:Culture
-        $form = Open-TestForm -TestPage $script:TestRunnerPage -DisableSSLVerification:$script:DisableSSLVerification -AuthorizationType $script:AuthorizationType -ClientContext $clientContext
-
-        $SelectSuiteControl = $clientContext.GetControlByName($form, "AIT Suite Code")
-        $clientContext.SaveValue($SelectSuiteControl, $SuiteCode)
-        if ($SuiteLineNo -ne '') {
-            $SelectSuiteLineControl = $clientContext.GetControlByName($form, "Line No. Filter")
-            $clientContext.SaveValue($SelectSuiteLineControl, $SuiteLineNo)
-        }
-
-        Export-AITRunDataFiles -SuiteCode $SuiteCode -AITRunDataFolder $AITRunDataFolder -ClientContext $clientContext -Form $form
+        Export-AITRunDataFiles -SuiteCode $SuiteCode -AITRunDataFolder $AITRunDataFolder -ClientContext $ClientContext -Form $Form
     }
     catch {
         $SafeSuiteCode = $SuiteCode -replace '[^a-zA-Z0-9_-]', '_'
@@ -403,11 +396,6 @@ function Export-AITRunData {
         Write-HostWithTimestamp $FailureMessage
         New-Item -ItemType Directory -Force -Path $AITRunDataFolder | Out-Null
         [System.IO.File]::WriteAllText($FailureFilePath, $FailureMessage, $script:AITRunDataFileEncodingWithoutBOM)
-    }
-    finally {
-        if ($clientContext) {
-            $clientContext.Dispose()
-        }
     }
 }
 
@@ -947,7 +935,7 @@ $script:DefaultServerInstance = "NAV"
 $script:DefaultClientSessionTimeout = 60;
 $script:DefaultTransactionTimeout = [timespan]::FromMinutes(60);
 $script:DefaultCulture = "en-US";
-$script:AITRunDataExportTimeout = [timespan]::FromMinutes(15);
+$script:AITRunDataExportTimeout = [timespan]::FromMinutes(20);
 $script:NoMoreAITRunDataFiles = "No more AI Eval run data files.";
 $script:AITRunDataFileEncodingWithoutBOM = [System.Text.UTF8Encoding]::new($false);
 

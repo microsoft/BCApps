@@ -40,7 +40,7 @@ The export uses the following structure:
         task-<Agent-Task-ID>.json
 ```
 
-`results.json` is the entry point for analysis. Each evaluation result contains the original dataset identifiers, input, output, status, metrics, errors, and references to optional Agent Task troubleshooting details. Known dataset file extensions are removed only from folder names; persisted dataset codes are unchanged. Existing data for the same suite version is deleted before that version is exported again. Other versions are preserved. Export stops after 15 minutes; blank responses, invalid paths, and timeouts are logged and written to text files in the output folder.
+`results.json` is the entry point for analysis. Each evaluation result contains the original dataset identifiers, input, output, status, metrics, errors, and references to optional Agent Task troubleshooting details. Known dataset file extensions are removed only from folder names; persisted dataset codes are unchanged. Existing data for the same suite version is deleted before that version is exported again. Other versions are preserved. Export stops after 20 minutes; blank responses, invalid paths, and timeouts are logged and written to text files in the output folder.
 
 
 ## Writing data-driven AI evals
