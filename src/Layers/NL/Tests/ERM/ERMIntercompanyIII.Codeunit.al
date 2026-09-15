@@ -3544,6 +3544,7 @@ codeunit 134154 "ERM Intercompany III"
     end;
 
     [Test]
+    [HandlerFunctions('RequestPageHandler')]
     procedure OpenICPurchaseInvoiceWithVendorOrderNoExceeding20Chars()
     var
         ICInboxPurchaseHeader: Record "IC Inbox Purchase Header";
