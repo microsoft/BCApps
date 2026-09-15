@@ -20,10 +20,34 @@ pageextension 6100 "E-Doc. Purchase Invoices" extends "Purchase Invoices"
                 ShowFilter = false;
             }
         }
+        addlast(Control1)
+        {
+            field(EDocumentStatus; EDocumentStatusText)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Status';
+                ToolTip = 'Specifies the status of the latest electronic document linked to this record. Hidden by default; add it via Personalize to make it visible.';
+                Visible = false;
+                Editable = false;
+            }
+        }
     }
 
+    trigger OnOpenPage()
     var
-        ShowEDocumentPdfPreview: Boolean;
+        EDocument: Record "E-Document";
+    begin
+        HasAnyEDocument := GuiAllowed() and EDocument.HasEDocument();
+    end;
+
+    trigger OnAfterGetRecord()
+    var
+        EDocumentLookup: Record "E-Document";
+    begin
+        EDocumentStatusText := '';
+        if HasAnyEDocument then
+            EDocumentStatusText := EDocumentLookup.GetLatestStatus(Rec.RecordId());
+    end;
 
     trigger OnAfterGetCurrRecord()
     var
@@ -34,4 +58,9 @@ pageextension 6100 "E-Doc. Purchase Invoices" extends "Purchase Invoices"
         ShowEDocumentPdfPreview := EDocDataStorageEntryNo <> 0;
         CurrPage.EDocumentPdfPreview.Page.SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo);
     end;
+
+    var
+        HasAnyEDocument: Boolean;
+        ShowEDocumentPdfPreview: Boolean;
+        EDocumentStatusText: Text;
 }

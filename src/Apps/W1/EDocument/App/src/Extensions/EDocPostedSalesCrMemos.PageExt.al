@@ -2,24 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Purchases.History;
+namespace Microsoft.Sales.History;
 
 using Microsoft.eServices.EDocument;
 
-pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invoices"
+pageextension 6117 "E-Doc. Posted Sales Cr. Memos" extends "Posted Sales Credit Memos"
 {
     layout
     {
-        addbefore(IncomingDocAttachFactBox)
-        {
-            part(EDocumentPdfPreview; "Inbound E-Doc. Picture")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Preview';
-                Visible = ShowEDocumentPdfPreview;
-                ShowFilter = false;
-            }
-        }
         addlast(Control1)
         {
             field(EDocumentStatus; EDocumentStatusText)
@@ -49,18 +39,7 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
             EDocumentStatusText := EDocumentLookup.GetLatestStatus(Rec.RecordId());
     end;
 
-    trigger OnAfterGetCurrRecord()
-    var
-        EDocumentHelper: Codeunit "E-Document Helper";
-        EDocDataStorageEntryNo: Integer;
-    begin
-        EDocDataStorageEntryNo := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId());
-        ShowEDocumentPdfPreview := EDocDataStorageEntryNo <> 0;
-        CurrPage.EDocumentPdfPreview.Page.SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo);
-    end;
-
     var
         HasAnyEDocument: Boolean;
-        ShowEDocumentPdfPreview: Boolean;
         EDocumentStatusText: Text;
 }
