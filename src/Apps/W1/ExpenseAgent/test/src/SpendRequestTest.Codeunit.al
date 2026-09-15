@@ -441,7 +441,7 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] Posted report references prevent deletion even when the net spent amount is zero.
         Initialize();
 
-        // [GIVEN] A normally posted report with offsetting amounts and a header-level request link.
+        // [GIVEN] A normally posted zero-amount report with a header-level request link.
         CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
         PostedExpenseReportHeader.TestField("Spend Request No.", SpendRequest."No.");
         Commit();
@@ -466,7 +466,7 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] A posted line can link a request independently of its report header.
         Initialize();
 
-        // [GIVEN] Normal posting produces line-only references and zero net spend.
+        // [GIVEN] Normal posting of a zero-amount report produces line-only references and zero net spend.
         CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, false);
         PostedExpenseReportHeader.TestField("Spend Request No.", '');
         PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
@@ -1940,7 +1940,6 @@ codeunit 148339 "Spend Request Test"
     var
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
-        BalancingExpenseReportLine: Record "Expense Report Line";
         ExpenseReportPost: Codeunit "Expense Report-Post";
     begin
         if AssignOnHeader then
@@ -1950,21 +1949,17 @@ codeunit 148339 "Spend Request Test"
 
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLine.FindFirst();
-        LibraryExpense.CreateExpenseReportLine(
-            BalancingExpenseReportLine, ExpenseReportHeader, ExpenseReportHeader."Expense User No.",
-            ExpenseReportLine."Expense Category", ExpenseReportLine."Payment Method Code", true,
-            ExpenseReportLine."Expense Currency Code", -ExpenseReportLine.Amount);
-        if not AssignOnHeader then begin
-            BalancingExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
-            BalancingExpenseReportLine.Modify(true);
-        end;
+        // Negative non-correction G/L entries do not offset spend request links.
+        // Normal posting still creates posted report history for a zero-amount line.
+        ExpenseReportLine.Validate(Amount, 0);
+        ExpenseReportLine.Modify(true);
 
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
         PostedExpenseReportHeader.Get(ExpenseReportHeader."Last Posting No.");
         SpendRequest.Get(SpendRequest."No.");
         SpendRequest.CalcFields("Total Spent Amount (LCY)");
-        Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", 'Offsetting posted amounts must leave zero net spend.');
+        Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", 'The posted zero-amount report must leave zero net spend.');
     end;
 
     local procedure CreateAndPostExpenseReportWithSpendRequest(var ExpenseReportHeader: Record "Expense Report Header"; var SpendRequest: Record "Spend Request"; NumberOfLines: Integer)

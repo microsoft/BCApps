@@ -6,7 +6,6 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 using System.Telemetry;
-using System.Text;
 
 codeunit 7133 "Travel Request Approval"
 {
@@ -217,11 +216,13 @@ codeunit 7133 "Travel Request Approval"
 
     local procedure AppendSubmitterFilter(var SubmitterFilter: TextBuilder; ExpenseUserNo: Code[20])
     var
-        SelectionFilterManagement: Codeunit SelectionFilterManagement;
+        ExpenseUserFilter: Record "Expense User";
     begin
+        // Serialize an exact value so filter operators in user numbers remain literal.
+        ExpenseUserFilter.SetRange("No.", ExpenseUserNo);
         if SubmitterFilter.Length > 0 then
             SubmitterFilter.Append('|');
-        SubmitterFilter.Append(SelectionFilterManagement.AddQuotes(ExpenseUserNo));
+        SubmitterFilter.Append(ExpenseUserFilter.GetFilter("No."));
     end;
 
     var
