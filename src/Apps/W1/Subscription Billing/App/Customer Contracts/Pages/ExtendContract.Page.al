@@ -630,7 +630,7 @@ page 8002 "Extend Contract"
         TempServiceCommitmentPackage.SetRange(Selected);
     end;
 
-    internal procedure SetParameters(NewCustomerNo: Code[20]; NewCustomerContractNo: Code[20]; NewProvisionStartDate: Date; NewExtendCustomerContract: Boolean)
+    procedure SetParameters(NewCustomerNo: Code[20]; NewCustomerContractNo: Code[20]; NewProvisionStartDate: Date; NewExtendCustomerContract: Boolean)
     begin
         SellToCustomerNoParam := NewCustomerNo;
         CustomerContractNoParam := NewCustomerContractNo;
@@ -661,7 +661,7 @@ page 8002 "Extend Contract"
         end;
     end;
 
-    internal procedure SetUsageBasedParameters(SupplierNo: Code[20]; NewSubscriptionEntryNo: Integer)
+    procedure SetUsageBasedParameters(SupplierNo: Code[20]; NewSubscriptionEntryNo: Integer)
     begin
         UsageDataSupplierNoParam := SupplierNo;
         SubscriptionEntryNoParam := NewSubscriptionEntryNo;
