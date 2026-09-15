@@ -52,21 +52,13 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
         ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
-        ResponseIntegrityErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not match the requested identifiers and was rejected.';
-        ResponseIntegrityMsg: Label 'The VAT reg. no. validation failed. The response identifiers did not match the request.', Locked = true;
-        ResponseMissingIdentifiersErr: Label 'The response from the EU VAT Registration No. validation service (VIES) did not include the requested identifiers and was rejected.';
-        ResponseMissingIdentifiersMsg: Label 'The VAT reg. no. validation failed. The response did not include the requested identifiers.', Locked = true;
-        SecurityAuditResponseMissingIdentifiersTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not include the requested VAT registration number.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
-        SecurityAuditResponseIntegrityTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that did not match the requested VAT registration number.', Locked = true;
         BlockedEndpointErr: Label 'The VAT registration service endpoint must be an external address. Internal, private, loopback, or link-local addresses are not allowed.';
         BlockedEndpointTitleTxt: Label 'Service endpoint not allowed';
         BlockedEndpointDetailTxt: Label 'Open the EU VAT Registration No. Validation Service Setup and change the Service Endpoint to a valid external VIES address before validating VAT registration numbers.';
         OpenVATRegServiceSetupTxt: Label 'Open the EU VAT Registration No. Validation Service Setup';
         BlockedEndpointMsg: Label 'The VAT reg. no. validation failed. The configured service endpoint targets an internal address and was rejected.', Locked = true;
         SecurityAuditBlockedEndpointTxt: Label 'The EU VAT Registration No. validation service (VIES) endpoint was rejected because it targets an internal address.', Locked = true;
-        CountryCodePathTxt: Label 'descendant::vat:countryCode', Locked = true;
-        VatNumberPathTxt: Label 'descendant::vat:vatNumber', Locked = true;
         VATRegistrationURL: Text;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)
@@ -207,8 +199,6 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         TempBlobRequestBody.CreateInStream(InStream);
         XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, XMLDocOut);
 
-        ValidateResponseIntegrity(VATRegistrationLog, XMLDocOut, NamespaceTxt);
-
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, XMLDocOut, NamespaceTxt);
     end;
 
@@ -228,65 +218,6 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         Clear(TempBlob);
         Error(ResponseTooLargeErr);
-    end;
-
-    /// <summary>
-    /// Validates the integrity of a VIES response before its content is trusted.
-    /// A legitimate VIES checkVat response always echoes the queried country code and VAT registration number,
-    /// so a response that omits either identifier is treated as an invalid schema and rejected - this prevents a
-    /// response that only carries valid=true (with the identifiers stripped) from being accepted for any request.
-    /// When the identifiers are present, they must match what was requested, so a swapped or unrelated response
-    /// received over the unauthenticated service is rejected as well.
-    /// </summary>
-    /// <param name="RecVATRegistrationLog">The VAT registration log entry containing the requested country code and VAT number.</param>
-    /// <param name="XMLDoc">The parsed VIES response document.</param>
-    /// <param name="Namespace">The VIES XML namespace used to resolve response nodes.</param>
-    internal procedure ValidateResponseIntegrity(var RecVATRegistrationLog: Record "VAT Registration Log"; XMLDoc: DotNet XmlDocument; Namespace: Text)
-    var
-        AuditLog: Codeunit "Audit Log";
-        ResponseCountryCode: Text;
-        ResponseVATNumber: Text;
-    begin
-        if IsNull(XMLDoc) then
-            exit;
-        if IsNull(XMLDoc.DocumentElement) then
-            exit;
-
-        ResponseCountryCode := ExtractResponseValue(XMLDoc, CountryCodePathTxt, Namespace);
-        ResponseVATNumber := ExtractResponseValue(XMLDoc, VatNumberPathTxt, Namespace);
-
-        // Schema: a legitimate response always echoes both identifiers. Reject a response that omits either one so a
-        // valid=true payload with the identifiers stripped cannot be trusted for the requested VAT number.
-        if (ResponseCountryCode = '') or (ResponseVATNumber = '') then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseMissingIdentifiersTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('0000VF6', ResponseMissingIdentifiersMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-            Error(ResponseMissingIdentifiersErr);
-        end;
-
-        // Integrity: both identifiers are present here, so reject when either echoed value contradicts the request.
-        if (NormalizeIdentifier(ResponseCountryCode) <> NormalizeIdentifier(RecVATRegistrationLog.GetCountryCode())) or
-           (NormalizeIdentifier(ResponseVATNumber) <> NormalizeIdentifier(RecVATRegistrationLog.GetVATRegNo()))
-        then begin
-            AuditLog.LogAuditMessage(SecurityAuditResponseIntegrityTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('0000VES', ResponseIntegrityMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-            Error(ResponseIntegrityErr);
-        end;
-    end;
-
-    local procedure ExtractResponseValue(XMLDoc: DotNet XmlDocument; Xpath: Text; Namespace: Text): Text
-    var
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        FoundXmlNode: DotNet XmlNode;
-    begin
-        if not XMLDOMMgt.FindNodeWithNamespace(XMLDoc.DocumentElement, Xpath, 'vat', Namespace, FoundXmlNode) then
-            exit('');
-        exit(FoundXmlNode.InnerText);
-    end;
-
-    local procedure NormalizeIdentifier(Value: Text): Text
-    begin
-        Value := UpperCase(Value);
-        exit(DelChr(Value, '=', DelChr(Value, '=', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')));
     end;
 
     local procedure GetMaxResponseSize(): Integer

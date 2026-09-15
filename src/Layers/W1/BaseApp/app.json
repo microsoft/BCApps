@@ -47,11 +47,6 @@
       "publisher": "Microsoft"
     },
     {
-      "id": "0f0955b8-92e2-4ce2-a580-3c4583dde9ae",
-      "name": "Tests-VAT",
-      "publisher": "Microsoft"
-    },
-    {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft"
