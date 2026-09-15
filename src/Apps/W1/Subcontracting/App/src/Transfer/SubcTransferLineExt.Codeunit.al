@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001544 "Subc. Transfer Line Ext."
+codeunit 20544 "Subc. Transfer Line Ext."
 {
 #if not CLEAN29
     var
@@ -26,6 +26,22 @@ codeunit 99001544 "Subc. Transfer Line Ext."
             exit;
 #endif
         TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeCheckItemAvailable, '', false, false)]
+    local procedure OnBeforeCheckItemAvailable(var TransferLine: Record "Transfer Line"; CalledByFieldNo: Integer; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+        if TransferLine.IsTemporary() then
+            exit;
+
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if TransferLine."Transfer WIP Item" then
+            IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]

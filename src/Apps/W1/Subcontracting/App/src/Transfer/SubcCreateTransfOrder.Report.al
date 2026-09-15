@@ -7,13 +7,15 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-report 99001501 "Subc. Create Transf. Order"
+report 20501 "Subc. Create Transf. Order"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Create Subcontracting Transfer Order';
@@ -83,11 +85,39 @@ report 99001501 "Subc. Create Transf. Order"
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
+        CannotCreateTransferErr: Label 'Cannot create a transfer from location %1 to location %2 because location %1 requires warehousing. Set up an in-transit transfer route between the locations, or set Direct Transfer Posting to Direct Transfer on the transfer route or in Inventory Setup.', Comment = '%1=Transfer-from location code, %2=Transfer-to location code';
+
+    local procedure CheckDirectTransferAllowed(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean; TransferFromLocation: Code[10]; TransferToLocation: Code[10])
+    var
+        Location: Record Location;
+    begin
+        if IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
+            exit;
+
+        if Location.RequirePicking(TransferFromLocation) or Location.RequireShipment(TransferFromLocation) then
+            Error(CannotCreateTransferErr, TransferFromLocation, TransferToLocation);
+    end;
+
+    local procedure IsOneStepDirectTransfer(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean): Boolean
+    var
+        InventorySetup: Record "Inventory Setup";
+        DirectTransferPostingType: Enum "Direct Transfer Posting Type";
+    begin
+        if TransferRouteExists and TransferRoute."Direct Transfer" then
+            DirectTransferPostingType := TransferRoute."Direct Transfer Posting"
+        else begin
+            InventorySetup.SetLoadFields("Direct Transfer Posting Type");
+            InventorySetup.GetRecordOnce();
+            DirectTransferPostingType := InventorySetup."Direct Transfer Posting Type";
+        end;
+        exit(DirectTransferPostingType = DirectTransferPostingType::"Direct Transfer");
+    end;
 
     local procedure InsertTransferHeader(TransferFromLocation: Code[10])
     var
         TransferRoute: Record "Transfer Route";
         TransferToLocationCode: Code[10];
+        TransferRouteExists: Boolean;
     begin
         GetTransferToLocationCode(TransferToLocationCode);
 
@@ -106,8 +136,13 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if not TransferRoute.Get(TransferFromLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
+            TransferRouteExists := TransferRoute.Get(TransferFromLocation, TransferToLocationCode);
+            if not TransferRouteExists or (TransferRoute."In-Transit Code" = '') then begin
+                CheckDirectTransferAllowed(TransferRoute, TransferRouteExists, TransferFromLocation, TransferToLocationCode);
                 TransferHeader.Validate("Direct Transfer", true);
+            end else
+                if not IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
+                    TransferHeader.Validate("In-Transit Code", TransferRoute."In-Transit Code");
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
@@ -123,7 +158,9 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader."Transfer-to County" := Vendor.County;
             TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
 
+            OnInsertTransferHeaderOnBeforeModify(TransferHeader, Vendor, "Purchase Header");
             TransferHeader.Modify();
+            OnAfterInsertTransferHeader(TransferHeader, Vendor);
             LineNo := 0;
         end else begin
             TransferLine.SetRange("Document No.", TransferHeader."No.");
@@ -143,6 +180,7 @@ report 99001501 "Subc. Create Transf. Order"
         PurchaseLine.SetFilter("Prod. Order No.", '<>''''');
         PurchaseLine.SetFilter("Prod. Order Line No.", '<>0');
         PurchaseLine.SetFilter("Operation No.", '<>0');
+        OnCheckTransferCreatedOnAfterPurchaseLineSetFilters(PurchaseLine, "Purchase Header");
         if PurchaseLine.FindSet() then
             repeat
                 if HandleComponentsForPurchLine(PurchaseLine, false) then
@@ -163,6 +201,7 @@ report 99001501 "Subc. Create Transf. Order"
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcProdOrdCompRes: Codeunit "Subc. Prod. Ord. Comp. Res.";
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         TransferFromLocationCode: Code[10];
         QtyPerUom: Decimal;
@@ -187,6 +226,7 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
+        OnHandleComponentsForPurchLineOnAfterProdOrderComponentSetFilters(ProdOrderComponent, PurchaseLine);
         if ProdOrderComponent.FindSet() then
             repeat
                 Item.SetLoadFields("Rounding Precision", "Order Tracking Policy");
@@ -245,19 +285,19 @@ report 99001501 "Subc. Create Transf. Order"
                             Error(ExcessReservationsErr, TransferLine."Quantity (Base)", SubcTransferManagement.GetComponentReservedQtyBase(ProdOrderComponent), ProdOrderComponent."Item No.");
 
                         SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
-                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
+                        if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then
                             if Item."Order Tracking Policy" = Item."Order Tracking Policy"::None then
-                                ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code")
+                                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code")
                             else begin
                                 BindSubscription(SubcProdOrdCompRes);
-                                ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code");
+                                SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, TransferHeader."Transfer-to Code");
                                 UnbindSubscription(SubcProdOrdCompRes);
                             end;
-                            ProdOrderComponent.GetDefaultBin();
-                        end;
                         ProdOrderComponent.Modify();
 
                         SubcTransferManagement.CreateReservEntryForTransferReceiptToProdOrderComp(TransferLine, ProdOrderComponent);
+
+                        OnAfterInsertTransferLine(TransferHeader, TransferLine, PurchaseLine, ProdOrderComponent);
                     end else
                         exit(true);
             until ProdOrderComponent.Next() = 0;
@@ -268,7 +308,13 @@ report 99001501 "Subc. Create Transf. Order"
     local procedure ShowDocument()
     var
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeShowDocument(TransferHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         Commit(); // Used for following call of Transfer Pages
         SubcPurchFactboxMgmt.ShowTransferOrdersFromPurchaseOrder("Purchase Header", false);
     end;
@@ -407,6 +453,8 @@ report 99001501 "Subc. Create Transf. Order"
         TransferLine."Prev. Operation No." := WIPPreviousOperationNo;
 
         TransferLine.Modify();
+
+        OnAfterInsertWIPTransferLine(TransferHeader, TransferLine, PurchaseLine, ProdOrderLine, ProdOrderRoutingLine);
     end;
 
     local procedure GetWIPTransferFromLocations(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WIPSourceLocationList: List of [Code[10]]; var WIPSourceQtyDict: Dictionary of [Code[10], Decimal]; var WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]]; PurchLineQtyBase: Decimal)
@@ -614,5 +662,40 @@ report 99001501 "Subc. Create Transf. Order"
         SubcontractorWIPLedgerEntry.SetRange("In Transit", false);
         SubcontractorWIPLedgerEntry.CalcSums("Quantity (Base)");
         exit(SubcontractorWIPLedgerEntry."Quantity (Base)");
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertTransferHeaderOnBeforeModify(var TransferHeader: Record "Transfer Header"; Vendor: Record Vendor; PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertTransferHeader(var TransferHeader: Record "Transfer Header"; Vendor: Record Vendor)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertTransferLine(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; PurchaseLine: Record "Purchase Line"; var ProdOrderComponent: Record "Prod. Order Component")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertWIPTransferLine(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckTransferCreatedOnAfterPurchaseLineSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnHandleComponentsForPurchLineOnAfterProdOrderComponentSetFilters(var ProdOrderComponent: Record "Prod. Order Component"; PurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeShowDocument(var TransferHeader: Record "Transfer Header"; var IsHandled: Boolean)
+    begin
     end;
 }

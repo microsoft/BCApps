@@ -10,56 +10,56 @@ codeunit 136201 "Marketing Contacts"
     end;
 
     var
-        LibraryERM: Codeunit "Library - ERM";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
-        LibraryMarketing: Codeunit "Library - Marketing";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
+        Assert: Codeunit Assert;
         LibraryDimension: Codeunit "Library - Dimension";
+        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryJob: Codeunit "Library - Job";
+        LibraryMarketing: Codeunit "Library - Marketing";
+        LibraryNotificationMgt: codeunit "Library - Notification Mgt.";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibraryNotificationMgt: codeunit "Library - Notification Mgt.";
-        LibraryJob: Codeunit "Library - Job";
-        Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTemplates: Codeunit "Library - Templates";
-        LibraryHumanResource: Codeunit "Library - Human Resource";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
-        ValidationError: Label '%1: %2 must exist.';
-        ErrorMessage: Label '%1: %2 must not exist.';
-        ExpectedMessage: Label 'The field IBAN is mandatory. You will not be able to use the account in a payment file until the IBAN is correctly filled in.\\Are you sure you want to continue?';
         BusinessRelationError: Label '%1 %2 already has a Contact Business Relation with %3 %4.', Comment = '%1: Table Caption;%2: Field Value,%3: Table Caption2; %4: Field Value2';
-        WrongDescriptionFieldLengthErr: Label 'Wrong description field length in table %1.';
-        EmptyAttachmentErr: Label 'The attachment is empty';
-        ExtensionTxt: Label 'txt';
-        WrongCalcdCurValueErr: Label '%1 should be updated with "Sales (LCY)" value.';
         BusRelContactValidationErr: Label '%1 %2 is used when a %3 is linked with a %4.', Comment = '.';
-        WrongValueErr: Label 'Function returned wrong value';
-        SelectCustomerTemplateQst: Label 'Do you want to select the customer template?';
-        CustTemplateListErr: Label 'Customer Template List contains wrong data.';
-        YouCanGetContactFromCustTxt: Label 'You can create contacts automatically from newly created customers.';
-        YouCanGetContactFromVendTxt: Label 'You can create contacts automatically from newly created vendors.';
-        CustomerContNotifTok: Label '351199d7-6c9b-40f1-8e78-ff9e67c546c9';
-        VendorContNotifTok: Label '08db77db-1f41-4379-8615-1b581a0225fa';
-        RelationAlreadyExistWithVendorErr: Label 'Contact %1 already has a %2 with Vendor %3.', Comment = '%1=Contact table caption;%2=Contact number;%3=Contact Business Relation table caption;%4=Contact Business Relation Link to Table value;%5=Contact Business Relation number';
-        RelationAlreadyExistWithCustomerErr: Label 'Contact %1 already has a %2 with Customer %3.', Comment = '%1=Contact table caption;%2=Contact number;%3=Contact Business Relation table caption;%4=Contact Business Relation Link to Table value;%5=Contact Business Relation number';
-        ContactNotRelatedToVendorErr: Label 'Contact %1 %2 is not related to vendor %3 %4.';
         ContactNotRelatedToCustomerErr: Label 'Contact %1 %2 is not related to customer %3 %4.';
-        ExpectedToFindRecErr: Label 'Expected to find Contact Business Relation record.';
-        DuplicateContactsMsg: Label 'There are duplicate contacts.';
-        ItemDimensionAllowedFilter: Label 'Allowed Dimension filter must match in both Item template and Item.';
-        ValueMustMatch: Label 'Value must match.';
-        SelectVendorTemplateQst: Label 'Do you want to select the vendor template?';
+        ContactNotRelatedToVendorErr: Label 'Contact %1 %2 is not related to vendor %3 %4.';
         ContactShouldHaveCustomerRelationErr: Label 'Contact should have customer business relation';
         ContactShouldNotHaveVendorRelationErr: Label 'Contact should not have vendor business relation';
-        VendorTemplateShouldBeAppliedMsg: Label 'Vendor template should be applied to first purchase quote';
+        CustomerContNotifTok: Label '351199d7-6c9b-40f1-8e78-ff9e67c546c9';
+        CustTemplateListErr: Label 'Customer Template List contains wrong data.';
+        DuplicateContactsMsg: Label 'There are duplicate contacts.';
+        EmptyAttachmentErr: Label 'The attachment is empty';
+        ErrorMessage: Label '%1: %2 must not exist.';
+        ExpectedMessage: Label 'The field IBAN is mandatory. You will not be able to use the account in a payment file until the IBAN is correctly filled in.\\Are you sure you want to continue?';
+        ExpectedToFindRecErr: Label 'Expected to find Contact Business Relation record.';
+        ExtensionTxt: Label 'txt';
+        ItemDimensionAllowedFilter: Label 'Allowed Dimension filter must match in both Item template and Item.';
+        RelationAlreadyExistWithCustomerErr: Label 'Contact %1 already has a %2 with Customer %3.', Comment = '%1=Contact table caption;%2=Contact number;%3=Contact Business Relation table caption;%4=Contact Business Relation Link to Table value;%5=Contact Business Relation number';
+        RelationAlreadyExistWithVendorErr: Label 'Contact %1 already has a %2 with Vendor %3.', Comment = '%1=Contact table caption;%2=Contact number;%3=Contact Business Relation table caption;%4=Contact Business Relation Link to Table value;%5=Contact Business Relation number';
+        SelectCustomerTemplateQst: Label 'Do you want to select the customer template?';
+        SelectVendorTemplateQst: Label 'Do you want to select the vendor template?';
+        ValidationError: Label '%1: %2 must exist.';
+        ValueMustMatch: Label 'Value must match.';
+        VendorContNotifTok: Label '08db77db-1f41-4379-8615-1b581a0225fa';
         VendorTemplateAfterCustomerCreationMsg: Label 'Vendor template should be applied even after customer creation';
+        VendorTemplateShouldBeAppliedMsg: Label 'Vendor template should be applied to first purchase quote';
+        WrongCalcdCurValueErr: Label '%1 should be updated with "Sales (LCY)" value.';
+        WrongDescriptionFieldLengthErr: Label 'Wrong description field length in table %1.';
+        WrongValueErr: Label 'Function returned wrong value';
+        YouCanGetContactFromCustTxt: Label 'You can create contacts automatically from newly created customers.';
+        YouCanGetContactFromVendTxt: Label 'You can create contacts automatically from newly created vendors.';
 
     [Test]
     procedure ContactBusinessRelationCompatibility()
@@ -6374,6 +6374,41 @@ codeunit 136201 "Marketing Contacts"
         Assert.AreNotEqual('', PurchaseQuote2."Buy-from Vendor Templ. Code".Value(), VendorTemplateAfterCustomerCreationMsg);
         PurchaseQuote2.Close();
         ContactCard.Close();
+    end;
+
+    [Test]
+    procedure CustomerSIRENNoIsNotChangedWhenLinkedContactPhoneNoIsModified()
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        Customer: Record Customer;
+        SIRENNo: Code[9];
+    begin
+        // [SCENARIO 641872] Modifying a linked contact does not clear the customer's SIREN No.
+        Initialize();
+
+        // [GIVEN] A customer with a SIREN No. is linked to a contact without a SIREN No.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Update the customer's phone number and SIREN No.
+        Customer.Validate("Phone No.", LibraryUtility.GenerateRandomPhoneNo());
+        SIRENNo := CopyStr(LibraryUtility.GenerateRandomCodeWithLength(
+            Customer.FieldNo("SIREN No."), Database::Customer, MaxStrLen(SIRENNo)), 1, 9);
+        Customer.Validate("SIREN No.", SIRENNo);
+        Customer.Modify(true);
+
+        // [GIVEN] The customer is linked to a contact.
+        ContactBusinessRelation.FindByRelation(
+            ContactBusinessRelation."Link to Table"::Customer, Customer."No.");
+        Contact.Get(ContactBusinessRelation."Contact No.");
+
+        // [WHEN] The contact's phone number is modified.
+        Contact.Validate("Phone No.", LibraryUtility.GenerateRandomPhoneNo());
+        Contact.Modify(true);
+
+        // [THEN] The customer's SIREN No. is unchanged.
+        Customer.Get(Customer."No.");
+        Assert.AreEqual(SIRENNo, Customer."SIREN No.", ValueMustMatch);
     end;
 
     local procedure Initialize()

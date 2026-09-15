@@ -37,7 +37,6 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         MLLMJsonParseFailedMsg: Label 'MLLM response is not valid JSON, falling back to ADI.', Locked = true;
         MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), falling back to ADI.', Locked = true;
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
-        ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
         DocumentNotProcessedErr: Label 'The document could not be processed.';
         InappropriateContentErr: Label 'The document could not be processed because it contains inappropriate content.';
 
@@ -188,11 +187,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
     begin
         ADIResult := ADIHandler.StructureReceivedEDocument(EDocumentDataStorage);
 
-        if ADIResult.GetContent() <> '' then
-            Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions())
-        else
-            Telemetry.LogMessage('0000SGZ', ADIFallbackFailedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
-
+        Telemetry.LogMessage('0000SGY', ADIFallbackSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetCustomDimensions());
         exit(ADIResult);
     end;
 

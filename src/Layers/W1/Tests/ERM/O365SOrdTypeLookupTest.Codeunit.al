@@ -109,9 +109,9 @@ codeunit 134646 "O365 S. Ord. Type Lookup Test"
         SalesOrder.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the Sales Line to co
-        SalesOrder.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatType(), 1, 2));
+        SalesOrder.SalesLines.FilteredTypeField.SetValue(CopyStr(SalesLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        SalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -130,12 +130,12 @@ codeunit 134646 "O365 S. Ord. Type Lookup Test"
         // [WHEN] Setting the Subtype on the Sales Line to ' '
         SalesOrder.SalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        SalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
 
         // [WHEN] Setting the Subtype on the Sales Line to ''
         SalesOrder.SalesLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        SalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesOrder.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]

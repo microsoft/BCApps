@@ -1390,6 +1390,7 @@ codeunit 444 "Purchase-Post Prepayments"
         TotalPrepmtAmtInv: Decimal;
         LastLineNo: Integer;
         IsHandled: Boolean;
+        RaiseError: Boolean;
     begin
         IsHandled := false;
         OnBeforeUpdatePrepmtAmountOnPurchLines(PurchHeader, NewTotalPrepmtAmount, IsHandled);
@@ -1403,6 +1404,7 @@ codeunit 444 "Purchase-Post Prepayments"
         PurchLine.SetFilter(Type, '<>%1', PurchLine.Type::" ");
         PurchLine.SetFilter("Line Amount", '<>0');
         PurchLine.SetFilter("Prepayment %", '<>0');
+        OnUpdatePrepmtAmountOnPurchLinesOnAfterSetFilters(PurchLine, PurchHeader, NewTotalPrepmtAmount);
         PurchLine.LockTable();
         if PurchLine.Find('-') then
             repeat
@@ -1410,8 +1412,12 @@ codeunit 444 "Purchase-Post Prepayments"
                 TotalPrepmtAmtInv := TotalPrepmtAmtInv + PurchLine."Prepmt. Amt. Inv.";
                 LastLineNo := PurchLine."Line No.";
             until PurchLine.Next() = 0
-        else
-            Error(Text017, PurchLine.FieldCaption("Prepayment %"));
+        else begin
+            RaiseError := true;
+            OnUpdatePrepmtAmountOnPurchLinesOnBeforeErrorIfLinesNotFound(PurchLine, PurchHeader, RaiseError);
+            if RaiseError then
+                Error(Text017, PurchLine.FieldCaption("Prepayment %"));
+        end;
         if TotalLineAmount = 0 then
             Error(Text013, NewTotalPrepmtAmount);
         if not (NewTotalPrepmtAmount in [TotalPrepmtAmtInv .. TotalLineAmount]) then
@@ -1428,6 +1434,7 @@ codeunit 444 "Purchase-Post Prepayments"
                 else
                     PurchLine.Validate("Prepmt. Line Amount", NewTotalPrepmtAmount - TotalPrepmtAmount);
                 TotalPrepmtAmount := TotalPrepmtAmount + PurchLine."Prepmt. Line Amount";
+                OnUpdatePrepmtAmountOnPurchLinesOnBeforeModify(PurchLine, PurchHeader, NewTotalPrepmtAmount, TotalPrepmtAmount);
                 PurchLine.Modify();
             until PurchLine.Next() = 0;
     end;
@@ -1507,6 +1514,7 @@ codeunit 444 "Purchase-Post Prepayments"
             PurchaseHeader."Last Prepmt. Cr. Memo No." := GenJnlLineDocNo;
             PurchaseHeader."Prepmt. Cr. Memo No." := '';
             PurchLine.SetFilter("Prepmt. Amt. Inv.", '<>0');
+            OnUpdatePurchaseDocumentOnBeforeFindSetCrMemoPurchLine(PurchaseHeader, PurchLine);
             if PurchLine.FindSet(true) then
                 repeat
                     PurchLine."Prepmt. Amt. Inv." := PurchLine."Prepmt Amt Deducted";
@@ -1973,6 +1981,11 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnUpdatePurchaseDocumentOnBeforeFindSetCrMemoPurchLine(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnUpdatePurchaseDocumentOnBeforeModifyCrMemoPurchLine(var PurchaseLine: Record "Purchase Line")
     begin
     end;
@@ -2014,6 +2027,21 @@ codeunit 444 "Purchase-Post Prepayments"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtAmountOnPurchLines(PurchaseHeader: Record "Purchase Header"; NewTotalPrepmtAmount: Decimal; var IsHandled: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnPurchLinesOnAfterSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var NewTotalPrepaymentAmount: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnPurchLinesOnBeforeErrorIfLinesNotFound(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var RaiseError: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnPurchLinesOnBeforeModify(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var NewTotalPrepaymentAmount: Decimal; var TotalPrepaymentAmount: Decimal)
     begin
     end;
 

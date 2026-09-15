@@ -1,0 +1,1327 @@
+[
+  {
+    "codeunitId": 134000,
+    "codeunitName": "ERM Apply Sales/Receivables",
+    "method": "SourceCurrAmountHasCorrectSignUsingMultiplePostingGroup"
+  },
+  {
+    "codeunitId": 134000,
+    "codeunitName": "ERM Apply Sales/Receivables",
+    "method": "TestPmntDiscWithinDueDate"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "ApplyAndPostApplicationOnVendorLedgerEntry"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "CheckDiscountValueWithOutPmtDiscExcVatWithBalAccTypeVAT"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "CheckDiscountValueWithPmtDiscExcVatWithBalAccTypeVAT"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "CheckDiscountValueWithPmtDiscExcVatWithBalVATAmount"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "GLEntriesOnPostedPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "GLEntriesOnPostedPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "PmtJnlApplToInvWithDimDiscountAndDefDim"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "PmtJnlApplToInvWithNoDimDiscountAndDefDimErr"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "PmtToInvApplWithNoDimDiscountAndDefDim"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "ValueInClosedAtDateMustHaveValueInVendorLedgerEntryPostApplication"
+  },
+  {
+    "codeunitId": 134001,
+    "codeunitName": "ERM Apply Purchase/Payables",
+    "method": "VendorApplyFCYTestPmtCurrencyBlank"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "RefundAppliedToPaymentPartialFCY"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "RefundAppliedToPaymentPartialFCYCustomApplRounding"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "TestApplyPmtToInvToAllClose"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "TestApplyPmtToInvToAllOpen"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "TestApplyPmtToInvToPmtClose"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "TestApplyRefndToCrMemoToAllCls"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "TestApplyRefndToCrMemoToAllOpn"
+  },
+  {
+    "codeunitId": 134002,
+    "codeunitName": "ERM Partial Payment Customer",
+    "method": "TestApplyRefndToCrMemoToRefCls"
+  },
+  {
+    "codeunitId": 134003,
+    "codeunitName": "ERM Payment Tolerance Vendor",
+    "method": "PmtUndrInvAmtBfrDiscDtLCY"
+  },
+  {
+    "codeunitId": 134003,
+    "codeunitName": "ERM Payment Tolerance Vendor",
+    "method": "PmtUndrInvAmtWithnTolDtLCY"
+  },
+  {
+    "codeunitId": 134004,
+    "codeunitName": "ERM Partial Payment Vendor",
+    "method": "GLEntriesOnPostedInvoiceWithHoldingTaxCode"
+  },
+  {
+    "codeunitId": 134004,
+    "codeunitName": "ERM Partial Payment Vendor",
+    "method": "PostAndApplyPurchaseInvoiceOnGenJournal"
+  },
+  {
+    "codeunitId": 134005,
+    "codeunitName": "ERM Payment Tolerance Customer",
+    "method": "PaymentAmountNotRecalculatedWithBothTolerances"
+  },
+  {
+    "codeunitId": 134005,
+    "codeunitName": "ERM Payment Tolerance Customer",
+    "method": "PmtUnderInvAmtBeforeDiscDtLCY"
+  },
+  {
+    "codeunitId": 134005,
+    "codeunitName": "ERM Payment Tolerance Customer",
+    "method": "PmtUnderInvAmtWithinTolDtLCY"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "AmountToApplyAfterApplyToEntryForInvoice"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "AmountToApplyAfterApplyToEntryForPayment"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "ApplySalesCreditMemo"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "ApplySalesInvoice"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "ApplyUnapplySalesCreditMemo"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "ApplyUnapplySalesInvoice"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "ConsistentUnapplyInvoiceToPayment"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForCrMemoWhenInvoiceWithMultCrMemos"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForCrMemoWithInvoice"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForInvoiceWithCrMemo"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForInvoiceWithCrMemoAppliedTwice"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForInvoiceWithMultipleCrMemos"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForInvoiceWithPayment"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "GetAppliedCustLedgerEntriesForPaymentWithInvoice"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "ModifyPaymentMethodCodeInCustLedgEntryClosed"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "NoVATEntriesWhenUnapplyZeroDiscEntryWithAdjForPmtDisc"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "RemainingAmountOnCustLedgerEntryWithCurrency"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "RemainingAmountOnCustLedgerEntryWithoutCurrency"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "RoundingACYWhenPaymentAppliedToInvoiceWithRevChargeVAT"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "RoundingAndBalanceAmountsOnInvoiceApplication"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "SalesDocumentUsingApplicationMethodApplyToOldest"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "SalesOrderUsingPaymentMethodWithBalanceAccount"
+  },
+  {
+    "codeunitId": 134006,
+    "codeunitName": "ERM Apply Unapply Customer",
+    "method": "UnapplyCLEWithPaymentDiscVATEntryDocumentDate"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "AmountToApplyAfterApplyToEntryForInvoice"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "AmountToApplyAfterApplyToEntryForPayment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "AppliedAmountDifferentCurrencies"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "AppliesToExtDocNoIsClearedOnUnApplyEntries"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyAndUnapplyPaymentJournal"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyUnapplyApplyVendorPayment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyUnapplyApplyVendorRefund"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyUnapplyPurchInvoicesWithDimVals"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyUnapplySeveralInvAndPmtWithDifferentDimValues"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyUnapplyVendorPayment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ApplyUnapplyVendorRefund"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ChangeDocumentNoUnapplyPayment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ChangeDocumentNoUnapplyRefund"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ChangeExchRateUnapplyPayment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ChangeExchRateUnapplyRefund"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "CheckAmountOnApplyVendorEntriesPage"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ConsistentUnapplyInvoiceToPayment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "CreditMemoIsNotFullyAppliedByPaymentWithLessAmount"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "ModifyPaymentMethodCodeInVendLedgEntryClosed"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "NoVATEntriesWhenUnapplyZeroDiscEntryWithAdjForPmtDisc"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "PurchaseDocumentUsingApplicationMethodApplyToOldest"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "PurchaseOrderUsingPaymentMethodWithBalanceAccount"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RemainingAmountIsZeorBeforeAndAfterRunningExchRateAdjustmentReport"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RemainingAmtOnVendorLedgerEntryWithCurrency"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RemainingAmtOnVendorLedgerEntryWithoutCurrency"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingACYWhenPaymentAppliedToInvoiceWithRevChargeVAT"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingAmtOnCrMemo"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingAmtOnInvoice"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingAmtOnUnappliedCrMemo"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingAmtOnUnappliedInvoice"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingAndBalanceAmountOnPaymentApplication"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "RoundingAndBalanceAmountOnRefundApplication"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "SetAppliesToCrMemoDocNoForRefund"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "SuggestVendorPmtAfterUnapply"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyCrMemoDtVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyCrMemoVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyDateCompressVendLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyEntryWithLaterExchRateAdjustment"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyInvDtldVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyInvFromVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyPaymentAppliedToMultipleInvoicesWithDifferentExchRates"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyPaymentCheckSourceCode"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyPaymentDtldVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyPaymentVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyRefundCheckSourceCode"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyRefundDtldVendorLedger"
+  },
+  {
+    "codeunitId": 134007,
+    "codeunitName": "ERM Apply Unapply Vendor",
+    "method": "UnapplyRefundVendorLedger"
+  },
+  {
+    "codeunitId": 134008,
+    "codeunitName": "ERM VAT Settlement with Apply",
+    "method": "CalcPostVATSettlementForSalesTax"
+  },
+  {
+    "codeunitId": 134008,
+    "codeunitName": "ERM VAT Settlement with Apply",
+    "method": "CheckEntryInGLEntryVATEntryLink"
+  },
+  {
+    "codeunitId": 134008,
+    "codeunitName": "ERM VAT Settlement with Apply",
+    "method": "ExchangeRateAdjustmentRespectsClosedEntriesInVATEntry"
+  },
+  {
+    "codeunitId": 134008,
+    "codeunitName": "ERM VAT Settlement with Apply",
+    "method": "SingleCorrVATEntryWhenUnapplyPmtWithUnrealVATAndAdjForPmtDisc"
+  },
+  {
+    "codeunitId": 134009,
+    "codeunitName": "ERM Finance Charge Memo Apply",
+    "method": "ApplyAndUnapplyCustEntries"
+  },
+  {
+    "codeunitId": 134009,
+    "codeunitName": "ERM Finance Charge Memo Apply",
+    "method": "FinanceChargeMemoAndApply"
+  },
+  {
+    "codeunitId": 134009,
+    "codeunitName": "ERM Finance Charge Memo Apply",
+    "method": "IssueFinanceChargeMemoWithInvoiceRounding"
+  },
+  {
+    "codeunitId": 134009,
+    "codeunitName": "ERM Finance Charge Memo Apply",
+    "method": "IssueFinanceChargeMemoWithInvoiceRoundingPostAdditionalFee"
+  },
+  {
+    "codeunitId": 134009,
+    "codeunitName": "ERM Finance Charge Memo Apply",
+    "method": "IssueFinanceChargeMemoWithNegativeInvoiceRounding"
+  },
+  {
+    "codeunitId": 134009,
+    "codeunitName": "ERM Finance Charge Memo Apply",
+    "method": "IssueFinanceChargeMemoWithNegativeInvoiceRoundingPostAdditionalFee"
+  },
+  {
+    "codeunitId": 134011,
+    "codeunitName": "ERM Application Vendor",
+    "method": "ApplyRefundToCreditMemoInvoiceWithPaymentDisc"
+  },
+  {
+    "codeunitId": 134012,
+    "codeunitName": "ERM Reminder Apply Unapply",
+    "method": "ApplyAndUnapplyCustEntries"
+  },
+  {
+    "codeunitId": 134012,
+    "codeunitName": "ERM Reminder Apply Unapply",
+    "method": "CustomerLedgerEntryFactboxIssuedReminderPage"
+  },
+  {
+    "codeunitId": 134012,
+    "codeunitName": "ERM Reminder Apply Unapply",
+    "method": "CustomerLedgerEntryFactboxReminderPage"
+  },
+  {
+    "codeunitId": 134012,
+    "codeunitName": "ERM Reminder Apply Unapply",
+    "method": "IssueSelectedLineUsingIssueReminderReport"
+  },
+  {
+    "codeunitId": 134012,
+    "codeunitName": "ERM Reminder Apply Unapply",
+    "method": "ReminderAndCustLedgerEntries"
+  },
+  {
+    "codeunitId": 134016,
+    "codeunitName": "ERM Vendor Pmt Tol With Wrning",
+    "method": "ApplyOverRefundToCrMemosWhenBigAmtSmallToleranceAndSmallAmtBigTolerance"
+  },
+  {
+    "codeunitId": 134016,
+    "codeunitName": "ERM Vendor Pmt Tol With Wrning",
+    "method": "ApplyOverRefundToCrMemosWhenFirstTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134016,
+    "codeunitName": "ERM Vendor Pmt Tol With Wrning",
+    "method": "ApplyUnderPmtToInvoicesWhenFirstTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134016,
+    "codeunitName": "ERM Vendor Pmt Tol With Wrning",
+    "method": "ApplyUnderRefundToCrMemosWhenBigAmtSmallToleranceAndSmallAmtBigTolerance"
+  },
+  {
+    "codeunitId": 134016,
+    "codeunitName": "ERM Vendor Pmt Tol With Wrning",
+    "method": "ApplyUnderRefundToCrMemosWhenFirstTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134016,
+    "codeunitName": "ERM Vendor Pmt Tol With Wrning",
+    "method": "ApplyUnderRefundToCrMemosWhenLastTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "CreditMemoCopyDocument"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "CreditMemoCopyDocumentLineOnly"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "CreditMemoCopyDocumentOpenInv"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "SalesCreditMemoWithFCY"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "SalesCreditMemoWithLCY"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "SalesInvoiceWithFCY"
+  },
+  {
+    "codeunitId": 134017,
+    "codeunitName": "ERM Payment Tolerance Sales",
+    "method": "SalesInvoiceWithLCY"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "CreditMemoCopyDocument"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "CreditMemoCopyDocumentLineOnly"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "CreditMemoCopyDocumentOpenInv"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "PurchaseCreditMemoWithFCY"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "PurchaseCreditMemoWithLCY"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "PurchaseInvoiceWithDeferralEUReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "PurchaseInvoiceWithFCY"
+  },
+  {
+    "codeunitId": 134018,
+    "codeunitName": "ERM Payment Tolerance Purchase",
+    "method": "PurchaseInvoiceWithLCY"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "ApplyReconciliationWithCurrencyAndPaymentTolerancePurch"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "ApplyReconciliationWithCurrencyAndPaymentToleranceSales"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "GLEntriesOnPostCashReceiptAppliedEntries"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "GLEntriesOnPostedPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "GLEntriesOnPostedPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "GLEntriesOnPostedSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "GLEntriesOnPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "GLEntriesOnPostRefundJournalAppliedEntries"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "PurchasePaymentAppliedWithToleranceAmount"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "PurchasePaymentWarningCurrency"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "PurchCreditDiscAccountUsedWhenPostPaymentTolWithFullVAT"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "PurchCreditDiscAccountUsedWhenUnapplyPaymentTolWithFullVAT"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "PurchDebitDiscAccountIsedWhenUnapplyPaymentWithLowPmtTol"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "SalesDebitDiscAccountIsedWhenUnapplyPaymentWithLowPmtTol"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "SalesDebitDiscAccountUsedWhenPostPaymentTolWithFullVAT"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "SalesDebitDiscAccountUsedWhenUnapplyPaymentTolWithFullVAT"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "SalesPaymentAppliedWithToleranceAmount"
+  },
+  {
+    "codeunitId": 134022,
+    "codeunitName": "ERM Payment Tolerance",
+    "method": "SalesPaymentWarningCurrency"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "ApplyOverPmtToInvoicesWhenBigAmtSmallToleranceAndSmallAmtBigTolerance"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "ApplyOverPmtToInvoicesWhenFirstTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "ApplyUnderPmtToInvoicesWhenBigAmtSmallToleranceAndSmallAmtBigTolerance"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "ApplyUnderPmtToInvoicesWhenFirstTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "ApplyUnderPmtToInvoicesWhenLastTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "ApplyUnderRefundToCrMemosWhenFirstTwoHaveMaxPmtTolerance"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "EqualPmtAfterDueDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "EqualPmtAfterDueDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "EqualPmtAfterDueDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "EqualPmtBeforeDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "EqualPmtBeforeDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "EqualPmtBeforeDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "LessPmtAfterDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "LessPmtAfterDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "LessPmtAfterDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "LessPmtBeforeDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "LessPmtBeforeDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "LessPmtBeforeDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "OverPmtAfterDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "OverPmtAfterDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "OverPmtAfterDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "OverPmtBeforeDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "OverPmtBeforeDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "OverPmtBeforeDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "UnderAmtAfterDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "UnderAmtAfterDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "UnderAmtAfterDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "UnderAmtBeforeDiscDateFCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "UnderAmtBeforeDiscDateLCY"
+  },
+  {
+    "codeunitId": 134023,
+    "codeunitName": "ERM Pmt Tol Multi Doc Customer",
+    "method": "UnderAmtBeforeDiscDateMultiCur"
+  },
+  {
+    "codeunitId": 134024,
+    "codeunitName": "ERM Finance Payment Tolerance",
+    "method": "OverPaymentToInvoicesRemainingPmtDiscAmountZeroPurchase"
+  },
+  {
+    "codeunitId": 134024,
+    "codeunitName": "ERM Finance Payment Tolerance",
+    "method": "OverPaymentToInvoicesRemainingPmtDiscAmountZeroSales"
+  },
+  {
+    "codeunitId": 134024,
+    "codeunitName": "ERM Finance Payment Tolerance",
+    "method": "OverRefundToCreditMemosRemainingPmtDiscAmountZeroPurchase"
+  },
+  {
+    "codeunitId": 134024,
+    "codeunitName": "ERM Finance Payment Tolerance",
+    "method": "OverRefundToCreditMemosRemainingPmtDiscAmountZeroSales"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscExclVATForPurchInvLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscExclVATForSalesInvFCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscExclVATForSalesInvLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYPurchCrMemoFCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYPurchCrMemoLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYPurchInvFCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYPurchInvLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYSalesCrMemoFCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYSalesCrMemoLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYSalesInvFCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscGivenLCYSalesInvLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscInclVATForPurchInvLCY"
+  },
+  {
+    "codeunitId": 134031,
+    "codeunitName": "ERM VAT With Payment Discount",
+    "method": "PmtDiscInclVATForSalesInvLCY"
+  },
+  {
+    "codeunitId": 134041,
+    "codeunitName": "ERM Pmt. Tolerance VAT Appln.",
+    "method": "PaymentToleranceUnapplyPartialPaymentFullVATSales"
+  },
+  {
+    "codeunitId": 134041,
+    "codeunitName": "ERM Pmt. Tolerance VAT Appln.",
+    "method": "PaymentToleranceUnapplyPartialPaymentNormalVATPurchase"
+  },
+  {
+    "codeunitId": 134041,
+    "codeunitName": "ERM Pmt. Tolerance VAT Appln.",
+    "method": "PaymentToleranceUnapplyPartialPaymentNormalVATSales"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoiceExciseTaxAbove"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoiceExciseTaxBelow"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoicePurchTaxAbove"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoicePurchTaxBelow"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoiceSalesTaxAboveReverse"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoiceSalesTaxBelowReverse"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "PurchInvoiceSalesTaxNoMaxReverse"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceExciseTaxAbove"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceExciseTaxBelow"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceSalesTaxAbove"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceSalesTaxAboveReverse"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceSalesTaxBelow"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceSalesTaxBelowReverse"
+  },
+  {
+    "codeunitId": 134064,
+    "codeunitName": "Sales Tax",
+    "method": "SalesInvoiceSalesTaxNoMaxReverse"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestPostPurchaseOrderInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestPostSalesOrderInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestPurchaseOrderInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestPurchaseOrderInvoiceDiscountFCY"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestSalesOrderInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestSalesOrderInvoiceDiscountFCY"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostPurchaseOrderInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostPurchaseOrderInvoiceDiscountMultipleVATPercent"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostPurchaseOrderLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostPurchaseOrderLineInvoiceDiscountWithInvDisc"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostPurchaseOrderSalesTaxWithLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostSalesOrderInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostSalesOrderInvoiceDiscountMultipleVATPercent"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostSalesOrderLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostSalesOrderLineInvoiceDiscountWithInvDisc"
+  },
+  {
+    "codeunitId": 134807,
+    "codeunitName": "RED Test Unit for Doc With Inv",
+    "method": "TestVATEntryOnPostSalesOrderSalesTaxWithLineInvoiceDiscount"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "ACYonGLEntryforRealizedGainVend"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "ACYonGLEntryforRealizedLossCust"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedGainInvoiceDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedGainInvoiceDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedGainPaymentDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedGainPaymentDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedLossInvoiceDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedLossInvoiceDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedLossPaymentDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "CustomerUnrealizedLossPaymentDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "RealizedGainDetailedLedgerCust"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "RealizedGainDetailedLedgerVend"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "RealizedLossDetailedLedgerCust"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "RealizedLossDetailedLedgerVend"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedGainInvoiceDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedGainInvoiceDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedGainPaymentDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedGainPaymentDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedLossInvoiceDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedLossInvoiceDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedLossPaymentDebitCredit"
+  },
+  {
+    "codeunitId": 134885,
+    "codeunitName": "ERM Exch. Rate Adjmt. Apply",
+    "method": "VendorUnrealizedLossPaymentDebitCreditCorrection"
+  },
+  {
+    "codeunitId": 134914,
+    "codeunitName": "ERM Payment Disc Application",
+    "method": "PaymentDiscountOfOneCentForCrMemoAndInvoiceAppliedToPayment"
+  },
+  {
+    "codeunitId": 134914,
+    "codeunitName": "ERM Payment Disc Application",
+    "method": "PurchaseInvDiscApplication"
+  },
+  {
+    "codeunitId": 134914,
+    "codeunitName": "ERM Payment Disc Application",
+    "method": "PurchUnapplyPmtToSevInvNormAndRevChrgVATAndTolDiscAndRounding"
+  },
+  {
+    "codeunitId": 134914,
+    "codeunitName": "ERM Payment Disc Application",
+    "method": "SalesInvDiscApplication"
+  },
+  {
+    "codeunitId": 134914,
+    "codeunitName": "ERM Payment Disc Application",
+    "method": "SalesUnapplyPmtToSevInvNormAndRevChrgVATAndTolDiscAndRounding"
+  },
+  {
+    "codeunitId": 134918,
+    "codeunitName": "ERM Sales/Purchase Application",
+    "method": "CheckSalesPurchaseLCYWhenlineAmountLessThanVATAmount"
+  },
+  {
+    "codeunitId": 134918,
+    "codeunitName": "ERM Sales/Purchase Application",
+    "method": "SaleAnalysisMatrixRounding1"
+  },
+  {
+    "codeunitId": 134918,
+    "codeunitName": "ERM Sales/Purchase Application",
+    "method": "SaleAnalysisMatrixRounding1000"
+  },
+  {
+    "codeunitId": 134918,
+    "codeunitName": "ERM Sales/Purchase Application",
+    "method": "TestChangeFilteredFieldForCustomerWithDuplicateContacts"
+  },
+  {
+    "codeunitId": 134918,
+    "codeunitName": "ERM Sales/Purchase Application",
+    "method": "VerifyCustomerApplicationAfterPostingTwoReceipt"
+  }
+]

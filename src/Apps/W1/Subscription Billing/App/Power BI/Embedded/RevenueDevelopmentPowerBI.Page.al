@@ -7,8 +7,8 @@ page 8106 "Revenue Development Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue Development';
-    AboutTitle = 'About Revenue Development';
+    Caption = 'Revenue Development (Power BI)';
+    AboutTitle = 'About Revenue Development (Power BI)';
     AboutText = 'The Revenue Development report shows the change in monthly recurring revenue and helps to identify its various sources such as churn, downgrades, new subscriptions or upgrades.';
 
     layout

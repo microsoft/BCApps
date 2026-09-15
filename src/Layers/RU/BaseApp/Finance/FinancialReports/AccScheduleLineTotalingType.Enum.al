@@ -13,7 +13,9 @@ namespace Microsoft.Finance.FinancialReports;
 /// cash flow forecasting, formulas, and percentage calculations. Enables flexible financial reporting
 /// across multiple data dimensions and calculation methodologies.
 /// </remarks>
+#pragma warning disable AL0659 // Accepted: renaming the enum is a breaking change
 enum 85 "Acc. Schedule Line Totaling Type"
+#pragma warning restore AL0659
 {
     Extensible = true;
     AssignmentCompatibility = true;

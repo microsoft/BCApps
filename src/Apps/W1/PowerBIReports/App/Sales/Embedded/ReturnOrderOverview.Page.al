@@ -11,8 +11,8 @@ page 37105 "Return Order Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Return Order Overview';
-    AboutTitle = 'About Return Order Overview';
+    Caption = 'Return Order Overview (Power BI)';
+    AboutTitle = 'About Return Order Overview (Power BI)';
     AboutText = 'The Return Order Overview tracks and analyzes return orders, providing insights into return amounts, quantities,  reasons for return, and the financial impact on the organization.';
 
     layout

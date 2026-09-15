@@ -135,7 +135,6 @@ page 1170 "User Task List"
                 Caption = 'Delete User Tasks';
                 Image = Delete;
                 RunObject = Report "User Task Utility";
-                ToolTip = 'Find and delete user tasks.';
             }
         }
         area(Promoted)
