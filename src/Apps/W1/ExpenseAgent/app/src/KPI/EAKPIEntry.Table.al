@@ -110,6 +110,7 @@ table 6951 "EA KPI Entry"
             Rec."Record Type"::"Expense Report Line":
                 begin
                     ExpenseReportLine.SetRange("Document No.", Rec."No.");
+                    ExpenseReportLine.SetRange("Line No.", Rec."Line No.");
                     if ExpenseReportLine.FindSet() then begin
                         Page.Run(Page::"Expense Report Lines", ExpenseReportLine);
                         exit;
