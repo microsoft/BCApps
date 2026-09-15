@@ -29,6 +29,30 @@ codeunit 132684 "Azure OpenAI Test"
 #endif
 
     [Test]
+    procedure TestGPT56ChatDeploymentNames()
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+    begin
+        // [SCENARIO] GPT-5.6 chat exposes distinct latest and preview deployment names.
+        LibraryAssert.AreEqual('gpt-56-ceres-latest', AOAIDeployments.GetGPT56ChatLatest(), 'The GPT-5.6 chat latest deployment name should be returned.');
+        LibraryAssert.AreEqual('gpt-56-ceres-preview', AOAIDeployments.GetGPT56ChatPreview(), 'The GPT-5.6 chat preview deployment name should be returned.');
+    end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    [Test]
+    procedure TestGPT55ChatDeploymentNames()
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+    begin
+        // [SCENARIO] Obsolete GPT-5.5 chat getters preserve their deployment names for existing callers.
+        LibraryAssert.AreEqual('gpt-55-chat-latest', AOAIDeployments.GetGPT55ChatLatest(), 'The obsolete GPT-5.5 chat latest deployment name should be preserved.');
+        LibraryAssert.AreEqual('gpt-55-chat-preview', AOAIDeployments.GetGPT55ChatPreview(), 'The obsolete GPT-5.5 chat preview deployment name should be preserved.');
+    end;
+#pragma warning restore AL0432
+#endif
+
+    [Test]
     [HandlerFunctions('HandleCopilotNotAvailable')]
     procedure TestIsEnabledRejectPrivacyNotice()
     var
@@ -842,6 +866,73 @@ codeunit 132684 "Azure OpenAI Test"
         LibraryAssert.AreEqual(1, ContentToken.AsArray().Count, 'The second message content should be an array with 1 part');
     end;
 
+
+    [Test]
+    procedure TestChatMessagesFileContentSupportsPreviewModels()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+    begin
+        // [SCENARIO] File content is accepted by supported preview deployments, including the obsolete GPT-5.5 chat preview.
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        AOAIChatMessages.AddUserMessage('Text message');
+        AOAIUserMessage.AddFilePart('Test');
+        AOAIChatMessages.AddUserMessage(AOAIUserMessage);
+
+        // [WHEN] Checking file-content compatibility
+        // [THEN] Supported preview deployments do not raise an error.
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatPreview());
+#if not CLEAN30
+#pragma warning disable AL0432
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT55ChatPreview());
+#pragma warning restore AL0432
+#endif
+    end;
+
+    [Test]
+    procedure TestChatMessagesFileContentRejectsUnsupportedModels()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+    begin
+        // [SCENARIO] File content is rejected for deployments that do not support it.
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        AOAIUserMessage.AddFilePart('Test');
+        AOAIChatMessages.AddUserMessage(AOAIUserMessage);
+
+        // [WHEN] Checking deployments without file-content support
+        // [THEN] The error recommends supported preview deployments.
+        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatLatest());
+        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
+        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniLatest());
+        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
+        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, DeploymentTxt);
+        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
+    end;
+
+    [Test]
+    procedure TestChatMessagesTextContentSupportsAllModels()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+    begin
+        // [SCENARIO] Text-only messages do not impose file-content deployment restrictions.
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        AOAIChatMessages.AddUserMessage('Text message');
+        AOAIUserMessage.AddTextPart('Text content part');
+        AOAIChatMessages.AddUserMessage(AOAIUserMessage);
+
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatLatest());
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatPreview());
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, DeploymentTxt);
+    end;
 
     // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing file content.
     procedure OfflineChatCompletionWithFileContent()
