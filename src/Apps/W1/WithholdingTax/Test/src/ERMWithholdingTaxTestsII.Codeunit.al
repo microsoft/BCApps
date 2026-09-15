@@ -773,6 +773,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         BankAccount: Record "Bank Account";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalLine2: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
         GenJournalTemplate: Record "Gen. Journal Template";
         VATPostingSetup: Record "VAT Posting Setup";
         WHTBusPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
@@ -784,38 +785,39 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         // [SCENARIO 647253] Posting a WHT payment without a purchase journal template results in an error.
         Initialize();
 
-                // [GIVEN] A posted purchase invoice with withholding tax.
-                UpdateLocalFunctionalitiesOnGeneralLedgerSetup(true);
-                LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-                LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusPostingGroup);
-                LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProdPostingGroup);
-                CreateGeneralJournalLineWithBalAccountType(
-                    GenJournalLine, GenJournalLine."Document Type"::Invoice, CreateVendor(VATPostingSetup."VAT Bus. Posting Group", WHTBusPostingGroup.Code), '',
-                    '', GenJournalLine."Bal. Account Type"::"G/L Account", CreateGLAccountWithVATBusPostingGroup(VATPostingSetup, WHTProdPostingGroup.Code),
-                    -LibraryRandom.RandDecInRange(100, 200, 2));
-                UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
-                FindWHTPostingSetup(WHTPostingSetup, GenJournalLine."Wthldg. Tax Bus. Post. Group", GenJournalLine."Wthldg. Tax Prod. Post. Group", '');
-                LibraryERM.PostGeneralJnlLine(GenJournalLine);
-                DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
+        // [GIVEN] A posted purchase invoice with withholding tax.
+        UpdateLocalFunctionalitiesOnGeneralLedgerSetup(true);
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusPostingGroup);
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProdPostingGroup);
+        CreateGeneralJournalLineWithBalAccountType(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice, CreateVendor(VATPostingSetup."VAT Bus. Posting Group", WHTBusPostingGroup.Code), '',
+            '', GenJournalLine."Bal. Account Type"::"G/L Account", CreateGLAccountWithVATBusPostingGroup(VATPostingSetup, WHTProdPostingGroup.Code),
+            -LibraryRandom.RandDecInRange(100, 200, 2));
+        UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
+        FindWHTPostingSetup(WHTPostingSetup, GenJournalLine."Wthldg. Tax Bus. Post. Group", GenJournalLine."Wthldg. Tax Prod. Post. Group", '');
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
 
-                // [GIVEN] A payment journal line applied to the posted invoice.
-                LibraryERM.CreateBankAccount(BankAccount);
-                CreateGeneralJournalLineWithBalAccountType(
-                    GenJournalLine2, GenJournalLine."Document Type"::Payment, GenJournalLine."Account No.", DocumentNo,
-                    '', GenJournalLine2."Bal. Account Type"::"Bank Account", BankAccount."No.", -FindVendorLedgerEntryAmount(DocumentNo));
-                GenJournalLine2.Validate("Wthldg. Tax Prod. Post. Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group");
-                GenJournalLine2.Modify(true);
+        // [GIVEN] A payment journal line applied to the posted invoice.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
+        CreateGeneralJournalLineWithBalAccountType(
+            GenJournalLine2, GenJournalLine."Document Type"::Payment, GenJournalLine."Account No.", DocumentNo,
+            '', GenJournalLine2."Bal. Account Type"::"Bank Account", BankAccount."No.", -FindVendorLedgerEntryAmount(DocumentNo));
+        GenJournalLine2.Validate("Wthldg. Tax Prod. Post. Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group");
+        GenJournalLine2.Modify(true);
 
-                // [GIVEN] No general journal template of type Purchases exists.
-                GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Purchases);
-                GenJournalTemplate.DeleteAll(true);
+        // [GIVEN] No general journal template of type Purchases exists.
+        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Purchases);
+        GenJournalTemplate.DeleteAll(true);
 
-                // [WHEN] Post the payment journal.
-                asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine2);
+        // [WHEN] Post the payment journal.
+        asserterror LibraryERM.PostGeneralJnlLine(GenJournalLine2);
 
-                // [THEN] The missing purchase journal template error is raised.
-                Assert.ExpectedError(GenJnlTemplateNotFoundErr);
-        end;
+        // [THEN] The missing purchase journal template error is raised.
+        Assert.ExpectedError(GenJnlTemplateNotFoundErr);
+    end;
 
     local procedure Initialize()
     var
