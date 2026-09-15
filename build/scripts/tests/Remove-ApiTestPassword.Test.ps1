@@ -116,70 +116,12 @@ Describe 'API test credential workflow lifetime' {
     BeforeAll {
         $script:workflow = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\..\..\.github\workflows\_BuildALGoProject.yaml') -Raw
         $script:setup = Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\NewBcContainer.ps1') -Raw
-        $script:previousGitHubEnv = $env:GITHUB_ENV
-        $script:environmentFile = Join-Path $PSScriptRoot 'unused-github-env'
-        $script:hostMountPath = Join-Path $TestDrive 'container-mount'
-        $tokens = $null
-        $parseErrors = $null
-        $ast = [System.Management.Automation.Language.Parser]::ParseInput($script:setup, [ref]$tokens, [ref]$parseErrors)
-        $registration = $ast.Find({
-            param($node)
-            $node -is [System.Management.Automation.Language.IfStatementAst] -and
-                $node.Clauses[0].Item1.Extent.Text -eq '$env:GITHUB_ENV'
-        }, $true)
-        $script:registerCleanup = [scriptblock]::Create($registration.Extent.Text)
-        function Get-BcContainerSharedFolders {
-            param([string]$containerName)
-            $null = $containerName
-            throw 'Container mount lookup must be mocked.'
-        }
     }
 
-    AfterAll {
-        $env:GITHUB_ENV = $script:previousGitHubEnv
-    }
-
-    BeforeEach {
-        $env:GITHUB_ENV = $script:environmentFile
-        Mock Get-BcContainerSharedFolders { @{ $script:hostMountPath = 'c:\run\my' } }
-        Mock Add-Content {}
-    }
-
-    It 'registers the exact backing path before any credential is copied' {
-        $script:parameters = @{ ContainerName = 'test-container' }
-        . $script:registerCleanup
-
-        Should -Invoke Add-Content -Times 1 -Exactly -ParameterFilter {
-            $LiteralPath -eq $script:environmentFile -and
-            $Value -eq "BCAppsApiTestPasswordPath=$(Join-Path $script:hostMountPath 'ApiTestPassword')"
-        }
-        $script:setup.IndexOf('BCAppsApiTestPasswordPath=') |
-            Should -BeLessThan $script:setup.IndexOf('Copy-FileToBcContainer')
-    }
-
-    It 'fails setup if the credential backing mount cannot be resolved' {
-        Mock Get-BcContainerSharedFolders { @{} }
-        $script:parameters = @{ ContainerName = 'test-container' }
-
-        { . $script:registerCleanup } | Should -Throw '*Cannot resolve*'
-        Should -Invoke Add-Content -Times 0
-    }
-
-    It 'does not register workflow cleanup outside GitHub Actions' {
-        $env:GITHUB_ENV = ''
-        $script:parameters = @{ ContainerName = 'test-container' }
-        . $script:registerCleanup
-
-        Should -Invoke Get-BcContainerSharedFolders -Times 0
-        Should -Invoke Add-Content -Times 0
-    }
-
-    It 'fails setup if cleanup registration cannot be persisted' {
-        Mock Add-Content { throw 'Cannot write workflow environment' }
-        $script:parameters = @{ ContainerName = 'test-container' }
-
-        { . $script:registerCleanup } | Should -Throw '*Cannot write workflow environment*'
-        Should -Invoke Add-Content -Times 1 -Exactly -ParameterFilter { $ErrorAction -eq 'Stop' }
+    It 'delegates credential materialization without host or container staging copies' {
+        $script:setup | Should -Match "Import-Module .*'ApiTestCredential.psm1'"
+        $script:setup | Should -Match 'Write-ApiTestPassword -ContainerName \$parameters.ContainerName -Credential \$parameters.credential'
+        $script:setup | Should -Not -Match 'Copy-FileToBcContainer|WriteAllText|GetNetworkCredential|GetTempPath'
     }
 
     It 'runs cleanup on success, failure and cancellation after all build consumers' {

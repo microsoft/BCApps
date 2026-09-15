@@ -19,9 +19,10 @@ codeunit 139494 "API Test Auth Provider Tests"
     var
         Assert: Codeunit Assert;
         APITestAuthRecorder: Codeunit "API Test Auth Recorder";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         APITestAuthProviderTests: Codeunit "API Test Auth Provider Tests";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryUtility: Codeunit "Library - Utility";
+        WebServiceManagement: Codeunit "Web Service Management";
         SecondLibraryGraphMgt: Codeunit "Library - Graph Mgt";
         FirstHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
@@ -157,6 +158,110 @@ codeunit 139494 "API Test Auth Provider Tests"
         VerifyNoRemainingCalls();
     end;
 
+    [Test]
+    procedure EmptySubpagesPreserveTargetURL()
+    var
+        ExpectedURL: Text;
+        ActualURL: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Empty subpage segments do not append a slash to the original URL
+        Initialize();
+
+        // [GIVEN] A published page with its original target URL
+        ExpectedURL := CreatePageTargetURL();
+
+        // [WHEN] Neither subpage segment nor subpage ID is supplied
+        ActualURL := LibraryGraphMgt.CreateTargetURLWithTwoSubpages('', '', Page::"Customer List", '', '', '');
+
+        // [THEN] The original URL is unchanged
+        Assert.AreEqual(ExpectedURL, ActualURL, 'Empty subpages must preserve the original URL.');
+    end;
+
+    [Test]
+    procedure EmptyFirstSubpageDoesNotAddExtraSlash()
+    var
+        ExpectedURL: Text;
+        ActualURL: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] An empty first subpage does not add a slash before the second subpage
+        Initialize();
+
+        // [GIVEN] A published page followed by the second subpage only
+        ExpectedURL := LibraryGraphMgt.AppendPathToTargetURL(CreatePageTargetURL(), '/attachments');
+
+        // [WHEN] Only the second subpage segment is supplied
+        ActualURL := LibraryGraphMgt.CreateTargetURLWithTwoSubpages('', '', Page::"Customer List", '', '', 'attachments');
+
+        // [THEN] There is only one separator before the second subpage
+        Assert.AreEqual(ExpectedURL, ActualURL, 'An empty first subpage must not add a path separator.');
+    end;
+
+    [Test]
+    procedure TwoSubpagesPreserveSegmentsAndIdentifier()
+    var
+        ExpectedURL: Text;
+        ActualURL: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Both subpage segments and the bracket-free subpage ID precede any query
+        Initialize();
+
+        // [GIVEN] A published page followed by two subpages and a subpage ID
+        ExpectedURL := LibraryGraphMgt.AppendPathToTargetURL(
+            CreatePageTargetURL(), '/lines(11111111-1111-1111-1111-111111111111)/attachments');
+
+        // [WHEN] Both subpages and a bracketed subpage ID are supplied
+        ActualURL := LibraryGraphMgt.CreateTargetURLWithTwoSubpages(
+            '', '{11111111-1111-1111-1111-111111111111}', Page::"Customer List", '', 'lines', 'attachments');
+
+        // [THEN] Both segments and the stripped ID are preserved
+        Assert.AreEqual(ExpectedURL, ActualURL, 'Subpage segments and IDs must precede the query.');
+    end;
+
+    [Test]
+    procedure SubpagePathPrecedesExistingQuery()
+    var
+        ActualURL: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Appending a subpage path preserves the query after the entire path
+        Initialize();
+
+        // [GIVEN] A URL with an existing tenant and filter query
+        ActualURL := 'http://127.0.0.1/customers?tenant=test&$filter=active';
+
+        // [WHEN] Two subpage segments are appended
+        ActualURL := LibraryGraphMgt.AppendPathToTargetURL(ActualURL, '/lines(1)/attachments');
+
+        // [THEN] The original query follows the complete subpage path unchanged
+        Assert.AreEqual(
+            'http://127.0.0.1/customers/lines(1)/attachments?tenant=test&$filter=active',
+            ActualURL, 'Appending subpages must preserve the query after the path.');
+    end;
+
+    [Test]
+    procedure SubpagePathWithoutQueryPreservesSegments()
+    var
+        ActualURL: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Appending subpages to a URL without a query preserves all path segments
+        Initialize();
+
+        // [GIVEN] A URL without a query
+        ActualURL := 'http://127.0.0.1/customers';
+
+        // [WHEN] Two subpage segments are appended
+        ActualURL := LibraryGraphMgt.AppendPathToTargetURL(ActualURL, '/lines(1)/attachments');
+
+        // [THEN] Both subpages follow the original path without a query separator
+        Assert.AreEqual(
+            'http://127.0.0.1/customers/lines(1)/attachments',
+            ActualURL, 'Appending subpages must not add a query separator.');
+    end;
+
     local procedure Initialize()
     begin
         Clear(LibraryGraphMgt);
@@ -164,12 +269,18 @@ codeunit 139494 "API Test Auth Provider Tests"
         Clear(FirstHttpWebRequestMgt);
         Clear(SecondHttpWebRequestMgt);
         APITestAuthRecorder.Reset();
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         if IsInitialized then
             exit;
 
         BindSubscription(APITestAuthProviderTests);
         IsInitialized := true;
+    end;
+
+    local procedure CreatePageTargetURL(): Text
+    begin
+        WebServiceManagement.CreateTenantWebService(
+            ObjectType::Page, Page::"Customer List", LibraryUtility.GenerateGUID(), true);
+        exit(LibraryGraphMgt.CreateTargetURL('', Page::"Customer List", ''));
     end;
 
     local procedure VerifyNextCall(ExpectedCall: Text)
