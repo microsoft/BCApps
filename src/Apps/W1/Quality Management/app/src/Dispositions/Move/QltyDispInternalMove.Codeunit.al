@@ -24,7 +24,7 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
         DocumentTypeInternalMovementLbl: Label 'Internal Movement';
         DocumentTypeWarehouseInventoryMovementLbl: Label 'Inventory Movement';
 
-    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         InternalMovementHeader: Record "Internal Movement Header";
