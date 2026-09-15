@@ -277,9 +277,11 @@ codeunit 139494 "API Test Auth Provider Tests"
     end;
 
     local procedure CreatePageTargetURL(): Text
+    var
+        TenantWebService: Record "Tenant Web Service";
     begin
         WebServiceManagement.CreateTenantWebService(
-            ObjectType::Page, Page::"Customer List", LibraryUtility.GenerateGUID(), true);
+            TenantWebService."Object Type"::Page, Page::"Customer List", LibraryUtility.GenerateGUID(), true);
         exit(LibraryGraphMgt.CreateTargetURL('', Page::"Customer List", ''));
     end;
 
