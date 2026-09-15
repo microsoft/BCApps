@@ -3828,6 +3828,7 @@ codeunit 134103 "ERM Prepayment IV"
         Currency.Validate("Appln. Rounding Precision", LibraryRandom.RandDec(0, 2));
         Currency.Validate("Invoice Rounding Precision", LibraryRandom.RandDec(0, 2));
         Currency.Modify(true);
+        LibraryERM.SetAddReportingCurrency(Currency.Code);
         exit(Currency.Code);
     end;
 
