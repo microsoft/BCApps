@@ -423,6 +423,9 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
         RefundVendLedgEntry.SetRange("Document Type", RefundVendLedgEntry."Document Type"::Refund);
         if RefundVendLedgEntry.FindSet() then
             repeat
+                // Clear filters inherited from the previous application lookup.
+                AppliedVendLedgEntry.SetRange("Entry No.");
+                AppliedVendLedgEntry.SetRange("Closed by Entry No.");
                 AppliedVendLedgEntry.SetRange("Entry No.", RefundVendLedgEntry."Entry No.");
                 if AppliedVendLedgEntry.FindFirst() then
                     AppliedVendLedgEntry.Mark(true);
