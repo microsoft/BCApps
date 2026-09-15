@@ -24,6 +24,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a blanket purchase order and use GET to retrieve it
         // [GIVEN] A blanket purchase order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Blanket Order", '');
@@ -44,6 +46,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a blanket purchase order and GET it by SystemId
         // [GIVEN] A blanket purchase order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Blanket Order", '');
@@ -66,6 +70,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a blanket purchase order with $expand=dimensionSetLines
         // [GIVEN] A blanket purchase order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Blanket Order");
@@ -92,6 +98,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a blanket purchase order with $expand=attachments
         // [GIVEN] A blanket purchase order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Blanket Order");
@@ -118,6 +126,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a blanket purchase order with $expand=documentAttachments
         // [GIVEN] A blanket purchase order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Blanket Order");
@@ -144,6 +154,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a blanket purchase order with $expand=pdfDocument
         // [GIVEN] A blanket purchase order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Blanket Order");
@@ -170,6 +182,8 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a blanket purchase order with $expand=blanketPurchaseOrderLines
         // [GIVEN] A blanket purchase order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Blanket Order");
@@ -193,5 +207,11 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }
