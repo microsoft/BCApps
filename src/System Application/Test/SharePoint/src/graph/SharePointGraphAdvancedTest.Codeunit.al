@@ -613,11 +613,20 @@ codeunit 132985 "SharePoint Graph Advanced Test"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
+<<<<<<< HEAD
+        // [GIVEN] Mock response for the path lookups and copy request
+        Initialize();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetDriveItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+=======
         // [GIVEN] Multi-response handler: GET (resolve target folder) + GET (resolve source item) + POST (copy)
         InitializeMultiResponse();
         SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
         SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
         SharePointGraphTestLibrary.AddMockResponse(202, '');
+>>>>>>> main
 
         // [WHEN] Calling CopyItemByPath
         SharePointGraphResponse := SharePointGraphClient.CopyItemByPath('Documents/Original.txt', 'Documents/Archive', 'CopiedFile.txt');
@@ -1288,6 +1297,9 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         ResponseText.Append('}');
         exit(ResponseText.ToText());
     end;
+<<<<<<< HEAD
+}
+=======
 
     local procedure GetUpdatedDriveItemResponse(): Text
     var
@@ -1312,3 +1324,4 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         exit(ResponseText.ToText());
     end;
 }
+>>>>>>> main
