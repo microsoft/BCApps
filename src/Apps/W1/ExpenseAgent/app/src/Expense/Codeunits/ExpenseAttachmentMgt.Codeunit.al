@@ -85,23 +85,14 @@ codeunit 6989 "Expense Attachment Mgt."
     begin
         case DocumentAttachment."Table ID" of
             Database::Expense:
-                begin
-                    RecRef.Open(Database::Expense);
-                    if Expense.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(Expense);
-                end;
+                if Expense.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(Expense);
             Database::"Expense Report Line":
-                begin
-                    RecRef.Open(Database::"Expense Report Line");
-                    if ExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
-                        RecRef.GetTable(ExpenseReportLine);
-                end;
+                if ExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
+                    RecRef.GetTable(ExpenseReportLine);
             Database::"Posted Expense Report Line":
-                begin
-                    RecRef.Open(Database::"Posted Expense Report Line");
-                    if PostedExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
-                        RecRef.GetTable(PostedExpenseReportLine);
-                end;
+                if PostedExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
+                    RecRef.GetTable(PostedExpenseReportLine);
         end;
     end;
 

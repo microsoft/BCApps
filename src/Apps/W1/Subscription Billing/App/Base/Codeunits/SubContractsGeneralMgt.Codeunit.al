@@ -431,17 +431,11 @@ codeunit 8059 "Sub. Contracts General Mgt."
     begin
         case DocumentAttachment."Table ID" of
             Database::"Subscription Header":
-                begin
-                    RecRef.Open(Database::"Subscription Header");
-                    if ServiceObject.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(ServiceObject);
-                end;
+                if ServiceObject.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(ServiceObject);
             Database::"Customer Subscription Contract":
-                begin
-                    RecRef.Open(Database::"Customer Subscription Contract");
-                    if CustomerContract.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(CustomerContract);
-                end;
+                if CustomerContract.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(CustomerContract);
         end;
     end;
 
