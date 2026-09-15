@@ -87,6 +87,7 @@ table 6260 "Sust. Jnl. Line G/L Entry"
     begin
         DeleteCollectedGLEntries(SustainabilityJnlLine);
 
+        GLEntry.SetLoadFields("Posting Date", Amount);
         if not GLEntry.FindSet() then
             exit;
 
