@@ -15,6 +15,7 @@ permissionset 7452 "ExciseTaxes - Edit"
     Permissions =
         tabledata "Excise Tax Type" = IMD,
         tabledata "Excise Tax Item/FA Rate" = IMD,
+        tabledata "Excise Tax Rate" = IMD,
         tabledata "Item Excise Tax" = IMD,
         tabledata "Excise Tax Entry Permission" = IMD;
 }
