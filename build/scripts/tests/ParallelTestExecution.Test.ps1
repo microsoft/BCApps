@@ -254,11 +254,49 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nOffset and length were out of bounds for the array"
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nNullable object must have a value."
                 "TRANSIENT TEST PLATFORM RACE detected for app 'Tests' on tenant 'tenant2'."
-                "Exception occurred while running tests: ClientSession State is InError (Wait time 25 seconds)"
+                "Cannot open page 130455"
+                "InvokeInteractions failed with status code 500"
+                "at InteractionManager.InvokeInteractions in InteractionManager.cs:line 203"
+                "Cannot open page 130455`nClientSession State is InError (Wait time 25 seconds)"
                 "GET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object."
             ) | ForEach-Object {
                 Test-TransientTestFailure -Output $_ | Should -BeTrue
             }
+        }
+    }
+
+    It "does not classify generic session errors or unrelated failures as transient" {
+        InModuleScope ParallelTestExecution {
+            @(
+                $null
+                ''
+                'ClientSession State is InError (Wait time 25 seconds)'
+                "Assertion failed: expected 2 but was 1`nClientSession State is InError"
+                "Permission denied opening page 42`nClientSession State is InError"
+                'Cannot open page 130456'
+                'InvokeInteractions failed with status code 403'
+                'Nullable object must have a value.'
+            ) | ForEach-Object {
+                Test-TransientTestFailure -Output $_ | Should -BeFalse
+            }
+        }
+    }
+
+    It "retries known races only once and never retries ordinary InError failures" {
+        InModuleScope ParallelTestExecution {
+            Mock Receive-Job { 'Cannot open page 130455' } -RemoveParameterType Job
+            Mock Remove-Job {} -RemoveParameterType Job
+            $entry = @{ appName = 'Tests'; tenant = 'default' }
+            $job = @{ State = 'Failed' }
+
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Transient'
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{ Tests = $true }).Outcome | Should -Be 'Failed'
+
+            Mock Receive-Job { "Assertion failed`nClientSession State is InError" } -RemoveParameterType Job
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Failed'
+            $job.State = 'Completed'
+            (Receive-TestJobResult -Entry $entry -Job $job -Retried @{}).Outcome | Should -Be 'Passed'
+            Should -Invoke Remove-Job -Times 4 -Exactly
         }
     }
 
