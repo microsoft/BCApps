@@ -7,7 +7,6 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
@@ -320,7 +319,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         RelatedItem: Record Item;
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         RecordRefToBufferTriggeringRecord: RecordRef;
@@ -341,9 +339,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         Clear(LastCreatedQltyInspectionHeader);
 
         TempQltyInspectionGenRule.CopyFilters(TempFiltersQltyInspectionGenRule);
-
-        if IsManualCreation then
-            QltyPermissionMgmt.VerifyCanCreateManualInspection();
 
         OriginalRecordId := TargetRecordRef.RecordId();
         OriginalRecordTableNo := TargetRecordRef.Number();
