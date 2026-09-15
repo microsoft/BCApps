@@ -906,7 +906,8 @@ codeunit 130618 "Library - Graph Mgt"
         TargetURL: Text;
     begin
         TargetURL := CreateTargetURL(ID, PageNumber, ServiceNameTxt);
-        TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubPageTxt);
+        if ServiceSubPageTxt <> '' then
+            TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubPageTxt);
         if SubPageID <> '' then
             TargetURL := AppendPathToTargetURL(
                 TargetURL, '(' + StripBrackets(SubPageID) + ')');
