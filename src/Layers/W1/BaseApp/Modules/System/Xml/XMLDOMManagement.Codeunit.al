@@ -538,6 +538,16 @@ codeunit 6224 "XML DOM Management"
     end;
 
     [Scope('OnPrem')]
+    procedure LoadXMLDocumentFromFile(FileName: Text; var OutXmlDocument: XmlDocument)
+    var
+        FileManagement: Codeunit "File Management";
+        File: DotNet File;
+    begin
+        FileManagement.IsAllowedPath(FileName, false);
+        XmlDocument.ReadFrom(File.ReadAllText(FileName), OutXmlDocument);
+    end;
+
+    [Scope('OnPrem')]
     procedure LoadXMLDocumentFromFileWithXmlReaderSettings(FileName: Text; var XmlDocument: DotNet XmlDocument; XmlReaderSettings: DotNet XmlReaderSettings)
     var
         FileManagement: Codeunit "File Management";
