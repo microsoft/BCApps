@@ -98,6 +98,17 @@ Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMi
 # Test object IDs declared in newly added production AL files.
 $AllowedObjectIdRanges = @(
     [PSCustomObject]@{ From = 1;        To = 49999 },
+    [PSCustomObject]@{ From = 2000000;  To = 2000059 },
+    [PSCustomObject]@{ From = 3005000;  To = 3011499 },
+    [PSCustomObject]@{ From = 5000000;  To = 5000099 },
+    [PSCustomObject]@{ From = 5000250;  To = 5055999 },
+    [PSCustomObject]@{ From = 5001900;  To = 5001999 },
+    [PSCustomObject]@{ From = 5005100;  To = 5005399 },
+    [PSCustomObject]@{ From = 7000000;  To = 7000099 },
+    [PSCustomObject]@{ From = 11000000; To = 11000499 },
+    [PSCustomObject]@{ From = 15000000; To = 15000499 },
+    [PSCustomObject]@{ From = 31000000; To = 31000099 },
+    [PSCustomObject]@{ From = 32000000; To = 32000199 },
     [PSCustomObject]@{ From = 99000750; To = 99001048 }
 )
 
