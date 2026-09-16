@@ -356,5 +356,23 @@
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
     "method": "RejectTravelRequestPageAction"
+  },
+  {
+    "bugId": 650245,
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtReadRetainsAppPermissions"
+  },
+  {
+    "bugId": 650245,
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtEditRetainsAppPermissions"
+  },
+  {
+    "bugId": 650245,
+    "codeunitId": 148338,
+    "codeunitName": "Expense Permissions Test",
+    "method": "ExpenseMgmtAdminRetainsAppPermissions"
   }
 ]
