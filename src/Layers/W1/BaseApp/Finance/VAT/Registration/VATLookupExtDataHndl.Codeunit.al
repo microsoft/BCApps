@@ -7,7 +7,6 @@ namespace Microsoft.Finance.VAT.Registration;
 using Microsoft.CRM.Contact;
 using Microsoft.Sales.Customer;
 using System;
-using System.Environment;
 using System.Integration;
 using System.Reflection;
 using System.Telemetry;
