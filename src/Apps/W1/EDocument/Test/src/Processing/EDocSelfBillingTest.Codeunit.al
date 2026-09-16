@@ -21,22 +21,21 @@ codeunit 139791 "E-Doc. Self-Billing Test"
     Permissions = tabledata "Service Participant" = rimd;
 
     var
-        Vendor: Record Vendor;
         EDocumentService: Record "E-Document Service";
+        Vendor: Record Vendor;
         Assert: Codeunit Assert;
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryPurchase: Codeunit "Library - Purchase";
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Incorrect value found';
 
     [Test]
     procedure PostingInvoiceForSelfBillingVendorSetsSelfBilledType()
     var
-        LibraryEDoc: Codeunit "Library - E-Document";
+        EDocument: Record "E-Document";
+        PurchInvHeader: Record "Purch. Inv. Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        PurchInvHeader: Record "Purch. Inv. Header";
-        EDocument: Record "E-Document";
         DocumentNo: Code[20];
     begin
         // [FEATURE] [E-Document] [Self-Billing]
@@ -69,10 +68,10 @@ codeunit 139791 "E-Doc. Self-Billing Test"
     [Test]
     procedure PostingInvoiceForNormalVendorIsUnaffected()
     var
+        EDocument: Record "E-Document";
+        PurchInvHeader: Record "Purch. Inv. Header";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        PurchInvHeader: Record "Purch. Inv. Header";
-        EDocument: Record "E-Document";
         DocumentNo: Code[20];
     begin
         // [FEATURE] [E-Document] [Self-Billing]
@@ -190,12 +189,12 @@ codeunit 139791 "E-Doc. Self-Billing Test"
 
     local procedure Initialize()
     var
-        LibraryEDoc: Codeunit "Library - E-Document";
         Customer: Record Customer;
+        DocumentSendingProfile: Record "Document Sending Profile";
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
         ServiceParticipant: Record "Service Participant";
-        DocumentSendingProfile: Record "Document Sending Profile";
+        LibraryEDoc: Codeunit "Library - E-Document";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
 
