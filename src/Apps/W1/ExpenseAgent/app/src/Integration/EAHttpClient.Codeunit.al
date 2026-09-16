@@ -435,7 +435,7 @@ codeunit 6941 "EA Http Client"
     begin
         Clear(BaseUrl);
         if not ExpenseAgentSetup.Get() then begin
-            FeatureTelemetry.LogError('', ExpenseAgentSetup.GetFeatureName(), 'Resolve service endpoint', ExpenseAgentSetupMissingTxt);
+            FeatureTelemetry.LogError('0000VGO', ExpenseAgentSetup.GetFeatureName(), 'Resolve service endpoint', ExpenseAgentSetupMissingTxt);
             exit(false);
         end;
 
