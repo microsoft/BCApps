@@ -1314,6 +1314,7 @@ report 20 "Calc. and Post VAT Settlement"
         GenJournalLine.Amount := -VATEntry.Amount;
         GenJournalLine."VAT Amount" := -VATEntry.Amount;
         GenJournalLine."VAT Base Amount" := -VATEntry.Base;
+        GenJournalLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
         if GLSetup."Additional Reporting Currency" = '' then begin
             GenJournalLine."Source Currency Amount" := -VATEntry.Amount;
             GenJournalLine."Source Curr. VAT Amount" := -VATEntry.Amount;
