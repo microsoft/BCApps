@@ -17,6 +17,7 @@ codeunit 148338 "Expense Permissions Test"
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Restrictive;
+    Permissions = tabledata "AAD Application" = rm;
 
     var
         Assert: Codeunit Assert;
