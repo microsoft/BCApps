@@ -6,7 +6,8 @@ namespace Microsoft.Purchases.History;
 
 using Microsoft.EServices.EDocument;
 
-pageextension 7000142 "SII PostedPurchaseCreditMemos" extends "Posted Purchase Credit Memos"
+#pragma warning disable AS0088
+pageextension 7000042 "SII PostedPurchaseCreditMemos" extends "Posted Purchase Credit Memos"
 {
     layout
     {
