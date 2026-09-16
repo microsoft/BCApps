@@ -1198,7 +1198,7 @@ codeunit 444 "Purchase-Post Prepayments"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforePrepmtAmount(PurchLine, DocumentType, Result, IsHandled);
+        OnBeforePrepmtAmount(PurchLine, DocumentType, IncludeTax, Result, IsHandled);
         if IsHandled then
             exit(Result);
 
@@ -2123,7 +2123,7 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePrepmtAmount(var PurchaseLine: Record "Purchase Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; var Result: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforePrepmtAmount(var PurchaseLine: Record "Purchase Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; IncludeTax: Boolean; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
