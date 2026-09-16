@@ -2588,11 +2588,11 @@ codeunit 18466 "Subcontracting Post"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", 'OnBeforeCallFlushOperation', '', false, false)]
-    local procedure OnBeforeCallFlushOperation(var ItemJnlLine: Record "Item Journal Line"; var ShouldFlushOperation: Boolean)
+    local procedure OnBeforeCallFlushOperation(var SubcontractingItemJnlLine: Record "Item Journal Line"; var ShouldFlushOperation: Boolean)
     begin
-        if (ItemJnlLine."Entry Type" = ItemJnlLine."Entry Type"::Output) and
-            ItemJnlLine.Subcontracting and
-            (ItemJnlLine."Subcon Order No." <> '')
+        if (SubcontractingItemJnlLine."Entry Type" = SubcontractingItemJnlLine."Entry Type"::Output) and
+            SubcontractingItemJnlLine.Subcontracting and
+            (SubcontractingItemJnlLine."Subcon Order No." <> '')
         then
             ShouldFlushOperation := false;
     end;
