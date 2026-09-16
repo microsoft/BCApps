@@ -14,7 +14,10 @@ permissionset 7451 "ExciseTaxes - Read"
 
     Permissions =
         tabledata "Excise Tax Type" = R,
+#if not CLEAN30
         tabledata "Excise Tax Item/FA Rate" = R,
+#endif
+        tabledata "Excise Tax Rate" = R,
         tabledata "Item Excise Tax" = R,
         tabledata "Excise Tax Entry Permission" = R;
 }

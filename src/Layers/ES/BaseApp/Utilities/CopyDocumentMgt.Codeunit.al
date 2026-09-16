@@ -45,7 +45,10 @@ using System.Utilities;
 
 codeunit 6620 "Copy Document Mgt."
 {
-    Permissions = TableData "Cust. Ledger Entry" = rim;
+    Permissions = TableData "Cust. Ledger Entry" = rim,
+        tabledata "Assembly Header" = rim,
+        tabledata "Assembly Line" = rim,
+        tabledata "Assemble-to-Order Link" = rim;
 
     trigger OnRun()
     begin
