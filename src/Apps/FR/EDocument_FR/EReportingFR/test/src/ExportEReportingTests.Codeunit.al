@@ -28,7 +28,6 @@ codeunit 148145 "Export E-Reporting Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [E-Reporting FR E-document]
     end;
 
     var
@@ -701,6 +700,50 @@ codeunit 148145 "Export E-Reporting Tests"
         // [THEN] Clearance Date is set to non-zero DateTime
         EDocument.Get(EDocument."Entry No");
         Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'Clearance Date should be non-zero after Approved status');
+    end;
+
+    [Test]
+    procedure ApprovedPeppolFRStatusSetsClearanceDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] Approved Peppol BIS 3.0 FR status sets Clearance Date
+        Initialize();
+
+        // [GIVEN] E-Document "ED" linked to a Peppol BIS 3.0 FR service with Approved status
+        CreateEDocumentService('PEPPOLFR-APPR', "E-Document Format"::"Peppol BIS 3.0 FR");
+        CreateEDocumentWithService(EDocument, 'PEPPOLFR-APPR');
+        CreateEDocumentServiceStatus(EDocument."Entry No", 'PEPPOLFR-APPR', "E-Document Service Status"::Approved);
+
+        // [WHEN] E-Document "ED" is modified
+        EDocument.Modify(true);
+
+        // [THEN] Clearance Date is set
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'Clearance Date should be non-zero after Approved Peppol BIS 3.0 FR status');
+    end;
+
+    [Test]
+    procedure ApprovedFacturXFRStatusSetsClearanceDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] Approved Factur-X FR status sets Clearance Date
+        Initialize();
+
+        // [GIVEN] E-Document "ED" linked to a Factur-X FR service with Approved status
+        CreateEDocumentService('FACTURXFR-APPR', "E-Document Format"::"Factur-X FR");
+        CreateEDocumentWithService(EDocument, 'FACTURXFR-APPR');
+        CreateEDocumentServiceStatus(EDocument."Entry No", 'FACTURXFR-APPR', "E-Document Service Status"::Approved);
+
+        // [WHEN] E-Document "ED" is modified
+        EDocument.Modify(true);
+
+        // [THEN] Clearance Date is set
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'Clearance Date should be non-zero after Approved Factur-X FR status');
     end;
 
     [Test]

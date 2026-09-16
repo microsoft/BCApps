@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
@@ -19,6 +20,11 @@ using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Ledger;
+using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
 
 codeunit 139981 "Subc. Location Handler Test"
 {
@@ -158,7 +164,7 @@ codeunit 139981 "Subc. Location Handler Test"
     procedure TestTransferOrderCreation_SameLocation()
     var
         Item: Record Item;
-        LocationOrig: Record Location;
+        Location: Record Location;
         LocationSub: Record Location;
         ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
@@ -177,14 +183,14 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [GIVEN] Locations: Subcontractor and Original
         LibraryWarehouse.CreateLocation(LocationSub);
-        LibraryWarehouse.CreateLocation(LocationOrig);
+        LibraryWarehouse.CreateLocation(Location);
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);
-        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, Location.Code, LocationSub.Code, TransitLocation.Code, '', '');
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
             PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
-            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, Location.Code);
 
         // [WHEN] Running the Create Subcontracting Transfer Order report
         Commit(); // Report requires commit
@@ -196,60 +202,16 @@ codeunit 139981 "Subc. Location Handler Test"
         // [THEN] Transfer Order is created from Origin Location to Subcontractor Location
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         Assert.IsTrue(TransferHeader.FindFirst(), 'Transfer Order should be created');
-        Assert.AreEqual(LocationOrig.Code, TransferHeader."Transfer-from Code", 'Transfer-from Code should be Origin Location');
+        Assert.AreEqual(Location.Code, TransferHeader."Transfer-from Code", 'Transfer-from Code should be Origin Location');
         Assert.AreEqual(LocationSub.Code, TransferHeader."Transfer-to Code", 'Transfer-to Code should be Subcontractor Location');
     end;
 
     [Test]
-    procedure DirectTransferFromRequireShipmentLocationIsBlocked()
-    var
-        Item: Record Item;
-        LocationOrig: Record Location;
-        LocationSub: Record Location;
-        ProdOrder: Record "Production Order";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        Vendor: Record Vendor;
-        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
-    begin
-        // [SCENARIO 640958] Creating a subcontracting transfer with no in-transit route from a location that
-        //                 requires a shipment is blocked with a guided error instead of a raw TestField error.
-        Initialize();
-
-        // [GIVEN] Subcontractor and Original locations; the Original location requires a shipment; no in-transit transfer route exists.
-        LibraryWarehouse.CreateLocation(LocationSub);
-        LibraryWarehouse.CreateLocation(LocationOrig);
-        LocationOrig."Require Shipment" := true;
-        LocationOrig.Modify(true);
-
-        // [GIVEN] Inventory Setup posts direct transfers via Shipment and Receipt (so warehouse handling is enforced)
-        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
-
-        // [GIVEN] Subcontracting Scenario Setup (component at the subcontractor location, original at the require-shipment location)
-        CreateSubcontractingSetup(
-            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
-            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
-
-        // [WHEN] Running the Create Subcontracting Transfer Order report
-        Commit(); // Report requires commit
-        PurchaseHeader.SetRecFilter();
-        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
-        CreateSubCTransfOrder.UseRequestPage(false);
-
-        // [THEN] A guided error is raised instead of a raw TestField error on the location
-        asserterror CreateSubCTransfOrder.Run();
-        Assert.ExpectedError('requires warehousing');
-    end;
-
-    [Test]
     [HandlerFunctions('HandleTransferOrder')]
-    procedure DirectTransferFromRequireShipmentLocationAllowedWithDirectTransferPosting()
+    procedure DirectTransferFromRequireShipmentLocationWithoutRoute()
     var
         Item: Record Item;
-        LocationOrig: Record Location;
+        Location: Record Location;
         LocationSub: Record Location;
         ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
@@ -261,16 +223,367 @@ codeunit 139981 "Subc. Location Handler Test"
         Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
     begin
-        // [SCENARIO 640958] When Inventory Setup posts direct transfers as Direct Transfer, the transfer is created
-        //                 from a require-shipment source location instead of being blocked, because the Direct Transfer
-        //                 posting type skips the outbound warehouse-handling check.
+        // [SCENARIO 648949] Without a transfer route, a require-shipment source uses Shipment and Receipt from Inventory Setup.
+        Initialize();
+
+        // [GIVEN] Subcontractor and Original locations; the Original location requires a shipment; no in-transit transfer route exists.
+        LibraryWarehouse.CreateLocation(LocationSub);
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Require Shipment" := true;
+        Location.Modify(true);
+
+        // [GIVEN] Inventory Setup posts direct transfers via Shipment and Receipt
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [GIVEN] Subcontracting Scenario Setup (component at the subcontractor location, original at the require-shipment location)
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, Location.Code);
+
+        // [WHEN] Running the Create Subcontracting Transfer Order report
+        Commit(); // Report requires commit
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+        CreateSubCTransfOrder.Run();
+
+        // [THEN] The transfer uses the original source location and the posting mode from Inventory Setup
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.IsTrue(TransferHeader.FindFirst(), 'A transfer order should be created without a transfer route.');
+        TransferHeader.TestField("Transfer-from Code", Location.Code);
+        TransferHeader.TestField("Transfer-to Code", LocationSub.Code);
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", "Direct Transfer Posting Type"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,WarehouseMessageHandler')]
+    procedure DirectTransferFromRequireShipmentLocationPostsShipmentAndReceipt()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 648949] A subcontracting component transfer posts shipment and receipt through a warehouse shipment.
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] A source location that only requires warehouse shipment
+        // [GIVEN] A subcontractor location without warehouse requirements
+        // [GIVEN] An explicit direct transfer route using Shipment and Receipt
+        // [GIVEN] A subcontracting purchase order with a Transfer to Vendor component
+        // [GIVEN] The full component quantity in inventory at the source
+        CreateComponentWarehouseTransferSetup(PurchaseHeader, ProdOrderComp, Item, Location, LocationSub, Quantity);
+
+        // [WHEN] The report creates the component transfer
+        CreateDirectShipmentAndReceiptTransfer(PurchaseHeader, TransferHeader, TransferLine);
+
+        // [THEN] The transfer has the component quantity, locations, and production context
+        TransferHeader.TestField("Transfer-from Code", Location.Code);
+        TransferHeader.TestField("Transfer-to Code", LocationSub.Code);
+        TransferLine.TestField("Transfer WIP Item", false);
+        TransferLine.TestField(Quantity, Quantity);
+        TransferLine.TestField("Subc. Prod. Order No.", ProdOrderComp."Prod. Order No.");
+
+        // [WHEN] The warehouse shipment is posted
+        PostSubcontractingWarehouseShipment(TransferHeader);
+
+        // [THEN] Shipment and receipt move the full component quantity to the subcontractor
+        VerifyPostedShipmentAndReceipt(TransferLine, TransferShipmentLine, TransferReceiptLine);
+        TransferShipmentLine.TestField("Quantity (Base)", Quantity);
+        TransferReceiptLine.TestField("Quantity (Base)", Quantity);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(-Quantity, ItemLedgerEntry.Quantity, 'The full component quantity should leave the source.');
+        ItemLedgerEntry.SetRange("Location Code", LocationSub.Code);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'The full component quantity should reach the subcontractor.');
+
+        // [THEN] The component is at the subcontractor with nothing outstanding or in transit
+        ProdOrderComp.Find();
+        ProdOrderComp.TestField("Location Code", LocationSub.Code);
+        ProdOrderComp.TestField("Subc. Original Location Code", Location.Code);
+        ProdOrderComp.SetRange("Subc. Purchase Order Filter", PurchaseHeader."No.");
+        ProdOrderComp.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+        ProdOrderComp.TestField("Subc. Qty.on TransOrder (Base)", 0);
+        ProdOrderComp.TestField("Subc. Qty. in Transit (Base)", 0);
+        ProdOrderComp.TestField("Subc. Qty. transf. to Subcontr", Quantity);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,WarehouseMessageHandler')]
+    procedure DirectTransferFromRequirePickLocationPostsShipmentAndReceipt()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseEntry: Record "Warehouse Entry";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 648949] A subcontracting component transfer posts shipment and receipt through an inventory pick.
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] A bin-mandatory source location requiring only inventory picking
+        // [GIVEN] A subcontractor location without warehouse requirements
+        // [GIVEN] An explicit direct transfer route using Shipment and Receipt
+        // [GIVEN] A subcontracting purchase order with a Transfer to Vendor component
+        // [GIVEN] The full component quantity in the source bin
+        CreateComponentInventoryPickSetup(PurchaseHeader, ProdOrderComp, Item, Location, LocationSub, Bin, Quantity);
+
+        // [WHEN] The report creates the component transfer
+        CreateDirectShipmentAndReceiptTransfer(PurchaseHeader, TransferHeader, TransferLine);
+
+        // [THEN] The transfer has the component quantity, locations, and production context
+        TransferHeader.TestField("Transfer-from Code", Location.Code);
+        TransferHeader.TestField("Transfer-to Code", LocationSub.Code);
+        TransferLine.TestField("Transfer WIP Item", false);
+        TransferLine.TestField(Quantity, Quantity);
+        TransferLine.TestField("Subc. Prod. Order No.", ProdOrderComp."Prod. Order No.");
+
+        // [WHEN] An inventory pick is created and posted for the transfer
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        SubcWarehouseLibrary.CreateInvtPickFromTransferOrder(TransferHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] Shipment and receipt move the full component quantity out of the source bin to the subcontractor
+        VerifyPostedShipmentAndReceipt(TransferLine, TransferShipmentLine, TransferReceiptLine);
+        TransferShipmentLine.TestField("Quantity (Base)", Quantity);
+        TransferShipmentLine.TestField("Transfer-from Bin Code", Bin.Code);
+        TransferReceiptLine.TestField("Quantity (Base)", Quantity);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(-Quantity, ItemLedgerEntry.Quantity, 'The full component quantity should leave the source.');
+        ItemLedgerEntry.SetRange("Location Code", LocationSub.Code);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'The full component quantity should reach the subcontractor.');
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Bin Code", Bin.Code);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        Assert.AreEqual(0, WarehouseEntry."Qty. (Base)", 'No component quantity should remain in the source bin.');
+
+        // [THEN] The component is at the subcontractor with nothing outstanding or in transit
+        ProdOrderComp.Find();
+        ProdOrderComp.TestField("Location Code", LocationSub.Code);
+        ProdOrderComp.TestField("Subc. Original Location Code", Location.Code);
+        ProdOrderComp.SetRange("Subc. Purchase Order Filter", PurchaseHeader."No.");
+        ProdOrderComp.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+        ProdOrderComp.TestField("Subc. Qty.on TransOrder (Base)", 0);
+        ProdOrderComp.TestField("Subc. Qty. in Transit (Base)", 0);
+        ProdOrderComp.TestField("Subc. Qty. transf. to Subcontr", Quantity);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,WarehouseMessageHandler')]
+    procedure DirectTransferFromDirectedWarehousePostsShipmentAndReceipt()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 648949] A subcontracting component transfer posts shipment and receipt after a directed warehouse pick.
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] A source location with Directed Put-away and Pick
+        // [GIVEN] A subcontractor location without warehouse requirements
+        // [GIVEN] An explicit direct transfer route using Shipment and Receipt
+        // [GIVEN] A subcontracting purchase order with a Transfer to Vendor component
+        // [GIVEN] The full component quantity in a pickable source bin
+        CreateComponentDirectedWarehouseSetup(PurchaseHeader, ProdOrderComp, Item, Location, LocationSub, Bin, Quantity);
+
+        // [WHEN] The report creates the component transfer
+        CreateDirectShipmentAndReceiptTransfer(PurchaseHeader, TransferHeader, TransferLine);
+
+        // [THEN] The transfer has the component quantity, locations, and production context
+        TransferHeader.TestField("Transfer-from Code", Location.Code);
+        TransferHeader.TestField("Transfer-to Code", LocationSub.Code);
+        TransferLine.TestField("Transfer WIP Item", false);
+        TransferLine.TestField(Quantity, Quantity);
+        TransferLine.TestField("Subc. Prod. Order No.", ProdOrderComp."Prod. Order No.");
+
+        // [WHEN] A warehouse shipment is created for the transfer
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        WarehouseShipmentLine.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseShipmentLine.SetRange("Source No.", TransferHeader."No.");
+        WarehouseShipmentLine.FindFirst();
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+
+        // [WHEN] The warehouse pick is created and registered
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseActivityLine.SetRange("Source No.", TransferHeader."No.");
+        WarehouseActivityLine.SetRange("Source Line No.", TransferLine."Line No.");
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] The full component quantity has been picked for the shipment
+        WarehouseShipmentLine.Find();
+        WarehouseShipmentLine.TestField("Qty. Picked", Quantity);
+
+        // [WHEN] The warehouse shipment is posted
+        LibraryWarehouse.AutofillQtyToShipWhseShipment(WarehouseShipmentHeader);
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Shipment and receipt move the full component quantity to the subcontractor
+        VerifyPostedShipmentAndReceipt(TransferLine, TransferShipmentLine, TransferReceiptLine);
+        TransferShipmentLine.TestField("Quantity (Base)", Quantity);
+        TransferShipmentLine.TestField("Transfer-from Bin Code", Location."Shipment Bin Code");
+        TransferReceiptLine.TestField("Quantity (Base)", Quantity);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(-Quantity, ItemLedgerEntry.Quantity, 'The full component quantity should leave the source.');
+        ItemLedgerEntry.SetRange("Location Code", LocationSub.Code);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'The full component quantity should reach the subcontractor.');
+
+        // [THEN] No component quantity remains in the pick or shipment bin
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Bin Code", Bin.Code);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        Assert.AreEqual(0, WarehouseEntry."Qty. (Base)", 'No component quantity should remain in the pick bin.');
+        WarehouseEntry.SetRange("Bin Code", Location."Shipment Bin Code");
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        Assert.AreEqual(0, WarehouseEntry."Qty. (Base)", 'No component quantity should remain in the shipment bin.');
+
+        // [THEN] The component is at the subcontractor with nothing outstanding or in transit
+        ProdOrderComp.Find();
+        ProdOrderComp.TestField("Location Code", LocationSub.Code);
+        ProdOrderComp.TestField("Subc. Original Location Code", Location.Code);
+        ProdOrderComp.SetRange("Subc. Purchase Order Filter", PurchaseHeader."No.");
+        ProdOrderComp.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+        ProdOrderComp.TestField("Subc. Qty.on TransOrder (Base)", 0);
+        ProdOrderComp.TestField("Subc. Qty. in Transit (Base)", 0);
+        ProdOrderComp.TestField("Subc. Qty. transf. to Subcontr", Quantity);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,WarehouseMessageHandler')]
+    procedure DirectWIPTransferFromRequireShipmentLocationWithoutRoute()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferReceiptLine: Record "Transfer Receipt Line";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 640958] A WIP-only transfer without a route posts from a require-shipment location using Shipment and Receipt.
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] A source location that only requires warehouse shipment
+        // [GIVEN] A subcontractor location without warehouse requirements
+        // [GIVEN] No transfer route and Inventory Setup using Shipment and Receipt
+        // [GIVEN] A subcontracting purchase order with WIP to transfer and no component transfers
+        CreateWIPWarehouseTransferSetup(PurchaseHeader, ProdOrder, Item, Location, LocationSub, Quantity);
+
+        // [WHEN] The report creates the WIP transfer
+        CreateDirectShipmentAndReceiptTransfer(PurchaseHeader, TransferHeader, TransferLine);
+
+        // [THEN] The transfer has the WIP quantity, locations, and production context
+        TransferHeader.TestField("Transfer-from Code", Location.Code);
+        TransferHeader.TestField("Transfer-to Code", LocationSub.Code);
+        TransferLine.TestField("Transfer WIP Item", true);
+        TransferLine.TestField(Quantity, Quantity);
+        TransferLine.TestField("Subc. Prod. Order No.", ProdOrder."No.");
+
+        // [WHEN] The warehouse shipment is posted
+        PostSubcontractingWarehouseShipment(TransferHeader);
+
+        // [THEN] Shipment and receipt move WIP without creating physical inventory entries
+        VerifyPostedShipmentAndReceipt(TransferLine, TransferShipmentLine, TransferReceiptLine);
+        TransferShipmentLine.TestField("Quantity (Base)", 0);
+        TransferReceiptLine.TestField("Quantity (Base)", 0);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(WarehouseEntry);
+        WIPLedgerEntry.SetRange("Prod. Order Status", ProdOrder.Status);
+        WIPLedgerEntry.SetRange("Prod. Order No.", ProdOrder."No.");
+        WIPLedgerEntry.SetRange("Location Code", LocationSub.Code);
+        WIPLedgerEntry.SetRange("In Transit", false);
+        WIPLedgerEntry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(Quantity, WIPLedgerEntry."Quantity (Base)", 'The received WIP quantity should be at the subcontractor.');
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    procedure DirectTransferFromRequireShipmentLocationAllowedWithDirectTransferPosting()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        // [SCENARIO 640958] A require-shipment source still supports one-step Direct Transfer posting from Inventory Setup.
         Initialize();
 
         // [GIVEN] Subcontractor and Original locations; the Original location requires a shipment; no in-transit route exists.
         LibraryWarehouse.CreateLocation(LocationSub);
-        LibraryWarehouse.CreateLocation(LocationOrig);
-        LocationOrig."Require Shipment" := true;
-        LocationOrig.Modify(true);
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Require Shipment" := true;
+        Location.Modify(true);
 
         // [GIVEN] Inventory Setup posts direct transfers via Direct Transfer
         SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Direct Transfer");
@@ -278,7 +591,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
             PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
-            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, Location.Code);
 
         // [WHEN] Running the Create Subcontracting Transfer Order report
         Commit(); // Report requires commit
@@ -298,7 +611,7 @@ codeunit 139981 "Subc. Location Handler Test"
     procedure InTransitRouteWithDirectTransferUsesInTransitCode()
     var
         Item: Record Item;
-        LocationOrig: Record Location;
+        Location: Record Location;
         LocationSub: Record Location;
         ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
@@ -318,21 +631,21 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [GIVEN] Subcontractor and Original locations and an in-transit location
         LibraryWarehouse.CreateLocation(LocationSub);
-        LibraryWarehouse.CreateLocation(LocationOrig);
+        LibraryWarehouse.CreateLocation(Location);
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);
 
         // [GIVEN] Inventory Setup posts direct transfers via Shipment and Receipt
         SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
 
         // [GIVEN] A transfer route from Original to Subcontractor with an In-Transit Code, flagged Direct Transfer (Shipment and Receipt posting)
-        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, Location.Code, LocationSub.Code, TransitLocation.Code, '', '');
         TransferRoute.Validate("Direct Transfer", true);
         TransferRoute.Modify(true);
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
             PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
-            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, Location.Code);
 
         // [WHEN] Running the Create Subcontracting Transfer Order report
         Commit(); // Report requires commit
@@ -357,7 +670,7 @@ codeunit 139981 "Subc. Location Handler Test"
     var
         Item: Record Item;
         ItemJournalLine: Record "Item Journal Line";
-        LocationOrig: Record Location;
+        Location: Record Location;
         LocationSub: Record Location;
         ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
@@ -384,19 +697,19 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [GIVEN] Locations
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationSub);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationOrig);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);
-        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, Location.Code, LocationSub.Code, TransitLocation.Code, '', '');
 
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
             PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
-            LocationSub, Item, QtyTotal, LocationOrig.Code, '');
+            LocationSub, Item, QtyTotal, Location.Code, '');
 
         // [GIVEN] Inventory for the component at Origin Location (needed for posting transfer)
         LibraryInventory.CreateItemJournalLineInItemTemplate(
-            ItemJournalLine, Item."No.", LocationOrig.Code, '', QtyTotal);
+            ItemJournalLine, Item."No.", Location.Code, '', QtyTotal);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
 
         // [WHEN] Running the Create Subcontracting Transfer Order report (1st time)
@@ -623,6 +936,140 @@ codeunit 139981 "Subc. Location Handler Test"
           'Subcontracting order must not use the Work Center location.');
     end;
 
+    local procedure CreateComponentWarehouseTransferSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrderComp: Record "Prod. Order Component"; var Item: Record Item; var Location: Record Location; var LocationSub: Record Location; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, true);
+        CreateComponentTransferSetup(PurchaseHeader, ProdOrderComp, Item, Location, LocationSub, Quantity);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, '', Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreateComponentInventoryPickSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrderComp: Record "Prod. Order Component"; var Item: Record Item; var Location: Record Location; var LocationSub: Record Location; var Bin: Record Bin; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, true, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, 'PICK', '', '');
+        Location.Validate("Default Bin Code", Bin.Code);
+        Location.Modify(true);
+        CreateComponentTransferSetup(PurchaseHeader, ProdOrderComp, Item, Location, LocationSub, Quantity);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, Bin.Code, Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreateComponentDirectedWarehouseSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrderComp: Record "Prod. Order Component"; var Item: Record Item; var Location: Record Location; var LocationSub: Record Location; var Bin: Record Bin; Quantity: Decimal)
+    begin
+        LibraryWarehouse.CreateFullWMSLocation(Location, 5);
+        LibraryWarehouse.FindBin(Bin, Location.Code, 'PICK', 1);
+        CreateComponentTransferSetup(PurchaseHeader, ProdOrderComp, Item, Location, LocationSub, Quantity);
+        LibraryWarehouse.UpdateInventoryInBinUsingWhseJournal(Bin, Item."No.", Quantity, false);
+    end;
+
+    local procedure CreateComponentTransferSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrderComp: Record "Prod. Order Component"; var Item: Record Item; Location: Record Location; var LocationSub: Record Location; Quantity: Decimal)
+    var
+        ProdOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        TransferRoute: Record "Transfer Route";
+        Vendor: Record Vendor;
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationSub);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, Location.Code, LocationSub.Code, '', '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Validate("Direct Transfer Posting", "Direct Transfer Posting Type"::"Shipment and Receipt");
+        TransferRoute.Modify(true);
+
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, Quantity, Location.Code, '');
+    end;
+
+    local procedure CreateWIPWarehouseTransferSetup(var PurchaseHeader: Record "Purchase Header"; var ProdOrder: Record "Production Order"; var Item: Record Item; var Location: Record Location; var LocationSub: Record Location; Quantity: Decimal)
+    var
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, false, true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationSub);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        SetInventoryDirectTransferPostingType("Direct Transfer Posting Type"::"Shipment and Receipt");
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, Quantity, Location.Code, '');
+        ProdOrderComp.Delete(true);
+        ProdOrderRtngLine."Transfer WIP Item" := true;
+        ProdOrderRtngLine.Modify();
+    end;
+
+    local procedure CreateDirectShipmentAndReceiptTransfer(PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        Commit();
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+        CreateSubCTransfOrder.Run();
+
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.AreEqual(1, TransferHeader.Count(), 'Exactly one subcontracting transfer should be created.');
+        TransferHeader.FindFirst();
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", "Direct Transfer Posting Type"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        Assert.AreEqual(1, TransferLine.Count(), 'The transfer should contain exactly one line.');
+        TransferLine.FindFirst();
+    end;
+
+    local procedure VerifyPostedShipmentAndReceipt(TransferLine: Record "Transfer Line"; var TransferShipmentLine: Record "Transfer Shipment Line"; var TransferReceiptLine: Record "Transfer Receipt Line")
+    var
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferReceiptHeader: Record "Transfer Receipt Header";
+    begin
+#pragma warning disable AA0210
+        TransferShipmentHeader.SetRange("Transfer Order No.", TransferLine."Document No.");
+#pragma warning restore AA0210
+        TransferShipmentHeader.FindFirst();
+        TransferShipmentLine.Get(TransferShipmentHeader."No.", TransferLine."Line No.");
+        TransferShipmentLine.TestField(Quantity, TransferLine.Quantity);
+        TransferShipmentLine.TestField("Transfer WIP Item", TransferLine."Transfer WIP Item");
+        TransferShipmentLine.TestField("Subc. Purch. Order No.", TransferLine."Subc. Purch. Order No.");
+#pragma warning disable AA0210
+        TransferReceiptHeader.SetRange("Transfer Order No.", TransferLine."Document No.");
+#pragma warning restore AA0210
+        TransferReceiptHeader.FindFirst();
+        TransferReceiptLine.Get(TransferReceiptHeader."No.", TransferLine."Line No.");
+        TransferReceiptLine.TestField(Quantity, TransferLine.Quantity);
+        TransferReceiptLine.TestField("Transfer WIP Item", TransferLine."Transfer WIP Item");
+        TransferReceiptLine.TestField("Subc. Purch. Order No.", TransferLine."Subc. Purch. Order No.");
+    end;
+
+    local procedure PostSubcontractingWarehouseShipment(var TransferHeader: Record "Transfer Header")
+    var
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+    begin
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        WarehouseShipmentLine.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseShipmentLine.SetRange("Source No.", TransferHeader."No.");
+        WarehouseShipmentLine.FindFirst();
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+        LibraryWarehouse.AutofillQtyToShipWhseShipment(WarehouseShipmentHeader);
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+    end;
+
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -657,24 +1104,19 @@ codeunit 139981 "Subc. Location Handler Test"
     var
         RoutingLink: Record "Routing Link";
     begin
-        // [GIVEN] Vendor with Subcontractor Location
         if Vendor."No." = '' then begin
             LibraryPurchase.CreateVendor(Vendor);
             Vendor."Subc. Location Code" := LocationSub.Code;
             Vendor.Modify();
         end;
 
-        // [GIVEN] Create Item
         LibraryInventory.CreateItem(Item);
 
-        // [GIVEN] Production Order with Component
         LibraryManufacturing.CreateProductionOrder(ProdOrder, "Production Order Status"::Released, ProdOrder."Source Type"::Item, Item."No.", Qty);
         LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProdOrder.Status, ProdOrder."No.", Item."No.", '', CompLocationCode, Qty);
 
-        // [GIVEN] Create a Routing Link for linking component to routing line
         LibraryManufacturing.CreateRoutingLink(RoutingLink);
 
-        // [GIVEN] Production Order Component
         LibraryManufacturing.CreateProductionOrderComponent(ProdOrderComp, ProdOrder.Status, ProdOrder."No.", ProdOrderLine."Line No.");
         ProdOrderComp.Validate("Item No.", Item."No.");
         ProdOrderComp.Validate(Quantity, Qty);
@@ -686,10 +1128,8 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderComp."Routing Link Code" := RoutingLink.Code;
         ProdOrderComp.Modify();
 
-        // [GIVEN] Prod Order Routing Line (needed for linking)
         CreateProdOrderRoutingLine(ProdOrderRtngLine, ProdOrder, ProdOrderLine, RoutingLink.Code);
 
-        // [GIVEN] Purchase Order linked to Prod Order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, "Purchase Line Type"::Item, Item."No.", Qty);
         PurchaseLine."Prod. Order No." := ProdOrder."No.";
@@ -776,6 +1216,11 @@ codeunit 139981 "Subc. Location Handler Test"
 
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
+    begin
+    end;
+
+    [MessageHandler]
+    procedure WarehouseMessageHandler(Message: Text[1024])
     begin
     end;
 

@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 
@@ -26,9 +27,43 @@ codeunit 148338 "Expense Permissions Test"
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
         D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
+        PermissionDeniedErr: Label 'You do not have the following permissions', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
+
+    [Test]
+    procedure ExpenseMgmtReadRetainsAppPermissions()
+    begin
+        // [SCENARIO] The read role retains app-owned reads without granting BaseApp request access.
+        VerifyExpenseMgmtPermissions('Expense Mgmt. Read', false);
+    end;
+
+    [Test]
+    procedure ExpenseMgmtEditRetainsAppPermissions()
+    begin
+        // [SCENARIO] The edit role retains app-owned writes without granting BaseApp request access.
+        VerifyExpenseMgmtPermissions('Expense Mgmt. Edit', true);
+    end;
+
+    [Test]
+    procedure ExpenseMgmtAdminRetainsAppPermissions()
+    begin
+        // [SCENARIO] The admin role retains app-owned writes without granting BaseApp request access.
+        VerifyExpenseMgmtPermissions('Expense Mgmt. Admin', true);
+    end;
+
+    [Test]
+    procedure D365BasicCanUpdateTravelRequestDetailsIndirectly()
+    begin
+        VerifyTravelRequestDetailUpdateIndirectly(D365BasicPermissionSetTok);
+    end;
+
+    [Test]
+    procedure ExpenseAgentCanUpdateTravelRequestDetailsIndirectly()
+    begin
+        VerifyTravelRequestDetailUpdateIndirectly(ExpenseAgentPermissionSetTok);
+    end;
 
     [Test]
     procedure D365BasicCanInsertActivityIndirectly()
@@ -60,6 +95,61 @@ codeunit 148338 "Expense Permissions Test"
     procedure ExpenseAgentCanInsertActivityIndirectly()
     begin
         VerifyPermissionSetCanInsertActivity(ExpenseAgentPermissionSetTok);
+    end;
+
+    [Test]
+    procedure ExpenseAgentCanApproveTravelRequestIndirectly()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseUser: Record "Expense User";
+        Approver: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO] The agent role grants only indirect request modification through the approval codeunit.
+        Initialize();
+        CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The agent must not have direct write permission on Spend Request.');
+        TravelRequestApproval.Approve(SpendRequest, Approver."No.");
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, 'The authorized agent must approve the travel request.');
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        Assert.AreEqual(ExpenseUser."No.", ExpenseReportHeader."Expense User No.", 'Approval must create the report for the requested user.');
+    end;
+
+    [Test]
+    procedure TravelRequestApprovalFailsWithoutExpensePermissions()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseUser: Record "Expense User";
+        Approver: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO] An employee-only caller cannot approve requests without access to Expense User data.
+        Initialize();
+        CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
+        asserterror TravelRequestApproval.Approve(SpendRequest, Approver."No.");
+        Assert.ExpectedErrorCode('DB:ClientReadDenied');
+        Assert.ExpectedError(PermissionDeniedErr);
+        Assert.ExpectedError(ExpenseUser.TableCaption());
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'A denied approval must preserve the request status.');
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordIsEmpty(ExpenseReportHeader);
     end;
 
     [Test]
@@ -210,6 +300,67 @@ codeunit 148338 "Expense Permissions Test"
         RestoreFullPermissions();
     end;
 
+    local procedure VerifyExpenseMgmtPermissions(PermissionSetId: Code[20]; CanEdit: Boolean)
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        SpendRequestToGLLink: Record "Spend Request To G/L Link";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        Initialize();
+
+        // [GIVEN] Only the selected Expense Management role.
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+
+        // [WHEN] The effective table permissions are evaluated.
+        // [THEN] BaseApp rights are not added to these roles; app-owned rights follow the role level.
+        Assert.IsFalse(SpendRequest.ReadPermission(), 'The role must not grant direct BaseApp request access.');
+        Assert.IsFalse(SpendRequestDetail.ReadPermission(), 'The role must not grant direct BaseApp detail access.');
+        Assert.IsFalse(SpendRequestToGLLink.ReadPermission(), 'The role must not grant direct BaseApp ledger-link access.');
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The role must not grant direct BaseApp request writes.');
+        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The role must not grant direct BaseApp detail writes.');
+        Assert.IsTrue(ExpenseUser.ReadPermission(), 'The role must retain read access to app-owned expense users.');
+        Assert.IsTrue(ExpenseReportHeader.ReadPermission(), 'The role must retain read access to app-owned reports.');
+        Assert.AreEqual(CanEdit, ExpenseUser.WritePermission(), 'Expense user write access must follow the role level.');
+        Assert.AreEqual(CanEdit, ExpenseReportHeader.WritePermission(), 'Expense report write access must follow the role level.');
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+    end;
+
+    local procedure VerifyTravelRequestDetailUpdateIndirectly(PermissionSetId: Code[20])
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        TravelRequestSubform: TestPage "Travel Request Subform";
+    begin
+        // [SCENARIO] Editing a detail through its page can update both the line and its header total.
+        Initialize();
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
+
+        // [GIVEN] The caller has indirect writes only, not direct access to change either table.
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The caller must not have direct request write permission.');
+        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The caller must not have direct detail write permission.');
+
+        // [WHEN] A detail amount is increased through the page with the required object permissions.
+        TravelRequestSubform.OpenEdit();
+        TravelRequestSubform.GoToRecord(SpendRequestDetail);
+        TravelRequestSubform.Amount.SetValue(20);
+        TravelRequestSubform.Close();
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] Both the line change and the base table's header update are persisted.
+        SpendRequestDetail.Get(SpendRequestDetail."Spend Request No.", SpendRequestDetail."Line No.");
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(20, SpendRequestDetail."Expected Amount", 'The detail amount must be updated through indirect permissions.');
+        Assert.AreEqual(20, SpendRequest."Total Expected Amount (LCY)", 'The detail update must also update the header total.');
+    end;
+
     local procedure VerifyCompanyEmailSynchronization(PermissionSetId: Code[20])
     var
         Employee: Record Employee;
@@ -235,6 +386,23 @@ codeunit 148338 "Expense Permissions Test"
         RestoreFullPermissions();
         ExpenseUser.Get(ExpenseUser."No.");
         Assert.AreEqual(NewEmail, ExpenseUser."E-mail", 'Employee Company E-Mail must synchronize to Expense User.');
+    end;
+
+    local procedure CreateTravelRequestApprovalScenario(var SpendRequest: Record "Spend Request"; var ExpenseUser: Record "Expense User"; var Approver: Record "Expense User")
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(Approver);
+        Approver."Can Approve" := true;
+        Approver."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(Approver."User Id For Approvals"));
+        Approver.Modify(true);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", Approver."No.");
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        SpendRequest.Validate("Requested By", ExpenseUser."Employee No.");
+        SpendRequest.Validate("Requested For", ExpenseUser."No.");
+        SpendRequest.Modify(true);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
     end;
 
     local procedure CreateExpenseForDeletionGuard(var Expense: Record Expense; ExpenseUserNo: Code[20])
