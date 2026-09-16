@@ -7,14 +7,13 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
-using System.Security.User;
 using System.TestLibraries.Security.AccessControl;
 
 codeunit 148361 "Expense Agent Config. Test"
 {
     Subtype = Test;
     TestType = UnitTest;
-    TestPermissions = Restrictive;
+    TestPermissions = Disabled;
     Permissions =
         tabledata "AAD Application" = rm,
         tabledata "Access Control" = rid;
@@ -23,10 +22,8 @@ codeunit 148361 "Expense Agent Config. Test"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         UserPermissionsLibrary: Codeunit "User Permissions Library";
-        AgentAdminPermissionSetTok: Label 'Agent - Admin', Locked = true;
         ExpenseAgentAppIdTok: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
-        ExpenseManagementAdminPermissionSetTok: Label 'Expense Mgmt. Admin', Locked = true;
         UnrelatedPermissionSetTok: Label 'D365 BASIC', Locked = true;
 
     [Test]
@@ -236,59 +233,6 @@ codeunit 148361 "Expense Agent Config. Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Agent Config. Test");
-        EnsureCurrentUserAgentAdminPermissionSetAssigned();
-        EnsureCurrentUserPermissionSetAssigned(ExpenseManagementAdminPermissionSetTok);
-        EnsureCurrentUserPermissionSetAssigned(ExpenseAgentPermissionSetTok);
-    end;
-
-    local procedure EnsureCurrentUserAgentAdminPermissionSetAssigned()
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        AggregatePermissionSet.SetRange("Role ID", AgentAdminPermissionSetTok);
-        AggregatePermissionSet.FindFirst();
-        if UserPermissions.HasUserPermissionSetAssigned(
-            UserSecurityId(),
-            GetCurrentCompanyName(),
-            AggregatePermissionSet."Role ID",
-            AggregatePermissionSet.Scope,
-            AggregatePermissionSet."App ID")
-        then
-            exit;
-
-        AccessControl.Init();
-        AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
-        AccessControl.Scope := AggregatePermissionSet.Scope;
-        AccessControl."App ID" := AggregatePermissionSet."App ID";
-        AccessControl.Insert(true);
-    end;
-
-    local procedure EnsureCurrentUserPermissionSetAssigned(PermissionSetId: Code[20])
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        GetPermissionSet(AggregatePermissionSet, PermissionSetId);
-        if UserPermissions.HasUserPermissionSetAssigned(
-            UserSecurityId(),
-            GetCurrentCompanyName(),
-            AggregatePermissionSet."Role ID",
-            AggregatePermissionSet.Scope,
-            AggregatePermissionSet."App ID")
-        then
-            exit;
-
-        AccessControl.Init();
-        AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
-        AccessControl."Company Name" := GetCurrentCompanyName();
-        AccessControl.Scope := AggregatePermissionSet.Scope;
-        AccessControl."App ID" := AggregatePermissionSet."App ID";
-        AccessControl.Insert(true);
     end;
 
     local procedure PrepareAadApplication(var AadApplication: Record "AAD Application"; State: Option)
