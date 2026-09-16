@@ -111,7 +111,7 @@ report 6653 "Combine Return Receipts"
             trigger OnPreDataItem()
             begin
                 if GetFilter("Operation Type") <> '' then
-                    Error(Text1130009, FieldName("Operation Type"))
+                    Error(Text1130009, FieldCaption("Operation Type"))
                 else
                     SetRange("Operation Type", OperationType.Code);
 

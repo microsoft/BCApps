@@ -234,9 +234,9 @@ codeunit 132207 "Library - Assembly"
         if ExpectedError = '' then
             BatchPostAssemblyOrders.RunModal()
         else begin
-            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+            #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
             asserterror BatchPostAssemblyOrders.RunModal();
-            #pragma warning restore AS0058, PTE0007
+            #pragma warning restore AA0161, AS0058, PTE0007
             Assert.IsTrue(StrPos(GetLastErrorText, ExpectedError) > 0, 'Actual:' + GetLastErrorText);
             ClearLastError();
         end;
@@ -1508,9 +1508,9 @@ codeunit 132207 "Library - Assembly"
         if ExpectedError = '' then
             AssemblyPost.Run(AssemblyHeader)
         else begin
-            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+            #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
             asserterror AssemblyPost.Run(AssemblyHeader);
-            #pragma warning restore AS0058, PTE0007
+            #pragma warning restore AA0161, AS0058, PTE0007
             Assert.IsTrue(StrPos(GetLastErrorText, ExpectedError) > 0,
               'Expected:' + ExpectedError + '. Actual:' + GetLastErrorText);
             ClearLastError();
@@ -1746,9 +1746,9 @@ codeunit 132207 "Library - Assembly"
         if ExpectedError = '' then
             AsmPostCtrl.Undo(PostedAssemblyHeader, RestoreAO)
         else begin
-            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+            #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
             asserterror AsmPostCtrl.Undo(PostedAssemblyHeader, RestoreAO);
-            #pragma warning restore AS0058, PTE0007
+            #pragma warning restore AA0161, AS0058, PTE0007
             Assert.IsTrue(StrPos(GetLastErrorText, ExpectedError) > 0, 'Actual:' + GetLastErrorText);
             ClearLastError();
         end;
@@ -1760,9 +1760,9 @@ codeunit 132207 "Library - Assembly"
     begin
         Commit();
         if AssemblyHeader.Quantity = 0 then begin
-            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+            #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
             asserterror AssemblyHeader.UpdateUnitCost();
-            #pragma warning restore AS0058, PTE0007
+            #pragma warning restore AA0161, AS0058, PTE0007
             Assert.AreEqual(
               StrSubstNo(ErrorZeroQty, AssemblyHeader."No."), GetLastErrorText,
               'Actual:' + GetLastErrorText + '; Expected:' + StrSubstNo(ErrorZeroQty, AssemblyHeader."No."));
@@ -1774,9 +1774,9 @@ codeunit 132207 "Library - Assembly"
         if Item."Costing Method" <> Item."Costing Method"::Standard then
             AssemblyHeader.UpdateUnitCost()
         else begin
-            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
+            #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
             asserterror AssemblyHeader.UpdateUnitCost();
-            #pragma warning restore AS0058, PTE0007
+            #pragma warning restore AA0161, AS0058, PTE0007
             Assert.IsTrue(StrPos(GetLastErrorText, ErrorStdCost) > 0, 'Actual:' + GetLastErrorText + '; Expected:' + ErrorStdCost);
             ClearLastError();
         end;

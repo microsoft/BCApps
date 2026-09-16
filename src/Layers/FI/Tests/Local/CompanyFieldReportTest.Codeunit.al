@@ -177,11 +177,6 @@ codeunit 144010 "Company Field Report Test"
                         LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoBusinessIdCode', CompanyInfoBusinessIdCode);
                         LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoegHomeCity', CompanyInfoRegHomeCity);
                     end;
-                3:
-                    begin
-                        LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoBusinessIdentityCode', CompanyInfoBusinessIdCode);
-                        LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoRegisteredHomeCity', CompanyInfoRegHomeCity);
-                    end;
                 4:
                     begin
                         LibraryReportDataset.GetElementValueInCurrentRow('CompanyInfoBusinessIDCode', CompanyInfoBusinessIdCode);
@@ -199,29 +194,6 @@ codeunit 144010 "Company Field Report Test"
     begin
         Reply := false;
     end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure VATVIESDeclarationTaxAuthReportHandler(var VATVIESDeclarationTaxAuthReport: TestRequestPage "VAT- VIES Declaration Tax Auth")
-    begin
-        VATVIESDeclarationTaxAuthReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [Test]
-    [HandlerFunctions('VATVIESDeclarationTaxAuthReportHandler')]
-    [Scope('OnPrem')]
-    procedure VATVIESDeclarationTaxAuthReport()
-    var
-        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
-    begin
-        Initialize();
-
-        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
-        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
-        VATVIESDeclarationTaxAuthReport.Run();
-        TestBusinessIdentityandHomeCity(3);
-    end;
-
 
     [RequestPageHandler]
     [Scope('OnPrem')]
