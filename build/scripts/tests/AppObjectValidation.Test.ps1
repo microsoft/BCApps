@@ -1,6 +1,6 @@
 Describe "AppObjectValidation" {
     BeforeAll {
-        Import-Module "$PSScriptRoot\..\..\..\build\scripts\AppObjectValidation.psm1" -Force
+        Import-Module "$PSScriptRoot\..\AppObjectValidation.psm1" -Force
 
         $script:AllowedRanges = @(
             [PSCustomObject]@{ From = 1;        To = 49999 },
