@@ -199,7 +199,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     /// XML parsing from abnormally large or malicious payloads received over the unauthenticated service.
     /// </summary>
     /// <param name="TempBlob">Temp blob holding the raw response content received from the VIES service.</param>
-    local procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
+    internal procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
     var
         AuditLog: Codeunit "Audit Log";
     begin

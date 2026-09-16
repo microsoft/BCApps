@@ -601,6 +601,41 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestResponseSizeRejectsOversizedPayload()
+    var
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A VIES response larger than the maximum allowed size is rejected before it is parsed
+        Initialize();
+
+        // [GIVEN] A raw response body that exceeds the 64 KB cap
+        WriteRawResponseToTempBlob(TempBlob, 70000);
+
+        // [THEN] The size check rejects it
+        asserterror VATLookupExtDataHndl.CheckResponseSize(TempBlob);
+        Assert.ExpectedError('exceeded the maximum allowed size');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseSizeAcceptsWithinLimit()
+    var
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A VIES response within the maximum allowed size passes the size check
+        Initialize();
+
+        // [GIVEN] A raw response body within the 64 KB cap
+        WriteRawResponseToTempBlob(TempBlob, 1024);
+
+        // [THEN] The size check passes without error
+        VATLookupExtDataHndl.CheckResponseSize(TempBlob);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestGetVATRegNo()
     begin
         Initialize();
@@ -1562,6 +1597,15 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         XMLDoc := XMLDoc.XmlDocument();
         XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
         XMLDOMMgt.AddElement(VATNode, ValidTxt, 'false', NamespaceTxt, InvalidNode);
+    end;
+
+    local procedure WriteRawResponseToTempBlob(var TempBlob: Codeunit "Temp Blob"; ByteCount: Integer)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText(PadStr('', ByteCount, 'A'));
     end;
 
     local procedure CreateValidVATCheckResponse(var XMLDoc: DotNet XmlDocument; ValidatedName: Text; ValidatedAddress: Text)

@@ -97,21 +97,21 @@ codeunit 1281 "Update Currency Exchange Rates"
         // Http Web Request Mgt.GetResponse -> CopyTo) writes the downloaded payload into TempBlobResponse's
         // backing blob. TempBlobResponse.Length() therefore reflects the actual response on the default HTTP path
         // (same Temp Blob pattern as Http Web Request Mgt.SendRequestAndReadResponse), and drives the size check.
-        CheckResponseSize();
+        CheckResponseSize(TempBlobResponse);
         CurrExchRateUpdateSetup.GetWebServiceURL(ServiceUrl);
         SourceName := ServiceUrl;
     end;
 
-    local procedure CheckResponseSize()
+    internal procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
     var
         AuditLog: Codeunit "Audit Log";
     begin
-        if TempBlobResponse.Length() <= GetMaxResponseSize() then
+        if TempBlob.Length() <= GetMaxResponseSize() then
             exit;
 
         AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         Session.LogMessage('0000VEP', ResponseTooLargeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTok);
-        Clear(TempBlobResponse);
+        Clear(TempBlob);
         Error(ResponseTooLargeErr);
     end;
 
