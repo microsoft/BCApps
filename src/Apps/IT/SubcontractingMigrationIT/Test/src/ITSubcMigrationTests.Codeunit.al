@@ -854,11 +854,10 @@ codeunit 149956 "IT Subc. Migration Tests"
         Vendor."Subcontracting Location Code" := VendorLocation.Code;
         Vendor.Modify(false);
 
-        // [GIVEN] A purchase header with a different legacy location that requires warehouse handling
+        // [GIVEN] A purchase header with a different legacy location that is bin-mandatory
+        // (Require Put-away/Receive/Shipment are not restricted for purchase-header-only locations)
         LibraryWarehouse.CreateLocation(PurchaseLocation);
-        PurchaseLocation."Require Put-away" := true;
-        PurchaseLocation."Require Receive" := true;
-        PurchaseLocation."Require Shipment" := true;
+        PurchaseLocation."Bin Mandatory" := true;
         PurchaseLocation.Modify(false);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
         PurchaseHeader."Subcontracting Location Code" := PurchaseLocation.Code;
@@ -882,9 +881,7 @@ codeunit 149956 "IT Subc. Migration Tests"
                 StrSubstNo(
                     UnsupportedSubcontractingLocationErr,
                     PurchaseLocation.Code,
-                    PurchaseLocation.FieldCaption("Require Put-away") + ', ' +
-                    PurchaseLocation.FieldCaption("Require Receive") + ', ' +
-                    PurchaseLocation.FieldCaption("Require Shipment"))),
+                    PurchaseLocation.FieldCaption("Bin Mandatory"))),
             'The precheck should report the purchase location and its unsupported settings.');
     end;
 
