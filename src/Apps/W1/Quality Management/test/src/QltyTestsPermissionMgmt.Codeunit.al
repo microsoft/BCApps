@@ -5,6 +5,8 @@
 namespace Microsoft.Test.QualityManagement;
 
 using Microsoft.Test.QualityManagement.TestLibraries;
+using System.Security.AccessControl;
+using System.Security.User;
 using System.TestLibraries.Utilities;
 
 codeunit 139957 "Qlty. Tests - Permission Mgmt."
@@ -22,11 +24,12 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         InspectorRoleIDTok: Label 'QltyMgmt - Inspector', Locked = true;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanDeleteFinishedInspection_ShouldError()
     begin
         // [SCENARIO] Verify that deleting a finished inspection without the administrator role raises an error
         // [GIVEN] The inspector role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+        InitializePermissions(InspectorRoleIDTok);
 
         // [WHEN] VerifyCanDeleteFinishedInspection is called
         // [THEN] An error is raised indicating the user lacks permission to delete a finished inspection
@@ -35,12 +38,13 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanDeleteFinishedInspection()
     begin
         // [SCENARIO] Verify that deleting a finished inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
+        InitializePermissions(AdminSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanDeleteFinishedInspection is called        
         QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
@@ -50,12 +54,13 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanChangeOtherInspections()
     begin
         // [SCENARIO] Verify that changing other users' inspections succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
+        InitializePermissions(AdminSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeOtherInspections is called
         QltyInspectionUtility.VerifyCanChangeOtherInspections();
@@ -65,11 +70,12 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanChangeOtherInspections_ShouldError()
     begin
         // [SCENARIO] Verify that changing another user's inspection without the administrator role raises an error
         // [GIVEN] The inspector role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+        InitializePermissions(InspectorRoleIDTok);
 
         // [WHEN] VerifyCanChangeOtherInspections is called
         // [THEN] An error is raised indicating the user lacks permission to change other inspections
@@ -79,11 +85,12 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanReopenInspection_ShouldError()
     begin
         // [SCENARIO] Verify that reopening an inspection without the administrator role raises an error
         // [GIVEN] The inspector role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+        InitializePermissions(InspectorRoleIDTok);
 
         // [WHEN] VerifyCanReopenInspection is called
         // [THEN] An error is raised indicating the user lacks permission to reopen an inspection
@@ -92,12 +99,13 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanReopenInspection()
     begin
         // [SCENARIO] Verify that reopening an inspection succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
+        InitializePermissions(AdminSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanReopenInspection is called
         QltyInspectionUtility.VerifyCanReopenInspection();
@@ -106,11 +114,12 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanChangeSourceQuantity_ShouldError()
     begin
         // [SCENARIO] Verify that changing source quantity without the administrator role raises an error
         // [GIVEN] The inspector role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+        InitializePermissions(InspectorRoleIDTok);
 
         // [WHEN] VerifyCanChangeSourceQuantity is called
         // [THEN] An error is raised indicating the user lacks permission to change source quantity
@@ -120,18 +129,56 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure VerifyCanChangeSourceQuantity()
     begin
         // [SCENARIO] Verify that changing source quantity succeeds with proper supervisor permissions
 
         // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
+        InitializePermissions(AdminSupervisorRoleIDTok);
 
         // [WHEN] VerifyCanChangeSourceQuantity is called
         QltyInspectionUtility.VerifyCanChangeSourceQuantity();
 
         // [THEN] The operation succeeds and CanChangeSourceQuantity returns true
         LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeSourceQuantity(), 'allowed with administrator role');
+    end;
+
+    local procedure InitializePermissions(PermissionSetRoleID: Code[20])
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        User: Record User;
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        LibraryLowerPermissions.PushPermissionSet('SUPER');
+
+        AccessControl.SetRange("User Security ID", UserSecurityId());
+        AccessControl.DeleteAll();
+        if User.Get(UserSecurityId()) then
+            User.Delete();
+        if User.IsEmpty() then begin
+            User.Init();
+            User."User Security ID" := CreateGuid();
+            User."User Name" := CopyStr(Format(User."User Security ID"), 1, MaxStrLen(User."User Name"));
+            User.Insert();
+        end;
+
+        AggregatePermissionSet.SetRange(Scope, AggregatePermissionSet.Scope::System);
+        AggregatePermissionSet.SetRange("Role ID", PermissionSetRoleID);
+        AggregatePermissionSet.FindFirst();
+
+        AccessControl.Init();
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name"));
+        AccessControl.Insert();
+
+        LibraryLowerPermissions.SetO365Basic();
+        LibraryLowerPermissions.AddPermissionSet(PermissionSetRoleID);
+        LibraryAssert.IsFalse(UserPermissions.IsSuper(UserSecurityId()), 'The test user must not have SUPER permissions.');
     end;
 
 }
