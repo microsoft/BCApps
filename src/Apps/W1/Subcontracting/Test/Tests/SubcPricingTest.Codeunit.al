@@ -1154,6 +1154,38 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure MinimumAmountPricingSkipsAdjustmentAtZeroQuantity()
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcontractorPrice: Record "Subcontractor Price";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        PriceListDirectUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] A matched price with a Minimum Amount must not divide by a zero
+        // purchase quantity; the price list Direct Unit Cost is used unadjusted instead.
+        Initialize();
+
+        CreateNoPriceSubcontractingPurchaseLine(
+            PurchaseLine, ProdOrderLine, Enum::"Unit Cost Calculation Type"::Time);
+        PriceListDirectUnitCost := LibraryRandom.RandDecInRange(10, 100, 2);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, PurchaseLine."Work Center No.", PurchaseLine."Buy-from Vendor No.",
+            PurchaseLine."No.", '', PurchaseLine."Variant Code", PurchaseLine."Order Date",
+            PurchaseLine."Unit of Measure Code", 0, PurchaseLine."Currency Code");
+        SubcontractorPrice.Validate("Direct Unit Cost", PriceListDirectUnitCost);
+        SubcontractorPrice.Validate("Minimum Amount", PriceListDirectUnitCost * 1000);
+        SubcontractorPrice.Modify(true);
+        PurchaseLine.Quantity := 0;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+
+        Assert.AreEqual(
+            PriceListDirectUnitCost, PurchaseLine."Direct Unit Cost",
+            'A zero purchase quantity must not trigger a minimum-amount division and must keep the price list cost.');
+    end;
+
+    [Test]
     procedure ManualWorksheetDirectUnitCostOverridePreservedOnCarryOut()
     var
         Item: Record Item;
