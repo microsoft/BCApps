@@ -429,9 +429,15 @@ page 6996 "Expense Agent Setup"
                         exit(true);
                     end;
                 }
+#if not CLEAN30
                 field("Only Shortest Route"; Rec."Only Shortest Route")
                 {
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Use Configure Expense Agent to set up mileage routes.';
                 }
+#endif
             }
             part(AgentAccessControl; "Expense Agent Access Ctrl")
             {

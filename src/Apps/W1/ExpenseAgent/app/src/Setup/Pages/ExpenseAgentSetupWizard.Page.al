@@ -769,6 +769,13 @@ page 6991 "Expense Agent Setup Wizard"
                         ConfigUpdated();
                     end;
                 }
+                field("Only Shortest Route"; Rec."Only Shortest Route")
+                {
+                    trigger OnValidate()
+                    begin
+                        ConfigUpdated();
+                    end;
+                }
                 field(MileageRateSetupLink; MileageRateSetupLinkTxt)
                 {
                     ShowCaption = false;
