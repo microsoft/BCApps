@@ -31,6 +31,8 @@ codeunit 148108 "Purchase Advance Payments CZZ"
         UnapplyAdvLetterQst: Label 'Unapply advance letter: %1\Continue?', Comment = '%1 = Advance Letters';
         UsageNoPossibleQst: Label 'Usage all applicated advances is not possible.\Continue?';
         PostCashDocumentQst: Label 'Do you want to post Cash Document Header %1?', Comment = '%1 = Cash Document No.';
+        BlockedVendorErr: Label 'You cannot %1 this type of document when Vendor %2 is blocked with type %3', Comment = '%1 = create/post, %2 = vendor no., %3 = blocked type';
+        PrivacyBlockedVendorErr: Label 'You cannot %1 this type of document when Vendor %2 is blocked for privacy.', Comment = '%1 = create/post, %2 = vendor no.';
 
     local procedure Initialize()
     var
@@ -2641,6 +2643,117 @@ codeunit 148108 "Purchase Advance Payments CZZ"
         Assert.AreEqual(0, VATEntry.Amount, 'The sum of VAT amount in VAT Entries must be zero.');
 
         SetPostVATDocForReverseCharge(false);
+    end;
+
+    [Test]
+    procedure CreatePurchAdvLetterWithVendorBlockedAll()
+    begin
+        CreatePurchAdvLetterWithBlockedVendorBase(Enum::"Vendor Blocked"::All, false);
+    end;
+
+    [Test]
+    procedure CreatePurchAdvLetterWithVendorBlockedPayment()
+    begin
+        CreatePurchAdvLetterWithBlockedVendorBase(Enum::"Vendor Blocked"::Payment, false);
+    end;
+
+    [Test]
+    procedure CreatePurchAdvLetterWithPrivacyBlockedVendor()
+    begin
+        CreatePurchAdvLetterWithBlockedVendorBase(Enum::"Vendor Blocked"::" ", true);
+    end;
+
+    [Test]
+    procedure PostPaymentPurchAdvLetterWithVendorBlockedAll()
+    begin
+        PostPaymentPurchAdvLetterWithBlockedVendorBase(Enum::"Vendor Blocked"::All, false);
+    end;
+
+    [Test]
+    procedure PostPaymentPurchAdvLetterWithVendorBlockedPayment()
+    begin
+        PostPaymentPurchAdvLetterWithBlockedVendorBase(Enum::"Vendor Blocked"::Payment, false);
+    end;
+
+    [Test]
+    procedure PostPaymentPurchAdvLetterWithPrivacyBlockedVendor()
+    begin
+        PostPaymentPurchAdvLetterWithBlockedVendorBase(Enum::"Vendor Blocked"::" ", true);
+    end;
+
+    local procedure CreatePurchAdvLetterWithBlockedVendorBase(VendorBlocked: Enum "Vendor Blocked"; PrivacyBlocked: Boolean)
+    var
+        PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Creating purchase advance letter with blocked vendor must fail
+        Initialize();
+
+        // [GIVEN] Vendor has been created and blocked
+        CreateBlockedVendor(Vendor, VendorBlocked, PrivacyBlocked);
+
+        // [WHEN] Create purchase advance letter with blocked vendor
+        asserterror LibraryPurchAdvancesCZZ.CreatePurchAdvLetterHeader(PurchAdvLetterHeaderCZZ, AdvanceLetterTemplateCZZ.Code, Vendor."No.", '');
+
+        // [THEN] Error will occur
+        if PrivacyBlocked then
+            Assert.ExpectedError(StrSubstNo(PrivacyBlockedVendorErr, 'create', Vendor."No."))
+        else
+            Assert.ExpectedError(StrSubstNo(BlockedVendorErr, 'create', Vendor."No.", VendorBlocked));
+    end;
+
+    local procedure PostPaymentPurchAdvLetterWithBlockedVendorBase(VendorBlocked: Enum "Vendor Blocked"; PrivacyBlocked: Boolean)
+    var
+        PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ";
+        PurchAdvLetterLineCZZ: Record "Purch. Adv. Letter Line CZZ";
+        GenJournalLine: Record "Gen. Journal Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Posting payment for purchase advance letter with blocked vendor must fail
+        Initialize();
+
+        // [GIVEN] Purchase advance letter has been created
+        // [GIVEN] Purchase advance letter line with normal VAT has been created
+        CreatePurchAdvLetter(PurchAdvLetterHeaderCZZ, PurchAdvLetterLineCZZ);
+
+        // [GIVEN] Purchase advance letter has been released
+        ReleasePurchAdvLetter(PurchAdvLetterHeaderCZZ);
+
+        // [GIVEN] Purchase advance payment has been prepared in general journal
+        LibraryPurchAdvancesCZZ.CreatePurchAdvancePayment(
+            GenJournalLine, PurchAdvLetterHeaderCZZ."Pay-to Vendor No.", PurchAdvLetterLineCZZ."Amount Including VAT",
+            PurchAdvLetterHeaderCZZ."Currency Code", PurchAdvLetterHeaderCZZ."No.", 0, 0D);
+
+        // [GIVEN] Vendor has been blocked
+        Vendor.Get(PurchAdvLetterHeaderCZZ."Pay-to Vendor No.");
+        if PrivacyBlocked then
+            Vendor.Validate("Privacy Blocked", PrivacyBlocked)
+        else
+            Vendor.Validate(Blocked, VendorBlocked);
+        Vendor.Modify(true);
+
+        // [WHEN] Post purchase advance payment
+        asserterror PostGenJournalLine(GenJournalLine);
+
+        // [THEN] Error will occur
+        if PrivacyBlocked then
+            Assert.ExpectedError(StrSubstNo(PrivacyBlockedVendorErr, 'post', Vendor."No."))
+        else
+            Assert.ExpectedError(StrSubstNo(BlockedVendorErr, 'post', Vendor."No.", VendorBlocked));
+    end;
+
+    local procedure CreateBlockedVendor(var Vendor: Record Vendor; VendorBlocked: Enum "Vendor Blocked"; PrivacyBlocked: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryPurchAdvancesCZZ.FindVATPostingSetup(VATPostingSetup);
+        LibraryPurchAdvancesCZZ.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        if PrivacyBlocked then
+            Vendor.Validate("Privacy Blocked", PrivacyBlocked)
+        else
+            Vendor.Validate(Blocked, VendorBlocked);
+        Vendor.Modify(true);
     end;
 
     local procedure CreatePurchAdvLetterBase(var PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ"; var PurchAdvLetterLineCZZ: Record "Purch. Adv. Letter Line CZZ"; VendorNo: Code[20]; CurrencyCode: Code[10]; VATPostingSetup: Record "VAT Posting Setup")

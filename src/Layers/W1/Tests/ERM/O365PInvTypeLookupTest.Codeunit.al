@@ -106,9 +106,9 @@ codeunit 134647 "O365 P. Inv. Type Lookup Test"
         PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(Format(PurchaseLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the Purchase Line to co
-        PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatType(), 1, 2));
+        PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(CopyStr(PurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The Subtype is set to Comment
-        PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -127,12 +127,12 @@ codeunit 134647 "O365 P. Inv. Type Lookup Test"
         // [WHEN] Setting the Subtype on the Purchase Line to ' '
         PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
 
         // [WHEN] Setting the Subtype on the Purchase Line to ''
         PurchaseInvoice.PurchLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatType());
+        PurchaseInvoice.PurchLines.FilteredTypeField.AssertEquals(PurchaseLine.FormatTypeAsText());
     end;
 
     [Test]

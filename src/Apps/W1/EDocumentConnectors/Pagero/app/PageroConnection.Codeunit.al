@@ -65,7 +65,7 @@ codeunit 6361 "Pagero Connection"
         exit(true);
     end;
 
-    procedure GetReceivedDocuments(HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; Retry: Boolean): Boolean
+    procedure GetReceivedDocuments(var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; Retry: Boolean): Boolean
     var
         Parameters: Dictionary of [Text, Text];
         InputTxt: Text;
@@ -82,7 +82,7 @@ codeunit 6361 "Pagero Connection"
             exit(true);
     end;
 
-    procedure HandleGetTargetDocumentRequest(DocumentId: Text; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; Retry: Boolean): Boolean
+    procedure HandleGetTargetDocumentRequest(DocumentId: Text; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; Retry: Boolean): Boolean
     begin
         if not PageroAPIRequests.GetTargetDocumentRequest(DocumentId, HttpRequest, HttpResponse) then
             if Retry then

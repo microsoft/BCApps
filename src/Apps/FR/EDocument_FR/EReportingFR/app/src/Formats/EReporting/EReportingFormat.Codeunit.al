@@ -102,7 +102,11 @@ codeunit 10970 "E-Reporting Format" implements "E-Document"
         if not EDocumentService.Get(Rec.Service) then
             exit;
 
-        if EDocumentService."Document Format" <> EDocumentService."Document Format"::"E-Reporting FR" then
+        if not (EDocumentService."Document Format" in [
+            EDocumentService."Document Format"::"E-Reporting FR",
+            EDocumentService."Document Format"::"Peppol BIS 3.0 FR",
+            EDocumentService."Document Format"::"Factur-X FR"])
+        then
             exit;
 
         if not EDocumentServiceStatus.Get(Rec."Entry No", Rec.Service) then

@@ -1,7 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using System.Utilities;
 
 table 8065 "Vend. Sub. Contract Line"
@@ -306,6 +308,7 @@ table 8065 "Vend. Sub. Contract Line"
         ServiceCommitment: Record "Subscription Line";
         CustomerServiceCommitment: Record "Subscription Line";
         CustomerContract: Record "Customer Subscription Contract";
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         if Rec."Subscription Header No." = '' then
             exit;
@@ -315,8 +318,10 @@ table 8065 "Vend. Sub. Contract Line"
         ServiceCommitment.SetDefaultDimensions(true);
         CustomerServiceCommitment.FilterOnServiceObjectAndPackage(Rec."Subscription Header No.", ServiceCommitment.Template, ServiceCommitment."Subscription Package Code", Enum::"Service Partner"::Customer);
         if CustomerServiceCommitment.FindFirst() then
-            if CustomerContract.Get(CustomerServiceCommitment."Subscription Contract No.") then
-                ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", CustomerContract."Dimension Set ID");
+            if CustomerContract.Get(CustomerServiceCommitment."Subscription Contract No.") then begin
+                SourceCodeSetup.Get();
+                ServiceCommitment.ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
+            end;
         ServiceCommitment.Modify(false);
     end;
 

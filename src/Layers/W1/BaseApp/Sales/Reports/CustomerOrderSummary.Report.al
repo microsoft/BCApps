@@ -18,6 +18,7 @@ report 107 "Customer - Order Summary"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Order Summary';
+    ToolTip = 'View the order detail (the quantity not yet shipped) for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = Excel;

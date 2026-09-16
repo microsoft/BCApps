@@ -118,6 +118,36 @@ codeunit 137351 "SCM Inventory Reports - IV"
     end;
 
     [Test]
+    [HandlerFunctions('ItemAgeCompositionValueRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ItemAgeCompositionBeforeBucketSumsAllEntries()
+    var
+        Item: Record Item;
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Item Age Composition]
+        // [SCENARIO 637846] The "...before" quantity bucket sums the remaining quantity of all item ledger entries, not just the last one.
+
+        // [GIVEN] An item with three posted receipts (6, 10, 15), all dated in the "...before" bucket
+        Initialize();
+        PostingDate := CalcDate('<-4M>', WorkDate());
+        CreateItem(Item, Item."Replenishment System"::Purchase);
+        PostPositiveAdjustmentWithDate(Item."No.", 6, PostingDate);
+        PostPositiveAdjustmentWithDate(Item."No.", 10, PostingDate);
+        PostPositiveAdjustmentWithDate(Item."No.", 15, PostingDate);
+
+        // [WHEN] Running the Item Age Composition by Quantity and Value report
+        Commit();
+        RunItemAgeCompositionValueReport(Item."No.");
+
+        // [THEN] The "...before" quantity column shows the total remaining quantity (6 + 10 + 15 = 31), not just the last entry
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_Item', Item."No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('InvtQty1_ItemLedgEntry', 31);
+    end;
+
+    [Test]
     [HandlerFunctions('ImplementStandardCostChangePageHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure RevaluationJournalLinesUsingStdCostWorksheet()
@@ -536,6 +566,63 @@ codeunit 137351 "SCM Inventory Reports - IV"
         // Verify: Verify Quantity and Material Direct Cost Applied in the report.
         VerifyCostSharesBreakdownReport(ItemLedgerEntry, ItemLedgerEntry.Quantity * Item2."Unit Cost");
         AssertReportValue('NewMatOvrHd_PrintInvCstShrBuf', ItemLedgerEntry.Quantity * Item2."Overhead Rate");
+    end;
+
+    [Test]
+    [HandlerFunctions('ProductionJournalPageHandler,ConfirmHandler,MessageHandler,CostSharesBreakdownRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CostSharesBreakdownReportForWIPInventoryFiltersByItem()
+    var
+        ChildItem: Record Item;
+        ProdItem: Record Item;
+        OtherProdItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        OtherProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        OtherProductionOrder: Record "Production Order";
+        PrintCostShare: Option Sale,Inventory,"WIP Inventory";
+    begin
+        // [FEATURE] [Cost Shares Breakdown] [WIP]
+        // [SCENARIO 631472] Cost Shares Breakdown in WIP Inventory mode only reports the produced item that matches the request-page Item filter.
+        Initialize();
+
+        // [GIVEN] A component item with posted inventory
+        CreateItem(ChildItem, ChildItem."Replenishment System"::Purchase);
+        CreateAndPostItemJournalLine(ItemJournalLine, ChildItem."No.");
+
+        // [GIVEN] Two produced items, each with the component in its production BOM
+        CreateItem(ProdItem, ProdItem."Replenishment System"::"Prod. Order");
+        CreateAndCertifyProductionBOM(ProductionBOMHeader, ChildItem."No.", ProdItem."Base Unit of Measure", 1);
+        UpdateProductionBOMOnItem(ProdItem, ProductionBOMHeader."No.");
+
+        CreateItem(OtherProdItem, OtherProdItem."Replenishment System"::"Prod. Order");
+        CreateAndCertifyProductionBOM(OtherProductionBOMHeader, ChildItem."No.", OtherProdItem."Base Unit of Measure", 1);
+        UpdateProductionBOMOnItem(OtherProdItem, OtherProductionBOMHeader."No.");
+
+        // [GIVEN] A released production order is posted for each produced item, generating capacity entries
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ProdItem."No.", ItemJournalLine.Quantity / 4);
+        LibraryVariableStorage.Enqueue(PostingMessage);
+        LibraryVariableStorage.Enqueue(PostedLinesMessage);
+        CreateAndPostProductionJournal(ProductionOrder);
+
+        CreateAndRefreshProductionOrder(OtherProductionOrder, OtherProductionOrder.Status::Released, OtherProdItem."No.", ItemJournalLine.Quantity / 4);
+        LibraryVariableStorage.Enqueue(PostingMessage);
+        LibraryVariableStorage.Enqueue(PostedLinesMessage);
+        CreateAndPostProductionJournal(OtherProductionOrder);
+
+        // [WHEN] Running the report in WIP Inventory mode filtered on the first produced item
+        Commit();
+        RunCostSharesBreakdownReport(ProdItem."No.", PrintCostShare::"WIP Inventory", false);
+
+        // [THEN] The filtered item is reported and the other produced item is not
+        LibraryReportDataset.LoadDataSetFile();
+        Assert.IsTrue(
+            LibraryReportDataset.SearchForElementByValue('CostShareBufItemNo', ProdItem."No."),
+            'The filtered produced item must be reported in the Cost Shares Breakdown (WIP).');
+        Assert.IsFalse(
+            LibraryReportDataset.SearchForElementByValue('CostShareBufItemNo', OtherProdItem."No."),
+            'Cost Shares Breakdown (WIP) must not report items outside the request-page Item filter.');
     end;
 
     [Test]
@@ -3005,6 +3092,21 @@ codeunit 137351 "SCM Inventory Reports - IV"
         LibraryVariableStorage.Enqueue(WorkDate() - 1);
         LibraryVariableStorage.Enqueue(PeriodLength);
         REPORT.Run(REPORT::"Item Age Composition - Value", true, false, Item);
+    end;
+
+    local procedure PostPositiveAdjustmentWithDate(ItemNo: Code[20]; Qty: Decimal; PostingDate: Date)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalTemplate: Record "Item Journal Template";
+    begin
+        CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Qty);
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
     local procedure RunItemBudgetReport(No: Code[20])

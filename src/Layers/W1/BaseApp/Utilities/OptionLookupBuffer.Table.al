@@ -98,9 +98,9 @@ table 1670 "Option Lookup Buffer"
         if OptionType = '' then
             case LookupType of
                 "Lookup Type"::Sales:
-                    OptionType := SalesLine.FormatType();
+                    OptionType := SalesLine.FormatTypeAsText();
                 "Lookup Type"::Purchases:
-                    OptionType := PurchaseLine.FormatType();
+                    OptionType := PurchaseLine.FormatTypeAsText();
                 "Lookup Type"::Permissions:
                     OptionType := Format(Permission."Read Permission");
                 else begin
@@ -165,10 +165,10 @@ table 1670 "Option Lookup Buffer"
         case FieldRef.Record().Number of
             DATABASE::"Sales Line", DATABASE::"Standard Sales Line":
                 if Option = SalesLine.Type::" ".AsInteger() then
-                    exit(SalesLine.FormatType());
+                    exit(SalesLine.FormatTypeAsText());
             DATABASE::"Purchase Line", DATABASE::"Standard Purchase Line":
                 if Option = PurchaseLine.Type::" ".AsInteger() then
-                    exit(PurchaseLine.FormatType());
+                    exit(PurchaseLine.FormatTypeAsText());
         end;
 
         exit(Format(FieldRef));

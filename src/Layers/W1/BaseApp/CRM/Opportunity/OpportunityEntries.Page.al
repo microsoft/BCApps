@@ -123,7 +123,6 @@ page 5130 "Opportunity Entries"
                 Caption = 'Delete Closed Entries';
                 Image = Delete;
                 RunObject = Report "Delete Opportunities";
-                ToolTip = 'Find and delete closed opportunity entries.';
             }
         }
         area(Promoted)

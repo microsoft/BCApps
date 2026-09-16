@@ -74,6 +74,8 @@ codeunit 30163 "Shpfy Order Mapping"
                     else
                         Result := Result and MapVariant(OrderLine, Shop);
             until OrderLine.Next() = 0;
+
+        OrderEvents.OnAfterMapShopifyOrder(OrderHeader, Result);
     end;
 
     /// <summary> 
@@ -95,15 +97,17 @@ codeunit 30163 "Shpfy Order Mapping"
         if OrderHeader."Bill-to Customer No." = '' then begin
             OrderEvents.OnBeforeMapCustomer(OrderHeader, IsHandled);
             if not IsHandled then begin
-                JCustomer.Add('Name', OrderHeader."Sell-to Customer Name");
-                JCustomer.Add('Name2', OrderHeader."Sell-to Customer Name 2");
-                JCustomer.Add('Address', OrderHeader."Sell-to Address");
-                JCustomer.Add('Address2', OrderHeader."Sell-to Address 2");
-                JCustomer.Add('PostCode', OrderHeader."Sell-to Post Code");
-                JCustomer.Add('City', OrderHeader."Sell-to City");
-                JCustomer.Add('County', OrderHeader."Sell-to County");
-                JCustomer.Add('CountryCode', OrderHeader."Sell-to Country/Region Code");
-                OrderHeader."Sell-to Customer No." := CustomerMapping.DoMapping(OrderHeader."Customer Id", JCustomer, OrderHeader."Shop Code", CustomerTemplateCode, AllowCreateCustomer);
+                if OrderHeader."Sell-to Customer No." = '' then begin
+                    JCustomer.Add('Name', OrderHeader."Sell-to Customer Name");
+                    JCustomer.Add('Name2', OrderHeader."Sell-to Customer Name 2");
+                    JCustomer.Add('Address', OrderHeader."Sell-to Address");
+                    JCustomer.Add('Address2', OrderHeader."Sell-to Address 2");
+                    JCustomer.Add('PostCode', OrderHeader."Sell-to Post Code");
+                    JCustomer.Add('City', OrderHeader."Sell-to City");
+                    JCustomer.Add('County', OrderHeader."Sell-to County");
+                    JCustomer.Add('CountryCode', OrderHeader."Sell-to Country/Region Code");
+                    OrderHeader."Sell-to Customer No." := CustomerMapping.DoMapping(OrderHeader."Customer Id", JCustomer, OrderHeader."Shop Code", CustomerTemplateCode, AllowCreateCustomer);
+                end;
 
                 Clear(JCustomer);
                 JCustomer.Add('Name', OrderHeader."Bill-to Name");
@@ -120,6 +124,8 @@ codeunit 30163 "Shpfy Order Mapping"
 
                 if OrderHeader."Sell-to Customer No." = '' then
                     OrderHeader."Sell-to Customer No." := OrderHeader."Bill-to Customer No.";
+                if OrderHeader."Bill-to Customer No." = '' then
+                    OrderHeader."Bill-to Customer No." := OrderHeader."Sell-to Customer No.";
 
                 if OrderHeader."Bill-to Customer No." <> Shop."Default Customer No." then
                     OrderHeader."Bill-to Contact No." := FindContactNo(OrderHeader."Bill-to Contact Name", OrderHeader."Bill-to Customer No.");
@@ -134,6 +140,7 @@ codeunit 30163 "Shpfy Order Mapping"
         MapShippingMethodCode(OrderHeader);
         MapShippingAgent(OrderHeader);
         MapPaymentMethodCode(OrderHeader);
+        MapTaxArea(OrderHeader);
         OrderHeader.Modify();
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
     end;
@@ -178,11 +185,12 @@ codeunit 30163 "Shpfy Order Mapping"
         MapShippingAgent(OrderHeader);
         MapPaymentMethodCode(OrderHeader);
         MapLocationCode(OrderHeader);
+        MapTaxArea(OrderHeader);
         OrderHeader.Modify();
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Description for MapVariant.
     /// </summary>
     /// <param name="ShopifyOrderLine">Parameter of type Record "Shopify Order Line".</param>
@@ -359,5 +367,20 @@ codeunit 30163 "Shpfy Order Mapping"
         end;
 
         exit((OrderHeader."Bill-to Customer No." <> '') and (OrderHeader."Sell-to Customer No." <> ''));
+    end;
+
+    local procedure MapTaxArea(var OrderHeader: Record "Shpfy Order Header")
+    var
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
+    begin
+        if OrderHeader."Tax Area Code" <> '' then
+            exit;
+
+        if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then begin
+            OrderHeader."Tax Area Code" := ShopifyTaxArea."Tax Area Code";
+            if not OrderHeader."Tax Exempt" then
+                OrderHeader."Tax Liable" := ShopifyTaxArea."Tax Liable";
+        end;
     end;
 }

@@ -20,13 +20,7 @@ codeunit 130000 Assert
         TableIsEmptyErr: Label 'Assert.TableIsEmpty failed. Table <%1> with filter <%2> must not contain records.', Locked = true;
         TableIsNotEmptyErr: Label 'Assert.TableIsNotEmpty failed. Table <%1> with filter <%2> must contain records.', Locked = true;
         ExpectedErrorFailed: Label 'Assert.ExpectedError failed. Expected: %1. Actual: %2.';
-        ExpectedTestFieldFailedErr: Label 'Assert.ExpectedError failed. Could not find the value: %1 in the raised error text: %2.';
-        WrongErrorCodeErr: Label 'Assert.ExpectedErrorCode failed. Error code raised: %1. Actual error message: %2.', Comment = '%1 - Error code that was raised. %2 - Error message reported.', Locked = true;
         ExpectedErrorCodeFailed: Label 'Assert.ExpectedErrorCode failed. Expected: %1. Actual: %2. Actual error message: %3.';
-        ExpectedMessageFailedErr: Label 'Assert.ExpectedMessage failed. Expected: %1. Actual: %2.';
-        ExpectedConfirmFailedErr: Label 'Assert.ExpectedConfirm failed. Expected: %1. Actual: %2.';
-        ExpectedStrMenuInstructionFailedErr: Label 'Assert.ExpectedStrMenu failed. Expected instruction: %1. Actual instruction: %2.';
-        ExpectedStrMenuOptionsFailedErr: Label 'Assert.ExpectedStrMenu failed. Expected options: %1. Actual options: %2.';
         IsSubstringFailedErr: Label 'Assert.IsSubstring failed. Expected <%1> to be a substring of <%2>.';
         RecordCountErr: Label 'Assert.RecordCount failed. Expected number of %1 entries: %2. Actual: %3. Filters: %4.', Locked = true;
         RecordCountWithListErr: Label 'Assert.RecordCount failed. Expected number of %1 entries: %2. Actual: %3. Filters: %4. Records: %5', Locked = true;
@@ -40,19 +34,7 @@ codeunit 130000 Assert
         ErrorHasNotBeenThrownErr: Label 'The error has not been thrown.';
         TextEndsWithErr: Label 'Assert.TextEndsWith failed. The text <%1> must end with <%2>';
         TextEndSubstringIsBlankErr: Label 'Substring must not be blank.';
-        TestFieldFormat1Tok: Label ' must be ';
-        TestFieldFormat1Part2Tok: Label 'Currently it''s';
-        TestFieldFormat2Tok: Label ' must have a value in ';
-        TestFieldFormat2Part2Tok: Label 'It can''t be zero or empty.';
-        TestFieldFormat3Tok: Label ' can''t be ';
-        //CantFindTok: Label 'Can''t find ';
-        TestFieldValidationCodeTxt: Label 'TestValidation';
-        NCLCSRTSTableErrorStrTxt: Label 'NCLCSRTS:TableErrorStr';
-        TestWrappedTxt: Label 'TestWrapped';
-        TestWrappedCSideRecordNotFoundTxt: Label 'TestWrapped:CSideRecordNotFound';
-        TestFieldCodeTxt: Label 'TestField';
-        DialogTxt: Label 'Dialog';
-        ErrorMessageIsNotMatchingExpectedErrorFormatErr: Label 'Assert.ExpectedError failed. The error message is not matching the expected error format. Error message: %1', Comment = '%1 error message that was raised.';
+        LibraryAssert: Codeunit "Library Assert";
 
     procedure IsTrue(Condition: Boolean; Msg: Text)
     begin
@@ -195,156 +177,66 @@ codeunit 130000 Assert
     end;
 
     /// <summary>
-    /// Checks for the field error that it cannot find the record
+    /// Verifies that the last error thrown is a "cannot find record" error for the given table.
+    /// Use this instead of <see cref="ExpectedError"/> for record-not-found failures: it asserts on the
+    /// error code and table caption rather than the full error text, so the test stays resilient and keeps
+    /// passing when the underlying error label wording changes.
     /// </summary>
-    /// Old formats: The {0} does not exist. Identification fields and values: {1}.  
-    /// New format:  Can't find {0} in {1}.
-    /// <param name="TableID">Table ID Raising the erro</param>
+    /// <param name="TableID">Table ID raising the error</param>
     procedure ExpectedErrorCannotFind(TableID: Integer)
     begin
-        ExpectedErrorCannotFind(TableID, '');
+        LibraryAssert.ExpectedErrorCannotFind(TableID);
     end;
 
     /// <summary>
-    /// Checks for the field error that it cannot find the record
+    /// Verifies that the last error thrown is a "cannot find record" error for the given table.
+    /// Use this instead of <see cref="ExpectedError"/> for record-not-found failures: it asserts on the
+    /// error code and table caption rather than the full error text, so the test stays resilient and keeps
+    /// passing when the underlying error label wording changes.
     /// </summary>
-    /// Old formats: The {0} does not exist. Identification fields and values: {1}.  
-    /// New format:  Can't find {0} in {1}.
-    /// <param name="TableID">Table ID Raising the erro</param>
+    /// <param name="TableID">Table ID raising the error</param>
     /// <param name="RecordIndentificationText">Identification text of the record that it cannot find</param>
     procedure ExpectedErrorCannotFind(TableID: Integer; RecordIndentificationText: Text)
-    var
-        LastErrorText: Text;
-        LastErrorCode: Text;
     begin
-        LastErrorText := GetLastErrorText();
-        if (GetLastErrorText() = '') then
-            if GetLastErrorCallStack() = '' then
-                Error(ErrorHasNotBeenThrownErr);
-
-        LastErrorCode := GetLastErrorCode();
-        if (LastErrorCode <> RecordNotFoundErrorCode) and
-           (LastErrorCode <> PrimRecordNotFoundErrorCode) and
-           (LastErrorCode <> TestWrappedCSideRecordNotFoundTxt) and
-           (not LastErrorCode.Contains(TestFieldValidationCodeTxt))
-        then
-            Error(WrongErrorCodeErr, LastErrorCode, LastErrorText);
-
-        ExpectedMessageCannotFind(LastErrorText, TableID, RecordIndentificationText);
+        LibraryAssert.ExpectedErrorCannotFind(TableID, RecordIndentificationText);
     end;
 
     procedure ExpectedMessageCannotFind(LastErrorText: Text; TableID: Integer; RecordIndentificationText: Text)
-    var
-        AllObjWithCaption: Record AllObjWithCaption;
-        TableCaption: Text;
-        IsCantFindError: Boolean;
     begin
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-        AllObjWithCaption.SetRange("Object ID", TableID);
-        AllObjWithCaption.FindFirst();
-        TableCaption := AllObjWithCaption."Object Caption";
-
-        IsCantFindError := true;
-        if not IsCantFindError then
-            Error(ErrorMessageIsNotMatchingExpectedErrorFormatErr, LastErrorText);
-
-        if TableCaption <> '' then
-            if StrPos(LastErrorText, TableCaption) = 0 then
-                Error(ExpectedTestFieldFailedErr, TableCaption, LastErrorText);
-
-        if RecordIndentificationText <> '' then
-            if StrPos(LastErrorText, RecordIndentificationText) = 0 then
-                Error(ExpectedTestFieldFailedErr, TableCaption, LastErrorText);
+        LibraryAssert.ExpectedMessageCannotFind(LastErrorText, TableID, RecordIndentificationText);
     end;
 
     /// <summary>
-    /// Checks for the test filed errors. 
-    /// Old formats: {0} must not be {1} in {2} {3}.
-    ///              {0} must have a value in {1}: {2}. It cannot be zero or empty.
-    ///              {0} must be equal to “{2}” in {1}: {4}. Current value is “{3}”.    
-    /// New format:  {0} can’t be {1} in {2}.
-    ///              {0} must have a value in {1}: {2}. It can’t be zero or empty. 
-    ///              {0} must be {2} for {1}: {4}. Currently it’s {3}.
+    /// Verifies that the last error thrown is a TestField/Validate error for the given field.
+    /// Use this instead of <see cref="ExpectedError"/> for TestField and Validate failures: it asserts on the
+    /// error code and field caption/value rather than the full error text, so the test stays resilient and
+    /// keeps passing when the underlying error label wording changes.
     /// </summary>
     /// <param name="FieldCaptionTested">Name of the field raising the error</param>
     /// <param name="ExpectedValue">Expected value in the error message</param>
     procedure ExpectedTestFieldError(FieldCaptionTested: Text; ExpectedValue: Text)
     begin
-        ExpectedTestFieldError(FieldCaptionTested, ExpectedValue, '', '');
+        LibraryAssert.ExpectedTestFieldError(FieldCaptionTested, ExpectedValue);
     end;
 
     /// <summary>
-    /// Checks for the test filed errors. 
-    /// New format:  {0} can’t be {1} in {2}.
-    ///              {0} must have a value in {1}: {2}. It can’t be zero or empty. 
-    ///              {0} must be {2} for {1}: {4}. Currently it’s {3}.
-    /// Old formats: {0} must not be {1} in {2} {3}.
-    ///              {0} must have a value in {1}: {2}. It cannot be zero or empty.
-    ///              {0} must be equal to “{2}” in {1}: {4}. Current value is “{3}”.
+    /// Verifies that the last error thrown is a TestField/Validate error for the given field.
+    /// Use this instead of <see cref="ExpectedError"/> for TestField and Validate failures: it asserts on the
+    /// error code and field caption/value rather than the full error text, so the test stays resilient and
+    /// keeps passing when the underlying error label wording changes.
     /// </summary>
     /// <param name="FieldCaptionTested">Name of the field raising the error</param>
     /// <param name="ExpectedValue">Expected value in the error message</param>
     /// <param name="ActualValue">Actual value in the error message</param>
     /// <param name="TableCaptionTested">Name of the table raising the error</param>
     procedure ExpectedTestFieldError(FieldCaptionTested: Text; ExpectedValue: Text; ActualValue: Text; TableCaptionTested: Text)
-    var
-        LastErrorText: Text;
-        LastErrorCode: Text;
     begin
-        LastErrorText := GetLastErrorText();
-        if (GetLastErrorText() = '') then
-            if GetLastErrorCallStack() = '' then
-                Error(ErrorHasNotBeenThrownErr);
-
-        LastErrorCode := GetLastErrorCode();
-        if not (LastErrorCode.Contains(TestFieldValidationCodeTxt) or
-               (LastErrorCode in [NCLCSRTSTableErrorStrTxt, TestWrappedTxt]) or
-               (LastErrorCode.Contains(TestFieldCodeTxt)) or
-               (LastErrorCode.Contains(DialogTxt)))
-        then
-            Error(WrongErrorCodeErr, LastErrorCode, LastErrorText);
-
-        ExpectedTestFieldMessage(LastErrorText, FieldCaptionTested, ExpectedValue, ActualValue, TableCaptionTested);
+        LibraryAssert.ExpectedTestFieldError(FieldCaptionTested, ExpectedValue, ActualValue, TableCaptionTested);
     end;
 
     procedure ExpectedTestFieldMessage(LastErrorText: Text; FieldCaptionTested: Text; ExpectedValue: Text; ActualValue: Text; TableCaptionTested: Text)
-    var
-        IsTestFieldError: Boolean;
     begin
-        if ExpectedValue <> '' then
-            if StrPos(LastErrorText, ExpectedValue) = 0 then
-                Error(ExpectedTestFieldFailedErr, ExpectedValue, LastErrorText);
-
-        if ActualValue <> '' then
-            if StrPos(LastErrorText, ActualValue) = 0 then
-                Error(ExpectedTestFieldFailedErr, ActualValue, LastErrorText);
-
-        if FieldCaptionTested <> '' then
-            if StrPos(LastErrorText, FieldCaptionTested) = 0 then
-                Error(ExpectedTestFieldFailedErr, FieldCaptionTested, LastErrorText);
-
-        if TableCaptionTested <> '' then
-            if StrPos(LastErrorText, TableCaptionTested) = 0 then
-                Error(ExpectedTestFieldFailedErr, TableCaptionTested, LastErrorText);
-
-        IsTestFieldError := true;
-
-        if not IsTestFieldError then
-            Error(ErrorMessageIsNotMatchingExpectedErrorFormatErr, LastErrorText);
-    end;
-
-    internal procedure MatchesTestFieldMessageFormat(ErrorMessage: Text): Boolean
-    begin
-        if (StrPos(ErrorMessage, TestFieldFormat1Tok) > 0) and (StrPos(ErrorMessage, TestFieldFormat1Part2Tok) > 0) then
-            exit(true);
-
-        if (StrPos(ErrorMessage, TestFieldFormat2Tok) > 0) and (StrPos(ErrorMessage, TestFieldFormat2Part2Tok) > 0) then
-            exit(true);
-
-        if StrPos(ErrorMessage, TestFieldFormat3Tok) > 0 then
-            exit(true);
-
-        exit(false);
+        LibraryAssert.ExpectedTestFieldMessage(LastErrorText, FieldCaptionTested, ExpectedValue, ActualValue, TableCaptionTested);
     end;
 
     procedure ExpectedErrorCode(Expected: Text)
@@ -355,26 +247,17 @@ codeunit 130000 Assert
 
     procedure ExpectedMessage(Expected: Text; Actual: Text)
     begin
-        ExpectedDialog(Expected, Actual, ExpectedMessageFailedErr);
+        LibraryAssert.ExpectedMessage(Expected, Actual);
     end;
 
     procedure ExpectedConfirm(Expected: Text; Actual: Text)
     begin
-        ExpectedDialog(Expected, Actual, ExpectedConfirmFailedErr);
+        LibraryAssert.ExpectedConfirm(Expected, Actual);
     end;
 
     procedure ExpectedStrMenu(ExpectedInstruction: Text; ExpectedOptions: Text; ActualInstruction: Text; ActualOptions: Text)
     begin
-        ExpectedDialog(ExpectedInstruction, ActualInstruction, ExpectedStrMenuInstructionFailedErr);
-        ExpectedDialog(ExpectedOptions, ActualOptions, ExpectedStrMenuOptionsFailedErr);
-    end;
-
-    local procedure ExpectedDialog(Expected: Text; Actual: Text; ErrorMessage: Text)
-    begin
-        if Expected = Actual then
-            exit;
-        if StrPos(Actual, Expected) = 0 then
-            Error(ErrorMessage, Expected, Actual);
+        LibraryAssert.ExpectedStrMenu(ExpectedInstruction, ExpectedOptions, ActualInstruction, ActualOptions);
     end;
 
     procedure IsDataTypeSupported(Value: Variant): Boolean

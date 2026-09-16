@@ -431,6 +431,7 @@ page 7004 "Sales Line Discounts"
         else
             Rec.SetRange("Starting Date");
 
+        OnSetRecFiltersOnBeforeCurrPageUpdate(Rec, ItemTypeFilter);
         CurrPage.Update(false);
     end;
 
@@ -467,6 +468,8 @@ page 7004 "Sales Line Discounts"
                     if not ItemDiscGr.FindFirst() then
                         Clear(ItemDiscGr);
                 end;
+            else
+                OnGetFilterDescriptionCaseElse(Rec, ItemTypeFilter, SourceTableName, Item);
         end;
 
         SalesSrcTableName := '';
@@ -637,6 +640,28 @@ page 7004 "Sales Line Discounts"
     /// <param name="TypeFilter">The type filter integer value to set.</param>
     [IntegrationEvent(true, false)]
     local procedure OnGetTypeFilterCaseElse(var SalesLineDiscount: Record "Sales Line Discount"; var TypeFilter: Integer)
+    begin
+    end;
+
+    /// <summary>
+    /// Raises an event after the record filters have been applied and before the page is updated, allowing subscribers to apply additional filtering based on the current item type filter.
+    /// </summary>
+    /// <param name="SalesLineDiscount">The sales line discount record being filtered.</param>
+    /// <param name="ItemTypeFilter">The current item type filter value.</param>
+    [IntegrationEvent(true, false)]
+    local procedure OnSetRecFiltersOnBeforeCurrPageUpdate(var SalesLineDiscount: Record "Sales Line Discount"; ItemTypeFilter: Option Item,"Item Discount Group","None")
+    begin
+    end;
+
+    /// <summary>
+    /// Raises an event to resolve the filter description when the item type filter is not Item or Item Discount Group, allowing subscribers to provide a custom source table name and item filtering.
+    /// </summary>
+    /// <param name="SalesLineDiscount">The sales line discount record being described.</param>
+    /// <param name="ItemTypeFilter">The current item type filter value.</param>
+    /// <param name="SourceTableName">The source table name to display in the filter description.</param>
+    /// <param name="Item">The item record used to build the filter description.</param>
+    [IntegrationEvent(true, false)]
+    local procedure OnGetFilterDescriptionCaseElse(var SalesLineDiscount: Record "Sales Line Discount"; ItemTypeFilter: Option Item,"Item Discount Group","None"; var SourceTableName: Text; var Item: Record Item)
     begin
     end;
 }

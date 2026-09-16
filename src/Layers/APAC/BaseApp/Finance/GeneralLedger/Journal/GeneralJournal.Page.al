@@ -242,6 +242,8 @@ page 39 "General Journal"
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
                         SetUserInteractions();
+                        if Rec."Account Type" = Rec."Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
                         OnAccountNoValidateOnAfterSetUserInteractions(Balance, TotalBalance, ShowBalance, ShowTotalBalance, BalanceVisible, TotalBalanceVisible, NumberOfRecords);
                         // On TAB81 Account No. - OnValidate() will reset currency code to empty if
                         // there is no balancing account for this G/L line. This happens under GetGLAccount
@@ -257,6 +259,17 @@ page 39 "General Journal"
                     Caption = 'Account Name';
                     Editable = false;
                     ToolTip = 'Specifies the account name that the entry on the journal line will be posted to.';
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+
+                    trigger OnValidate()
+                    begin
+                        if Rec."Account Type" = Rec."Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
+                    end;
                 }
                 field(GenJnlLineApprovalStatus; GenJnlLineApprovalStatus)
                 {
@@ -437,6 +450,8 @@ page 39 "General Journal"
                     begin
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
+                        if Rec."Bal. Account Type" = Rec."Bal. Account Type"::"G/L Account" then
+                            GenJnlManagement.ShowNotificationIfSpendRequestIsRequired(Rec."Bal. Account No.", Rec."Spend Request No.", SpendRequestNotificationID);
                         CurrPage.SaveRecord();
                     end;
                 }
@@ -2051,6 +2066,7 @@ page 39 "General Journal"
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
         GLReconcile: Page Reconciliation;
+        SpendRequestNotificationID: Guid;
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;

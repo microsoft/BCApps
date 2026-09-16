@@ -11,8 +11,8 @@ page 37062 "Projects Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Projects Report';
-    AboutTitle = 'About Projects Report';
+    Caption = 'Projects Report (Power BI)';
+    AboutTitle = 'About Projects Report (Power BI)';
     AboutText = 'The Projects Report offers a consolidated view of all project report pages, conveniently embedded into a single page for easy access.';
 
     layout

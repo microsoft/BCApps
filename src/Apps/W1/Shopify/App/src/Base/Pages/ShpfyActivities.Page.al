@@ -111,6 +111,27 @@ page 30100 "Shpfy Activities"
                     ToolTip = 'Specifies the number of order updates that aren''t processed.';
                     DrillDownPageId = "Shpfy Orders";
                 }
+                field(SkippedRecords; Rec."Skipped Records")
+                {
+                    ApplicationArea = All;
+                    DrillDownPageId = "Shpfy Skipped Records";
+                    StyleExpr = SkippedRecordsStyleTxt;
+                    ToolTip = 'Specifies the number of records that were skipped during synchronization.';
+                }
+                field(APIErrors; Rec."API Errors")
+                {
+                    ApplicationArea = All;
+                    StyleExpr = APIErrorsStyleTxt;
+                    ToolTip = 'Specifies the number of log entries that ended with an API error.';
+
+                    trigger OnDrillDown()
+                    var
+                        LogEntry: Record "Shpfy Log Entry";
+                    begin
+                        LogEntry.SetRange("Has Error", true);
+                        Page.Run(Page::"Shpfy Log Entries", LogEntry);
+                    end;
+                }
             }
         }
     }
@@ -138,6 +159,20 @@ page 30100 "Shpfy Activities"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Skipped Records", "API Errors");
+        if Rec."Skipped Records" > 0 then
+            SkippedRecordsStyleTxt := 'Ambiguous'
+        else
+            SkippedRecordsStyleTxt := 'Favorable';
+
+        if Rec."API Errors" > 0 then
+            APIErrorsStyleTxt := 'Unfavorable'
+        else
+            APIErrorsStyleTxt := 'Favorable';
+    end;
+
     trigger OnOpenPage()
     var
         Shop: Record "Shpfy Shop";
@@ -161,4 +196,7 @@ page 30100 "Shpfy Activities"
         end;
     end;
 
+    var
+        SkippedRecordsStyleTxt: Text;
+        APIErrorsStyleTxt: Text;
 }

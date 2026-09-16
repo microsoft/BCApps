@@ -7,8 +7,8 @@ page 6317 "To Net Zero Carbon Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Journey to Net Zero Carbon';
-    AboutTitle = 'About Journey to Net Zero Carbon';
+    Caption = 'Journey to Net Zero Carbon (Power BI)';
+    AboutTitle = 'About Journey to Net Zero Carbon (Power BI)';
     AboutText = 'The Journey to Net Zero highlights the journey to net zero within an organization.';
 
     layout

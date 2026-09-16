@@ -24,6 +24,9 @@ different orderings (FirstLast, LastFirst, CompanyName, Empty). County resolutio
 uses `ICounty` (for records) and `ICountyFromJson` (for API responses) to
 convert between province codes and names.
 
+*Updated: 2026-07-29 -- customer creation and export country-code behavior
+updated*
+
 ## Things to know
 
 - `Customer SystemId` on `Shpfy Customer` links to the BC Customer, same
@@ -34,9 +37,15 @@ convert between province codes and names.
 - Customer creation uses country-specific templates. `ShpfyCreateCustomer`
   looks up the `Shpfy Customer Template` table by Shop Code + Country Code,
   falling back to the Shop's default template.
+- When order-time by-email/phone mapping is allowed to create a missing BC
+  Customer, it prefers the Shopify default address but falls back to the first
+  available address. A Shopify customer with addresses but no default address
+  no longer blocks customer creation.
 - Export (`ShpfyCustomerExport`) splits the BC Customer name back into
   first/last using the Shop's "Name Source" config. It handles multi-email
   fields by taking the first email before any semicolon or comma.
+- Export resolves the BC Country/Region to its ISO code before setting the
+  Shopify customer address country and before filtering `Shpfy Tax Area`.
 - Phone number matching strips all non-digit characters and builds a wildcard
   filter (`*1*2*3*...`) to handle format differences.
 - The `Shpfy Customer Address` table stores Shopify addresses. Addresses

@@ -88,7 +88,7 @@ table 30124 "Shpfy Payment Transaction"
         }
         field(13; "Processed At"; DateTime)
         {
-            Caption = 'Processed At';
+            Caption = 'Processed At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(101; "Shop Code"; Code[20])

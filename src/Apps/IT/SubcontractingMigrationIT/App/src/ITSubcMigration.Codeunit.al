@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 namespace Microsoft.Manufacturing.Subcontracting.Migration;
 
 using Microsoft.Inventory.Transfer;
@@ -15,7 +15,7 @@ codeunit 149951 "IT Subc. Migration"
 
     ObsoleteState = Pending;
     ObsoleteReason = 'The legacy subcontracting feature is being deprecated.';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 
     internal procedure RunMigration()
     begin
@@ -31,14 +31,14 @@ codeunit 149951 "IT Subc. Migration"
     end;
 
     internal procedure StartDisableLegacySubcontracting(ShowDialog: Boolean)
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
 #endif
         UIAllowed := ShowDialog and GuiAllowed();

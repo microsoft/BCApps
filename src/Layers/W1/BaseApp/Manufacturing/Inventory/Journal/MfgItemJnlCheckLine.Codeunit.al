@@ -32,6 +32,11 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
         IsHandled: Boolean;
         ShouldCheckItemNo: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeOnRunOnCheckWarehouse(ItemJournalLine, CalledFromAdjustment, CalledFromInvtPutawayPick, IsHandled);
+        if IsHandled then
+            exit;
+
         if (ItemJournalLine."Entry Type" in [ItemJournalLine."Entry Type"::Consumption, ItemJournalLine."Entry Type"::Output]) and
            not (ItemJournalLine."Value Entry Type" = ItemJournalLine."Value Entry Type"::Revaluation) and
            not ItemJournalLine.OnlyStopTime()
@@ -271,6 +276,11 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWarehouseLastOutputOperation(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnRunOnCheckWarehouse(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

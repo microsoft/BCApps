@@ -108,7 +108,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
     begin
         // [INIT] Initialization startup data.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
-        LibraryPriceCalculation.AddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
+        LibraryPriceCalculation.FindOrAddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := false;
         Shop.Modify();
@@ -147,6 +147,71 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         LibraryAssert.AreEqual(InitPrice, ComparePrice, 'Compare Price');
         // [THEN] InitPrice - InitDiscountPerc = Price
         LibraryAssert.AreNearlyEqual(InitPrice * (1 - InitDiscountPerc / 100), Price, 0.01, 'Discount Price');
+    end;
+
+    [Test]
+    [HandlerFunctions('ActivateConfirmHandler')]
+    procedure UnitTestCalcPriceUsesCurrentWorkDate()
+    var
+        Shop: Record "Shpfy Shop";
+        Item: Record Item;
+        PriceCalculationSetup: Record "Price Calculation Setup";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
+        InitUnitCost: Decimal;
+        InitPrice: Decimal;
+        DiscUpToBoundary: Decimal;
+        DiscFromBoundary: Decimal;
+        ExpectedPriceUpToBoundary: Decimal;
+        ExpectedPriceFromBoundary: Decimal;
+        UnitCost: Decimal;
+        PriceBeforeBoundary: Decimal;
+        PriceFromBoundary: Decimal;
+        ComparePrice: Decimal;
+        OriginalWorkDate: Date;
+        BoundaryDate: Date;
+    begin
+        // [SCENARIO] Bug 642194: changing the Work Date mid-session must recalculate prices even though the Shop record has not been modified.
+        // [SCENARIO] The price calculation codeunit is SingleInstance and caches a temp Sales Header with Document Date = WorkDate(). A stale cache must not keep applying the previous Work Date's price.
+
+        // [INIT] Initialization startup data.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.FindOrAddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
+        Shop := InitializeTest.CreateShop();
+        Shop."Allow Line Disc." := true;
+        Shop.Modify();
+        InitUnitCost := Any.DecimalInRange(10, 100, 1);
+        InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
+        DiscUpToBoundary := 50;
+        DiscFromBoundary := 20;
+        ExpectedPriceUpToBoundary := Round(InitPrice * (1 - DiscUpToBoundary / 100));
+        ExpectedPriceFromBoundary := Round(InitPrice * (1 - DiscFromBoundary / 100));
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", InitUnitCost, InitPrice);
+
+        // [GIVEN] Two dated "All Customers" price list lines for the item: a lower price up to the boundary date, a higher price from the day after the boundary date.
+        BoundaryDate := DMY2Date(1, 1, 2027);
+        ProductInitTest.CreateDatedAllCustPriceList(Item."No.", ExpectedPriceUpToBoundary, ExpectedPriceFromBoundary, BoundaryDate);
+
+        OriginalWorkDate := WorkDate();
+
+        // [WHEN] The Work Date is after the boundary date and the price is calculated for the shop.
+        WorkDate(BoundaryDate + 180);
+        ProductPriceCalculation.SetShop(Shop);
+        ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, PriceFromBoundary, ComparePrice);
+
+        // [WHEN] The Work Date is moved before the boundary date and the price is calculated again WITHOUT modifying the shop.
+        WorkDate(BoundaryDate - 30);
+        ProductPriceCalculation.SetShop(Shop);
+        ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, PriceBeforeBoundary, ComparePrice);
+
+        // [THEN] Restore the Work Date before asserting so a failure does not leak into other tests.
+        WorkDate(OriginalWorkDate);
+
+        // [THEN] The first calculation used the price valid from the boundary date onwards.
+        LibraryAssert.AreNearlyEqual(ExpectedPriceFromBoundary, PriceFromBoundary, 0.01, 'Price for Work Date after the boundary date');
+        // [THEN] The second calculation used the price valid up to the boundary date (would still be the from-boundary price with a stale WorkDate cache).
+        LibraryAssert.AreNearlyEqual(ExpectedPriceUpToBoundary, PriceBeforeBoundary, 0.01, 'Price for Work Date before the boundary date');
     end;
 
     [ConfirmHandler]

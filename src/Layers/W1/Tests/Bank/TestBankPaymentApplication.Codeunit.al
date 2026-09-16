@@ -24,6 +24,20 @@ codeunit 134263 "Test Bank Payment Application"
         Initialized: Boolean;
         ExcessiveAmtErr: Label 'You must apply the excessive amount of %1 %2 manually.', Comment = '%1 a decimal number, %2 currency code';
         WrongStmEndBalanceErr: Label '%1 must be equal to Total Balance.', Comment = '%1 is a field caption';
+        InvoiceAmountMustBePositiveErr: Label 'Invoice amount must be greater than zero.';
+        VendorDoesNotExistErr: Label 'Vendor %1 does not exist.', Comment = '%1 vendor no.';
+        PostedVendLedgEntryNotFoundErr: Label 'Posted vendor ledger entry for document %1 was not found.', Comment = '%1 document no.';
+        ExchRateAdjmtFailedErr: Label 'Exchange rate adjustment failed for document %1: %2', Comment = '%1 document no., %2 error text';
+        DocumentNoMustNotBeBlankErr: Label 'Document No. must not be blank.';
+        DocNoExistsInGLErr: Label 'Document No. %1 already exists in G/L entries. Use a unique document number.', Comment = '%1 document no.';
+        DocNoExistsInVendLedgErr: Label 'Document No. %1 already exists in vendor ledger entries. Use a unique document number.', Comment = '%1 document no.';
+        DocNoExistsAsJnlLineErr: Label 'Document No. %1 already exists as an unposted journal line in %2/%3.', Comment = '%1 document no., %2 journal template, %3 journal batch';
+        VendorHasOpenEntriesErr: Label 'Expected vendor %1 to have no open ledger entries after payment application, but open entries were found.', Comment = '%1 vendor no.';
+        InvoiceNotOnPrimaryAccountErr: Label 'Expected invoice %1 to post to primary payables account %2, but no amount was found on that account.', Comment = '%1 document no., %2 account no.';
+        MissingPrepaymentAdjustmentErr: Label 'Expected a non-zero pre-payment exchange adjustment on primary payables account %1 for document %2, but amount is %3.', Comment = '%1 account no., %2 document no., %3 amount';
+        PrimaryPayablesNotNetZeroErr: Label 'Invoice posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.', Comment = '%1 account no., %2 vendor no., %3 amount';
+        SecondaryPayablesNotNetZeroErr: Label 'Payment posting group payables account %1 must net to zero after full application for vendor %2, but net amount was %3.', Comment = '%1 account no., %2 vendor no., %3 amount';
+        UnknownExchRateAdjmtErr: Label 'Unknown error while running exchange rate adjustment.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2120,6 +2134,454 @@ codeunit 134263 "Test Bank Payment Application"
         GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Payments);
         LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure VendorFcyApplicationMultiPostingGroupsE2E()
+    var
+        Vendor: Record Vendor;
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GLEntry: Record "G/L Entry";
+        InvoicePostingGroupCode: Code[20];
+        PaymentPostingGroupCode: Code[20];
+        PrimaryPayablesAccountNo: Code[20];
+        SecondaryPayablesAccountNo: Code[20];
+        BalancingGLAccountNo: Code[20];
+        CurrencyCode: Code[10];
+        InvoiceDocumentNo: Code[20];
+        AdjustmentDocumentNo: Code[20];
+        PostPaymentAdjustmentDocumentNo: Code[20];
+        PaymentDocumentNo: Code[20];
+        InvoicePostingDate: Date;
+        AdjustmentPostingDate: Date;
+        PaymentPostingDate: Date;
+    begin
+        // [FEATURE] [Purchases] [Application] [Multiple Posting Groups]
+        // [SCENARIO] 643355 Unrealized gain/loss on a multi-posting-group FCY vendor application is not posted to the wrong payables account
+        Initialize();
+
+        // [GIVEN] A vendor with two vendor posting groups (distinct payables accounts) linked as alternatives, and an FCY currency
+        LibraryPurch.CreateVendor(Vendor);
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        BalancingGLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
+
+        GetTwoVendorPostingGroupsWithDifferentPayablesAccounts(
+          InvoicePostingGroupCode,
+          PaymentPostingGroupCode,
+          PrimaryPayablesAccountNo,
+          SecondaryPayablesAccountNo);
+
+        InvoicePostingDate := CalcDate('<-2D>', WorkDate());
+        AdjustmentPostingDate := CalcDate('<-1D>', WorkDate());
+        PaymentPostingDate := WorkDate();
+
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(InvoicePostingDate, 10, 10);
+
+        InvoiceDocumentNo := GetUniqueCode20('INV');
+        AdjustmentDocumentNo := GetUniqueCode20('ADJ');
+        PostPaymentAdjustmentDocumentNo := GetUniqueCode20('AD2');
+        PaymentDocumentNo := GetUniqueCode20('PAY');
+
+        // [WHEN] The FCY invoice is posted, exchange rates are adjusted, and an LCY payment under the alternative posting group is posted and applied
+        RunVendorFcyApplicationE2EAutomationInTest(
+  Vendor."No.",
+  CurrencyCode,
+  GenJournalBatch."Journal Template Name",
+  GenJournalBatch.Name,
+  InvoicePostingGroupCode,
+  PaymentPostingGroupCode,
+  PrimaryPayablesAccountNo,
+  SecondaryPayablesAccountNo,
+  BalancingGLAccountNo,
+  InvoiceDocumentNo,
+  AdjustmentDocumentNo,
+  PostPaymentAdjustmentDocumentNo,
+  PaymentDocumentNo,
+  InvoicePostingDate,
+  AdjustmentPostingDate,
+  PaymentPostingDate,
+  100,
+  75,
+  80,
+  90);
+
+        // [THEN] G/L entries are posted for the payment (and on W1 both payables accounts net to zero)
+        GLEntry.SetRange("Document No.", PaymentDocumentNo);
+        Assert.IsTrue(not GLEntry.IsEmpty(), 'Expected posted G/L entries for payment document were not found.');
+    end;
+
+    local procedure GetTwoVendorPostingGroupsWithDifferentPayablesAccounts(var FirstPostingGroupCode: Code[20]; var SecondPostingGroupCode: Code[20]; var FirstPayablesAccountNo: Code[20]; var SecondPayablesAccountNo: Code[20])
+    var
+        FirstVendorPostingGroup: Record "Vendor Posting Group";
+        SecondVendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        LibraryPurch.CreateVendorPostingGroup(FirstVendorPostingGroup);
+        LibraryPurch.CreateVendorPostingGroup(SecondVendorPostingGroup);
+        FirstPostingGroupCode := FirstVendorPostingGroup.Code;
+        SecondPostingGroupCode := SecondVendorPostingGroup.Code;
+        FirstPayablesAccountNo := FirstVendorPostingGroup."Payables Account";
+        SecondPayablesAccountNo := SecondVendorPostingGroup."Payables Account";
+    end;
+
+    local procedure GetUniqueCode20(Prefix: Text): Code[20]
+    begin
+        exit(CopyStr(Prefix + DelChr(Format(CreateGuid()), '=', '{}-'), 1, 20));
+    end;
+
+    local procedure RunVendorFcyApplicationE2EAutomationInTest(
+        VendorNo: Code[20];
+        CurrencyCode: Code[10];
+        JournalTemplateName: Code[10];
+        JournalBatchName: Code[10];
+        InvoiceVendorPostingGroup: Code[20];
+        PaymentVendorPostingGroup: Code[20];
+        PrimaryPayablesAccountNo: Code[20];
+        SecondaryPayablesAccountNo: Code[20];
+        BalancingGLAccountNo: Code[20];
+        InvoiceDocumentNo: Code[20];
+        AdjustmentDocumentNo: Code[20];
+        PostPaymentAdjustmentDocumentNo: Code[20];
+        PaymentDocumentNo: Code[20];
+        InvoicePostingDate: Date;
+        AdjustmentPostingDate: Date;
+        PaymentPostingDate: Date;
+        InvoiceAmountFCY: Decimal;
+        InvoiceRelationalRateAmount: Decimal;
+        AdjustmentRelationalRateAmount: Decimal;
+        PaymentRelationalRateAmount: Decimal)
+    var
+        Vendor: Record Vendor;
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        EnvironmentInformation: Codeunit "Environment Information";
+        EffectiveInvoiceDocumentNo: Code[20];
+        PaymentAmountLCY: Decimal;
+    begin
+        if InvoiceAmountFCY <= 0 then
+            Error(InvoiceAmountMustBePositiveErr);
+
+        AssertDocumentNoIsAvailableForTest(InvoiceDocumentNo, JournalTemplateName, JournalBatchName);
+        AssertDocumentNoIsAvailableForTest(AdjustmentDocumentNo, JournalTemplateName, JournalBatchName);
+        AssertDocumentNoIsAvailableForTest(PostPaymentAdjustmentDocumentNo, JournalTemplateName, JournalBatchName);
+        AssertDocumentNoIsAvailableForTest(PaymentDocumentNo, JournalTemplateName, JournalBatchName);
+
+        ConfigurePurchasesMultiplePostingGroupsSetupForTest();
+        LibraryPurch.CreateAltVendorPostingGroup(CopyStr(InvoiceVendorPostingGroup, 1, 10), CopyStr(PaymentVendorPostingGroup, 1, 10));
+        LibraryPurch.CreateAltVendorPostingGroup(CopyStr(PaymentVendorPostingGroup, 1, 10), CopyStr(InvoiceVendorPostingGroup, 1, 10));
+
+        if not Vendor.Get(VendorNo) then
+            Error(VendorDoesNotExistErr, VendorNo);
+
+        if Vendor."Currency Code" <> CurrencyCode then
+            Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Validate("Vendor Posting Group", InvoiceVendorPostingGroup);
+        Vendor.Validate("Allow Multiple Posting Groups", true);
+        Vendor.Validate("Application Method", Vendor."Application Method"::Manual);
+        Vendor.Modify(true);
+
+        UpsertCurrencyExchangeRateForTest(CurrencyCode, InvoicePostingDate, 100, InvoiceRelationalRateAmount);
+        UpsertCurrencyExchangeRateForTest(CurrencyCode, AdjustmentPostingDate, 100, AdjustmentRelationalRateAmount);
+        UpsertCurrencyExchangeRateForTest(CurrencyCode, PaymentPostingDate, 100, PaymentRelationalRateAmount);
+
+        PostPurchInvoiceForVendorForTest(VendorNo, CurrencyCode, InvoicePostingDate, InvoiceAmountFCY, VendLedgEntry);
+        EffectiveInvoiceDocumentNo := VendLedgEntry."Document No.";
+
+        RunVendorExchangeRateAdjustmentForTest(
+          VendorNo,
+          CurrencyCode,
+          JournalTemplateName,
+          JournalBatchName,
+          AdjustmentDocumentNo,
+          AdjustmentPostingDate,
+          AdjustmentPostingDate);
+
+        VendLedgEntry.CalcFields("Remaining Amount");
+        PaymentAmountLCY :=
+            Abs(Round(
+                CurrencyExchangeRate.ExchangeAmtFCYToLCY(
+                    PaymentPostingDate, CurrencyCode, VendLedgEntry."Remaining Amount",
+                    CurrencyExchangeRate.ExchangeRate(PaymentPostingDate, CurrencyCode))));
+
+        PostVendorGenJournalLineForTest(
+          VendorNo,
+          '',
+          JournalTemplateName,
+          JournalBatchName,
+          PaymentDocumentNo,
+          PaymentPostingDate,
+          Enum::"Gen. Journal Document Type"::Payment,
+                    PaymentAmountLCY,
+          PaymentVendorPostingGroup,
+          BalancingGLAccountNo,
+                    '');
+
+        LibraryERM.ApplyVendorLedgerEntries(
+          Enum::"Gen. Journal Document Type"::Payment,
+          Enum::"Gen. Journal Document Type"::Invoice,
+          PaymentDocumentNo,
+          EffectiveInvoiceDocumentNo);
+
+        if EnvironmentInformation.GetApplicationFamily() <> 'W1' then
+            exit;
+
+        VerifyVendorFcyApplicationExpectedDistributionForTest(
+          VendorNo,
+                    EffectiveInvoiceDocumentNo,
+          AdjustmentDocumentNo,
+                    PrimaryPayablesAccountNo);
+
+        VerifyVendorFcyApplicationControlAccountsBalancedForTest(
+          VendorNo,
+          InvoicePostingDate,
+          PaymentPostingDate,
+          PrimaryPayablesAccountNo,
+          SecondaryPayablesAccountNo);
+    end;
+
+    local procedure PostPurchInvoiceForVendorForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; PostingDate: Date; InvoiceAmountFCY: Decimal; var VendLedgEntry: Record "Vendor Ledger Entry")
+    var
+        Vend: Record Vendor;
+        PurchHeader: Record "Purchase Header";
+        PurchLine: Record "Purchase Line";
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostedDocNo: Code[20];
+    begin
+        if not Vend.Get(VendorNo) then
+            Error(VendorDoesNotExistErr, VendorNo);
+
+        GLAccount.Get(LibraryERM.CreateGLAccountWithPurchSetup());
+        GLAccount.Validate("Direct Posting", true);
+        GLAccount.Modify(true);
+
+        Vend.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Vend.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        Vend.Modify(true);
+
+        VATPostingSetup.Get(GLAccount."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
+        VATPostingSetup.Validate("VAT %", 0);
+        VATPostingSetup.Modify(true);
+
+        LibraryPurch.CreatePurchHeader(PurchHeader, PurchHeader."Document Type"::Invoice, Vend."No.");
+        PurchHeader.Validate("Posting Date", PostingDate);
+        PurchHeader.Validate("Currency Code", CurrencyCode);
+        PurchHeader.Modify(true);
+
+        LibraryPurch.CreatePurchaseLine(PurchLine, PurchHeader, PurchLine.Type::"G/L Account", GLAccount."No.", 1);
+        PurchLine.Validate("Direct Unit Cost", InvoiceAmountFCY);
+        PurchLine.Modify(true);
+
+        PostedDocNo := LibraryPurch.PostPurchaseDocument(PurchHeader, true, true);
+
+        VendLedgEntry.SetRange("Vendor No.", VendorNo);
+        VendLedgEntry.SetRange("Document Type", VendLedgEntry."Document Type"::Invoice);
+        VendLedgEntry.SetRange("Document No.", PostedDocNo);
+        if not VendLedgEntry.FindFirst() then
+            Error(PostedVendLedgEntryNotFoundErr, PostedDocNo);
+    end;
+
+    local procedure ConfigurePurchasesMultiplePostingGroupsSetupForTest()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        if not PurchasesPayablesSetup."Allow Multiple Posting Groups" then
+            PurchasesPayablesSetup.Validate("Allow Multiple Posting Groups", true);
+        if PurchasesPayablesSetup."Check Multiple Posting Groups" <> PurchasesPayablesSetup."Check Multiple Posting Groups"::"Alternative Groups" then
+            PurchasesPayablesSetup.Validate("Check Multiple Posting Groups", PurchasesPayablesSetup."Check Multiple Posting Groups"::"Alternative Groups");
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure UpsertCurrencyExchangeRateForTest(CurrencyCode: Code[10]; StartingDate: Date; ExchangeRateAmount: Decimal; RelationalRateAmount: Decimal)
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        if not CurrencyExchangeRate.Get(CurrencyCode, StartingDate) then begin
+            CurrencyExchangeRate.Init();
+            CurrencyExchangeRate.Validate("Currency Code", CurrencyCode);
+            CurrencyExchangeRate.Validate("Starting Date", StartingDate);
+            CurrencyExchangeRate.Insert(true);
+        end;
+
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", ExchangeRateAmount);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", ExchangeRateAmount);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", RelationalRateAmount);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", RelationalRateAmount);
+        CurrencyExchangeRate.Modify(true);
+    end;
+
+    local procedure RunVendorExchangeRateAdjustmentForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; AdjustmentDocumentNo: Code[20]; StartDate: Date; PostingDate: Date)
+    var
+        TempExchRateAdjmtParameters: Record "Exch. Rate Adjmt. Parameters" temporary;
+        Currency: Record Currency;
+        Vendor: Record Vendor;
+        LastErr: Text;
+    begin
+        TempExchRateAdjmtParameters.Init();
+        TempExchRateAdjmtParameters."Primary Key" := 'AUTO';
+        TempExchRateAdjmtParameters."Start Date" := StartDate;
+        TempExchRateAdjmtParameters."End Date" := PostingDate;
+        TempExchRateAdjmtParameters."Posting Date" := PostingDate;
+        TempExchRateAdjmtParameters."Posting Description" := 'AUTO FCY ADJ';
+        TempExchRateAdjmtParameters."Document No." := AdjustmentDocumentNo;
+        TempExchRateAdjmtParameters."Adjust Vendors" := true;
+        TempExchRateAdjmtParameters."Adjust Customers" := false;
+        TempExchRateAdjmtParameters."Adjust Bank Accounts" := false;
+        TempExchRateAdjmtParameters."Adjust Employees" := false;
+        TempExchRateAdjmtParameters."Adjust G/L Accounts" := false;
+        TempExchRateAdjmtParameters."Hide UI" := true;
+        TempExchRateAdjmtParameters."Preview Posting" := false;
+        TempExchRateAdjmtParameters."Journal Template Name" := JournalTemplateName;
+        TempExchRateAdjmtParameters."Journal Batch Name" := JournalBatchName;
+
+        Currency.SetRange(Code, CurrencyCode);
+        TempExchRateAdjmtParameters."Currency Filter" := CopyStr(Currency.GetView(), 1, MaxStrLen(TempExchRateAdjmtParameters."Currency Filter"));
+
+        Vendor.SetRange("No.", VendorNo);
+        TempExchRateAdjmtParameters."Vendor Filter" := CopyStr(Vendor.GetView(), 1, MaxStrLen(TempExchRateAdjmtParameters."Vendor Filter"));
+
+        ClearLastError();
+        if not Codeunit.Run(Codeunit::"Exch. Rate Adjmt. Process", TempExchRateAdjmtParameters) then begin
+            LastErr := GetLastErrorText();
+            if LastErr = '' then
+                LastErr := UnknownExchRateAdjmtErr;
+            Error(ExchRateAdjmtFailedErr, AdjustmentDocumentNo, LastErr);
+        end;
+    end;
+
+    local procedure PostVendorGenJournalLineForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; DocumentNo: Code[20]; PostingDate: Date; DocumentType: Enum "Gen. Journal Document Type"; AmountFCY: Decimal; PaymentPostingGroup: Code[20]; BalancingGLAccountNo: Code[20]; AppliesToInvoiceDocumentNo: Code[20])
+    begin
+        PostVendorGenJournalLineCoreForTest(
+            VendorNo,
+            CurrencyCode,
+            JournalTemplateName,
+            JournalBatchName,
+            DocumentNo,
+            PostingDate,
+            DocumentType,
+            AmountFCY,
+            PaymentPostingGroup,
+            BalancingGLAccountNo,
+            AppliesToInvoiceDocumentNo);
+    end;
+
+    local procedure PostVendorGenJournalLineCoreForTest(VendorNo: Code[20]; CurrencyCode: Code[10]; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; DocumentNo: Code[20]; PostingDate: Date; DocumentType: Enum "Gen. Journal Document Type"; AmountFCY: Decimal; PaymentPostingGroup: Code[20]; BalancingGLAccountNo: Code[20]; AppliesToInvoiceDocumentNo: Code[20])
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibraryJournals.CreateGenJournalLine2(
+            GenJournalLine,
+            JournalTemplateName,
+            JournalBatchName,
+            DocumentType,
+            GenJournalLine."Account Type"::Vendor,
+            VendorNo,
+            GenJournalLine."Bal. Account Type"::"G/L Account",
+            BalancingGLAccountNo,
+            AmountFCY);
+
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Document No.", DocumentNo);
+        GenJournalLine.Validate("External Document No.", DocumentNo);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+
+        if PaymentPostingGroup <> '' then
+            GenJournalLine.Validate("Posting Group", PaymentPostingGroup);
+
+        if AppliesToInvoiceDocumentNo <> '' then begin
+            GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+            GenJournalLine.Validate("Applies-to Doc. No.", AppliesToInvoiceDocumentNo);
+        end;
+
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure AssertDocumentNoIsAvailableForTest(DocumentNo: Code[20]; JournalTemplateName: Code[10]; JournalBatchName: Code[10])
+    var
+        GLEntry: Record "G/L Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        if DocumentNo = '' then
+            Error(DocumentNoMustNotBeBlankErr);
+
+        GLEntry.SetRange("Document No.", DocumentNo);
+        if not GLEntry.IsEmpty() then
+            Error(DocNoExistsInGLErr, DocumentNo);
+
+        VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+        if not VendorLedgerEntry.IsEmpty() then
+            Error(DocNoExistsInVendLedgErr, DocumentNo);
+
+        GenJournalLine.SetRange("Journal Template Name", JournalTemplateName);
+        GenJournalLine.SetRange("Journal Batch Name", JournalBatchName);
+        GenJournalLine.SetRange("Document No.", DocumentNo);
+        if not GenJournalLine.IsEmpty() then
+            Error(DocNoExistsAsJnlLineErr, DocumentNo, JournalTemplateName, JournalBatchName);
+    end;
+
+    local procedure VerifyVendorFcyApplicationControlAccountsBalancedForTest(VendorNo: Code[20]; PostingDateFrom: Date; PostingDateTo: Date; PrimaryPayablesAccountNo: Code[20]; SecondaryPayablesAccountNo: Code[20])
+    var
+        PrimaryNetAmount: Decimal;
+        SecondaryNetAmount: Decimal;
+    begin
+        PrimaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, PrimaryPayablesAccountNo);
+        Assert.AreEqual(
+          0, Round(PrimaryNetAmount, 0.01),
+          StrSubstNo(PrimaryPayablesNotNetZeroErr, PrimaryPayablesAccountNo, VendorNo, PrimaryNetAmount));
+
+        SecondaryNetAmount := VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom, PostingDateTo, SecondaryPayablesAccountNo);
+        Assert.AreEqual(
+          0, Round(SecondaryNetAmount, 0.01),
+          StrSubstNo(SecondaryPayablesNotNetZeroErr, SecondaryPayablesAccountNo, VendorNo, SecondaryNetAmount));
+    end;
+
+    local procedure VerifyVendorFcyApplicationExpectedDistributionForTest(
+        VendorNo: Code[20];
+        InvoiceDocumentNo: Code[20];
+        PrePaymentAdjustmentDocumentNo: Code[20];
+        PrimaryPayablesAccountNo: Code[20])
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        InvoicePrimaryAmount: Decimal;
+        PrePaymentAdjustmentPrimaryAmount: Decimal;
+    begin
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange(Open, true);
+        if not VendorLedgerEntry.IsEmpty() then
+            Error(VendorHasOpenEntriesErr, VendorNo);
+
+        InvoicePrimaryAmount := GetGLAmountByDocumentAndAccountForTest(InvoiceDocumentNo, PrimaryPayablesAccountNo);
+        if Round(InvoicePrimaryAmount, 0.01) = 0 then
+            Error(InvoiceNotOnPrimaryAccountErr, InvoiceDocumentNo, PrimaryPayablesAccountNo);
+
+        PrePaymentAdjustmentPrimaryAmount := GetGLAmountByDocumentAndAccountForTest(PrePaymentAdjustmentDocumentNo, PrimaryPayablesAccountNo);
+        if Round(PrePaymentAdjustmentPrimaryAmount, 0.01) = 0 then
+            Error(MissingPrepaymentAdjustmentErr, PrimaryPayablesAccountNo, PrePaymentAdjustmentDocumentNo, PrePaymentAdjustmentPrimaryAmount);
+    end;
+
+    local procedure VendorGLNetAmountForPeriodAndAccountForTest(PostingDateFrom: Date; PostingDateTo: Date; GLAccountNo: Code[20]): Decimal
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.SetRange("Posting Date", PostingDateFrom, PostingDateTo);
+        GLEntry.CalcSums(Amount);
+        exit(GLEntry.Amount);
+    end;
+
+    local procedure GetGLAmountByDocumentAndAccountForTest(DocumentNo: Code[20]; GLAccountNo: Code[20]): Decimal
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.CalcSums(Amount);
+        exit(GLEntry.Amount);
     end;
 
     [Test]

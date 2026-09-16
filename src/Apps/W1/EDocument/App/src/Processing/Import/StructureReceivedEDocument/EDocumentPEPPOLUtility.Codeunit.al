@@ -23,6 +23,11 @@ codeunit 6401 "E-Document PEPPOL Utility"
 
     #region Namespace Initialization
 
+    /// <summary>
+    /// Registers the standard PEPPOL BIS 3.0 UBL namespace prefixes on the namespace manager
+    /// so that subsequent XPath lookups can resolve cac, cbc, and document-type namespaces.
+    /// </summary>
+    /// <param name="XmlNamespaces">The namespace manager that receives the PEPPOL namespace prefixes.</param>
     procedure InitializePEPPOL3Namespaces(var XmlNamespaces: XmlNamespaceManager)
     var
         CommonAggregateComponentsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2';
@@ -46,6 +51,14 @@ codeunit 6401 "E-Document PEPPOL Utility"
 
     #region XML Value Extraction
 
+    /// <summary>
+    /// Reads the value at the specified XPath, resolving either an element's inner text or an attribute value.
+    /// </summary>
+    /// <param name="XMLDocument">The XML document to read from.</param>
+    /// <param name="XMLNamespaces">The namespace manager used to resolve the XPath expression.</param>
+    /// <param name="Path">The XPath to the node or attribute whose value should be read.</param>
+    /// <param name="Value">The extracted value when the node is found.</param>
+    /// <returns>True when the node was found and a value was extracted; otherwise false.</returns>
     procedure TryGetStringValue(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var Value: Text): Boolean
     var
         XMLNode: XmlNode;
@@ -66,6 +79,31 @@ codeunit 6401 "E-Document PEPPOL Utility"
         exit(false);
     end;
 
+    /// <summary>
+    /// Reads the value at the specified XPath and copies it into the destination field, truncated to the target length.
+    /// </summary>
+    /// <param name="XMLDocument">The XML document to read from.</param>
+    /// <param name="XMLNamespaces">The namespace manager used to resolve the XPath expression.</param>
+    /// <param name="Path">The XPath to the node or attribute whose value should be copied.</param>
+    /// <param name="MaxLength">The maximum number of characters to copy into the destination field.</param>
+    /// <param name="Field">The destination field that receives the extracted text value.</param>
+    procedure SetStringValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var Field: Text)
+    var
+        Value: Text;
+    begin
+        if not TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            exit;
+
+        Field := CopyStr(Value, 1, MaxLength);
+    end;
+
+    /// <summary>
+    /// Reads the value at the specified XPath and evaluates it into the destination decimal field when present.
+    /// </summary>
+    /// <param name="XMLDocument">The XML document to read from.</param>
+    /// <param name="XMLNamespaces">The namespace manager used to resolve the XPath expression.</param>
+    /// <param name="Path">The XPath to the element whose value should be evaluated.</param>
+    /// <param name="DecimalValue">The destination decimal field that receives the evaluated value.</param>
     procedure SetNumberValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DecimalValue: Decimal)
     var
         XMLNode: XmlNode;
@@ -80,6 +118,13 @@ codeunit 6401 "E-Document PEPPOL Utility"
             Evaluate(DecimalValue, XMLNode.AsXmlElement().InnerText(), 9);
     end;
 
+    /// <summary>
+    /// Reads the value at the specified XPath and evaluates it into the destination date field when present.
+    /// </summary>
+    /// <param name="XMLDocument">The XML document to read from.</param>
+    /// <param name="XMLNamespaces">The namespace manager used to resolve the XPath expression.</param>
+    /// <param name="Path">The XPath to the element whose value should be evaluated.</param>
+    /// <param name="DateValue">The destination date field that receives the evaluated value.</param>
     procedure SetDateValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DateValue: Date)
     var
         XMLNode: XmlNode;
@@ -92,6 +137,41 @@ codeunit 6401 "E-Document PEPPOL Utility"
 
         if XMLNode.AsXmlElement().InnerText() <> '' then
             Evaluate(DateValue, XMLNode.AsXmlElement().InnerText(), 9);
+    end;
+
+    /// <summary>
+    /// Reads the currency code at the specified XPath and copies it into the destination field when it differs from the local currency.
+    /// </summary>
+    /// <param name="XMLDocument">The XML document to read from.</param>
+    /// <param name="XMLNamespaces">The namespace manager used to resolve the XPath expression.</param>
+    /// <param name="Path">The XPath to the node or attribute whose value should be copied.</param>
+    /// <param name="MaxLength">The maximum number of characters to copy into the destination field.</param>
+    /// <param name="CurrencyCode">The destination currency code field that receives the extracted value when appropriate.</param>
+    procedure SetCurrencyValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var CurrencyCode: Code[10])
+    var
+        Value: Text;
+    begin
+        if not TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            exit;
+
+        SetCurrencyIfForeign(CopyStr(Value, 1, MaxLength), CurrencyCode);
+    end;
+
+    /// <summary>
+    /// Returns the value of the node or attribute at the specified XPath, or an empty string when the node is missing.
+    /// </summary>
+    /// <param name="XMLDocument">The XML document to read from.</param>
+    /// <param name="XMLNamespaces">The namespace manager used to resolve the XPath expression.</param>
+    /// <param name="Path">The XPath to the node or attribute whose value should be returned.</param>
+    /// <returns>The node or attribute value, or an empty string if the XPath does not resolve to a value.</returns>
+    procedure GetNodeValue(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text): Text
+    var
+        Value: Text;
+    begin
+        if TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            exit(Value);
+
+        exit('');
     end;
 
     #endregion XML Value Extraction

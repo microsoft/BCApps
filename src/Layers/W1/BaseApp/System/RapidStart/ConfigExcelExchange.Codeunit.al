@@ -127,7 +127,7 @@ codeunit 8618 "Config. Excel Exchange"
         StartTime := CurrentDateTime();
         Session.LogMessage('00009QA', ExcelExportStartMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
 
-        OnBeforeExportExcel(ConfigPackageTable);
+        OnBeforeExportExcel(ConfigPackageTable, FileName);
 
         Clear(ExportFromWksht); // Obsolete parameter
         TempSchemaFileName := CreateSchemaFile(ConfigPackageTable, RootElementName);
@@ -809,7 +809,7 @@ codeunit 8618 "Config. Excel Exchange"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeExportExcel(var ConfigPackageTable: Record "Config. Package Table")
+    local procedure OnBeforeExportExcel(var ConfigPackageTable: Record "Config. Package Table"; var FileName: Text)
     begin
     end;
 

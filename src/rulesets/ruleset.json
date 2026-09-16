@@ -85,14 +85,14 @@
         "justification": "Needed to allow for BigInteger entry nos."
     },
     {
-        "id": "AL0920",
-        "action": "None",
-        "justification": "TODO(#632280) - This will be enabled after a few violations are fixed."
-    },
-    {
         "id":  "AW0017",
         "action":  "Warning",
         "justification": "MaskType is not yet implemented for repeater controls, but it does not break the UI. It is informational that the value will not be visible in the repeater."
-    }
+    },
+    {
+        "id": "AL1430",
+        "action": "Warning",
+        "justification": "TODO(#642602) - Recent bugfix uncovered violations that need to be addressed."
+    },
   ]
 }

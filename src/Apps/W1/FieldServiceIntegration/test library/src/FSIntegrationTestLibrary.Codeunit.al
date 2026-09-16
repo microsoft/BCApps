@@ -79,6 +79,13 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
     end;
 
+    procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
+    var
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+    begin
+        FSIntTableSubscriber.IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
+    end;
+
     procedure MarkArchivedServiceOrder(ServiceHeader: Record "Service Header")
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";

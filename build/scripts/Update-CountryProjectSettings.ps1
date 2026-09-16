@@ -78,6 +78,15 @@ $AdditionalAppFolders = @(
     "../../../src/Layers/W1/DemoTool"
 )
 
+# Exclude apps in these folders. The first two apps here depends on internal, non released libraries.
+# The Agent Design Experience test app is excluded because its tests require a live Agents backend
+# service that is not available in the public CI containers.
+$ExcludedAppFolders = @(
+    "../../../src/Layers/W1/Tests/Performance-Internal",
+    "../../../src/Layers/W1/Tests/SINGLESERVER-Internal",
+    "../../../src/Apps/W1/AgentDesignExperience/test"
+)
+
 # Country code used for the W1 base project. Matches the identifier used in
 # groups.json / projects.json (supportedCountries / unsupportedCountries).
 $W1CountryCode = "W1"
@@ -150,8 +159,6 @@ function Get-AppFoldersForCountry {
     $testFolders = @()
 
     foreach ($metadata in $allApps) {
-        if ($metadata.IsInternal) { continue }
-
         # For GDL projects use AppJsonPath's parent (ProjectFolder points to the generated dir)
         if ($metadata.IsGDLProject) {
             $sourcePath = Split-Path $metadata.AppJsonPath -Parent
@@ -164,9 +171,9 @@ function Get-AppFoldersForCountry {
 
         $relativePath = ConvertTo-SettingsRelativePath $sourcePath
 
-        if ($metadata.IsTest -and $metadata.ApplicationName -notin $appsNotPublished) {
+        if ($metadata.IsTest -and $metadata.ApplicationName -notin $appsNotPublished -and $relativePath -notin $ExcludedAppFolders) {
             $testFolders += $relativePath
-        } else {
+        } elseif ($relativePath -notin $ExcludedAppFolders) {
             $appFolders += $relativePath
         }
     }

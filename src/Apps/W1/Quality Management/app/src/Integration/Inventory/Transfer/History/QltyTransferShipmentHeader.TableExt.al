@@ -34,8 +34,9 @@ tableextension 20411 "Qlty. Transfer Shipment Header" extends "Transfer Shipment
         {
         }
     }
+
     /// <summary>
-    /// Runs associated Quality Inspection page
+    /// Opens the quality inspection associated with the posted transfer shipment when it exists.
     /// </summary>
     procedure QltyShowRelatedInspection()
     var

@@ -265,7 +265,6 @@ page 5096 "Task List"
                     Caption = 'Delete Canceled Tasks';
                     Image = Delete;
                     RunObject = Report "Delete Tasks";
-                    ToolTip = 'Find and delete canceled tasks.';
                 }
             }
             action("&Create Task")

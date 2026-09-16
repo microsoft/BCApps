@@ -13,6 +13,7 @@ report 708 "Inventory Order Details"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Order Details';
+    ToolTip = 'View a list of the orders that have not yet been shipped or received and the items in the orders. It shows the order number, customer''s name, shipment date, order quantity, quantity on back order, outstanding quantity and unit price, as well as possible discount percentage and amount. The quantity on back order and outstanding quantity and amount are totaled for each item. The report can be used to find out whether there are currently shipment problems or any can be expected.';
     DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 

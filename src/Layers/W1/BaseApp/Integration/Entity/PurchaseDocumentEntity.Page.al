@@ -705,7 +705,9 @@ page 6404 "Purchase Document Entity"
                     ApplicationArea = All;
                     Caption = 'Posting from Whse. Ref.', Locked = true;
                 }
+#pragma warning disable AW0007 // Accepted: FlowFilter exposure is retained for API compatibility despite Web client limitations.
                 field(locationFilter; Rec."Location Filter")
+#pragma warning restore AW0007
                 {
                     ApplicationArea = All;
                     Caption = 'Location Filter', Locked = true;
@@ -765,6 +767,7 @@ page 6404 "Purchase Document Entity"
                     ApplicationArea = All;
                     Caption = 'Pending Approvals', Locked = true;
                 }
+#pragma warning disable AW0003 // Accepted: API entity page, never rendered in the Web client.
                 part(workflowPurchaseDocumentLines; "Purchase Document Line Entity")
                 {
                     ApplicationArea = All;
@@ -774,6 +777,7 @@ page 6404 "Purchase Document Entity"
                     EntityName = 'puchaseDocumentLine';
                     EntitySetName = 'purchaseDocumentLines';
                 }
+#pragma warning restore AW0003
             }
         }
     }

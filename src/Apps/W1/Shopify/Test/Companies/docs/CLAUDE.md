@@ -8,7 +8,9 @@ ShpfyCompanyInitialize is the shared data factory. It creates company and locati
 
 ShpfyCompanyAPITest validates GraphQL query generation for create and update operations, including payment terms and tax registration IDs. It also tests field extraction from Shopify JSON responses (UpdateShopifyCustomerFields, UpdateShopifyCompanyFields). The HTTP-level tests for update operations use a simple handler that returns empty JSON and tracks which queries were executed.
 
-ShpfyCompanyExportTest covers converting a BC Customer into Shopify company and location records via FillInShopifyCompany/FillInShopifyCompanyLocation, verifying address field mapping, payment terms propagation, and county/province handling (provinces are only sent for countries that have them -- tested by switching between US and DE).
+ShpfyCompanyExportTest covers converting a BC Customer into Shopify company and location records via FillInShopifyCompany/FillInShopifyCompanyLocation, verifying address field mapping, payment terms propagation, and county/province handling. Province data is only sent for countries that have provinces, and country export uses the ISO code when BC's local Country/Region Code differs from Shopify's expected code.
+
+*Updated: 2026-07-29 -- Company location export now covers ISO country-code mapping for Tax Area lookup and Shopify payloads*
 
 ShpfyCompanyImportTest tests the inbound flow: importing a company with locations from Shopify (including payment terms and tax registration IDs), creating customers from companies, and updating customers from companies. It verifies all location fields are correctly imported from a dictionary-driven mock response.
 
@@ -21,8 +23,13 @@ ShpfyCompanyLocationsTest tests creating company locations from customers, inclu
 - B2B features are now unconditionally available on all Shopify plans. The old `Shop."B2B Enabled" := true` assignments have been removed from `ShpfyCompanyExportTest`, `ShpfyCompanyImportTest`, and `ShpfyCompanyLocationsTest`. Tests no longer need to set any plan-gating flag for B2B functionality.
 
 *Updated: 2026-04-08 -- B2B Enabled removed from company tests; B2B features now unconditional*
+
 - ShpfyCompanyInitialize.ModifyFields uses RecordRef/FieldRef reflection to generically modify all text fields, so tests can detect whether update queries include changed fields without manually setting each one.
 - ShpfyTaxIdMappingTest uses manual event subscriber binding (BindSubscription) on `OnBeforeValidateVATRegistrationNo` to bypass localization-specific VAT validation that would otherwise reject test data.
 - Company mapping tests exercise two distinct code paths: FindMapping (inbound -- does this Shopify company match a BC customer?) and DoMapping (outbound -- which customer should this company sync to?).
 - The CompanyImport HTTP handler builds location responses dynamically from a Dictionary of [Text, Text] via `CompanyInitialize.CreateLocationResponse`, which constructs a nested JSON structure with billing address, payment terms, and tax registration ID.
+- Company export tests now include the `EL` to `GR` style mismatch: the BC customer keeps its local Country/Region Code, but the Shopify company location and `Shpfy Tax Area` lookup use the ISO code.
+
+*Updated: 2026-07-29 -- Added ISO country-code export gotcha*
+
 - ShpfyCompanyLocationsTest verifies skip behavior by checking `Shpfy Skipped Record` entries with expected reason text, rather than asserting on error messages.

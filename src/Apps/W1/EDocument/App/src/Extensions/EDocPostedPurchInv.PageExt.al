@@ -8,6 +8,20 @@ using Microsoft.eServices.EDocument;
 
 pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
 {
+    layout
+    {
+        addbefore(IncomingDocAttachFactBox)
+        {
+            part(EDocumentPdfPreview; "Inbound E-Doc. Picture")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Preview';
+                Visible = ShowEDocumentPdfPreview;
+                ShowFilter = false;
+            }
+        }
+    }
+
     actions
     {
         addafter("&Invoice")
@@ -31,4 +45,17 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
             }
         }
     }
+
+    var
+        ShowEDocumentPdfPreview: Boolean;
+
+    trigger OnAfterGetCurrRecord()
+    var
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocDataStorageEntryNo: Integer;
+    begin
+        EDocDataStorageEntryNo := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId());
+        ShowEDocumentPdfPreview := EDocDataStorageEntryNo <> 0;
+        CurrPage.EDocumentPdfPreview.Page.SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo);
+    end;
 }

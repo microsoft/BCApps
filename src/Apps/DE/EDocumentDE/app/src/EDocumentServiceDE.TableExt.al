@@ -24,7 +24,9 @@ tableextension 13915 "E-Document Service DE" extends "E-Document Service"
             ObsoleteState = Pending;
 #endif
             ObsoleteReason = 'Buyer Reference is resolved automatically via priority chain: Document field > Customer E-Invoice Routing No. > Your Reference.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
         }
 #pragma warning restore AL0432
 #pragma warning restore AS0105

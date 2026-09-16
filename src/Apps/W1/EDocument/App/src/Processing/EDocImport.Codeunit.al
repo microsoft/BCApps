@@ -87,7 +87,7 @@ codeunit 6140 "E-Doc. Import"
     var
         ImportEDocumentProcess: Codeunit "Import E-Document Process";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Status, CurrentStatus : Enum "Import E-Doc. Proc. Status";
+        Status, CurrentStatus, InitialStatus : Enum "Import E-Doc. Proc. Status";
         StepToDo, StepToUndo : Enum "Import E-Document Steps";
         StatusIndex: Integer;
     begin
@@ -97,6 +97,7 @@ codeunit 6140 "E-Doc. Import"
 
         EDocument.CalcFields("Import Processing Status");
         CurrentStatus := EDocument."Import Processing Status";
+        InitialStatus := CurrentStatus;
 
         EDocImpSessionTelemetry.SetSession(CurrentStatus, DesiredStatus);
         EDocImpSessionTelemetry.SetBool('Success', true);
@@ -126,9 +127,9 @@ codeunit 6140 "E-Doc. Import"
                     end;
                 end;
 
-        if CurrentStatus <> DesiredStatus then
+        if InitialStatus <> DesiredStatus then
             EDocImpSessionTelemetry.Emit(EDocument);
-        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, CurrentStatus, DesiredStatus);
+        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, InitialStatus, DesiredStatus);
         exit(true);
     end;
 
@@ -329,8 +330,10 @@ codeunit 6140 "E-Doc. Import"
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         IStructuredFormatReader: Interface IStructuredFormatReader;
     begin
+        if (EDocument."Structured Data Entry No." = 0) or (not EDocumentDataStorage.Get(EDocument."Structured Data Entry No.")) then
+            Error(NoExtractedDataErr);
+
         IStructuredFormatReader := EDocument."Read into Draft Impl.";
-        EDocumentDataStorage.Get(EDocument."Structured Data Entry No.");
         IStructuredFormatReader.View(EDocument, EDocumentDataStorage.GetTempBlob());
     end;
 
@@ -914,6 +917,7 @@ codeunit 6140 "E-Doc. Import"
         DocTypeIsNotSupportedErr: Label 'Document type %1 is not supported.', Comment = '%1 - Document Type';
         FailedToFindVendorErr: Label 'No vendor is set for Edocument';
         CannotProcessEDocumentMsg: Label 'Cannot process E-Document %1 with Purchase Order %2 before Purchase Order has been matched and posted for E-Document %3.', Comment = '%1 - E-Document entry no, %2 - Purchase Order number, %3 - EDocument entry no.';
+        NoExtractedDataErr: Label 'There is no extracted data to display for this e-document. Please check if it is a valid invoice or could not be read.';
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessIncomingEDocument(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")

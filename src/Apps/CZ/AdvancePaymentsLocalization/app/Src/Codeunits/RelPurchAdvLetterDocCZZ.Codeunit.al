@@ -70,17 +70,26 @@ codeunit 31018 "Rel. Purch.Adv.Letter Doc. CZZ"
     end;
 
     procedure PerformManualRelease(var PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ")
+    begin
+        CheckPurchaseAdvanceLetterPendingApproval(PurchAdvLetterHeaderCZZ);
+        Codeunit.Run(Codeunit::"Rel. Purch.Adv.Letter Doc. CZZ", PurchAdvLetterHeaderCZZ);
+    end;
+
+    local procedure CheckPurchaseAdvanceLetterPendingApproval(var PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ")
     var
         AdvPaymentsApprovMgtCZZ: Codeunit "Adv. Payments Approv. Mgt. CZZ";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckPurchaseAdvanceLetterPendingApproval(PurchAdvLetterHeaderCZZ, IsHandled);
+        if IsHandled then
+            exit;
+
         if AdvPaymentsApprovMgtCZZ.IsPurchaseAdvanceLetterApprovalsWorkflowEnabled(PurchAdvLetterHeaderCZZ) and
            (PurchAdvLetterHeaderCZZ.Status = PurchAdvLetterHeaderCZZ.Status::New)
         then
             Error(ApprovalProcessReleaseErr);
-
-        Codeunit.Run(Codeunit::"Rel. Purch.Adv.Letter Doc. CZZ", PurchAdvLetterHeaderCZZ);
     end;
-
 
     procedure Reopen(var PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ")
     var
@@ -172,6 +181,11 @@ codeunit 31018 "Rel. Purch.Adv.Letter Doc. CZZ"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckDocumentTotalAmounts(var PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckPurchaseAdvanceLetterPendingApproval(var PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ"; var IsHandled: Boolean)
     begin
     end;
 }

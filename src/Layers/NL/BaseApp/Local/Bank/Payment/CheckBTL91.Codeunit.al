@@ -11,42 +11,51 @@ codeunit 11000007 "Check BTL91"
     trigger OnRun()
     var
         FreelyTransferableMaximum: Record "Freely Transferable Maximum";
+        AmountCheckPassed: Boolean;
+        IsAmountCheckHandled: Boolean;
     begin
         FreelyTransferableMaximum.Get(Rec."Acc. Hold. Country/Region Code", Rec."Currency Code");
 
-        if Rec.Amount > FreelyTransferableMaximum.Amount then
-            case Rec."Nature of the Payment" of
-                Rec."Nature of the Payment"::" ":
-                    begin
-                        Rec."Error Message" := StrSubstNo(Text1000000, Rec.FieldCaption(Amount), Rec.FieldCaption("Nature of the Payment"));
-                        exit;
-                    end;
-                Rec."Nature of the Payment"::"Transito Trade":
-                    if (Rec."Item No." = '') or (Rec."Traders No." = '') then begin
-                        Rec."Error Message" :=
-                          StrSubstNo(
-                            Text1000002,
-                            Rec.FieldCaption("Nature of the Payment"),
-                            Rec.FieldCaption("Item No."),
-                            Rec.FieldCaption("Traders No."));
-                        exit;
-                    end;
-                Rec."Nature of the Payment"::"Invisible- and Capital Transactions":
-                    if Rec."Description Payment" = '' then begin
-                        Rec."Error Message" := StrSubstNo(Text1000003, Rec.FieldCaption("Nature of the Payment"), Rec.FieldCaption("Description Payment"));
-                        exit;
-                    end;
-                Rec."Nature of the Payment"::"Transfer to Own Account", Rec."Nature of the Payment"::"Other Registrated BFI":
-                    if (Rec."Description Payment" = '') or (Rec."Registration No. DNB" = '') then begin
-                        Rec."Error Message" :=
-                          StrSubstNo(
-                            Text1000004,
-                            Rec.FieldCaption("Nature of the Payment"),
-                            Rec.FieldCaption("Description Payment"),
-                            Rec.FieldCaption("Registration No. DNB"));
-                        exit;
-                    end;
-            end;
+        IsAmountCheckHandled := false;
+        AmountCheckPassed := true;
+        OnRunOnBeforeCheckFreelyTransferableMaximumAmount(FreelyTransferableMaximum, Rec, AmountCheckPassed, IsAmountCheckHandled);
+        if IsAmountCheckHandled then begin
+            if not AmountCheckPassed then
+                exit;
+        end else
+            if Rec.Amount > FreelyTransferableMaximum.Amount then
+                case Rec."Nature of the Payment" of
+                    Rec."Nature of the Payment"::" ":
+                        begin
+                            Rec."Error Message" := StrSubstNo(Text1000000, Rec.FieldCaption(Amount), Rec.FieldCaption("Nature of the Payment"));
+                            exit;
+                        end;
+                    Rec."Nature of the Payment"::"Transito Trade":
+                        if (Rec."Item No." = '') or (Rec."Traders No." = '') then begin
+                            Rec."Error Message" :=
+                              StrSubstNo(
+                                Text1000002,
+                                Rec.FieldCaption("Nature of the Payment"),
+                                Rec.FieldCaption("Item No."),
+                                Rec.FieldCaption("Traders No."));
+                            exit;
+                        end;
+                    Rec."Nature of the Payment"::"Invisible- and Capital Transactions":
+                        if Rec."Description Payment" = '' then begin
+                            Rec."Error Message" := StrSubstNo(Text1000003, Rec.FieldCaption("Nature of the Payment"), Rec.FieldCaption("Description Payment"));
+                            exit;
+                        end;
+                    Rec."Nature of the Payment"::"Transfer to Own Account", Rec."Nature of the Payment"::"Other Registrated BFI":
+                        if (Rec."Description Payment" = '') or (Rec."Registration No. DNB" = '') then begin
+                            Rec."Error Message" :=
+                              StrSubstNo(
+                                Text1000004,
+                                Rec.FieldCaption("Nature of the Payment"),
+                                Rec.FieldCaption("Description Payment"),
+                                Rec.FieldCaption("Registration No. DNB"));
+                            exit;
+                        end;
+                end;
 
         if (Rec."Bank Name" = '') or (Rec."Bank City" = '') then begin
             Rec."Error Message" := StrSubstNo(Text1000005, Rec.FieldCaption("Bank Name"), Rec.FieldCaption("Bank City"));
@@ -86,6 +95,11 @@ codeunit 11000007 "Check BTL91"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterOnRun(var ProposalLine: Record "Proposal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRunOnBeforeCheckFreelyTransferableMaximumAmount(FreelyTransferableMaximum: Record "Freely Transferable Maximum"; var ProposalLine: Record "Proposal Line"; var AmountCheckPassed: Boolean; var IsAmountCheckHandled: Boolean)
     begin
     end;
 }

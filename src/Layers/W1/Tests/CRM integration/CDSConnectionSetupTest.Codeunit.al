@@ -36,7 +36,107 @@ codeunit 139196 "CDS Connection Setup Test"
         ClientIdTok: Label '{CLIENTID}', Locked = true;
         ClientSecretTok: Label '{CLIENTSECRET}', Locked = true;
         CertificateTok: Label '{CERTIFICATE}', Locked = true;
+        CommercialOAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.com/common/oauth2', Locked = true;
+        CommercialClientCredentialsAuthorityUrlTxt: Label 'https://login.microsoftonline.com/organizations/oauth2/v2.0/token', Locked = true;
+        CommercialGlobalDiscoveryScopeTxt: Label 'https://globaldisco.crm.dynamics.com/user_impersonation', Locked = true;
+        CommercialGlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances', Locked = true;
+        SovereignOAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.us/common/oauth2', Locked = true;
+        SovereignGlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.microsoftdynamics.us/api/discovery/v2.0/Instances', Locked = true;
         IsInitialized: Boolean;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DataverseCloudDefaultsToCommercialEndpoints()
+    var
+        TempCDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        DataverseCloud: Enum "Dataverse Cloud";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] A new Dataverse Connection Setup uses the worldwide (commercial) endpoints by default.
+        Initialize();
+
+        // [GIVEN] A Dataverse Connection Setup with the default Dataverse Cloud
+        TempCDSConnectionSetup.Init();
+
+        // [THEN] The Dataverse Cloud is Commercial
+        Assert.AreEqual(DataverseCloud::Commercial, TempCDSConnectionSetup."Dataverse Cloud", 'Dataverse Cloud should default to Commercial.');
+
+        // [THEN] The resolved endpoints are the worldwide commercial endpoints
+        Endpoints := TempCDSConnectionSetup.GetDataverseCloudEndpoints();
+        Assert.AreEqual(CommercialOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
+        Assert.AreEqual(CommercialClientCredentialsAuthorityUrlTxt, Endpoints.GetClientCredentialsTokenAuthorityUrl(), 'Unexpected client credentials authority URL.');
+        Assert.AreEqual(CommercialGlobalDiscoveryScopeTxt, Endpoints.GetGlobalDiscoveryScope(), 'Unexpected Global Discovery scope.');
+        Assert.AreEqual(CommercialGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DataverseCloudOverrideReturnsPartnerEndpoints()
+    var
+        TempCDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        DataverseCloud: Enum "Dataverse Cloud";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] A partner-supplied Dataverse Cloud implementation overrides the endpoints used to connect.
+        Initialize();
+
+        // [GIVEN] A Dataverse Connection Setup pointed at a partner (test) sovereign cloud
+        TempCDSConnectionSetup.Init();
+        TempCDSConnectionSetup."Dataverse Cloud" := DataverseCloud::TestSovereign;
+
+        // [THEN] The resolved endpoints come from the partner implementation, not the commercial defaults
+        Endpoints := TempCDSConnectionSetup.GetDataverseCloudEndpoints();
+        Assert.AreEqual(SovereignOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
+        Assert.AreEqual(SovereignGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SetDataverseCloudPersistsSelection()
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup";
+        CDSConnectionSetupReread: Record "CDS Connection Setup";
+        DataverseCloud: Enum "Dataverse Cloud";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] SetDataverseCloud persists the selected cloud on the Dataverse Connection Setup.
+        Initialize();
+
+        // [GIVEN] A Dataverse Connection Setup record
+        CDSConnectionSetup.DeleteAll();
+        CDSConnectionSetup.Init();
+        CDSConnectionSetup.Insert();
+
+        // [WHEN] A partner selects a sovereign cloud through SetDataverseCloud
+        CDSConnectionSetup.SetDataverseCloud(DataverseCloud::TestSovereign);
+
+        // [THEN] The selection is persisted
+        CDSConnectionSetupReread.Get();
+        Assert.AreEqual(DataverseCloud::TestSovereign, CDSConnectionSetupReread."Dataverse Cloud", 'SetDataverseCloud should persist the selected cloud.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SetDataverseCloudErrorsWhenSetupMissing()
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup";
+        DataverseCloud: Enum "Dataverse Cloud";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] SetDataverseCloud raises an error, instead of silently doing nothing, when no setup record exists.
+        Initialize();
+
+        // [GIVEN] No Dataverse Connection Setup record
+        CDSConnectionSetup.DeleteAll();
+
+        // [WHEN] A partner selects a sovereign cloud through SetDataverseCloud
+        asserterror CDSConnectionSetup.SetDataverseCloud(DataverseCloud::TestSovereign);
+
+        // [THEN] An error is raised so the no-op is not silent
+        Assert.ExpectedError('does not exist');
+    end;
 
     [Test]
     [HandlerFunctions('AssistedSetupModalHandler,ConfirmYes')]
@@ -521,6 +621,7 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure ServerAddressRequiredToEnableO365()
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -529,7 +630,7 @@ codeunit 139196 "CDS Connection Setup Test"
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."User Name" := 'tester@domain.net';
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Authentication Type" := CDSConnectionSetup."Authentication Type"::Office365;
         CDSConnectionSetup.Insert();
@@ -544,6 +645,7 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure ServerAddressRequiredToEnable()
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -552,7 +654,7 @@ codeunit 139196 "CDS Connection Setup Test"
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."User Name" := 'tester@domain.net';
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Authentication Type" := CDSConnectionSetup."Authentication Type"::AD;
         CDSConnectionSetup.Insert();
@@ -933,6 +1035,7 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure ActionTestConnectionWhenIntegrationDisabled()
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         CDSConnectionSetupPage: TestPage "CDS Connection Setup";
         DummyPassword: Text;
     begin
@@ -942,7 +1045,7 @@ codeunit 139196 "CDS Connection Setup Test"
         // [GIVEN] Disabled CDS Connection
         InitializeSetup(false);
         CDSConnectionSetup.Get();
-        DummyPassword := 'test';
+        DummyPassword := Any.AlphanumericText(20);
         CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup.Modify();
         // [GIVEN] Open CDS Connection Setup page
@@ -1273,12 +1376,13 @@ codeunit 139196 "CDS Connection Setup Test"
     local procedure InitializeSetup(HostName: Text; IsEnabled: Boolean)
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."Server Address" := CopyStr(HostName, 1, MaxStrLen(CDSConnectionSetup."Server Address"));
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         if IsEnabled then
             CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Is Enabled" := IsEnabled;

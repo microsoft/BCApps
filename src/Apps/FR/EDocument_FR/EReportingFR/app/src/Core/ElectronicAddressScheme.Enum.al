@@ -20,4 +20,16 @@ enum 10976 "Electronic Address Scheme"
     {
         Caption = 'SIREN (0002)';
     }
+    value(3; " ")
+    {
+        Caption = ' ';
+    }
+    value(4; "0225")
+    {
+        Caption = 'FRCTC electronic address (0225)';
+    }
+    value(5; "9957")
+    {
+        Caption = 'French VAT number (9957)';
+    }
 }

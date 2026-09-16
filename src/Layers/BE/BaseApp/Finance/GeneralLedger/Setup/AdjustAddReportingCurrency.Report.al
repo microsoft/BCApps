@@ -27,6 +27,7 @@ report 86 "Adjust Add. Reporting Currency"
     Permissions = TableData "G/L Entry" = rim,
                   TableData "Item Ledger Entry" = rm,
                   TableData "G/L Register" = rim,
+                  TableData "G/L Transaction" = rim,
                   TableData "Job Ledger Entry" = rm,
                   TableData "VAT Entry" = rm,
                   TableData "Dimension Set ID Filter Line" = rimd,

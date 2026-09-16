@@ -44,7 +44,7 @@ table 30143 "Shpfy FulFillment Order Header"
         }
         field(7; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(8; "Shopify Order No."; Text[50])

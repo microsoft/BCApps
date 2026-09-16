@@ -34,6 +34,7 @@ codeunit 8364 DimPerspectiveBusinessUnit implements IDimensionPerspective
                 TempDimPerspectiveLine."Business Unit Totaling" := CopyStr(TempBusUnit.GetFilter(Code), 1, MaxStrLen(TempDimPerspectiveLine."Business Unit Totaling"));
                 TempDimPerspectiveLine.Insert();
             until BusUnit.Next() = 0;
+        OnAfterPopulateLineBufferForReporting(DimPerspectiveName, TempDimPerspectiveLine);
     end;
 
     procedure FilterGLEntryByPerspectiveTotaling(DimPerspectiveLine: Record "Dimension Perspective Line"; var GLEntry: Record "G/L Entry")
@@ -81,5 +82,10 @@ codeunit 8364 DimPerspectiveBusinessUnit implements IDimensionPerspective
         if DimPerspectiveName."Analysis View Name" <> '' then
             exit;
         DimSelection.InsertDimSelBuf(false, Format(Enum::"Dimension Perspective Type"::BusinessUnit), Format(Enum::"Dimension Perspective Type"::BusinessUnit));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPopulateLineBufferForReporting(DimPerspectiveName: Record "Dimension Perspective Name"; var TempDimPerspectiveLine: Record "Dimension Perspective Line")
+    begin
     end;
 }

@@ -113,7 +113,7 @@ page 30115 "Shpfy Orders"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the order was created.';
+                    ToolTip = 'Specifies the date and time when the order was created in Shopify.';
                 }
                 field(Confirmed; Rec.Confirmed)
                 {

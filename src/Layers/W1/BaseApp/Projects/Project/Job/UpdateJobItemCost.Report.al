@@ -14,6 +14,7 @@ report 1095 "Update Job Item Cost"
     AdditionalSearchTerms = 'Update Job Item Cost';
     ApplicationArea = Jobs;
     Caption = 'Update Project Item Cost';
+    ToolTip = 'Update the usage costs in the project ledger entries to match the actual costs in the item ledger entry. If adjustment value entries have a different date than the original value entry, such as when the inventory period is closed, then the project ledger is not updated.';
     Permissions = TableData "Job Ledger Entry" = rm,
                   TableData "Value Entry" = rm;
     ProcessingOnly = true;

@@ -17,11 +17,13 @@ using System.Agents;
 using System.AI;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
+using System.Config;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.Encryption;
 using System.Security.User;
 
 codeunit 3307 "Payables Agent Setup"
@@ -32,7 +34,8 @@ codeunit 3307 "Payables Agent Setup"
 
     Permissions =
         tabledata "Outlook Setup" = rim,
-        tabledata "Payables Agent Setup" = rmid;
+        tabledata "Payables Agent Setup" = rmid,
+        tabledata "PA Known Sender" = r;
 
     /// <summary>
     /// Retrieves all the records containing setup information for the payables agent.
@@ -94,11 +97,18 @@ codeunit 3307 "Payables Agent Setup"
         EmailConnectionMessageErr: Label 'Connection to mailbox failed. Please review the email account configuration for email %1', Comment = '%1 - Email account name';
         EmailConnectionNavigationActionLbl: Label 'Show email accounts';
         ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
+        ReviewPolicyRequiredErr: Label 'Select an Email review option before turning on monitoring. This sets when incoming emails need supervisor approval before the agent processes them.';
     begin
         if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then
             Error(DelegatedAdminErr);
 
         Session.LogMessage('0000OUW', 'Setting up payables agent', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
+
+        // Require an explicit review policy before monitoring can start.
+        if (PASetupConfiguration.GetAgentSetupBuffer().State = PASetupConfiguration.GetAgentSetupBuffer().State::Enabled) and
+            (PASetupConfiguration.GetPayablesAgentSetup()."Monitor Outlook") and
+            (PASetupConfiguration.GetPayablesAgentSetup()."Email Review Policy" = "PA Email Review Policy"::Unset) then
+            Error(ReviewPolicyRequiredErr);
 
         // If the agent is to be activated, we check if the privacy consent has been given for the email integration or trigger the consent flow
         // This has to happen before any write transactions since the consent runs modally (and will block the session)
@@ -160,7 +170,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup.TransferFields(TempPayablesAgentSetup, false);
 
         if not PASetupConfiguration.GetSkipAgentConfiguration() then // Skipping the agent's configuration is valid in tests
-            PayablesAgentSetup."User Security Id" := ApplyAgentSetup(PASetupConfiguration);
+            PayablesAgentSetup."User Security Id" := ApplyAgentSetup(PASetupConfiguration, PayablesAgentSetup."Applied Instr. Config Hash");
 
         // We apply the changes to the E-Document Service related records
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
@@ -191,10 +201,22 @@ codeunit 3307 "Payables Agent Setup"
     /// <param name="Agent">Record where the Agent is loaded, if it exists</param>
     /// <returns>True if an Agent was found, false otherwise</returns>
     procedure GetAgent(var Agent: Record Agent): Boolean
+    begin
+        exit(GetAgent(Agent, true));
+    end;
+
+    /// <summary>
+    /// Retrieves the agent record if configured in the database, and optionally ensures that the Payables Agent setup record is updated with the correct user security id. 
+    /// </summary>
+    /// <param name="Agent">Record where the Agent is loaded, if it exists</param>
+    /// <param name="UpdateSetup">If true, the Payables Agent Setup record will be updated with the correct user security id if it was not configured or was invalid</param>
+    /// <returns>True if an Agent was found, false otherwise</returns>
+    procedure GetAgent(var Agent: Record Agent; UpdateSetup: Boolean): Boolean
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
     begin
-        PayablesAgentSetup.GetSetup();
+        // When the setup record does not exist and we are not allowed to create it, we continue with a blank record, so the agent can still be located by user name.
+        if PayablesAgentSetup.GetSetup(UpdateSetup) then;
         // We attempt to find the agent by the security id stored in the setup record.
         if Agent.Get(PayablesAgentSetup."User Security Id") then
             exit(true);
@@ -205,24 +227,46 @@ codeunit 3307 "Payables Agent Setup"
         Agent.SetRange("User Name", AgentUserName());
         if Agent.FindFirst() then
             PayablesAgentSetup."User Security Id" := Agent."User Security ID";
-        PayablesAgentSetup.Modify();
+        if UpdateSetup then
+            PayablesAgentSetup.Modify();
         exit(not IsNullGuid(Agent."User Security ID"));
     end;
 
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        Agent: Codeunit Agent;
-        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
-        PayablesAgentPromptText: Text;
-        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
-        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        PayablesAgentSetup: Record "Payables Agent Setup";
+        NewConfigHash: Text[64];
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
 
-        PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
+        NewConfigHash := ApplyAgentInstructions(AgentUserSecurityId);
+
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
+            PayablesAgentSetup."Applied Instr. Config Hash" := NewConfigHash;
+            PayablesAgentSetup.Modify();
+        end;
+    end;
+
+    /// <summary>
+    /// Applies the agent instructions for the given user and returns the configuration hash that was used.
+    /// This helper does NOT modify the Payables Agent Setup record, allowing callers that already hold
+    /// a loaded record (such as ApplyPayablesAgentSetup) to persist the hash themselves in a single Modify().
+    /// </summary>
+    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid) ConfigHash: Text[64]
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        Agent: Codeunit Agent;
+        SecurityPromptSecretText, CompletePromptSecretText : SecretText;
+        PayablesAgentPromptText: Text;
+        AgentDriven: Boolean;
+    begin
+        AgentDriven := IsAgentDrivenLineMatchingEnabled();
+        if AgentDriven then
+            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
+        else
+            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(PayablesAgentPromptText, SecurityPromptSecretText)
         else begin
@@ -230,6 +274,77 @@ codeunit 3307 "Payables Agent Setup"
             Error(UnableToConfigureAgentInstructionsErr);
         end;
         Agent.SetInstructions(AgentUserSecurityId, CompletePromptSecretText);
+
+        ConfigHash := CopyStr(GetInstructionsConfigHash(), 1, MaxStrLen(ConfigHash));
+    end;
+
+    /// <summary>
+    /// Feature-specific resolver for the agent-driven line-matching experiment, used to select the prompt variant.
+    /// </summary>
+    internal procedure IsAgentDrivenLineMatchingEnabled(): Boolean
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
+    end;
+
+    /// <summary>
+    /// Reconciles the agent's persisted instructions with the current experiment configuration.
+    /// The agent instructions are set once (at creation/upgrade), but tenant-level ECS experiments can change
+    /// independently; this reapplies the instructions when the configuration that produced them has drifted.
+    /// Cheap on the common path: it only reloads instructions when the config hash has actually changed.
+    /// </summary>
+    internal procedure EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        if IsNullGuid(AgentUserSecurityId) then
+            exit;
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" = GetInstructionsConfigHash() then
+            exit;
+        Session.LogMessage('0000SEK', 'Payables Agent instructions reapplied due to experiment configuration drift.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureName());
+        SetAgentInstructions(AgentUserSecurityId);
+    end;
+
+    /// <summary>
+    /// Non-throwing wrapper around EnsureAgentInstructionsMatchConfiguration for callers on a critical path
+    /// (e.g. the e-document import event subscriber) where an instruction-refresh failure must not abort the
+    /// host operation. Returns false on failure so the caller can log and continue with existing instructions.
+    /// </summary>
+    [TryFunction]
+    internal procedure TryEnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId: Guid)
+    begin
+        EnsureAgentInstructionsMatchConfiguration(AgentUserSecurityId);
+    end;
+
+    /// <summary>
+    /// Fingerprint of every tenant-level experiment configuration that influences the agent's instructions.
+    /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
+    /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.
+    /// </summary>
+    internal procedure GetInstructionsConfigHash(): Text
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        ConfigKey: Text;
+        Signature: TextBuilder;
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+    begin
+        foreach ConfigKey in GetInstructionsExperimentKeys() do begin
+            Signature.Append(ConfigKey);
+            Signature.Append('=');
+            Signature.Append(FeatureConfiguration.GetConfiguration(ConfigKey));
+            Signature.Append(';');
+        end;
+        exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
+    end;
+
+    local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
+    begin
+        // Tenant-level experiment keys whose ECS configuration changes the agent's instructions.
+        // Add future prompt-affecting experiment keys here.
+        Keys.Add(AgentDrivenLineMatchingTok);
     end;
 
     internal procedure CanShowAgentActions(): Boolean
@@ -279,7 +394,6 @@ codeunit 3307 "Payables Agent Setup"
         end;
     end;
 
-
     /// <summary>
     /// Returns true if a new Payables Agent can be created.
     /// Blocked if an agent already exists. Otherwise allowed for SUPER users
@@ -299,7 +413,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if PayablesAgentSetup.GetAgent(Agent) then
+        if PayablesAgentSetup.GetAgent(Agent, false) then
             exit(false);
 
         // No payables agent exists
@@ -327,7 +441,7 @@ codeunit 3307 "Payables Agent Setup"
         exit(AgentSummaryLbl);
     end;
 
-    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"): Guid
+    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"; var AppliedInstrConfigHash: Text[64]): Guid
     var
         AgentAdminPS: Record "Aggregate Permission Set";
         AccessControl: Record "Access Control";
@@ -356,7 +470,10 @@ codeunit 3307 "Payables Agent Setup"
                         UserPermissions.AssignPermissionSets(TempModifiedAgentAccessControl."User Security ID", CompanyName(), AgentAdminPS);
             until TempModifiedAgentAccessControl.Next() = 0;
 
-        SetAgentInstructions(AgentUserId);
+        // Apply agent instructions and capture the hash; the outer ApplyPayablesAgentSetup persists it
+        // in the single final Modify() so there is no nested row modification of Payables Agent Setup.
+        if not IsNullGuid(AgentUserId) then
+            AppliedInstrConfigHash := ApplyAgentInstructions(AgentUserId);
         exit(AgentUserId);
     end;
 
@@ -535,6 +652,174 @@ codeunit 3307 "Payables Agent Setup"
         EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
     end;
 
+    /// <summary>
+    /// Decides whether an incoming e-document's agent task must be reviewed by a human, based on the
+    /// configured review policy, the monitored folder, sender authentication (compauth / internal),
+    /// and the known-senders list.
+    /// </summary>
+    procedure ShouldRequestReview(EDocument: Record "E-Document"): Boolean
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+        KnownSender: Record "PA Known Sender";
+    begin
+        // Only incoming emails are subject to email review. Manually uploaded documents
+        // (e.g. the trial experience) are user-initiated and processed without review.
+        if EDocument."Outlook Mail Message Id" = '' then
+            exit(false);
+
+        PayablesAgentSetup.GetSetup();
+        case PayablesAgentSetup."Email Review Policy" of
+            "PA Email Review Policy"::Always,
+            "PA Email Review Policy"::Unset:
+                exit(true);
+            "PA Email Review Policy"::Never:
+                exit(false);
+        end;
+
+        // OnlyIfUntrusted: a configured subfolder is explicit consent, everything in it is trusted.
+        if MonitoredFolderConfigured() then
+            exit(false);
+
+        // Without an authenticated sender we always review.
+        if not IsSenderAuthenticated(EDocument) then
+            exit(true);
+
+        // Authenticated: trust senders explicitly approved in the known-senders list.
+        if KnownSender.GetForEDocument(EDocument, KnownSender) then
+            exit(KnownSender."Sender Policy" <> "PA Sender Policy"::Approve);
+
+        // Authenticated and unknown: trust internal (same-organization) senders.
+        if IsSenderInternal(EDocument) then
+            exit(false);
+
+        // Authenticated, unknown and external: review.
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Returns true when the sender of the e-document is configured with the Reject policy,
+    /// meaning no agent task should be created for it.
+    /// </summary>
+    procedure IsSenderRejected(EDocument: Record "E-Document"): Boolean
+    var
+        KnownSender: Record "PA Known Sender";
+    begin
+        if KnownSender.GetForEDocument(EDocument, KnownSender) then
+            exit(KnownSender."Sender Policy" = "PA Sender Policy"::Reject);
+        exit(false);
+    end;
+
+    local procedure MonitoredFolderConfigured(): Boolean
+    var
+        OutlookSetup: Record "Outlook Setup";
+    begin
+        if not OutlookSetup.FindFirst() then
+            exit(false);
+        exit(OutlookSetup."Email Folder" <> '');
+    end;
+
+    /// <summary>
+    /// Returns true when the sender of the e-document's source email can be trusted as authenticated:
+    /// either composite authentication passed (compauth=pass), or the message originated inside the
+    /// organization (see IsSenderInternal). Missing email or headers yields false.
+    /// </summary>
+    procedure IsSenderAuthenticated(EDocument: Record "E-Document"): Boolean
+    var
+        HeaderValue: Text;
+    begin
+        if TryGetSourceEmailHeader(EDocument, 'Authentication-Results', HeaderValue) then
+            if CompAuthPassed(HeaderValue) then
+                exit(true);
+        exit(IsSenderInternal(EDocument));
+    end;
+
+    /// <summary>
+    /// Returns true when the e-document's source email was stamped by Exchange as originating inside the
+    /// organization (X-MS-Exchange-Organization-AuthAs = Internal). This covers intra-tenant mail (e.g.
+    /// same onmicrosoft.com domain), which is not stamped with compauth. Exchange re-stamps this header
+    /// on inbound, so it cannot be spoofed by an external sender. Missing email or header yields false.
+    /// </summary>
+    procedure IsSenderInternal(EDocument: Record "E-Document"): Boolean
+    var
+        HeaderValue: Text;
+    begin
+        if TryGetSourceEmailHeader(EDocument, 'X-MS-Exchange-Organization-AuthAs', HeaderValue) then
+            exit(LowerCase(HeaderValue).Trim() = 'internal');
+        exit(false);
+    end;
+
+    local procedure TryGetSourceEmailHeader(EDocument: Record "E-Document"; HeaderName: Text; var HeaderValue: Text): Boolean
+    var
+        EmailMessage: Codeunit "Email Message";
+    begin
+        if IsNullGuid(EDocument."Mail Message Id") then
+            exit(false);
+        if not EmailMessage.Get(EDocument."Mail Message Id") then
+            exit(false);
+        exit(EmailMessage.GetHeader(HeaderName, HeaderValue));
+    end;
+
+    /// <summary>
+    /// Returns true when an Authentication-Results header value indicates compauth=pass.
+    /// </summary>
+    procedure CompAuthPassed(AuthenticationResults: Text): Boolean
+    begin
+        // Case-insensitive match; tolerates surrounding tokens and a trailing reason=NNN.
+        exit(StrPos(LowerCase(AuthenticationResults), 'compauth=pass') > 0);
+    end;
+
+    /// <summary>
+    /// Classifies whether a pending setup change would leave the known-senders list unused.
+    /// Returns None when nothing curated would be ignored (including when the list is empty).
+    /// </summary>
+    procedure ClassifyKnownSendersUnusedByChange(NewPolicy: Enum "PA Email Review Policy"; NewMonitoredFolder: Text; var KnownSendersCount: Integer): Enum "PA Setup Change Impact"
+    var
+        KnownSender: Record "PA Known Sender";
+    begin
+        KnownSendersCount := KnownSender.Count();
+        if KnownSendersCount = 0 then
+            exit("PA Setup Change Impact"::None);
+        exit(ClassifyByPolicyAndFolder(NewPolicy, NewMonitoredFolder));
+    end;
+
+    /// <summary>
+    /// Classifies why the known-senders list is currently unused in a saved setup, regardless of
+    /// whether the list has entries. Used by the Known Senders page to surface a notification.
+    /// </summary>
+    procedure ClassifyKnownSendersUnusedReason(SavedPolicy: Enum "PA Email Review Policy"; SavedMonitoredFolder: Text): Enum "PA Setup Change Impact"
+    begin
+        exit(ClassifyByPolicyAndFolder(SavedPolicy, SavedMonitoredFolder));
+    end;
+
+    local procedure ClassifyByPolicyAndFolder(Policy: Enum "PA Email Review Policy"; MonitoredFolder: Text): Enum "PA Setup Change Impact"
+    begin
+        if MonitoredFolder <> '' then
+            exit("PA Setup Change Impact"::KnownSendersIgnoredByFolder);
+        if Policy in [Policy::Always, Policy::Never] then
+            exit("PA Setup Change Impact"::KnownSendersIgnoredByPolicy);
+        exit("PA Setup Change Impact"::None);
+    end;
+
+    /// <summary>
+    /// Returns the user-facing label for an "Email Review Policy" value, for interpolation into messages.
+    /// </summary>
+    procedure PolicyLabel(Policy: Enum "PA Email Review Policy"): Text
+    var
+        AlwaysLbl: Label 'Always';
+        NeverLbl: Label 'Never';
+        OnlyIfUntrustedLbl: Label 'Manage per sender';
+    begin
+        case Policy of
+            Policy::Always:
+                exit(AlwaysLbl);
+            Policy::Never:
+                exit(NeverLbl);
+            Policy::OnlyIfUntrusted:
+                exit(OnlyIfUntrustedLbl);
+        end;
+        exit('');
+    end;
+
     var
         AgentUserNameLbl: Label 'Payables Agent', Comment = 'User name of the agent.', Locked = true;
         AgentSummaryLbl: Label 'Monitors incoming emails for vendor invoices, matches senders to registered vendors, and creates purchase document drafts for review.';
@@ -544,4 +829,10 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         TrialModeInitializedTok: Label 'Trial mode initialized for Payables Agent', Locked = true;
+        PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
+        PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
+        SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
+        UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
+        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 }

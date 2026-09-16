@@ -258,6 +258,33 @@ codeunit 10740 "No Taxable Mgt."
         exit(true);
     end;
 
+    local procedure CreateNoTaxableEntriesFinanceChargeMemo(GenJournalLine: Record "Gen. Journal Line"; TransactionNo: Integer): Boolean
+    var
+        Customer: Record Customer;
+        NoTaxableEntry: Record "No Taxable Entry";
+        TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+        PostedLineRecordRef: RecordRef;
+    begin
+        if GenJournalLine."Document Type" <> GenJournalLine."Document Type"::"Finance Charge Memo" then
+            exit(false);
+        if not CopyVATGenJnlLineToTempSalesInvoiceLine(TempSalesInvoiceLine, GenJournalLine) then
+            exit(false);
+        if (GenJournalLine."Source Type" <> GenJournalLine."Source Type"::Customer) or (GenJournalLine."Source No." = '') then
+            exit(false);
+        if not Customer.Get(GenJournalLine."Source No.") then
+            exit(false);
+
+        GenJournalLine."Account No." := GenJournalLine."Source No.";
+        NoTaxableEntry.InitFromGenJnlLine(GenJournalLine);
+        NoTaxableEntry."Country/Region Code" := Customer."Country/Region Code";
+        NoTaxableEntry."VAT Registration No." := Customer."VAT Registration No.";
+        NoTaxableEntry."Transaction No." := TransactionNo;
+        PostedLineRecordRef.GetTable(TempSalesInvoiceLine);
+        InsertNoTaxableEntriesFromSalesLines(PostedLineRecordRef, NoTaxableEntry, -1);
+
+        exit(true);
+    end;
+
     [Scope('OnPrem')]
     procedure FindNoTaxableLinesPurchaseInvoice(var PurchInvLine: Record "Purch. Inv. Line"; VendorNo: Code[20]; DocumentNo: Code[20]; PostingDate: Date): Boolean
     begin
@@ -927,13 +954,15 @@ codeunit 10740 "No Taxable Mgt."
     local procedure InsertNoTaxableEntryOnPostCust(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean; var TempGLEntryBuf: Record "G/L Entry" temporary; var NextEntryNo: Integer; var NextTransactionNo: Integer)
     begin
         if not (GenJournalLine."Document Type" in
-                [GenJournalLine."Document Type"::Invoice, GenJournalLine."Document Type"::"Credit Memo"])
+                [GenJournalLine."Document Type"::Invoice, GenJournalLine."Document Type"::"Credit Memo", GenJournalLine."Document Type"::"Finance Charge Memo"])
         then
             exit;
 
         if CreateNoTaxableEntriesSalesInvoice(GenJournalLine, TempGLEntryBuf."Transaction No.") then
             exit;
         if CreateNoTaxableEntriesSalesCreditMemo(GenJournalLine, TempGLEntryBuf."Transaction No.") then
+            exit;
+        if CreateNoTaxableEntriesFinanceChargeMemo(GenJournalLine, TempGLEntryBuf."Transaction No.") then
             exit;
     end;
 
