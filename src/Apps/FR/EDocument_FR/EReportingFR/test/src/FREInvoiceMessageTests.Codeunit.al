@@ -126,7 +126,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
-    procedure PaymentApplicationForSentDocumentDoesNotCreateCollected()
+    procedure PaymentApplicationForSentDocumentCreatesCollected()
     var
         EDocument: Record "E-Document";
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
@@ -134,7 +134,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Applying a payment to a sent French E-Document does not create a Collected message
+        // [SCENARIO] Applying a payment to a sent French E-Document creates a Collected message without buyer approval
         Initialize();
 
         // [GIVEN] A sent outgoing French E-Document with an applied customer payment
@@ -143,13 +143,88 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [WHEN] The payment application is processed
         ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
-        // [THEN] The generic payment occurrence is created but no French lifecycle message is created
+        // [THEN] The generic payment occurrence and a Collected lifecycle message are created
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
         EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
         Assert.RecordCount(EDocPaymentOccurrence, 1);
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
-        Assert.RecordCount(FREInvoiceMessage, 0);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+    end;
+
+    [Test]
+    procedure PaymentApplicationForSentPPFDocumentCapturesClearanceDate()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A sent PPF invoice captures its receipt time without requiring buyer approval
+        Initialize();
+
+        // [GIVEN] A sent French E-Document with sender-platform identity and no stored clearance date
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Sent);
+        EDocument."Clearance Date" := 0DT;
+
+        // [WHEN] The sent E-Document is updated and its payment application is processed
+        EDocument.Modify();
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+
+        // [THEN] The receipt time and a Collected lifecycle message are created
+        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'The sent invoice must capture its platform receipt time.');
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        Assert.RecordCount(FREInvoiceMessage, 1);
+    end;
+
+    [Test]
+    procedure SentEReportingDocumentDoesNotSetClearanceDate()
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Sending an E-Reporting document does not populate the invoice clearance date
+        Initialize();
+
+        // [GIVEN] An E-Reporting FR document with Sent service status
+        EDocumentService.Get('FR-MESSAGE');
+        EDocumentService.Validate("Document Format", EDocumentService."Document Format"::"E-Reporting FR");
+        EDocumentService.Modify(true);
+        CreateOutgoingEDocument(EDocument);
+        CreateServiceStatus(EDocument, "E-Document Service Status"::Sent);
+
+        // [WHEN] The E-Document is updated
+        EDocument.Modify();
+
+        // [THEN] No invoice clearance date is populated
+        Assert.AreEqual(0DT, EDocument."Clearance Date", 'Sent E-Reporting documents must not get an invoice clearance date.');
+    end;
+
+    [Test]
+    procedure PaymentApplicationForSentCDVDocumentDoesNotRequireClearanceDate()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A sent CDV invoice does not require a clearance date to create a Collected message
+        Initialize();
+
+        // [GIVEN] A sent French E-Document without sender-platform identity or a clearance date
+        CreatePaymentScenarioWithoutSenderPlatform(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Sent);
+        EDocument."Clearance Date" := 0DT;
+        EDocument.Modify();
+
+        // [WHEN] The payment application is processed
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+
+        // [THEN] A Collected lifecycle message is created using the CDV context
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        Assert.RecordCount(FREInvoiceMessage, 1);
     end;
 
     [Test]
