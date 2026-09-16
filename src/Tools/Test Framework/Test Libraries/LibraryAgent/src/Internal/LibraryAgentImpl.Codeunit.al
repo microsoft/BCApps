@@ -13,7 +13,7 @@ using System.TestLibraries.Utilities;
 using System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
-codeunit 130561 "Library - Agent Impl."
+codeunit 130561 "Library - Agent Impl." implements IAITRequestSender
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -450,13 +450,62 @@ codeunit 130561 "Library - Agent Impl."
 
     procedure RunTurnAndWait(AgentUserSecurityId: Guid; var AgentTask: Record "Agent Task"; LoadResources: Boolean; AgentTestResourceProvider: Interface IAgentTestResourceProvider): Boolean
     var
-        AITTestContext: Codeunit "AIT Test Context";
-        QueryInput: Codeunit "Test Input Json";
-        IsTaskInput, IsIntervention : Boolean;
+        RequestContext: Codeunit "AIT Request Context";
+        RequestResult: Codeunit "AIT Request Result";
+        ExecutionSuccessful: Boolean;
     begin
         EnsureIsTest();
+        RequestContext.SetAgentUserSecurityId(AgentUserSecurityId);
+        RequestContext.SetAgentTask(AgentTask);
+        if LoadResources then
+            RequestContext.SetResourceProvider(AgentTestResourceProvider);
+
+        ExecutionSuccessful := RunTurnAndWait(Enum::"AIT Request Provider"::"Business Central", RequestContext, RequestResult);
+        RequestContext.GetAgentTask(AgentTask);
+        exit(ExecutionSuccessful);
+    end;
+
+    procedure RunTurnAndWait(RequestProvider: Enum "AIT Request Provider"; var RequestContext: Codeunit "AIT Request Context"; var RequestResult: Codeunit "AIT Request Result"): Boolean
+    var
+        AITTestContext: Codeunit "AIT Test Context";
+        QueryInput: Codeunit "Test Input Json";
+        RequestSender: Interface IAITRequestSender;
+    begin
+        EnsureIsTest();
+        RequestResult.Reset();
         QueryInput := AITTestContext.GetQuery();
 
+        if RequestProvider = RequestProvider::"Business Central" then
+            RequestSender := this
+        else
+            RequestSender := RequestProvider;
+
+        RequestSender.SendRequest(QueryInput, RequestContext, RequestResult);
+        exit(RequestResult.GetExecutionSuccessful());
+    end;
+
+    procedure SendRequest(QueryInput: Codeunit "Test Input Json"; var RequestContext: Codeunit "AIT Request Context"; var RequestResult: Codeunit "AIT Request Result")
+    var
+        AgentTask: Record "Agent Task";
+        Diagnostics: JsonObject;
+        ExecutionSuccessful: Boolean;
+    begin
+        EnsureIsTest();
+        RequestResult.Reset();
+        RequestContext.GetAgentTask(AgentTask);
+        ExecutionSuccessful := RunBCTurnAndWait(RequestContext.GetAgentUserSecurityId(), QueryInput, AgentTask,
+            RequestContext.GetLoadResources(), RequestContext.GetResourceProvider());
+        RequestContext.SetAgentTask(AgentTask);
+
+        Diagnostics.Add(IdTok, Format(AgentTask.ID, 0, 9));
+        Diagnostics.Add(StatusTok, Format(AgentTask.Status, 0, 9));
+        RequestResult.SetResult(ExecutionSuccessful, GetLatestAssistantText(AgentTask), Diagnostics);
+    end;
+
+    local procedure RunBCTurnAndWait(AgentUserSecurityId: Guid; QueryInput: Codeunit "Test Input Json"; var AgentTask: Record "Agent Task"; LoadResources: Boolean; AgentTestResourceProvider: Interface IAgentTestResourceProvider): Boolean
+    var
+        IsTaskInput, IsIntervention : Boolean;
+    begin
         QueryInput.ElementExists(TitleTok, IsTaskInput);
         QueryInput.ElementExists(InterventionTok, IsIntervention);
 
@@ -470,6 +519,21 @@ codeunit 130561 "Library - Agent Impl."
             exit(CreateTaskFromQueryAndWait(AgentUserSecurityId, QueryInput, AgentTask, LoadResources, AgentTestResourceProvider));
 
         exit(ProcessInterventionAndWait(QueryInput, AgentTask));
+    end;
+
+    local procedure GetLatestAssistantText(AgentTask: Record "Agent Task"): Text
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        if AgentTask.ID = 0 then
+            exit('');
+
+        AgentTaskMessage.SetRange("Task ID", AgentTask.ID);
+        AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Output);
+        if AgentTaskMessage.FindLast() then
+            exit(GetMessageText(AgentTaskMessage));
+
+        exit('');
     end;
 
     local procedure ProcessInterventionAndWait(QueryInput: Codeunit "Test Input Json"; var AgentTask: Record "Agent Task"): Boolean

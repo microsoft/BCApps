@@ -6,4 +6,10 @@ namespace System.TestLibraries.Agents;
 enum 130560 "AIT Request Provider" implements "IAITRequestSender"
 {
     Extensible = true;
+
+    value(0; "Business Central")
+    {
+        Caption = 'Business Central';
+        Implementation = IAITRequestSender = "Library - Agent Impl.";
+    }
 }
