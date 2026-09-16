@@ -508,15 +508,7 @@ table 37 "Sales Line"
 
                 TestStatusOpen();
                 SalesWarehouseMgt.SalesLineVerifyChange(Rec, xRec);
-                DoCheckReceiptOrderStatus :=
-                    (CurrFieldNo in [
-                        FieldNo("Planned Shipment Date"),
-                        FieldNo("Planned Delivery Date"),
-                        FieldNo("Shipment Date"),
-                        FieldNo("Shipping Time"),
-                        FieldNo("Outbound Whse. Handling Time"),
-                        FieldNo("Requested Delivery Date"),
-                        FieldNo("Promised Delivery Date")]) and not StatusCheckSuspended;
+                DoCheckReceiptOrderStatus := CurrFieldNo <> 0;
                 OnValidateShipmentDateOnAfterSalesLineVerifyChange(Rec, CurrFieldNo, DoCheckReceiptOrderStatus, HasBeenShown);
                 if DoCheckReceiptOrderStatus then
                     CheckReceiptOrderStatus();
@@ -766,8 +758,7 @@ table 37 "Sales Line"
                 IsHandled := false;
                 OnValidateQuantityOnBeforeCheckReceiptOrderStatus(Rec, StatusCheckSuspended, IsHandled);
                 if not IsHandled then
-                    if not StatusCheckSuspended then
-                        CheckReceiptOrderStatus();
+                    CheckReceiptOrderStatus();
 
                 InitQty();
 
@@ -4454,6 +4445,7 @@ table 37 "Sales Line"
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
         SuppressSalesHeaderExistsVerification: Boolean;
+        SkipUpdateQtyToAsm: Boolean;
         SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -8741,10 +8733,15 @@ table 37 "Sales Line"
     begin
         IsHandled := false;
         OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(Rec, IsHandled);
-        if IsHandled then
+        if IsHandled or SkipUpdateQtyToAsm then
             exit;
 
         ATOLink.UpdateQtyToAsmFromSalesLine(Rec);
+    end;
+
+    internal procedure SetSkipUpdateQtyToAsm(NewSkipUpdateQtyToAsm: Boolean)
+    begin
+        SkipUpdateQtyToAsm := NewSkipUpdateQtyToAsm;
     end;
 
     /// <summary>
@@ -11409,9 +11406,6 @@ table 37 "Sales Line"
 
     local procedure CheckReceiptOrderStatus()
     begin
-        if StatusCheckSuspended then
-            exit;
-
         OnCheckReceiptOrderStatus(Rec);
     end;
 

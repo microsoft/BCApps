@@ -3326,9 +3326,16 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine: Record "Sales Line";
         Item: Record Item;
         ProdOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        OldPlanningWarning: Boolean;
     begin
         // [SCENARIO] Re-entering the same manufactured item into Sales Line "No." when a Released Prod. Order is linked does not throw write transaction error.
         Initialize();
+
+        ManufacturingSetup.Get();
+        OldPlanningWarning := ManufacturingSetup."Planning Warning";
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
 
         // [GIVEN] A manufactured item and a sales order with 1 line
         CreateManufacturedItem(Item);
@@ -3353,6 +3360,9 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine.TestField(Quantity, 1);
         SalesLine.TestField("Quantity (Base)", 1);
         Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+
+        ManufacturingSetup.Validate("Planning Warning", OldPlanningWarning);
+        ManufacturingSetup.Modify(true);
     end;
 
     [Test]
@@ -3394,9 +3404,16 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine: Record "Sales Line";
         Item: Record Item;
         ProdOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        OldPlanningWarning: Boolean;
     begin
         // [SCENARIO] Modifying Quantity directly on a Sales Line linked to a Released Prod. Order triggers the status check warning.
         Initialize();
+
+        ManufacturingSetup.Get();
+        OldPlanningWarning := ManufacturingSetup."Planning Warning";
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
 
         // [GIVEN] Sales Line linked to a Released Production Order
         CreateManufacturedItem(Item);
@@ -3413,6 +3430,9 @@ codeunit 137080 "SCM Planning And Manufacturing"
         // [THEN] Warning handler was invoked and quantity was updated
         SalesLine.TestField(Quantity, 2);
         Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+
+        ManufacturingSetup.Validate("Planning Warning", OldPlanningWarning);
+        ManufacturingSetup.Modify(true);
     end;
 
     [Test]
@@ -3423,9 +3443,16 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine: Record "Sales Line";
         Item: Record Item;
         ProdOrder: Record "Production Order";
+        ManufacturingSetup: Record "Manufacturing Setup";
+        OldPlanningWarning: Boolean;
     begin
         // [SCENARIO] Full end-to-end repro of BC 28.4 bug report
         Initialize();
+
+        ManufacturingSetup.Get();
+        OldPlanningWarning := ManufacturingSetup."Planning Warning";
+        ManufacturingSetup.Validate("Planning Warning", true);
+        ManufacturingSetup.Modify(true);
 
         // Step 1-4: Create Sales Order and line with manufactured item
         CreateManufacturedItem(Item);
@@ -3450,12 +3477,14 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine.TestField(Quantity, 1);
         SalesLine.TestField("Outstanding Quantity", 1);
         Assert.AreEqual(1, CheckProdOrderStatusWarningCount, ExpectedCheckProdOrderStatusWarningErr);
+
+        ManufacturingSetup.Validate("Planning Warning", OldPlanningWarning);
+        ManufacturingSetup.Modify(true);
     end;
 
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
-        ManufacturingSetup: Record "Manufacturing Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Planning And Manufacturing");
@@ -3465,9 +3494,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
         LibraryApplicationArea.EnablePremiumSetup();
 
         PlanningErrorLog.DeleteAll();
-        ManufacturingSetup.Get();
-        ManufacturingSetup.Validate("Planning Warning", true);
-        ManufacturingSetup.Modify(true);
 
         CheckProdOrderStatusWarningCount := 0;
 
