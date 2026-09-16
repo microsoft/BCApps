@@ -53,12 +53,6 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
-        BlockedEndpointErr: Label 'The VAT registration service endpoint must be an external address. Internal, private, loopback, or link-local addresses are not allowed.';
-        BlockedEndpointTitleTxt: Label 'Service endpoint not allowed';
-        BlockedEndpointDetailTxt: Label 'Open the EU VAT Registration No. Validation Service Setup and change the Service Endpoint to a valid external VIES address before validating VAT registration numbers.';
-        OpenVATRegServiceSetupTxt: Label 'Open the EU VAT Registration No. Validation Service Setup';
-        BlockedEndpointMsg: Label 'The VAT reg. no. validation failed. The configured service endpoint targets an internal address and was rejected.', Locked = true;
-        SecurityAuditBlockedEndpointTxt: Label 'The EU VAT Registration No. validation service (VIES) endpoint was rejected because it targets an internal address.', Locked = true;
         VATRegistrationURL: Text;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)
@@ -87,7 +81,6 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         BlankSecretText: SecretText;
     begin
         VATRegistrationURL := VATRegNoSrvConfig.GetVATRegNoURL();
-        CheckServiceEndpointAllowed(VATRegistrationURL);
 
         if VATRegistrationLog."VAT Registration No." = '' then
             Error(NoVATNoToValidateErr);
@@ -225,94 +218,6 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         // A single checkVatApprox response is one company record (typically < 2 KB incl. SOAP envelope).
         // 64 KB leaves ample headroom for long trader details while still rejecting abnormally large payloads.
         exit(65536);
-    end;
-
-    local procedure CheckServiceEndpointAllowed(ServiceUrl: Text)
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        AuditLog: Codeunit "Audit Log";
-        Uri: Codeunit Uri;
-        BlockedEndpointErrInfo: ErrorInfo;
-        Host: Text;
-    begin
-        // SSRF mitigation: the service endpoint is an admin-configurable setup value. Online (SaaS), reject internal/
-        // private/loopback targets so the setup cannot redirect this server-side call to an internal address. On-prem
-        // admins control their own network egress (e.g. internal proxies), so no restriction is applied there. VIES is
-        // http by design, so the scheme is not restricted.
-        if not EnvironmentInformation.IsSaaS() then
-            exit;
-        if not TryInitUri(Uri, ServiceUrl) then
-            exit; // a malformed URL is handled by the existing send/fault path
-        Host := LowerCase(Uri.GetHost());
-        if Host = '' then
-            exit;
-        if not IsInternalHost(Host) then
-            exit;
-
-        AuditLog.LogAuditMessage(SecurityAuditBlockedEndpointTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Session.LogMessage('0000VF3', BlockedEndpointMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-        // Rejecting the configured endpoint is a recoverable setup problem, so make the error navigate to the setup page.
-        BlockedEndpointErrInfo.Title := BlockedEndpointTitleTxt;
-        BlockedEndpointErrInfo.Message := BlockedEndpointErr;
-        BlockedEndpointErrInfo.DetailedMessage := BlockedEndpointDetailTxt;
-        BlockedEndpointErrInfo.DataClassification := DataClassification::SystemMetadata;
-        BlockedEndpointErrInfo.PageNo := Page::"VAT Registration Config";
-        BlockedEndpointErrInfo.AddNavigationAction(OpenVATRegServiceSetupTxt);
-        Error(BlockedEndpointErrInfo);
-    end;
-
-    [TryFunction]
-    local procedure TryInitUri(var Uri: Codeunit Uri; Url: Text)
-    begin
-        Uri.Init(Url);
-    end;
-
-    local procedure IsInternalHost(Host: Text): Boolean
-    begin
-        // Strip IPv6 literal brackets so bracketed forms (e.g. [::ffff:127.0.0.1]) are checked the same as bare hosts.
-        Host := DelChr(Host, '=', '[]');
-        if Host in ['localhost', '127.0.0.1', '::1'] then
-            exit(true);
-
-        if Host.Contains(':') then begin
-            // Any IPv6 literal that embeds a dotted IPv4 tail (e.g. ::127.0.0.1, ::ffff:127.0.0.1,
-            // 0:0:0:0:0:0:127.0.0.1) is re-checked against the embedded IPv4 address.
-            if Host.Contains('.') then
-                exit(IsInternalHost(CopyStr(Host, Host.LastIndexOf(':') + 1)));
-            // Pure IPv6 literal: unique-local (fc00::/7 -> fc/fd) and link-local (fe80::/10 -> fe8/fe9/fea/feb).
-            if Host.StartsWith('fc') or Host.StartsWith('fd') then
-                exit(true);
-            if Host.StartsWith('fe8') or Host.StartsWith('fe9') or Host.StartsWith('fea') or Host.StartsWith('feb') then
-                exit(true);
-            exit(false);
-        end;
-
-        // IPv4 loopback (127.0.0.0/8), link-local incl. cloud IMDS (169.254.0.0/16), and RFC1918 private ranges.
-        if Host.StartsWith('127.') then
-            exit(true);
-        if Host.StartsWith('169.254.') then
-            exit(true);
-        if Host.StartsWith('10.') then
-            exit(true);
-        if Host.StartsWith('192.168.') then
-            exit(true);
-        exit(IsPrivate172Range(Host));
-    end;
-
-    local procedure IsPrivate172Range(Host: Text): Boolean
-    var
-        Octets: List of [Text];
-        SecondOctet: Integer;
-    begin
-        // Private range 172.16.0.0 - 172.31.255.255.
-        if not Host.StartsWith('172.') then
-            exit(false);
-        Octets := Host.Split('.');
-        if Octets.Count() < 2 then
-            exit(false);
-        if not Evaluate(SecondOctet, Octets.Get(2)) then
-            exit(false);
-        exit((SecondOctet >= 16) and (SecondOctet <= 31));
     end;
 
     /// <summary>
