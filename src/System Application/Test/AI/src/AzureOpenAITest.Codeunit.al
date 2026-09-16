@@ -911,7 +911,7 @@ codeunit 132684 "Azure OpenAI Test"
         LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
         asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniLatest());
         LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
-        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, DeploymentTxt);
+        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, Format(DeploymentTxt));
         LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
     end;
 
@@ -931,7 +931,7 @@ codeunit 132684 "Azure OpenAI Test"
 
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatLatest());
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatPreview());
-        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, DeploymentTxt);
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, Format(DeploymentTxt));
     end;
 
     // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing file content.
