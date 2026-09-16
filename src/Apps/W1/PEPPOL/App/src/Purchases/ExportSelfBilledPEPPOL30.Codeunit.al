@@ -22,10 +22,10 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         XMLDOMManagement: Codeunit "XML DOM Management";
         PEPPOL30: Codeunit "PEPPOL30";
         PEPPOL30Common: Codeunit "PEPPOL30 Common";
+        PostedDocumentHeaderRecRef: RecordRef;
         PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase";
         SelfBilledXML: XmlDocument;
         RootNode: XmlNode;
-        PostedDocumentHeaderRecRef: RecordRef;
         GeneratePDF, IsFormatSet, IsCreditMemo : Boolean;
         DocumentCurrencyCode: Text;
         CbcNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
@@ -41,10 +41,10 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
     /// <param name="SourceDocumentHeader">RecordRef for "Purch. Inv. Header" or "Purch. Cr. Memo Hdr.".</param>
     procedure GenerateXML(var SourceDocumentHeader: RecordRef)
     var
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        PurchInvLine: Record "Purch. Inv. Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        PurchInvLine: Record "Purch. Inv. Line";
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         LineRecRef: RecordRef;
     begin
         this.IsCreditMemo := SourceDocumentHeader.Number() = Database::"Purch. Cr. Memo Hdr.";
@@ -122,10 +122,10 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
 
     local procedure InitializeXMLDocument()
     var
-        RootElement: XmlElement;
-        XmlNsAttr: XmlAttribute;
         RootName: Text;
         RootNamespace: Text;
+        XmlNsAttr: XmlAttribute;
+        RootElement: XmlElement;
     begin
         this.SelfBilledXML := XmlDocument.Create();
 
@@ -388,24 +388,24 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         TempVATAmtLine: Record "VAT Amount Line" temporary;
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
         PurchaseLineRecRef: RecordRef;
-        TaxTotalNode: XmlNode;
-        TaxSubtotalNode: XmlNode;
-        TaxCategoryNode: XmlNode;
-        TaxSchemeNode: XmlNode;
-        ChildNode: XmlNode;
-        TaxAmount: Text;
-        TaxTotalCurrencyID: Text;
-        TaxableAmount: Text;
-        TaxAmountCurrencyID: Text;
+        SchemeID: Text;
         SubtotalTaxAmount: Text;
+        TaxableAmount: Text;
+        TaxAmount: Text;
+        TaxAmountCurrencyID: Text;
+        TaxCategoryPercent: Text;
+        TaxExemptionReason: Text;
         TaxSubtotalCurrencyID: Text;
+        TaxTotalCurrencyID: Text;
+        TaxTotalTaxCategoryID: Text;
+        TaxTotalTaxSchemeID: Text;
         TransactionCurrencyTaxAmount: Text;
         TransCurrTaxAmtCurrencyID: Text;
-        TaxTotalTaxCategoryID: Text;
-        SchemeID: Text;
-        TaxCategoryPercent: Text;
-        TaxTotalTaxSchemeID: Text;
-        TaxExemptionReason: Text;
+        ChildNode: XmlNode;
+        TaxCategoryNode: XmlNode;
+        TaxSchemeNode: XmlNode;
+        TaxSubtotalNode: XmlNode;
+        TaxTotalNode: XmlNode;
     begin
         this.PEPPOL30Common.GetInvoiceRoundingLine(this.PostedDocumentHeaderRecRef, TempPurchaseLineRounding, this.GetFormat());
         this.PEPPOL30Common.SetFilters(this.PostedDocumentHeaderRecRef, PurchaseLineRecRef, TempPurchaseLineRounding);
