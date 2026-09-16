@@ -12,12 +12,14 @@ tableextension 7110 "Expense Employee" extends Employee
     {
         field(7100; "Is Expense User"; Boolean)
         {
+            Access = Internal;
             Caption = 'Is Expense User';
             FieldClass = FlowField;
             CalcFormula = exist("Expense User" where("Employee No." = field("No.")));
         }
         field(7101; "Travel Request SystemId Filter"; Guid)
         {
+            Access = Internal;
             Caption = 'Travel Request SystemId Filter';
             FieldClass = FlowFilter;
         }
