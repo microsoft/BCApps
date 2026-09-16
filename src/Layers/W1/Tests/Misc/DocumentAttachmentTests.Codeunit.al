@@ -4721,9 +4721,8 @@ codeunit 134776 "Document Attachment Tests"
         Customer: Record Customer;
         DocumentAttachment: Record "Document Attachment";
         DocumentAttachmentTests: Codeunit "Document Attachment Tests";
-        DocumentAttachmentDetails: Page "Document Attachment Details";
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
         RecRef: RecordRef;
-        RecRef2: RecordRef;
     begin
         // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
         Initialize();
@@ -4740,10 +4739,11 @@ codeunit 134776 "Document Attachment Tests"
         DocumentAttachmentTests.SetSubscriberSourceRecord(Customer.RecordId());
         BindSubscription(DocumentAttachmentTests);
 
-        // [WHEN] Show details is invoked for that attachment.
-        RecRef2.Get(Customer.RecordId());
-        DocumentAttachmentDetails.OpenForRecRef(RecRef2);
-        DocumentAttachmentDetails.RunModal();
+        // [WHEN] Show details is invoked for that attachment on the factbox.
+        DocAttachmentListFactbox.OpenView();
+        DocAttachmentListFactbox.Filter.SetFilter("Table ID", Format(DocumentAttachment."Table ID"));
+        DocAttachmentListFactbox.Filter.SetFilter("No.", DocumentAttachment."No.");
+        DocAttachmentListFactbox.OpenInDetail.Invoke();
         UnbindSubscription(DocumentAttachmentTests);
 
         // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
