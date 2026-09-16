@@ -3922,7 +3922,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
 
         // [GIVEN] A released production order whose subcontracting operation is followed by a non-subcontracting operation.
         OperationNo := Format(10 + LibraryRandom.RandInt(10));
-        CreateSubcontractingSetup(SubcontractingWorkCenter, RoutingHeader, OperationNo);
+        CreateSubcontractingSetups(SubcontractingWorkCenter, RoutingHeader, OperationNo);
         UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::"Under Development");
         CreateWorkCenterSetup(WorkCenter, CapacityUnitOfMeasure.Type::Minutes, 160000T, 235959T);
         CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
@@ -3933,7 +3933,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
             ProductionOrder."Source Type"::Item, false);
 
         // [GIVEN] A subcontracting purchase order created from the subcontracting worksheet is received and invoiced.
-        CalculateSubcontractOrder(RequisitionLine, SubcontractingWorkCenter."No.", ProductionOrder);
+        CalculateSubcontractOrders(RequisitionLine, SubcontractingWorkCenter."No.", ProductionOrder);
         LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -4078,7 +4078,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         CapacityItemJournalBatch.Modify(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure CreateSubcontractingSetup(var WorkCenter: Record "Work Center"; var RoutingHeader: Record "Routing Header"; OperationNo: Code[10])
     var
         RoutingLine: Record "Routing Line";
@@ -4396,7 +4396,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         AvailabilityManagement.SetSourceRecord(TempOrderPromisingLine, SalesHeader);
         AvailabilityManagement.CalcCapableToPromise(TempOrderPromisingLine, SalesHeader."No.");
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure CalculateSubcontractOrder(var RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20]; ProductionOrder: Record "Production Order")
     var
         WorkCenter: Record "Work Center";
@@ -6588,5 +6588,32 @@ codeunit 137063 "SCM Manufacturing 7.0"
         RoutingLine.Validate("Setup Time", LibraryRandom.RandInt(50));
         RoutingLine.Validate("Run Time", LibraryRandom.RandInt(50));
         RoutingLine.Modify(true);
+    end;
+
+    local procedure CalculateSubcontractOrders(var RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20]; ProductionOrder: Record "Production Order")
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        WorkCenter.SetRange("No.", WorkCenterNo);
+#pragma warning disable AL0432
+        LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
+#pragma warning restore AL0432
+        FindRequisitionLineForProductionOrder(RequisitionLine, ProductionOrder);
+    end;
+
+    local procedure CreateSubcontractingSetups(var WorkCenter: Record "Work Center"; var RoutingHeader: Record "Routing Header"; OperationNo: Code[10])
+    var
+        RoutingLine: Record "Routing Line";
+        MachineCenter: Record "Machine Center";
+    begin
+        CreateWorkCenter(WorkCenter);
+        CreateMachineCenterSetup(MachineCenter, WorkCenter."No.");
+        CreateRouting(RoutingHeader, RoutingLine, MachineCenter."No.", RoutingHeader.Type::Serial, RoutingLine.Type::"Machine Center");
+        UpdateRoutingLine(RoutingLine, LibraryRandom.RandInt(15), LibraryRandom.RandInt(15), 0);
+
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', OperationNo, RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Wait Time", LibraryRandom.RandInt(5));
+        RoutingLine.Modify(true);
+        UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
     end;
 }
