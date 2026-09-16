@@ -20,6 +20,7 @@ codeunit 130566 "AIT Request Context"
         CurrentResourceProvider: Interface IAgentTestResourceProvider;
         AgentUserSecurityId: Guid;
         LoadResources: Boolean;
+        ProviderStates: JsonObject;
 
     procedure SetAgentUserSecurityId(NewAgentUserSecurityId: Guid)
     begin
@@ -62,11 +63,33 @@ codeunit 130566 "AIT Request Context"
         exit(LoadResources);
     end;
 
+    procedure SetProviderState(Provider: Enum "AIT Request Provider"; State: JsonObject)
+    var
+        ProviderKey: Text;
+    begin
+        ProviderKey := Format(Provider.AsInteger(), 0, 9);
+        if ProviderStates.Contains(ProviderKey) then
+            ProviderStates.Replace(ProviderKey, State.Clone())
+        else
+            ProviderStates.Add(ProviderKey, State.Clone());
+    end;
+
+    procedure GetProviderState(Provider: Enum "AIT Request Provider"): JsonObject
+    var
+        State: JsonToken;
+        EmptyState: JsonObject;
+    begin
+        if ProviderStates.Get(Format(Provider.AsInteger(), 0, 9), State) then
+            exit(State.AsObject().Clone().AsObject());
+        exit(EmptyState);
+    end;
+
     procedure Reset()
     begin
         Clear(CurrentAgentTask);
         Clear(CurrentResourceProvider);
         Clear(AgentUserSecurityId);
+        Clear(ProviderStates);
         LoadResources := false;
     end;
 }
