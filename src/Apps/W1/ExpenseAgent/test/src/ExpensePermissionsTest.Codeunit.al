@@ -10,7 +10,6 @@ using Microsoft.HumanResources.Setup;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.TestLibraries.Security.AccessControl;
 
 codeunit 148338 "Expense Permissions Test"
 {
