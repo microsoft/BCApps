@@ -1443,13 +1443,14 @@ codeunit 139883 "E-Doc Process Test"
     [Test]
     procedure FinishDraftSalesOrder_LineRequestedDeliveryDateDoesNotLeakFromHeader()
     var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocRecordLink: Record "E-Doc. Record Link";
         EDocument: Record "E-Document";
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocSalesLine: Record "E-Document Sales Line";
-        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        Item: Record Item;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Item: Record Item;
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
@@ -1459,6 +1460,7 @@ codeunit 139883 "E-Doc Process Test"
         // Work date must be on/after the 'XYZ' currency's exchange rate start (22-Jan-2026, set up in Initialize)
         // and on/before the XML's requested delivery dates (Feb 2026), or Sales Line validation blocks on a shipment date before work date.
         WorkDate(DMY2Date(22, 1, 2026));
+        EDocRecordLink.DeleteAll();
 
         // [GIVEN] The XML is parsed into staging records (header RDD = 15-Feb-2026, line 1 RDD = 20-Feb-2026, line 2 has no Delivery block)
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
@@ -1491,17 +1493,23 @@ codeunit 139883 "E-Doc Process Test"
         SalesHeader.Get(EDocument."Document Record ID");
         Assert.AreEqual(DMY2Date(15, 2, 2026), SalesHeader."Requested Delivery Date", 'Sales Header Requested Delivery Date should match the XML header value.');
 
-        // [THEN] Line 1 (Widget A) keeps its own, different Requested Delivery Date
+        // [THEN] Line 1 (Widget A, E-Doc Line No. 10000) keeps its own, different Requested Delivery Date;
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.SetRange(Description, 'Widget A');
-        SalesLine.FindFirst();
-        Assert.AreEqual(DMY2Date(20, 2, 2026), SalesLine."Requested Delivery Date", 'Line 1 Requested Delivery Date should match its own XML value, not the header.');
+        SalesLine.FindSet();
+        repeat
+            EDocRecordLink.SetRange("Target Table No.", Database::"Sales Line");
+            EDocRecordLink.SetRange("Target SystemId", SalesLine.SystemId);
+            EDocRecordLink.FindFirst();
+            EDocSalesLine.GetBySystemId(EDocRecordLink."Source SystemId");
 
-        // [THEN] Line 2 (Widget B), which has no Delivery block in the XML, stays blank instead of inheriting the header's date
-        SalesLine.SetRange(Description, 'Widget B');
-        SalesLine.FindFirst();
-        Assert.AreEqual(0D, SalesLine."Requested Delivery Date", 'Line 2 Requested Delivery Date should stay blank, not leak the header value.');
+            case EDocSalesLine."Line No." of
+                10000:
+                    Assert.AreEqual(DMY2Date(20, 2, 2026), SalesLine."Requested Delivery Date", 'Line 1 Requested Delivery Date should match its own XML value, not the header.');
+                20000:
+                    Assert.AreEqual(0D, SalesLine."Requested Delivery Date", 'Line 2 Requested Delivery Date should stay blank, not leak the header value.');
+            end;
+        until SalesLine.Next() = 0;
     end;
 
     [Test]
