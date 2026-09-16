@@ -403,6 +403,59 @@ codeunit 140011 "Test FAB Config Package"
     end;
 
     [Test]
+    procedure RegisterPackageSkipsReapplyWhenCapacityWouldBeExceeded()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        TableIdsV1: List of [Integer];
+        TableIdsV2: List of [Integer];
+        i: Integer;
+    begin
+        //[SCENARIO] Re-registering an active package at a new version skips the automatic reapply when it would exceed the platform table limit
+        //[GIVEN] An activated package at v1.0 with one table
+        TableIdsV1.Add(18);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIdsV1);
+        Pkg.Get('MS-STD');
+        FabricConfigPkgMgt.Activate(Pkg);
+        //[GIVEN] The platform table is filled to the maximum capacity
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - 1 do begin
+            TenantFabricTables.Init();
+            TenantFabricTables."Table ID" := 100000 + i; // Arbitrary IDs distinct from tables 18 and 27
+            TenantFabricTables.Insert(false);
+        end;
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] The package is re-registered at v2.0 with an additional table that would exceed capacity
+        TableIdsV2.Add(18);
+        TableIdsV2.Add(27);
+        FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '2.0', TableIdsV2);
+
+        //[THEN] The reapply is skipped without aborting, and the package is left ready for a later reapply
+        VerifyReapplySkippedButPackageReady();
+    end;
+
+    local procedure VerifyReapplySkippedButPackageReady()
+    var
+        Pkg: Record "Fabric Config Package";
+        PackageLine: Record "Fabric Config Package Line";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+    begin
+        Assert.IsFalse(TenantFabricTables.Get(27), 'Expected the new table to not be applied to the platform when capacity would be exceeded.');
+        Assert.IsTrue(PackageLine.Get('MS-STD', 27), 'Expected the new table to still be part of the package definition.');
+        Pkg.Get('MS-STD');
+        Assert.AreEqual('2.0', Pkg.Version, 'Expected the package version to be updated even though reapply was skipped.');
+        Assert.AreEqual('1.0', Pkg."Last Activated Version", 'Expected the last activated version to remain unchanged since reapply was skipped.');
+        Assert.IsTrue(Pkg.Active, 'Expected the package to remain active.');
+        Assert.IsTrue(FabricConfigPkgMgt.IsReapplyAvailable(Pkg), 'Expected reapply to still be available for a later attempt.');
+    end;
+
+    [Test]
     procedure RegisterPackageReleasesClaimForTableDroppedFromActivePackage()
     var
         Pkg: Record "Fabric Config Package";
