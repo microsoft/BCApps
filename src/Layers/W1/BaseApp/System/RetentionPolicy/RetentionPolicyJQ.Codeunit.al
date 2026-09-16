@@ -72,7 +72,7 @@ codeunit 3997 "Retention Policy JQ"
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         // The dispatcher activates Waiting entries when their category is available.
         JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
-        if JobQueueEntry.FindFirst() then
+        if not JobQueueEntry.IsEmpty() then
             exit(false);
 
         JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold");
@@ -88,7 +88,7 @@ codeunit 3997 "Retention Policy JQ"
         // A restartable entry may have become Waiting before the locked lookup.
         JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
-        if JobQueueEntry.FindFirst() then
+        if not JobQueueEntry.IsEmpty() then
             exit(false);
 
         // Enqueue inserts only when no primary key is retained from a previous lookup.
