@@ -46,6 +46,7 @@
         ExportAccounts.ExportChartOfAccounts(Year, Month);
 
         LibraryFileMgtHandler.GetTempBlob(TempBlob);
+        VerifyXMLAgainstXSDSchema(TempBlob, XSDSchemaFile_ChartOfAccount);
     end;
 
     [Test]
