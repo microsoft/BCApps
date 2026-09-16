@@ -587,6 +587,8 @@ codeunit 149951 "IT Subc. Migration"
         PurchaseHeader: Record "Purchase Header";
         Location: Record Location;
         LegacySubcontractingLocations: Dictionary of [Code[10], Boolean];
+        VendorSubcontractingLocations: Dictionary of [Code[10], Boolean];
+        PurchaseHeaderSubcontractingLocations: Dictionary of [Code[10], Boolean];
         LocationCode: Code[10];
         UnsupportedWarehouseSettings: Text;
         CollectedErrors: List of [ErrorInfo];
@@ -599,6 +601,7 @@ codeunit 149951 "IT Subc. Migration"
         if Vendor.FindSet() then
             repeat
                 AddLegacySubcontractingLocation(LegacySubcontractingLocations, Vendor."Subcontracting Location Code");
+                AddLegacySubcontractingLocation(VendorSubcontractingLocations, Vendor."Subcontracting Location Code");
             until Vendor.Next() = 0;
 
         SetPurchaseHeaderMigrationFilters(PurchaseHeader);
@@ -606,6 +609,7 @@ codeunit 149951 "IT Subc. Migration"
         if PurchaseHeader.FindSet() then
             repeat
                 AddLegacySubcontractingLocation(LegacySubcontractingLocations, PurchaseHeader."Subcontracting Location Code");
+                AddLegacySubcontractingLocation(PurchaseHeaderSubcontractingLocations, PurchaseHeader."Subcontracting Location Code");
             until PurchaseHeader.Next() = 0;
 
         Location.SetLoadFields(
@@ -619,7 +623,11 @@ codeunit 149951 "IT Subc. Migration"
             if not Location.Get(LocationCode) then
                 Error(ErrorInfo.Create(StrSubstNo(MissingSubcontractingLocationErr, LocationCode), true))
             else begin
-                UnsupportedWarehouseSettings := GetUnsupportedWarehouseSettings(Location);
+                UnsupportedWarehouseSettings :=
+                    GetUnsupportedWarehouseSettings(
+                        Location,
+                        VendorSubcontractingLocations.ContainsKey(LocationCode),
+                        PurchaseHeaderSubcontractingLocations.ContainsKey(LocationCode));
                 if UnsupportedWarehouseSettings <> '' then
                     Error(ErrorInfo.Create(StrSubstNo(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings), true));
             end;
@@ -642,15 +650,25 @@ codeunit 149951 "IT Subc. Migration"
             LegacySubcontractingLocations.Add(LocationCode, true);
     end;
 
-    local procedure GetUnsupportedWarehouseSettings(Location: Record Location): Text
+    local procedure GetUnsupportedWarehouseSettings(Location: Record Location; IsVendorLocation: Boolean; IsPurchaseHeaderLocation: Boolean): Text
     var
         UnsupportedWarehouseSettings: Text;
     begin
-        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Bin Mandatory", Location.FieldCaption("Bin Mandatory"));
-        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Pick", Location.FieldCaption("Require Pick"));
-        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Put-away", Location.FieldCaption("Require Put-away"));
-        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Receive", Location.FieldCaption("Require Receive"));
-        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Shipment", Location.FieldCaption("Require Shipment"));
+        // Vendor."Subc. Location Code" rejects all warehouse handling settings below (SubcVendor.TableExt.al).
+        // "Purchase Header"."Subc. Location Code" only rejects Bin Mandatory (SubcPurchaseHeader.TableExt.al).
+        // Apply the vendor's stricter rule set whenever the location is used as a vendor subcontracting location,
+        // even if the same location is also used on a purchase header.
+        if IsVendorLocation then begin
+            AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Bin Mandatory", Location.FieldCaption("Bin Mandatory"));
+            AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Pick", Location.FieldCaption("Require Pick"));
+            AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Put-away", Location.FieldCaption("Require Put-away"));
+            AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Receive", Location.FieldCaption("Require Receive"));
+            AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Shipment", Location.FieldCaption("Require Shipment"));
+        end else
+            if IsPurchaseHeaderLocation then
+                AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Bin Mandatory", Location.FieldCaption("Bin Mandatory"));
+
+        // Both target fields' table relations exclude in-transit locations.
         AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Use As In-Transit", Location.FieldCaption("Use As In-Transit"));
         exit(UnsupportedWarehouseSettings);
     end;

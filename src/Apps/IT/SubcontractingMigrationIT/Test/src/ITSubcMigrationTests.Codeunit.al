@@ -938,6 +938,35 @@ codeunit 149956 "IT Subc. Migration Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CheckSubcontractingLocations_AllowsPurchaseHeaderOnlyLocationWithSupportedWarehouseHandling()
+    var
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        SupportedLocation: Record Location;
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [SCENARIO] The migration precheck does not block a purchase-header-only legacy location whose only
+        // enabled warehouse handling setting is one the purchase header's target field allows
+        Initialize();
+
+        // [GIVEN] A purchase header whose legacy subcontracting location requires picks but is not bin-mandatory
+        // and is not referenced by any vendor
+        LibraryWarehouse.CreateLocation(SupportedLocation);
+        SupportedLocation."Require Pick" := true;
+        SupportedLocation.Modify(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader."Subcontracting Location Code" := SupportedLocation.Code;
+        PurchaseHeader.Modify(false);
+
+        // [WHEN] The subcontracting location precheck runs
+        ITSubcMigration.CheckSubcontractingLocations();
+
+        // [THEN] No error is thrown because "Require Pick" is not restricted for purchase-header-only locations
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure StartDisableLegacySubcontracting_BlocksInTransitLocationBeforeMigration()
     var
         Vendor: Record Vendor;
