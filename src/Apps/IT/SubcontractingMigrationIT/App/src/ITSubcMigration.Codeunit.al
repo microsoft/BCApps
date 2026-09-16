@@ -593,6 +593,7 @@ codeunit 149951 "IT Subc. Migration"
         UnsupportedWarehouseSettings: Text;
         CollectedErrors: List of [ErrorInfo];
         CollectedError: ErrorInfo;
+        LocationError: ErrorInfo;
         BlockingError: ErrorInfo;
         BlockingErrorTextBuilder: TextBuilder;
     begin
@@ -620,16 +621,25 @@ codeunit 149951 "IT Subc. Migration"
             "Require Shipment",
             "Use As In-Transit");
         foreach LocationCode in LegacySubcontractingLocations.Keys() do
-            if not Location.Get(LocationCode) then
-                Error(ErrorInfo.Create(StrSubstNo(MissingSubcontractingLocationErr, LocationCode), true))
-            else begin
+            if not Location.Get(LocationCode) then begin
+                Clear(LocationError);
+                LocationError.Message := StrSubstNo(MissingSubcontractingLocationErr, LocationCode);
+                LocationError.DataClassification := DataClassification::CustomerContent;
+                LocationError.Collectible := true;
+                Error(LocationError);
+            end else begin
                 UnsupportedWarehouseSettings :=
                     GetUnsupportedWarehouseSettings(
                         Location,
                         VendorSubcontractingLocations.ContainsKey(LocationCode),
                         PurchaseHeaderSubcontractingLocations.ContainsKey(LocationCode));
-                if UnsupportedWarehouseSettings <> '' then
-                    Error(ErrorInfo.Create(StrSubstNo(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings), true));
+                if UnsupportedWarehouseSettings <> '' then begin
+                    Clear(LocationError);
+                    LocationError.Message := StrSubstNo(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings);
+                    LocationError.DataClassification := DataClassification::CustomerContent;
+                    LocationError.Collectible := true;
+                    Error(LocationError);
+                end;
             end;
 
         if HasCollectedErrors() then begin
