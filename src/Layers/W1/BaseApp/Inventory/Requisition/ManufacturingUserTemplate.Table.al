@@ -72,7 +72,7 @@ table 5525 "Manufacturing User Template"
         {
             Caption = 'Prod. Req. Wksh. Template';
             ToolTip = 'Specifies the production requisition worksheet template associated with this entry.';
-            TableRelation = "Req. Wksh. Template" where(Type = const(Planning));
+            TableRelation = "Req. Wksh. Template" where(Type = const(Planning), Recurring = const(false));
         }
         field(16; "Prod. Wksh. Name"; Code[10])
         {
