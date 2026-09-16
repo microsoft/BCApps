@@ -295,6 +295,19 @@ codeunit 130560 "Library - Agent"
     end;
 
     /// <summary>
+    /// Sends the current turn's query through the selected request provider and waits for execution to finish.
+    /// Non-BC providers can use an empty request context without an agent or task record.
+    /// </summary>
+    /// <param name="RequestProvider">The provider that executes the current turn's query.</param>
+    /// <param name="RequestContext">Caller-owned execution state retained across turns. Reset before reusing it for another evaluation.</param>
+    /// <param name="RequestResult">Returns execution status, assistant text, and separate diagnostics. The dispatcher resets it before each request.</param>
+    /// <returns>True if execution succeeded; false otherwise. This does not indicate whether the answer is correct.</returns>
+    procedure RunTurnAndWait(RequestProvider: Enum "AIT Request Provider"; var RequestContext: Codeunit "AIT Request Context"; var RequestResult: Codeunit "AIT Request Result"): Boolean
+    begin
+        exit(LibraryAgentImpl.RunTurnAndWait(RequestProvider, RequestContext, RequestResult));
+    end;
+
+    /// <summary>
     /// Gets the expected intervention request from the current turn's expected data.
     /// Uses AITTestContext.GetExpectedData() which is multi-turn aware (resolves to current turn).
     /// </summary>
