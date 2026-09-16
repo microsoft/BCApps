@@ -373,7 +373,7 @@ codeunit 20508 "Subc. Price Management"
             exit(false);
 
         PriceListCost := SubcontractorPrice."Direct Unit Cost";
-        if PriceListCost <> 0 then
+        if (PriceListCost <> 0) and (PriceListQty <> 0) then
             if (PriceListCost * PriceListQty) < SubcontractorPrice."Minimum Amount" then
                 PriceListCost := SubcontractorPrice."Minimum Amount" / PriceListQty;
         exit(true);
