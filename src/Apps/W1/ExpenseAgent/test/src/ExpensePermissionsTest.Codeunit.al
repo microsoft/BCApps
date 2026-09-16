@@ -11,7 +11,6 @@ using Microsoft.HumanResources.Setup;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
-using System.TestLibraries.Security.AccessControl;
 
 codeunit 148338 "Expense Permissions Test"
 {
@@ -25,7 +24,6 @@ codeunit 148338 "Expense Permissions Test"
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        UserPermissionsLibrary: Codeunit "User Permissions Library";
         IsInitialized: Boolean;
         AgentAdminPermissionSetTok: Label 'Agent - Admin', Locked = true;
         BaseApplicationAppIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
@@ -323,12 +321,11 @@ codeunit 148338 "Expense Permissions Test"
         PrepareAadApplication(AadApplication, AadApplication.State::Disabled);
 
         // [GIVEN] SUPER user "U" has none of the additional Expense Agent administrator permission sets
-        SetExpenseAgentManagementPermissions(false, false, false, false);
+        PrepareCurrentUserPermissionAssignments();
         VerifySuperWithoutAdditionalExpenseAgentPermissionSets();
 
         // [WHEN] "U" activates "EA"
         ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
-        RestoreExpenseAgentManagementPermissions();
 
         // [THEN] "EA" is enabled with one current-company Expense Agent permission
         VerifyAadApplicationState(AadApplication.State::Enabled);
@@ -349,12 +346,11 @@ codeunit 148338 "Expense Permissions Test"
         AssignExpenseAgentPermission(AadApplication, GetCurrentCompanyName());
 
         // [GIVEN] SUPER user "U" has none of the additional Expense Agent administrator permission sets
-        SetExpenseAgentManagementPermissions(false, false, false, false);
+        PrepareCurrentUserPermissionAssignments();
         VerifySuperWithoutAdditionalExpenseAgentPermissionSets();
 
         // [WHEN] "U" deactivates "EA"
         ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
-        RestoreExpenseAgentManagementPermissions();
 
         // [THEN] The current-company Expense Agent permission is removed
         VerifyExpenseAgentPermissionCount(AadApplication, GetCurrentCompanyName(), 0);
@@ -376,30 +372,6 @@ codeunit 148338 "Expense Permissions Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Permissions Test");
-    end;
-
-    local procedure SetExpenseAgentManagementPermissions(IncludeAgentAdmin: Boolean; IncludeExpenseMgmtAdmin: Boolean; IncludeSecurity: Boolean; IncludeExpenseAgent: Boolean)
-    begin
-        PrepareCurrentUserPermissionAssignments();
-
-        if IncludeAgentAdmin then
-            AssignCurrentUserPermissionSet(AgentAdminPermissionSetTok);
-        if IncludeExpenseMgmtAdmin then
-            AssignCurrentUserExpensePermissionSet(ExpenseMgmtAdminPermissionSetTok);
-        if IncludeSecurity then
-            UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), SecurityPermissionSetTok);
-        if IncludeExpenseAgent then
-            AssignCurrentUserExpensePermissionSet(ExpenseAgentPermissionSetTok);
-
-        LibraryLowerPermissions.SetExactPermissionSet(D365BasicPermissionSetTok);
-        if IncludeAgentAdmin then
-            LibraryLowerPermissions.AddPermissionSet(AgentAdminPermissionSetTok);
-        if IncludeExpenseMgmtAdmin then
-            LibraryLowerPermissions.AddPermissionSet(ExpenseMgmtAdminPermissionSetTok);
-        if IncludeSecurity then
-            LibraryLowerPermissions.AddSecurity();
-        if IncludeExpenseAgent then
-            LibraryLowerPermissions.AddPermissionSet(ExpenseAgentPermissionSetTok);
     end;
 
     local procedure PrepareCurrentUserPermissionAssignments()
@@ -447,11 +419,6 @@ codeunit 148338 "Expense Permissions Test"
             'Expense Agent must not be assigned.');
     end;
 
-    local procedure RestoreExpenseAgentManagementPermissions()
-    begin
-        RestoreFullPermissions();
-    end;
-
     local procedure RemoveCurrentUserPermissionSet(PermissionSetId: Code[20])
     var
         AccessControl: Record "Access Control";
@@ -486,36 +453,6 @@ codeunit 148338 "Expense Permissions Test"
         AccessControl."User Security ID" := AadApplication."User ID";
         AccessControl."Role ID" := AggregatePermissionSet."Role ID";
         AccessControl."Company Name" := CompanyNameValue;
-        AccessControl.Scope := AggregatePermissionSet.Scope;
-        AccessControl."App ID" := AggregatePermissionSet."App ID";
-        AccessControl.Insert(true);
-    end;
-
-    local procedure AssignCurrentUserExpensePermissionSet(PermissionSetId: Code[20])
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-    begin
-        GetExpensePermissionSet(AggregatePermissionSet, PermissionSetId);
-        AccessControl.Init();
-        AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
-        AccessControl."Company Name" := GetCurrentCompanyName();
-        AccessControl.Scope := AggregatePermissionSet.Scope;
-        AccessControl."App ID" := AggregatePermissionSet."App ID";
-        AccessControl.Insert(true);
-    end;
-
-    local procedure AssignCurrentUserPermissionSet(PermissionSetId: Code[20])
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-    begin
-        AggregatePermissionSet.SetRange("Role ID", PermissionSetId);
-        AggregatePermissionSet.FindFirst();
-        AccessControl.Init();
-        AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
         AccessControl.Scope := AggregatePermissionSet.Scope;
         AccessControl."App ID" := AggregatePermissionSet."App ID";
         AccessControl.Insert(true);
