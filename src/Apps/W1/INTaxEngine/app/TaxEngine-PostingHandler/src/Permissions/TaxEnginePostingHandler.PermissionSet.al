@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.PostingHandler;
 
-permissionset 20334 "TAX ENGINE POSTING HANDLER"
+permissionset 20334 "TAX ENGINE POSTING"
 {
     Access = Public;
     Assignable = true;

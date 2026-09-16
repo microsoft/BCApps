@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.ScriptHandler;
 
-permissionset 20156 "TAX ENGINE SCRIPT HANDLER"
+permissionset 20156 "TAX ENGINE SCRIPT"
 {
     Access = Public;
     Assignable = true;

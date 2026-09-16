@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.TaxTypeHandler;
 
-permissionset 20232 "TAX ENGINE TAX TYPE HANDLER"
+permissionset 20232 "TAX ENGINE TAX TYPE"
 {
     Access = Public;
     Assignable = true;

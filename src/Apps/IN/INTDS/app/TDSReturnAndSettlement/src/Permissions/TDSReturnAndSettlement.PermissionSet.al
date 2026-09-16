@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TDS.TDSReturnAndSettlement;
 
-permissionset 18746 "TDS RETURN AND SETTLEMENT"
+permissionset 18746 "TDS RETURN SETTLE"
 {
     Access = Public;
     Assignable = true;

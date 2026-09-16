@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TCS.TCSReturnAndSettlement;
 
-permissionset 18869 "TCS RETURN AND SETTLEMENT"
+permissionset 18869 "TCS RETURN SETTLE"
 {
     Access = Public;
     Assignable = true;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.JsonExchange;
 
-permissionset 20360 "TAX ENGINE JSON EXCHANGE"
+permissionset 20360 "TAX ENGINE JSON EXCH"
 {
     Access = Public;
     Assignable = true;

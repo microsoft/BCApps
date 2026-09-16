@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.Core;
 
-permissionset 20130 "TAX ENGINE CORE"
+permissionset 20131 "TAX ENGINE CORE"
 {
     Access = Public;
     Assignable = true;

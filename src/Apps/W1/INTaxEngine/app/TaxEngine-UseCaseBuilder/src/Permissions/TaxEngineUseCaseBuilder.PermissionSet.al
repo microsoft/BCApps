@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.UseCaseBuilder;
 
-permissionset 20283 "TAX ENGINE USE CASE BUILDER"
+permissionset 20283 "TAX ENGINE USE CASE"
 {
     Access = Public;
     Assignable = true;
