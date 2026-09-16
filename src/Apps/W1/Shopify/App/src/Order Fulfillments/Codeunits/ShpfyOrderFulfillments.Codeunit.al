@@ -91,6 +91,7 @@ codeunit 30160 "Shpfy Order Fulfillments"
         OrderFulfillmentRecordRef.GetTable(OrderFulfillment);
         JsonHelper.GetValueIntoField(JFulfillment, 'createdAt', OrderFulfillmentRecordRef, OrderFulfillment.FieldNo("Created At"));
         JsonHelper.GetValueIntoField(JFulfillment, 'updatedAt', OrderFulfillmentRecordRef, OrderFulfillment.FieldNo("Updated At"));
+        JsonHelper.GetValueIntoField(JFulfillment, 'deliveredAt', OrderFulfillmentRecordRef, OrderFulfillment.FieldNo("Delivered At"));
         JsonHelper.GetValueIntoField(JFulfillment, 'name', OrderFulfillmentRecordRef, OrderFulfillment.FieldNo(Name));
         JsonHelper.GetValueIntoField(JFulfillment, 'service.serviceName', OrderFulfillmentRecordRef, OrderFulfillment.FieldNo(Service));
         JArray := JsonHelper.GetJsonArray(JFulfillment, 'trackingInfo');
