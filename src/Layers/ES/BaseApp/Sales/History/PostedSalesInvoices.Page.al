@@ -149,7 +149,7 @@ page 143 "Posted Sales Invoices"
                     ApplicationArea = Basic, Suite;
                     ObsoleteReason = 'Use Ship-to Name instead.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ToolTip = 'Specifies the name of the customer that the items were shipped to.';
                     Visible = false;
                 }
