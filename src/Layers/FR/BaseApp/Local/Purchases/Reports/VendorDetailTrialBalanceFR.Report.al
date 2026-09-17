@@ -19,7 +19,7 @@ report 10808 "Vendor Detail Trial Balance FR"
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to Reports FR app';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     dataset
     {

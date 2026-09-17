@@ -19,7 +19,7 @@ report 10800 "G/L Journal"
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to Reports FR app';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     dataset
     {

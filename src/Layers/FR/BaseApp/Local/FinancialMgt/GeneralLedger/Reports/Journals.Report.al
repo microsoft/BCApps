@@ -20,7 +20,7 @@ report 10801 Journals
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to Reports FR app';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     dataset
     {

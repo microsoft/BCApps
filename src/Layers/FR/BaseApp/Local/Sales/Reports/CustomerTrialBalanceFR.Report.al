@@ -18,7 +18,7 @@ report 10805 "Customer Trial Balance FR"
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to Reports FR app';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     dataset
     {

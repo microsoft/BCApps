@@ -112,7 +112,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View balances for all vendor accounts in six columns: Opening balance debit, Opening balance credit, Period balance debit, Period balance credit, Final balance debit, and Final balance credit.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to Reports FR app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
             }
             action("Vendor Detail Trial Balance")
             {
@@ -123,7 +123,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View transactions for all vendor accounts with subtotals per account. Each account shows the opening balance on the first line, and the list of transactions for the account and a closing balance on the last line.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to Reports FR app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
             }
 #endif 
 #if not CLEAN28
@@ -187,7 +187,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View transactions for all vendor accounts with subtotals per period. Each period shows subtotals per source code.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to Reports FR app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
             }
 #endif
             separator(Action63)

@@ -19,7 +19,7 @@ report 10810 "Bank Acc. Detail Trial Balance"
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'Moved to Reports FR app';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     dataset
     {

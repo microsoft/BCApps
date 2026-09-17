@@ -633,7 +633,7 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'France';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to Reports FR app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
 
                         action("Journals1")
                         {
@@ -642,7 +642,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Journals";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("G/L Journal")
                         {
@@ -651,7 +651,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "G/L Journal";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("G/L Trial Balance")
                         {
@@ -660,7 +660,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "G/L Trial Balance";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("G/L Detail Trial Balance")
                         {
@@ -669,7 +669,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "G/L Detail Trial Balance";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("Customer Detail Trial Balance")
                         {
@@ -678,7 +678,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Customer Detail Trial Balance";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("Bank Account Trial Balance")
                         {
@@ -687,7 +687,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Bank Account Trial Balance";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("Bank Acc. Detail Trial Balance")
                         {
@@ -696,7 +696,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Bank Acc. Detail Trial Balance";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("Customer Journal")
                         {
@@ -705,7 +705,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Customer Journal";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("Vendor Journal")
                         {
@@ -714,7 +714,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Vendor Journal";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("Bank Account Journal")
                         {
@@ -723,7 +723,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Bank Account Journal";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to Reports FR app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                         action("GL/Cust. Ledger Reconciliation")
                         {
@@ -750,7 +750,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "G/L Account Statement";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This action is obsolete and should not be used.';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                         }
                     }
 #endif
@@ -1486,7 +1486,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Customer Trial Balance FR";
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to Reports FR app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                     }
 #endif
                     action("Customer - Detail Trial Bal.")
@@ -1851,7 +1851,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Vendor Trial Balance FR";
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to Reports FR app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                     }
                     action("Vendor - Detail Trial Balance")
                     {
@@ -1861,7 +1861,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Vendor - Detail Trial Balance report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to Reports FR app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '30.0';
                     }
 #endif
                     action("Vendor - Labels")
