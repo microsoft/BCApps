@@ -42,7 +42,7 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         // [GIVEN] A purchase order with a line
         LibraryLowerPermission.SetO365BusFull();
         LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 1);
-        
+
         EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
         Assert.RecordIsEmpty(EDocument);
 
@@ -60,6 +60,43 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         Assert.AreEqual(PurchaseHeader."Pay-to Vendor No.", EDocument."Bill-to/Pay-to No.", IncorrectValueErr);
         Assert.AreEqual(PurchaseHeader."Pay-to Name", EDocument."Bill-to/Pay-to Name", IncorrectValueErr);
         Assert.AreEqual(Enum::"E-Document Direction"::Outgoing, EDocument.Direction, IncorrectValueErr);
+    end;
+
+    [Test]
+    procedure CannotReReleasePurchaseOrderWithSentEDocument()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocument: Record "E-Document";
+        EDocumentLog: Codeunit "E-Document Log";
+        ReleasePurchaseDocument: Codeunit "Release Purchase Document";
+        ExpectedErr: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 648951] Re-releasing a purchase order that has already been sent electronically is blocked
+        Initialize();
+
+        // [GIVEN] A released purchase order with a sent E-Document
+        LibraryLowerPermission.SetO365BusFull();
+        LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 1);
+        ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
+        EDocument.FindFirst();
+        EDocumentLog.InsertLog(EDocument, EDocumentService, Enum::"E-Document Service Status"::Sent);
+
+        // [GIVEN] The purchase order is reopened and changed
+        ReleasePurchaseDocument.PerformManualReopen(PurchaseHeader);
+        PurchaseLine.Find();
+        PurchaseLine.Validate(Quantity, 2);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The purchase order is released again
+        asserterror ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
+
+        // [THEN] The release is blocked because order changes cannot be sent electronically
+        ExpectedErr := StrSubstNo('Purchase order %1 has already been sent as an electronic document. Changes to sent purchase orders are not supported.', PurchaseHeader."No.");
+        Assert.ExpectedError(ExpectedErr);
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -90,7 +127,7 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
         ReleasePurchaseDocument.PerformManualReopen(PurchaseHeader);
         asserterror PurchaseHeader.Delete(true);
-        
+
         ExpectedErr := 'You cannot delete a purchase order that is linked to an active e-document.';
         Assert.IsTrue(StrPos(GetLastErrorText, ExpectedErr) > 0,
             StrSubstNo(UnexpectedMessageErr, GetLastErrorText, ExpectedErr));

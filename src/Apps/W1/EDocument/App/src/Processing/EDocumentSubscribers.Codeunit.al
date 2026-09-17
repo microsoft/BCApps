@@ -56,6 +56,7 @@ codeunit 6103 "E-Document Subscribers"
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
         RemittanceAdviceCreatedMsg: Label '%1 remittance advice(s) created.', Comment = '%1 - Number of remittance advice e-documents created.';
         RemittanceAdviceAlreadyExistsMsg: Label 'A remittance advice already exists for %1 payment(s).', Comment = '%1 - Number of payments for which a remittance advice already existed.';
+        PurchaseOrderAlreadySentErr: Label 'Purchase order %1 has already been sent as an electronic document. Changes to sent purchase orders are not supported.', Comment = '%1 - Purchase order number';
 
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
@@ -218,7 +219,23 @@ codeunit 6103 "E-Document Subscribers"
         if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
             exit;
 
+        CheckPurchaseOrderNotSent(PurchaseHeader);
         CreateEDocumentFromPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order", true);
+    end;
+
+    local procedure CheckPurchaseOrderNotSent(PurchaseHeader: Record "Purchase Header")
+    var
+        EDocument: Record "E-Document";
+        EDocumentLog: Record "E-Document Log";
+    begin
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
+        if not EDocument.FindFirst() then
+            exit;
+
+        EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        EDocumentLog.SetRange(Status, Enum::"E-Document Service Status"::Sent);
+        if not EDocumentLog.IsEmpty() then
+            Error(PurchaseOrderAlreadySentErr, PurchaseHeader."No.");
     end;
     #endregion Release events
 
