@@ -33,11 +33,9 @@ codeunit 5979 "Service-Post and Send"
     begin
         OnBeforeCode(ServiceHeader);
 
-        ConfirmPostAndSendIsHandled := false;
+        ConfirmPostAndSendIsHandled := ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Invoice, ServiceHeader."Document Type"::"Credit Memo"];
         OnCodeOnBeforeConfirmPostAndSend(ServiceHeader, ConfirmPostAndSendIsHandled);
-        if ConfirmPostAndSendIsHandled or
-           (ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Invoice, ServiceHeader."Document Type"::"Credit Memo"])
-        then begin
+        if ConfirmPostAndSendIsHandled then begin
             if not ConfirmPostAndSend(ServiceHeader, TempDocumentSendingProfile) then
                 exit;
         end else
