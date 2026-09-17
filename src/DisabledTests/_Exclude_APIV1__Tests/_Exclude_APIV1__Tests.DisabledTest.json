@@ -2,21 +2,6 @@
   {
     "codeunitId": 139709,
     "codeunitName": "Sales Invoices E2E",
-    "method": "TestActionCancelAndSendInvoice"
-  },
-  {
-    "codeunitId": 139709,
-    "codeunitName": "Sales Invoices E2E",
-    "method": "TestActionCancelInvoice"
-  },
-  {
-    "codeunitId": 139709,
-    "codeunitName": "Sales Invoices E2E",
-    "method": "TestActionSendCancelledInvoice"
-  },
-  {
-    "codeunitId": 139709,
-    "codeunitName": "Sales Invoices E2E",
     "method": "TestCreateInvoiceThroughPageAndAPI"
   },
   {
@@ -33,16 +18,6 @@
     "codeunitId": 139723,
     "codeunitName": "APIV1 - Sales Quotes E2E",
     "method": "TestCreateQuoteThroughPageAndAPI"
-  },
-  {
-    "codeunitId": 139728,
-    "codeunitName": "APIV1 - Sales Credit Memos E2E",
-    "method": "TestActionCancelAndSendCorrectiveCreditMemo"
-  },
-  {
-    "codeunitId": 139728,
-    "codeunitName": "APIV1 - Sales Credit Memos E2E",
-    "method": "TestActionCancelCorrectiveCreditMemo"
   },
   {
     "codeunitId": 139728,
