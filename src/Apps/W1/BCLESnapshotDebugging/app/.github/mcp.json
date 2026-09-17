@@ -1,0 +1,31 @@
+{
+    "azure-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest",
+        "server",
+        "start"
+      ]
+    },
+        "bc-snapshot": {
+          "type": "stdio",
+          "command": "c:/depot/nav/Run/ALDevEnv/bin/bin/altool.exe",
+          "args": [
+            "launchsnapshotmcpproxy",
+            "--environmenttype",
+            "OnPrem",
+            "--server",
+            "http://localhost",
+            "--serverinstance",
+            "Navision_NAV",
+            "--port",
+            "7047",
+            "--authentication",
+            "Windows",
+            "--loglevel",
+            "Verbose"
+          ]
+        }
+}

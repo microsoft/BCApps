@@ -1,0 +1,18 @@
+{
+  "lspServers": {
+    "al": {
+      "command": "C:\\depot\\29x\\Run\\ALDevEnv\\bin\\bin\\altool.exe",
+      "args": [
+        "launchlspserver",
+        "C:\\depot\\29x\\App\\BCApps\\src\\Apps\\W1\\BCLESnapshotDebugging\\app",
+        "--ruleset",
+        "C:\\depot\\29x\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+        "--loglevel",
+        "Verbose"
+      ],
+      "fileExtensions": {
+        ".al": "al"
+      }
+    }
+  }
+}
