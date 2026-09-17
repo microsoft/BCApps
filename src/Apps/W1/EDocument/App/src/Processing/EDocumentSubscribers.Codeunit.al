@@ -56,7 +56,7 @@ codeunit 6103 "E-Document Subscribers"
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
         RemittanceAdviceCreatedMsg: Label '%1 remittance advice(s) created.', Comment = '%1 - Number of remittance advice e-documents created.';
         RemittanceAdviceAlreadyExistsMsg: Label 'A remittance advice already exists for %1 payment(s).', Comment = '%1 - Number of payments for which a remittance advice already existed.';
-        PurchaseOrderAlreadySentErr: Label 'Purchase order %1 has already been sent as an electronic document. Changes to sent purchase orders are not supported.', Comment = '%1 - Purchase order number';
+        PurchaseOrderAlreadySentQst: Label 'Purchase order %1 has already been sent electronically. The receiver may reject the resent order as a duplicate. Do you want to continue?', Comment = '%1 - Purchase order number';
 
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
@@ -194,6 +194,12 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnBeforeReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var SkipCheckReleaseRestrictions: Boolean; var IsHandled: Boolean)
     begin
         EDocumentProcessing.RunEDocumentCheck(PurchaseHeader, EDocumentProcessingPhase::Release);
+
+        if PreviewMode then
+            exit;
+
+        if not ConfirmReleasingSentPurchaseOrder(PurchaseHeader) then
+            IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Service Document", 'OnBeforeReleaseServiceDoc', '', false, false)]
@@ -219,23 +225,37 @@ codeunit 6103 "E-Document Subscribers"
         if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
             exit;
 
-        CheckPurchaseOrderNotSent(PurchaseHeader);
         CreateEDocumentFromPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order", true);
     end;
 
-    local procedure CheckPurchaseOrderNotSent(PurchaseHeader: Record "Purchase Header")
+    local procedure ConfirmReleasingSentPurchaseOrder(PurchaseHeader: Record "Purchase Header"): Boolean
     var
+        DocumentSendingProfile: Record "Document Sending Profile";
         EDocument: Record "E-Document";
         EDocumentLog: Record "E-Document Log";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        SourceDocumentHeader: RecordRef;
     begin
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit(true);
+
+        SourceDocumentHeader.GetTable(PurchaseHeader);
+        if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
+            exit(true);
+
         EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
         if not EDocument.FindFirst() then
-            exit;
+            exit(true);
 
         EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
         EDocumentLog.SetRange(Status, Enum::"E-Document Service Status"::Sent);
-        if not EDocumentLog.IsEmpty() then
-            Error(PurchaseOrderAlreadySentErr, PurchaseHeader."No.");
+        if EDocumentLog.IsEmpty() then
+            exit(true);
+
+        if not GuiAllowed() then
+            exit(true);
+
+        exit(Confirm(PurchaseOrderAlreadySentQst, false, PurchaseHeader."No."));
     end;
     #endregion Release events
 

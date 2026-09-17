@@ -22,8 +22,10 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Incorrect value found';
+        PurchaseOrderAlreadySentQst: Label 'Purchase order %1 has already been sent electronically. The receiver may reject the resent order as a duplicate. Do you want to continue?', Comment = '%1 - Purchase order number';
 
     [Test]
     procedure ReleaseOfPurchaseOrderCreatesEDocument()
@@ -63,17 +65,20 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
     end;
 
     [Test]
-    procedure CannotReReleasePurchaseOrderWithSentEDocument()
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure CanReReleasePurchaseOrderWithSentEDocumentAfterConfirming()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         EDocument: Record "E-Document";
-        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentLog: Record "E-Document Log";
+        EDocumentLogMgt: Codeunit "E-Document Log";
         ReleasePurchaseDocument: Codeunit "Release Purchase Document";
-        ExpectedErr: Text;
+        ActualQuestion: Text;
+        ExportedLogCount: Integer;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 648951] Re-releasing a purchase order that has already been sent electronically is blocked
+        // [SCENARIO 648951] A sent purchase order can be re-released after accepting the duplicate warning
         Initialize();
 
         // [GIVEN] A released purchase order with a sent E-Document
@@ -82,7 +87,10 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
         EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
         EDocument.FindFirst();
-        EDocumentLog.InsertLog(EDocument, EDocumentService, Enum::"E-Document Service Status"::Sent);
+        EDocumentLogMgt.InsertLog(EDocument, EDocumentService, Enum::"E-Document Service Status"::Sent);
+        EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        EDocumentLog.SetRange(Status, Enum::"E-Document Service Status"::Exported);
+        ExportedLogCount := EDocumentLog.Count();
 
         // [GIVEN] The purchase order is reopened and changed
         ReleasePurchaseDocument.PerformManualReopen(PurchaseHeader);
@@ -91,12 +99,59 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         PurchaseLine.Modify(true);
 
         // [WHEN] The purchase order is released again
-        asserterror ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
+        ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
 
-        // [THEN] The release is blocked because order changes cannot be sent electronically
-        ExpectedErr := StrSubstNo('Purchase order %1 has already been sent as an electronic document. Changes to sent purchase orders are not supported.', PurchaseHeader."No.");
-        Assert.ExpectedError(ExpectedErr);
-        Assert.ExpectedErrorCode('Dialog');
+        // [THEN] The duplicate warning is shown and the purchase order is re-released and re-exported
+        ActualQuestion := LibraryVariableStorage.DequeueText();
+        Assert.AreEqual(StrSubstNo(PurchaseOrderAlreadySentQst, PurchaseHeader."No."), ActualQuestion, 'Unexpected confirmation question');
+        Assert.AreEqual(PurchaseHeader.Status::Released, PurchaseHeader.Status, 'Purchase order should be released');
+        Assert.AreEqual(ExportedLogCount + 1, EDocumentLog.Count(), 'The E-Document should be re-exported');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure DoesNotReReleasePurchaseOrderWithSentEDocumentAfterDeclining()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocument: Record "E-Document";
+        EDocumentLog: Record "E-Document Log";
+        EDocumentLogMgt: Codeunit "E-Document Log";
+        ReleasePurchaseDocument: Codeunit "Release Purchase Document";
+        ActualQuestion: Text;
+        ExportedLogCount: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 648951] Declining the duplicate warning leaves a sent purchase order open
+        Initialize();
+
+        // [GIVEN] A released purchase order with a sent E-Document
+        LibraryLowerPermission.SetO365BusFull();
+        LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 1);
+        ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
+        EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
+        EDocument.FindFirst();
+        EDocumentLogMgt.InsertLog(EDocument, EDocumentService, Enum::"E-Document Service Status"::Sent);
+        EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        EDocumentLog.SetRange(Status, Enum::"E-Document Service Status"::Exported);
+        ExportedLogCount := EDocumentLog.Count();
+
+        // [GIVEN] The purchase order is reopened and changed
+        ReleasePurchaseDocument.PerformManualReopen(PurchaseHeader);
+        PurchaseLine.Find();
+        PurchaseLine.Validate(Quantity, 2);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The duplicate warning is declined during re-release
+        ReleasePurchaseDocument.PerformManualRelease(PurchaseHeader);
+
+        // [THEN] The purchase order remains open and its E-Document is not re-exported
+        ActualQuestion := LibraryVariableStorage.DequeueText();
+        Assert.AreEqual(StrSubstNo(PurchaseOrderAlreadySentQst, PurchaseHeader."No."), ActualQuestion, 'Unexpected confirmation question');
+        Assert.AreEqual(PurchaseHeader.Status::Open, PurchaseHeader.Status, 'Purchase order should remain open');
+        Assert.AreEqual(ExportedLogCount, EDocumentLog.Count(), 'The E-Document should not be re-exported');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -175,6 +230,7 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
+        LibraryVariableStorage.Clear();
 
         if IsInitialized then
             exit;
@@ -196,5 +252,19 @@ codeunit 139790 "E-Doc. Purch. Order Exp. Test"
         LibraryPurchase.SetOrderNoSeriesInSetup();
 
         IsInitialized := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := false;
     end;
 }
