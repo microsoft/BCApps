@@ -140,11 +140,14 @@ codeunit 249 "VAT Registration Log Mgt."
                 Error('');
         end;
 
+        // Validate the response integrity for both the valid and invalid paths: a legitimate VIES response always
+        // echoes the queried country code and VAT number, so a substituted or malformed response (whether it reports
+        // valid=true or valid=false) is rejected before its result is logged for the requested record.
+        ValidateResponseIntegrity(VATRegistrationLog, XMLDoc, Namespace);
+
         case LowerCase(FoundXmlNode.InnerText) of
             'true':
                 begin
-                    ValidateResponseIntegrity(VATRegistrationLog, XMLDoc, Namespace);
-
                     VATRegistrationLog."Entry No." := 0;
                     VATRegistrationLog.Status := VATRegistrationLog.Status::Valid;
                     VATRegistrationLog."Verified Date" := CurrentDateTime;

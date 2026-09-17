@@ -365,7 +365,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         VATRegistrationLogCount := VATRegistrationLog.Count();
         VATRegistrationLog.Ascending(false);
         VATRegistrationLog.FindFirst();
-        CreateInvalidVATCheckResponse(InvalidVATResponseDoc);
+        CreateInvalidVATCheckResponse(InvalidVATResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo());
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, InvalidVATResponseDoc, NamespaceTxt);
         VATRegistrationLog.TestField(Status, VATRegistrationLog.Status::Invalid);
         VATRegistrationLog.TestField("Verified Name", '');
@@ -1588,7 +1588,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Assert.RecordIsEmpty(VATRegistrationLog);
     end;
 
-    local procedure CreateInvalidVATCheckResponse(var XMLDoc: DotNet XmlDocument)
+    local procedure CreateInvalidVATCheckResponse(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text)
     var
         XMLDOMMgt: Codeunit "XML DOM Management";
         VATNode: DotNet XmlNode;
@@ -1596,6 +1596,8 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         XMLDoc := XMLDoc.XmlDocument();
         XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
+        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, InvalidNode);
+        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, InvalidNode);
         XMLDOMMgt.AddElement(VATNode, ValidTxt, 'false', NamespaceTxt, InvalidNode);
     end;
 

@@ -52,6 +52,7 @@ codeunit 148113 "MTDTestPublicIPService"
         Assert.AreEqual('203.0.113.7', ServerIPAddress, 'A within-limit public-IP response should be accepted.');
     end;
 
+    [HttpClientHandler]
     internal procedure OversizedResponseHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
         Response.HttpStatusCode := 200;
@@ -59,6 +60,7 @@ codeunit 148113 "MTDTestPublicIPService"
         exit(false);
     end;
 
+    [HttpClientHandler]
     internal procedure ValidResponseHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
         Response.HttpStatusCode := 200;

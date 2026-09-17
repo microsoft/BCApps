@@ -48,7 +48,6 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         ErrorMessage: Text;
         ContentString: Text;
         HttpStatusCode: Integer;
-        HttpStatusReason: Text;
         ResponseBodyValid: Boolean;
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -73,10 +72,8 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         end;
 
         HttpStatusCode := 0;
-        HttpStatusReason := '';
-        ProcessHttpResponseMessage(HttpResponseMsgNemhandel, ResponseCVRNumber, ContentString, HttpStatusCode, HttpStatusReason, ResponseBodyValid);
+        ProcessHttpResponseMessage(HttpResponseMsgNemhandel, ResponseCVRNumber, ContentString, HttpStatusCode, ResponseBodyValid);
         CustomDimensions.Add('HttpStatusCode', Format(HttpStatusCode));
-        CustomDimensions.Add('HttpStatusReason', HttpStatusReason);
 
         case HttpStatusCode of
             200:
@@ -127,13 +124,12 @@ codeunit 13608 "Nemhandel Status Page Bckgrnd"
         NemhandelMgt.SetHttpClient(HttpClientNemhandel);
     end;
 
-    local procedure ProcessHttpResponseMessage(HttpResponseMsgNemhandel: Interface "Http Response Msg Nemhandel"; var ResponseCVRNumber: Text; var ContentString: Text; var HttpStatusCode: Integer; var HttpStatusReason: Text; var ResponseBodyValid: Boolean)
+    local procedure ProcessHttpResponseMessage(HttpResponseMsgNemhandel: Interface "Http Response Msg Nemhandel"; var ResponseCVRNumber: Text; var ContentString: Text; var HttpStatusCode: Integer; var ResponseBodyValid: Boolean)
     var
         AuditLog: Codeunit "Audit Log";
     begin
         ResponseBodyValid := false;
         HttpStatusCode := HttpResponseMsgNemhandel.HttpStatusCode();
-        HttpStatusReason := HttpResponseMsgNemhandel.ReasonPhrase();
 
         if not HttpResponseMsgNemhandel.IsSuccessStatusCode() then
             exit;
