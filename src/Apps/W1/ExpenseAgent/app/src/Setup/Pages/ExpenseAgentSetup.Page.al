@@ -30,6 +30,7 @@ page 6996 "Expense Agent Setup"
                 field("Enable Agent"; Rec."Enable Agent")
                 {
                     Editable = false;
+                    Visible = false;
                     ToolTip = 'Specifies whether the agent is active in this company. Use the Configure Expense Agent wizard from the agent avatar to activate or deactivate the agent; this page only reflects the current state.';
                 }
                 field(Mailbox; Rec."Email Address")
@@ -205,6 +206,9 @@ page 6996 "Expense Agent Setup"
                         end;
                     end;
                 }
+                field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                {
+                }
                 field("Do Not Allow Expenses Older Than"; Rec."Do Not Allow Exp. Older Than")
                 {
                 }
@@ -218,8 +222,14 @@ page 6996 "Expense Agent Setup"
                 field("Display Anti-Corruption attestation"; Rec."Enable Anti-Corp. Statement")
                 {
                 }
+            }
+            group(Approval)
+            {
+                Caption = 'Approval';
+
                 field("Enable Approval Workflow"; Rec."Enable Approval Workflow")
                 {
+                    Importance = Additional;
                 }
                 field(DefaultApprover; Rec."Default Approver Name")
                 {
@@ -373,6 +383,22 @@ page 6996 "Expense Agent Setup"
                     RunObject = Page "Expense Users";
                     ToolTip = 'Opens the page to set up expense users.';
                 }
+                action("Expense Locations")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Locations';
+                    Image = CountryRegion;
+                    RunObject = Page "Expense Locations";
+                    ToolTip = 'Opens the page to set up expense locations.';
+                }
+                action("Expense Management Rules")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Expense Management Rules';
+                    Image = Administration;
+                    RunObject = Page "Expense Management Rules";
+                    ToolTip = 'Opens the page to set up expense management rules.';
+                }
                 action("Expense Posting Groups")
                 {
                     ApplicationArea = Basic, Suite;
@@ -427,6 +453,12 @@ page 6996 "Expense Agent Setup"
             {
             }
             actionref("Expense Categories_Promoted"; "Expense Categories")
+            {
+            }
+            actionref("Expense_Locations_Promoted"; "Expense Locations")
+            {
+            }
+            actionref("Expense_Management_Rules_Promoted"; "Expense Management Rules")
             {
             }
             actionref("Expense Posting Groups_Promoted"; "Expense Posting Groups")

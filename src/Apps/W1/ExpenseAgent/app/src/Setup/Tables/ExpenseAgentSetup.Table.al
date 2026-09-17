@@ -311,7 +311,7 @@ table 6930 "Expense Agent Setup"
         {
             Caption = 'Evaluate policies';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. Enabling this consumes additional AI credits.';
+            ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. This feature consumes additional AI credits.';
 
             trigger OnValidate()
             var
@@ -320,6 +320,12 @@ table 6930 "Expense Agent Setup"
                 if "Evaluate Policies" and (not xRec."Evaluate Policies") then
                     FeatureTelemetry.LogUptake('0000V3F', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
             end;
+        }
+        field(32; "Submitter-run Evaluation"; Boolean)
+        {
+            Caption = 'Allow submitters to evaluate policies';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether submitters can preventively run policy evaluation before submitting expense reports. This evaluation will consume additional AI credits.';
         }
         field(34; "Expense User Nos."; Code[20])
         {
@@ -431,8 +437,8 @@ table 6930 "Expense Agent Setup"
         }
         field(80; "Enable Approval Workflow"; Boolean)
         {
-            Caption = 'Enable approval workflow';
-            ToolTip = 'Specifies whether approval workflow is enabled for expense reports.';
+            Caption = 'Use traditional approval workflow';
+            ToolTip = 'Specifies whether expense reports use the traditional approval workflow instead of the Expense Agent approval experience.';
 
             trigger OnValidate()
             begin

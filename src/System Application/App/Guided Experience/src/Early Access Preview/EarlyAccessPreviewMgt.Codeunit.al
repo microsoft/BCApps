@@ -55,7 +55,8 @@ codeunit 1965 "Early Access Preview Mgt."
 
                     GuidedExperienceItem.Insert();
                 end;
-            GuidedExperienceItem.FindFirst();
+            if not GuidedExperienceItem.IsEmpty() then
+                GuidedExperienceItem.FindFirst();
         end;
 
     end;

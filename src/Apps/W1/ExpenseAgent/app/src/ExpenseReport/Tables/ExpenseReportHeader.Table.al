@@ -194,6 +194,8 @@ table 6906 "Expense Report Header"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if xRec."Employee Posting Group" <> Rec."Employee Posting Group" then
+                    UpdateReportLines(Rec.FieldCaption("Employee Posting Group"));
             end;
         }
         field(18; "Language Code"; Code[10])
@@ -426,7 +428,13 @@ table 6906 "Expense Report Header"
         {
             Caption = 'Approver Comment';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the comment from approver when approving or rejecting an expense report.';
+            ToolTip = 'Specifies the latest comment from the approver when approving or rejecting an expense report.';
+        }
+        field(49; "Submitter Comment"; Blob)
+        {
+            Caption = 'Submitter Comment';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the latest comment from the submitter when submitting an expense report or resubmitting a rejected expense report.';
         }
         field(50; "Reimbursement Currency Factor"; Decimal)
         {
@@ -703,8 +711,9 @@ table 6906 "Expense Report Header"
         if not ExpenseLinesExist() then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
-            Error('');
+        if CalledFromFieldCaption <> Rec.FieldCaption("Employee Posting Group") then
+            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
+                Error('');
 
         ExpenseReportLine.SetRange("Document No.", "No.");
         if ExpenseReportLine.FindSet() then
@@ -720,6 +729,8 @@ table 6906 "Expense Report Header"
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
                     Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
+                    Rec.FieldCaption("Employee Posting Group"):
+                        ExpenseReportLine.ApplyRule(false, true);
                 end;
             until ExpenseReportLine.Next() = 0;
 
@@ -894,10 +905,20 @@ table 6906 "Expense Report Header"
     /// </summary>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
     procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20])
+    begin
+        PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+    end;
+
+    /// <summary>
+    /// Releases and submits an expense report with an optional submitter comment.
+    /// </summary>
+    /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
+    /// <param name="SubmissionComment">The optional comment supplied by the submitter.</param>
+    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
-        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo);
+        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     /// <summary>
@@ -1010,6 +1031,20 @@ table 6906 "Expense Report Header"
         Rec.CalcFields("Approver Comment");
         Rec."Approver Comment".CreateInStream(InStream, TextEncoding::UTF8);
         exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName(Rec."Approver Comment")));
+    end;
+
+    /// <summary>
+    /// Retrieves submitter comment from the expense report header.
+    /// </summary>
+    /// <returns>Submitter comment.</returns>
+    procedure GetSubmitterComment() SubmitterComment: Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Submitter Comment");
+        Rec."Submitter Comment".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName(Rec."Submitter Comment")));
     end;
 
     local procedure ConfirmUpdateAllLineDim() Confirmed: Boolean;
@@ -1188,8 +1223,6 @@ table 6906 "Expense Report Header"
             if not Employee.Get(ExpenseUser."Employee No.") then
                 Error(ExpenseUserMustBeLinkedToAnEmployeeErr, ExpenseUser."No.");
 
-            Employee.TestField("Employee Posting Group");
-
             Rec.Validate("Employee Posting Group", Employee."Employee Posting Group");
             Rec.Validate("Reimbursement Currency Code", Employee."Currency Code")
         end else begin
@@ -1277,13 +1310,14 @@ table 6906 "Expense Report Header"
     var
         UserSetup: Record "User Setup";
         ExpenseUser: Record "Expense User";
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Approval Workflow" then
             exit;
 
         UserSetup.SetLoadFields("Unlimited Expense Approval");
-        UserSetup.Get(UserId);
+        ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
         if UserSetup."Unlimited Expense Approval" then
             exit;
 

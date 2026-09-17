@@ -24,7 +24,7 @@ report 1700 "Deferral Summary - G/L"
     {
         dataitem(GLAccount; "G/L Account")
         {
-            RequestFilterFields = "No.";
+            RequestFilterFields = "No.", "Global Dimension 1 Filter", "Global Dimension 2 Filter";
             // RDLC only
             column(CompanyName; COMPANYPROPERTY.DisplayName())
             {
@@ -143,6 +143,9 @@ report 1700 "Deferral Summary - G/L"
                     GLEntry: Record "G/L Entry";
                     LinesFound: Boolean;
                 begin
+                    if not EntryMatchesGlobalDimFilters("Entry No.") then
+                        CurrReport.Skip();
+
                     PreviousAccount := WorkingAccount;
                     if GLAccount.Get("Account No.") then begin
                         AccountName := GLAccount.Name;
@@ -330,6 +333,8 @@ report 1700 "Deferral Summary - G/L"
     trigger OnPreReport()
     begin
         PostedDeferralFilter := "Posted Deferral Header".GetFilters();
+        GlobalDim1Filter := GLAccount.GetFilter("Global Dimension 1 Filter");
+        GlobalDim2Filter := GLAccount.GetFilter("Global Dimension 2 Filter");
         if HideZeroRemainingAmounts then
             "Posted Deferral Header".CalculatePeriodFilter(BalanceAsOfDateFilter, PeriodStartDate, PeriodEndDate);
     end;
@@ -365,6 +370,8 @@ report 1700 "Deferral Summary - G/L"
         PeriodStartDate: Date;
         PeriodEndDate: Date;
         LineCount: Integer;
+        GlobalDim1Filter: Text;
+        GlobalDim2Filter: Text;
         // RDLC Only layout field captions. To be removed in a future release along with the RDLC layout.
         PageCaptionLbl: Label 'Page';
         BalanceCaptionLbl: Label 'This also includes general ledger accounts that only have a balance.';
@@ -386,5 +393,20 @@ report 1700 "Deferral Summary - G/L"
     begin
         PrintOnlyOnePerPage := NewPrintOnlyOnePerPage;
         BalanceAsOfDateFilter := NewBalanceAsOfDateFilter;
+    end;
+
+    local procedure EntryMatchesGlobalDimFilters(GLEntryNo: Integer): Boolean
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        if (GlobalDim1Filter = '') and (GlobalDim2Filter = '') then
+            exit(true);
+
+        GLEntry.SetRange("Entry No.", GLEntryNo);
+        if GlobalDim1Filter <> '' then
+            GLEntry.SetFilter("Global Dimension 1 Code", GlobalDim1Filter);
+        if GlobalDim2Filter <> '' then
+            GLEntry.SetFilter("Global Dimension 2 Code", GlobalDim2Filter);
+        exit(not GLEntry.IsEmpty());
     end;
 }
