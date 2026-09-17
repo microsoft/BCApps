@@ -1619,35 +1619,27 @@ codeunit 139688 "Recurring Billing Test"
     procedure CalculateNextToDateWithSubscriptionLineEndDate()
     var
         MonthlyPeriodLbl: Label '<1M>', Locked = true;
-        DailyPeriodLbl: Label '<1D>', Locked = true;
-        StartDate: Date;
-        EndDate: Date;
+        WeeklyPeriodLbl: Label '<1W>', Locked = true;
     begin
-        // [SCENARIO 649304] 1M 'Align to End of Month' line with end date produces a 1-day prorated stub
         Initialize();
 
-        // [GIVEN] A Subscription Line uses Align to End of Month with a monthly period and its end date falls on the calculated period end date.
-        StartDate := CalcDate('<CM>', DMY2Date(1, LibraryRandom.RandIntInRange(1, 12), LibraryRandom.RandIntInRange(2020, 2030))) - LibraryRandom.RandIntInRange(0, 2);
-        EndDate := CalcDate(MonthlyPeriodLbl, StartDate) - 1;
+        // [GIVEN] A Subscription Line starts on 29/05/2026,
+        // uses Align to End of Month and has a 1M period.
+        // [WHEN] CalculateNextToDate is called with the Subscription Line End Date of 28/06/2026.
+        // [THEN] The calculated Next To Date includes the Subscription Line End Date.
+        CheckNextToDateWithEndDate("Period Calculation"::"Align to End of Month", MonthlyPeriodLbl, 20260529D, 20260628D, 20260628D);
 
-        ServiceCommitment."Period Calculation" := "Period Calculation"::"Align to End of Month";
-        ServiceCommitment."Subscription Line Start Date" := StartDate;
-        ServiceCommitment."Subscription Line End Date" := EndDate;
+        // [GIVEN] Monthly period starts on 29/05/2026 and the Subscription Line End Date
+        // is the next period start date, 29/06/2026.
+        // [WHEN] CalculateNextToDate is called.
+        // [THEN] The next period start date is not included in the current period.
+        CheckNextToDateWithEndDate("Period Calculation"::"Align to End of Month", MonthlyPeriodLbl, 20260529D, 20260629D, 20260627D);
 
-        // [WHEN] CalculateNextToDate is called for the monthly period.
-        // [THEN] The calculated end date equals the Subscription Line End Date.
-        CheckNextToDateWithEndDate(MonthlyPeriodLbl, StartDate, EndDate);
-
-        // [GIVEN] A fixed daily period whose Subscription Line End Date equals the result of CalcDate(1D, StartDate).
-        StartDate := CalcDate('<CM>', DMY2Date(1, LibraryRandom.RandIntInRange(1, 12), LibraryRandom.RandIntInRange(2020, 2030))) - LibraryRandom.RandIntInRange(0, 2);
-        EndDate := CalcDate(DailyPeriodLbl, StartDate);
-
-        ServiceCommitment."Subscription Line Start Date" := StartDate;
-        ServiceCommitment."Subscription Line End Date" := EndDate;
-
-        // [WHEN] CalculateNextToDate is called for the fixed daily period.
-        // [THEN] The fixed period ends one day before the Subscription Line End Date.
-        CheckNextToDateWithEndDate(DailyPeriodLbl, StartDate, EndDate - 1);
+        // [GIVEN] A Subscription Line starts on 29/05/2026,
+        // uses Align to End of Month and has a fixed 1W period.
+        // [WHEN] CalculateNextToDate is called with an end date equal to CalcDate(1W).
+        // [THEN] The fixed weekly period still ends one day before that date.
+        CheckNextToDateWithEndDate("Period Calculation"::"Align to End of Month", WeeklyPeriodLbl, 20260529D, 20260605D, 20260604D);
     end;
 
     #endregion Tests
@@ -1999,13 +1991,22 @@ codeunit 139688 "Recurring Billing Test"
         ExtendedTextLine.Find();
     end;
 
-    local procedure CheckNextToDateWithEndDate(PeriodTxt: Text; StartDate: Date; ExpectedEndDate: Date)
+    local procedure CheckNextToDateWithEndDate(PeriodCalculation: Enum "Period Calculation"; PeriodTxt: Text; StartDate: Date; SubscriptionLineEndDate: Date; ExpectedEndDate: Date)
     var
         PeriodFormula: DateFormula;
+        NoPeriodErr: Label 'Period must be entered when calculating Next To Date.', Locked = true;
+        NextDateErr: Label 'Next To Date is incorrect for period %1, Start Date %2 and Subscription Line End Date %3.', Locked = true;
     begin
+        if PeriodTxt = '' then
+            Error(NoPeriodErr);
+
         Evaluate(PeriodFormula, PeriodTxt);
 
-        Assert.AreEqual(ExpectedEndDate, ServiceCommitment.CalculateNextToDate(PeriodFormula, StartDate), 'Next Date not calculated correctly.');
+        ServiceCommitment."Period Calculation" := PeriodCalculation;
+        ServiceCommitment."Subscription Line Start Date" := StartDate;
+        ServiceCommitment."Subscription Line End Date" := SubscriptionLineEndDate;
+
+        Assert.AreEqual(ExpectedEndDate, ServiceCommitment.CalculateNextToDate(PeriodFormula, StartDate), StrSubstNo(NextDateErr, PeriodTxt, StartDate, SubscriptionLineEndDate));
     end;
 
     #endregion Procedures
