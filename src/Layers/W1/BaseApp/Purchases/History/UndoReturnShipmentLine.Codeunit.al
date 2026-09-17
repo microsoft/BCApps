@@ -144,6 +144,7 @@ codeunit 5814 "Undo Return Shipment Line"
         until ReturnShptLine.Next() = 0;
         UnbindSubscription(this);
 
+        OnCodeOnBeforeMakeInventoryAdjustment(SalesLine, ReturnShptLine);
         MakeInventoryAdjustment();
 
         WhseUndoQty.PostTempWhseJnlLine(TempWhseJnlLine);
@@ -422,6 +423,11 @@ codeunit 5814 "Undo Return Shipment Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCodeOnBeforeMakeInventoryAdjustment(var SalesLine: Record "Sales Line"; var ReturnShipmentLine: Record "Return Shipment Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnUpdateOrderLineOnBeforeUpdatePurchLine(var ReturnShptLine: Record "Return Shipment Line"; var PurchaseLine: Record "Purchase Line")
     begin
     end;
@@ -431,4 +437,3 @@ codeunit 5814 "Undo Return Shipment Line"
     begin
     end;
 }
-
