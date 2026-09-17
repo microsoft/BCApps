@@ -1295,7 +1295,7 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         SalesInvoice.Close();
     end;
 
-[Test]
+    [Test]
     [HandlerFunctions('HandleEditDimensionSetEntriesPage')]
     procedure PostSalesInvoiceWithAllocationAccountAndInvoiceDiscountIsConsistent()
     var
@@ -1358,7 +1358,7 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         // [THEN] The G/L entries of the document are balanced
         VerifyGLEntriesAreBalanced(PostedDocumentNo);
     end;
-    
+
     local procedure VerifyGLEntriesAreBalanced(DocumentNo: Code[20])
     var
         GLEntry: Record "G/L Entry";
@@ -1427,7 +1427,7 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATRate);
     end;
 
-    local procedure CreateCustomerWithInvoiceDiscount(var CustomerNo: Code[10]; VATPostingSetup: Record "VAT Posting Setup"; DiscountPct: Decimal)
+    local procedure CreateCustomerWithInvoiceDiscount(var CustomerNo: Code[20]; VATPostingSetup: Record "VAT Posting Setup"; DiscountPct: Decimal)
     var
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
         Customer: Record Customer;

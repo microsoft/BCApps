@@ -1429,7 +1429,7 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATRate);
     end;
 
-    local procedure CreateCustomerWithInvoiceDiscount(var CustomerNo: Code[10]; VATPostingSetup: Record "VAT Posting Setup"; DiscountPct: Decimal)
+    local procedure CreateCustomerWithInvoiceDiscount(var CustomerNo: Code[20]; VATPostingSetup: Record "VAT Posting Setup"; DiscountPct: Decimal)
     var
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
         Customer: Record Customer;
