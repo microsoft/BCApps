@@ -342,6 +342,38 @@ codeunit 134242 "Spend Request Tests"
     end;
 
     [Test]
+    procedure DeleteDetailLineDecrementsHeaderTotalExactlyOnce()
+    var
+        SpendRequest: Record "Spend Request";
+        FirstSpendRequestDetail: Record "Spend Request Detail";
+        RemainingSpendRequestDetail: Record "Spend Request Detail";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 646383] Real detail deletion applies each LCY delta exactly once without removing the other detail.
+        Initialize();
+
+        // [GIVEN] An open LCY request "R" initially has zero total and two details "D1" and "D2" worth 10 and 30.
+        CreateSpendRequest(SpendRequest);
+        VerifyDetailDeletionTotals(SpendRequest."No.", 0, 0);
+        CreateSpendRequestDetail(FirstSpendRequestDetail, SpendRequest."No.", 10);
+        CreateSpendRequestDetail(RemainingSpendRequestDetail, SpendRequest."No.", 30);
+        VerifyDetailDeletionTotals(SpendRequest."No.", 40, 2);
+
+        // [WHEN] Deleting "D1" runs the production table trigger, not a page action or a permission test.
+        FirstSpendRequestDetail.Delete(true);
+
+        // [THEN] "D2" survives and both its amount and the header total are 30.
+        RemainingSpendRequestDetail.Get(RemainingSpendRequestDetail."Spend Request No.", RemainingSpendRequestDetail."Line No.");
+        VerifyDetailDeletionTotals(SpendRequest."No.", 30, 1);
+
+        // [WHEN] The remaining detail "D2" is deleted through its production trigger.
+        RemainingSpendRequestDetail.Delete(true);
+
+        // [THEN] No details remain and the header total is exactly zero.
+        VerifyDetailDeletionTotals(SpendRequest."No.", 0, 0);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CannotInsertDetailOnReleasedRequest()
     var
@@ -826,5 +858,22 @@ codeunit 134242 "Spend Request Tests"
 
         // [THEN] An error is raised.
         Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
+    end;
+
+    local procedure VerifyDetailDeletionTotals(SpendRequestNo: Code[20]; ExpectedAmount: Decimal; ExpectedLineCount: Integer)
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        SpendRequest.Get(SpendRequestNo);
+        Assert.AreEqual(SpendRequest.Status::Open, SpendRequest.Status, 'Detail deletion must preserve the Open status.');
+        Assert.AreEqual('', SpendRequest."Currency Code", 'The request must use LCY.');
+        Assert.AreEqual(ExpectedAmount, SpendRequest."Total Expected Amount", 'The header amount must reflect each deleted detail exactly once.');
+        Assert.AreEqual(ExpectedAmount, SpendRequest."Total Expected Amount (LCY)", 'The LCY header amount must reflect each deleted detail exactly once.');
+        SpendRequestDetail.SetRange("Spend Request No.", SpendRequestNo);
+        Assert.AreEqual(ExpectedLineCount, SpendRequestDetail.Count(), 'Only the intended details must be deleted.');
+        SpendRequestDetail.CalcSums("Expected Amount", "Expected Amount (LCY)");
+        Assert.AreEqual(ExpectedAmount, SpendRequestDetail."Expected Amount", 'The remaining detail amounts must be unchanged.');
+        Assert.AreEqual(ExpectedAmount, SpendRequestDetail."Expected Amount (LCY)", 'The remaining LCY detail amounts must be unchanged.');
     end;
 }

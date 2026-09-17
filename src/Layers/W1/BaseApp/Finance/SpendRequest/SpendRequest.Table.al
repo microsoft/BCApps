@@ -525,17 +525,18 @@ table 6840 "Spend Request"
     end;
 
     /// <summary>
-    /// Applies an incremental change to the Total Expected Amount and refreshes the LCY total using the
-    /// document currency factor. Called by detail tables (generic or layer-specific) when their amounts change.
+    /// Applies an incremental change to the LCY total and refreshes Total Expected Amount using the
+    /// document currency factor. Uses a dedicated permission boundary for the amount update.
     /// </summary>
-    /// <param name="Delta">Change to apply to Total Expected Amount.</param>
+    /// <param name="DeltaLCY">Change to apply to Total Expected Amount (LCY).</param>
     internal procedure AddToTotalExpectedAmount(DeltaLCY: Decimal)
+    var
+        SpendRequestAmountMgt: Codeunit "Spend Request Amount Mgt.";
     begin
         if DeltaLCY = 0 then
             exit;
 
-        Rec.Validate("Total Expected Amount (LCY)", Rec."Total Expected Amount (LCY)" + DeltaLCY);
-        Rec.Modify();
+        SpendRequestAmountMgt.ApplyDelta(Rec, DeltaLCY);
     end;
 
     internal procedure ChangeCurrency(xCurrencyCode: Code[10])
