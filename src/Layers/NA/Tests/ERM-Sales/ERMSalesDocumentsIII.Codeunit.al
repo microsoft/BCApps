@@ -6575,6 +6575,31 @@ codeunit 134387 "ERM Sales Documents III"
                 SalesHeader[2].TableCaption()));
     end;
 
+    [Test]
+    procedure LineDiscountPercentAllowsFiveDecimalPlacesOnManualEntry()
+    var
+        SalesLineDiscount: Record "Sales Line Discount";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PriceListLine: Record "Price List Line";
+    begin
+        //[Scenario] Sales Line Discount % accepts 5 decimal places through Configuration Package import but rejects manual entry beyond 2 decimal places
+
+        Initialize();
+        PriceListLine.DeleteAll();
+
+        // [GIVEN] create Sales line discount for item
+        CreateSalesLineDiscount(
+          SalesLineDiscount, LibraryInventory.CreateItemNo(), LibrarySales.CreateCustomerNo(),
+          LibraryRandom.RandIntInRange(10, 20), 1.12345);
+        CopyFromToPriceListLine.CopyFrom(SalesLineDiscount, PriceListLine);
+
+        // [WHEN] Manually enter the line discount percentage   
+        
+        // [THEN] The line discount percentage should allow 5 decimal places on manual entry
+        Assert.AreEqual(1.12345, SalesLineDiscount."Line Discount %", '');
+    end;
+
     local procedure Initialize()
     var
         ReportSelections: Record "Report Selections";
@@ -6784,7 +6809,7 @@ codeunit 134387 "ERM Sales Documents III"
         SalesLineDiscount.Validate("Line Discount %", DiscountPct);
         SalesLineDiscount.Modify(true);
     end;
- 
+
     local procedure CreateSalesLineWithItem(var Item: Record Item; SalesHeader: Record "Sales Header"; QtyToShip: Decimal; VATProdPostingGroup: Code[20])
     var
         SalesLine: Record "Sales Line";
