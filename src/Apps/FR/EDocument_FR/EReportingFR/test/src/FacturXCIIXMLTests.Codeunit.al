@@ -53,6 +53,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
+        OverrideFrenchBillingMode: Boolean;
 
     #region SalesInvoice
     [Test]
@@ -1500,6 +1501,30 @@ codeunit 148148 "Factur-X CII XML Tests"
             GetCIINodeValue(TempBlob, '//ram:BusinessProcessSpecifiedDocumentContextParameter/ram:ID'),
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
     end;
+
+    [Test]
+    procedure FacturXBillingModeCanBeOverridden()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
+        SourceDocumentLines: RecordRef;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] GetFrenchBillingMode can be overridden for customer-specific billing behavior
+        Initialize();
+
+        // [GIVEN] Posted sales invoice containing only an Item line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithBillingModeLines(false));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SourceDocumentLines.GetTable(SalesInvoiceLine);
+        OverrideFrenchBillingMode := true;
+
+        // [WHEN] GetFrenchBillingMode is called
+        // [THEN] The billing mode provided by the event subscriber is returned
+        Assert.AreEqual('S1', PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines),
+            StrSubstNo(IncorrectValueErr, 'Overridden BillingMode'));
+    end;
     #endregion
 
     #region Validation
@@ -1862,6 +1887,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Factur-X CII XML Tests");
         EDocumentService.DeleteAll();
+        OverrideFrenchBillingMode := false;
         if IsInitialized then begin
             LibrarySetupStorage.Restore();
             exit;
@@ -1891,6 +1917,16 @@ codeunit 148148 "Factur-X CII XML Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Factur-X CII XML Tests");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Peppol BIS 3.0 FR Format", OnBeforeGetFrenchBillingMode, '', false, false)]
+    local procedure OnBeforeGetFrenchBillingMode(SourceDocumentLines: RecordRef; var Result: Text; var IsHandled: Boolean)
+    begin
+        if not OverrideFrenchBillingMode then
+            exit;
+
+        Result := 'S1';
+        IsHandled := true;
     end;
 
     local procedure CreateAndPostSalesInvoice(): Code[20]
