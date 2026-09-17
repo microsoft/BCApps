@@ -19,7 +19,7 @@ codeunit 140012 "Test FAB Platform"
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Open Export Summary to follow its progress.';
+        SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
 
     local procedure Initialize()
@@ -182,11 +182,12 @@ codeunit 140012 "Test FAB Platform"
     [HandlerFunctions('MessageHandler')]
     procedure EnableExportFailsWhenOnCooldown()
     var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
-        //[SCENARIO] Enable is rejected when requested again within 15 minutes of a prior successful Enable
+        //[SCENARIO] Enable is rejected when requested again while the triggered Setup run is still in progress
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] The lifecycle subscriber is bound so no real ADF call happens
@@ -199,12 +200,59 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] Enable was already requested once
         ExpectedMessages.Add(EnableRequestedMsg);
         FabricPlatformMgt.EnableExport();
+        //[GIVEN] The Setup run triggered by that request is still in progress
+        TenantFabricExportSummary.Init();
+        TenantFabricExportSummary."Run ID" := CreateGuid();
+        TenantFabricExportSummary.Type := TenantFabricExportSummary.Type::Setup;
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Running;
+        TenantFabricExportSummary."Start Time" := CurrentDateTime();
+        TenantFabricExportSummary.Insert(false);
 
         //[WHEN] Enable is requested again immediately
         asserterror FabricPlatformMgt.EnableExport();
 
         //[THEN] The request is rejected because the cooldown has not elapsed
         Assert.ExpectedError('requested recently');
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure EnableExportSucceedsWithinCooldownWhenSetupAlreadyFinished()
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[SCENARIO] Enable succeeds within the cooldown window once the triggered Setup run has finished
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The lifecycle subscriber is bound so no real ADF call happens
+        BindSubscription(PlatformTestSub);
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Enable was already requested once
+        ExpectedMessages.Add(EnableRequestedMsg);
+        FabricPlatformMgt.EnableExport();
+        //[GIVEN] The Setup run triggered by that request already succeeded
+        TenantFabricExportSummary.Init();
+        TenantFabricExportSummary."Run ID" := CreateGuid();
+        TenantFabricExportSummary.Type := TenantFabricExportSummary.Type::Setup;
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Succeeded;
+        TenantFabricExportSummary."Start Time" := CurrentDateTime();
+        TenantFabricExportSummary.Insert(false);
+        //[GIVEN] Expected requested-action notification for the second request
+        ExpectedMessages.Add(EnableRequestedMsg);
+
+        //[WHEN] Enable is requested again immediately
+        FabricPlatformMgt.EnableExport();
+
+        //[THEN] The seam fired again despite the cooldown window not having elapsed
+        Assert.IsTrue(PlatformTestSub.WasEnableCalled(), 'Expected the enable seam to fire once the Setup run has finished.');
         UnbindSubscription(PlatformTestSub);
     end;
 
@@ -256,6 +304,8 @@ codeunit 140012 "Test FAB Platform"
         //[GIVEN] An unfinished export run already exists
         TenantFabricExportSummary.Init();
         TenantFabricExportSummary."Run ID" := CreateGuid();
+        TenantFabricExportSummary.Type := TenantFabricExportSummary.Type::Export;
+        TenantFabricExportSummary.State := TenantFabricExportSummary.State::Running;
         TenantFabricExportSummary."Start Time" := CurrentDateTime();
         TenantFabricExportSummary.Insert(false);
         //[GIVEN] Lower permissions

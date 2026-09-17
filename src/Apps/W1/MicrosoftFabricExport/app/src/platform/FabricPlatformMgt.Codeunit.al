@@ -24,7 +24,7 @@ codeunit 48520 "Fabric Platform Mgt"
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         EnableOnCooldownErr: Label 'Enable was already requested recently. Try again in %1 minute(s).', Comment = '%1 = minutes remaining';
-        SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Open Export Summary to follow its progress.';
+        SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling export.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
@@ -290,8 +290,21 @@ codeunit 48520 "Fabric Platform Mgt"
         if LastEnableRequestedAt = 0DT then
             exit;
         RemainingMs := EnableCooldownDuration() - (CurrentDateTime() - LastEnableRequestedAt);
-        if RemainingMs > 0 then
-            Error(EnableOnCooldownErr, (RemainingMs div 60000) + 1);
+        if RemainingMs <= 0 then
+            exit;
+        // The triggered Setup run already finished (succeeded or failed), so a new Enable is safe despite the timer.
+        if not IsSetupRunInProgress() then
+            exit;
+        Error(EnableOnCooldownErr, (RemainingMs div 60000) + 1);
+    end;
+
+    local procedure IsSetupRunInProgress(): Boolean
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+    begin
+        TenantFabricExportSummary.SetRange(Type, TenantFabricExportSummary.Type::Setup);
+        TenantFabricExportSummary.SetRange(State, TenantFabricExportSummary.State::Running);
+        exit(not TenantFabricExportSummary.IsEmpty());
     end;
 
     local procedure EnableCooldownDuration(): Duration
@@ -338,7 +351,8 @@ codeunit 48520 "Fabric Platform Mgt"
     var
         TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
     begin
-        TenantFabricExportSummary.SetRange("End Time", 0DT);
+        TenantFabricExportSummary.SetRange(Type, TenantFabricExportSummary.Type::Export);
+        TenantFabricExportSummary.SetRange(State, TenantFabricExportSummary.State::Running);
         exit(not TenantFabricExportSummary.IsEmpty());
     end;
 
