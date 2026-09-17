@@ -881,10 +881,14 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        ExperienceTierSetup: Record "Experience Tier Setup";
         InProcessTransport: Codeunit "MDM In-Process Transport";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         PagingConfig: Codeunit "MDM Test Paging Config";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
+        // MDM pages are ApplicationArea = Suite; the CI harness defaults to Basic since the v30 uptake, hiding them.
+        ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(ExperienceTierSetup.FieldCaption(Essential));
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate(); // a paging test that failed before its CleanUp must not leak its forced page cap into later tests
         LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice(); // the source API is consent-gated; approve for the gated paths
