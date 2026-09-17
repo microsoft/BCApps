@@ -666,9 +666,40 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                     field("Open Report Notif. Freq."; Rec."Open Report Notif. Freq.")
                     {
-                        Caption = 'Notification frequency';
+                        Caption = 'Frequency';
                         ToolTip = 'Specifies how often the system should send notifications for open expense reports.';
                         Enabled = Rec."Enable Open Report Notif.";
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Notif. Day of Week"; Rec."Notif. Day of Week")
+                    {
+                        Caption = 'Day of week';
+                        Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Weekly);
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Notif. Day In A Month"; Rec."Notif. Day In A Month")
+                    {
+                        Caption = 'Day of month';
+                        Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Monthly);
+
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Custom Notif. Formula"; Rec."Custom Notif. Formula")
+                    {
+                        Caption = 'Custom formula';
+                        ToolTip = 'Specifies a date formula for the next reminder date, based on the last reminder run, such as 1D (one day), 1W (one week), or 1M (one month). A result on or before the last run date is moved to the following day.';
+                        Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Custom);
 
                         trigger OnValidate()
                         begin
@@ -732,6 +763,13 @@ page 6991 "Expense Agent Setup Wizard"
                         end;
                     end;
 
+                    trigger OnValidate()
+                    begin
+                        ConfigUpdated();
+                    end;
+                }
+                field("Only Shortest Route"; Rec."Only Shortest Route")
+                {
                     trigger OnValidate()
                     begin
                         ConfigUpdated();
@@ -835,8 +873,8 @@ page 6991 "Expense Agent Setup Wizard"
             }
             group(CanaryGroup)
             {
-                Caption = 'Canary';
-                InstructionalText = 'Route this environment''s Expense Agent service calls through the canary endpoint.';
+                Caption = 'Canary (allowlisted tenants)';
+                InstructionalText = 'These settings are shown for allowlisted tenants or when canary is already enabled. Choose whether the agent uses the canary service endpoint.';
                 Visible = CanaryToggleVisible;
 
                 field(UseCanaryEndpoint; UseCanaryEndpoint)
@@ -847,7 +885,7 @@ page 6991 "Expense Agent Setup Wizard"
 
                     trigger OnValidate()
                     begin
-                        // Changing the endpoint only takes effect for service calls after this point; it does not automatically re-register the ERP configuration.
+                        // Register and unregister use this selection on Update; changing it does not migrate an existing registration.
                         Rec."Use Canary Endpoint" := UseCanaryEndpoint;
                         Rec.Modify();
                         ConfigUpdated();
@@ -1034,8 +1072,6 @@ page 6991 "Expense Agent Setup Wizard"
         UseCanaryEndpoint := Rec."Use Canary Endpoint";
 
         if IsFirstTimeSetup then begin
-            Rec."Enable Email with Receipts" := true;
-            Rec."Enable Communication" := true;
             Rec."Use Rules" := true;
             ApplyAccountingDefaultsSelection(true);
             ApplyManagementDefaultsSelection(true);
@@ -1323,6 +1359,7 @@ page 6991 "Expense Agent Setup Wizard"
     local procedure UpdateControls()
     begin
         ValidateSelectedMailboxExists();
+        ValidateNoreplyMailboxExists();
     end;
 
     local procedure ConfigUpdated()
@@ -1349,10 +1386,33 @@ page 6991 "Expense Agent Setup Wizard"
         if not EmailAccount.IsEmpty() then
             exit;
 
+        // Stage the repair only; validating Enable Agent here would cancel live tasks before Update.
         Rec.ClearMailboxAndDependents();
-        if Rec."Enable Agent" then
-            Rec.Validate("Enable Agent", false);
         Rec.Modify();
+        EnableMailboxChanged := true;
+        ConfigUpdated();
+    end;
+
+    local procedure ValidateNoreplyMailboxExists()
+    var
+        EmailAccount: Record "Email Account";
+        EmailAccountCU: Codeunit "Email Account";
+    begin
+        if IsNullGuid(Rec."Noreply Email Account ID") then
+            exit;
+
+        EmailAccountCU.GetAllAccounts(false, EmailAccount);
+        EmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
+        EmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
+        if not EmailAccount.IsEmpty() then
+            exit;
+
+        Rec."Noreply Email Address" := '';
+        Clear(Rec."Noreply Email Account ID");
+        Clear(Rec."Noreply Email Connector");
+        Rec.Modify();
+        EnableMailboxChanged := true;
+        ConfigUpdated();
     end;
 
     local procedure ScheduleAllTasks()
@@ -1541,7 +1601,7 @@ page 6991 "Expense Agent Setup Wizard"
         // The Agent service is only reachable on SaaS. Skip ERP registration when running locally to allow testing of the agent without requiring the service.
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit(true);
-        exit(EAHttpClient.RegisterErpConfiguration());
+        exit(EAHttpClient.RegisterErpConfiguration(Rec."Use Canary Endpoint"));
     end;
 
     local procedure UnregisterErpConfiguration(): Boolean
@@ -1551,7 +1611,7 @@ page 6991 "Expense Agent Setup Wizard"
     begin
         if not EnvironmentInfo.IsSaaSInfrastructure() then
             exit(true);
-        exit(EAHttpClient.UnregisterErpConfiguration());
+        exit(EAHttpClient.UnregisterErpConfiguration(Rec."Use Canary Endpoint"));
     end;
 
     local procedure GetExpenseDashboardUrl(): Text
