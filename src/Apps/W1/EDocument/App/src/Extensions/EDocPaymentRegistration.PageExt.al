@@ -12,17 +12,6 @@ pageextension 6113 "E-Doc. Payment Registration" extends "Payment Registration"
 {
     layout
     {
-        addlast(Control2)
-        {
-            field(EDocumentStatus; EDocumentStatusText)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Document Status';
-                ToolTip = 'Specifies the status of the latest electronic document linked to the customer ledger entry that this payment applies to. Hidden by default; add it via Personalize to make it visible.';
-                Visible = false;
-                Editable = false;
-            }
-        }
         addlast(FactBoxes)
         {
             part(EDocStatusFactBox; "E-Doc. Status FactBox")
@@ -61,21 +50,9 @@ pageextension 6113 "E-Doc. Payment Registration" extends "Payment Registration"
         }
     }
 
-    trigger OnOpenPage()
-    var
-        EDocument: Record "E-Document";
-    begin
-        HasAnyEDocument := GuiAllowed() and EDocument.HasEDocument();
-    end;
-
     trigger OnAfterGetRecord()
-    var
-        EDocumentLookup: Record "E-Document";
     begin
         this.UpdateApplicableLedgerEntryData();
-        EDocumentStatusText := '';
-        if HasAnyEDocument then
-            EDocumentStatusText := EDocumentLookup.GetLatestStatus(Rec."Document No.", ApplicablePostingDate, Rec."Source No.", Enum::"E-Document Direction"::Outgoing, ApplicableDocumentType);
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -108,8 +85,6 @@ pageextension 6113 "E-Doc. Payment Registration" extends "Payment Registration"
     end;
 
     var
-        HasAnyEDocument: Boolean;
         ApplicablePostingDate: Date;
         ApplicableDocumentType: Enum "E-Document Type";
-        EDocumentStatusText: Text;
 }

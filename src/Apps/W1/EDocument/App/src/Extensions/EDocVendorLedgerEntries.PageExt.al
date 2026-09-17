@@ -11,17 +11,6 @@ pageextension 6112 "E-Doc. Vendor Ledger Entries" extends "Vendor Ledger Entries
 {
     layout
     {
-        addlast(Control1)
-        {
-            field(EDocumentStatus; EDocumentStatusText)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Document Status';
-                ToolTip = 'Specifies the status of the latest electronic document linked to this record. Hidden by default; add it via Personalize to make it visible.';
-                Visible = false;
-                Editable = false;
-            }
-        }
         addlast(FactBoxes)
         {
             part(EDocStatusFactBox; "E-Doc. Status FactBox")
@@ -66,31 +55,11 @@ pageextension 6112 "E-Doc. Vendor Ledger Entries" extends "Vendor Ledger Entries
         }
     }
 
-    trigger OnOpenPage()
-    var
-        EDocument: Record "E-Document";
-    begin
-        HasAnyEDocument := GuiAllowed() and EDocument.HasEDocument();
-    end;
-
-    trigger OnAfterGetRecord()
-    var
-        EDocumentLookup: Record "E-Document";
-    begin
-        EDocumentStatusText := '';
-        if HasAnyEDocument then
-            EDocumentStatusText := EDocumentLookup.GetLatestStatus(Rec."Document No.", Rec."Posting Date", Rec."Vendor No.", Enum::"E-Document Direction"::Incoming, this.MapToEDocumentType());
-    end;
-
     trigger OnAfterGetCurrRecord()
     begin
         CurrPage.EDocStatusFactBox.Page.SetDocumentIdentity(Rec."Document No.", Rec."Posting Date", Rec."Vendor No.", Enum::"E-Document Direction"::Incoming, this.MapToEDocumentType());
         CurrPage.EDocMessages.Page.SetSourceDocumentIdentity(Rec."Document No.", Rec."Posting Date", Rec."Vendor No.", Enum::"E-Document Direction"::Incoming, this.MapToEDocumentType());
     end;
-
-    var
-        HasAnyEDocument: Boolean;
-        EDocumentStatusText: Text;
 
     local procedure MapToEDocumentType(): Enum "E-Document Type"
     begin

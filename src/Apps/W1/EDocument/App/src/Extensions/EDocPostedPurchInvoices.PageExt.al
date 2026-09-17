@@ -20,34 +20,7 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
                 ShowFilter = false;
             }
         }
-        addlast(Control1)
-        {
-            field(EDocumentStatus; EDocumentStatusText)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Document Status';
-                ToolTip = 'Specifies the status of the latest electronic document linked to this record. Hidden by default; add it via Personalize to make it visible.';
-                Visible = false;
-                Editable = false;
-            }
-        }
     }
-
-    trigger OnOpenPage()
-    var
-        EDocument: Record "E-Document";
-    begin
-        HasAnyEDocument := GuiAllowed() and EDocument.HasEDocument();
-    end;
-
-    trigger OnAfterGetRecord()
-    var
-        EDocumentLookup: Record "E-Document";
-    begin
-        EDocumentStatusText := '';
-        if HasAnyEDocument then
-            EDocumentStatusText := EDocumentLookup.GetLatestStatus(Rec.RecordId());
-    end;
 
     trigger OnAfterGetCurrRecord()
     var
@@ -60,7 +33,5 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
     end;
 
     var
-        HasAnyEDocument: Boolean;
         ShowEDocumentPdfPreview: Boolean;
-        EDocumentStatusText: Text;
 }
