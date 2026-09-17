@@ -58,6 +58,22 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         exit('');
     end;
 
+    internal procedure SetLastEnableRequestedAt(Value: DateTime)
+    begin
+        IsolatedStorage.Set('FabricPlat.LastEnableRequestedAt', Format(Value, 0, 9), DataScope::Module);
+    end;
+
+    internal procedure GetLastEnableRequestedAt(): DateTime
+    var
+        Value: Text;
+        Result: DateTime;
+    begin
+        if IsolatedStorage.Get('FabricPlat.LastEnableRequestedAt', DataScope::Module, Value) then
+            if Evaluate(Result, Value, 9) then
+                exit(Result);
+        exit(0DT);
+    end;
+
     [NonDebuggable]
     internal procedure SetClientSecret(ClientSecret: SecretText)
     var

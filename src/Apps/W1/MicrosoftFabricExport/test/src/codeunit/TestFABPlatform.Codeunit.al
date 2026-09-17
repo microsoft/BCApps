@@ -18,7 +18,8 @@ codeunit 140012 "Test FAB Platform"
         EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        DisableRequestedMsg: Label 'Disable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Open Export Summary to follow its progress.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
 
     local procedure Initialize()
@@ -27,14 +28,19 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricTables: Record "Tenant Fabric Tables";
         TenantFabricCompanies: Record "Tenant Fabric Companies";
         FabricTableClaim: Record "Fabric Table Claim";
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
     begin
         TenantFabricTables.DeleteAll(false);
         TenantFabricSetup.DeleteAll(false);
         TenantFabricCompanies.DeleteAll(false);
         FabricTableClaim.DeleteAll(false);
+        TenantFabricExportSummary.DeleteAll(false);
         PlatformTestSub.Reset();
         LookupState.ClearFabricApiToken();
+        // Isolated Storage is not rolled back between tests, unlike table data.
+        CredMgt.SetLastEnableRequestedAt(0DT);
         if IsInitialized then
             exit;
         IsInitialized := true;
@@ -169,6 +175,100 @@ codeunit 140012 "Test FAB Platform"
         Assert.IsTrue(PlatformTestSub.WasStopCalled(), 'Expected the stop seam to fire.');
         Assert.IsTrue(PlatformTestSub.WasDisableCalled(), 'Expected the disable seam to fire.');
         Assert.AreEqual(0, ExpectedMessages.Count(), 'Expected all requested messages to be shown.');
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure EnableExportFailsWhenOnCooldown()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[SCENARIO] Enable is rejected when requested again within 15 minutes of a prior successful Enable
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The lifecycle subscriber is bound so no real ADF call happens
+        BindSubscription(PlatformTestSub);
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Enable was already requested once
+        ExpectedMessages.Add(EnableRequestedMsg);
+        FabricPlatformMgt.EnableExport();
+
+        //[WHEN] Enable is requested again immediately
+        asserterror FabricPlatformMgt.EnableExport();
+
+        //[THEN] The request is rejected because the cooldown has not elapsed
+        Assert.ExpectedError('requested recently');
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure EnableExportSucceedsAfterCooldownElapses()
+    var
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[SCENARIO] Enable succeeds again once the 15-minute cooldown has elapsed
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The lifecycle subscriber is bound so no real ADF call happens
+        BindSubscription(PlatformTestSub);
+        //[GIVEN] The privacy notice is approved so the mandatory consent gate passes
+        FabricPrivacyNotice.Approve();
+        //[GIVEN] Enable was last requested more than 15 minutes ago
+        CredMgt.SetLastEnableRequestedAt(CurrentDateTime() - 16 * 60 * 1000);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected requested-action notification
+        ExpectedMessages.Add(EnableRequestedMsg);
+
+        //[WHEN] Enable is requested
+        FabricPlatformMgt.EnableExport();
+
+        //[THEN] The seam fired
+        Assert.IsTrue(PlatformTestSub.WasEnableCalled(), 'Expected the enable seam to fire once the cooldown has elapsed.');
+        UnbindSubscription(PlatformTestSub);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure StartExportShowsMessageWhenSyncAlreadyRunning()
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+        PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+    begin
+        //[SCENARIO] Start shows a message and skips the platform call when a run is already in progress
+        //[GIVEN] Initialize
+        Initialize();
+        //[GIVEN] The lifecycle subscriber is bound so no real ADF call happens
+        BindSubscription(PlatformTestSub);
+        //[GIVEN] An unfinished export run already exists
+        TenantFabricExportSummary.Init();
+        TenantFabricExportSummary."Run ID" := CreateGuid();
+        TenantFabricExportSummary."Start Time" := CurrentDateTime();
+        TenantFabricExportSummary.Insert(false);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+        //[GIVEN] Expected already-running notification
+        ExpectedMessages.Add(SyncAlreadyRunningMsg);
+
+        //[WHEN] Start is requested
+        FabricPlatformMgt.StartExport();
+
+        //[THEN] The platform call is skipped
+        Assert.IsFalse(PlatformTestSub.WasStartCalled(), 'Expected the start seam not to fire while a run is in progress.');
         UnbindSubscription(PlatformTestSub);
     end;
 

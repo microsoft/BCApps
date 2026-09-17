@@ -244,7 +244,7 @@ page 48511 "Fabric Platform Setup"
                 }
                 action(DisableExport)
                 {
-                    Caption = 'Disconnect from Fabric';
+                    Caption = 'Reset';
                     ApplicationArea = All;
                     Image = Delete;
                     ToolTip = 'Cancels in-flight runs, removes the Fabric export resources for this tenant, and resets the synchronization state. Use Stop synchronization instead if you only want to pause and resume later.';
@@ -253,6 +253,8 @@ page 48511 "Fabric Platform Setup"
                     var
                         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
                     begin
+                        if not Confirm(ResetConfirmQst, false) then
+                            exit;
                         FabricPlatformMgt.DisableExport();
                         CurrPage.Update(false);
                     end;
@@ -478,5 +480,6 @@ page 48511 "Fabric Platform Setup"
         CannotChangeWhileExportEnabledErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while export is enabled. Disable export first.';
         SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
         ValuePickedUpOnNextRunMsg: Label 'This change will take effect starting with the next export run.';
+        ResetConfirmQst: Label 'This removes the Fabric connection, resets all watermarks, and deletes all synchronization summary and detail log records. Do you want to continue?';
 
 }

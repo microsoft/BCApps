@@ -22,7 +22,9 @@ codeunit 48520 "Fabric Platform Mgt"
         EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
-        DisableRequestedMsg: Label 'Disable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        DisableRequestedMsg: Label 'Reset was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        EnableOnCooldownErr: Label 'Enable was already requested recently. Try again in %1 minute(s).', Comment = '%1 = minutes remaining';
+        SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Open Export Summary to follow its progress.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling export.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
@@ -255,6 +257,8 @@ codeunit 48520 "Fabric Platform Mgt"
         ClientIdText: Text;
         IsHandled: Boolean;
     begin
+        CheckEnableNotOnCooldown(CredMgt);
+
         // Privacy approval is a compliance gate and must not be skippable via the seam below.
         FabricPrivacyNotice.EnsureApproved();
 
@@ -270,10 +274,30 @@ codeunit 48520 "Fabric Platform Mgt"
                 Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
         end;
+        CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
         Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
         Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then
             Message(EnableRequestedMsg);
+    end;
+
+    local procedure CheckEnableNotOnCooldown(var CredMgt: Codeunit "Fabric Platform Credential Mgt")
+    var
+        LastEnableRequestedAt: DateTime;
+        RemainingMs: Duration;
+    begin
+        LastEnableRequestedAt := CredMgt.GetLastEnableRequestedAt();
+        if LastEnableRequestedAt = 0DT then
+            exit;
+        RemainingMs := EnableCooldownDuration() - (CurrentDateTime() - LastEnableRequestedAt);
+        if RemainingMs > 0 then
+            Error(EnableOnCooldownErr, (RemainingMs div 60000) + 1);
+    end;
+
+    local procedure EnableCooldownDuration(): Duration
+    begin
+        // Prevents duplicate platform enable requests fired in quick succession.
+        exit(15 * 60 * 1000);
     end;
 
     local procedure CreateSetupErrorInfo(ErrorMessage: Text) SetupErrorInfo: ErrorInfo
@@ -292,6 +316,12 @@ codeunit 48520 "Fabric Platform Mgt"
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         IsHandled: Boolean;
     begin
+        if IsSyncAlreadyRunning() then begin
+            if GuiAllowed() then
+                Message(SyncAlreadyRunningMsg);
+            exit;
+        end;
+
         // Privacy approval is a compliance gate and must not be skippable via the seam below.
         FabricPrivacyNotice.EnsureApproved();
 
@@ -302,6 +332,14 @@ codeunit 48520 "Fabric Platform Mgt"
         Telemetry.LogAudit('FAB-101-AUD', 'Microsoft Fabric Open Mirroring - export start requested.');
         if GuiAllowed() then
             Message(StartRequestedMsg);
+    end;
+
+    local procedure IsSyncAlreadyRunning(): Boolean
+    var
+        TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
+    begin
+        TenantFabricExportSummary.SetRange("End Time", 0DT);
+        exit(not TenantFabricExportSummary.IsEmpty());
     end;
 
     internal procedure StopExport()
