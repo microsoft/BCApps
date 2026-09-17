@@ -714,8 +714,8 @@ codeunit 137088 "SCM Order Planning - III"
 
         ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
         ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType);
-        PlanWkshTemplateName := GetPlanWkshTemplateName();
-        PlanWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType::Planning);
+        PlanWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType::Planning);
+        PlanWkshName := GetReqWkshName(PlanWkshTemplateName, ReqWkshTemplateType::Planning);
 
         // Exercise : Run Make order from Order Planning.
         MakeSupplyOrdersCopyToWkshActiveOrder(ProdOrder."No.", ReqWkshTemplateName, ReqWkshName, PlanWkshTemplateName, PlanWkshName);
@@ -835,7 +835,7 @@ codeunit 137088 "SCM Order Planning - III"
 
         ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
         ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType);
-        PlanWkshTemplateName := GetPlanWkshTemplateName();
+        PlanWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType::Planning);
         PlanWkshName := GetReqWkshName(PlanWkshTemplateName, ReqWkshTemplateType::Planning);
 
         // Exercise : Run Make order from Order Planning.
@@ -4407,15 +4407,6 @@ codeunit 137088 "SCM Order Planning - III"
         ReqWkshTemplate: Record "Req. Wksh. Template";
     begin
         ReqWkshTemplate.SetRange(Type, TemplateType);
-        ReqWkshTemplate.FindFirst();
-        exit(ReqWkshTemplate.Name);
-    end;
-
-    local procedure GetPlanWkshTemplateName(): Code[10]
-    var
-        ReqWkshTemplate: Record "Req. Wksh. Template";
-    begin
-        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Planning);
         ReqWkshTemplate.FindFirst();
         exit(ReqWkshTemplate.Name);
     end;
