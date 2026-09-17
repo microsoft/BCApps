@@ -88,14 +88,17 @@ page 6106 "Outbound E-Documents"
             action(EDocumentLogs)
             {
                 RunObject = Page "E-Document Logs";
-                Caption = 'E-Document Logs';
-                ToolTip = 'Opens E-Document Logs page.';
-                Image = Log;
+                RunPageLink = "E-Doc. Entry No" = field("Entry No");
+                RunPageMode = View;
+                Caption = 'View exported files';
+                ToolTip = 'Opens the logs where you can export files generated for the outgoing E-Document.';
+                Image = ExportFile;
             }
         }
         area(Promoted)
         {
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
+            actionref(Promoted_EDocumentLogs; EDocumentLogs) { }
         }
     }
 }

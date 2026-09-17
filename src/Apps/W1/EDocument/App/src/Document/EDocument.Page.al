@@ -326,14 +326,26 @@ page 6121 "E-Document"
                 action(ViewFile)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'View file';
-                    ToolTip = 'View the source file.';
+                    Caption = 'View source file';
+                    ToolTip = 'Opens the original file received for the incoming E-Document.';
                     Image = ViewDetails;
+                    Visible = SourceFileAvailable;
 
                     trigger OnAction()
                     begin
                         Rec.ViewSourceFile();
                     end;
+                }
+                action(ViewExportedFiles)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'View exported files';
+                    ToolTip = 'Opens the logs where you can export files generated for the outgoing E-Document.';
+                    Image = ExportFile;
+                    RunObject = Page "E-Document Logs";
+                    RunPageLink = "E-Doc. Entry No" = field("Entry No");
+                    RunPageMode = View;
+                    Visible = not IsIncomingDoc;
                 }
             }
             group(Incoming)
@@ -547,6 +559,7 @@ page 6121 "E-Document"
         SubmitClearanceVisible := GetClearanceVisibility();
         IsProcessed := Rec.Status = Rec.Status::Processed;
         IsIncomingDoc := Rec.Direction = Rec.Direction::Incoming;
+        SourceFileAvailable := IsIncomingDoc and (Rec."Unstructured Data Entry No." <> 0);
 
         RecordLinkTxt := EDocumentHelper.GetRecordLinkText(Rec);
         HasErrorsOrWarnings := (EDocumentErrorHelper.ErrorMessageCount(Rec) + EDocumentErrorHelper.WarningMessageCount(Rec)) > 0;
@@ -665,7 +678,7 @@ page 6121 "E-Document"
         ErrorsAndWarningsNotification: Notification;
         ShowClearanceInfo: Boolean;
         RecordLinkTxt, StyleStatusTxt : Text;
-        ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;
+        ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SourceFileAvailable, SubmitClearanceVisible : Boolean;
         EDocHasErrorOrWarningMsg: Label 'Errors or warnings found for E-Document. Please review below in "Error Messages" section.';
         DocNotCreatedMsg: Label 'Failed to create new %1 from E-Document. Please review errors below.', Comment = '%1 - E-Document Document Type';
 }
