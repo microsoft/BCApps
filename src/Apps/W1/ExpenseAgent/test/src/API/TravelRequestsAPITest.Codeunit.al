@@ -8,12 +8,14 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
+using Microsoft.HumanResources.Employee;
 
 // These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
 // Re-enable them after BCApps CI provisions an authenticated OData endpoint and a dedicated
 // test company with committed fixtures and disabled test isolation, then remove the exclusions.
-// In-process lifecycle, date, and scope coverage in "Spend Request Test", and restrictive role
-// coverage in "Expense Permissions Test", remain enabled; only the HTTP scenarios are excluded.
+// In-process employee filtering, traveler mapping/navigation, lifecycle, date, and scope coverage
+// in "Spend Request Test", and restrictive role coverage in "Expense Permissions Test", remain enabled.
+// Only the HTTP scenarios are excluded.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
@@ -26,6 +28,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
@@ -35,15 +38,252 @@ codeunit 148347 "Travel Requests API Test"
 #endif
         ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
         TravelRequestsServiceNameTok: Label 'travelRequests', Locked = true;
+        TravelersServiceNameTok: Label 'travelers', Locked = true;
+        ApproveTravelRequestActionTok: Label 'Microsoft.NAV.approveTravelRequest', Locked = true;
+        CreateExpenseReportActionTok: Label 'Microsoft.NAV.createExpenseReport', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         TravelRequestDetailsServiceNameTok: Label 'travelRequestDetails', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400 (BadRequest).', Locked = true;
         RequestedByCannotBeChangedErr: Label 'cannot be changed', Locked = true;
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
+        ApproveTravelRequestBodyLbl: Label '{"approverExpenseUserNo":"%1"}', Comment = '%1 = Approver Expense User No.', Locked = true;
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
+        ExpenseUserNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.';
         StatusNotOpenErr: Label 'must have the status', Locked = true;
+
+    [Test]
+    procedure TravelersAPIMapsEmployeeNumberToExpenseUser()
+    var
+        Employee: Record Employee;
+        OtherEmployee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        RequestedForExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Traveler: Record Traveler;
+        RequestedForTraveler: Record Traveler;
+        Request: JsonObject;
+        Response: JsonObject;
+        ExpandedTravelers: JsonToken;
+        ExpandedTraveler: JsonToken;
+        ExpandedTravelerId: JsonToken;
+        ExpectedEmployeeNumbers: Dictionary of [Text, Code[20]];
+        ExpectedEmployeeNo: Code[20];
+#if not CLEAN30
+        ExpenseUserNo: JsonToken;
+        ExpenseUserName: JsonToken;
+#endif
+        TargetURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Direct and expanded reads return employee numbers for automatically and explicitly added travelers.
+        Initialize();
+
+        // [GIVEN] Requested For creates a traveler without writing employeeNumber through the Travelers API.
+        LibraryExpense.CreateExpenseUser(RequestedForExpenseUser);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        Assert.AreNotEqual(RequestedForExpenseUser."No.", RequestedForExpenseUser."Employee No.", 'The requested-for fixture must use distinct Expense User and Employee numbers.');
+        Assert.AreNotEqual(ExpenseUser."No.", ExpenseUser."Employee No.", 'The explicit traveler fixture must use distinct Expense User and Employee numbers.');
+        CreateTravelRequest(TravelRequest, RequestedForExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", RequestedForExpenseUser."No.");
+        TravelRequest.Modify(true);
+        RequestedForTraveler.SetRange("Spend Request No.", TravelRequest."No.");
+        RequestedForTraveler.FindFirst();
+        RequestedForTraveler.TestField("Expense User No.", RequestedForExpenseUser."No.");
+        Request.Add('employeeNumber', ExpenseUser."Employee No.");
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The employee is added through the Travelers API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelersServiceNameTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
+
+        // [THEN] The Traveler stores the corresponding Expense User number.
+        Traveler.SetRange("Spend Request No.", TravelRequest."No.");
+        Traveler.SetFilter("Line No.", '<>%1', RequestedForTraveler."Line No.");
+        Traveler.FindFirst();
+        Traveler.TestField("Expense User No.", ExpenseUser."No.");
+
+        // [THEN] The API returns the employee mapping, retaining compatibility fields until removal.
+        Response.ReadFrom(ResponseText);
+        AssertTravelerEmployeeNumber(Response, ExpenseUser."Employee No.");
+#if not CLEAN30
+        Response.Get('expenseUserNo', ExpenseUserNo);
+        Response.Get('expenseUserName', ExpenseUserName);
+        Assert.AreEqual(ExpenseUser."No.", ExpenseUserNo.AsValue().AsText(), 'The obsolete Expense User number must remain compatible.');
+        Assert.AreEqual(ExpenseUser.Name, ExpenseUserName.AsValue().AsText(), 'The obsolete Expense User name must remain compatible.');
+#else
+        Assert.IsFalse(Response.Contains('expenseUserNo'), 'Removed Expense User numbers must not be returned.');
+        Assert.IsFalse(Response.Contains('expenseUserName'), 'Removed Expense User names must not be returned.');
+#endif
+
+        // [THEN] Fresh direct GETs resolve both mappings independently of the POST input variable.
+        AssertTravelerGetEmployeeNumber(RequestedForTraveler.SystemId, RequestedForExpenseUser."Employee No.");
+        AssertTravelerGetEmployeeNumber(Traveler.SystemId, ExpenseUser."Employee No.");
+
+        // [WHEN] The travel request is read with travelers and employees expanded.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        if StrPos(TargetURL, '?') <> 0 then
+            TargetURL += '&$expand=travelers,employees'
+        else
+            TargetURL += '?$expand=travelers,employees';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] Each traveler itself returns the correct mapping, not just a nested employee entity.
+        ExpectedEmployeeNumbers.Add(LowerCase(LibraryGraphMgt.StripBrackets(Format(RequestedForTraveler.SystemId))), RequestedForExpenseUser."Employee No.");
+        ExpectedEmployeeNumbers.Add(LowerCase(LibraryGraphMgt.StripBrackets(Format(Traveler.SystemId))), ExpenseUser."Employee No.");
+        Response.ReadFrom(ResponseText);
+        Assert.IsTrue(Response.Get('travelers', ExpandedTravelers), 'The response must contain the travelers expansion.');
+        foreach ExpandedTraveler in ExpandedTravelers.AsArray() do begin
+            Assert.IsTrue(ExpandedTraveler.AsObject().Get('id', ExpandedTravelerId), 'Each expanded traveler must have an id.');
+            Assert.IsTrue(
+                ExpectedEmployeeNumbers.Get(LowerCase(ExpandedTravelerId.AsValue().AsText()), ExpectedEmployeeNo),
+                'The response must not contain unexpected or duplicate travelers.');
+            AssertTravelerEmployeeNumber(ExpandedTraveler.AsObject(), ExpectedEmployeeNo);
+            ExpectedEmployeeNumbers.Remove(LowerCase(ExpandedTravelerId.AsValue().AsText()));
+        end;
+        Assert.AreEqual(0, ExpectedEmployeeNumbers.Count(), 'The response must include both the requested-for and explicitly added travelers.');
+#if not CLEAN30
+        Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must retain the obsolete Expense User number.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must retain the obsolete Expense User name.');
+#else
+        Assert.AreEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must not return removed Expense User numbers.');
+        Assert.AreEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must not return removed Expense User names.');
+#endif
+        Employee.Get(ExpenseUser."Employee No.");
+        OtherEmployee.Get(OtherExpenseUser."Employee No.");
+        Assert.AreNotEqual(
+            0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(Employee.SystemId)))),
+            'The traveler Employee entity must be returned.');
+        Assert.AreEqual(
+            0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(OtherEmployee.SystemId)))),
+            'Employees who are not travelers must not be returned.');
+    end;
+
+    [Test]
+    procedure TravelersAPIRejectsEmployeeWithoutExpenseUser()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
+        Request: JsonObject;
+        Response: JsonObject;
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] A traveler must be linked to an Expense User.
+        Initialize();
+
+        // [GIVEN] An employee without an Expense User and an open travel request.
+        LibraryHumanResource.CreateEmployee(Employee);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        Request.Add('employeeNumber', Employee."No.");
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The employee is added through the Travelers API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelersServiceNameTok);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The API identifies the employee without an Expense User.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        Assert.AreNotEqual(
+            0, StrPos(ErrorMessage.AsValue().AsText(), StrSubstNo(ExpenseUserNotLinkedErr, Employee."No.")),
+            'The response must identify the employee without an Expense User.');
+    end;
+
+    [Test]
+    procedure CreateExpenseReportActionRecreatesDeletedReport()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] The bound OData action recreates a deleted report for an approved travel request.
+        Initialize();
+
+        // [GIVEN] An approved request whose automatically created report was deleted.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", ExpenseUser."No.");
+        TravelRequest.Modify(true);
+        LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Approved);
+        ExpenseReportHeader.CreateFromApprovedTravelRequest(TravelRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.Delete(true);
+        Commit();
+
+        // [WHEN] The create expense report action is invoked through the owner's OData route.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(
+            TargetURL, '/' + TravelRequestsServiceNameTok + '(' +
+            LibraryGraphMgt.StripBrackets(Format(TravelRequest.SystemId)) + ')/' + CreateExpenseReportActionTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, '{}', ResponseText, 201);
+
+        // [THEN] A new report is linked to the request and its Expense User.
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.TestField("Expense User No.", ExpenseUser."No.");
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestActionCreatesExpenseReport()
+    var
+        ApprovalSetup: Record "Expense Approval Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ApproverExpenseUser: Record "Expense User";
+        RequestedForExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        TargetURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Approving a travel request through its bound OData action creates the expense report.
+        Initialize();
+
+        // [GIVEN] A released travel request assigned to an approver.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        LibraryExpense.CreateExpenseUser(RequestedForExpenseUser);
+        CreateApprover(ApproverExpenseUser);
+        LibraryExpense.CreateExpenseApprovalSetup(
+            ApprovalSetup, RequestedForExpenseUser."No.", ApproverExpenseUser."No.");
+        CreatePendingTravelRequest(TravelRequest, RequestedForExpenseUser);
+        Commit();
+
+        // [WHEN] The approve travel request action is invoked through OData.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API",
+            TravelRequestsServiceNameTok, ApproveTravelRequestActionTok);
+        RequestBody := StrSubstNo(ApproveTravelRequestBodyLbl, ApproverExpenseUser."No.");
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The request is approved and a report is created for Requested For.
+        TravelRequest.Get(TravelRequest."No.");
+        TravelRequest.TestField(Status, TravelRequest.Status::Approved);
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        ExpenseReportHeader.TestField("Expense User No.", RequestedForExpenseUser."No.");
+    end;
 
     [Test]
     procedure TravelRequestsAPINormalizesCurrency()
@@ -719,6 +959,27 @@ codeunit 148347 "Travel Requests API Test"
             exit(TargetURL + PathSuffix);
 
         exit(CopyStr(TargetURL, 1, QueryPosition - 1) + PathSuffix + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    local procedure AssertTravelerGetEmployeeNumber(TravelerSystemId: Guid; ExpectedEmployeeNo: Code[20])
+    var
+        Response: JsonObject;
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURL(Format(TravelerSystemId), Page::"Travelers API", TravelersServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Response.ReadFrom(ResponseText);
+        AssertTravelerEmployeeNumber(Response, ExpectedEmployeeNo);
+    end;
+
+    local procedure AssertTravelerEmployeeNumber(Response: JsonObject; ExpectedEmployeeNo: Code[20])
+    var
+        EmployeeNumber: JsonToken;
+    begin
+        Assert.AreNotEqual('', ExpectedEmployeeNo, 'The fixture must have a linked Employee number.');
+        Assert.IsTrue(Response.Get('employeeNumber', EmployeeNumber), 'The traveler response must contain employeeNumber.');
+        Assert.AreEqual(ExpectedEmployeeNo, EmployeeNumber.AsValue().AsText(), 'The traveler must return the Employee number linked to its Expense User.');
     end;
 
     local procedure AssertAPIDates(ResponseText: Text; StartDate: Date; EndDate: Date)
