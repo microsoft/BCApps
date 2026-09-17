@@ -84,6 +84,11 @@ table 6840 "Spend Request"
         {
             Caption = 'Purpose';
             ToolTip = 'Specifies the purpose of the spend request.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(9; "Currency Code"; Code[10])
         {
@@ -449,7 +454,7 @@ table 6840 "Spend Request"
         Rec.Status := Rec.Status::Approved;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();
-        Rec."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(Rec."Approved/Rejected by User Name"));
+        Rec."Approved/Rejected by User Name" := GetCurrentUserName();
         Rec.Modify();
     end;
 
@@ -464,8 +469,18 @@ table 6840 "Spend Request"
         Rec.Status := Rec.Status::Rejected;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();
-        Rec."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(Rec."Approved/Rejected by User Name"));
+        Rec."Approved/Rejected by User Name" := GetCurrentUserName();
         Rec.Modify();
+    end;
+
+    local procedure GetCurrentUserName(): Code[50]
+    var
+        User: Record User;
+    begin
+        if User.ReadPermission() then
+            if User.Get(UserSecurityId()) then
+                exit(CopyStr(User."User Name", 1, MaxStrLen(Rec."Approved/Rejected by User Name")));
+        exit(CopyStr(UserId(), 1, MaxStrLen(Rec."Approved/Rejected by User Name")));
     end;
 
     /// <summary>
