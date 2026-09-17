@@ -6,13 +6,10 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
@@ -29,8 +26,6 @@ using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Structure;
@@ -76,11 +71,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -153,11 +148,11 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -327,11 +322,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN] Work and Machine Centers, an Item with Routing and Prod. BOM configured for Transfer subcontracting
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A Released Production Order (not created from a Purchase Order)
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -381,10 +376,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -428,10 +423,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN] Create subcontracting Work Center (sets Def. VAT Prod. Posting Group during creation)
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -499,11 +494,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN] Item with routing link and a Transfer to Vendor component, and a vendor with a Subc. Location Code
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] Released production order whose current line component sits at a normal (non-blank, non-Subc.) location
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -562,12 +557,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
@@ -617,10 +612,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -670,12 +665,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
@@ -718,12 +713,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -794,12 +789,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -880,12 +875,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -973,12 +968,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1089,12 +1084,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1148,12 +1143,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
         UpdateSubMgmtSetupWithReqWkshTemplate();
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
@@ -1268,12 +1263,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1343,13 +1338,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1428,13 +1423,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1516,13 +1511,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1607,13 +1602,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         LibraryWarehouse.CreateLocation(Location);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1666,115 +1661,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure TestCheckSubcontractorPriceInFactbox()
-    var
-        Item: Record Item;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProductionOrder: Record "Production Order";
-        PurchaseLine: Record "Purchase Line";
-        SubcontractorPrice: Record "Subcontractor Price";
-        WorkCenter: array[2] of Record "Work Center";
-        SubPurchaseLineFactbox: TestPage "Subc. Purchase Line Factbox";
-    begin
-        // [SCENARIO] Create Subcontracting Purchase Order directly from Prod. Order Routing Line
-        // Check if No of SubcontractorPrices is displayed
-
-        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
-        Initialize();
-
-        // [GIVEN] Some Parameters for Creation
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-
-        // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-
-        SubcontractingMgmtLibrary.CreateSubcontractorPrice(Item, WorkCenter[2]."No.", SubcontractorPrice);
-
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-
-        UpdateSubMgmtSetupWithReqWkshTemplate();
-
-        // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
-
-        // [THEN] Check if Purchase Line exists
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-#pragma warning disable AA0210
-        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
-#pragma warning restore AA0210
-        PurchaseLine.FindFirst();
-
-        SubPurchaseLineFactbox.OpenView();
-        SubPurchaseLineFactbox.GoToRecord(PurchaseLine);
-        Assert.AreEqual(SubPurchaseLineFactbox.SubcontractingPrices.Value, Format(SubcontractorPrice.Count()), '');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure DeleteWorkCenterWithPricesDeletesRelatedPrices()
-    var
-        Item: Record Item;
-        SubcontractorPrice: Record "Subcontractor Price";
-        WorkCenter: Record "Work Center";
-        WorkCenterNo: Code[20];
-    begin
-        // [SCENARIO 620643] Deleting a Work Center deletes all associated Subcontractor Prices
-
-        // [GIVEN] A work center with a subcontractor and multiple Subcontractor Prices
-        Initialize();
-        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
-        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-        WorkCenter.Modify(true);
-        LibraryInventory.CreateItem(Item);
-        WorkCenterNo := WorkCenter."No.";
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
-
-        // [WHEN] The work center is deleted
-        WorkCenter.Delete(true);
-
-        // [THEN] All Subcontractor Prices for the work center are deleted
-        SubcontractorPrice.SetRange("Work Center No.", WorkCenterNo);
-        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when work center is deleted');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure DeleteItemWithPricesDeletesRelatedPrices()
-    var
-        Item: Record Item;
-        SubcontractorPrice: Record "Subcontractor Price";
-        WorkCenter: Record "Work Center";
-        ItemNo: Code[20];
-    begin
-        // [SCENARIO 620643] Deleting an Item deletes all associated Subcontractor Prices
-
-        // [GIVEN] An item with multiple Subcontractor Prices
-        Initialize();
-        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
-        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
-        WorkCenter.Modify(true);
-        LibraryInventory.CreateItem(Item);
-        ItemNo := Item."No.";
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
-
-        // [WHEN] The item is deleted
-        Item.Delete(true);
-
-        // [THEN] All Subcontractor Prices for the item are deleted
-        SubcontractorPrice.SetRange("Item No.", ItemNo);
-        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when item is deleted');
-    end;
-
-    [Test]
     [HandlerFunctions('ConfirmHandler,SubcontrDispatchingListDefaultRequestPageHandler')]
     procedure TestSubcontrDispatchingList()
     var
@@ -1798,12 +1684,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
 
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
 
@@ -1839,369 +1725,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryReportDataset.AssertElementWithValueExists('Prod__Order_Routing_Line__Prod__Order_No__', ProductionOrder."No.");
     end;
 
-    [Test]
-    procedure TestTransferComponentSupplyMethodAndVendorLocationIntoPlanningComponent()
-    var
-        Customer: Record Customer;
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        PlanningComponent: Record "Planning Component";
-        ProductionBOMLine: Record "Production BOM Line";
-        RequisitionLine: Record "Requisition Line";
-        RequisitionWkshName: Record "Requisition Wksh. Name";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        Vendor: Record Vendor;
-        WorkCenter: array[2] of Record "Work Center";
-        ReqWkshTemplateName: Code[10];
-        Direction: Option Forward,Backward;
-    begin
-        // [SCENARIO] Create Sales Order and test Planning Component
-
-        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
-        Initialize();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
-
-        // [GIVEN] Some Parameters for Creation
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        // [GIVEN]
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-
-        // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        Item."Reordering Policy" := "Reordering Policy"::Order;
-        Item.Modify();
-
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Consignment at Vendor");
-
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-
-        LibrarySales.CreateCustomer(Customer);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        LibrarySales.CreateSalesDocumentWithItem(SalesHeader, SalesLine, "Sales Document Type"::Order, Customer."No.", Item."No.", 5, Location.Code, WorkDate());
-
-        // [WHEN]
-        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
-
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        ProductionBOMLine.FindLast();
-        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
-        PlanningComponent.FindFirst();
-
-        // [THEN]
-        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
-
-        // [WHEN] A Planning Worksheet line is added manually for the same item and Refresh Planning Line is run (bug 637499 repro)
-        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
-        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
-        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
-        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
-        RequisitionLine.Validate("No.", Item."No.");
-        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
-        RequisitionLine.Validate("Location Code", Location.Code);
-        RequisitionLine.Validate("Ending Date", WorkDate());
-        RequisitionLine.Modify(true);
-        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
-
-        // [THEN] The Subcontracting Type (Component Supply Method) is copied from the Production BOM Line to the Planning Component
-        Clear(PlanningComponent);
-        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
-        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
-        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
-        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
-        PlanningComponent.FindFirst();
-        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Consignment at Vendor");
-        // [THEN] and the component is relocated to the subcontractor location, matching the Production Order behavior
-        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
-    end;
-
-
-    [Test]
-    procedure PurchaseSubcTypeProdOrderCompExcludedFromPlanning()
-    var
-        ComponentItem: Record Item;
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProductionBOMLine: Record "Production BOM Line";
-        ProductionOrder: Record "Production Order";
-        RequisitionLine: Record "Requisition Line";
-        WorkCenter: array[2] of Record "Work Center";
-    begin
-        // [SCENARIO 630597] Prod. Order Components with Component Supply Method "Purchase" should be
-        // excluded from planning engines because they will be purchased later via the subcontracting
-        // purchase order.
-
-        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
-        Initialize();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
-
-        // [GIVEN] Some Parameters for Creation
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        // [GIVEN] Create subcontracting Work/Machine Centers
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-
-        // [GIVEN] Create Item for Production include Routing and Prod. BOM (2 component items)
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-
-        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-
-        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
-
-        // [GIVEN] Set up vendor with subcontracting location
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-
-        // [GIVEN] Set component item reordering policy to Lot-for-Lot (already done during creation)
-        // [GIVEN] Create inventory for the component item so planning considers it
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        ProductionBOMLine.FindLast();
-        ComponentItem.Get(ProductionBOMLine."No.");
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-
-        // [GIVEN] Create and refresh Released Production Order
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-
-        // [GIVEN] Verify prod. order component with Purchase Component Supply Method exists
-        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComp.SetRange("Item No.", ComponentItem."No.");
-        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-        Assert.RecordIsNotEmpty(ProdOrderComp);
-
-        // [WHEN] Run Regenerative Plan for the component item
-        ComponentItem.SetRecFilter();
-        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
-
-        // [THEN] No requisition line is suggested for the component with Vendor-Supplied component supply method
-        RequisitionLine.SetRange("No.", ComponentItem."No.");
-        Assert.RecordIsEmpty(RequisitionLine);
-
-        // [WHEN] Changing the Component Supply Method to None and run planning again
-        UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder, "Component Supply Method"::Empty);
-        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
-
-        // [THEN] Requisition line is suggested for the component with None component supply method
-        RequisitionLine.SetRange("No.", ComponentItem."No.");
-        Assert.RecordIsNotEmpty(RequisitionLine);
-    end;
-
-    [Test]
-    procedure VendorSuppliedComponentVisibleInPlanningWorksheetAfterRefresh()
-    var
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        PlanningComponent: Record "Planning Component";
-        ProductionBOMLine: Record "Production BOM Line";
-        RequisitionLine: Record "Requisition Line";
-        RequisitionWkshName: Record "Requisition Wksh. Name";
-        ReqWkshName: Record "Requisition Wksh. Name";
-        Vendor: Record Vendor;
-        WorkCenter: array[2] of Record "Work Center";
-        ReqWkshTemplateName: Code[10];
-        Direction: Option Forward,Backward;
-    begin
-        // [SCENARIO 640113] Lines with Subcontracting Type = Vendor Supplied should appear in Planning
-        // Worksheet components when refreshing from Production BOM so consumption can be registered.
-
-        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
-        Initialize();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
-
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-
-        // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-
-        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-
-        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
-
-        // [GIVEN] Set up vendor with subcontracting location
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-
-        // [GIVEN] A Planning Worksheet line is added manually for the item
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
-        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
-        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
-        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
-        RequisitionLine.Validate("No.", Item."No.");
-        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
-        RequisitionLine.Validate("Location Code", Location.Code);
-        RequisitionLine.Validate("Ending Date", WorkDate());
-        RequisitionLine.Modify(true);
-
-        // [WHEN] Refresh Planning Line is run
-        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
-
-        // [THEN] The component with Vendor-Supplied type is present in Planning Components
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        ProductionBOMLine.FindLast();
-        PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
-        PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
-        PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
-        PlanningComponent.SetRange("Item No.", ProductionBOMLine."No.");
-        Assert.RecordIsNotEmpty(PlanningComponent);
-
-        // [THEN] The Component Supply Method is correctly transferred
-        PlanningComponent.FindFirst();
-        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-        // [THEN] The component is relocated to the subcontractor location for consumption registration
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        PlanningComponent.TestField("Location Code", Vendor."Subc. Location Code");
-
-        // [THEN] No separate replenishment Requisition Line is generated for the vendor-supplied component item
-        RequisitionLine.Reset();
-        RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
-        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("No.", ProductionBOMLine."No.");
-        Assert.RecordIsEmpty(RequisitionLine);
-
-        // [TEAR DOWN] Clean up the Planning Worksheet lines and names
-        RequisitionLine.Reset();
-        RequisitionLine.DeleteAll(true);
-        ReqWkshName.DeleteAll(true);
-    end;
-
-    [Test]
-    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
-    procedure VendorSuppliedPlanningComponentNotPlannedSeparately()
-    var
-        ComponentItem: Record Item;
-        Item: Record Item;
-        Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
-        ManufacturingUserTemplate: Record "Manufacturing User Template";
-        PlanningComponent: Record "Planning Component";
-        ProdOrderComponent: Record "Prod. Order Component";
-        ProductionBOMLine: Record "Production BOM Line";
-        ProductionOrder: Record "Production Order";
-        RequisitionLine: Record "Requisition Line";
-        RequisitionWkshName: Record "Requisition Wksh. Name";
-        WorkCenter: array[2] of Record "Work Center";
-        ReqWkshTemplateName: Code[10];
-        Direction: Option Forward,Backward;
-    begin
-        // [SCENARIO] Planning Components with Component Supply Method = Vendor-Supplied must not
-        // generate separate demand when CalcRegenPlan is run for the component item, because
-        // vendor-supplied components are purchased through the subcontracting purchase order.
-
-        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
-        Initialize();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
-
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-
-        // [GIVEN] Create Item for Production include Routing and Prod. BOM
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-
-        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-
-        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
-
-        // [GIVEN] Set up vendor with subcontracting location
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-
-        // [GIVEN] A Planning Worksheet line for the parent item is refreshed, creating Planning Components
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
-        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
-        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
-        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
-        RequisitionLine.Validate("No.", Item."No.");
-        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
-        RequisitionLine.Validate("Location Code", Location.Code);
-        RequisitionLine.Validate("Ending Date", WorkDate());
-        RequisitionLine.Modify(true);
-        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
-
-        // [GIVEN] The component item from the BOM with Vendor-Supplied supply method
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        ProductionBOMLine.FindLast();
-        ComponentItem.Get(ProductionBOMLine."No.");
-
-        // [WHEN] Run Regenerative Plan for the component item
-        ComponentItem.SetRecFilter();
-        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
-
-        // [THEN] No requisition line is suggested for the Vendor-Supplied component
-        RequisitionLine.SetRange("No.", ComponentItem."No.");
-        Assert.RecordIsEmpty(RequisitionLine);
-
-        // [THEN] The Vendor-Supplied Planning Component still exists in the planning worksheet (the planning
-        // run must not remove it — it is needed for consumption registration in the production order)
-        PlanningComponent.SetRange("Item No.", ComponentItem."No.");
-        Assert.RecordIsNotEmpty(PlanningComponent);
-        PlanningComponent.FindFirst();
-        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-
-        // [WHEN] Carry out the parent item's planning line to create a planned production order
-        if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
-            LibraryPlanning.CreateManufUserTemplate(
-                ManufacturingUserTemplate, CopyStr(UserId(), 1, 50),
-                ManufacturingUserTemplate."Make Orders"::"All Lines",
-                ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
-                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
-                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
-        RequisitionLine.Reset();
-        RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
-        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-        RequisitionLine.SetRange("No.", Item."No.");
-        RequisitionLine.FindFirst();
-        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
-
-        // [THEN] The created planned production order contains the Vendor-Supplied component
-        // (carrying out the planning line must not strip the component from the production order)
-        ProductionOrder.SetRange("Source No.", Item."No.");
-        ProductionOrder.SetRange(Status, "Production Order Status"::"Firm Planned");
-        ProductionOrder.FindFirst();
-        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
-        Assert.RecordIsNotEmpty(ProdOrderComponent);
-        ProdOrderComponent.FindFirst();
-        ProdOrderComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-
-        // [WHEN] Changing the Prod. Order Component's supply method to Empty
-        // (Planning Components are gone after carry-out; use the Prod. Order Component)
-        ProdOrderComponent."Component Supply Method" := "Component Supply Method"::Empty;
-        ProdOrderComponent.Modify();
-
-        // [WHEN] Run Regenerative Plan again for the component item
-        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
-
-        // [THEN] Requisition line is now suggested for the component
-        RequisitionLine.SetRange("No.", ComponentItem."No.");
-        Assert.RecordIsNotEmpty(RequisitionLine);
-
-        // [TEAR DOWN] Clean up the Planning Worksheet lines and names
-        RequisitionLine.Reset();
-        RequisitionLine.DeleteAll(true);
-        RequisitionWkshName.DeleteAll(true);
-    end;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
@@ -2451,11 +1974,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -2518,9 +2041,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -2580,9 +2103,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -2650,9 +2173,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2709,12 +2232,12 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         ExpectedDescription2 := 'Work center details';
         WorkCenter[2].Validate("Name 2", ExpectedDescription2);
         WorkCenter[2].Modify(true);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2771,14 +2294,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         ExpectedDescription := 'Subcontracting work center';
         ExpectedDescription2 := 'Work center details';
         WorkCenter[2].Validate(Name, ExpectedDescription);
         WorkCenter[2].Validate("Name 2", ExpectedDescription2);
         WorkCenter[2].Modify(true);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2830,14 +2353,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
         ExpectedDescription := 'Current subcontracting work center';
         ExpectedDescription2 := 'Current work center details';
         WorkCenter[2].Validate(Name, ExpectedDescription);
         WorkCenter[2].Validate("Name 2", ExpectedDescription2);
         WorkCenter[2].Modify(true);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2885,9 +2408,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order
@@ -2921,9 +2444,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order
@@ -2957,9 +2480,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order
@@ -2993,9 +2516,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] Manufacturing setup with an item, routing and subcontracting work center
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order
@@ -3032,10 +2555,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation := UnitCostCalculation::Units;
 
         // [GIVEN] Work centers, item with routing and BOM, with a routing link code assigned to the subcontracting routing line
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order whose routing lines inherit the routing link code
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -3076,8 +2599,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
 
         // [GIVEN] A Released Production Order whose routing has more than one operation
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -3132,11 +2655,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -3213,11 +2736,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3309,11 +2832,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3409,11 +2932,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3505,10 +3028,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         // [GIVEN] One released production order created directly from item
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
@@ -3577,10 +3100,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
 
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
 
@@ -3636,8 +3159,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         Initialize();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3683,8 +3206,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         Initialize();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3731,8 +3254,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         Initialize();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3793,8 +3316,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         Initialize();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -3817,187 +3340,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(ExistingPurchaseOrderNo, ReopenedPurchaseOrderNo, 'Create Subcontracting Order should open the updated existing purchase order.');
 
         LibraryVariableStorage.AssertEmpty();
-    end;
-
-    [Test]
-    procedure StandardTaskCodePropagatedAndDrivesSubcPriceLookup()
-    var
-        Item: Record Item;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProductionOrder: Record "Production Order";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        PurchaseLine: Record "Purchase Line";
-        ReqWkshTemplate: Record "Req. Wksh. Template";
-        RequisitionLine: Record "Requisition Line";
-        RequisitionLineWithStdTask: Record "Requisition Line";
-        RequisitionLineNoStdTask: Record "Requisition Line";
-        RequisitionWkshName: Record "Requisition Wksh. Name";
-        StandardTask: Record "Standard Task";
-        SubcontractorPrice: Record "Subcontractor Price";
-        Vendor: Record Vendor;
-        WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
-        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
-        LibraryUtility: Codeunit "Library - Utility";
-        PriceWithoutStdTask: Decimal;
-        PriceWithStdTask: Decimal;
-        SecondOperationNo: Code[10];
-    begin
-        // [SCENARIO 633226] Standard Task Code propagates from Routing → Prod. Order Routing → Subcontracting Worksheet,
-        // is editable on the worksheet, and drives Subcontractor Price lookup. Editing or clearing it on a worksheet
-        // line re-applies the matching subcontractor price; carrying out creates Purchase Lines with the correct unit costs.
-
-        Initialize();
-
-        // [GIVEN] Subcontracting setup with a worksheet template
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-        UpdateSubMgmtSetupWithReqWkshTemplate();
-
-        // [GIVEN] Work centers and a manufacturing item with routing and BOM
-        //         (helper creates one subcontracting routing line on WorkCenter[2] without a Standard Task)
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-
-        // [GIVEN] A standard task code
-        LibraryManufacturing.CreateStandardTask(StandardTask);
-
-        // [GIVEN] A second subcontracting routing line on the same work center, with the standard task assigned
-        SecondOperationNo := AddSubcRoutingLineWithStandardTask(Item."Routing No.", WorkCenter[2]."No.", StandardTask.Code);
-
-        // [GIVEN] Two subcontractor prices for the item / work center / vendor:
-        //         - PriceWithoutStdTask, with no Standard Task Code
-        //         - PriceWithStdTask = 2 * PriceWithoutStdTask, tied to StandardTask.Code
-        Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        PriceWithoutStdTask := LibraryRandom.RandIntInRange(50, 200);
-        PriceWithStdTask := PriceWithoutStdTask * 2;
-
-        SubcontractorPrice.Reset();
-        SubcontractorPrice.SetRange("Vendor No.", Vendor."No.");
-        SubcontractorPrice.SetRange("Item No.", Item."No.");
-        SubcontractorPrice.DeleteAll();
-
-        Clear(SubcontractorPrice);
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", '', '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
-        SubcontractorPrice."Direct Unit Cost" := PriceWithoutStdTask;
-        SubcontractorPrice.Modify();
-
-        Clear(SubcontractorPrice);
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", StandardTask.Code, '',
-            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
-        SubcontractorPrice."Direct Unit Cost" := PriceWithStdTask;
-        SubcontractorPrice.Modify();
-
-        // [GIVEN] A released production order
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-
-        // [THEN] Standard Task Code is propagated from Routing Line to Prod. Order Routing Line on the second operation
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderRoutingLine.SetRange("Operation No.", SecondOperationNo);
-        ProdOrderRoutingLine.FindFirst();
-        Assert.AreEqual(
-            StandardTask.Code, ProdOrderRoutingLine."Standard Task Code",
-            'Standard Task Code must be propagated from Routing Line to Prod. Order Routing Line.');
-
-        // [GIVEN] An empty subcontracting worksheet
-        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
-        RequisitionWkshName.Init();
-        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
-        RequisitionWkshName.Validate(
-            Name,
-            CopyStr(
-                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
-                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
-        RequisitionWkshName.Insert(true);
-
-        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
-        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
-
-        // [WHEN] Calculate Subcontracts is run on the worksheet
-        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
-        SubcCalculateSubContract.UseRequestPage(false);
-        SubcCalculateSubContract.RunModal();
-
-        // [THEN] On the worksheet line for the operation with a standard task, Standard Task Code is populated
-        //        and the standard-task-bound price is applied
-        RequisitionLineWithStdTask.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
-        RequisitionLineWithStdTask.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-#pragma warning disable AA0210
-        RequisitionLineWithStdTask.SetRange("Prod. Order No.", ProductionOrder."No.");
-        RequisitionLineWithStdTask.SetRange("Operation No.", SecondOperationNo);
-#pragma warning restore AA0210
-        RequisitionLineWithStdTask.FindFirst();
-        Assert.AreEqual(
-            StandardTask.Code, RequisitionLineWithStdTask."Subc. Standard Task Code",
-            'Standard Task Code must be propagated from Prod. Order Routing Line to the Subcontracting Worksheet line.');
-        Assert.AreEqual(
-            PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
-            'Subcontractor Price tied to the Standard Task Code must be applied to the worksheet line.');
-
-        // [THEN] On the worksheet line for the operation without a standard task, the un-tagged subcontractor price is applied
-        RequisitionLineNoStdTask.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
-        RequisitionLineNoStdTask.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-#pragma warning disable AA0210
-        RequisitionLineNoStdTask.SetRange("Prod. Order No.", ProductionOrder."No.");
-        RequisitionLineNoStdTask.SetFilter("Operation No.", '<>%1', SecondOperationNo);
-#pragma warning restore AA0210
-        RequisitionLineNoStdTask.FindFirst();
-        Assert.AreEqual(
-            '', RequisitionLineNoStdTask."Subc. Standard Task Code",
-            'Standard Task Code must be empty on the worksheet line that has no standard task on the routing.');
-        Assert.AreEqual(
-            PriceWithoutStdTask, RequisitionLineNoStdTask."Direct Unit Cost",
-            'Subcontractor Price for the un-tagged combination must be applied to the worksheet line.');
-
-        // [WHEN] User clears Standard Task Code on the worksheet line
-        RequisitionLineWithStdTask.Validate("Subc. Standard Task Code", '');
-        RequisitionLineWithStdTask.Modify(true);
-
-        // [THEN] Direct Unit Cost falls back to the un-tagged subcontractor price
-        Assert.AreEqual(
-            PriceWithoutStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
-            'Clearing Standard Task Code on the worksheet line must re-apply the un-tagged subcontractor price.');
-
-        // [WHEN] User re-sets Standard Task Code on the worksheet line
-        RequisitionLineWithStdTask.Validate("Subc. Standard Task Code", StandardTask.Code);
-        RequisitionLineWithStdTask.Modify(true);
-
-        // [THEN] Direct Unit Cost is restored to the standard-task-bound subcontractor price
-        Assert.AreEqual(
-            PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
-            'Re-setting Standard Task Code on the worksheet line must re-apply the standard-task-bound subcontractor price.');
-
-        // [WHEN] Carry Out Action Message creates the Subcontracting Purchase Order from the worksheet
-        Clear(RequisitionLine);
-        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
-        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
-        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
-        CarryOutActionMsgReq.UseRequestPage(false);
-        CarryOutActionMsgReq.RunModal();
-
-        // [THEN] The purchase line for the operation with a standard task has Direct Unit Cost = PriceWithStdTask
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-        PurchaseLine.SetRange("No.", Item."No.");
-#pragma warning disable AA0210
-        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-#pragma warning restore AA0210
-        PurchaseLine.SetRange("Operation No.", SecondOperationNo);
-        PurchaseLine.FindFirst();
-        Assert.AreEqual(
-            PriceWithStdTask, PurchaseLine."Direct Unit Cost",
-            'Subcontracting Purchase Line for the operation with a standard task must use the standard-task-bound subcontractor price.');
-
-        // [THEN] The purchase line for the operation without a standard task has Direct Unit Cost = PriceWithoutStdTask
-        PurchaseLine.SetFilter("Operation No.", '<>%1', SecondOperationNo);
-        PurchaseLine.FindFirst();
-        Assert.AreEqual(
-            PriceWithoutStdTask, PurchaseLine."Direct Unit Cost",
-            'Subcontracting Purchase Line for the operation without a standard task must use the un-tagged subcontractor price.');
     end;
 
     [PageHandler]
@@ -4092,12 +3434,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [ModalPageHandler]
-    procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
-    begin
-        Response := ACTION::LookupOK;
-    end;
-
-    [ModalPageHandler]
     procedure GetOrderLinesPurchaseLinesPageHandler(var PurchaseLines: TestPage "Purchase Lines")
     begin
         Assert.IsFalse(PurchaseLines.First(), 'Subcontracting purchase order lines must be excluded from the Get Order Lines selection.');
@@ -4117,45 +3453,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Reply := true;
     end;
 
-    local procedure AddSubcRoutingLineWithStandardTask(RoutingNo: Code[20]; WorkCenterNo: Code[20]; StandardTaskCode: Code[10]) NewOperationNo: Code[10]
-    var
-        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
-        RoutingHeader: Record "Routing Header";
-        RoutingLine: Record "Routing Line";
-    begin
-#pragma warning disable AA0210
-        CapacityUnitOfMeasure.SetRange(Type, CapacityUnitOfMeasure.Type::Minutes);
-#pragma warning restore AA0210
-        CapacityUnitOfMeasure.FindFirst();
-
-        RoutingHeader.Get(RoutingNo);
-        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
-        RoutingHeader.Modify(true);
-
-        // Use a number larger than any existing operation so the certification-time ordering check is satisfied.
-        NewOperationNo := CopyStr(IncStr(FindLastRoutingOperationNo(RoutingNo)), 1, MaxStrLen(NewOperationNo));
-
-        LibraryManufacturing.CreateRoutingLineSetup(
-            RoutingLine, RoutingHeader, WorkCenterNo, NewOperationNo,
-            LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
-        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
-        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
-        RoutingLine.Validate("Standard Task Code", StandardTaskCode);
-        RoutingLine.Modify(true);
-
-        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
-        RoutingHeader.Modify(true);
-    end;
-
-    local procedure FindLastRoutingOperationNo(RoutingNo: Code[20]): Code[10]
-    var
-        RoutingLine: Record "Routing Line";
-    begin
-        RoutingLine.SetRange("Routing No.", RoutingNo);
-        RoutingLine.FindLast();
-        exit(RoutingLine."Operation No.");
-    end;
-
     local procedure SetupSubcontractingForTransferOrderTests(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var ProductionLocation: Record Location)
     var
         MachineCenter: array[2] of Record "Machine Center";
@@ -4166,11 +3463,11 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
         UpdateSubMgmtSetupWithReqWkshTemplate();
     end;
@@ -4215,69 +3512,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         exit(TransferHeader."No.");
     end;
 
-    local procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
-    var
-        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
-        ShopCalendarCode: Code[10];
-        MachineCenterNo: Code[20];
-        MachineCenterNo2: Code[20];
-        WorkCenterNo: Code[20];
-        WorkCenterNo2: Code[20];
-    begin
-        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
-        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
-
-        // [GIVEN] Create and Calculate needed Work and Machine Center
-        CreateWorkCenter(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not Subcontracting, UnitCostCalculation, '');
-        WorkCenter[1].Get(WorkCenterNo);
-        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
-        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
-        MachineCenter[1].Get(MachineCenterNo);
-        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
-        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
-        MachineCenter[2].Get(MachineCenterNo2);
-        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
-        if Subcontracting then
-            CreateWorkCenter(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", Subcontracting, UnitCostCalculation, '')
-        else
-            CreateWorkCenter(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not Subcontracting, UnitCostCalculation, '');
-        WorkCenter[2].Get(WorkCenterNo2);
-        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-    end;
-
-    local procedure CreateItemForProductionIncludeRoutingAndProdBOM(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
-    var
-        ManufacturingSetup: Record "Manufacturing Setup";
-        ProductionBOMHeader: Record "Production BOM Header";
-        NoSeries: Codeunit "No. Series";
-        ItemNo: Code[20];
-        ItemNo2: Code[20];
-        ProductionBOMNo: Code[20];
-        RoutingNo: Code[20];
-    begin
-        ManufacturingSetup.SetLoadFields("Routing Nos.");
-        ManufacturingSetup.Get();
-        RoutingNo := NoSeries.GetNextNo(ManufacturingSetup."Routing Nos.", WorkDate(), true);
-
-        LibraryMfgManagement.CreateRouting(RoutingNo, MachineCenter[1]."No.", MachineCenter[2]."No.", WorkCenter[1]."No.", WorkCenter[2]."No.");
-
-        // Create Items with Flushing method - Manual with the Parent Item containing Routing No. and Production BOM No.
-
-        CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
-        ItemNo := Item."No.";
-        Clear(Item);
-        CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
-        ItemNo2 := Item."No.";
-        Clear(Item);
-
-        ProductionBOMNo := LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ItemNo, ItemNo2, 1); // value important.
-
-        CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
-    end;
-
     local procedure SetAllProdOrderTransferComponentLocations(ProdOrderNo: Code[20]; LocationCode: Code[10])
     var
         ProdOrderComp: Record "Prod. Order Component";
@@ -4305,45 +3539,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderComponent."Location Code" := LocationCode;
         ProdOrderComponent."Bin Code" := '';
         ProdOrderComponent.Insert();
-    end;
-
-    local procedure UpdateProdBomAndRoutingWithRoutingLink(Item: Record Item; WorkCenterNo: Code[20])
-    var
-        ProductionBOMHeader: Record "Production BOM Header";
-        ProductionBOMLine: Record "Production BOM Line";
-        RoutingHeader: Record "Routing Header";
-        RoutingLine: Record "Routing Line";
-        RoutingLink: Record "Routing Link";
-    begin
-        RoutingLink.Init();
-        RoutingLink.Validate(Code, CopyStr(Item."Production BOM No.", 1, 10));
-        RoutingLink.Insert(true);
-
-        RoutingHeader.Get(Item."Routing No.");
-        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
-        RoutingHeader.Modify(true);
-
-        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
-        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
-        RoutingLine.SetRange("No.", WorkCenterNo);
-        RoutingLine.FindFirst();
-        RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
-        RoutingLine.Modify(true);
-
-        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
-        RoutingHeader.Modify(true);
-
-        ProductionBOMHeader.Get(Item."Production BOM No.");
-        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
-        ProductionBOMHeader.Modify(true);
-
-        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
-        ProductionBOMLine.FindLast();
-        ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
-        ProductionBOMLine.Modify(true);
-
-        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
-        ProductionBOMHeader.Modify(true);
     end;
 
     local procedure UpdateProdOrderCompWithLocationAndBinCode(ProdOrderNo: Code[20]; var LocationCode: Code[10]; var BinCode: Code[20])
@@ -4415,74 +3610,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ComponentItem1."No.", ComponentItem2."No.", 1);
 
         CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingHeader."No.", ProductionBOMHeader."No.");
-    end;
-
-    local procedure CreateItemWithNonLastSubcontractingOperation(var Item: Record Item; var SubcWorkCenter: Record "Work Center")
-    var
-        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
-        ComponentItem1: Record Item;
-        ComponentItem2: Record Item;
-        LastWorkCenter: Record "Work Center";
-        ProductionBOMHeader: Record "Production BOM Header";
-        RoutingHeader: Record "Routing Header";
-        RoutingLine: Record "Routing Line";
-        ShopCalendarCode: Code[10];
-        LastWorkCenterNo: Code[20];
-        WorkCenterNo: Code[20];
-    begin
-        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
-        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
-
-        // Subcontracting work center for the first operation, which must not be the last operation so the item charge is
-        // posted against the work center capacity (capacity ledger entry) instead of the produced item's output entry.
-        CreateWorkCenter(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", true, UnitCostCalculation, '');
-        SubcWorkCenter.Get(WorkCenterNo);
-        LibraryManufacturing.CalculateWorkCenterCalendar(SubcWorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
-        // Regular (non-subcontracting) work center for the last operation
-        CreateWorkCenter(LastWorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", false, UnitCostCalculation, '');
-        LastWorkCenter.Get(LastWorkCenterNo);
-        LibraryManufacturing.CalculateWorkCenterCalendar(LastWorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
-        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
-
-        // Operation 10 - subcontracting work center (not the last operation)
-        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", SubcWorkCenter."No.");
-        RoutingLine.Validate("Setup Time", LibraryRandom.RandInt(5));
-        RoutingLine.Validate("Run Time", LibraryRandom.RandInt(5));
-        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
-        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
-        RoutingLine.Modify(true);
-
-        // Operation 20 - regular work center (the last operation)
-        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", LastWorkCenter."No.");
-        RoutingLine.Validate("Setup Time", LibraryRandom.RandInt(5));
-        RoutingLine.Validate("Run Time", LibraryRandom.RandInt(5));
-        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
-        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
-        RoutingLine.Modify(true);
-
-        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
-        RoutingHeader.Modify(true);
-
-        LibraryInventory.CreateItem(ComponentItem1);
-        LibraryInventory.CreateItem(ComponentItem2);
-        LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ComponentItem1."No.", ComponentItem2."No.", 1);
-
-        CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingHeader."No.", ProductionBOMHeader."No.");
-    end;
-
-    local procedure UpdateVendorWithSubcontractingLocationCode(WorkCenter: Record "Work Center")
-    var
-        Location: Record Location;
-        Vendor: Record Vendor;
-    begin
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Vendor."Location Code" := Location.Code;
-        Vendor.Modify();
     end;
 
     procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;
@@ -4600,277 +3727,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure WorksheetDirectUnitCostUsesQtyPerUoMNotBaseQtyForUoMConversion()
-    var
-        Item: Record Item;
-        ItemUOM: Record "Item Unit of Measure";
-        Vendor: Record Vendor;
-        WorkCenter: Record "Work Center";
-        SubcontractorPrice: Record "Subcontractor Price";
-        RequisitionLine: Record "Requisition Line";
-        SubcPriceManagement: Codeunit "Subc. Price Management";
-        QtyPerSet: Integer;
-        PriceListUnitCost: Decimal;
-    begin
-        // [SCENARIO 636078] Calculate Subcontracts must compute Direct Unit Cost on the Subcontracting
-        // Worksheet using the per-UoM conversion factor (GetQuantityForUOM()), not the total base
-        // quantity (GetQuantityBase()) of the order.
-
-        // [GIVEN] Item with PCS base UoM and a SET alternative UoM (10 PCS per SET).
-        Initialize();
-        LibraryInventory.CreateItem(Item);
-        QtyPerSet := 10;
-        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Item."No.", QtyPerSet);
-
-        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor.
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryManufacturing.CreateWorkCenter(WorkCenter);
-        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
-        WorkCenter.Modify(true);
-
-        // [GIVEN] A subcontractor price in the blank fallback UoM with Minimum Quantity 1 and Direct
-        // Unit Cost 1000 — the blank-UoM row matches the SET line's '%1|%2' UoM filter and exercises
-        // the cross-UoM conversion (PriceListUOM resolves to the item's base UoM).
-        PriceListUnitCost := 1000;
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), '', 1, '');
-        SubcontractorPrice.Validate("Direct Unit Cost", PriceListUnitCost);
-        SubcontractorPrice.Modify(true);
-
-        // [GIVEN] A staged Requisition Line for 3 SET (= 30 PCS in base UoM).
-        RequisitionLine.Init();
-        RequisitionLine."No." := Item."No.";
-        RequisitionLine."Unit of Measure Code" := ItemUOM.Code;
-        RequisitionLine."Vendor No." := Vendor."No.";
-        RequisitionLine."Work Center No." := WorkCenter."No.";
-        RequisitionLine."Order Date" := WorkDate();
-        RequisitionLine.Quantity := 3;
-
-        // [WHEN] The subcontractor price is applied to the requisition line.
-        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
-
-        // [THEN] Direct Unit Cost = price-list cost * Qty-per-UoM (1000 * 10 = 10000),
-        // not price-list cost * total base quantity (1000 * 30 = 30000 — the pre-fix behavior).
-        Assert.AreEqual(
-            PriceListUnitCost * QtyPerSet, RequisitionLine."Direct Unit Cost",
-            'Direct Unit Cost on the Subcontracting Worksheet must be derived from Qty. per Unit of Measure, not from total base quantity.');
-
-        // [WHEN] The same price is applied to a Requisition Line using the base UoM (no conversion needed).
-        Clear(RequisitionLine);
-        RequisitionLine.Init();
-        RequisitionLine."No." := Item."No.";
-        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
-        RequisitionLine."Vendor No." := Vendor."No.";
-        RequisitionLine."Work Center No." := WorkCenter."No.";
-        RequisitionLine."Order Date" := WorkDate();
-        RequisitionLine.Quantity := 30;
-        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
-
-        // [THEN] Direct Unit Cost equals the price-list cost (the same-UoM path is unchanged by the fix).
-        Assert.AreEqual(
-            PriceListUnitCost, RequisitionLine."Direct Unit Cost",
-            'Direct Unit Cost must equal the price-list cost when the worksheet UoM matches the price-list UoM.');
-    end;
-
-    [Test]
-    procedure ReqLinePriceUsesOrderUoMWhenFixedUOMIsEmpty()
-    var
-        Item: Record Item;
-        ItemUOM: Record "Item Unit of Measure";
-        Vendor: Record Vendor;
-        WorkCenter: Record "Work Center";
-        SubcontractorPrice: Record "Subcontractor Price";
-        RequisitionLine: Record "Requisition Line";
-        SubcPriceManagement: Codeunit "Subc. Price Management";
-        AltUOMCode: Code[10];
-        PcsPrice, SetPrice : Decimal;
-        QtyPerSet: Integer;
-    begin
-        // [SCENARIO 636059] GetSubcPriceForReqLine must filter Subcontractor Prices by the
-        // requisition line's Unit of Measure (with blank fallback) even when the caller passes
-        // FixedUOM = '' — otherwise the alphabetically-last UoM row wins regardless of the line's UoM.
-        Initialize();
-
-        // [GIVEN] Item with Base UoM and an alternative UoM (10 base per alt) whose code sorts after the base.
-        LibraryInventory.CreateItem(Item);
-        QtyPerSet := 10;
-        AltUOMCode := CreateUOMCodeSortingAfter(Item."Base Unit of Measure");
-        LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", AltUOMCode, QtyPerSet);
-
-        // [GIVEN] Vendor and Work Center with the vendor as its subcontractor.
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryManufacturing.CreateWorkCenter(WorkCenter);
-        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
-        WorkCenter.Modify(true);
-
-        // [GIVEN] Two subcontractor prices — Base UoM = 1001, alternative UoM = 1004.
-        PcsPrice := 1001;
-        SetPrice := 1004;
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
-        SubcontractorPrice.Validate("Direct Unit Cost", PcsPrice);
-        SubcontractorPrice.Modify(true);
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(
-            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), AltUOMCode, 0, '');
-        SubcontractorPrice.Validate("Direct Unit Cost", SetPrice);
-        SubcontractorPrice.Modify(true);
-
-        // [GIVEN] A staged Requisition Line in the Base UoM with FixedUOM = ''.
-        RequisitionLine.Init();
-        RequisitionLine."No." := Item."No.";
-        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
-        RequisitionLine."Vendor No." := Vendor."No.";
-        RequisitionLine."Work Center No." := WorkCenter."No.";
-        RequisitionLine."Order Date" := WorkDate();
-        RequisitionLine.Quantity := 1;
-
-        // [WHEN] GetSubcPriceForReqLine is called with no FixedUOM.
-        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
-
-        // [THEN] Direct Unit Cost equals the Base UoM price (1001), not the alt-UoM derived 100.40.
-        Assert.AreEqual(
-            PcsPrice, RequisitionLine."Direct Unit Cost",
-            'GetSubcPriceForReqLine must pick the price row matching the line''s Unit of Measure when FixedUOM is empty.');
-    end;
-
-    [Test]
-    procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
-    var
-        Item: Record Item;
-        ComponentItem: Record Item;
-        MachineCenter: array[2] of Record "Machine Center";
-        ProductionBOMLine: Record "Production BOM Line";
-        ProductionOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderComponent: Record "Prod. Order Component";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseLineComp: Record "Purchase Line";
-        ReqWkshTemplate: Record "Req. Wksh. Template";
-        RequisitionLine: Record "Requisition Line";
-        RequisitionWkshName: Record "Requisition Wksh. Name";
-        WorkCenter: array[2] of Record "Work Center";
-        InitialQty: Decimal;
-        NewQty: Decimal;
-    begin
-        // [SCENARIO 637496] When a production order quantity changes and the subcontracting purchase order
-        // is rescheduled via the requisition worksheet, the Vendor-Supplied component purchase lines
-        // should be updated to reflect the new quantity.
-
-        // [GIVEN] A subcontracting setup with a Vendor-Supplied component
-        Initialize();
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-
-        // [GIVEN] A released production order
-        InitialQty := LibraryRandom.RandIntInRange(5, 10);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", InitialQty);
-
-        // [GIVEN] A subcontracting purchase order created via the requisition worksheet
-        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
-        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
-        CarryOutSubcontractingAction(RequisitionLine);
-
-        // [GIVEN] The vendor-supplied component purchase line exists
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-#pragma warning disable AA0210        
-        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-#pragma warning restore AA0210
-        ProductionBOMLine.FindFirst();
-        ComponentItem.Get(ProductionBOMLine."No.");
-
-        FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
-        FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
-        Assert.IsTrue(PurchaseLineComp.FindFirst(), 'Vendor-Supplied component purchase line should exist after initial PO creation.');
-
-        // [WHEN] The production order quantity is increased and refreshed
-        NewQty := InitialQty + LibraryRandom.RandIntInRange(3, 7);
-        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
-        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderLine.FindFirst();
-        ProdOrderLine.Validate(Quantity, NewQty);
-        ProdOrderLine.Modify(true);
-
-        // [WHEN] CalculateSubcontracts is run again and carried out (reschedule path)
-        CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
-
-        Assert.IsTrue(
-            RequisitionLine."Action Message" in
-                [RequisitionLine."Action Message"::"Change Qty.",
-                 RequisitionLine."Action Message"::"Resched. & Chg. Qty."],
-            'Requisition line should have a Change Qty or Reschedule action message.');
-
-        CarryOutSubcontractingAction(RequisitionLine);
-
-        // [THEN] The component purchase line quantity matches the updated component remaining quantity
-        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
-#pragma warning disable AA0210        
-        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-#pragma warning restore AA0210
-        ProdOrderComponent.FindFirst();
-
-        PurchaseLineComp.FindFirst();
-        Assert.AreEqual(
-            ProdOrderComponent."Remaining Quantity",
-            PurchaseLineComp.Quantity,
-            'Vendor-Supplied component purchase line quantity should match the updated production order component remaining quantity.');
-    end;
-
-    local procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
-    var
-        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
-    begin
-        Clear(RequisitionLine);
-        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
-        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
-
-        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
-        SubcCalculateSubContract.UseRequestPage(false);
-        SubcCalculateSubContract.RunModal();
-
-        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
-        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
-#pragma warning disable AA0210
-        RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
-#pragma warning restore AA0210
-        RequisitionLine.FindFirst();
-    end;
-
-    local procedure CarryOutSubcontractingAction(var RequisitionLine: Record "Requisition Line")
-    var
-        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
-    begin
-        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
-        CarryOutActionMsgReq.UseRequestPage(false);
-        CarryOutActionMsgReq.RunModal();
-    end;
-
-    local procedure FindSubcPurchLineForProdOrder(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
-    begin
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
-        PurchaseLine.SetRange("No.", ItemNo);
-        PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
-        PurchaseLine.FindFirst();
-    end;
-
-    local procedure FindComponentPurchLine(var PurchaseLineComp: Record "Purchase Line"; DocumentNo: Code[20]; ComponentItemNo: Code[20])
-    begin
-        PurchaseLineComp.SetRange("Document Type", PurchaseLineComp."Document Type"::Order);
-        PurchaseLineComp.SetRange("Document No.", DocumentNo);
-        PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
-        PurchaseLineComp.SetRange("No.", ComponentItemNo);
-    end;
-
-    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure PurchLineFactboxTransferOrderCountExcludesReturnOrder()
     var
@@ -4898,11 +3754,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -4994,11 +3850,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
@@ -5082,11 +3938,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [GIVEN] Work and Machine Centers, an Item with Routing and Prod. BOM configured for Transfer subcontracting
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
-        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
-        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order with its transfer components located
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -5124,100 +3980,6 @@ codeunit 139989 "Subc. Subcontracting Test"
             'Transfer Order action must be disabled for a non-subcontracting purchase line (no Prod. Order No.).');
 
         PurchaseOrderPage.Close();
-    end;
-
-    local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
-    var
-        UnitOfMeasure: Record "Unit of Measure";
-        LibraryUtility: Codeunit "Library - Utility";
-        NewCode: Code[10];
-    begin
-        // LibraryInventory.CreateUnitOfMeasureCode generates a hex-only code (truncated GUID), so
-        // any code with a 'Z' prefix is guaranteed to sort after it. This makes the multi-UoM test
-        // deterministic — without the fix, FindLast() picks the alt UoM row.
-        repeat
-            NewCode := CopyStr('Z' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(NewCode));
-        until not UnitOfMeasure.Get(NewCode);
-        UnitOfMeasure.Init();
-        UnitOfMeasure.Code := NewCode;
-        UnitOfMeasure.Description := NewCode;
-        UnitOfMeasure.Insert(true);
-        if UnitOfMeasure.Code <= BaseUOMCode then
-            Error('Test setup: generated UoM code %1 must sort after base UoM code %2.', UnitOfMeasure.Code, BaseUOMCode);
-        exit(UnitOfMeasure.Code);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure CancelInvoiceWithSubcontractingItemChargeIsBlocked()
-    var
-        Item: Record Item;
-        ProductionOrder: Record "Production Order";
-        SubcWorkCenter: Record "Work Center";
-        SubcPurchaseHeader: Record "Purchase Header";
-        SubcPurchaseLine: Record "Purchase Line";
-        SubcPurchRcptLine: Record "Purch. Rcpt. Line";
-        ItemCharge: Record "Item Charge";
-        ItemChargeInvHeader: Record "Purchase Header";
-        ItemChargeInvLine: Record "Purchase Line";
-        PurchInvHeader: Record "Purch. Inv. Header";
-        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
-        PostedInvoiceNo: Code[20];
-    begin
-        // [SCENARIO 637502] Cancelling a Posted Purchase Invoice whose Item Charge is assigned to a subcontracting service
-        // receipt line must be blocked. Letting the cancel run today silently skips the capacity portion (Value Entry has
-        // Item Ledger Entry No. = 0) and redistributes it to inventory, corrupting cost. Until a proper reversal path exists,
-        // the Subcontracting App blocks the cancel with a clear error so the user creates a corrective credit memo manually.
-
-        // [GIVEN] Subcontracting setup with a routing whose subcontracting operation is not the last operation, so the
-        // item charge is booked against the work center capacity
-        Initialize();
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-        CreateItemWithNonLastSubcontractingOperation(Item, SubcWorkCenter);
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
-
-        // [GIVEN] Released production order and a subcontracting purchase order received in full
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
-        UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
-
-        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
-        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-#pragma warning disable AA0210
-        SubcPurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
-#pragma warning restore AA0210
-        SubcPurchaseLine.FindFirst();
-        SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
-        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
-
-        LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
-
-        SubcPurchRcptLine.SetRange("Order No.", SubcPurchaseHeader."No.");
-        SubcPurchRcptLine.SetRange("Order Line No.", SubcPurchaseLine."Line No.");
-        SubcPurchRcptLine.FindFirst();
-
-        // [GIVEN] A separate purchase invoice with a single Item Charge line assigned to the subcontracting receipt line
-        LibraryInventory.CreateItemCharge(ItemCharge);
-        LibraryPurchase.CreatePurchHeader(ItemChargeInvHeader, ItemChargeInvHeader."Document Type"::Invoice, '');
-        LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 1);
-        ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
-        ItemChargeInvLine.Modify(true);
-        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
-
-        AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1);
-
-        // [GIVEN] The invoice is posted
-        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(ItemChargeInvHeader, false, true);
-        PurchInvHeader.Get(PostedInvoiceNo);
-        Commit();
-
-        // [WHEN] The user tries to cancel the posted invoice
-        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
-
-        // [THEN] The Subcontracting App blocks the cancel with the dedicated error
-        Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
     end;
 
     [Test]
@@ -5279,35 +4041,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [WHEN] Running Get Order Lines [THEN] the page handler verifies the subcontracting order line is not offered
         MatchedOrderLineMgmt.GetPurchaseOrderLines(InvoiceLine);
-    end;
-
-    [Test]
-    procedure AssignItemChargeToUndoneSubcontractingReceiptIsBlocked()
-    var
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
-        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        // [SCENARIO 637503] Assigning an item charge to a subcontracting receipt line that has been undone must be blocked,
-        // otherwise posting it would book the capacity cost onto the original entry while the undo entry stays at 0.
-
-        // [GIVEN] An undone subcontracting receipt line
-        Initialize();
-        MockSubcontractingPurchRcptLine(PurchRcptLine, true);
-
-        // [GIVEN] An item charge assignment context on a purchase invoice line
-        ItemChargeAssignmentPurch."Document Type" := ItemChargeAssignmentPurch."Document Type"::Invoice;
-        ItemChargeAssignmentPurch."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemChargeAssignmentPurch."Document No."));
-        ItemChargeAssignmentPurch."Document Line No." := 10000;
-        ItemChargeAssignmentPurch."Line No." := 10000;
-
-        // [WHEN] Assigning the item charge to the undone receipt line
-        PurchRcptLine.SetRecFilter();
-        asserterror ItemChargeAssgntPurch.CreateRcptChargeAssgnt(PurchRcptLine, ItemChargeAssignmentPurch);
-
-        // [THEN] It is blocked
-        Assert.ExpectedError('has been undone');
     end;
 
     local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
@@ -5437,26 +4170,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         exit(ReqWkshTemplate.Name);
     end;
 
-    local procedure AssignItemChargeToReceiptLine(ItemChargeInvLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; QtyToAssign: Decimal)
-    var
-        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
-    begin
-        LibraryInventory.CreateItemChargeAssignPurchase(
-            ItemChargeAssignmentPurch, ItemChargeInvLine,
-            ItemChargeAssignmentPurch."Applies-to Doc. Type"::Receipt,
-            PurchRcptLine."Document No.", PurchRcptLine."Line No.", PurchRcptLine."No.");
-        ItemChargeAssignmentPurch.Validate("Qty. to Assign", QtyToAssign);
-        ItemChargeAssignmentPurch.Modify(true);
-    end;
-
-    procedure UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method")
-    var
-        ProdOrderComp: Record "Prod. Order Component";
-    begin
-        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComp.ModifyAll("Component Supply Method", ComponentSupplyMethod);
-    end;
-
     var
         WorkCenter2: Record "Work Center";
         Assert: Codeunit Assert;
@@ -5464,15 +4177,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryPlanning: Codeunit "Library - Planning";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
-        LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;

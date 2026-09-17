@@ -32,6 +32,7 @@ codeunit 137088 "SCM Order Planning - III"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         VerifyOnGlobal: Option RequisitionLine,Orders;
         DemandTypeGlobal: Option Sales,Production;
         GlobalChildItemNo: Code[20];
@@ -1566,6 +1567,49 @@ codeunit 137088 "SCM Order Planning - III"
         // [THEN] A new purchase order for "B" is successfully created.
         FindPurchaseDocumentByItemNo(PurchaseHeader, PurchaseLine, Item2."No.");
         PurchaseHeader.TestField("Buy-from Vendor No.", Item2."Vendor No.");
+    end;
+
+    [Test]
+    procedure CreatePurchaseOrderFromDropShipmentSalesOrderWithLotTracking()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        Purchasing: Record Purchasing;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        LotNo: Code[50];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 647806] Create a purchase order from a drop shipment sales order with lot tracking.
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        Quantity := LibraryRandom.RandInt(10);
+
+        // [GIVEN] A lot-tracked item with a vendor and a drop shipment sales order line with item tracking.
+        LibraryItemTracking.CreateLotItem(Item);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", Purchasing.Code);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Validate(Quantity, Quantity);
+        SalesLine.Modify(true);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo, Quantity);
+
+        // [WHEN] Create a purchase order from the sales order.
+        CreatePurchaseOrderFromSalesOrder(SalesHeader."No.", true);
+
+        // [THEN] The purchase order is created with the lot tracking from the sales line.
+        FindPurchaseDocumentByItemNo(PurchaseHeader, PurchaseLine, Item."No.");
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", true);
+        ReservationEntry.SetSourceFilter('', 0);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(ReservationEntry);
     end;
 
     [Test]

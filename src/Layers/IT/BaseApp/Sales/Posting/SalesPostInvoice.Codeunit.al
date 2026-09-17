@@ -230,8 +230,12 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         end;
 
         SalesPostInvoiceEvents.RunOnPrepareLineOnBeforeAdjustTotalAmounts(SalesLine, TotalAmount, TotalAmountACY, SalesHeader.GetUseDate());
-        DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
-            SalesLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
+        if SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"No Discounts" then
+            DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
+               SalesLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, 0, 0)
+        else
+            DeferralUtilities.AdjustTotalAmountForDeferralsNoBase(
+                SalesLine."Deferral Code", AmtToDefer, AmtToDeferACY, TotalAmount, TotalAmountACY, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
 
         IsHandled := false;
         SalesPostInvoiceEvents.RunOnPrepareLineOnBeforeSetAmounts(
@@ -264,9 +268,14 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         if SalesLine."Deferral Code" <> '' then begin
             SalesPostInvoiceEvents.RunOnPrepareLineOnBeforePrepareDeferralLine(
                 SalesLine, InvoicePostingBuffer, SalesHeader.GetUseDate(), InvDefLineNo, DeferralLineNo, SuppressCommit, DeferralAccount, SalesAccount);
-            PrepareDeferralLine(
-                SalesHeader, SalesLine, InvoicePostingBuffer.Amount, InvoicePostingBuffer."Amount (ACY)",
-                AmtToDefer, AmtToDeferACY, DeferralAccount, SalesAccount, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
+            if SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"No Discounts" then
+                PrepareDeferralLine(
+                    SalesHeader, SalesLine, InvoicePostingBuffer.Amount, InvoicePostingBuffer."Amount (ACY)",
+                    AmtToDefer, AmtToDeferACY, DeferralAccount, SalesAccount, 0, 0)
+            else
+                PrepareDeferralLine(
+                    SalesHeader, SalesLine, InvoicePostingBuffer.Amount, InvoicePostingBuffer."Amount (ACY)",
+                    AmtToDefer, AmtToDeferACY, DeferralAccount, SalesAccount, SalesLine."Inv. Discount Amount" + SalesLine."Line Discount Amount", SalesLineACY."Inv. Discount Amount" + SalesLineACY."Line Discount Amount");
             SalesPostInvoiceEvents.RunOnPrepareLineOnAfterPrepareDeferralLine(
                 SalesLine, InvoicePostingBuffer, SalesHeader.GetUseDate(), InvDefLineNo, DeferralLineNo, SuppressCommit);
         end;

@@ -1294,6 +1294,107 @@ codeunit 149917 "Subc. Item Charge Posting Test"
         Assert.AreEqual(Qty, ValueEntry."Valued Quantity", 'Value entry valued quantity should match the invoiced quantity.');
     end;
 
+    [Test]
+    [HandlerFunctions('CancelInvoiceConfirmHandler')]
+    procedure CancelInvoiceWithSubcontractingItemChargeIsBlocked()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        SubcWorkCenter: Record "Work Center";
+        SubcPurchaseHeader: Record "Purchase Header";
+        SubcPurchaseLine: Record "Purchase Line";
+        SubcPurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemCharge: Record "Item Charge";
+        ItemChargeInvHeader: Record "Purchase Header";
+        ItemChargeInvLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 637502] Cancelling a Posted Purchase Invoice whose Item Charge is assigned to a subcontracting service
+        // receipt line must be blocked. Letting the cancel run today silently skips the capacity portion (Value Entry has
+        // Item Ledger Entry No. = 0) and redistributes it to inventory, corrupting cost. Until a proper reversal path exists,
+        // the Subcontracting App blocks the cancel with a clear error so the user creates a corrective credit memo manually.
+
+        // [GIVEN] Subcontracting setup with a routing whose subcontracting operation is not the last operation, so the
+        // item charge is booked against the work center capacity
+        Initialize();
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateItemWithTwoOperationsFirstSubcontracting(Item, SubcWorkCenter);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+
+        // [GIVEN] Released production order and a subcontracting purchase order received in full
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+
+        SubcPurchaseLine.SetRange("Document Type", SubcPurchaseLine."Document Type"::Order);
+        SubcPurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        SubcPurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
+        SubcPurchaseLine.FindFirst();
+        SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
+
+        LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
+
+        SubcPurchRcptLine.SetRange("Order No.", SubcPurchaseHeader."No.");
+        SubcPurchRcptLine.SetRange("Order Line No.", SubcPurchaseLine."Line No.");
+        SubcPurchRcptLine.FindFirst();
+
+        // [GIVEN] A separate purchase invoice with a single Item Charge line assigned to the subcontracting receipt line
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchHeader(ItemChargeInvHeader, ItemChargeInvHeader."Document Type"::Invoice, '');
+        LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 1);
+        ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
+        ItemChargeInvLine.Modify(true);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
+
+        AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1, ItemChargeInvLine."Direct Unit Cost");
+
+        // [GIVEN] The invoice is posted
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(ItemChargeInvHeader, false, true);
+        PurchInvHeader.Get(PostedInvoiceNo);
+        Commit();
+
+        // [WHEN] The user tries to cancel the posted invoice
+        asserterror CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader);
+
+        // [THEN] The Subcontracting App blocks the cancel with the dedicated error
+        Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
+    end;
+
+    [Test]
+    procedure AssignItemChargeToUndoneSubcontractingReceiptIsBlocked()
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        // [SCENARIO 637503] Assigning an item charge to a subcontracting receipt line that has been undone must be blocked,
+        // otherwise posting it would book the capacity cost onto the original entry while the undo entry stays at 0.
+
+        // [GIVEN] An undone subcontracting receipt line
+        Initialize();
+        MockSubcontractingPurchRcptLine(PurchRcptLine, true);
+
+        // [GIVEN] An item charge assignment context on a purchase invoice line
+        ItemChargeAssignmentPurch."Document Type" := ItemChargeAssignmentPurch."Document Type"::Invoice;
+        ItemChargeAssignmentPurch."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemChargeAssignmentPurch."Document No."));
+        ItemChargeAssignmentPurch."Document Line No." := 10000;
+        ItemChargeAssignmentPurch."Line No." := 10000;
+
+        // [WHEN] Assigning the item charge to the undone receipt line
+        PurchRcptLine.SetRecFilter();
+        asserterror ItemChargeAssgntPurch.CreateRcptChargeAssgnt(PurchRcptLine, ItemChargeAssignmentPurch);
+
+        // [THEN] It is blocked
+        Assert.ExpectedError('has been undone');
+    end;
+
     local procedure AddLotTrackingToItem(var Item: Record Item; var LotNoSeriesCode: Code[20])
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -1467,6 +1568,26 @@ codeunit 149917 "Subc. Item Charge Posting Test"
             NextLineNo);
     end;
 
+    local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
+    var
+        Item: Record Item;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryInventory.CreateItem(Item);
+        PurchRcptLine.Init();
+        PurchRcptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Document No."));
+        PurchRcptLine."Line No." := 10000;
+        PurchRcptLine.Type := PurchRcptLine.Type::Item;
+        PurchRcptLine."No." := Item."No.";
+        PurchRcptLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Prod. Order No."));
+        PurchRcptLine."Routing No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Routing No."));
+        PurchRcptLine."Operation No." := '10';
+        PurchRcptLine.Quantity := LibraryRandom.RandIntInRange(5, 10);
+        PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity;
+        PurchRcptLine.Correction := Undone;
+        PurchRcptLine.Insert();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Item Charge Posting Test");
@@ -1499,6 +1620,20 @@ codeunit 149917 "Subc. Item Charge Posting Test"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure CancelInvoiceConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        case true of
+            Question.Contains('Do you really want to change Inventory Account although value entries exist?'),
+            Question.Contains('Do you want to create a production order from'),
+            Question.Contains('Do you really want to change Inventory Account (Interim) although value entries exist?'):
+                Reply := true;
+            else
+                Reply := false;
+        end;
     end;
 
     [PageHandler]

@@ -283,6 +283,10 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
+        field(45; "Receiving Company Reg. No."; Text[20])
+        {
+            Caption = 'Receiving Company Registration No.';
+        }
         #endregion
 
         #region Clearance Model
@@ -425,6 +429,7 @@ table 6121 "E-Document"
         EDocumentIntegrationLog: Record "E-Document Integration Log";
         EDocumentLog: Record "E-Document Log";
         EDocImportedLine: Record "E-Doc. Imported Line";
+        EDocExternalReference: Record "E-Doc. External Reference";
         EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
 #if not CLEAN27
@@ -466,6 +471,10 @@ table 6121 "E-Document"
         EDocumentMessage.SetRange("E-Document Entry No.", Rec."Entry No");
         if not EDocumentMessage.IsEmpty() then
             EDocumentMessage.DeleteAll(true);
+
+        EDocExternalReference.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocExternalReference.IsEmpty() then
+            EDocExternalReference.DeleteAll(true);
 
 #if not CLEAN27
         // Version 1 processing cleanup

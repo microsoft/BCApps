@@ -4,8 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sustainability.Reports;
 
+using Microsoft.Inventory.Ledger;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Sales.History;
+using Microsoft.Sustainability.Posting;
 using Microsoft.Sustainability.Setup;
+using System.Utilities;
 
 reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - Invoice"
 {
@@ -43,16 +47,102 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
         {
             trigger OnBeforePreDataItem()
             begin
+                AddLoadFields("No.", "CO2e per Unit", "Total CO2e");
                 TotalCO2e := 0;
             end;
 
             trigger OnAfterAfterGetRecord()
             begin
-                FormattedCO2ePerUnit := Format("CO2e per Unit", 0, SustainabilitySetup.GetFormat(SustainabilitySetup.FieldNo("Emission Decimal Places")));
-                TotalCO2e += "Total CO2e";
+                LineUsesItemTracking := UseItemTrackingDetails("No.");
+                if LineUsesItemTracking then
+                    FormattedCO2ePerUnit := ''
+                else begin
+                    FormattedCO2ePerUnit := Format("CO2e per Unit", 0, SustainabilitySetup.GetFormat(SustainabilitySetup.FieldNo("Emission Decimal Places")));
+                    TotalCO2e += "Total CO2e";
+                end;
             end;
         }
+        addlast("Line")
+        {
+            dataitem(ItemTrackingEmissionDetail; Integer)
+            {
+                DataItemTableView = sorting(Number);
+                column(ItemTrackingEmissionLotNo; TempItemLedgerEntry."Lot No.")
+                {
+                }
+                column(ItemTrackingEmissionSerialNo; TempItemLedgerEntry."Serial No.")
+                {
+                }
+                column(ItemTrackingEmissionTracking; ItemTrackingEmissionTracking)
+                {
+                }
+                column(ItemTrackingEmissionQuantity; ItemTrackingEmissionQuantity)
+                {
+                }
+                column(ItemTrackingEmissionCO2ePerUnit; ItemTrackingEmissionCO2ePerUnit)
+                {
+                    AutoFormatType = 11;
+                    AutoFormatExpression = SustainabilitySetup.GetFormat(SustainabilitySetup.FieldNo("Emission Decimal Places"));
+                }
+                column(ItemTrackingEmissionTotalCO2e; ItemTrackingEmissionTotalCO2e)
+                {
+                    AutoFormatType = 11;
+                    AutoFormatExpression = SustainabilitySetup.GetFormat(SustainabilitySetup.FieldNo("Emission Decimal Places"));
+                }
+
+                trigger OnPreDataItem()
+                begin
+                    TempItemLedgerEntry.Reset();
+                    TempItemLedgerEntry.DeleteAll();
+                    if not LineUsesItemTracking then
+                        CurrReport.Break();
+
+                    Line.GetItemLedgEntries(TempItemLedgerEntry, false);
+                    if TempItemLedgerEntry.IsEmpty() then begin
+                        TotalCO2e += Line."Total CO2e";
+                        CurrReport.Break();
+                    end;
+
+                    SetRange(Number, 1, TempItemLedgerEntry.Count());
+                end;
+
+                trigger OnAfterGetRecord()
+                begin
+                    if Number = 1 then
+                        TempItemLedgerEntry.FindSet()
+                    else
+                        TempItemLedgerEntry.Next();
+
+                    ItemTrackingEmissionQuantity := Abs(TempItemLedgerEntry.Quantity);
+                    ItemTrackingEmissionTracking := GetItemTrackingText(TempItemLedgerEntry);
+                    ItemTrackingEmissionTotalCO2e := 0;
+                    SustainabilityPostMgt.GetTotalCO2eAmount(TempItemLedgerEntry, CapacityTypeJournal::" ", ItemTrackingEmissionTotalCO2e, 0);
+                    if ItemTrackingEmissionQuantity <> 0 then
+                        ItemTrackingEmissionCO2ePerUnit := ItemTrackingEmissionTotalCO2e / ItemTrackingEmissionQuantity
+                    else
+                        ItemTrackingEmissionCO2ePerUnit := 0;
+                    TotalCO2e += ItemTrackingEmissionTotalCO2e;
+                end;
+            }
+        }
     }
+
+    requestpage
+    {
+        layout
+        {
+            addlast(Options)
+            {
+                field(SustEmissionBasis; EmissionBasis)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Emission Basis';
+                    ToolTip = 'Specifies whether the report prints average emissions or emission details for each lot or serial number used for items with Specific carbon tracking.';
+                }
+            }
+        }
+    }
+
     rendering
     {
         layout("StandardESGSalesInvoice.docx")
@@ -77,11 +167,20 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
     end;
 
     var
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         SustainabilitySetup: Record "Sustainability Setup";
+        SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
+        CapacityTypeJournal: Enum "Capacity Type Journal";
+        EmissionBasis: Enum "Sust. Emission Basis";
         TotalCO2e: Decimal;
+        ItemTrackingEmissionQuantity: Decimal;
+        ItemTrackingEmissionCO2ePerUnit: Decimal;
+        ItemTrackingEmissionTotalCO2e: Decimal;
         CO2ePerUnitTxt: Text;
         TotalCO2eTxt: Text;
         FormattedCO2ePerUnit: Text;
+        ItemTrackingEmissionTracking: Text;
+        LineUsesItemTracking: Boolean;
         CO2ePerUnitLbl: Label 'CO2e [%1] per Unit', Comment = '%1 = Emission Unit of Measure';
         TotalCO2eLbl: Label '%1 [%2]', Comment = '%1 = Field Caption, %2 = Emission Unit of Measure';
 
@@ -98,6 +197,20 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             TotalCO2eTxt := StrSubstNo(TotalCO2eLbl, Line.FieldCaption("Total CO2e"), SustainabilitySetup."Emission Unit of Measure Code")
         else
             TotalCO2eTxt := Line.FieldCaption("Total CO2e");
+    end;
+
+    local procedure UseItemTrackingDetails(ItemNo: Code[20]): Boolean
+    begin
+        exit((EmissionBasis = EmissionBasis::"Details by Item Tracking") and SustainabilityPostMgt.IsCarbonTrackingSpecificItem(ItemNo));
+    end;
+
+    // Separator sits inside the value because Word trims leading and trailing spaces in a run.
+    local procedure GetItemTrackingText(ItemLedgerEntry: Record "Item Ledger Entry"): Text
+    begin
+        if (ItemLedgerEntry."Lot No." <> '') and (ItemLedgerEntry."Serial No." <> '') then
+            exit(ItemLedgerEntry."Lot No." + ' ' + ItemLedgerEntry."Serial No.");
+
+        exit(ItemLedgerEntry."Lot No." + ItemLedgerEntry."Serial No.");
     end;
 
     local procedure GetDisclaimer(): Text

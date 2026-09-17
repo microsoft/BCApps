@@ -180,6 +180,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetServiceShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPurchLineReceiptOnInvoiceUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
@@ -1268,6 +1269,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetDepreciationBooksGLIntegrationUpgradeTag(): Code[250]
     begin
         exit('MS-626097-DepreciationBooksGLIntegrationUpgradeTag-20260319');
+    end;
+
+    internal procedure GetPurchLineReceiptOnInvoiceUpgradeTag(): Code[250]
+    begin
+        exit('MS-625392-PurchLineReceiptOnInvoiceUpgradeTag-20260703');
     end;
 
     internal procedure GetRemittanceAdviceReportSelectionUpgradeTag(): Code[250]

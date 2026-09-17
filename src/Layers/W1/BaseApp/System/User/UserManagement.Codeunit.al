@@ -160,6 +160,7 @@ codeunit 418 "User Management"
                   Tabledata "Employee Ledger Entry" = rm,
                   Tabledata "Detailed Employee Ledger Entry" = rm,
                   Tabledata "Manufacturing User Template" = rm,
+                  Tabledata "Financial Report Audit Log" = rm,
                   Tabledata "Field Monitoring Setup" = rm;
 
     trigger OnRun()
@@ -522,6 +523,7 @@ codeunit 418 "User Management"
             Database::"Employee Ledger Entry",
             Database::"Detailed Employee Ledger Entry",
             Database::"Manufacturing User Template",
+            Database::"Financial Report Audit Log",
             Database::"Field Monitoring Setup":
                 begin
                     RenameField(TableID, FieldID, OldUserName, NewUserName, CompanyName);
