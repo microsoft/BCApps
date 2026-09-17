@@ -1392,7 +1392,7 @@ codeunit 139982 "Subc. Pricing Test"
         SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, ItemNo, ProdOrderNo);
     end;
 
-    local procedure CreateNoPriceSubcontractingPurchaseLine(var PurchaseLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line"; UnitCostCalculation: Enum "Unit Cost Calculation Type")
+    local procedure CreateNoPriceSubcontractingPurchaseLine(var PurchaseLine: Record "Purchase Line"; var ProdOrderLine: Record "Prod. Order Line"; UnitCostCalculationType: Enum "Unit Cost Calculation Type")
     var
         Item: Record Item;
         ProductionOrder: Record "Production Order";
@@ -1405,7 +1405,7 @@ codeunit 139982 "Subc. Pricing Test"
     begin
         CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
         WorkCenter.Validate("Direct Unit Cost", 10);
-        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalculation);
+        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalculationType);
         WorkCenter.Modify(true);
 
         RoutingHeader.Get(Item."Routing No.");

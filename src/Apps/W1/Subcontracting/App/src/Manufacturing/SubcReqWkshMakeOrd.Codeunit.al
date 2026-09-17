@@ -32,8 +32,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine, '', false, false)]
     local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     var
-        SubcPriceManagement: Codeunit "Subc. Price Management";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
         AutomaticReqLineCost: Decimal;
     begin
 #if not CLEAN29
