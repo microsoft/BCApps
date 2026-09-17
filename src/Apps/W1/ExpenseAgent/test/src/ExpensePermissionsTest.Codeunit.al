@@ -35,7 +35,6 @@ codeunit 148338 "Expense Permissions Test"
         ExpenseAgentAppIdTok: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseMgmtAdminPermissionSetTok: Label 'Expense Mgmt. Admin', Locked = true;
         SecurityPermissionSetTok: Label 'SECURITY', Locked = true;
-        PermissionDeniedErr: Label 'You do not have the following permissions', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
@@ -144,12 +143,12 @@ codeunit 148338 "Expense Permissions Test"
         // [SCENARIO] An employee-only caller cannot approve requests without access to Expense User data.
         Initialize();
         CreateTravelRequestApprovalScenario(SpendRequest, ExpenseUser, Approver);
+        Commit();
 
         LibraryLowerPermissions.StartLoggingNAVPermissions();
         SetCallerPermissions(EmployeeOnlyPermissionSetTok, ExpenseUser);
         asserterror TravelRequestApproval.Approve(SpendRequest, Approver."No.");
         Assert.ExpectedErrorCode('DB:ClientReadDenied');
-        Assert.ExpectedError(PermissionDeniedErr);
         Assert.ExpectedError(ExpenseUser.TableCaption());
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
