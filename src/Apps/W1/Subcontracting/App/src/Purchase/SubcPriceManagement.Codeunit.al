@@ -373,7 +373,7 @@ codeunit 20508 "Subc. Price Management"
             exit(false);
 
         PriceListCost := SubcontractorPrice."Direct Unit Cost";
-        if PriceListCost <> 0 then
+        if (PriceListCost <> 0) and (PriceListQty <> 0) then
             if (PriceListCost * PriceListQty) < SubcontractorPrice."Minimum Amount" then
                 PriceListCost := SubcontractorPrice."Minimum Amount" / PriceListQty;
         exit(true);
@@ -510,6 +510,11 @@ codeunit 20508 "Subc. Price Management"
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+        exit(GetAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine));
+    end;
+
+    internal procedure GetAutomaticSubcCostForReqLine(RequisitionLine: Record "Requisition Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
+    begin
         GetProdOrderRtngLine(
             RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",
             RequisitionLine."Routing No.", RequisitionLine."Operation No.", ProdOrderRoutingLine);
@@ -522,6 +527,14 @@ codeunit 20508 "Subc. Price Management"
     procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        GetSubcPriceForPurchLine(PurchaseLine, ProdOrderRoutingLine);
+    end;
+
+    // ProdOrderRoutingLine can be pre-populated by the caller (e.g. from a prior GetAutomaticSubcCostForReqLine call
+    // for the same operation) to avoid re-reading the same Prod. Order Routing Line record.
+    procedure GetSubcPriceForPurchLine(var PurchaseLine: Record "Purchase Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
         OrderDate: Date;
         DirectCost: Decimal;
     begin
@@ -560,10 +573,14 @@ codeunit 20508 "Subc. Price Management"
         if OrderDate = 0D then
             OrderDate := WorkDate();
 
-        ProdOrderRoutingLine.SetLoadFields("Standard Task Code");
-        GetProdOrderRtngLine(
-            PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.",
-            PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine);
+        if not IsProdOrderRoutingLineForPurchLine(ProdOrderRoutingLine, PurchaseLine) then begin
+            ProdOrderRoutingLine.SetLoadFields(
+                "Standard Task Code", Type, "Unit Cost Calculation", "Direct Unit Cost",
+                "Expected Operation Cost Amt.", "Expected Capacity Ovhd. Cost");
+            GetProdOrderRtngLine(
+                PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.",
+                PurchaseLine."Routing No.", PurchaseLine."Operation No.", ProdOrderRoutingLine);
+        end;
 
         SubcontractorPrice.SetRange("Vendor No.", PurchaseLine."Buy-from Vendor No.");
         SubcontractorPrice.SetRange("Work Center No.", PurchaseLine."Work Center No.");
@@ -596,6 +613,7 @@ codeunit 20508 "Subc. Price Management"
         GeneralLedgerSetup: Record "General Ledger Setup";
         ProdOrderLine: Record "Prod. Order Line";
     begin
+        ProdOrderLine.SetLoadFields("Qty. per Unit of Measure");
         GetLine(ProdOrderLine, ProdOrderRoutingLine);
         GeneralLedgerSetup.Get();
         if ProdOrderRoutingLine."Unit Cost Calculation" = ProdOrderRoutingLine."Unit Cost Calculation"::Units then
@@ -624,6 +642,16 @@ codeunit 20508 "Subc. Price Management"
         ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
 
         ProdOrderRoutingLine.FindFirst();
+    end;
+
+    local procedure IsProdOrderRoutingLineForPurchLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PurchaseLine: Record "Purchase Line"): Boolean
+    begin
+        exit(
+            (ProdOrderRoutingLine."Prod. Order No." <> '') and
+            (ProdOrderRoutingLine."Prod. Order No." = PurchaseLine."Prod. Order No.") and
+            (ProdOrderRoutingLine."Routing Reference No." = PurchaseLine."Routing Reference No.") and
+            (ProdOrderRoutingLine."Routing No." = PurchaseLine."Routing No.") and
+            (ProdOrderRoutingLine."Operation No." = PurchaseLine."Operation No."));
     end;
 
     local procedure SetSubcontractorPriceForPriceCalculation(var SubcontractorPrice: Record "Subcontractor Price"; VendorNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; StandardTaskCode: Code[10]; WorkCenterNo: Code[20]; UoM: Code[10]; StartingDate: Date)
