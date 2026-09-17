@@ -6590,6 +6590,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         RoutingLine.Modify(true);
     end;
 
+#if not CLEAN29
     local procedure CalculateSubcontractOrders(var RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20]; ProductionOrder: Record "Production Order")
     var
         WorkCenter: Record "Work Center";
@@ -6616,4 +6617,5 @@ codeunit 137063 "SCM Manufacturing 7.0"
         RoutingLine.Modify(true);
         UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
     end;
+#endif
 }
