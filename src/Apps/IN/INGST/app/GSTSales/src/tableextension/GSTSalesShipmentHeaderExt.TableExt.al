@@ -55,19 +55,6 @@ tableextension 18154 "GST Sales Shipment Header Ext" extends "Sales Shipment Hea
             TableRelation = Customer where("e-Commerce Operator" = const(true));
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA26
-        field(18149; "E-Commerce Merchant Id"; code[30])
-        {
-            Caption = 'E-Commerce Merchant Id';
-            TableRelation = "e-Commerce Merchant"."Merchant Id" where(
-                "Merchant Id" = field("e-Commerce Merchant Id"),
-                "Customer No." = field("e-Commerce Customer"));
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'New field introduced as E-Comm. Merchant Id';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(18150; "GST Bill-to State Code"; Code[10])
         {
             Caption = 'GST Bill-to State Code';

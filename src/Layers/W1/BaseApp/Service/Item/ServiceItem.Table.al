@@ -1119,18 +1119,6 @@ table 5940 "Service Item"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA28
-        field(721; "Coupled to Dataverse"; Boolean)
-        {
-            FieldClass = FlowField;
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Service Item")));
-            ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
     }
 
     keys

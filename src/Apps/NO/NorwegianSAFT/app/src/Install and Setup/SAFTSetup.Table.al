@@ -23,17 +23,6 @@ table 10670 "SAF-T Setup"
             DataClassification = CustomerContent;
             Caption = 'Last Tax Code';
         }
-#if not CLEANSCHEMA26
-        field(4; "Not Applicable VAT Code"; Code[20])
-        {
-            Caption = 'Not Applicable VAT Code';
-            DataClassification = CustomerContent;
-            TableRelation = "VAT Code";
-            ObsoleteReason = 'Use the field "Not Applic. VAT Code" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(5; "Dimension No."; Integer)
         {
             DataClassification = CustomerContent;

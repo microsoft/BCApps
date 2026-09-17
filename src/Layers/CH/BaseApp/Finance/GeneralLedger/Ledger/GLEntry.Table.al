@@ -784,17 +784,6 @@ table 17 "G/L Entry"
             Caption = 'Last Modified DateTime';
             Editable = false;
         }
-#if not CLEANSCHEMA27
-        field(3010536; "Amount (FCY)"; Decimal)
-        {
-            Caption = 'Amount (FCY)';
-            ObsoleteReason = 'Replaced by W1 field Source Currency Amount';
-#pragma warning disable AS0072
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0072
-        }
-#endif
     }
 
     keys

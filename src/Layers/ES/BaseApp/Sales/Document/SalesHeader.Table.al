@@ -3008,16 +3008,6 @@ table 36 "Sales Header"
         {
             Caption = 'Payment Service Set ID';
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether this document is coupled to Dynamics 365 Sales.
         /// </summary>
@@ -3733,16 +3723,6 @@ table 36 "Sales Header"
             Caption = 'Cust. Bank Acc. Code';
             TableRelation = "Customer Bank Account".Code where("Customer No." = field("Bill-to Customer No."));
         }
-#if not CLEANSCHEMA25
-        field(7000003; "Pay-at Code"; Code[10])
-        {
-            Caption = 'Pay-at Code';
-            TableRelation = "Customer Pmt. Address".Code where("Customer No." = field("Bill-to Customer No."));
-            ObsoleteReason = 'Address is taken from the fields Bill-to Address, Bill-to City, etc.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

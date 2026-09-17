@@ -221,14 +221,6 @@ table 256 "VAT Statement Line"
             ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
         }
 
-#if not CLEANSCHEMA26
-        field(11200; "EU 3-Party Trade"; Boolean)
-        {
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-            ObsoleteReason = 'Moved to the EU 3-Party Trade Purchase app.';
-        }
-#endif
     }
 
     keys

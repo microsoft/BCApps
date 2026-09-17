@@ -2957,16 +2957,6 @@ table 36 "Sales Header"
         {
             Caption = 'Payment Service Set ID';
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether this document is coupled to Dynamics 365 Sales.
         /// </summary>
@@ -3646,35 +3636,6 @@ table 36 "Sales Header"
                       RespCenter.TableCaption(), UserSetupMgt.GetSalesFilter("Assigned User ID"));
             end;
         }
-#if not CLEANSCHEMA26
-        field(11200; "Source Inv. No."; Code[20])
-        {
-            Caption = 'Source Inv. No.';
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(11201; "Source Inv. VAT"; Decimal)
-        {
-            Caption = 'Source Inv. VAT';
-            Editable = false;
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(11202; "Source Inv. Total"; Decimal)
-        {
-            Caption = 'Source Inv. Total';
-            Editable = false;
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

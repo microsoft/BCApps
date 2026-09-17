@@ -88,17 +88,6 @@ table 10751 "SII Setup"
                 ValidateAndAuditEndpointUrlChange(FieldCaption(PaymentsReceivedEndpointUrl), xRec.PaymentsReceivedEndpointUrl, PaymentsReceivedEndpointUrl);
             end;
         }
-#if not CLEANSCHEMA25
-        field(9; IntracommunityEndpointUrl; Text[250])
-        {
-            Caption = 'IntracommunityEndpointUrl';
-            InitValue = 'https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/oi/SiiFactOIV1SOAP';
-            NotBlank = true;
-            ObsoleteReason = 'Intracommunity feature was removed in scope of 222210';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(10; "Enable Batch Submissions"; Boolean)
         {
             Caption = 'Enable Batch Submissions';

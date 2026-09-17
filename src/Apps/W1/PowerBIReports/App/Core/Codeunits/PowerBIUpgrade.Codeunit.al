@@ -29,7 +29,6 @@ codeunit 36957 "PowerBI Upgrade"
             exit;
 
         FlatDimensionSetEntry.DeleteAll(false);
-        DataTransfer.SetTables(Database::"Dimension Set Entry", Database::"PowerBI Flat Dim. Set Entry");
         for FieldNo := 1 to 18 do
             DataTransfer.AddFieldValue(FieldNo, FieldNo);
         DataTransfer.CopyRows();

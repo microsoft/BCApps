@@ -3911,21 +3911,6 @@ table 39 "Purchase Line"
                 MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
             end;
         }
-#if not CLEANSCHEMA30
-        field(10500; "Reverse Charge Item"; Boolean)
-        {
-            Caption = 'Reverse Charge Item';
-            Editable = false;
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-#endif
         field(12100; "No. of Fixed Asset Cards"; Integer)
         {
             BlankZero = true;

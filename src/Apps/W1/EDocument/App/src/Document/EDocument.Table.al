@@ -226,24 +226,6 @@ table 6121 "E-Document"
             Caption = 'File Name';
             ToolTip = 'Specifies the file name of the E-Document source.';
         }
-#if not CLEANSCHEMA26
-        field(36; "File Type"; Integer)
-        {
-            Caption = 'File Type';
-            ToolTip = 'Specifies the file type of the E-Document source.';
-            ObsoleteReason = 'Use File Format in the "E-Doc. Data Storage" table instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(37; "Structured Data Process"; Integer)
-        {
-            Caption = 'Structured Data Process';
-            ToolTip = 'Specifies the structured data process to run on the E-Document data.';
-            ObsoleteReason = 'Use "Process Draft Impl." field instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(38; "Service Integration"; Enum "Service Integration")
         {
             Caption = 'Service Integration';

@@ -6,17 +6,4 @@ namespace Microsoft.Inventory.Transfer;
 
 tableextension 31010 "Transfer Header CZL" extends "Transfer Header"
 {
-#if not CLEANSCHEMA25
-    fields
-    {
-        field(31069; "Intrastat Exclude CZL"; Boolean)
-        {
-            Caption = 'Intrastat Exclude';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions. This field is not used any more.';
-        }
-    }
-#endif
 }

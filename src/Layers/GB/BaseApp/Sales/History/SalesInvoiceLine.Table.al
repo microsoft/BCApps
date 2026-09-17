@@ -939,34 +939,6 @@ table 113 "Sales Invoice Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA30
-        field(10500; "Reverse Charge Item"; Boolean)
-        {
-            Caption = 'Reverse Charge Item';
-            Editable = false;
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-        field(10501; "Reverse Charge"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Reverse Charge';
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-#endif
     }
 
     keys

@@ -82,17 +82,6 @@ table 30113 "Shpfy Shop Location"
                     Rec."Location Filter" := Rec."Default Location Code";
             end;
         }
-#if not CLEANSCHEMA25
-        field(7; Disabled; Boolean)
-        {
-            Caption = 'Disabled';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by Stock Calculation field.';
-            ObsoleteTag = '25.0';
-            ObsoleteState = Removed;
-            Description = 'This disabled the synchronisation of the stock to Shopify.';
-        }
-#endif
         field(8; Active; Boolean)
         {
             Caption = 'Active';

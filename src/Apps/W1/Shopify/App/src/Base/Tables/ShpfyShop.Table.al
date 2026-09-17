@@ -88,16 +88,6 @@ table 30102 "Shpfy Shop"
                 end;
             end;
         }
-#if not CLEANSCHEMA26
-        field(5; "Log Enabled"; Boolean)
-        {
-            Caption = 'Log Enabled';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Replaced with field "Logging Mode"';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(6; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
@@ -146,18 +136,6 @@ table 30102 "Shpfy Shop"
             OptionCaption = ' ,To Shopify,From Shopify';
             OptionMembers = " ","To Shopify","From Shopify";
         }
-#if not CLEANSCHEMA25
-        field(11; "Item Template Code"; Code[10])
-        {
-            Caption = 'Item Template Code';
-            DataClassification = SystemMetadata;
-            TableRelation = "Config. Template Header".Code where("Table Id" = const(27));
-            ValidateTableRelation = true;
-            ObsoleteReason = 'Replaced by Item Templ. Code';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(12; "Sync Item Images"; Option)
         {
             Caption = 'Sync Item Images';
@@ -215,18 +193,6 @@ table 30102 "Shpfy Shop"
             ToolTip = 'Specifies if unknown customers are automatically created in Business Central when synchronizing from Shopify.';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA25
-        field(24; "Customer Template Code"; Code[10])
-        {
-            Caption = 'Customer Template Code';
-            DataClassification = SystemMetadata;
-            TableRelation = "Config. Template Header".Code where("Table Id" = const(18));
-            ValidateTableRelation = true;
-            ObsoleteReason = 'Replaced by  "Customer Templ. Code"';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(25; "Product Collection"; Option)
         {
             Caption = 'Product Collection';
@@ -247,17 +213,6 @@ table 30102 "Shpfy Shop"
             DataClassification = CustomerContent;
             InitValue = WithOrderImport;
         }
-#if not CLEANSCHEMA27
-        field(29; "Export Customer To Shopify"; Boolean)
-        {
-            Caption = 'Export Customer to Shopify';
-            DataClassification = CustomerContent;
-            InitValue = true;
-            ObsoleteReason = 'Replaced with action "Add Customer to Shopify" in Shopify Customers page.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
         field(30; "Shopify Can Update Customer"; Boolean)
         {
             Caption = 'Shopify Can Update Customers';
@@ -810,17 +765,6 @@ table 30102 "Shpfy Shop"
             ToolTip = 'Specifies how to map companies.';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA27
-        field(127; "Replace Order Attribute Value"; Boolean)
-        {
-            Caption = 'Replace Order Attribute Value';
-            DataClassification = SystemMetadata;
-            InitValue = true;
-            ObsoleteReason = 'This feature will be enabled by default with version 27.0.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
         field(128; "Return Location Priority"; Enum "Shpfy Return Location Priority")
         {
             Caption = 'Return Location Priority';
@@ -890,23 +834,6 @@ table 30102 "Shpfy Shop"
         {
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA29
-        field(201; "Items Mapped to Products"; Boolean)
-        {
-            Caption = 'Items Must be Mapped to Products';
-            ToolTip = 'Specifies if only the items that are mapped to Shopify products/Shopify variants are synchronized from Posted Sales Invoices to Shopify.';
-            ObsoleteReason = 'This setting is not used';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         field(202; "Posted Invoice Sync"; Boolean)
         {
             Caption = 'Posted Invoice Sync';

@@ -467,17 +467,6 @@ table 1383 "Vendor Templ."
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
-#if not CLEANSCHEMA27
-        field(10501; "Exclude from Pmt. Pract. Rep."; Boolean)
-        {
-            Caption = 'Exclude from Payment Practices Report';
-            ObsoleteReason = 'Not supported in the template.';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0072
-        }
-#endif
     }
 
     keys

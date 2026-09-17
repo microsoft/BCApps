@@ -42,17 +42,6 @@ table 30134 "Shpfy Payment Method Mapping"
             DataClassification = CustomerContent;
             TableRelation = "Payment Method";
         }
-#if not CLEANSCHEMA28
-        field(5; Priority; Integer)
-        {
-            Caption = 'Priority';
-            DataClassification = CustomerContent;
-            MinValue = 0;
-            ObsoleteReason = 'Priority is no longer used.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(6; "Manual Payment Gateway"; Boolean)
         {
             Caption = 'Manual Payment Gateway';

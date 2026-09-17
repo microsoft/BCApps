@@ -117,26 +117,6 @@ table 6930 "Expense Agent Setup"
 #endif
             ToolTip = 'Specifies the rounding precision for amounts in expense reports.';
         }
-#if not CLEANSCHEMA29
-#pragma warning disable AL0432
-#pragma warning disable AS0105
-        field(13; "Expense Report Rounding Type"; Enum "Expense Report Rounding Type")
-#pragma warning restore AL0432
-#pragma warning restore AS0105
-        {
-            Caption = 'Expense Report Rounding Type';
-#if CLEAN29
-            ObsoleteState = Removed;
-#else
-            ObsoleteState = Pending;
-#endif
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-            ObsoleteReason = 'This field is no longer required and will be removed in a future release.';
-            ToolTip = 'Specifies how amounts are rounded: nearest, up, or down.';
-        }
-#endif
         field(14; "Check Category/SubCat. Usage"; Boolean)
         {
             Caption = 'Check category/subcategory usage';

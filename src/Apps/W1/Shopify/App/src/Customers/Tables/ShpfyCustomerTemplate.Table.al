@@ -32,18 +32,6 @@ table 30107 "Shpfy Customer Template"
             DataClassification = CustomerContent;
             Caption = 'Country/Region Code';
         }
-#if not CLEANSCHEMA25
-        field(3; "Customer Template Code"; Code[10])
-        {
-            DataClassification = CustomerContent;
-            Caption = 'Customer Template code';
-            TableRelation = "Config. Template Header".Code where("Table Id" = const(18));
-            ValidateTableRelation = true;
-            ObsoleteReason = 'Replaced by "Customer Templ. Code"';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(4; "Default Customer No."; code[20])
         {
             DataClassification = CustomerContent;

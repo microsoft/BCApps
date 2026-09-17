@@ -758,26 +758,6 @@ table 15000004 "Waiting Journal"
         {
             Caption = 'Description';
         }
-#if not CLEANSCHEMA26
-        field(10604; "VAT Code"; Code[10])
-        {
-            Caption = 'VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(10605; "Bal. VAT Code"; Code[10])
-        {
-            Caption = 'Bal. VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "Bal. VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10608; "VAT Base Amount Type"; Option)
         {
             Caption = 'VAT Base Amount Type';

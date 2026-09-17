@@ -116,16 +116,6 @@ table 12159 "Company Officials"
         {
             Caption = 'E-Mail';
         }
-#if not CLEANSCHEMA28
-        field(19; Picture; BLOB)
-        {
-            Caption = 'Picture';
-            SubType = Bitmap;
-            ObsoleteReason = 'If you need a picture field, consider adding your own image field of type Media and use an upgrade codeunit to transfer the value.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(25; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';

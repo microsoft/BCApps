@@ -301,18 +301,6 @@ table 740 "VAT Report Header"
         {
             Caption = 'Return Period No.';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete field for VAT date type selection.
-        /// </summary>
-        field(20; "Date Type"; Enum "VAT Date Type")
-        {
-            Caption = 'Date Type';
-            ObsoleteReason = 'Selected VAT Date type no longer supported';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Additional information text to include with the VAT report submission.
         /// </summary>

@@ -755,16 +755,6 @@ table 123 "Purch. Inv. Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA25
-        field(11200; "Auto. Acc. Group"; Code[10])
-        {
-            Caption = 'Auto. Acc. Group';
-            TableRelation = "Automatic Acc. Header";
-            ObsoleteReason = 'Moved to Automatic Account Codes app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(12100; "No. of Fixed Asset Cards"; Integer)
         {
             BlankZero = true;

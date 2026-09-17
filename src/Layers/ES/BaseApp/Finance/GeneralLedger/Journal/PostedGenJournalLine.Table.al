@@ -978,19 +978,6 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'IC Direction';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Intercompany partner G/L account number used for intercompany transactions (obsolete field replaced by IC Account No.).
-        /// </summary>
-        field(116; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Intercompany partner transaction number for cross-reference tracking.
         /// </summary>
@@ -1925,15 +1912,6 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Applies-to Bill No.';
         }
-#if not CLEANSCHEMA25
-        field(7000003; "Pmt. Address Code"; Code[10])
-        {
-            Caption = 'Pmt. Address Code';
-            ObsoleteReason = 'Address is taken from the fields Address, City, etc. of Customer/Vendor table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

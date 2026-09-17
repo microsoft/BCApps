@@ -17,24 +17,5 @@ tableextension 31055 "Direct Trans. Line CZL" extends "Direct Trans. Line"
             TableRelation = "Tariff Number";
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA25
-        field(31001; "Statistic Indication CZL"; Code[10])
-        {
-            Caption = 'Statistic Indication';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
-        }
-        field(31002; "Country/Reg. of Orig. Code CZL"; Code[10])
-        {
-            Caption = 'Country/Region of Origin Code';
-            TableRelation = "Country/Region";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions. This field is not used any more.';
-        }
-#endif
     }
 }

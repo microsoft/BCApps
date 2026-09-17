@@ -41,27 +41,6 @@ tableextension 99000750 "Mfg. Item" extends Item
             FieldClass = FlowField;
             AutoFormatType = 0;
         }
-#if not CLEANSCHEMA28
-        field(5421; "Scheduled Need (Qty.)"; Decimal)
-        {
-            ObsoleteReason = 'Use the field ''Qty. on Component Lines'' instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-            CalcFormula = sum("Prod. Order Component"."Remaining Qty. (Base)" where(Status = filter(Planned .. Released),
-                                                                                     "Item No." = field("No."),
-                                                                                     "Variant Code" = field("Variant Filter"),
-                                                                                     "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
-                                                                                     "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter"),
-                                                                                     "Location Code" = field("Location Filter"),
-                                                                                     "Due Date" = field("Date Filter"),
-                                                                                     "Unit of Measure Code" = field("Unit of Measure Filter")));
-            Caption = 'Scheduled Need (Qty.)';
-            DecimalPlaces = 0 : 5;
-            Editable = false;
-            FieldClass = FlowField;
-            AutoFormatType = 0;
-        }
-#endif
         field(5429; "Reserved Qty. on Prod. Order"; Decimal)
         {
             AccessByPermission = TableData "Production Order" = R;

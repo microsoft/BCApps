@@ -551,15 +551,6 @@ table 79 "Company Information"
         {
             Caption = 'Software Identification Code';
         }
-#if not CLEANSCHEMA25
-        field(10023; "RFC No."; Code[12])
-        {
-            Caption = 'RFC No.';
-            ObsoleteReason = 'Replaced with RFC Number';
-            ObsoleteTag = '25.0';
-            ObsoleteState = Removed;
-        }
-#endif
         field(10024; "CURP No."; Code[18])
         {
             Caption = 'CURP No.';
@@ -597,23 +588,6 @@ table 79 "Company Information"
         {
             Caption = 'SAT Postal Code';
         }
-#if not CLEANSCHEMA25
-        field(27002; "SCT Permission Type"; Code[10])
-        {
-            Caption = 'SCT Permission Type';
-            TableRelation = "SAT Permission Type";
-            ObsoleteReason = 'Moved to Fixed Asset table';
-            ObsoleteTag = '25.0';
-            ObsoleteState = Removed;
-        }
-        field(27003; "SCT Permission Number"; Code[20])
-        {
-            Caption = 'SCT Permission Number';
-            ObsoleteReason = 'Moved to Fixed Asset table';
-            ObsoleteTag = '25.0';
-            ObsoleteState = Removed;
-        }
-#endif
     }
 
     keys

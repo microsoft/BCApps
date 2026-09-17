@@ -22,21 +22,6 @@ tableextension 31047 "G/L Account Net Change CZL" extends "G/L Account Net Chang
             Caption = 'Account Type';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA30
-        field(31001; "Account Type CZL"; Enum "Gen. Journal Account Type")
-        {
-            Caption = 'Account Type (Obsolete)';
-            DataClassification = SystemMetadata;
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-            ObsoleteReason = 'Replaced by "Acc. Type CZL" field.';
-        }
-#endif
         field(31002; "Account No. CZL"; Code[20])
         {
             Caption = 'Account No.';

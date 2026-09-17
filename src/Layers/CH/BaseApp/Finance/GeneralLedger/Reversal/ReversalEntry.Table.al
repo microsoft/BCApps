@@ -340,17 +340,6 @@ table 179 "Reversal Entry"
             Caption = 'Source Currency VAT Amount';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA27
-        field(3010536; "Amount (FCY)"; Decimal)
-        {
-            Caption = 'Amount (FCY)';
-            ObsoleteReason = 'Replaced by W1 field Source Currency Amount';
-#pragma warning disable AS0072
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(33; "Source Currency Code"; Code[10])
         {
             Caption = 'Source Currency Code';

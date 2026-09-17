@@ -2992,16 +2992,6 @@ table 38 "Purchase Header"
             Caption = 'Vendor Bank Acc. Code';
             TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Pay-to Vendor No."));
         }
-#if not CLEANSCHEMA25
-        field(7000003; "Pay-at Code"; Code[10])
-        {
-            Caption = 'Pay-at Code';
-            TableRelation = "Vendor Pmt. Address".Code where("Vendor No." = field("Pay-to Vendor No."));
-            ObsoleteReason = 'Address is taken from the fields Pay-to Address, Pay-to City, etc.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

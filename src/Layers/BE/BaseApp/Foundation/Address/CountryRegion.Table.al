@@ -112,15 +112,6 @@ table 9 "Country/Region"
             Caption = 'County Name';
             ToolTip = 'Specifies the name of the county.';
         }
-#if not CLEANSCHEMA25
-        field(2000000; "ISO Country/Region Code"; Code[2])
-        {
-            Caption = 'ISO Country/Region Code';
-            ObsoleteReason = 'replaced by W1 field ISO Code';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(2000001; "IBAN Country/Region"; Boolean)
         {
             Caption = 'IBAN Country/Region';

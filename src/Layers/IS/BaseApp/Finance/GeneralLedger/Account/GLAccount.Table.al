@@ -1076,16 +1076,6 @@ table 15 "G/L Account"
             Caption = 'API Account Type';
             Editable = false;
         }
-#if not CLEANSCHEMA27
-        field(10900; "IRS Number"; Code[10])
-        {
-            Caption = 'IRS Number';
-            TableRelation = "IRS Numbers";
-            ObsoleteReason = 'The field has been moved to the IS Core App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
     }
 
     keys
