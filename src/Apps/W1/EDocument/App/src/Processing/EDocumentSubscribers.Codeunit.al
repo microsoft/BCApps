@@ -233,6 +233,7 @@ codeunit 6103 "E-Document Subscribers"
         DocumentSendingProfile: Record "Document Sending Profile";
         EDocument: Record "E-Document";
         EDocumentLog: Record "E-Document Log";
+        ConfirmManagement: Codeunit "Confirm Management";
         EDocumentHelper: Codeunit "E-Document Helper";
         SourceDocumentHeader: RecordRef;
     begin
@@ -255,7 +256,7 @@ codeunit 6103 "E-Document Subscribers"
         if not GuiAllowed() then
             exit(true);
 
-        exit(Confirm(PurchaseOrderAlreadySentQst, false, PurchaseHeader."No."));
+        exit(ConfirmManagement.GetResponseOrDefault(StrSubstNo(PurchaseOrderAlreadySentQst, PurchaseHeader."No."), false));
     end;
     #endregion Release events
 
