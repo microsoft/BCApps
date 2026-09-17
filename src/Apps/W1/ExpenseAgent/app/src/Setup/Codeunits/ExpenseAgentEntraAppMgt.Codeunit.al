@@ -10,7 +10,7 @@ using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 
-codeunit 6913 "Expense Agent Entra App Mgt."
+codeunit 6922 "Expense Agent Entra App Mgt."
 {
     Access = Internal;
     InherentEntitlements = X;
