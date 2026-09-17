@@ -122,11 +122,6 @@
   {
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
-    "method": "DefaultApproverFilterQuotesWildcardUserNo"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
     "method": "ApproveTravelRequestPageAction"
   },
   {
