@@ -67,14 +67,12 @@ codeunit 3997 "Retention Policy JQ"
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
-        JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
-        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
-        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         // The dispatcher activates Waiting entries when their category is available.
-        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
-        if not JobQueueEntry.IsEmpty() then
+        if WaitingContinuationExists() then
             exit(false);
 
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold");
         JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
         if JobQueueEntry.FindFirst() then begin
@@ -83,15 +81,24 @@ codeunit 3997 "Retention Policy JQ"
         end;
 
         // A restartable entry may have become Waiting before the locked lookup.
-        JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
-        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
-        if not JobQueueEntry.IsEmpty() then
+        if WaitingContinuationExists() then
             exit(false);
 
         // Enqueue inserts only when no primary key is retained from a previous lookup.
         Clear(JobQueueEntry);
         JobQueueEntry.ScheduleJobQueueEntryForLater(Codeunit::"Retention Policy JQ", CurrentDateTime(), JobQueueCategoryTok, '');
         exit(true);
+    end;
+
+    local procedure WaitingContinuationExists(): Boolean
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.ReadIsolation(IsolationLevel::ReadCommitted);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Waiting);
+        exit(not JobQueueEntry.IsEmpty());
     end;
 
     internal procedure SetSessionId(SessionId: Integer)
