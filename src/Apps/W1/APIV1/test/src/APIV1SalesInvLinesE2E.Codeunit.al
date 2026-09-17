@@ -3,6 +3,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -33,8 +34,12 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibrarySales.SetStockoutWarning(FALSE);
 
@@ -935,6 +940,7 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         InvoiceLineJSON: Text;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -943,7 +949,8 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
 
         COMMIT();
 
-        InvoiceLineJSON := '{"description":"test"}';
+        LineDescription := Format(CreateGuid());
+        InvoiceLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -955,8 +962,10 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, InvoiceLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        FindFirstSalesLine(SalesHeader, SalesLine);
-        SalesLine.FINDLAST();
+        SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
+        SalesLine.SETRANGE("Document No.", SalesHeader."No.");
+        SalesLine.SETRANGE(Description, LineDescription);
+        Assert.IsTrue(SalesLine.FINDFIRST(), 'Could not find the created invoice line');
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
         VerifyIdsAreBlank(ResponseText);
@@ -1070,6 +1079,8 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
         Assert.AreNotEqual('', InvoiceLineID, 'ID should not be empty');
         LineNo := SalesLine."Line No.";
         LibraryInventory.CreateItem(Item);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         InvoiceLineJSON := STRSUBSTNO('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Format(Item.SystemId)));
         COMMIT();
