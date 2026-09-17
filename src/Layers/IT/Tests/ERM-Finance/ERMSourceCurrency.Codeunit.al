@@ -103,81 +103,18 @@ codeunit 134897 "ERM Source Currency"
     [Test]
     procedure GenJournalPurchaseReverseChargeVATLCY()
     begin
-        GenJournalPurchaseReverseChargeVAT(false);
+        GenJournalPurchaseReverseChargeVAT();
     end;
 
     [Test]
     procedure GenJournalPurchaseReverseChargeVATFCY()
     begin
-        GenJournalPurchaseReverseChargeVAT(true);
+        GenJournalPurchaseReverseChargeVAT();
     end;
 
-    local procedure GenJournalPurchaseReverseChargeVAT(ForeignCurrency: Boolean)
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        GenJournalLine: Record "Gen. Journal Line";
-        GLEntry: Record "G/L Entry";
-        Factor: Integer;
-        SCYBalance: Decimal;
-        VATAmount: Decimal;
+    local procedure GenJournalPurchaseReverseChargeVAT()
     begin
         exit; // Disable for IT
-
-        Initialize();
-
-        // [GIVEN] VAT Posting Setup with reverse charge VAT.
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
-        UpdateAdjustForPaymentDiscount(VATPostingSetup);
-        if VATPostingSetup."Reverse Chrg. VAT Acc." = '' then begin
-            VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
-            VATPostingSetup.Modify();
-        end;
-
-        // [GIVEN] A General Journal Line.
-        CreateGeneralJournalLine(
-            GenJournalLine,
-            LibraryERM.CreateGLAccountNoWithDirectPosting(),
-            LibraryERM.CreateGLAccountNoWithDirectPosting(),
-            Enum::"General Posting Type"::Purchase,
-            VATPostingSetup,
-            ForeignCurrency);
-
-        // [WHEN] Posting the General Journal Line.
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        GetGLEntries(GLEntry, GenJournalLine."Document No.", GenJournalLine."Document Type");
-
-        VATAmount := Round(Abs(GenJournalLine.Amount) * VATPostingSetup."VAT %" / 100, 0.01, '=');
-        repeat
-            // [THEN] Source Currency Code on G/L Entries should be correct.
-            Assert.AreEqual(GenJournalLine."Currency Code", GLEntry."Source Currency Code", SourceCurrencyCodeErr);
-
-            Factor := GLEntry.Amount <> 0 ? GLEntry.Amount / Abs(GLEntry.Amount) : 1;
-            case GLEntry."G/L Account No." of
-                VATPostingSetup."Purchase VAT Account",
-                VATPostingSetup.GetRevChargeAccount(false):
-                    begin
-                        // [THEN] Source Currency Amount on G/L Entries for VAT account should have correct factor.
-                        if GLEntry."Source Currency Amount" <> 0 then
-                            Assert.AreEqual(Factor, GLEntry."Source Currency Amount" / Abs(GLEntry."Source Currency Amount"), AmountIncorrectSignErr);
-
-                        // [THEN] Source Currency Amount on Purchase VAT account should be equal to expected VAT amount.
-                        Assert.AreNearlyEqual(VATAmount * Factor, GLEntry."Source Currency Amount", 0.01, StrSubstNo(VATAmountIncorrectErr, GenJournalLine.Amount, VATPostingSetup."VAT %"));
-                    end;
-                GenJournalLine."Account No.":
-                    // [THEN] Source Currency Amount on G/L Entry for Account No. should be equal to the amount on the general journal line.
-                    Assert.AreEqual(GenJournalLine.Amount, GLEntry."Source Currency Amount", AmountExclVATIncorrectErr);
-                GenJournalLine."Bal. Account No.":
-                    // [THEN] Source Currency Amount on G/L Entries for Bal. Account No. should be equal to the negative amount on the general journal line.
-                    Assert.AreEqual(-GenJournalLine.Amount, GLEntry."Source Currency Amount", BalancingAmountIncorrectErr);
-                else
-                    Error(UnexpectedAccountNoErr, GLEntry."G/L Account No.");
-            end;
-            SCYBalance += GLEntry."Source Currency Amount";
-        until GLEntry.Next() = 0;
-
-        // [THEN] Source Currency Amount on G/L Entries should balance to 0.
-        Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
     end;
 
     [Test]
@@ -541,77 +478,18 @@ codeunit 134897 "ERM Source Currency"
     [Test]
     procedure PurchaseInvoiceReverseChargeVATLCY()
     begin
-        PurchaseInvoiceReverseChargeVAT(false);
+        PurchaseInvoiceReverseChargeVAT();
     end;
 
     [Test]
     procedure PurchaseInvoiceReverseChargeVATFCY()
     begin
-        PurchaseInvoiceReverseChargeVAT(true);
+        PurchaseInvoiceReverseChargeVAT();
     end;
 
-    local procedure PurchaseInvoiceReverseChargeVAT(WithForeignCurrency: Boolean)
-    var
-        VendorPostingGroup: Record "Vendor Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PurchaseHeader: Record "Purchase Header";
-        GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
-        VendorNo: Code[20];
-        PostedPurchaseInvoiceNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
-        VATAmount: Decimal;
+    local procedure PurchaseInvoiceReverseChargeVAT()
     begin
         exit; // Disabled for IT
-
-        Initialize();
-
-        // [GIVEN] Vendor with new posting groups with normal VAT.
-        VendorNo := CreateVendorWithNewPostingGroups(VendorPostingGroup, GeneralPostingSetup, VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
-        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
-        VATPostingSetup.Modify();
-
-        // [GIVEN] A Purchase Invoice for a G/L Account.
-        CreateGLAccount(GLAccount, Enum::"General Posting Type"::Purchase, GeneralPostingSetup, VATPostingSetup);
-        CreatePurchaseInvoice(PurchaseHeader, VendorNo, GLAccount."No.", WithForeignCurrency);
-
-        // [WHEN] Posting a Purchase Invoice with normal VAT.
-        PostedPurchaseInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        GetGLEntries(GLEntry, PostedPurchaseInvoiceNo, GLEntry."Document Type"::Invoice);
-
-        VATAmount := Round(PurchaseHeader."Doc. Amount Incl. VAT" * VATPostingSetup."VAT %" / 100, 0.01, '=');
-        repeat
-            // [THEN] Source Currency Code on G/L Entries should be correct.
-            Assert.AreEqual(PurchaseHeader."Currency Code", GLEntry."Source Currency Code", SourceCurrencyCodeErr);
-
-            Factor := GLEntry.Amount <> 0 ? GLEntry.Amount / Abs(GLEntry.Amount) : 1;
-            case GLEntry."G/L Account No." of
-                VATPostingSetup."Purchase VAT Account",
-                VATPostingSetup.GetRevChargeAccount(false):
-                    begin
-                        // [THEN] Source Currency Amount on G/L Entries for VAT account should have correct factor.
-                        Assert.AreEqual(Factor, GLEntry."Source Currency Amount" / Abs(GLEntry."Source Currency Amount"), AmountIncorrectSignErr);
-
-                        // [THEN] Source Currency Amount on Purchase VAT account should be equal to expected VAT amount.
-                        Assert.AreEqual(VATAmount * Factor, GLEntry."Source Currency Amount", StrSubstNo(VATAmountIncorrectErr, PurchaseHeader.Amount, VATPostingSetup."VAT %"));
-                    end;
-                VendorPostingGroup.GetPayablesAccount():
-                    // [THEN] Source Currency Amount on G/L Entry for Payables Account No. should be equal to the amount incl. VAT on the purchase invoice.
-                    Assert.AreEqual(-PurchaseHeader."Amount Including VAT", GLEntry."Source Currency Amount", 'The Source Currency Amount should be equal to the amount including VAT on the purchase invoice');
-                GLAccount."No.":
-                    // [THEN] Source Currency Amount on G/L Entry for GL Account No. should be equal to the amount incl. VAT on the purchase invoice
-                    Assert.AreEqual(PurchaseHeader."Amount Including VAT", GLEntry."Source Currency Amount", AmountExclVATIncorrectErr);
-                else
-                    Error(UnexpectedAccountNoErr, GLEntry."G/L Account No.");
-            end;
-            SCYBalance += GLEntry."Source Currency Amount";
-        until GLEntry.Next() = 0;
-
-        // [THEN] Source Currency Amount on G/L Entries should balance to 0.
-        Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
     end;
 
     [Test]
@@ -2336,6 +2214,65 @@ codeunit 134897 "ERM Source Currency"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Type, No, LibraryRandom.RandDec(10, 2));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));  // Use Random Unit Price between 1 and 100.
         SalesLine.Modify(true);
+    end;
+
+    [Test]
+    procedure SalesInvoiceLCYWithPaymentMethodBalAccountPosting()
+    var
+        Customer: Record Customer;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GLEntry: Record "G/L Entry";
+        PaymentMethod: Record "Payment Method";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ExpectedSourceCurrencyAmount: Decimal;
+        PostedDocumentNo: Code[20];
+    begin
+        // [SCENARIO] An LCY sales invoice with a payment method balancing account can be previewed when source currency consistency is enabled.
+
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [GIVEN] Source currency consistency and extended posting preview are enabled.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] A payment method with a G/L balancing account and payment terms without a payment discount.
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("Bal. Account Type", PaymentMethod."Bal. Account Type"::"G/L Account");
+        PaymentMethod.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PaymentMethod.Modify(true);
+
+        // [GIVEN] A customer whose payment method and payment terms flow to a new LCY sales invoice.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Method Code", PaymentMethod.Code);
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.TestField("Currency Code", '');
+        SalesHeader.TestField("Payment Method Code", PaymentMethod.Code);
+
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedSourceCurrencyAmount := SalesHeader."Amount Including VAT";
+
+        // [WHEN] Posting the salesinvoice.
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The posting completes without a source currency consistency error.
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", PaymentMethod."Bal. Account No.");
+        GLEntry.FindFirst();
+        GLEntry.TestField("Document Type", GLEntry."Document Type"::Payment);
+
+        GLEntry.TestField(Amount, ExpectedSourceCurrencyAmount);
+        GLEntry.TestField("Source Currency Code", '');
+        GLEntry.TestField("Source Currency Amount", ExpectedSourceCurrencyAmount);
     end;
 
     local procedure Initialize()

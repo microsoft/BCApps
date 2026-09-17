@@ -51,7 +51,7 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to transfer.</param>
     /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, in-transit location, and quantity.</param>
     /// <returns>True if at least one transfer line was created; otherwise, false.</returns>
-    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         Location: Record Location;
         TransferRoute: Record "Transfer Route";
