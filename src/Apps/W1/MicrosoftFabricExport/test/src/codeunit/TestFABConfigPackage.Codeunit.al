@@ -415,6 +415,8 @@ codeunit 140011 "Test FAB Config Package"
         i: Integer;
     begin
         //[SCENARIO] Re-registering an active package at a new version skips the automatic reapply when it would exceed the platform table limit
+        //[GIVEN] Initialize
+        Initialize();
         //[GIVEN] An activated package at v1.0 with one table
         TableIdsV1.Add(18);
         FabricConfigPkgMgt.RegisterPackage('MS-STD', 'Microsoft Standard', '1.0', TableIdsV1);
