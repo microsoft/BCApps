@@ -78,9 +78,6 @@ codeunit 3997 "Retention Policy JQ"
         JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold");
         JobQueueEntry.ReadIsolation(IsolationLevel::UpdLock);
         if JobQueueEntry.FindFirst() then begin
-            if not (JobQueueEntry.Status in [JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold"]) then
-                exit(false);
-
             JobQueueEntry.Restart();
             exit(true);
         end;
