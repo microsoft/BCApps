@@ -891,16 +891,6 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.IsTrue(RequisitionLine.FindFirst(), StrSubstNo(LineExistErr, WkshTemplateName, ItemNo));
     end;
 
-    local procedure VerifyPlanningLine(ItemNo: Code[20]; WkshTemplateName: Code[10]; JournalBatchName: Code[10])
-    var
-        RequisitionLine: Record "Requisition Line";
-    begin
-        RequisitionLine.SetRange("Worksheet Template Name", WkshTemplateName);
-        RequisitionLine.SetRange("Journal Batch Name", JournalBatchName);
-        RequisitionLine.SetRange("No.", ItemNo);
-        Assert.IsTrue(RequisitionLine.FindFirst(), StrSubstNo(LineExistErr, WkshTemplateName, ItemNo));
-    end;
-
     local procedure ModifyRequisitionLine(var RequisitionLine: Record "Requisition Line"; Reserve: Enum "Reserve Method"; ReplenishmentSystem: Enum "Replenishment System")
     var
         Item: Record Item;
