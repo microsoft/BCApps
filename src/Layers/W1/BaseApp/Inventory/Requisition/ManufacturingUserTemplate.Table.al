@@ -70,14 +70,14 @@ table 5525 "Manufacturing User Template"
         }
         field(15; "Prod. Req. Wksh. Template"; Code[10])
         {
-            Caption = 'Prod. Req. Wksh. Template';
-            ToolTip = 'Specifies the production requisition worksheet template associated with this entry.';
+            Caption = 'Prod. Planning Wksh. Template';
+            ToolTip = 'Specifies the production planning worksheet template associated with this entry.';
             TableRelation = "Req. Wksh. Template" where(Type = const(Planning), Recurring = const(false));
         }
         field(16; "Prod. Wksh. Name"; Code[10])
         {
-            Caption = 'Prod. Wksh. Name';
-            ToolTip = 'Specifies the production worksheet name associated with this entry.';
+            Caption = 'Prod. Planning Wksh. Name';
+            ToolTip = 'Specifies the production planning worksheet name associated with this entry.';
             TableRelation = "Requisition Wksh. Name".Name where("Worksheet Template Name" = field("Prod. Req. Wksh. Template"));
         }
         field(19; "Transfer Req. Wksh. Template"; Code[10])

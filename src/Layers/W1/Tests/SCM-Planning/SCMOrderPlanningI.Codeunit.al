@@ -749,6 +749,7 @@ codeunit 137046 "SCM Order Planning - I"
         TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        PlanningWkshName: Record "Requisition Wksh. Name";
         LibrarySales: Codeunit "Library - Sales";
         Quantity: Decimal;
         ShipmentDate: Date;
@@ -773,14 +774,16 @@ codeunit 137046 "SCM Order Planning - I"
 
         LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
         CreateRequisitionWorksheetName(RequisitionWkshName);
+        CreatePlanningWorksheetName(PlanningWkshName);
 
         // Exercise: Make supply order by changing option.
-        MakeOrderWithChangeOption(SalesHeader."No.", RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
+        MakeOrderWithChangeOption(SalesHeader."No.", RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, PlanningWkshName."Worksheet Template Name", PlanningWkshName.Name);
 
         // Verify: Check That Requisition Worksheet is created after change option in make supply order request page.
         FilterRequisitionWorksheetLine(RequisitionLine, RequisitionWkshName);
         VerifyRequisitionWorksheet(RequisitionLine, Item."No.", ShipmentDate, LocationRed.Code, Quantity);
         VerifyRequisitionWorksheet(RequisitionLine, Item2."No.", ShipmentDate2, LocationBlue.Code, Quantity);
+        FilterPlanningWorksheetLine(RequisitionLine, PlanningWkshName);
         VerifyRequisitionWorksheet(RequisitionLine, Item3."No.", ShipmentDate3, LocationBlue2.Code, Quantity);
 
         // Tear Down.
@@ -1339,7 +1342,7 @@ codeunit 137046 "SCM Order Planning - I"
         RequisitionLine.Modify(true);
     end;
 
-    local procedure ChangeManufUserTemplate(var ManufacturingUserTemplate: Record "Manufacturing User Template"; MakeOrder: Option; ReqWkshTemplateName: Code[10]; RequisitionWkshName: Code[10])
+    local procedure ChangeManufUserTemplate(var ManufacturingUserTemplate: Record "Manufacturing User Template"; MakeOrder: Option; ReqWkshTemplateName: Code[10]; RequisitionWkshName: Code[10]; PlanningWkshTemplateName: Code[10]; PlanningWkshName: Code[10])
     begin
         if not ManufacturingUserTemplate.Get(UserId) then
             LibraryPlanning.CreateManufUserTemplate(
@@ -1349,8 +1352,8 @@ codeunit 137046 "SCM Order Planning - I"
 
         ManufacturingUserTemplate.Validate("Purchase Req. Wksh. Template", ReqWkshTemplateName);
         ManufacturingUserTemplate.Validate("Purchase Wksh. Name", RequisitionWkshName);
-        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", ReqWkshTemplateName);
-        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", RequisitionWkshName);
+        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", PlanningWkshTemplateName);
+        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", PlanningWkshName);
         ManufacturingUserTemplate.Modify(true);
     end;
 
@@ -1664,6 +1667,16 @@ codeunit 137046 "SCM Order Planning - I"
         LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
     end;
 
+    local procedure CreatePlanningWorksheetName(var PlanningWkshName: Record "Requisition Wksh. Name")
+    var
+        PlanWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        PlanWkshTemplate.SetRange(Type, PlanWkshTemplate.Type::Planning);
+        PlanningWkshName.SetRange(Recurring, false);
+        PlanWkshTemplate.FindFirst();
+        LibraryPlanning.CreatePlanningWkshName(PlanningWkshName, PlanWkshTemplate.Name);
+    end;
+
     local procedure CreateItemWithPurchUnitOfMeasure(var Item: Record Item)
     var
         UnitOfMeasure: Record "Unit of Measure";
@@ -1805,6 +1818,13 @@ codeunit 137046 "SCM Order Planning - I"
         RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
     end;
 
+    local procedure FilterPlanningWorksheetLine(var RequisitionLine: Record "Requisition Line"; PlanningWkshName: Record "Requisition Wksh. Name")
+    begin
+        RequisitionLine.SetRange("Worksheet Template Name", PlanningWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", PlanningWkshName.Name);
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+    end;
+
     local procedure GetManufacturingUserTemplate(var ManufacturingUserTemplate: Record "Manufacturing User Template"; MakeOrder: Option; CreateProductionOrder: Enum "Planning Create Prod. Order")
     begin
         if not ManufacturingUserTemplate.Get(UserId) then
@@ -1855,7 +1875,7 @@ codeunit 137046 "SCM Order Planning - I"
         LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
     end;
 
-    local procedure MakeOrderWithChangeOption(DemandOrderNo: Code[20]; ReqWkshTemplateName: Code[10]; RequisitionWkshName: Code[10])
+    local procedure MakeOrderWithChangeOption(DemandOrderNo: Code[20]; ReqWkshTemplateName: Code[10]; RequisitionWkshName: Code[10]; PlanningWkshTemplateName: Code[10]; PlanningWkshName: Code[10])
     var
         ManufacturingUserTemplate: Record "Manufacturing User Template";
         RequisitionLine: Record "Requisition Line";
@@ -1863,7 +1883,7 @@ codeunit 137046 "SCM Order Planning - I"
         RequisitionLine.SetRange("Demand Order No.", DemandOrderNo);
         RequisitionLine.FindFirst();
         ChangeManufUserTemplate(
-          ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order", ReqWkshTemplateName, RequisitionWkshName);
+          ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order", ReqWkshTemplateName, RequisitionWkshName, PlanningWkshTemplateName, PlanningWkshName);
         LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
     end;
 

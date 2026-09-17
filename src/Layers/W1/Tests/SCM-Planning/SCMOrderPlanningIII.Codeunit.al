@@ -687,6 +687,8 @@ codeunit 137088 "SCM Order Planning - III"
         ReservationEntry: Record "Reservation Entry";
         ReqWkshTemplateName: Code[10];
         ReqWkshName: Code[10];
+        PlanWkshTemplateName: Code[10];
+        PlanWkshName: Code[10];
         Qty: Decimal;
         QtyPer: Decimal;
     begin
@@ -712,9 +714,11 @@ codeunit 137088 "SCM Order Planning - III"
 
         ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
         ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType);
+        PlanWkshTemplateName := GetPlanWkshTemplateName();
+        PlanWkshName := GetPlanWkshName(PlanWkshTemplateName);
 
         // Exercise : Run Make order from Order Planning.
-        MakeSupplyOrdersCopyToWkshActiveOrder(ProdOrder."No.", ReqWkshTemplateName, ReqWkshName);
+        MakeSupplyOrdersCopyToWkshActiveOrder(ProdOrder."No.", ReqWkshTemplateName, ReqWkshName, PlanWkshTemplateName, PlanWkshName);
 
         // Verify : Check That Reservation Entry Created after Make Supply Order.
         // 246 indicates reserved from requisition line
@@ -812,6 +816,8 @@ codeunit 137088 "SCM Order Planning - III"
         TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
         ReqWkshTemplateName: Code[10];
         ReqWkshName: Code[10];
+        PlanWkshTemplateName: Code[10];
+        PlanWkshName: Code[10];
         Quantity: Decimal;
     begin
         // Setup : Create Sales Order and Calculate Plan
@@ -829,9 +835,11 @@ codeunit 137088 "SCM Order Planning - III"
 
         ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
         ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType);
+        PlanWkshTemplateName := GetPlanWkshTemplateName();
+        PlanWkshName := GetPlanWkshName(PlanWkshTemplateName);
 
         // Exercise : Run Make order from Order Planning.
-        MakeSupplyOrdersCopyToWkshActiveOrder(SalesHeader."No.", ReqWkshTemplateName, ReqWkshName);
+        MakeSupplyOrdersCopyToWkshActiveOrder(SalesHeader."No.", ReqWkshTemplateName, ReqWkshName, PlanWkshTemplateName, PlanWkshName);
 
         // Verify : Check That Reservation Entry Created after Make Supply Order.
         // 246 indicates reserved from requisition line
@@ -874,6 +882,16 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     local procedure VerifyRequisitionLine(ItemNo: Code[20]; WkshTemplateName: Code[10]; JournalBatchName: Code[10])
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange("Worksheet Template Name", WkshTemplateName);
+        RequisitionLine.SetRange("Journal Batch Name", JournalBatchName);
+        RequisitionLine.SetRange("No.", ItemNo);
+        Assert.IsTrue(RequisitionLine.FindFirst(), StrSubstNo(LineExistErr, WkshTemplateName, ItemNo));
+    end;
+
+    local procedure VerifyPlanningLine(ItemNo: Code[20]; WkshTemplateName: Code[10]; JournalBatchName: Code[10])
     var
         RequisitionLine: Record "Requisition Line";
     begin
@@ -1835,7 +1853,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLine.Modify(true);
 
         // [WHEN] Make a line in requisition worksheet to supply the assembly line.
-        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::"Req.");
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
         GetManufacturingUserTemplate(
           ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order",
           ManufacturingUserTemplate."Create Production Order"::"Copy to Req. Wksh");
@@ -2025,7 +2043,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLine.Modify(true);
 
         // [WHEN] Make a line in requisition worksheet to supply the job planning line.
-        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::"Req.");
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
         GetManufacturingUserTemplate(
           ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order",
           ManufacturingUserTemplate."Create Production Order"::"Copy to Req. Wksh");
@@ -4403,12 +4421,31 @@ codeunit 137088 "SCM Order Planning - III"
         exit(ReqWkshTemplate.Name);
     end;
 
+    local procedure GetPlanWkshTemplateName(): Code[10]
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+    begin
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Planning);
+        ReqWkshTemplate.FindFirst();
+        exit(ReqWkshTemplate.Name);
+    end;
+
     local procedure GetReqWkshName(TemplateName: Code[10]; TemplateType: Enum "Req. Worksheet Template Type"): Code[10]
     var
         ReqWkshName: Record "Requisition Wksh. Name";
     begin
         ReqWkshName.SetRange("Worksheet Template Name", TemplateName);
         ReqWkshName.SetRange("Template Type", TemplateType);
+        ReqWkshName.FindFirst();
+        exit(ReqWkshName.Name);
+    end;
+
+    local procedure GetPlanWkshName(TemplateName: Code[10]): Code[10]
+    var
+        ReqWkshName: Record "Requisition Wksh. Name";
+    begin
+        ReqWkshName.SetRange("Worksheet Template Name", TemplateName);
+        ReqWkshName.SetRange("Template Type", ReqWkshName."Template Type"::Planning);
         ReqWkshName.FindFirst();
         exit(ReqWkshName.Name);
     end;
@@ -4425,7 +4462,7 @@ codeunit 137088 "SCM Order Planning - III"
           ManufacturingUserTemplate."Create Production Order"::"Firm Planned");
     end;
 
-    local procedure MakeSupplyOrdersCopyToWkshActiveOrder(DemandOrderNo: Code[20]; WkshTemplateName: Code[10]; WkshName: Code[10])
+    local procedure MakeSupplyOrdersCopyToWkshActiveOrder(DemandOrderNo: Code[20]; WkshTemplateName: Code[10]; WkshName: Code[10]; PlanWkshTemplateName: Code[10]; PlanWkshName: Code[10])
     var
         ManufacturingUserTemplate: Record "Manufacturing User Template";
         RequisitionLine: Record "Requisition Line";
@@ -4433,7 +4470,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLine.SetRange("Demand Order No.", DemandOrderNo);
         RequisitionLine.FindFirst();
         MakeSupplyOrdersCopyToWksh(
-          RequisitionLine, ManufacturingUserTemplate."Make Orders"::"The Active Order", WkshTemplateName, WkshName);
+          RequisitionLine, ManufacturingUserTemplate."Make Orders"::"The Active Order", WkshTemplateName, WkshName, PlanWkshTemplateName, PlanWkshName);
     end;
 
     local procedure MakeSupplyOrders(var RequisitionLine: Record "Requisition Line"; MakeOrders: Option; CreateProductionOrder: Enum "Planning Create Prod. Order")
@@ -4444,7 +4481,7 @@ codeunit 137088 "SCM Order Planning - III"
         LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
     end;
 
-    local procedure MakeSupplyOrdersCopyToWksh(var RequisitionLine: Record "Requisition Line"; MakeOrders: Option; WkshTemplateName: Code[10]; WkshName: Code[10])
+    local procedure MakeSupplyOrdersCopyToWksh(var RequisitionLine: Record "Requisition Line"; MakeOrders: Option; WkshTemplateName: Code[10]; WkshName: Code[10]; PlanWkshTemplateName: Code[10]; PlanWkshName: Code[10])
     var
         ManufacturingUserTemplate: Record "Manufacturing User Template";
     begin
@@ -4456,8 +4493,8 @@ codeunit 137088 "SCM Order Planning - III"
         ManufacturingUserTemplate.Validate("Purchase Req. Wksh. Template", WkshTemplateName);
         ManufacturingUserTemplate.Validate("Purchase Wksh. Name", WkshName);
 
-        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", WkshTemplateName);
-        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", WkshName);
+        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", PlanWkshTemplateName);
+        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", PlanWkshName);
 
         ManufacturingUserTemplate.Validate("Create Transfer Order",
           ManufacturingUserTemplate."Create Transfer Order"::"Copy to Req. Wksh");
