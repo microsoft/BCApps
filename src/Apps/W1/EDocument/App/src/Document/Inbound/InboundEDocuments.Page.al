@@ -344,6 +344,21 @@ page 6105 "Inbound E-Documents"
                     end;
                 end;
             }
+            action(RejectOrder)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Reject Order';
+                ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                Image = Reject;
+                Visible = Rec."Document Type" = Rec."Document Type"::"Sales Order";
+
+                trigger OnAction()
+                var
+                    EDocumentProcessing: Codeunit "E-Document Processing";
+                begin
+                    EDocumentProcessing.SendOrderRejection(Rec);
+                end;
+            }
             action(EDocumentServices)
             {
                 RunObject = Page "E-Document Services";
@@ -409,6 +424,7 @@ page 6105 "Inbound E-Documents"
                 ObsoleteTag = '27.0';
             }
 #endif
+            actionref(Promoted_RejectOrder; RejectOrder) { }
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
         }
     }
