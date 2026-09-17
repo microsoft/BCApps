@@ -1,0 +1,8 @@
+{
+  "success": true,
+  "report_count": 1,
+  "skipped": false,
+  "email_generated": true,
+  "notification_sent": false,
+  "send_error": "RuntimeError"
+}

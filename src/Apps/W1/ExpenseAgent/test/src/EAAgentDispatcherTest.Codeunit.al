@@ -5,16 +5,726 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using System.AI;
 using System.Email;
+using System.Environment;
+using System.TestLibraries.Email;
+using System.Utilities;
 
 codeunit 148314 "EA Agent Dispatcher Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Function;
+    TestHttpRequestPolicy = BlockOutboundRequests;
+    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit Assert;
+        ConnectorMock: Codeunit "Connector Mock";
+        ExpectedPath: Text;
+        ResponseResource: Text;
+        ResponseStatusCode: Integer;
+        HttpRequestCount: Integer;
+        ObservedRequestCount: Integer;
+        EndpointResolutionCount: Integer;
+        ExpectedUseCanaryEndpoint: Boolean;
+        RequestCorrelationId: Guid;
+        MultipartBody: Text;
+        MultipartContentType: Text;
+        UnexpectedRequest: Text;
+        ReceiptMessageId: Guid;
+        OutgoingMockAccountId: Guid;
+        FixtureMessageIds: List of [Guid];
+        DisableOutgoingAfterSend: Boolean;
+        TestCompanyTok: Label 'EA Email Lifecycle Test', Locked = true;
+        ServiceBaseUrlTok: Label 'https://expense-agent.example.invalid', Locked = true;
+        RecipientEmailTok: Label 'recipient@example.invalid', Locked = true;
         OneOwnerMustBeDefinedErr: Label 'At least one user must be able to configure the Expense Agent.';
+
+    [Test]
+    procedure OutgoingPassSendsMultipleRowsWithoutIncomingAccount()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        FirstOutboxEmail: Record "EA Outbox Email";
+        SecondOutboxEmail: Record "EA Outbox Email";
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, false);
+        CreatePendingEmail(FirstOutboxEmail);
+        CreatePendingEmail(SecondOutboxEmail);
+
+        RunCommunication(Setup);
+
+        FirstOutboxEmail.Get(FirstOutboxEmail.Id);
+        SecondOutboxEmail.Get(SecondOutboxEmail.Id);
+        Assert.AreEqual(FirstOutboxEmail.Status::Sent, FirstOutboxEmail.Status, 'Outgoing must work with receipts enabled but no incoming account.');
+        Assert.AreEqual(SecondOutboxEmail.Status::Sent, SecondOutboxEmail.Status, 'Direct passes must initialize the per-run limit above one.');
+        Assert.IsFalse(IsNullGuid(ConnectorMock.GetEmailMessageID()), 'The real Email.Send path must reach the mock connector.');
+        AssertNoIncomingProcessing();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure IncomingOnlySubmitsMultipartReceiptAndPreservesOutgoingWork()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+        EAKPI: Record "EA KPI";
+        FilesReceivedBefore: Integer;
+    begin
+        InitializeCommunication(Setup, true, false);
+        CreateRecipient(ExpenseUser, true);
+        CreatePendingEmail(OutboxEmail);
+        CreateReceiptInbox(Setup);
+        EAKPI.GetSafe();
+        FilesReceivedBefore := EAKPI."File Received";
+        ExpectService('/api/v1.0/expenses/process', 'receipt-accepted.json', 202);
+
+        RunCommunication(Setup);
+
+        Assert.AreEqual(1, HttpRequestCount, 'Incoming-only must submit one receipt.');
+        AssertMultipartReceipt();
+        AssertReceiptProcessed();
+        EAKPI.GetSafe();
+        Assert.AreEqual(FilesReceivedBefore + 2, EAKPI."File Received", '202 is acceptance of both attachments, not completed processing or delivery.');
+        AssertOutgoingUnchanged(OutboxEmail, ExpenseUser);
+    end;
+
+    [Test]
+    procedure MissingBothAccountsRunsNoCommunicationPhases()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+        PreviousNotificationRun: DateTime;
+    begin
+        InitializeCommunication(Setup, false, false);
+        CreateRecipient(ExpenseUser, true);
+        CreatePendingEmail(OutboxEmail);
+        CreateEligibleReminder(Setup, ExpenseUser, PreviousNotificationRun);
+        ConnectorMock.FailOnRetrieveEmails(true);
+        ConnectorMock.FailOnSend(true);
+
+        RunCommunication(Setup);
+
+        AssertOutgoingUnchanged(OutboxEmail, ExpenseUser);
+        AssertNoIncomingProcessing();
+        ExpenseAgentStatus.Get();
+        Assert.AreEqual(PreviousNotificationRun, ExpenseAgentStatus."Last Notif. Run At", 'Missing outgoing must not advance reminder polling.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure DirectPassRetriesUntilFifthConnectorFailure()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+        Attempt: Integer;
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, true);
+        ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
+        RunCommunication(Setup);
+        ExpenseUser.Get(ExpenseUser."No.");
+        Assert.AreEqual(ExpenseUser."Welcome Email Status"::"In Outbox", ExpenseUser."Welcome Email Status", 'Retries start after a real successful handoff.');
+        InsertCorrelatedCallback(OutboxEmail, RequestCorrelationId);
+        ExpectNoService();
+        ConnectorMock.FailOnSend(true);
+
+        for Attempt := 1 to 5 do begin
+            RunCommunication(Setup);
+            OutboxEmail.Get(OutboxEmail.Id);
+            ExpenseUser.Get(ExpenseUser."No.");
+            Assert.AreEqual(Attempt, OutboxEmail."Retry Count", 'One failed connector delivery per pass is one retry.');
+            if Attempt < 5 then begin
+                Assert.AreEqual(OutboxEmail.Status::Pending, OutboxEmail.Status, 'Attempts one through four remain pending.');
+                Assert.AreEqual(ExpenseUser."Welcome Email Status"::"In Outbox", ExpenseUser."Welcome Email Status", 'Nonterminal failures must not complete the welcome.');
+            end else begin
+                Assert.AreEqual(OutboxEmail.Status::Failed, OutboxEmail.Status, 'The fifth failed attempt is terminal.');
+                Assert.AreEqual(ExpenseUser."Welcome Email Status"::Failed, ExpenseUser."Welcome Email Status", 'Terminal failure must correlate back to the welcome.');
+            end;
+        end;
+
+        RunCommunication(Setup);
+        OutboxEmail.Get(OutboxEmail.Id);
+        Assert.AreEqual(5, OutboxEmail."Retry Count", 'Terminal rows must not be retried.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure WelcomeAcceptanceThenCorrelatedCallbackAndDelivery()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+        EmailMessage: Codeunit "Email Message";
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, true);
+        ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
+
+        RunCommunication(Setup);
+
+        ExpenseUser.Get(ExpenseUser."No.");
+        Assert.AreEqual(1, HttpRequestCount, 'One real welcome request is expected.');
+        Assert.IsFalse(IsNullGuid(RequestCorrelationId), 'The production request must carry a correlation header.');
+        Assert.AreEqual(RequestCorrelationId, ExpenseUser."Welcome Correlation Id", 'Hop one must persist the actual request correlation.');
+        Assert.AreEqual(ExpenseUser."Welcome Email Status"::"In Outbox", ExpenseUser."Welcome Email Status", '200 acknowledges outbox handoff, not connector delivery.');
+        Assert.AreEqual(0DT, ExpenseUser."Welcome Email Sent At", 'HTTP acceptance alone is not Sent.');
+        Assert.IsTrue(OutboxEmail.IsEmpty(), 'Returning HTTP 200 alone must not fabricate a callback.');
+
+        // Simulated BC writeback, outside the HTTP TryFunction. This is not OData/auth validation.
+        InsertCorrelatedCallback(OutboxEmail, RequestCorrelationId);
+        Assert.AreEqual(OutboxEmail.Status::Pending, OutboxEmail.Status, 'The callback inserts pending work.');
+        ExpectNoService();
+        RunCommunication(Setup);
+
+        OutboxEmail.Get(OutboxEmail.Id);
+        ExpenseUser.Get(ExpenseUser."No.");
+        Assert.AreEqual(OutboxEmail.Status::Sent, OutboxEmail.Status, 'The second production pass must deliver via Email.Send.');
+        Assert.AreEqual(ExpenseUser."Welcome Email Status"::Sent, ExpenseUser."Welcome Email Status", 'Real outbox correlation must complete the welcome.');
+        Assert.AreNotEqual(0DT, ExpenseUser."Welcome Email Sent At", 'Mocked connector delivery stamps Sent.');
+        Assert.IsTrue(EmailMessage.Get(ConnectorMock.GetEmailMessageID()), 'The mock connector must receive a persisted email.');
+        Assert.AreEqual(OutboxEmail.Subject, EmailMessage.GetSubject(), 'The callback subject must reach the connector.');
+        Assert.AreEqual(OutboxEmail.ReadBody(), EmailMessage.GetBody(), 'The callback body must reach the connector.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure WelcomeGatewayFailureDoesNotCreateOutboxOrMarkSent()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, true);
+        // Only the HTTP 502 boundary is asserted; no unverified service error-body contract is invented.
+        ExpectService('/api/v1.0/notifications/welcome', '', 502);
+
+        RunCommunication(Setup);
+
+        ExpenseUser.Get(ExpenseUser."No.");
+        Assert.AreEqual(1, HttpRequestCount, 'The failure must come from the real HTTP status boundary.');
+        Assert.AreEqual(ExpenseUser."Welcome Email Status"::Failed, ExpenseUser."Welcome Email Status", 'HTTP 502 fails the handoff.');
+        Assert.IsTrue(IsNullGuid(ExpenseUser."Welcome Correlation Id"), 'Failed handoff must clear the user correlation.');
+        Assert.AreEqual(0DT, ExpenseUser."Welcome Email Sent At", 'Failed handoff is not delivery.');
+        Assert.IsTrue(OutboxEmail.IsEmpty(), 'A failed service handoff must not insert an outbox callback.');
+    end;
+
+    [Test]
+    procedure MissingSetupSkipsEndpointOverrideAndHttp()
+    var
+        Setup: Record "Expense Agent Setup";
+        EAHttpClient: Codeunit "EA Http Client";
+        Success: Boolean;
+    begin
+        AssertIsolatedCompany();
+        ExpectNoService();
+        Setup.DeleteAll();
+        Commit();
+        BindSubscription(this);
+        Success := EAHttpClient.SendWelcomeEmailNotification(RecipientEmailTok, CreateGuid());
+        UnbindSubscription(this);
+
+        Assert.IsFalse(Success, 'The real HTTP wrapper must reject missing persisted setup.');
+        Assert.AreEqual(0, EndpointResolutionCount, 'Missing setup must be checked before the endpoint override event.');
+        Assert.AreEqual(0, ObservedRequestCount, 'Missing setup must not construct a service request.');
+        Assert.AreEqual(0, HttpRequestCount, 'Missing setup must not reach HTTP.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure SavedCanarySelectionReachesCommunicationEndpoint()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, true);
+        ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
+        RunCommunication(Setup);
+        Assert.AreEqual(1, EndpointResolutionCount, 'The saved default selection must reach endpoint resolution.');
+        Assert.AreEqual(1, HttpRequestCount, 'The default selection must execute the real HTTP wrapper.');
+
+        Setup.Get();
+        Setup."Use Canary Endpoint" := true;
+        Setup.Modify();
+        CreateRecipient(ExpenseUser, true);
+        ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
+        ExpectedUseCanaryEndpoint := true;
+        RunCommunication(Setup);
+        Assert.AreEqual(1, EndpointResolutionCount, 'The saved canary selection must reach endpoint resolution.');
+        Assert.AreEqual(1, HttpRequestCount, 'The canary selection must execute the real HTTP wrapper with a safe mock endpoint.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure EligibleReminderWithoutIncomingAcceptsSkippedResponse()
+    begin
+        VerifyReminderResponse('reminder-skipped.json');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure ReminderBodyFailurePreservesExistingHttpOnlyBoundary()
+    begin
+        // Current AL wrappers inspect HTTP status only; do not reinterpret the service response body.
+        VerifyReminderResponse('reminder-send-failed.json');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpenseServiceHandler')]
+    procedure BothChannelsProcessReceiptAndPendingOutbox()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+    begin
+        InitializeCommunication(Setup, true, true);
+        CreateRecipient(ExpenseUser, false);
+        CreatePendingEmail(OutboxEmail);
+        CreateReceiptInbox(Setup);
+        ExpectService('/api/v1.0/expenses/process', 'receipt-accepted.json', 202);
+
+        RunCommunication(Setup);
+
+        Assert.AreEqual(1, HttpRequestCount, 'The incoming phase must submit the receipt.');
+        AssertMultipartReceipt();
+        AssertReceiptProcessed();
+        OutboxEmail.Get(OutboxEmail.Id);
+        Assert.AreEqual(OutboxEmail.Status::Sent, OutboxEmail.Status, 'Outgoing must also run in the same production pass.');
+    end;
+
+    [Test]
+    procedure ReReadsPersistedSetupAfterCommittingOutboxPhase()
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        OutboxEmail: Record "EA Outbox Email";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+        PreviousNotificationRun: DateTime;
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, true);
+        CreatePendingEmail(OutboxEmail);
+        CreateEligibleReminder(Setup, ExpenseUser, PreviousNotificationRun);
+        DisableOutgoingAfterSend := true;
+
+        RunCommunication(Setup);
+
+        Setup.Get();
+        Assert.IsFalse(Setup."Enable Communication", 'The callback must persist the changed setup during the send phase.');
+        OutboxEmail.Get(OutboxEmail.Id);
+        Assert.AreEqual(OutboxEmail.Status::Sent, OutboxEmail.Status, 'Already executing delivery completes.');
+        ExpenseUser.Get(ExpenseUser."No.");
+        Assert.AreEqual(ExpenseUser."Welcome Email Status"::Queued, ExpenseUser."Welcome Email Status", 'Later phases must not use stale setup.');
+        ExpenseAgentStatus.Get();
+        Assert.AreEqual(PreviousNotificationRun, ExpenseAgentStatus."Last Notif. Run At", 'Reminders must use the saved disabled configuration.');
+    end;
+
+    local procedure InitializeCommunication(var Setup: Record "Expense Agent Setup"; IncomingAvailable: Boolean; OutgoingAvailable: Boolean)
+    var
+        OutboxEmail: Record "EA Outbox Email";
+        EmailOutbox: Record "Email Outbox";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        EAEmail: Record "EA Email";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+        TempEmailInbox: Record "Email Inbox" temporary;
+        TestEmailConnector: Codeunit "Test Email Connector v4";
+        CopilotCapability: Codeunit "Copilot Capability";
+        ExpenseAgentAppId: Guid;
+    begin
+        AssertIsolatedCompany();
+        Evaluate(ExpenseAgentAppId, '66efe10c-8033-403b-a86d-77c0887178ba');
+        Assert.IsTrue(CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Expense Agent", ExpenseAgentAppId),
+            'Expense Agent capability and required privacy approvals must already be enabled. These tests never change tenant-wide Copilot settings or approvals.');
+        Assert.IsTrue(EmailOutbox.IsEmpty(), 'The disposable company must have no existing email outbox rows, including failed background work.');
+        if ExpenseAgentStatus.Get() then begin
+            Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Task ID"), 'The isolated fixture must not have a configured dispatcher.');
+            Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Recovery Task ID"), 'The isolated fixture must not have configured recovery.');
+        end;
+        Clear(ReceiptMessageId);
+        Clear(OutgoingMockAccountId);
+        Clear(FixtureMessageIds);
+        Clear(DisableOutgoingAfterSend);
+        ExpectNoService();
+        TestEmailConnector.SetEmailInbox(TempEmailInbox);
+        ConnectorMock.Initialize();
+        OutboxEmail.DeleteAll();
+        ExpenseUser.DeleteAll();
+        ExpenseReportHeader.DeleteAll();
+        EAEmail.DeleteAll(true);
+        ExpenseAgentStatus.DeleteAll();
+        ExpenseAgentStatus.GetOrCreate();
+        Setup.DeleteAll();
+        Setup.Init();
+        Setup."Enable Agent" := true;
+        Setup."Enable Email with Receipts" := true;
+        Setup."Enable Communication" := true;
+        Setup."Enable Open Report Notif." := false;
+        Setup."Use Canary Endpoint" := false;
+        if IncomingAvailable then begin
+            Setup."Email Account ID" := RegisterMockAccount('receipts@example.invalid');
+            Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector v4";
+            Setup."Email Address" := 'receipts@example.invalid';
+        end;
+        if OutgoingAvailable then begin
+            Setup."Noreply Email Account ID" := RegisterMockAccount('noreply@example.invalid');
+            OutgoingMockAccountId := Setup."Noreply Email Account ID";
+            Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector v4";
+            Setup."Noreply Email Address" := 'noreply@example.invalid';
+        end;
+        Setup.Insert();
+
+        Commit();
+    end;
+
+    local procedure AssertIsolatedCompany()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        Assert.AreEqual(TestCompanyTok, CompanyName(), 'Run only in the dedicated disposable EA Email Lifecycle Test company, never CRONUS.');
+        Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'Mock integration tests require on-prem; SaaS authentication is not under test.');
+        Assert.IsFalse(EnvironmentInformation.IsSaaSInfrastructure(), 'These tests must not use SaaS infrastructure.');
+    end;
+
+    local procedure RegisterMockAccount(Address: Text[250]): Guid
+    var
+        TestEmailAccount: Record "Test Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
+        EmailAccount: Codeunit "Email Account";
+    begin
+        // This overload creates the matching connector's explicit zero (unlimited) rate-limit row.
+        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        TestEmailAccount.Get(TempEmailAccount."Account Id");
+        TestEmailAccount.Email := Address;
+        TestEmailAccount.Name := 'Expense communication mock';
+        TestEmailAccount.Modify();
+        Assert.IsTrue(EmailAccount.IsAccountRegistered(TestEmailAccount.Id, TestEmailAccount.Connector), 'The native mock account must be registered.');
+        exit(TestEmailAccount.Id);
+    end;
+
+    local procedure RunCommunication(var Setup: Record "Expense Agent Setup")
+    var
+        TempEmailInbox: Record "Email Inbox" temporary;
+        Dispatcher: Codeunit "EA Agent Dispatcher";
+        TestEmailConnector: Codeunit "Test Email Connector v4";
+        ErrorMessage: Text;
+        Success: Boolean;
+    begin
+        // The endpoint override and read-only request observers are bound only for this production pass.
+        BindSubscription(this);
+        Commit();
+        Success := Dispatcher.ProcessCommunication(Setup, ErrorMessage);
+        UnbindSubscription(this);
+        TestEmailConnector.SetEmailInbox(TempEmailInbox);
+        Assert.IsTrue(Success, 'The scheduler-free production pass failed: ' + ErrorMessage);
+        Assert.AreEqual('', ErrorMessage, 'Runnable channels must not report a missing-incoming error.');
+        Assert.AreEqual('', UnexpectedRequest, 'Unexpected HTTP must fail even if production catches the handler error.');
+        Assert.AreEqual(HttpRequestCount, ObservedRequestCount, 'Every observed production request must reach the native HTTP mock.');
+        Assert.AreEqual(HttpRequestCount, EndpointResolutionCount, 'Each mocked request must resolve its endpoint through the real persisted-setup boundary.');
+    end;
+
+    local procedure CreateRecipient(var ExpenseUser: Record "Expense User"; QueueWelcome: Boolean)
+    begin
+        ExpenseUser.Init();
+        ExpenseUser."No." := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(ExpenseUser."No."));
+        ExpenseUser."E-mail" := RecipientEmailTok;
+        if QueueWelcome then
+            ExpenseUser."Welcome Email Status" := ExpenseUser."Welcome Email Status"::Queued;
+        ExpenseUser.Insert();
+    end;
+
+    local procedure CreatePendingEmail(var OutboxEmail: Record "EA Outbox Email")
+    begin
+        OutboxEmail.Init();
+        OutboxEmail.Id := 0;
+        OutboxEmail.ToLine := RecipientEmailTok;
+        OutboxEmail.Subject := 'Isolated communication test';
+        OutboxEmail.WriteBody('<p>Mock notification.</p>');
+        OutboxEmail.Insert();
+    end;
+
+    local procedure CreateReceiptInbox(Setup: Record "Expense Agent Setup")
+    var
+        TempEmailInbox: Record "Email Inbox" temporary;
+        EmailMessage: Codeunit "Email Message";
+        TestEmailConnector: Codeunit "Test Email Connector v4";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentInStream: InStream;
+        AttachmentOutStream: OutStream;
+    begin
+        EmailMessage.Create('receipts@example.invalid', 'Receipt € ø', '<p>Two receipts for processing.</p>', true);
+        TempBlob.CreateOutStream(AttachmentOutStream, TextEncoding::UTF8);
+        AttachmentOutStream.WriteText('mock-receipt-one');
+        TempBlob.CreateInStream(AttachmentInStream);
+        EmailMessage.AddAttachment('receipt-one.pdf', 'application/pdf', AttachmentInStream);
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(AttachmentOutStream, TextEncoding::UTF8);
+        AttachmentOutStream.WriteText('mock-receipt-two');
+        TempBlob.CreateInStream(AttachmentInStream);
+        EmailMessage.AddAttachment('receipt-two.png', 'image/png', AttachmentInStream);
+        ReceiptMessageId := EmailMessage.GetId();
+        TempEmailInbox.Id := 1;
+        TempEmailInbox."Account Id" := Setup."Email Account ID";
+        TempEmailInbox.Connector := Setup."Email Connector";
+        TempEmailInbox."Message Id" := ReceiptMessageId;
+        TempEmailInbox."Sender Address" := RecipientEmailTok;
+        TempEmailInbox."Sender Name" := 'Mock expense user';
+        TempEmailInbox."Received DateTime" := CurrentDateTime();
+        TempEmailInbox."Sent DateTime" := CurrentDateTime();
+        TempEmailInbox."External Message Id" := Format(CreateGuid());
+        TempEmailInbox.Insert();
+        TestEmailConnector.SetEmailInbox(TempEmailInbox);
+        Commit();
+    end;
+
+    local procedure AssertMultipartReceipt()
+    var
+        Parts: List of [Text];
+    begin
+        Assert.IsTrue(MultipartContentType.StartsWith('multipart/form-data; boundary='), 'Receipt requests must remain multipart.');
+        Assert.IsTrue(MultipartBody.Contains('name="conversation_id"'), 'Multipart must carry the production conversation id.');
+        Assert.IsTrue(MultipartBody.Contains('name="context"'), 'Multipart must carry context.');
+        Assert.IsTrue(MultipartBody.Contains('Receipt € ø'), 'Context must preserve UTF-8 text.');
+        Assert.IsTrue(MultipartBody.Contains('Two receipts for processing.'), 'Receipt context must contain the inbox body.');
+        Parts := MultipartBody.Split('name="attachments"');
+        Assert.AreEqual(3, Parts.Count(), 'Two attachments must use the same repeated multipart field name.');
+        Assert.IsTrue(MultipartBody.Contains('filename="receipt-one.pdf"'), 'First attachment filename must be serialized.');
+        Assert.IsTrue(MultipartBody.Contains('filename="receipt-two.png"'), 'Second attachment filename must be serialized.');
+        Assert.IsTrue(MultipartBody.Contains('mock-receipt-one'), 'First attachment bytes must be serialized.');
+        Assert.IsTrue(MultipartBody.Contains('mock-receipt-two'), 'Second attachment bytes must be serialized.');
+    end;
+
+    local procedure AssertReceiptProcessed()
+    var
+        EmailInbox: Record "Email Inbox";
+        EAEmail: Record "EA Email";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+    begin
+        EmailInbox.SetRange("Message Id", ReceiptMessageId);
+        Assert.IsTrue(EmailInbox.FindFirst(), 'The native mock inbox must have been retrieved.');
+        EAEmail.Get(EmailInbox.Id);
+        Assert.IsTrue(EAEmail.Processed, 'The real receipt phase must mark the inbox item processed.');
+        ExpenseAgentStatus.Get();
+        Assert.AreNotEqual(0DT, ExpenseAgentStatus."Last Sync At", 'Successful incoming phase must update sync status.');
+    end;
+
+    local procedure AssertNoIncomingProcessing()
+    var
+        EAEmail: Record "EA Email";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+    begin
+        Assert.IsTrue(EAEmail.IsEmpty(), 'Missing incoming must not retrieve any email.');
+        ExpenseAgentStatus.Get();
+        Assert.AreEqual(0DT, ExpenseAgentStatus."Last Sync At", 'Skipped incoming must not update sync status.');
+    end;
+
+    local procedure AssertOutgoingUnchanged(var OutboxEmail: Record "EA Outbox Email"; var ExpenseUser: Record "Expense User")
+    begin
+        OutboxEmail.Get(OutboxEmail.Id);
+        ExpenseUser.Get(ExpenseUser."No.");
+        Assert.AreEqual(OutboxEmail.Status::Pending, OutboxEmail.Status, 'Missing outgoing leaves outbox work pending.');
+        Assert.AreEqual(0, OutboxEmail."Retry Count", 'A skipped channel must not consume retries.');
+        Assert.AreEqual(ExpenseUser."Welcome Email Status"::Queued, ExpenseUser."Welcome Email Status", 'A skipped channel preserves welcome work.');
+        Assert.IsTrue(IsNullGuid(ConnectorMock.GetEmailMessageID()), 'No delivery may reach the connector.');
+    end;
+
+    local procedure InsertCorrelatedCallback(var OutboxEmail: Record "EA Outbox Email"; CorrelationId: Guid)
+    var
+        Callback: JsonObject;
+        Value: JsonToken;
+        CallbackText: Text;
+    begin
+        CallbackText := NavApp.GetResourceAsText('outbox-email-correlated.json', TextEncoding::UTF8);
+        CallbackText := CallbackText.Replace('__REQUEST_CORRELATION_GUID__', Format(CorrelationId, 0, 4));
+        Callback.ReadFrom(CallbackText);
+        OutboxEmail.Init();
+        Callback.Get('toLine', Value);
+        OutboxEmail.ToLine := CopyStr(Value.AsValue().AsText(), 1, MaxStrLen(OutboxEmail.ToLine));
+        Callback.Get('subject', Value);
+        OutboxEmail.Subject := CopyStr(Value.AsValue().AsText(), 1, MaxStrLen(OutboxEmail.Subject));
+        Callback.Get('body', Value);
+        OutboxEmail.WriteBody(Value.AsValue().AsText());
+        Callback.Get('correlationId', Value);
+        Evaluate(OutboxEmail."Correlation Id", Value.AsValue().AsText());
+        Callback.Get('notificationType', Value);
+        Assert.AreEqual('Welcome', Value.AsValue().AsText(), 'Only a Welcome callback is exercised here.');
+        OutboxEmail."Notification Type" := OutboxEmail."Notification Type"::Welcome;
+        OutboxEmail.Insert();
+    end;
+
+    local procedure CreateEligibleReminder(var Setup: Record "Expense Agent Setup"; ExpenseUser: Record "Expense User"; var PreviousRun: DateTime)
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+    begin
+        Setup."Enable Open Report Notif." := true;
+        Setup."Open Report Notif. Freq." := Enum::"Expense Report Frequency"::Daily;
+        Setup.Modify();
+        ExpenseReportHeader.Init();
+        ExpenseReportHeader."No." := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(ExpenseReportHeader."No."));
+        ExpenseReportHeader."Expense User No." := ExpenseUser."No.";
+        ExpenseReportHeader.Status := Enum::"Expense Report Status"::Open;
+        ExpenseReportHeader.Insert();
+        PreviousRun := CreateDateTime(Today() - 2, 090000T);
+        ExpenseAgentStatus.Get();
+        ExpenseAgentStatus."Last Notif. Run At" := PreviousRun;
+        ExpenseAgentStatus.Modify();
+    end;
+
+    local procedure VerifyReminderResponse(ResourceName: Text)
+    var
+        Setup: Record "Expense Agent Setup";
+        ExpenseUser: Record "Expense User";
+        ExpenseAgentStatus: Record "Expense Agent Status";
+        OutboxEmail: Record "EA Outbox Email";
+        PreviousRun: DateTime;
+    begin
+        InitializeCommunication(Setup, false, true);
+        CreateRecipient(ExpenseUser, false);
+        CreateEligibleReminder(Setup, ExpenseUser, PreviousRun);
+        ExpectService('/api/v1.0/notifications/open-reports-reminder', ResourceName, 200);
+
+        RunCommunication(Setup);
+
+        Assert.AreEqual(1, HttpRequestCount, 'An eligible local open report must cause a real reminder request.');
+        Assert.IsFalse(IsNullGuid(RequestCorrelationId), 'The reminder request carries a production correlation id.');
+        Assert.IsTrue(OutboxEmail.IsEmpty(), 'Skipped/body-failed reminders have no callback and no outbox delivery.');
+        ExpenseAgentStatus.Get();
+        Assert.IsTrue(ExpenseAgentStatus."Last Notif. Run At" > PreviousRun, 'HTTP 200 advances the current HTTP-only polling boundary.');
+        AssertNoIncomingProcessing();
+    end;
+
+    local procedure ExpectNoService()
+    begin
+        Clear(ExpectedPath);
+        Clear(ResponseResource);
+        Clear(ResponseStatusCode);
+        Clear(HttpRequestCount);
+        Clear(ObservedRequestCount);
+        Clear(EndpointResolutionCount);
+        Clear(ExpectedUseCanaryEndpoint);
+        Clear(RequestCorrelationId);
+        Clear(MultipartBody);
+        Clear(MultipartContentType);
+        Clear(UnexpectedRequest);
+    end;
+
+    local procedure ExpectService(Path: Text; ResourceName: Text; StatusCode: Integer)
+    begin
+        ExpectNoService();
+        ExpectedPath := ServiceBaseUrlTok + Path;
+        ResponseResource := ResourceName;
+        ResponseStatusCode := StatusCode;
+    end;
+
+    [HttpClientHandler]
+    procedure ExpenseServiceHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        if (Request.RequestType <> HttpRequestType::POST) or (ExpectedPath = '') or
+           (Request.Path <> ExpectedPath) or (Request.QueryParameters.Count() <> 0) or Request.HasSecretUri()
+        then begin
+            UnexpectedRequest := Format(Request.RequestType) + ' ' + Request.Path;
+            Error('Unexpected Expense Agent HTTP request: %1', UnexpectedRequest);
+        end;
+        HttpRequestCount += 1;
+        if ResponseResource <> '' then
+            Response.Content.WriteFrom(NavApp.GetResourceAsText(ResponseResource, TextEncoding::UTF8))
+        else
+            Response.Content.WriteFrom('');
+        Response.HttpStatusCode := ResponseStatusCode;
+        exit(false);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Http Client", 'OnGetCommunicationBaseUrl', '', false, false)]
+    local procedure SetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText)
+    begin
+        Assert.AreEqual(ExpectedUseCanaryEndpoint, UseCanaryEndpoint, 'Endpoint selection must use the saved company setup flag.');
+        Assert.IsTrue(BaseUrl.IsEmpty(), 'The communication override must precede normal endpoint lookup.');
+        BaseUrl := ServiceBaseUrlTok;
+        Assert.IsFalse(BaseUrl.IsEmpty(), 'The isolated mock endpoint must be nonempty.');
+        EndpointResolutionCount += 1;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Http Client", 'OnBeforeAddAuthHeaders', '', false, false)]
+    local procedure ObserveServiceRequest(RequestMessage: HttpRequestMessage)
+    var
+        Headers: HttpHeaders;
+        HeaderValues: List of [Text];
+        Content: HttpContent;
+    begin
+        // TestHttpRequestMessage exposes routing only, so this read-only observer checks the actual request.
+        ObservedRequestCount += 1;
+        Assert.AreEqual(ExpectedPath, RequestMessage.GetRequestUri(), 'Unexpected service host/path.');
+        Assert.AreEqual('POST', RequestMessage.Method(), 'Expense requests must be POST.');
+        RequestMessage.GetHeaders(Headers);
+        Assert.IsFalse(Headers.Contains('Authorization'), 'The observation boundary must not expose authorization headers.');
+        Assert.IsTrue(Headers.GetValues('On-Behalf-Of', HeaderValues), 'The request must carry the intended expense user.');
+        Assert.AreEqual(1, HeaderValues.Count(), 'Exactly one expense user is expected.');
+        Assert.AreEqual(RecipientEmailTok, HeaderValues.Get(1), 'Only sanitized mock recipients are allowed.');
+        Clear(HeaderValues);
+        if ExpectedPath.EndsWith('/expenses/process') then begin
+            Content := RequestMessage.Content();
+            Content.ReadAs(MultipartBody);
+            Content.GetHeaders(Headers);
+            Headers.GetValues('Content-Type', HeaderValues);
+            MultipartContentType := HeaderValues.Get(1);
+        end else begin
+            Assert.IsTrue(Headers.GetValues('X-Correlation-Id', HeaderValues), 'Notification requests must carry a correlation id.');
+            Assert.AreEqual(1, HeaderValues.Count(), 'Exactly one request correlation is expected.');
+            Evaluate(RequestCorrelationId, HeaderValues.Get(1));
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"EA Outbox Email", 'OnAfterModifyEvent', '', false, false)]
+    local procedure DisableCommunicationAfterDelivery(var Rec: Record "EA Outbox Email"; var xRec: Record "EA Outbox Email"; RunTrigger: Boolean)
+    var
+        Setup: Record "Expense Agent Setup";
+    begin
+        if not DisableOutgoingAfterSend or Rec.IsTemporary() or (Rec.Status <> Rec.Status::Sent) then
+            exit;
+        Setup.Get();
+        Setup."Enable Communication" := false;
+        Setup.Modify();
+        DisableOutgoingAfterSend := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::Email, 'OnEnqueuedInOutbox', '', false, false)]
+    local procedure AssertForegroundSendCannotThrottle(MessageId: Guid)
+    var
+        EmailOutbox: Record "Email Outbox";
+        LibraryEmailMock: Codeunit "Library - Email Mock";
+        FoundCurrentMessage: Boolean;
+    begin
+        // This event precedes Email Dispatcher. Rate is explicitly zero; concurrency counts Processing rows only.
+        // Only this new Queued row and known Failed foreground attempts may exist, so the processing count is zero.
+        Assert.IsFalse(IsNullGuid(OutgoingMockAccountId), 'No email may be queued without the fixture outgoing account.');
+        Assert.IsFalse(FixtureMessageIds.Contains(MessageId), 'Every synchronous attempt must use a fresh message.');
+        if EmailOutbox.FindSet() then
+            repeat
+                Assert.AreEqual(OutgoingMockAccountId, EmailOutbox.GetAccountId(), 'Unknown account work must not reach the native dispatcher.');
+                Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector v4", EmailOutbox.GetConnector(), 'Only the native mock connector is allowed.');
+                if EmailOutbox.GetMessageId() = MessageId then begin
+                    FoundCurrentMessage := true;
+                    Assert.IsTrue(LibraryEmailMock.CheckEmailOutBoxStatusWithMessageId(MessageId, Enum::"Email Status"::Queued),
+                        'The current foreground message must still be queued before dispatch.');
+                end else begin
+                    Assert.IsTrue(FixtureMessageIds.Contains(EmailOutbox.GetMessageId()), 'Pre-existing background or unrelated emails are forbidden.');
+                    Assert.IsTrue(LibraryEmailMock.CheckEmailOutBoxStatusWithMessageId(EmailOutbox.GetMessageId(), Enum::"Email Status"::Failed),
+                        'Earlier fixture attempts must be Failed, never Queued or Processing.');
+                end;
+            until EmailOutbox.Next() = 0;
+        Assert.IsTrue(FoundCurrentMessage, 'The foreground email must have a native outbox row.');
+        FixtureMessageIds.Add(MessageId);
+    end;
 
     [Test]
     procedure GetSendEmailAccountReturnsMainAccountWhenNoreplyNotConfigured()
@@ -48,12 +758,12 @@ codeunit 148314 "EA Agent Dispatcher Test"
         InitSetupWithMainAccount(Setup, MainAccountID);
         Setup."Noreply Email Account ID" := NoreplyAccountID;
         Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        Setup."Noreply Email Address" := 'noreply@contoso.com';
+        Setup."Noreply Email Address" := 'noreply@example.invalid';
         Setup.Modify();
 
         // [THEN] Noreply account is set
         Assert.AreEqual(NoreplyAccountID, Setup."Noreply Email Account ID", 'Noreply Email Account ID should be set.');
-        Assert.AreEqual('noreply@contoso.com', Setup."Noreply Email Address", 'Noreply Email Address should be set.');
+        Assert.AreEqual('noreply@example.invalid', Setup."Noreply Email Address", 'Noreply Email Address should be set.');
     end;
 
     [Test]
@@ -64,6 +774,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] New installations have empty noreply fields by default (backward-compatible).
 
         // [GIVEN] A fresh setup record
+        AssertIsolatedCompany();
         Setup.DeleteAll();
         Setup.Init();
         Setup.Insert();
@@ -86,7 +797,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         InitSetupWithMainAccount(Setup, CreateGuid());
         Setup."Noreply Email Account ID" := NoreplyAccountID;
         Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        Setup."Noreply Email Address" := 'noreply@contoso.com';
+        Setup."Noreply Email Address" := 'noreply@example.invalid';
         Setup.Modify();
 
         // [WHEN] The noreply fields are cleared
@@ -103,11 +814,12 @@ codeunit 148314 "EA Agent Dispatcher Test"
 
     local procedure InitSetupWithMainAccount(var Setup: Record "Expense Agent Setup"; AccountID: Guid)
     begin
+        AssertIsolatedCompany();
         Setup.DeleteAll();
         Setup.Init();
         Setup."Email Account ID" := AccountID;
         Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        Setup."Email Address" := 'expenses@contoso.com';
+        Setup."Email Address" := 'expenses@example.invalid';
         Setup.Insert();
     end;
 
@@ -120,6 +832,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] EA Scheduler Task supports the new Failed status and stores an error message.
 
         // [GIVEN] A scheduler task in progress
+        AssertIsolatedCompany();
         EASchedulerTask.DeleteAll();
         Clear(EASchedulerTask);
         EASchedulerTask.Status := EASchedulerTask.Status::"In Progress";
@@ -147,6 +860,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] The Expense Agent Status FlowFields read Status and Error Message from the linked scheduler task.
 
         // [GIVEN] A failed scheduler task
+        AssertIsolatedCompany();
         EASchedulerTask.DeleteAll();
         Clear(EASchedulerTask);
         EASchedulerTask.Status := EASchedulerTask.Status::Failed;
@@ -176,6 +890,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] GetByUserSecurityID finds an existing access control row by user.
 
         // [GIVEN] An access control record for a user
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
         UserID := CreateGuid();
         InsertAccessControl(AccessControl, UserID, true, true);
@@ -196,6 +911,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] GetByUserSecurityID returns false when no row exists for the user.
 
         // [GIVEN] No access control rows for the queried user
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
 
         // [THEN] Lookup returns false
@@ -213,6 +929,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Clearing Can Configure Agent on one owner is allowed when another owner remains.
 
         // [GIVEN] Two users with Can Configure Agent set to true
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
         SetupSystemID := EmptyGuid();
         UserA := CreateGuid();
@@ -239,6 +956,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Clearing 'Can Configure' Agent on the only owner raises an error.
 
         // [GIVEN] A single user with Can Configure Agent set to true
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
         UserID := CreateGuid();
         InsertAccessControl(AccessControl, UserID, true, true);
@@ -261,6 +979,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Deleting an owner is allowed when at least one other owner remains.
 
         // [GIVEN] Two users with Can Configure Agent
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
         UserA := CreateGuid();
         UserB := CreateGuid();
@@ -284,6 +1003,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Deleting the only owner raises an error.
 
         // [GIVEN] A single user with Can Configure Agent
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
         UserID := CreateGuid();
         InsertAccessControl(AccessControl, UserID, true, true);
@@ -306,6 +1026,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Deleting a non-owner row does not raise the owner rule even when only one owner exists.
 
         // [GIVEN] One owner and one non-owner
+        AssertIsolatedCompany();
         AccessControl.DeleteAll();
         OwnerID := CreateGuid();
         NonOwnerID := CreateGuid();

@@ -49,11 +49,11 @@ page 6996 "Expense Agent Setup"
 
                     trigger OnAssistEdit()
                     var
-                        OldEmailAddress: Text[250];
+                        PreviousSetup: Record "Expense Agent Setup";
                     begin
-                        OldEmailAddress := Rec."Email Address";
+                        PreviousSetup := Rec;
                         Rec.AssistEditMailbox();
-                        if OldEmailAddress <> Rec."Email Address" then
+                        if Rec.HasSchedulingChanges(PreviousSetup) then
                             ScheduleAllTasks();
                     end;
                 }
@@ -139,7 +139,7 @@ page 6996 "Expense Agent Setup"
                     field("Noreply Email Address"; Rec."Noreply Email Address")
                     {
                         Caption = 'Account';
-                        ToolTip = 'Specifies the email account used for all outgoing Expense Agent messages: pending-approval requests sent to approvers, approved/rejected notifications sent to submitters, reimbursement notifications, and the optional open report reminders. If empty, the main mailbox account is used instead. When no email account is registered, the messages fail silently after the configured number of retries.';
+                        ToolTip = 'Specifies the account used for outgoing Expense Agent messages. Outgoing communication pauses when this account is missing; the incoming mailbox is not used as a fallback.';
                         Editable = false;
                         Visible = false;
                         ObsoleteState = Pending;
@@ -147,8 +147,13 @@ page 6996 "Expense Agent Setup"
                         ObsoleteReason = 'Use Configure Expense Agent to set up outgoing communication.';
 
                         trigger OnAssistEdit()
+                        var
+                            PreviousSetup: Record "Expense Agent Setup";
                         begin
+                            PreviousSetup := Rec;
                             Rec.AssistEditNoreplyMailbox();
+                            if Rec.HasSchedulingChanges(PreviousSetup) then
+                                ScheduleAllTasks();
                         end;
                     }
                 }
@@ -592,8 +597,8 @@ page 6996 "Expense Agent Setup"
     var
         EAAgentScheduler: Codeunit "EA Agent Scheduler";
     begin
-        if Rec."Enable Agent" then
-            EAAgentScheduler.ScheduleAgent(Rec);
+        Rec.Modify();
+        EAAgentScheduler.ScheduleAgent(Rec);
     end;
 #endif
 }

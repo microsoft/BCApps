@@ -109,6 +109,7 @@ codeunit 6941 "EA Http Client"
         RequestMessage.GetHeaders(Headers);
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
+        OnBeforeAddAuthHeaders(RequestMessage);
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
@@ -166,6 +167,7 @@ codeunit 6941 "EA Http Client"
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
         AddCorrelationHeader(Headers, CorrelationId);
+        OnBeforeAddAuthHeaders(RequestMessage);
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
@@ -219,6 +221,7 @@ codeunit 6941 "EA Http Client"
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
         AddCorrelationHeader(Headers, CorrelationId);
+        OnBeforeAddAuthHeaders(RequestMessage);
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
@@ -267,6 +270,7 @@ codeunit 6941 "EA Http Client"
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
         AddCorrelationHeader(Headers, CorrelationId);
+        OnBeforeAddAuthHeaders(RequestMessage);
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
@@ -281,6 +285,12 @@ codeunit 6941 "EA Http Client"
             FeatureTelemetry.LogError('0000TIK', ExpenseAgentSetup.GetFeatureName(), WelcomeFailedTxt, WelcomeFailedTxt, '', TelemetryDimensions);
 
         exit(IsSuccess);
+    end;
+
+    // Exposes the constructed application payload, before authentication headers are attached.
+    [InternalEvent(false, false)]
+    local procedure OnBeforeAddAuthHeaders(RequestMessage: HttpRequestMessage)
+    begin
     end;
 
     local procedure BuildReimbursementJson(PostedExpenseReportSystemId: Guid): Text
@@ -439,7 +449,16 @@ codeunit 6941 "EA Http Client"
             exit(false);
         end;
 
+        OnGetCommunicationBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrl);
+        if not BaseUrl.IsEmpty() then
+            exit(true);
+
         exit(GetExpenseAgentBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrl));
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnGetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText)
+    begin
     end;
 
     local procedure GetExpenseAgentBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText): Boolean
