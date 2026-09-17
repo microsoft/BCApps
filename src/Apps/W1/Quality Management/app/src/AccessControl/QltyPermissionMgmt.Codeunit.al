@@ -28,8 +28,13 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanChangeOtherInspections()
     begin
-        if not CanChangeOtherInspections() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeOthersInspectionLbl);
+        VerifyCanChangeOtherInspections(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanChangeOtherInspections(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanChangeOtherInspections(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionChangeOthersInspectionLbl);
     end;
 
     /// <summary>
@@ -38,7 +43,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can change other users' inspections; otherwise, false.</returns>
     internal procedure CanChangeOtherInspections(): Boolean
     begin
-        exit(HasAdminSupervisorRole());
+        exit(CanChangeOtherInspections(UserSecurityId()));
+    end;
+
+    internal procedure CanChangeOtherInspections(UserSecurityIdToCheck: Guid): Boolean
+    begin
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
     /// <summary>
@@ -46,17 +56,22 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanReopenInspection()
     begin
-        if not CanReopenInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionReopenInspectionLbl);
+        VerifyCanReopenInspection(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanReopenInspection(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanReopenInspection(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionReopenInspectionLbl);
     end;
 
     /// <summary>
-    /// Checks if the current user can reopen an inspection.
+    /// Checks if the specified user can reopen an inspection.
     /// </summary>
     /// <returns>True if the user can reopen an inspection; otherwise, false.</returns>
-    local procedure CanReopenInspection(): Boolean
+    local procedure CanReopenInspection(UserSecurityIdToCheck: Guid): Boolean
     begin
-        exit(HasAdminSupervisorRole());
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
     /// <summary>
@@ -64,8 +79,13 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanDeleteFinishedInspection()
     begin
-        if not CanDeleteFinishedInspection() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionDeleteFinishedInspectionLbl);
+        VerifyCanDeleteFinishedInspection(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanDeleteFinishedInspection(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanDeleteFinishedInspection(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionDeleteFinishedInspectionLbl);
     end;
 
     /// <summary>
@@ -74,7 +94,12 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can delete a finished inspection; otherwise, false.</returns>
     internal procedure CanDeleteFinishedInspection(): Boolean
     begin
-        exit(HasAdminSupervisorRole());
+        exit(CanDeleteFinishedInspection(UserSecurityId()));
+    end;
+
+    internal procedure CanDeleteFinishedInspection(UserSecurityIdToCheck: Guid): Boolean
+    begin
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
     end;
 
     /// <summary>
@@ -82,8 +107,13 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// </summary>
     internal procedure VerifyCanChangeSourceQuantity()
     begin
-        if not CanChangeSourceQuantity() then
-            Error(UserDoesNotHavePermissionToErr, UserId(), ActionChangeSourceQuantityLbl);
+        VerifyCanChangeSourceQuantity(UserSecurityId());
+    end;
+
+    internal procedure VerifyCanChangeSourceQuantity(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanChangeSourceQuantity(UserSecurityIdToCheck) then
+            Error(UserDoesNotHavePermissionToErr, GetUserName(UserSecurityIdToCheck), ActionChangeSourceQuantityLbl);
     end;
 
     /// <summary>
@@ -92,25 +122,41 @@ codeunit 20406 "Qlty. Permission Mgmt."
     /// <returns>True if the user can change the source quantity; otherwise, false.</returns>
     internal procedure CanChangeSourceQuantity(): Boolean
     begin
-        exit(HasAdminSupervisorRole());
+        exit(CanChangeSourceQuantity(UserSecurityId()));
+    end;
+
+    internal procedure CanChangeSourceQuantity(UserSecurityIdToCheck: Guid): Boolean
+    begin
+        exit(HasAdminSupervisorRole(UserSecurityIdToCheck));
+    end;
+
+    local procedure GetUserName(UserSecurityIdToCheck: Guid): Text
+    var
+        User: Record User;
+    begin
+        if UserSecurityIdToCheck = UserSecurityId() then
+            exit(UserId());
+
+        User.Get(UserSecurityIdToCheck);
+        exit(User."User Name");
     end;
 
     #region Verify Permissions
     /// <summary>
-    /// Determines whether the current user has the Quality Management administrator role or SUPER permissions.
+    /// Determines whether the specified user has the Quality Management administrator role or SUPER permissions.
     /// </summary>
     /// <returns>True if the user has administrator or SUPER permissions; otherwise, false.</returns>
-    local procedure HasAdminSupervisorRole() IsAssigned: Boolean
+    local procedure HasAdminSupervisorRole(UserSecurityIdToCheck: Guid) IsAssigned: Boolean
     var
         UserPermissions: Codeunit "User Permissions";
         CurrentExtensionModuleInfo: ModuleInfo;
     begin
-        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityId(), AdminSupervisorRoleIDTxt);
+        IsAssigned := HasUserPermissionSetDirectlyAssigned(UserSecurityIdToCheck, AdminSupervisorRoleIDTxt);
         if not IsAssigned then
             if NavApp.GetCurrentModuleInfo(CurrentExtensionModuleInfo) then
-                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityId(), CompanyName(), AdminSupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
+                IsAssigned := UserPermissions.HasUserPermissionSetAssigned(UserSecurityIdToCheck, CompanyName(), AdminSupervisorRoleIDTxt, 0, CurrentExtensionModuleInfo.Id());
         if not IsAssigned then
-            IsAssigned := UserPermissions.IsSuper(UserSecurityId());
+            IsAssigned := UserPermissions.IsSuper(UserSecurityIdToCheck);
     end;
 
     /// <summary>

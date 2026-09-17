@@ -2322,71 +2322,71 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanDeleteFinishedInspection
     /// </summary>
-    internal procedure VerifyCanDeleteFinishedInspection()
+    internal procedure VerifyCanDeleteFinishedInspection(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
+        QltyPermissionMgmt.VerifyCanDeleteFinishedInspection(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.CanDeleteFinishedInspection
     /// </summary>
-    internal procedure CanDeleteFinishedInspection(): Boolean
+    internal procedure CanDeleteFinishedInspection(UserSecurityIdToCheck: Guid): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanDeleteFinishedInspection());
+        exit(QltyPermissionMgmt.CanDeleteFinishedInspection(UserSecurityIdToCheck));
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanChangeOtherInspections
     /// </summary>
-    internal procedure VerifyCanChangeOtherInspections()
+    internal procedure VerifyCanChangeOtherInspections(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanChangeOtherInspections();
+        QltyPermissionMgmt.VerifyCanChangeOtherInspections(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.CanChangeOtherInspections
     /// </summary>
-    internal procedure CanChangeOtherInspections(): Boolean
+    internal procedure CanChangeOtherInspections(UserSecurityIdToCheck: Guid): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanChangeOtherInspections());
+        exit(QltyPermissionMgmt.CanChangeOtherInspections(UserSecurityIdToCheck));
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanReopenInspection
     /// </summary>
-    internal procedure VerifyCanReopenInspection()
+    internal procedure VerifyCanReopenInspection(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanReopenInspection();
+        QltyPermissionMgmt.VerifyCanReopenInspection(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.VerifyCanChangeSourceQuantity
     /// </summary>
-    internal procedure VerifyCanChangeSourceQuantity()
+    internal procedure VerifyCanChangeSourceQuantity(UserSecurityIdToCheck: Guid)
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+        QltyPermissionMgmt.VerifyCanChangeSourceQuantity(UserSecurityIdToCheck);
     end;
 
     /// <summary>
     /// Wrapper for QltyPermissionMgmt.CanChangeSourceQuantity
     /// </summary>
-    internal procedure CanChangeSourceQuantity(): Boolean
+    internal procedure CanChangeSourceQuantity(UserSecurityIdToCheck: Guid): Boolean
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
     begin
-        exit(QltyPermissionMgmt.CanChangeSourceQuantity());
+        exit(QltyPermissionMgmt.CanChangeSourceQuantity(UserSecurityIdToCheck));
     end;
 
     #endregion Qlty. Permission Mgmt. Wrappers
