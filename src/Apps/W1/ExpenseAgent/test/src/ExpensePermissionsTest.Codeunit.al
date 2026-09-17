@@ -492,6 +492,7 @@ codeunit 148338 "Expense Permissions Test"
         AccessControl: Record "Access Control";
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
+        AadApplication.Get(AadApplication."Client Id");
         GetExpenseAgentPermissionSet(AggregatePermissionSet);
         AccessControl.SetRange("User Security ID", AadApplication."User ID");
         AccessControl.SetRange("Role ID", AggregatePermissionSet."Role ID");
