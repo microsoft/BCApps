@@ -171,7 +171,7 @@ codeunit 90 "Purch.-Post"
 
         OnAfterPostPurchaseDoc(
           PurchaseHeader2, GenJnlPostLine, PurchRcptHeader."No.", ReturnShptHeader."No.", PurchInvHeader."No.", PurchCrMemoHeader."No.",
-          SuppressCommit, PreviewMode);
+          SuppressCommit);
 
         OnAfterPostPurchaseDocDropShipment(SalesShptHeader."No.", SuppressCommit, PreviewMode);
     end;
@@ -9103,7 +9103,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PurchRcpHdrNo: Code[20]; RetShptHdrNo: Code[20]; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20]; CommitIsSupressed: Boolean; PreviewMode: Boolean)
+    procedure OnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PurchRcpHdrNo: Code[20]; RetShptHdrNo: Code[20]; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20]; CommitIsSupressed: Boolean)
     begin
     end;
 
