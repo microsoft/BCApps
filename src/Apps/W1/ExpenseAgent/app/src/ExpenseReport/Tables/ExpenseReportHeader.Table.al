@@ -194,6 +194,8 @@ table 6906 "Expense Report Header"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                if xRec."Employee Posting Group" <> Rec."Employee Posting Group" then
+                    UpdateReportLines(Rec.FieldCaption("Employee Posting Group"));
             end;
         }
         field(18; "Language Code"; Code[10])
@@ -722,8 +724,9 @@ table 6906 "Expense Report Header"
         if not ExpenseLinesExist() then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
-            Error('');
+        if CalledFromFieldCaption <> Rec.FieldCaption("Employee Posting Group") then
+            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
+                Error('');
 
         ExpenseReportLine.SetRange("Document No.", "No.");
         if ExpenseReportLine.FindSet() then
@@ -739,6 +742,8 @@ table 6906 "Expense Report Header"
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
                     Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
+                    Rec.FieldCaption("Employee Posting Group"):
+                        ExpenseReportLine.ApplyRule(false, true);
                 end;
             until ExpenseReportLine.Next() = 0;
 
@@ -1231,8 +1236,6 @@ table 6906 "Expense Report Header"
             if not Employee.Get(ExpenseUser."Employee No.") then
                 Error(ExpenseUserMustBeLinkedToAnEmployeeErr, ExpenseUser."No.");
 
-            Employee.TestField("Employee Posting Group");
-
             Rec.Validate("Employee Posting Group", Employee."Employee Posting Group");
             Rec.Validate("Reimbursement Currency Code", Employee."Currency Code")
         end else begin
@@ -1320,6 +1323,7 @@ table 6906 "Expense Report Header"
     var
         UserSetup: Record "User Setup";
         ExpenseUser: Record "Expense User";
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         if SkipExpenseUserApprovalCheck then
             exit;
@@ -1329,7 +1333,7 @@ table 6906 "Expense Report Header"
             exit;
 
         UserSetup.SetLoadFields("Unlimited Expense Approval");
-        UserSetup.Get(UserId);
+        ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
         if UserSetup."Unlimited Expense Approval" then
             exit;
 
