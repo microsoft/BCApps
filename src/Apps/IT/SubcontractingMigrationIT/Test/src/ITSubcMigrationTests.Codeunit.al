@@ -964,6 +964,51 @@ codeunit 149956 "IT Subc. Migration Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CheckSubcontractingLocations_AppliesVendorRuleSetWhenLocationSharedWithPurchaseHeader()
+    var
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        SharedLocation: Record Location;
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [SCENARIO] The migration precheck still applies the stricter vendor rule set to a legacy location that
+        // is referenced by both a vendor and a purchase header, even though the setting would be allowed if the
+        // location were purchase-header-only
+        Initialize();
+
+        // [GIVEN] A legacy subcontracting location that requires picks (allowed for purchase-header-only
+        // locations) but is not bin-mandatory
+        LibraryWarehouse.CreateLocation(SharedLocation);
+        SharedLocation."Require Pick" := true;
+        SharedLocation.Modify(false);
+
+        // [GIVEN] The same location is referenced by both a vendor and a purchase header
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontracting Location Code" := SharedLocation.Code;
+        Vendor.Modify(false);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader."Subcontracting Location Code" := SharedLocation.Code;
+        PurchaseHeader.Modify(false);
+        Commit();
+
+        // [WHEN] The subcontracting location precheck runs
+        asserterror ITSubcMigration.CheckSubcontractingLocations();
+        Assert.ExpectedError(SubcontractingLocationsBlockedErr);
+
+        // [THEN] The precheck blocks on "Require Pick" because the location is also used as a vendor
+        // subcontracting location, so the stricter vendor rule set takes precedence over the looser
+        // purchase-header-only rule set
+        Assert.IsTrue(
+            GetLastErrorText().Contains(
+                StrSubstNo(
+                    UnsupportedSubcontractingLocationErr,
+                    SharedLocation.Code,
+                    SharedLocation.FieldCaption("Require Pick"))),
+            'The precheck should apply the vendor rule set to a location shared with a purchase header.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure StartDisableLegacySubcontracting_BlocksInTransitLocationBeforeMigration()
     var
         Vendor: Record Vendor;
