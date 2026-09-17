@@ -39,6 +39,14 @@
     },
     {
       "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "enableTaskScheduler": true
+      }
+    },
+    {
+      "buildModes": [
         "LegacyTestsBucket1"
       ],
       "settings": {

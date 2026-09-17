@@ -321,4 +321,3 @@ codeunit 130622 "Library - Graph Journal Lines"
         Assert.AreEqual(NewDate, GenJournalLine."Posting Date", 'Journal Line ' + PostingDateNameTxt + ' should be changed');
     end;
 }
-

@@ -6287,6 +6287,9 @@ codeunit 134920 "ERM General Journal UT"
         if IsInitialized then
             exit;
 
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryERMCountryData.UpdateLocalData();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
@@ -7372,4 +7375,3 @@ codeunit 134920 "ERM General Journal UT"
         IsHandled := true;
     end;
 }
-
