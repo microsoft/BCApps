@@ -2,7 +2,6 @@
 
 using System.Environment;
 using System.Environment.Configuration;
-using System.Utilities;
 
 codeunit 1738 "OData Initializer"
 {
@@ -21,15 +20,16 @@ codeunit 1738 "OData Initializer"
     local procedure CallMetadataEndpoint()
     var
         ODataUtility: Codeunit ODataUtility;
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        TempBlob: Codeunit "Temp Blob";
-        ResponseInStream: InStream;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
     begin
-        TempBlob.CreateInStream(ResponseInStream);
-
-        if ODataUtility.CreateMetadataWebRequest(HttpWebRequestMgt) then begin
-            HttpWebRequestMgt.SetUserAgent('BusinessCentral-Warmup'); // Overwrite user agent
-            if HttpWebRequestMgt.GetResponseStream(ResponseInStream) then
+        if ODataUtility.CreateMetadataRequest(HttpRequestMessage) then begin
+            HttpRequestMessage.GetHeaders(HttpHeaders);
+            HttpHeaders.Remove('User-Agent');
+            HttpHeaders.Add('User-Agent', 'BusinessCentral-Warmup');
+            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) and HttpResponseMessage.IsSuccessStatusCode() then
                 exit;
         end;
 
