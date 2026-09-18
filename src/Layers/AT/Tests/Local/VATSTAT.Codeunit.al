@@ -17,6 +17,7 @@ codeunit 144001 VATSTAT
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         FdfFileHelper: Codeunit FDFFileHelper;
@@ -1646,6 +1647,52 @@ codeunit 144001 VATSTAT
         Assert.IsTrue(Exists(XmlFileName), StrSubstNo('File %1 must be generated', XmlFileName));
     end;
 
+    [Test]
+    [HandlerFunctions('UpdateVATStmtTemplateConfirmHandler,VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchaseInvoiceWithNonDeductibleVATInFDFFile()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATStatementName: Record "VAT Statement Name";
+        Item: Record Item;
+        VATStatementAT: Report "VAT Statement AT";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        DocNo: Code[20];
+    begin
+        // [SCENARIO 603505] Non-deductible VAT from a domestic purchase invoice is exported to KZ 062.
+        Initialize();
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
+        LibrarySales.FindItem(Item);
+        VATPostingSetup.Get(GetDomesticGroup(), Item."VAT Prod. Posting Group");
+        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("Non-Ded. Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Non-Deductible VAT %", 50);
+        VATPostingSetup.Modify(true);
+        CreateUpdateVATStatementTemplate(VATStatementName);
+        CreateNonDeductibleVATStatementLine(VATStatementName, VATPostingSetup);
+        EnqueRequestPageFields(
+          WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed",
+          "VAT Statement Report Period Selection"::"Within Period", ReportingType::"Defined period",
+          false, false, false, false, 0);
+
+        DocNo := CreateAndPostPurchaseDocumentOnItem(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice, GetDomesticGroup(), Item);
+
+        VATStatementName.SetRecFilter();
+        VATStatementAT.SetTableView(VATStatementName);
+        VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementAT.RunModal();
+
+        GetVATEntry(VATEntry, DocNo, VATEntry."Document Type"::Invoice, VATEntry.Type::Purchase);
+        VATEntry.TestField("Non-Deductible VAT Amount");
+        FdfFileHelper.ReadFdfFile(FdfFileName);
+        VerifyFDFLineValue(FdfFileHelper, arguments::Zahl139, VATEntry."Non-Deductible VAT Amount");
+        LibraryXPathXMLReader.Initialize(XmlFileName, '');
+        VerifyXMLLine(LibraryXPathXMLReader, 'VORSTEUER/KZ062', VATEntry."Non-Deductible VAT Amount");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1793,6 +1840,32 @@ codeunit 144001 VATSTAT
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1000, 2000, 2));
         PurchaseLine.Modify(true);
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure CreateNonDeductibleVATStatementLine(var VATStatementName: Record "VAT Statement Name"; VATPostingSetup: Record "VAT Posting Setup")
+    var
+        VATStatementTemplate: Record "VAT Statement Template";
+        VATStatementLine: Record "VAT Statement Line";
+        LineNoToCreate: Integer;
+    begin
+        VATStatementTemplate.FindFirst();
+        VATStatementName.FindFirst();
+        VATStatementLine.SetRange("Statement Template Name", VATStatementTemplate.Name);
+        VATStatementLine.FindLast();
+        LineNoToCreate := VATStatementLine."Line No." + 10000;
+
+        VATStatementLine.Init();
+        VATStatementLine.Validate("Statement Template Name", VATStatementName."Statement Template Name");
+        VATStatementLine.Validate("Statement Name", VATStatementName.Name);
+        VATStatementLine.Validate("Line No.", LineNoToCreate);
+        VATStatementLine.Validate("Row No.", '1062');
+        VATStatementLine.Validate(Type, VATStatementLine.Type::"VAT Entry Totaling");
+        VATStatementLine.Validate("Gen. Posting Type", VATStatementLine."Gen. Posting Type"::Purchase);
+        VATStatementLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        VATStatementLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::"Non-Deductible Amount");
+        VATStatementLine.Validate(Print, true);
+        VATStatementLine.Insert(true);
     end;
 
     local procedure CreateCustomer(BusPostingGroup: Code[20]): Code[20]
