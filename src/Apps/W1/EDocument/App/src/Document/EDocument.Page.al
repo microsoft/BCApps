@@ -310,19 +310,6 @@ page 6121 "E-Document"
                         end
                     end;
                 }
-                action(RejectOrder)
-                {
-                    Caption = 'Reject Order';
-                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
-                    ApplicationArea = Basic, Suite;
-                    Image = Reject;
-                    Visible = IsIncomingDoc;
-
-                    trigger OnAction()
-                    begin
-                        EDocumentHelper.SendOrderRejection(Rec);
-                    end;
-                }
                 action(ViewFile)
                 {
                     ApplicationArea = Basic, Suite;
@@ -339,6 +326,19 @@ page 6121 "E-Document"
             group(Incoming)
             {
                 Caption = 'Incoming';
+                action(RejectOrder)
+                {
+                    Caption = 'Reject Order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Reject;
+                    Visible = IsIncomingDoc;
+
+                    trigger OnAction()
+                    begin
+                        EDocumentHelper.SendOrderRejection(Rec);
+                    end;
+                }
                 action(GetBasicInfo)
                 {
                     Caption = 'Get Basic Info';
