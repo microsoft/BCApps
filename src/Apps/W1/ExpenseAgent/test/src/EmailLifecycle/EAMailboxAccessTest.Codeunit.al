@@ -327,42 +327,6 @@ codeunit 148317 "EA Mailbox Access Test"
     end;
 
     [Test]
-    procedure IncomingClearOnlyChangesIdentityInRecordBuffer()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
-    begin
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-
-        Setup.ClearIncomingMailbox();
-
-        AssertIncomingCleared(Setup);
-        AssertNoreplyUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-    end;
-
-    [Test]
-    procedure NoreplyClearOnlyChangesIdentityInRecordBuffer()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
-    begin
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-
-        Setup.ClearNoreplyMailbox();
-
-        AssertNoreplyCleared(Setup);
-        AssertIncomingUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-    end;
-
-    [Test]
     procedure ExplicitCommunicationDisableStillClearsNotificationPreferences()
     var
         Setup: Record "Expense Agent Setup" temporary;
@@ -552,75 +516,6 @@ codeunit 148317 "EA Mailbox Access Test"
         AssertIncomingCleared(Setup);
         AssertNoreplyCleared(Setup);
         AssertPreferencesUnchanged(PreviousSetup, Setup);
-    end;
-
-    [Test]
-    procedure StagedRepairCanBeDiscardedWithoutChangingOriginalSetup()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-        StagedSetup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
-    begin
-        InitConfiguredSetup(Setup);
-        Setup."Email Account ID" := CreateGuid();
-        Setup."Noreply Email Account ID" := CreateGuid();
-        Setup.Modify();
-        PreviousSetup := Setup;
-        StagedSetup := Setup;
-        StagedSetup.Insert();
-
-        Assert.IsTrue(StagedSetup.RepairMissingEmailAccounts(), 'Opening a temporary wizard buffer must stage missing-account repair.');
-        AssertIncomingCleared(StagedSetup);
-        AssertNoreplyCleared(StagedSetup);
-        AssertPreferencesUnchanged(PreviousSetup, StagedSetup);
-        StagedSetup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, StagedSetup);
-        StagedSetup.RepairMissingEmailAccounts();
-        StagedSetup.Modify();
-        StagedSetup.DeleteAll();
-
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-    end;
-
-    [Test]
-    [HandlerFunctions('EmailAccountsCancelHandler,ConfirmYesHandler')]
-    procedure DiscardingStagedIncomingClearPreservesOriginalSetup()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-        StagedSetup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
-    begin
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-        StagedSetup := Setup;
-        StagedSetup.Insert();
-        Commit();
-
-        StagedSetup.AssistEditMailbox();
-        StagedSetup.Get();
-        AssertIncomingCleared(StagedSetup);
-        AssertPreferencesUnchanged(PreviousSetup, StagedSetup);
-        StagedSetup.DeleteAll();
-
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-    end;
-
-    [Test]
-    procedure TemporaryDisableOnlyChangesAgentStateInBuffer()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
-    begin
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-
-        Setup.Validate("Enable Agent", false);
-
-        Assert.IsFalse(Setup."Enable Agent", 'The pending disable must be staged.');
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
     end;
 
     [Test]

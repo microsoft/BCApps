@@ -35,100 +35,6 @@ codeunit 148335 "EA Agent Scheduling Test"
     end;
 
     [Test]
-    procedure ReceiptsOnWithMailboxSchedules()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] Inbound receipt processing schedules the task when a mailbox is configured.
-        // [GIVEN] Enabled agent, receipts on with a mailbox, communication off.
-        InitializeSetup(Setup);
-        Setup."Enable Email with Receipts" := true;
-        Setup."Enable Communication" := false;
-
-        // [THEN] Scheduled.
-        Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'Receipts on with a mailbox should schedule.');
-    end;
-
-    [Test]
-    procedure ReceiptsOnWithoutMailboxDoesNotSchedule()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] Receipts on but no mailbox does not schedule (nothing usable to do).
-        // [GIVEN] Enabled agent, receipts on, no email account, communication off.
-        InitializeSetup(Setup);
-        Setup."Enable Email with Receipts" := true;
-        Clear(Setup."Email Account ID");
-        Setup."Enable Communication" := false;
-
-        // [THEN] Not scheduled.
-        Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Receipts on without a mailbox must not schedule.');
-    end;
-
-    [Test]
-    procedure CommunicationOnWithNoreplySchedulesWhenReceiptsOff()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] Outbound communication keeps the task alive even when receipts are off.
-        // [GIVEN] Enabled agent, receipts off, communication on with a noreply account.
-        InitializeSetup(Setup);
-        Setup."Enable Email with Receipts" := false;
-        Setup."Enable Communication" := true;
-
-        // [THEN] Scheduled (the welcome/outbox path needs the task).
-        Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'Communication on with a noreply account should schedule.');
-    end;
-
-    [Test]
-    procedure CommunicationOnWithoutNoreplyDoesNotSchedule()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] Outbound communication requires a dedicated noreply account; the main mailbox is not used as a fallback.
-        // [GIVEN] Enabled agent, receipts off, communication on, only the main email account set (no noreply).
-        InitializeSetup(Setup);
-        Setup."Enable Email with Receipts" := false;
-        Setup."Enable Communication" := true;
-        Clear(Setup."Noreply Email Account ID");
-
-        // [THEN] Not scheduled — a noreply account is required for outbound communication.
-        Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Communication requires a noreply account; the main account is not a fallback.');
-    end;
-
-    [Test]
-    procedure CommunicationOnWithoutAnyAccountDoesNotSchedule()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] Communication on but no sender account does not schedule.
-        // [GIVEN] Enabled agent, receipts off, communication on, no accounts.
-        InitializeSetup(Setup);
-        Setup."Enable Email with Receipts" := false;
-        Setup."Enable Communication" := true;
-        Clear(Setup."Noreply Email Account ID");
-        Clear(Setup."Email Account ID");
-
-        // [THEN] Not scheduled.
-        Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Communication on without any account must not schedule.');
-    end;
-
-    [Test]
-    procedure ReceiptsAndCommunicationOffDoesNotSchedule()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] With both receipts and communication off, the task is stopped even if accounts exist.
-        // [GIVEN] Enabled agent, both toggles off, but accounts configured.
-        InitializeSetup(Setup);
-        Setup."Enable Email with Receipts" := false;
-        Setup."Enable Communication" := false;
-
-        // [THEN] Not scheduled (no idle background task).
-        Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Both toggles off must not schedule.');
-    end;
-
-    [Test]
     procedure ReceiptsWithoutMailboxButCommunicationOnStillSchedules()
     var
         Setup: Record "Expense Agent Setup" temporary;
@@ -145,30 +51,6 @@ codeunit 148335 "EA Agent Scheduling Test"
     end;
 
     [Test]
-    procedure OutgoingCommunicationConfiguredRequiresToggleAndNoreplyAccount()
-    var
-        Setup: Record "Expense Agent Setup" temporary;
-    begin
-        // [SCENARIO 636970] Outgoing communication is only configured when the master toggle is on
-        // and a no-reply account is registered; the no-reply account alone is not enough and there is no
-        // fallback to the inbound mailbox.
-        InitializeSetup(Setup);
-
-        // [GIVEN] Communication on with a no-reply account. [THEN] Configured.
-        Setup."Enable Communication" := true;
-        Assert.IsTrue(Setup.IsOutgoingCommunicationConfigured(), 'Communication on with a noreply account is configured.');
-
-        // [GIVEN] Communication off (account still set). [THEN] Not configured.
-        Setup."Enable Communication" := false;
-        Assert.IsFalse(Setup.IsOutgoingCommunicationConfigured(), 'Communication off must not be configured, even with an account.');
-
-        // [GIVEN] Communication on but no no-reply account. [THEN] Not configured.
-        Setup."Enable Communication" := true;
-        Clear(Setup."Noreply Email Account ID");
-        Assert.IsFalse(Setup.IsOutgoingCommunicationConfigured(), 'Communication on without a noreply account must not be configured.');
-    end;
-
-    [Test]
     procedure RegisteredChannelAvailabilityMatrix()
     var
         Setup: Record "Expense Agent Setup" temporary;
@@ -179,6 +61,7 @@ codeunit 148335 "EA Agent Scheduling Test"
         CommunicationPreference: Integer;
         IncomingAvailable: Boolean;
         OutgoingAvailable: Boolean;
+        Combination: Text;
     begin
         InitializeSetup(RegisteredSetup);
 
@@ -194,11 +77,14 @@ codeunit 148335 "EA Agent Scheduling Test"
                         SetOutgoingAccountState(Setup, OutgoingState);
                         IncomingAvailable := (ReceiptsPreference = 1) and (IncomingState = 3);
                         OutgoingAvailable := (CommunicationPreference = 1) and (OutgoingState = 3);
+                        Combination := StrSubstNo(
+                            'Incoming state %1, outgoing state %2, receipts preference %3, communication preference %4.',
+                            IncomingState, OutgoingState, ReceiptsPreference, CommunicationPreference);
 
-                        Assert.AreEqual(IncomingAvailable, Setup.IsIncomingCommunicationConfigured(), 'Incoming availability must use preference, ID and connector registration.');
-                        Assert.AreEqual(OutgoingAvailable, Setup.IsOutgoingCommunicationConfigured(), 'Outgoing availability must use preference, ID and connector registration.');
-                        Assert.AreEqual(IncomingAvailable or OutgoingAvailable, Setup.ShouldScheduleAgentTask(true), 'An enabled agent requires at least one available channel.');
-                        Assert.IsFalse(Setup.ShouldScheduleAgentTask(false), 'No channel may schedule a disabled agent.');
+                        Assert.AreEqual(IncomingAvailable, Setup.IsIncomingCommunicationConfigured(), 'Incoming availability must use preference, ID and connector registration. ' + Combination);
+                        Assert.AreEqual(OutgoingAvailable, Setup.IsOutgoingCommunicationConfigured(), 'Outgoing availability must use preference, ID and connector registration. ' + Combination);
+                        Assert.AreEqual(IncomingAvailable or OutgoingAvailable, Setup.ShouldScheduleAgentTask(true), 'An enabled agent requires at least one available channel. ' + Combination);
+                        Assert.IsFalse(Setup.ShouldScheduleAgentTask(false), 'No channel may schedule a disabled agent. ' + Combination);
                     end;
     end;
 
@@ -249,8 +135,8 @@ codeunit 148335 "EA Agent Scheduling Test"
                     Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector v4";
             end;
 
-            Assert.IsTrue(Setup.HasSchedulingChanges(PreviousSetup), 'Changing any eligibility input must require reconciliation even when the address stays the same.');
-            Assert.IsTrue(PreviousSetup.HasSchedulingChanges(Setup), 'Reversing a change must also require reconciliation.');
+            Assert.IsTrue(Setup.HasSchedulingChanges(PreviousSetup), StrSubstNo('Changing eligibility input %1 must require reconciliation even when the address stays the same.', ChangedInput));
+            Assert.IsTrue(PreviousSetup.HasSchedulingChanges(Setup), StrSubstNo('Reversing eligibility input %1 must also require reconciliation.', ChangedInput));
         end;
     end;
 

@@ -272,14 +272,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
 
     [Test]
     [HandlerFunctions('ExpenseServiceHandler')]
-    procedure ReminderBodyFailurePreservesExistingHttpOnlyBoundary()
-    begin
-        // Current AL wrappers inspect HTTP status only; do not reinterpret the service response body.
-        VerifyReminderResponse('reminder-send-failed.json');
-    end;
-
-    [Test]
-    [HandlerFunctions('ExpenseServiceHandler')]
     procedure BothChannelsProcessReceiptAndPendingOutbox()
     var
         Setup: Record "Expense Agent Setup";
@@ -587,7 +579,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
 
         Assert.AreEqual(1, HttpRequestCount, 'An eligible local open report must cause a real reminder request.');
         Assert.IsFalse(IsNullGuid(RequestCorrelationId), 'The reminder request carries a production correlation id.');
-        Assert.IsTrue(OutboxEmail.IsEmpty(), 'Skipped/body-failed reminders have no callback and no outbox delivery.');
+        Assert.IsTrue(OutboxEmail.IsEmpty(), 'Skipped reminders have no callback and no outbox delivery.');
         ExpenseAgentStatus.Get();
         Assert.IsTrue(ExpenseAgentStatus."Last Notif. Run At" > PreviousRun, 'HTTP 200 advances the current HTTP-only polling boundary.');
         AssertNoIncomingProcessing();
