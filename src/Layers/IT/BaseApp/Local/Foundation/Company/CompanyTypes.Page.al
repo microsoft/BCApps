@@ -7,6 +7,9 @@ namespace Microsoft.Foundation.Company;
 page 12169 "Company Types"
 {
     Caption = 'FatturaPA Fiscal Regimes';
+    DeleteAllowed = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
     PageType = List;
     SourceTable = "Company Types";
 
@@ -34,5 +37,11 @@ page 12169 "Company Types"
     actions
     {
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.EnsureStandardFatturaPAFiscalRegimes();
+        Rec.SetFilter(Code, '01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19');
+    end;
 }
 
