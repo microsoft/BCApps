@@ -69,6 +69,6 @@
   },
   "target": "OnPrem",
   "resourceFolders": [
-    "HttpResponseFiles"
+    "src/EmailLifecycle/HttpResponseFiles"
   ]
 }
