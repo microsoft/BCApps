@@ -161,6 +161,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
             Caption = 'Reclaim Reason';
             ToolTip = 'Specifies the reason why the VAT is reclaimable or not reclaimable for this line. This can be used for internal documentation and audit purposes when processing VAT reclaims.';
         }
+#if not CLEANSCHEMA32
         field(33; "Reclaim Approved"; Boolean)
         {
             Caption = 'Reclaim Approved';
@@ -175,6 +176,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
 #endif
             ToolTip = 'Specifies whether reclaim has been approved for this VAT row.';
         }
+#endif
         field(34; "Reclaim Approved By"; Code[50])
         {
             Caption = 'Reclaim Approved By';
