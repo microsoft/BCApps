@@ -11,6 +11,7 @@ report 5603 "Fixed Asset Register"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Register';
+    ToolTip = 'View registers containing all the fixed asset entries that are created. Each register shows the first and last entry number of its entries.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

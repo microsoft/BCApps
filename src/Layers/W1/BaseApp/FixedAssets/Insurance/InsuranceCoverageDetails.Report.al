@@ -8,6 +8,7 @@ report 5624 "Insurance - Coverage Details"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Insurance Coverage Details';
+    ToolTip = 'View the individual fixed assets that are linked to each insurance policy. For each insurance policy, the report shows one or more amounts for each asset. These are the amounts that need insurance coverage. These amounts can differ from the actual insurance policy''s coverage.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
