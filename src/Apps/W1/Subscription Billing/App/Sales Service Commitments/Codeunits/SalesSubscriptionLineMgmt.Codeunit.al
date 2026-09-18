@@ -303,14 +303,21 @@ codeunit 8069 "Sales Subscription Line Mgmt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSalesLineDeleteAll, '', false, false)]
-    local procedure DeleteSalesServiceCommitmentOnBeforeSalesLineDeleteAll(var SalesLine: Record "Sales Line")
-    var
-        SalesServiceCommitment: Record "Sales Subscription Line";
+    local procedure DeleteSalesServiceCommitmentOnBeforeSalesLineDeleteAll(var SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var SalesHeader: Record "Sales Header")
     begin
-        if not SalesLine.FindFirst() then
-            exit;
-        SalesServiceCommitment.FilterOnDocument(SalesLine."Document Type", SalesLine."Document No.");
-        SalesServiceCommitment.DeleteAll(false);
+        SalesHeader.DeleteSalesServiceCommitments();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Delete Invoiced Sales Orders", OnAfterDeleteSalesLinesLoop, '', false, false)]
+    local procedure DeleteSalesServiceCommitmentOnAfterDeleteSalesLinesLoop(var SalesHeader: Record "Sales Header")
+    begin
+        SalesHeader.DeleteSalesServiceCommitments();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Delete Invd Blnkt Sales Orders", OnBeforeDeleteSalesHeader, '', false, false)]
+    local procedure DeleteSalesServiceCommitmentOnBeforeDeleteBlanketSalesHeader(var SalesHeader: Record "Sales Header")
+    begin
+        SalesHeader.DeleteSalesServiceCommitments();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Quote to Order", OnAfterInsertSalesOrderLine, '', false, false)]
@@ -321,12 +328,8 @@ codeunit 8069 "Sales Subscription Line Mgmt."
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Quote to Order", OnRunOnAfterSalesQuoteLineDeleteAll, '', false, false)]
     local procedure DeleteSalesServiceCommitmentOnAfterSalesQuoteLineDeleteAll(var SalesHeaderRec: Record "Sales Header")
-    var
-        SalesServiceCommitment: Record "Sales Subscription Line";
     begin
-        SalesServiceCommitment.SetRange("Document Type", SalesHeaderRec."Document Type");
-        SalesServiceCommitment.SetRange("Document No.", SalesHeaderRec."No.");
-        SalesServiceCommitment.DeleteAll(false);
+        SalesHeaderRec.DeleteSalesServiceCommitments();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Blanket Sales Order to Order", OnAfterInsertSalesOrderLine, '', false, false)]
