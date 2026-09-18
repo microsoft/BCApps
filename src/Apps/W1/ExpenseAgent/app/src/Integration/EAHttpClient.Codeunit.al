@@ -589,13 +589,13 @@ codeunit 6941 "EA Http Client"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         AzureADMgt: Codeunit "Azure AD Mgt.";
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         OAuthScope: Text;
         OAuthScopePatternLbl: Label 'api://%1/', Locked = true;
     begin
-        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentAPIValidation.GetAadAppId());
+        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentEntraApp.GetAadAppId());
         Scopes.Add(OAuthScope + 'Expenses.ReadWrite.All');
         AccessToken := AzureADMgt.GetAccessTokenAsSecretText(OAuthScope, '', false);
         if AccessToken.IsEmpty() then begin
