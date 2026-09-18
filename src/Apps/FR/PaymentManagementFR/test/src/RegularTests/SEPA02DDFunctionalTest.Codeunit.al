@@ -101,10 +101,10 @@ codeunit 144022 "SEPA.02 DD Functional Test"
 
         PaymentLine.SetRange("No.", PaymentHeader."No.");
         Assert.RecordCount(PaymentLine, 2);
+#pragma warning disable AA0210
+        PaymentLine.SetFilter("Credit Amount", '>0');
+#pragma warning restore AA0210
         PaymentLine.FindFirst();
-        if PaymentLine."Credit Amount" <= 0 then
-            PaymentLine.Next();
-        Assert.IsTrue(PaymentLine."Credit Amount" > 0, 'A payment line with a positive credit amount should exist.');
         SEPAFilePath := ExportSEPAFile(PaymentHeader);
         Commit();
         LibraryXMLRead.Initialize(SEPAFilePath);
