@@ -1290,6 +1290,93 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithValidFiscalRegime()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] A valid Company Type is exported as the corresponding FatturaPA RegimeFiscale
+        Initialize();
+
+        // [GIVEN] Company Information has fiscal regime code 19
+        CompanyInformation.Get();
+        CompanyInformation.Validate("Company Type", '19');
+        CompanyInformation.Modify(true);
+
+        // [GIVEN] A posted Sales Invoice
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] RegimeFiscale is RF19
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CedentePrestatore/DatiAnagrafici/RegimeFiscale',
+          'RF19');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithInvalidLegacyFiscalRegime()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Existing invalid Company Type data cannot generate an invalid RegimeFiscale
+        Initialize();
+
+        // [GIVEN] Legacy Company Information contains an invalid fiscal regime code
+        CompanyInformation.Get();
+        CompanyInformation."Company Type" := '99';
+        CompanyInformation.Modify();
+
+        // [GIVEN] A posted Sales Invoice
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+
+        // [WHEN] The document is exported to FatturaPA
+        LibraryErrorMessage.TrapErrorMessages();
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The invalid fiscal regime is reported against Company Type
+        LibraryErrorMessage.LoadErrorMessages();
+        LibraryErrorMessage.AssertLogIfMessageExists(
+          CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CompanyTypeRejectsInvalidFatturaPAFiscalRegime()
+    var
+        CompanyTypes: Record "Company Types";
+    begin
+        // [FEATURE] [FatturaPA] [Setup]
+        // [SCENARIO] Company Types only accepts supported FatturaPA fiscal regime codes
+        Initialize();
+
+        // [WHEN] An unsupported fiscal regime code is validated
+        asserterror CompanyTypes.Validate(Code, '99');
+
+        // [THEN] The value is rejected
+        Assert.ExpectedError('99');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
