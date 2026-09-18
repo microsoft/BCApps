@@ -311,7 +311,7 @@ codeunit 90 "Purch.-Post"
 
         OnAfterProcessPurchLines(
           PurchHeader, PurchRcptHeader, PurchInvHeader, PurchCrMemoHeader, ReturnShptHeader,
-          WhseShip, WhseReceive, PurchaseLinesProcessed, SuppressCommit, EverythingInvoiced);
+          WhseShip, WhseReceive, PurchaseLinesProcessed, SuppressCommit, EverythingInvoiced, PreviewMode);
 
         ErrorMessageMgt.PopContext(ErrorContextElementProcessLines);
         ErrorMessageMgt.Finish(ZeroPurchLineRecID);
@@ -10085,7 +10085,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessPurchLines(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShipmentHeader: Record "Return Shipment Header"; WhseShip: Boolean; WhseReceive: Boolean; var PurchLinesProcessed: Boolean; CommitIsSuppressed: Boolean; EverythingInvoiced: Boolean)
+    local procedure OnAfterProcessPurchLines(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShipmentHeader: Record "Return Shipment Header"; WhseShip: Boolean; WhseReceive: Boolean; var PurchLinesProcessed: Boolean; CommitIsSuppressed: Boolean; EverythingInvoiced: Boolean; PreviewMode: Boolean)
     begin
     end;
 
