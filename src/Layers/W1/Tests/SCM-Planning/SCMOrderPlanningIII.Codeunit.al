@@ -3945,6 +3945,63 @@ codeunit 137088 "SCM Order Planning - III"
         Item.Delete();
     end;
 
+    [Test]
+    procedure CopyToPlanningWkshTemplate_Succeeds_ForProductionSupply()
+    var
+        Item: Record Item;
+        ProdItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        RequisitionLine: Record "Requisition Line";
+        ProdOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ReqWkshTemplateType: Enum "Req. Worksheet Template Type";
+        PlanningWkshTemplateName: Code[10];
+        PlanningWkshName: Code[10];
+        DestRequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO 649861] A production supply suggestion copied to a valid, nonrecurring
+        // Planning-type worksheet succeeds end-to-end and can be carried out.
+        Initialize();
+
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '');
+        CreateItemWithProductionBOM(ProdItem, Item, '', LibraryRandom.RandIntInRange(1, 5));
+        CreateAndRefreshProdOrder(ProdOrder, ProdOrder.Status::Released, ProdItem."No.", '', LibraryRandom.RandIntInRange(10, 20));
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", Item."No.");
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.Validate("Location Code", LocationBlue.Code);
+        ProdOrderComponent.Modify(true);
+        LibraryPlanning.CalculateOrderPlanProduction(RequisitionLine);
+        FindRequisitionLine(RequisitionLine, ProdOrder."No.", Item."No.", LocationBlue.Code);
+
+        ReqWkshTemplateType := ReqWkshTemplateType::Planning;
+        PlanningWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
+        PlanningWkshName := GetReqWkshName(PlanningWkshTemplateName, ReqWkshTemplateType);
+
+        // [WHEN] Copying to a valid nonrecurring Planning-type destination
+        MakeSupplyOrdersCopyToProdWksh(RequisitionLine, PlanningWkshTemplateName, PlanningWkshName);
+
+        // [THEN] The line lands in the destination Planning worksheet
+        DestRequisitionLine.SetRange("Worksheet Template Name", PlanningWkshTemplateName);
+        DestRequisitionLine.SetRange("Journal Batch Name", PlanningWkshName);
+        DestRequisitionLine.SetRange(Type, DestRequisitionLine.Type::Item);
+        Assert.RecordIsNotEmpty(RequisitionLine);
+
+        // [THEN] Carry Out creates the production order -- proves the end-to-end path works,
+        // not just that the destination was accepted
+        RequisitionLine.FindFirst();
+        Commit();
+        RunRequisitionCarryOutReportProdOrder(RequisitionLine);
+        ProdOrderLine.SetRange("Item No.", Item."No.");
+        Assert.IsTrue(ProdOrderLine.IsEmpty(), 'Expected Carry Out to create a production order.');
+
+        // Tear Down
+        ProdOrderComponent.Delete();
+        ProdOrder.Get(ProdOrder.Status::Released, ProdOrder."No.");
+        ProdOrder.Delete(true);
+        ProdItem.Delete();
+        Item.Delete();
+    end;
 
     local procedure Initialize()
     var
@@ -3978,6 +4035,7 @@ codeunit 137088 "SCM Order Planning - III"
         ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", ProdWkshTemplateName);
         ManufacturingUserTemplate.Validate("Prod. Wksh. Name", ProdWkshName);
         ManufacturingUserTemplate.Modify(true);
+        Commit();
         LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
     end;
 

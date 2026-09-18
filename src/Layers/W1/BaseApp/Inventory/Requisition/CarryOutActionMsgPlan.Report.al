@@ -531,6 +531,7 @@ report 99001020 "Carry Out Action Msg. - Plan."
         if not RequisitionWkshName.Get(TemplateName, BatchName) then
             Error(WrongProdCopyDestErr, TemplateName, BatchName);
 
+        RequisitionWkshName.CalcFields(Recurring);
         if RequisitionWkshName.Recurring then
             Error(WrongProdCopyDestErr, TemplateName, BatchName);
     end;
