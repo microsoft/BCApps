@@ -435,7 +435,9 @@ codeunit 133504 "SCM Costing Performance"
             CodeCoverageMgt.StartApplicationCoverage();
 
         Initialize();
-        SmallNoOfSales := LibraryRandom.RandIntInRange(2, 3);
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        // Both fixtures must adjust an earlier sale before measuring the final adjustment.
+        SmallNoOfSales := 3;
         DurationSmallNo := PurchaseOnceManySales(SmallNoOfSales);
         DurationLargeNo := PurchaseOnceManySales(SmallNoOfSales * 4);
 
@@ -523,6 +525,8 @@ codeunit 133504 "SCM Costing Performance"
     begin
         // Workitem VSTF-268387
         Initialize();
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        LibraryInventory.SetAverageCostSetup("Average Cost Calculation Type"::Item, "Average Cost Period Type"::Day);
         if not CodeCoverageMgt.Running() then
             CodeCoverageMgt.StartApplicationCoverage();
 

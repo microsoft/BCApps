@@ -1599,8 +1599,7 @@ codeunit 137011 "SCM Revaluation-II"
         InventoryPostingGroup: Code[20];
     begin
         // Create a Transfer Order to Transfer a Random Quantity to a Different Location.
-        Location.SetRange("Use As In-Transit", true);
-        Location.FindFirst();
+        LibraryWarehouse.CreateInTransitLocation(Location);
         LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocation, CreateLocationCode(InventoryPostingGroup), Location.Code);
         LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, ItemNo, LibraryRandom.RandInt(5));
         LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
