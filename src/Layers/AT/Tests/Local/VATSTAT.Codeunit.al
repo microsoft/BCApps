@@ -17,6 +17,7 @@ codeunit 144001 VATSTAT
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         FdfFileHelper: Codeunit FDFFileHelper;
