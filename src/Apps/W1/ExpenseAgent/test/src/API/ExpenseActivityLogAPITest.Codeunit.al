@@ -428,7 +428,7 @@ codeunit 148343 "Expense Activity Log API Test"
     end;
 
     [Test]
-    procedure ScopedSubmissionCapturesPolicySnapshotAndDeduplicatesCompletion()
+    procedure StandardSubmissionExposesPolicySnapshot()
     var
         SubmitterExpenseUser: Record "Expense User";
         ApproverExpenseUser: Record "Expense User";
@@ -440,15 +440,15 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        SubmissionID: Guid;
         RequestBody: JsonObject;
         RequestText: Text;
         ResponseText: Text;
         ReportURL: Text;
+        HistoryURL: Text;
         RunToken: Code[8];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Scoped additive submission assigns the supplied identity and exposes one immutable policy summary.
+        // [SCENARIO] The existing submission action exposes an immutable policy summary through the read-only activity API.
         Initialize();
 
         // [GIVEN] A report with a current failed policy result.
@@ -463,35 +463,46 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportLine.FindFirst();
         LibraryExpense.CreateExpensePolicyEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Flagged', false);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
-        SubmissionID := CreateGuid();
         RequestBody := CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", '');
-        RequestBody.Add('submissionActivityID', LibraryGraphMgt.StripBrackets(Format(SubmissionID)));
         RequestBody.WriteTo(RequestText);
         ReportURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ExpenseReportsServiceNameTok);
         ReportURL += '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)) + ')';
         Commit();
 
-        // [WHEN] Submission and repeated completion are requested through the submitting user.
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/Microsoft.NAV.submitWithPolicyHistory', RequestText, ResponseText, 200);
-        Clear(RequestBody);
-        RequestBody.Add('submissionActivityID', LibraryGraphMgt.StripBrackets(Format(SubmissionID)));
-        RequestBody.WriteTo(RequestText);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/Microsoft.NAV.completeSubmissionPolicyHistory', RequestText, ResponseText, 200);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/Microsoft.NAV.completeSubmissionPolicyHistory', RequestText, ResponseText, 200);
+        // [WHEN] The standard submission action is requested through the submitting user.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/' + SubmitWithCommentActionTok, RequestText, ResponseText, 200);
 
-        // [THEN] The supplied identity belongs to the actual submission, and the snapshot remains unique.
-        ExpenseActivityLogEntry.GetBySystemId(SubmissionID);
-        Assert.AreEqual(Enum::"Expense Activity Event Type"::Submitted, ExpenseActivityLogEntry."Event Type", 'Correlation must identify the submission.');
-        ExpenseActivityLogEntry.SetRange("Submission Activity ID", SubmissionID);
+        // [THEN] Exactly one structured snapshot is visible without a new callback or capability.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::PolicyEvaluated);
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        ExpenseActivityLogEntry.FindFirst();
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, ReportURL + '/' + ServiceNameTok, 200);
         ResponseText := LowerCase(ResponseText);
         Assert.AreNotEqual(0, StrPos(ResponseText, '"policysnapshotpresent":true'), 'The snapshot flag must be exposed.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"policystatus":"flagged"'), 'The failed result must not be mapped to cleared.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"failedpolicycount":1'), 'The pair count must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"passedpolicycount":0'), 'Passed pairs must be exposed separately.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"flaggedcategories"'), 'The category array text must be exposed.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"flaggedcategorycount":1'), 'The category count must be exposed.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"latestpoliciesevaluatedat"'), 'The underlying evaluation timestamp must be explicit.');
+
+        // [WHEN] Submitter and approver participation history is requested.
+        HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, HistoryURL + '?$filter=historyActorRole eq ''Submitter''', 200);
+
+        // [THEN] The real submitter sees the agent snapshot in the complete timeline.
+        Assert.AreNotEqual(0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)))), 'The submitter timeline must contain the snapshot.');
+
+        // [WHEN] The assigned approver has not acted on the report.
+        HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ApproverExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, HistoryURL + '?$filter=historyActorRole eq ''Approver''', 200);
+
+        // [THEN] The agent event must not grant approver participation.
+        Assert.AreEqual(0, StrPos(LowerCase(ResponseText), LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)))), 'The agent snapshot must not grant approver history access.');
         ExpensePolicy.Delete(true);
         LibrarySetupStorage.Restore();
         CompleteTest();

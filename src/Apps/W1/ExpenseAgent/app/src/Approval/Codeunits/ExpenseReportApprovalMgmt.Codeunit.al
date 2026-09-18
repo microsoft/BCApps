@@ -97,13 +97,6 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
     internal procedure Submit(var ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
-        SubmissionActivityID: Guid;
-    begin
-        Submit(ExpenseReportHeader, SubmitterExpenseUserNo, SubmissionComment, SubmissionActivityID);
-    end;
-
-    internal procedure Submit(var ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text; SubmissionActivityID: Guid)
-    var
         ExpenseUser: Record "Expense User";
         IsResubmission: Boolean;
     begin
@@ -119,7 +112,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         UpdateSubmitterComment(ExpenseReportHeader, SubmissionComment);
         SetApprovalStatusToPendingApprovalInExpenseReport(ExpenseReportHeader, SubmitterExpenseUserNo, ExpenseUser."User Id For Approvals");
-        LogExpenseReportSubmission(ExpenseReportHeader, SubmitterExpenseUserNo, IsResubmission, SubmissionComment, SubmissionActivityID);
+        LogExpenseReportSubmission(ExpenseReportHeader, SubmitterExpenseUserNo, IsResubmission, SubmissionComment);
     end;
 
     procedure ReopenSubmitted(var ExpenseReportHeader: Record "Expense Report Header")
@@ -429,13 +422,10 @@ codeunit 6901 "Expense Report Approval Mgmt"
         OutStream.WriteText(Comment);
     end;
 
-    local procedure LogExpenseReportSubmission(ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean; EventComment: Text; SubmissionActivityID: Guid)
+    local procedure LogExpenseReportSubmission(ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean; EventComment: Text)
     var
-        SubmissionEntry: Record "Expense Activity Log Entry";
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
-        ExpensePolicyHistory: Codeunit "Expense Policy History";
         EventType: Enum "Expense Activity Event Type";
-        EntryNo: BigInteger;
     begin
         // Start tracking with the earlier Created event, including reports first acted on after upgrade.
         if not ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
@@ -446,16 +436,14 @@ codeunit 6901 "Expense Report Approval Mgmt"
         else
             EventType := EventType::Submitted;
 
-        EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
+        ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,
             EventType,
             Enum::"Expense Activity Initiator"::User,
             Enum::"Expense Activity Actor Role"::Submitter,
             SubmitterExpenseUserNo,
-            EventComment,
-            SubmissionActivityID);
-        SubmissionEntry.Get(EntryNo);
-        ExpensePolicyHistory.CaptureSubmission(ExpenseReportHeader, SubmissionEntry);
+            EventComment);
+        ExpenseActivityLogMgt.LogPolicyEvaluationIfReady(ExpenseReportHeader);
     end;
 
     local procedure LogExpenseReportEvent(

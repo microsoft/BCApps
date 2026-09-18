@@ -220,7 +220,6 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense API Currency Helper" = X,
         codeunit "Expense Capabilities Provider" = X,
         codeunit "Expense Activity Log Mgt." = X,
-        codeunit "Expense Policy History" = X,
         codeunit "Expense Projects Builder" = X,
         codeunit "Exp. Policies To Eval Builder" = X,
         codeunit "Import Expense User" = X,

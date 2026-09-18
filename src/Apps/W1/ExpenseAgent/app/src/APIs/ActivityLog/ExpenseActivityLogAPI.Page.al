@@ -171,10 +171,6 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'Flagged Category Count';
                 }
-                field(submissionActivityId; Rec."Submission Activity ID")
-                {
-                    Caption = 'Submission Activity ID';
-                }
                 field(latestPoliciesEvaluatedAt; Rec."Latest Policies Evaluated At")
                 {
                     Caption = 'Latest Policies Evaluated At';

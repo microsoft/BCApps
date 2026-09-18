@@ -207,19 +207,9 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Flagged Category Count';
             DataClassification = SystemMetadata;
         }
-        field(60; "Submission Activity ID"; Guid)
-        {
-            Caption = 'Submission Activity ID';
-            DataClassification = SystemMetadata;
-        }
         field(61; "Latest Policies Evaluated At"; DateTime)
         {
             Caption = 'Latest Policies Evaluated At';
-            DataClassification = SystemMetadata;
-        }
-        field(62; "Policy Context Hash"; Text[100])
-        {
-            Caption = 'Policy Context Hash';
             DataClassification = SystemMetadata;
         }
         field(100; "History Actor Table ID Filter"; Integer)
@@ -266,9 +256,6 @@ table 7100 "Expense Activity Log Entry"
         {
         }
         key(Occurred; "Occurred At", "Entry No.")
-        {
-        }
-        key(Submission; "Submission Activity ID", "Event Type")
         {
         }
     }

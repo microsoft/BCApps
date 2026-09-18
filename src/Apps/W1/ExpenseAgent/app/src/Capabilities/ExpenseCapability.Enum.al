@@ -97,8 +97,4 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
-    value(9; SubmissionPolicyHistory)
-    {
-        Caption = 'Submission Policy History', Locked = true;
-    }
 }

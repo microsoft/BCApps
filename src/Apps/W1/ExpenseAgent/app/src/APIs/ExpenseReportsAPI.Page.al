@@ -478,61 +478,6 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
-    procedure SubmitWithPolicyHistory(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text; SubmissionActivityID: Guid)
-    var
-        ExistingEntry: Record "Expense Activity Log Entry";
-        ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
-        InvalidSubmissionErr: Label 'A new submission activity identity is required.';
-        ConflictCodeTok: Label ' [PolicyHistoryConflict]', Locked = true;
-    begin
-        Rec.LockTable();
-        Rec.Get(Rec."No.");
-        RequirePolicyHistoryScope();
-        Rec.TestField("Expense User No.", SubmitterExpenseUserNo);
-        if IsNullGuid(SubmissionActivityID) or ExistingEntry.GetBySystemId(SubmissionActivityID) then
-            Error(InvalidSubmissionErr + ConflictCodeTok);
-        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo, SubmissionComment, SubmissionActivityID);
-
-        ActionContext.SetObjectType(ObjectType::Page);
-        ActionContext.SetObjectId(Page::"Expense Reports API");
-        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
-        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
-    end;
-
-    [ServiceEnabled]
-    procedure CompleteSubmissionPolicyHistory(var ActionContext: WebServiceActionContext; SubmissionActivityID: Guid)
-    var
-        ExpensePolicyHistory: Codeunit "Expense Policy History";
-    begin
-        Rec.LockTable();
-        Rec.Get(Rec."No.");
-        RequirePolicyHistoryScope();
-        ExpensePolicyHistory.Complete(Rec, SubmissionActivityID);
-
-        ActionContext.SetObjectType(ObjectType::Page);
-        ActionContext.SetObjectId(Page::"Expense Reports API");
-        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
-        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
-    end;
-
-    local procedure RequirePolicyHistoryScope()
-    var
-        OriginalFilterGroup: Integer;
-        OwnerFilter: Text;
-        OwnerNo: Code[20];
-        ScopeRequiredErr: Label 'Policy history operations must be requested through the submitting expense user.';
-    begin
-        OriginalFilterGroup := Rec.FilterGroup(4);
-        OwnerFilter := Rec.GetFilter("Expense User No.");
-        if OwnerFilter <> '' then
-            OwnerNo := Rec.GetRangeMin("Expense User No.");
-        Rec.FilterGroup(OriginalFilterGroup);
-        if OwnerFilter = '' then
-            Error(ScopeRequiredErr);
-        Rec.TestField("Expense User No.", OwnerNo);
-    end;
-
-    [ServiceEnabled]
     procedure ApprovedExpenseReportWithPolicyOverride(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     begin
         Rec.PerformManualApproved(ApproverExpenseUserNo, SkipPolicyValidation);
