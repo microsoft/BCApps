@@ -155,8 +155,13 @@ codeunit 139813 "APIV2 - Currencies E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := true;
     end;
@@ -217,7 +222,6 @@ codeunit 139813 "APIV2 - Currencies E2E"
         VerifyPropertyInJSON(CurrencyJSON, 'displayName', Currency.Description);
     end;
 }
-
 
 
 

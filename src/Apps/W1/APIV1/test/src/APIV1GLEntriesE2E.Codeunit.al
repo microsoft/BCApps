@@ -3,6 +3,7 @@ codeunit 139730 "APIV1 - GLEntries E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -24,9 +25,13 @@ codeunit 139730 "APIV1 - GLEntries E2E"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryApplicationArea.EnableFoundationSetup();
         IF IsInitialized THEN
             EXIT;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateVATPostingSetup();
@@ -149,7 +154,6 @@ codeunit 139730 "APIV1 - GLEntries E2E"
         GeneralJournalTemplateList.OK().INVOKE();
     end;
 }
-
 
 
 
