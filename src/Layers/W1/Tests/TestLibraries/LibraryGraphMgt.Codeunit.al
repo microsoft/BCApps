@@ -7,11 +7,63 @@ codeunit 130618 "Library - Graph Mgt"
 
     var
         Assert: Codeunit Assert;
+        JsonRootToken: JsonToken;
+        JsonSelectedToken: JsonToken;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
+        AtLeastItemsReturnedErr: Label 'At least %1 item(s) should be returned', Comment = '%1 - Minimum number of items';
+
+    procedure InitializeObject(JsonText: Text)
+    begin
+        Clear(JsonRootToken);
+        Clear(JsonSelectedToken);
+        if JsonText <> '' then begin
+            JsonRootToken.ReadFrom(JsonText);
+            JsonSelectedToken := JsonRootToken;
+        end;
+    end;
+
+    procedure SelectTokenFromRoot(Path: Text): Boolean
+    begin
+        Clear(JsonSelectedToken);
+        exit(JsonRootToken.SelectToken(Path, JsonSelectedToken));
+    end;
+
+    procedure SelectItemFromRoot(Path: Text; Index: Integer): Boolean
+    var
+        CollectionToken: JsonToken;
+    begin
+        if not JsonRootToken.SelectToken(Path, CollectionToken) or not CollectionToken.IsArray() then
+            exit(false);
+        exit(CollectionToken.AsArray().Get(Index, JsonSelectedToken));
+    end;
+
+    procedure GetValue(Path: Text): Text
+    var
+        ValueToken: JsonToken;
+        JsonText: Text;
+    begin
+        if not JsonSelectedToken.SelectToken(Path, ValueToken) then
+            exit('');
+        if ValueToken.IsValue() then begin
+            if ValueToken.AsValue().IsNull() or ValueToken.AsValue().IsUndefined() then
+                exit('');
+            exit(GetJsonValueText(ValueToken));
+        end;
+        ValueToken.WriteTo(JsonText);
+        exit(JsonText);
+    end;
+
+    procedure GetCount(): Integer
+    begin
+        if JsonSelectedToken.IsObject() then
+            exit(JsonSelectedToken.AsObject().Keys().Count());
+        if JsonSelectedToken.IsArray() then
+            exit(JsonSelectedToken.AsArray().Count());
+    end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
     var
@@ -395,57 +447,76 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure GetETagFromJSON(JSONTxt: Text; var ETagValue: Text): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
-        exit(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, '@odata.etag', ETagValue));
+        JObject.ReadFrom(JSONTxt);
+        exit(TryGetJsonText(JObject, '@odata.etag', ETagValue));
     end;
 
     procedure AddPropertytoJSON(JSONTxt: Text; PropertyName: Text; PropertyValue: Variant): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
+        BooleanValue: Boolean;
+        DecimalValue: Decimal;
+        IntegerValue: Integer;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JsonObject);
-
-        JSONManagement.AddJPropertyToJObject(JsonObject, PropertyName, PropertyValue);
-        exit(JSONManagement.WriteObjectToString());
+        if JSONTxt <> '' then
+            JsonObject.ReadFrom(JSONTxt);
+        case true of
+            PropertyValue.IsInteger:
+                begin
+                    IntegerValue := PropertyValue;
+                    JsonObject.Add(PropertyName, IntegerValue);
+                end;
+            PropertyValue.IsDecimal:
+                begin
+                    DecimalValue := PropertyValue;
+                    JsonObject.Add(PropertyName, DecimalValue);
+                end;
+            PropertyValue.IsBoolean:
+                begin
+                    BooleanValue := PropertyValue;
+                    JsonObject.Add(PropertyName, BooleanValue);
+                end;
+            else
+                JsonObject.Add(PropertyName, Format(PropertyValue, 0, 9));
+        end;
+        JsonObject.WriteTo(JSONTxt);
+        exit(JSONTxt);
     end;
 
     procedure AddComplexTypetoJSON(JSONTxt: Text; ComplexTypeName: Text; ComplexTypeValue: Text): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonObject: JsonObject;
+        ComplexJsonToken: JsonToken;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JsonObject);
-
-        JSONManagement.AddJObjectToJObject(JsonObject, ComplexTypeName, ComplexTypeValue);
-        exit(JSONManagement.WriteObjectToString());
+        if JSONTxt <> '' then
+            JsonObject.ReadFrom(JSONTxt);
+        ComplexJsonToken.ReadFrom(ComplexTypeValue);
+        JsonObject.Add(ComplexTypeName, ComplexJsonToken);
+        JsonObject.WriteTo(JSONTxt);
+        exit(JSONTxt);
     end;
 
     procedure AddObjectToCollectionJSON(JSONTxt: Text; ObjectJSONTxt: Text): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JSONObject: DotNet JObject;
+        JsonArray: JsonArray;
+        JSONObject: JsonObject;
     begin
-        JSONManagement.InitializeCollection(JSONTxt);
-        JSONManagement.InitializeObject(ObjectJSONTxt);
-        JSONManagement.GetJSONObject(JSONObject);
-        JSONManagement.AddJObjectToCollection(JSONObject);
-        exit(JSONManagement.WriteCollectionToString());
+        if JSONTxt <> '' then
+            JsonArray.ReadFrom(JSONTxt);
+        JSONObject.ReadFrom(ObjectJSONTxt);
+        JsonArray.Add(JSONObject);
+        JsonArray.WriteTo(JSONTxt);
+        exit(JSONTxt);
     end;
 
     [Scope('OnPrem')]
-    procedure AssertPropertyInJsonObject(JObject: DotNet JObject; PropertyName: Text; ExpectedValue: Text)
+    procedure AssertPropertyInJsonObject(JObject: JsonObject; PropertyName: Text; ExpectedValue: Text)
     var
-        JsonMgt: Codeunit "JSON Management";
         PropertyValue: Text;
     begin
-        JsonMgt.GetStringPropertyValueFromJObjectByName(JObject, PropertyName, PropertyValue);
+        TryGetJsonText(JObject, PropertyName, PropertyValue);
         Assert.AreEqual(ExpectedValue, PropertyValue, StrSubstNo(IncorrectValueErr, PropertyName));
     end;
 
@@ -473,45 +544,33 @@ codeunit 130618 "Library - Graph Mgt"
     [Scope('OnPrem')]
     procedure GetPropertyValueFromJSON(JSON: Text; PropertyName: Text; var PropertyValue: Text): Boolean
     var
-        JsonMgt: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
-        PropertyValueVar: Variant;
+        JsonObject: JsonObject;
     begin
-        JsonMgt.InitializeObject(JSON);
-        JsonMgt.GetJSONObject(JsonObject);
-        if JsonMgt.GetPropertyValueByName(PropertyName, PropertyValueVar) = false then
-            exit(false);
-        PropertyValue := Format(PropertyValueVar);
-        exit(true);
+        JsonObject.ReadFrom(JSON);
+        exit(TryGetJsonText(JsonObject, PropertyName, PropertyValue));
     end;
 
     [Scope('OnPrem')]
-    procedure GetComplexPropertyFromJSON(JSON: Text; PropertyName: Text; var JObject: DotNet JObject)
+    procedure GetComplexPropertyFromJSON(JSON: Text; PropertyName: Text; var JObject: JsonObject)
     var
-        JsonMgt: Codeunit "JSON Management";
-        ParentObject: DotNet JObject;
-        ComplexText: Text;
+        ParentObject: JsonObject;
+        JsonToken: JsonToken;
     begin
-        JsonMgt.InitializeObject(JSON);
-        JsonMgt.GetJSONObject(ParentObject);
-
-        JsonMgt.GetStringPropertyValueFromJObjectByName(ParentObject, PropertyName, ComplexText);
-        JsonMgt.InitializeObject(ComplexText);
-        JsonMgt.GetJSONObject(JObject);
+        ParentObject.ReadFrom(JSON);
+        ParentObject.Get(PropertyName, JsonToken);
+        JObject := JsonToken.AsObject();
     end;
 
     [Scope('OnPrem')]
     procedure GetComplexPropertyTxtFromJSON(JSON: Text; PropertyName: Text; var ComplexText: Text): Boolean
     var
-        JsonMgt: Codeunit "JSON Management";
-        ParentObject: DotNet JObject;
-        ComplexTxtVar: Variant;
+        ParentObject: JsonObject;
+        JsonToken: JsonToken;
     begin
-        JsonMgt.InitializeObject(JSON);
-        JsonMgt.GetJSONObject(ParentObject);
-        if JsonMgt.GetStringPropertyValueFromJObjectByName(ParentObject, PropertyName, ComplexTxtVar) = false then
+        ParentObject.ReadFrom(JSON);
+        if not ParentObject.Get(PropertyName, JsonToken) then
             exit(false);
-        ComplexText := Format(ComplexTxtVar);
+        JsonToken.WriteTo(ComplexText);
         exit(true);
     end;
 
@@ -522,49 +581,40 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure GetObjectFromJSONResponseByName(ResponseText: Text; PropertyName: Text; var ObjectJSON: Text; ObjectNumber: Integer): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
-        JSONObject: DotNet JObject;
-        JObject: DotNet JObject;
-        ObjectCollectionTxt: Text;
+        JSONObject: JsonObject;
+        ObjectCollection: JsonArray;
+        JsonToken: JsonToken;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JSONObject);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JSONObject, PropertyName, ObjectCollectionTxt);
-        Clear(JSONManagement);
-        JSONManagement.InitializeCollection(ObjectCollectionTxt);
+        JSONObject.ReadFrom(ResponseText);
+        ObjectCollection := JSONObject.GetArray(PropertyName);
 
         Assert.IsTrue(
-          JSONManagement.GetCollectionCount() >= ObjectNumber, StrSubstNo('At least %1 item(s) should be returned', ObjectNumber));
-        if not JSONManagement.GetJObjectFromCollectionByIndex(JObject, ObjectNumber - 1) then
+          ObjectCollection.Count() >= ObjectNumber, StrSubstNo(AtLeastItemsReturnedErr, ObjectNumber));
+        if not ObjectCollection.Get(ObjectNumber - 1, JsonToken) then
             exit(false);
-        ObjectJSON := JObject.ToString();
+        JsonToken.WriteTo(ObjectJSON);
         exit(true);
     end;
 
     procedure GetObjectsFromJSONResponse(ResponseText: Text; ObjectIDFieldName: Text; ObjectID1: Text; ObjectID2: Text; var ObjectJSON1: Text; var ObjectJSON2: Text): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
-        JSONObject: DotNet JObject;
-        JObject: DotNet JObject;
+        JSONObject: JsonObject;
+        ObjectCollection: JsonArray;
+        JsonToken: JsonToken;
         ObjectJSON: Text;
         CurrentObjectID: Text;
         I: Integer;
         ObjectID1Found: Boolean;
         ObjectID2Found: Boolean;
-        ObjectCollectionTxt: Text;
     begin
-        JSONManagement.InitializeObject(ResponseText);
-        JSONManagement.GetJSONObject(JSONObject);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JSONObject, 'value', ObjectCollectionTxt);
+        JSONObject.ReadFrom(ResponseText);
+        ObjectCollection := JSONObject.GetArray('value');
 
-        Clear(JSONManagement);
-        JSONManagement.InitializeCollection(ObjectCollectionTxt);
-
-        Assert.IsTrue(JSONManagement.GetCollectionCount() >= 2, 'At least 2 items should be returned');
-        for I := 0 to JSONManagement.GetCollectionCount() - 1 do begin
-            if not JSONManagement.GetJObjectFromCollectionByIndex(JObject, I) then
+        Assert.IsTrue(ObjectCollection.Count() >= 2, 'At least 2 items should be returned');
+        for I := 0 to ObjectCollection.Count() - 1 do begin
+            if not ObjectCollection.Get(I, JsonToken) then
                 exit(false);
-            ObjectJSON := JObject.ToString();
+            JsonToken.WriteTo(ObjectJSON);
             if GetObjectIDFromJSON(ObjectJSON, ObjectIDFieldName, CurrentObjectID) then begin
                 if CurrentObjectID = ObjectID1 then begin
                     ObjectID1Found := true;
@@ -587,55 +637,48 @@ codeunit 130618 "Library - Graph Mgt"
     [TryFunction]
     procedure GetErrorFromJSONResponse(ResponseText: Text; var ErrorCode: Text; var ErrorMessage: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
         GetComplexPropertyFromJSON(ResponseText, 'error', JObject);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'code', ErrorCode);
-        JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'message', ErrorMessage);
+        TryGetJsonText(JObject, 'code', ErrorCode);
+        TryGetJsonText(JObject, 'message', ErrorMessage);
     end;
 
     procedure GetObjectIDFromJSON(JSONTxt: Text; ObjectIDFieldName: Text; var ObjectIDValue: Text): Boolean
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
-        exit(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, ObjectIDFieldName, ObjectIDValue));
+        JObject.ReadFrom(JSONTxt);
+        exit(TryGetJsonText(JObject, ObjectIDFieldName, ObjectIDValue));
     end;
 
     [Scope('OnPrem')]
     procedure GetCollectionCountFromJSON(JSON: Text): Integer
     var
-        JsonMgt: Codeunit "JSON Management";
-        JsonObject: DotNet JObject;
+        JsonArray: JsonArray;
     begin
-        JsonMgt.InitializeCollection(JSON);
-        JsonMgt.GetJSONObject(JsonObject);
-        exit(JsonMgt.GetCollectionCount());
+        JsonArray.ReadFrom(JSON);
+        exit(JsonArray.Count());
     end;
 
     procedure GetObjectFromCollectionByIndex(JSON: Text; Index: Integer): Text
     var
-        JSONManagement: Codeunit "JSON Management";
-        JSONObject: DotNet JObject;
-        RetrievedJSONObject: DotNet JObject;
+        JsonArray: JsonArray;
+        RetrievedJsonToken: JsonToken;
     begin
-        JSONManagement.InitializeCollection(JSON);
-        JSONManagement.GetJSONObject(JSONObject);
+        JsonArray.ReadFrom(JSON);
         Assert.IsTrue(
-          JSONManagement.GetJObjectFromCollectionByIndex(RetrievedJSONObject, Index),
+          JsonArray.Get(Index, RetrievedJsonToken),
           'Could not find object number: ' + Format(Index));
 
-        JSONManagement.InitializeObjectFromJObject(RetrievedJSONObject);
-        exit(JSONManagement.WriteObjectToString());
+        RetrievedJsonToken.WriteTo(JSON);
+        exit(JSON);
     end;
 
     procedure VerifyAddressProperties(JSON: Text; ExpectedLine1: Text; ExpectedLine2: Text; ExpectedCity: Text; ExpectedState: Text; ExpectedCountryCode: Text; ExpectedPostCode: Text)
     var
         GraphCollectionMgtContact: Codeunit "Graph Collection Mgt - Contact";
-        AddressObject: DotNet JObject;
+        AddressObject: JsonObject;
     begin
         GetComplexPropertyFromJSON(JSON, 'address', AddressObject);
         AssertPropertyInJsonObject(AddressObject, 'street', GraphCollectionMgtContact.ConcatenateStreet(ExpectedLine1, ExpectedLine2));
@@ -647,7 +690,7 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure VerifyError(JSON: Text; ExpectedCode: Text; ExpectedMessage: Text)
     var
-        ErrorObject: DotNet JObject;
+        ErrorObject: JsonObject;
     begin
         GetComplexPropertyFromJSON(JSON, 'error', ErrorObject);
         AssertPropertyInJsonObject(ErrorObject, 'code', ExpectedCode);
@@ -661,15 +704,13 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure VerifyIDFieldInJson(JSONTxt: Text; IDFieldName: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         IdValue: Text;
         BlankGuid: Guid;
         IDGuid: Guid;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, IDFieldName, IdValue),
+        JObject.ReadFrom(JSONTxt);
+        Assert.IsTrue(TryGetJsonText(JObject, IDFieldName, IdValue),
           'Could not find the ' + IDFieldName + ' property in' + JSONTxt);
         Assert.AreNotEqual('', IdValue, IDFieldName + ' should not be blank in ' + JSONTxt);
         Assert.IsTrue(Evaluate(IDGuid, IdValue), 'Id is not a guid');
@@ -678,13 +719,11 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure VerifyIDFieldInJsonWithoutIntegrationRecord(JSONTxt: Text; IDFieldName: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         IdValue: Text;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, IDFieldName, IdValue),
+        JObject.ReadFrom(JSONTxt);
+        Assert.IsTrue(TryGetJsonText(JObject, IDFieldName, IdValue),
           'Could not find the ' + IDFieldName + ' property in' + JSONTxt);
         Assert.AreNotEqual('', IdValue, IDFieldName + ' should not be blank in ' + JSONTxt);
     end;
@@ -692,27 +731,27 @@ codeunit 130618 "Library - Graph Mgt"
     procedure VerifyUoMInJson(JSONTxt: Text; UnitofMeasureCode: Code[10]; ItemIdentifierTxt: Text)
     var
         Item: Record Item;
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
+        UnitOfMeasureObject: JsonObject;
+        JsonToken: JsonToken;
         ItemIdValue: Text;
         JSONUoMValue: Text;
         UnitCodeValue: Text;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, ItemIdentifierTxt, ItemIdValue),
+        JObject.ReadFrom(JSONTxt);
+        Assert.IsTrue(TryGetJsonText(JObject, ItemIdentifierTxt, ItemIdValue),
           'Could not find the ItemId property in' + JSONTxt);
 
         Assert.AreNotEqual('', ItemIdValue, 'ItemId should not be blank in ' + JSONTxt);
 
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, 'baseUnitOfMeasure', JSONUoMValue),
+        Assert.IsTrue(JObject.Get('baseUnitOfMeasure', JsonToken) and JsonToken.IsObject(),
           'Could not find the BaseUnitOfMeasure property in' + JSONTxt);
+        JsonToken.WriteTo(JSONUoMValue);
         Assert.AreNotEqual('', JSONUoMValue, 'BaseUnitOfMeasure should not be blank in ' + JSONTxt);
 
-        JSONManagement.InitializeObject(JSONUoMValue);
-        JSONManagement.GetJSONObject(JObject);
+        UnitOfMeasureObject := JsonToken.AsObject();
         Assert.IsTrue(
-          JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, GraphCollectionMgtItem.UOMComplexTypeUnitCode(), UnitCodeValue),
+          TryGetJsonText(UnitOfMeasureObject, GraphCollectionMgtItem.UOMComplexTypeUnitCode(), UnitCodeValue),
           'Could not find the Unit Code property in' + JSONTxt);
 
         Assert.AreEqual(UnitofMeasureCode, UnitCodeValue, 'Incorrect UoM in JSON');
@@ -724,14 +763,12 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure VerifyGUIDFieldInJson(JSONTxt: Text; GUIDFieldName: Text; ExpectedValue: Guid)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
         StringValue: Text;
         ActualValue: Guid;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
-        Assert.IsTrue(JSONManagement.GetStringPropertyValueFromJObjectByName(JObject, GUIDFieldName, StringValue),
+        JObject.ReadFrom(JSONTxt);
+        Assert.IsTrue(TryGetJsonText(JObject, GUIDFieldName, StringValue),
           'Could not find the ' + GUIDFieldName + ' property in' + JSONTxt);
         Assert.IsTrue(Evaluate(ActualValue, StringValue), 'Property value ' + StringValue + ' is not guid');
         Assert.AreEqual(ActualValue, ExpectedValue,
@@ -740,12 +777,40 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure VerifyPropertyInJSON(JSONTxt: Text; FieldName: Text; FieldValue: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
-        JObject: DotNet JObject;
+        JObject: JsonObject;
     begin
-        JSONManagement.InitializeObject(JSONTxt);
-        JSONManagement.GetJSONObject(JObject);
+        JObject.ReadFrom(JSONTxt);
         AssertPropertyInJsonObject(JObject, FieldName, FieldValue);
+    end;
+
+    local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit(false);
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit(true);
+            Value := GetJsonValueText(JsonToken);
+        end else
+            JsonToken.WriteTo(Value);
+        exit(true);
+    end;
+
+    local procedure GetJsonValueText(JsonToken: JsonToken): Text
+    var
+        SerializedValue: Text;
+    begin
+        JsonToken.WriteTo(SerializedValue);
+        case SerializedValue of
+            'true':
+                exit('True');
+            'false':
+                exit('False');
+        end;
+        exit(JsonToken.AsValue().AsText());
     end;
 
     procedure StripBrackets(StringWithBrackets: Text): Text
@@ -833,4 +898,3 @@ codeunit 130618 "Library - Graph Mgt"
     begin
     end;
 }
-

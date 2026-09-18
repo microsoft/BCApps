@@ -5,11 +5,9 @@
 
 namespace Microsoft.DataMigration;
 
-using Microsoft.CRM.Outlook;
 using System.Environment;
 using System.Integration;
 using System.Telemetry;
-using System.Text;
 
 codeunit 4014 "Notification Handler"
 {
@@ -73,7 +71,7 @@ codeunit 4014 "Notification Handler"
 
     local procedure HandleServiceNotification(var WebhookNotification: Record "Webhook Notification")
     var
-        JsonManagement: Codeunit "JSON Management";
+        NotificationJson: JsonObject;
         NotificationInStream: InStream;
         NotificationText: Text;
         ServiceType: Text;
@@ -82,8 +80,9 @@ codeunit 4014 "Notification Handler"
         WebhookNotification.Notification.CreateInStream(NotificationInStream);
         NotificationInStream.ReadText(NotificationText);
 
-        JsonManagement.InitializeObject(NotificationText);
-        JsonManagement.GetStringPropertyValueByName('ServiceType', ServiceType);
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        GetJsonTokenText(NotificationJson, 'ServiceType', ServiceType);
 
         case ServiceType of
             UpgradeAvailableServiceTypeTxt:
@@ -98,17 +97,19 @@ codeunit 4014 "Notification Handler"
     local procedure GetExtensionRefreshErrorMessage(ExtensionRefreshTxt: Text): Text
     var
         HybridMessageManagement: Codeunit "Hybrid Message Management";
-        JsonManagement: Codeunit "JSON Management";
+        ExtensionRefreshJson: JsonObject;
         MessageCode: Text;
         ErrorMessage: Text;
         Value: Text;
     begin
-        JsonManagement.InitializeObject(ExtensionRefreshTxt);
-        if JsonManagement.GetStringPropertyValueByName('ErrorCode', MessageCode) then
+        if ExtensionRefreshTxt = '' then
+            exit('');
+        ExtensionRefreshJson.ReadFrom(ExtensionRefreshTxt);
+        if GetJsonTokenText(ExtensionRefreshJson, 'ErrorCode', MessageCode) then
             if MessageCode <> '' then
                 ErrorMessage := HybridMessageManagement.ResolveMessageCode(CopyStr(MessageCode, 1, 10), '');
 
-        if JsonManagement.GetStringPropertyValueByName('FailedExtensions', Value) then
+        if GetJsonTokenText(ExtensionRefreshJson, 'FailedExtensions', Value) then
             ErrorMessage += ' ' + Value;
         exit(ErrorMessage);
     end;
@@ -119,9 +120,8 @@ codeunit 4014 "Notification Handler"
         IntelligentCloudSetup: Record "Intelligent Cloud Setup";
         HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         HybridMessageManagement: Codeunit "Hybrid Message Management";
-        JsonManagement: Codeunit "JSON Management";
-        OutlookSynchTypeConv: Codeunit "Outlook Synch. Type Conv";
         AuditLog: Codeunit "Audit Log";
+        NotificationJson: JsonObject;
         Value: Text;
         Details: Text;
         MessageCode: Text;
@@ -131,8 +131,9 @@ codeunit 4014 "Notification Handler"
         TelemetryDictionary: Dictionary of [Text, Text];
         HasFailures: Boolean;
     begin
-        JsonManagement.InitializeObject(NotificationText);
-        JsonManagement.GetStringPropertyValueByName('RunId', Value);
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        GetJsonTokenText(NotificationJson, 'RunId', Value);
 
         if HybridReplicationSummary.Get(Value) then begin
             PreviousHybridReplicationSummary.Copy(HybridReplicationSummary);
@@ -148,22 +149,21 @@ codeunit 4014 "Notification Handler"
         HybridReplicationSummary."Trigger Type" := PreviousHybridReplicationSummary."Trigger Type";
         HybridReplicationSummary.Insert();
 
-        if JsonManagement.GetStringPropertyValueByName('StartTime', Value) then
-            if Evaluate(HybridReplicationSummary."Start Time", Value) then
-                HybridReplicationSummary."Start Time" := OutlookSynchTypeConv.UTC2LocalDT(HybridReplicationSummary."Start Time");
+        if GetJsonTokenText(NotificationJson, 'StartTime', Value) then
+            if not Evaluate(HybridReplicationSummary."Start Time", Value, 9) then;
 
-        if JsonManagement.GetStringPropertyValueByName('TriggerType', Value) then
+        if GetJsonTokenText(NotificationJson, 'TriggerType', Value) then
             if not Evaluate(HybridReplicationSummary."Trigger Type", Value) then;
 
-        if JsonManagement.GetStringPropertyValueByName('ReplicationType', Value) and (HybridReplicationSummary.ReplicationType = 0) then
+        if GetJsonTokenText(NotificationJson, 'ReplicationType', Value) and (HybridReplicationSummary.ReplicationType = 0) then
             if not Evaluate(HybridReplicationSummary.ReplicationType, Value) then;
 
-        if JsonManagement.GetStringPropertyValueByName('Status', Value) then begin
+        if GetJsonTokenText(NotificationJson, 'Status', Value) then begin
             Session.LogMessage('0000EV0', StrSubstNo(HybridReplicationStatusMsg, Format(Value), Format(HybridReplicationSummary.ReplicationType)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CloudMigrationTok);
             if not Evaluate(HybridReplicationSummary.Status, Value) then;
         end;
 
-        if JsonManagement.GetStringPropertyValueByName('Details', Details) or JsonManagement.GetStringPropertyValueByName('Code', MessageCode) then begin
+        if GetJsonTokenText(NotificationJson, 'Details', Details) or GetJsonTokenText(NotificationJson, 'Code', MessageCode) then begin
             if MessageCode <> '' then begin
                 Details := HybridMessageManagement.ResolveMessageCode(CopyStr(MessageCode, 1, 10), Details);
                 HybridReplicationSummary.SetDetails(Details);
@@ -179,17 +179,17 @@ codeunit 4014 "Notification Handler"
         end;
 
         if HybridReplicationSummary.Status = HybridReplicationSummary.Status::Completed then begin
-            if JsonManagement.GetStringPropertyValueByName('ExtensionRefreshFailed', Value) then
+            if GetJsonTokenText(NotificationJson, 'ExtensionRefreshFailed', Value) then
                 HybridReplicationSummary.AddDetails(GetExtensionRefreshErrorMessage(Value));
 
-            if JsonManagement.GetStringPropertyValueByName('ExtensionRefreshUnexpectedError', Value) then
+            if GetJsonTokenText(NotificationJson, 'ExtensionRefreshUnexpectedError', Value) then
                 HybridReplicationSummary.AddDetails(GetExtensionRefreshErrorMessage(Value));
         end;
 
         if HybridReplicationSummary.Status <> HybridReplicationSummary.Status::InProgress then
             HybridReplicationSummary."End Time" := CurrentDateTime();
 
-        if JsonManagement.GetStringPropertyValueByName('ServiceType', ServiceType) then
+        if GetJsonTokenText(NotificationJson, 'ServiceType', ServiceType) then
             if HybridCloudManagement.IsReplicationCompleted(ServiceType) then begin
                 if PreviousHybridReplicationSummary.Status = PreviousHybridReplicationSummary.Status::InProgress then
                     Clear(PreviousDetails);
@@ -338,11 +338,12 @@ codeunit 4014 "Notification Handler"
     local procedure ProcessUpgradeAvailableNotification(NotificationText: Text)
     var
         IntelligentCloudSetup: Record "Intelligent Cloud Setup";
-        JsonManagement: Codeunit "JSON Management";
+        NotificationJson: JsonObject;
         Version: Text;
     begin
-        JsonManagement.InitializeObject(NotificationText);
-        JsonManagement.GetStringPropertyValueByName('Version', Version);
+        if NotificationText <> '' then
+            NotificationJson.ReadFrom(NotificationText);
+        GetJsonTokenText(NotificationJson, 'Version', Version);
 
         IntelligentCloudSetup.SetLatestVersion(Version);
     end;
@@ -373,10 +374,28 @@ codeunit 4014 "Notification Handler"
     [TryFunction]
     local procedure TryParsePipelineRunId(Details: Text; var PipelineRunId: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        DetailsJson: JsonObject;
     begin
-        JSONManagement.InitializeObject(Details);
-        JSONManagement.GetStringPropertyValueByName('pipelineRunId', PipelineRunId)
+        if Details <> '' then
+            if not DetailsJson.ReadFrom(Details) then
+                Error('');
+        GetJsonTokenText(DetailsJson, 'pipelineRunId', PipelineRunId)
+    end;
+
+    local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit(false);
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit(true);
+            Value := JsonToken.AsValue().AsText();
+        end else
+            JsonToken.WriteTo(Value);
+        exit(true);
     end;
 
     local procedure SourceSupported(ProductId: Text[250]; WarningType: Enum "Cloud Migration Warning Type") Supported: Boolean

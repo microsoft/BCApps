@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ using System.Xml;
 
 codeunit 5459 "JSON Management"
 {
+    ObsoleteReason = 'Use the built-in AL JSON types or codeunit Json in namespace System.Text.Json instead.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     trigger OnRun()
     begin
@@ -750,4 +754,4 @@ codeunit 5459 "JSON Management"
     begin
     end;
 }
-
+#endif

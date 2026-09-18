@@ -1,18 +1,20 @@
 namespace System.AI;
 
-using System;
+#if not CLEAN30
 using System.Text;
+#endif
 
 codeunit 2021 "Image Analysis Result"
 {
     var
-        JSONManagement: Codeunit "JSON Management";
-        Result: DotNet JObject;
-        Tags: DotNet JArray;
-        Color: DotNet JObject;
-        DominantColors: DotNet JArray;
+        Result: JsonObject;
+        Tags: JsonArray;
+        Color: JsonObject;
+        DominantColors: JsonArray;
         LastAnalysisTypes: List of [Enum "Image Analysis Type"];
 
+#if not CLEAN30
+    [Obsolete('Use SetResult with the native JsonObject type instead.', '30.0')]
     procedure SetResult(InputJSONManagement: Codeunit "JSON Management"; AnalysisType: Enum "Image Analysis Type")
     var
         AnalysisTypes: List of [Enum "Image Analysis Type"];
@@ -21,73 +23,97 @@ codeunit 2021 "Image Analysis Result"
         SetResult(InputJSONManagement, AnalysisTypes);
     end;
 
+    [Obsolete('Use SetResult with the native JsonObject type instead.', '30.0')]
     procedure SetResult(InputJSONManagement: Codeunit "JSON Management"; AnalysisTypes: List of [Enum "Image Analysis Type"])
+    var
+        InputResult: JsonObject;
+        ResultText: Text;
     begin
-        Tags := Tags.JArray();
-        Color := Color.JObject();
-        DominantColors := DominantColors.JArray();
+        ResultText := InputJSONManagement.WriteObjectToString();
+        if ResultText <> '' then
+            InputResult.ReadFrom(ResultText);
+        SetResult(InputResult, AnalysisTypes);
+    end;
+#endif
+
+    procedure SetResult(InputResult: JsonObject; AnalysisType: Enum "Image Analysis Type")
+    var
+        AnalysisTypes: List of [Enum "Image Analysis Type"];
+    begin
+        AnalysisTypes.Add(AnalysisType);
+        SetResult(InputResult, AnalysisTypes);
+    end;
+
+    procedure SetResult(InputResult: JsonObject; AnalysisTypes: List of [Enum "Image Analysis Type"])
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Tags);
+        Clear(Color);
+        Clear(DominantColors);
 
         LastAnalysisTypes := AnalysisTypes;
 
-        InputJSONManagement.GetJSONObject(Result);
-        if IsNull(Result) then
+        Result := InputResult.Clone().AsObject();
+        if Result.Keys().Count() = 0 then
             exit;
 
-        if not JSONManagement.GetArrayPropertyValueFromJObjectByName(Result, 'tags', Tags) then
-            if not JSONManagement.GetArrayPropertyValueFromJObjectByName(Result, 'Predictions', Tags) then
-                if not JSONManagement.GetArrayPropertyValueFromJObjectByName(Result, 'predictions', Tags) then
-                    Tags := Tags.JArray();
+        if Result.Get('tags', JsonToken) and JsonToken.IsArray() then
+            Tags := JsonToken.AsArray()
+        else
+            if Result.Get('Predictions', JsonToken) and JsonToken.IsArray() then
+                Tags := JsonToken.AsArray()
+            else
+                if Result.Get('predictions', JsonToken) and JsonToken.IsArray() then
+                    Tags := JsonToken.AsArray();
 
-        Color := Color.JObject();
-        DominantColors := DominantColors.JArray();
-        if JSONManagement.GetObjectPropertyValueFromJObjectByName(Result, 'color', Color) then
-            JSONManagement.GetArrayPropertyValueFromJObjectByName(Color, 'dominantColors', DominantColors)
-        else begin
-            Color := Color.JObject();
-            DominantColors := DominantColors.JArray();
+        if Result.Get('color', JsonToken) and JsonToken.IsObject() then begin
+            Color := JsonToken.AsObject();
+            if Color.Get('dominantColors', JsonToken) and JsonToken.IsArray() then
+                DominantColors := JsonToken.AsArray();
         end;
     end;
 
     internal procedure GetResultVerbatim() ResultVerbatim: Text
     begin
-        if IsNull(Result) then
+        if Result.Keys().Count() = 0 then
             exit('');
 
-        ResultVerbatim := Result.ToString();
+        Result.WriteTo(ResultVerbatim);
     end;
 
     procedure TagCount(): Integer
     begin
-        exit(Tags.Count);
+        exit(Tags.Count());
     end;
 
     procedure TagName(Number: Integer): Text
     var
-        Tag: DotNet JObject;
+        Tag: JsonObject;
+        JsonToken: JsonToken;
         Name: Text;
     begin
-        JSONManagement.InitializeCollectionFromJArray(Tags);
-        if JSONManagement.GetJObjectFromCollectionByIndex(Tag, Number - 1) then begin
-            if not JSONManagement.GetStringPropertyValueFromJObjectByName(Tag, 'name', Name) then
-                if not JSONManagement.GetStringPropertyValueFromJObjectByName(Tag, 'Tag', Name) then
-                    JSONManagement.GetStringPropertyValueFromJObjectByName(Tag, 'tagName', Name);
+        if Tags.Get(Number - 1, JsonToken) and JsonToken.IsObject() then begin
+            Tag := JsonToken.AsObject();
+            if not TryGetJsonText(Tag, 'name', Name) then
+                if not TryGetJsonText(Tag, 'Tag', Name) then
+                    TryGetJsonText(Tag, 'tagName', Name);
             exit(Name)
         end;
     end;
 
     procedure TagConfidence(Number: Integer): Decimal
     var
-        Tag: DotNet JObject;
+        Tag: JsonObject;
+        JsonToken: JsonToken;
         Confidence: Decimal;
-        ConfidenceText: Text;
     begin
-        JSONManagement.InitializeCollectionFromJArray(Tags);
-        if JSONManagement.GetJObjectFromCollectionByIndex(Tag, Number - 1) then begin
-            if not JSONManagement.GetStringPropertyValueFromJObjectByName(Tag, 'confidence', ConfidenceText) then
-                if not JSONManagement.GetStringPropertyValueFromJObjectByName(Tag, 'Probability', ConfidenceText) then
-                    if not JSONManagement.GetStringPropertyValueFromJObjectByName(Tag, 'probability', ConfidenceText) then
-                        ConfidenceText := '0';
-            Evaluate(Confidence, ConfidenceText);
+        if Tags.Get(Number - 1, JsonToken) and JsonToken.IsObject() then begin
+            Tag := JsonToken.AsObject();
+            if not TryGetJsonDecimal(Tag, 'confidence', Confidence) then
+                if not TryGetJsonDecimal(Tag, 'Probability', Confidence) then
+                    if not TryGetJsonDecimal(Tag, 'probability', Confidence) then
+                        exit(0);
             exit(Confidence)
         end;
     end;
@@ -96,7 +122,7 @@ codeunit 2021 "Image Analysis Result"
     var
         ColorText: Text;
     begin
-        JSONManagement.GetStringPropertyValueFromJObjectByName(Color, 'dominantColorForeground', ColorText);
+        TryGetJsonText(Color, 'dominantColorForeground', ColorText);
         exit(ColorText);
     end;
 
@@ -104,24 +130,52 @@ codeunit 2021 "Image Analysis Result"
     var
         ColorText: Text;
     begin
-        JSONManagement.GetStringPropertyValueFromJObjectByName(Color, 'dominantColorBackground', ColorText);
+        TryGetJsonText(Color, 'dominantColorBackground', ColorText);
         exit(ColorText);
     end;
 
     procedure DominantColorCount(): Integer
     begin
-        exit(DominantColors.Count);
+        exit(DominantColors.Count());
     end;
 
     procedure DominantColor(Number: Integer): Text
     var
-        LocalDominantColor: DotNet JObject;
+        JsonToken: JsonToken;
     begin
-        JSONManagement.InitializeCollectionFromJArray(DominantColors);
-        if JSONManagement.GetJObjectFromCollectionByIndex(LocalDominantColor, Number - 1) then
-            exit(Format(LocalDominantColor));
+        if DominantColors.Get(Number - 1, JsonToken) and JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit('');
+            exit(JsonToken.AsValue().AsText());
+        end;
     end;
 
+    local procedure TryGetJsonText(JsonObject: JsonObject; PropertyName: Text; var Value: Text): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) or not JsonToken.IsValue() then
+            exit(false);
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit(true);
+        Value := JsonToken.AsValue().AsText();
+        exit(true);
+    end;
+
+    local procedure TryGetJsonDecimal(JsonObject: JsonObject; PropertyName: Text; var Value: Decimal): Boolean
+    var
+        JsonToken: JsonToken;
+    begin
+        Clear(Value);
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit(false);
+        if not JsonToken.IsValue() then
+            exit(false);
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit(false);
+        exit(Evaluate(Value, JsonToken.AsValue().AsText(), 9));
+    end;
 
     procedure GetLatestImageAnalysisTypes(var AnalysisType: List of [Enum "Image Analysis Type"])
     begin

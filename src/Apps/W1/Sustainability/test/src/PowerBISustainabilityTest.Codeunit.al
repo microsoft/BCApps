@@ -9,7 +9,6 @@ using Microsoft.Sustainability.PowerBIReports;
 using Microsoft.Sustainability.Scorecard;
 using System.Security.User;
 using System.TestLibraries.Security.AccessControl;
-using System.Text;
 
 codeunit 148215 "PowerBI Sustainability Test"
 {
@@ -72,7 +71,7 @@ codeunit 148215 "PowerBI Sustainability Test"
 
     procedure VerifySustainabilityLedgerEntry(Response: Text; SustainabilityLedgerEntry: Record "Sustainability Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(Format(SustainabilityLedgerEntry."Entry No.") + ')]')), 'Sustainability ledger entry not found.');
@@ -135,7 +134,7 @@ codeunit 148215 "PowerBI Sustainability Test"
 
     procedure VerifyEmployeeLedgerEntry(Response: Text; EmployeeLedgerEntry: Record "Employee Ledger Entry")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.entryNo == ' + Format(Format(EmployeeLedgerEntry."Entry No.") + ')]')), 'Employee ledger entry not found.');
@@ -352,7 +351,7 @@ codeunit 148215 "PowerBI Sustainability Test"
 
     procedure VerifySustainabilityGoal(Response: Text; SustainabilityGoal: Record "Sustainability Goal")
     var
-        JsonMgt: Codeunit "JSON Management";
+        JsonMgt: Codeunit "Library - Graph Mgt";
     begin
         JsonMgt.InitializeObject(Response);
         Assert.IsTrue(JsonMgt.SelectTokenFromRoot('$..value[?(@.no == ''' + SustainabilityGoal."No." + ''')]'), 'Sustainability goal not found.');

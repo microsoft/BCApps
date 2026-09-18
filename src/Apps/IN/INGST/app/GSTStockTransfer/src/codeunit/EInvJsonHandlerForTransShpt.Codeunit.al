@@ -11,7 +11,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.QRGeneration;
 using System.Security.Encryption;
-using System.Text;
 using System.Utilities;
 
 codeunit 18023 "E-InvJsonHandlerForTransShpt"
@@ -612,10 +611,10 @@ codeunit 18023 "E-InvJsonHandlerForTransShpt"
 
     procedure GetEInvoiceResponse(var RecRef: RecordRef)
     var
-        JSONManagement: Codeunit "JSON Management";
         QRGenerator: Codeunit "QR Generator";
         TempBlob: Codeunit "Temp Blob";
         FieldRef: FieldRef;
+        ResponseJson: JsonObject;
         JsonString: Text;
         TempIRNTxt: Text;
         TempDateTime: DateTime;
@@ -627,14 +626,14 @@ codeunit 18023 "E-InvJsonHandlerForTransShpt"
         if (JsonString = '') or (JsonString = '[]') then
             exit;
 
-        JSONManagement.InitializeObject(JsonString);
-        if JSONManagement.GetValue(IRNTxt) <> '' then begin
+        ResponseJson.ReadFrom(JsonString);
+        if GetJsonValue(ResponseJson, IRNTxt) <> '' then begin
             FieldRef := RecRef.Field(TransferShipmentHeader.FieldNo("IRN Hash"));
-            FieldRef.Value := JSONManagement.GetValue(IRNTxt);
+            FieldRef.Value := GetJsonValue(ResponseJson, IRNTxt);
             FieldRef := RecRef.Field(TransferShipmentHeader.FieldNo("Acknowledgement No."));
-            FieldRef.Value := JSONManagement.GetValue(AcknowledgementNoTxt);
+            FieldRef.Value := GetJsonValue(ResponseJson, AcknowledgementNoTxt);
 
-            AcknowledgementDateTimeText := JSONManagement.GetValue(AcknowledgementDateTxt);
+            AcknowledgementDateTimeText := GetJsonValue(ResponseJson, AcknowledgementDateTxt);
             Evaluate(AcknowledgementDate, CopyStr(AcknowledgementDateTimeText, 1, 10));
             Evaluate(AcknowledgementTime, CopyStr(AcknowledgementDateTimeText, 11, 8));
             TempDateTime := CreateDateTime(AcknowledgementDate, AcknowledgementTime);
@@ -643,12 +642,25 @@ codeunit 18023 "E-InvJsonHandlerForTransShpt"
             FieldRef.Value := TempDateTime;
             FieldRef := RecRef.Field(TransferShipmentHeader.FieldNo(IsJSONImported));
             FieldRef.Value := true;
-            QRGenerator.GenerateQRCodeImage(JSONManagement.GetValue(SignedQRCodeTxt), TempBlob);
+            QRGenerator.GenerateQRCodeImage(GetJsonValue(ResponseJson, SignedQRCodeTxt), TempBlob);
             FieldRef := RecRef.Field(TransferShipmentHeader.FieldNo("QR Code"));
             TempBlob.ToRecordRef(RecRef, TransferShipmentHeader.FieldNo("QR Code"));
             RecRef.Modify();
         end else
             Error(IRNHashErr, TempIRNTxt);
+    end;
+
+    local procedure GetJsonValue(JsonObject: JsonObject; PropertyName: Text): Text
+    var
+        JsonToken: JsonToken;
+    begin
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit('');
+        if not JsonToken.IsValue() then
+            exit('');
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit('');
+        exit(JsonToken.AsValue().AsText());
     end;
 
     local procedure GetResponseText() ResponseText: Text
