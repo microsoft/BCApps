@@ -32,7 +32,8 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsConsolidatedProjectsEnabled());
             Capability::VATSpecifications:
                 exit(IsVATSpecificationsEnabled());
-            Capability::AiAssistedPolicyEvaluation:
+            Capability::AiAssistedPolicyEvaluation,
+            Capability::SubmissionPolicyHistory:
                 exit(IsAiAssistedPolicyEvaluationEnabled());
             Capability::ActivityLog,
             Capability::MileageRateSetup,

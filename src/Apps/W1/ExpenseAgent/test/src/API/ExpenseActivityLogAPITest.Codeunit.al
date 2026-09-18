@@ -19,6 +19,7 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseActivityLogEntries', Locked = true;
@@ -84,6 +85,7 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.AreNotEqual(0, StrPos(ResponseText, '"expensecount"'), 'Response must contain the expense count snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"attachedreceiptcount"'), 'Response must contain the attached receipt count snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"comment":"submitted for approval"'), 'Response must contain the event comment.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"policysnapshotpresent":false'), 'Old entries must not imply a policy snapshot.');
         CompleteTest();
     end;
 
@@ -425,6 +427,76 @@ codeunit 148343 "Expense Activity Log API Test"
         CompleteTest();
     end;
 
+    [Test]
+    procedure ScopedSubmissionCapturesPolicySnapshotAndDeduplicatesCompletion()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        SubmissionID: Guid;
+        RequestBody: JsonObject;
+        RequestText: Text;
+        ResponseText: Text;
+        ReportURL: Text;
+        RunToken: Code[8];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Scoped additive submission assigns the supplied identity and exposes one immutable policy summary.
+        Initialize();
+
+        // [GIVEN] A report with a current failed policy result.
+        RunToken := CreateRunToken();
+        CreateE2ESetup(SubmitterExpenseUser, ApproverExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
+        CreateE2EReport(ExpenseReportHeader, SubmitterExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup.Modify(false);
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'API policy history test');
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        LibraryExpense.CreateExpensePolicyEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Flagged', false);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        SubmissionID := CreateGuid();
+        RequestBody := CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", '');
+        RequestBody.Add('submissionActivityID', LibraryGraphMgt.StripBrackets(Format(SubmissionID)));
+        RequestBody.WriteTo(RequestText);
+        ReportURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(SubmitterExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok, ExpenseReportsServiceNameTok);
+        ReportURL += '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)) + ')';
+        Commit();
+
+        // [WHEN] Submission and repeated completion are requested through the submitting user.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/Microsoft.NAV.submitWithPolicyHistory', RequestText, ResponseText, 200);
+        Clear(RequestBody);
+        RequestBody.Add('submissionActivityID', LibraryGraphMgt.StripBrackets(Format(SubmissionID)));
+        RequestBody.WriteTo(RequestText);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/Microsoft.NAV.completeSubmissionPolicyHistory', RequestText, ResponseText, 200);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(ReportURL + '/Microsoft.NAV.completeSubmissionPolicyHistory', RequestText, ResponseText, 200);
+
+        // [THEN] The supplied identity belongs to the actual submission, and the snapshot remains unique.
+        ExpenseActivityLogEntry.GetBySystemId(SubmissionID);
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Submitted, ExpenseActivityLogEntry."Event Type", 'Correlation must identify the submission.');
+        ExpenseActivityLogEntry.SetRange("Submission Activity ID", SubmissionID);
+        Assert.RecordCount(ExpenseActivityLogEntry, 1);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, ReportURL + '/' + ServiceNameTok, 200);
+        ResponseText := LowerCase(ResponseText);
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"policysnapshotpresent":true'), 'The snapshot flag must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"policystatus":"flagged"'), 'The failed result must not be mapped to cleared.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"failedpolicycount":1'), 'The pair count must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"flaggedcategorycount":1'), 'The category count must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"latestpoliciesevaluatedat"'), 'The underlying evaluation timestamp must be explicit.');
+        ExpensePolicy.Delete(true);
+        LibrarySetupStorage.Restore();
+        CompleteTest();
+    end;
+
     local procedure CreateE2ESetup(
         var SubmitterExpenseUser: Record "Expense User";
         var ApproverExpenseUser: Record "Expense User";
@@ -596,6 +668,7 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
+        LibrarySetupStorage.Restore();
         CleanupTestData();
         if IsInitialized then
             exit;
@@ -612,6 +685,7 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseAgentSetup.Modify();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
+        LibrarySetupStorage.Save(Database::"Expense Agent Setup");
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");

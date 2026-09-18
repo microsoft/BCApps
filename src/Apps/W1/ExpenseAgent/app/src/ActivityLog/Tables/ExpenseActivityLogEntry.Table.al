@@ -177,6 +177,51 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Expense Count';
             DataClassification = SystemMetadata;
         }
+        field(54; "Policy Snapshot Present"; Boolean)
+        {
+            Caption = 'Policy Snapshot Present';
+            DataClassification = SystemMetadata;
+        }
+        field(55; "Policy Status"; Enum "Expense Policy Status")
+        {
+            Caption = 'Policy Status';
+            DataClassification = SystemMetadata;
+        }
+        field(56; "Failed Policy Count"; Integer)
+        {
+            Caption = 'Failed Policy Count';
+            DataClassification = SystemMetadata;
+        }
+        field(57; "Passed Policy Count"; Integer)
+        {
+            Caption = 'Passed Policy Count';
+            DataClassification = SystemMetadata;
+        }
+        field(58; "Flagged Categories"; Text[2048])
+        {
+            Caption = 'Flagged Categories';
+            DataClassification = CustomerContent;
+        }
+        field(59; "Flagged Category Count"; Integer)
+        {
+            Caption = 'Flagged Category Count';
+            DataClassification = SystemMetadata;
+        }
+        field(60; "Submission Activity ID"; Guid)
+        {
+            Caption = 'Submission Activity ID';
+            DataClassification = SystemMetadata;
+        }
+        field(61; "Latest Policies Evaluated At"; DateTime)
+        {
+            Caption = 'Latest Policies Evaluated At';
+            DataClassification = SystemMetadata;
+        }
+        field(62; "Policy Context Hash"; Text[100])
+        {
+            Caption = 'Policy Context Hash';
+            DataClassification = SystemMetadata;
+        }
         field(100; "History Actor Table ID Filter"; Integer)
         {
             Caption = 'History Actor Table ID Filter';
@@ -221,6 +266,9 @@ table 7100 "Expense Activity Log Entry"
         {
         }
         key(Occurred; "Occurred At", "Entry No.")
+        {
+        }
+        key(Submission; "Submission Activity ID", "Event Type")
         {
         }
     }

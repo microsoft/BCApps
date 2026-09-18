@@ -147,6 +147,38 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'History Actor Role';
                 }
+                field(policySnapshotPresent; Rec."Policy Snapshot Present")
+                {
+                    Caption = 'Policy Snapshot Present';
+                }
+                field(policyStatus; Rec."Policy Status")
+                {
+                    Caption = 'Policy Status';
+                }
+                field(failedPolicyCount; Rec."Failed Policy Count")
+                {
+                    Caption = 'Failed Policy Count';
+                }
+                field(passedPolicyCount; Rec."Passed Policy Count")
+                {
+                    Caption = 'Passed Policy Count';
+                }
+                field(flaggedCategories; Rec."Flagged Categories")
+                {
+                    Caption = 'Flagged Categories';
+                }
+                field(flaggedCategoryCount; Rec."Flagged Category Count")
+                {
+                    Caption = 'Flagged Category Count';
+                }
+                field(submissionActivityId; Rec."Submission Activity ID")
+                {
+                    Caption = 'Submission Activity ID';
+                }
+                field(latestPoliciesEvaluatedAt; Rec."Latest Policies Evaluated At")
+                {
+                    Caption = 'Latest Policies Evaluated At';
+                }
             }
         }
     }

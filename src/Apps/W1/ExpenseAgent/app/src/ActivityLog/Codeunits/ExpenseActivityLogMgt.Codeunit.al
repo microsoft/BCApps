@@ -24,11 +24,27 @@ codeunit 6926 "Expense Activity Log Mgt."
         EventComment: Text
     ): BigInteger
     var
+        ActivityID: Guid;
+    begin
+        exit(LogExpenseReportEvent(ExpenseReportHeader, EventType, InitiatedBy, ActorRole, ActorExpenseUserNo, EventComment, ActivityID));
+    end;
+
+    internal procedure LogExpenseReportEvent(
+        ExpenseReportHeader: Record "Expense Report Header";
+        EventType: Enum "Expense Activity Event Type";
+        InitiatedBy: Enum "Expense Activity Initiator";
+        ActorRole: Enum "Expense Activity Actor Role";
+        ActorExpenseUserNo: Code[20];
+        EventComment: Text;
+        ActivityID: Guid
+    ): BigInteger
+    var
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
     begin
         InitializeExpenseReportEntry(
             ExpenseActivityLogEntry, ExpenseReportHeader, EventType, InitiatedBy, ActorRole, EventComment, CurrentDateTime());
         SetExpenseUserActor(ExpenseActivityLogEntry, ActorExpenseUserNo);
+        ExpenseActivityLogEntry.SystemId := ActivityID;
         exit(InsertExpenseReportEntry(ExpenseActivityLogEntry, ExpenseReportHeader));
     end;
 
@@ -172,7 +188,7 @@ codeunit 6926 "Expense Activity Log Mgt."
             SetContentsSnapshot(ExpenseActivityLogEntry, ExpenseReportHeader."No.");
         end;
 
-        ExpenseActivityLogEntry.Insert();
+        ExpenseActivityLogEntry.Insert(false, not IsNullGuid(ExpenseActivityLogEntry.SystemId));
         exit(ExpenseActivityLogEntry."Entry No.");
     end;
 
