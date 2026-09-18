@@ -98,6 +98,14 @@ codeunit 12184 "Fattura Doc. Helper"
         FatturaDocTypeDiffQst: Label 'There are one or more different values of Fattura document type coming from the VAT posting setup of lines. As it''''s not possible to identify the value, %1 from the header will be used.\\Do you want to continue?', Comment = '%1 = the value of Fattura Document type from the header';
         InvalidFiscalRegimeCodeErr: Label '%1 is not a valid FatturaPA fiscal regime code.', Comment = '%1 = invalid fiscal regime code';
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnCompanyInitialize', '', false, false)]
+    local procedure OnCompanyInitialize()
+    var
+        CompanyTypes: Record "Company Types";
+    begin
+        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
+    end;
+
     [Scope('OnPrem')]
     procedure CollectDocumentInformation(var TempFatturaHeader: Record "Fattura Header" temporary; var TempFatturaLine: Record "Fattura Line" temporary; HeaderRecRef: RecordRef)
     var
