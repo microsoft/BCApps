@@ -450,7 +450,7 @@ report 115 "Salesperson - Commission"
             LayoutFile = './Sales/Reports/SalespersonCommission.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN29
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Salesperson Commission Word';

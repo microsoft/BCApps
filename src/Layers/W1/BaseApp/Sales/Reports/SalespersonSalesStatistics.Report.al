@@ -253,7 +253,7 @@ report 114 "Salesperson - Sales Statistics"
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN29
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
