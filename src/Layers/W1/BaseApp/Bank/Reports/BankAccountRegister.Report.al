@@ -21,6 +21,7 @@ report 1403 "Bank Account Register"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account Register';
+    ToolTip = 'Run the Bank Account Register report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
