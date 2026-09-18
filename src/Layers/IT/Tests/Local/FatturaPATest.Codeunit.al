@@ -1290,6 +1290,48 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure StandardFatturaPAFiscalRegimesAreSeeded()
+    var
+        CompanyTypes: Record "Company Types";
+    begin
+        // [FEATURE] [FatturaPA] [Setup]
+        // [SCENARIO] The fixed FatturaPA fiscal regime catalog contains all standard values
+        Initialize();
+
+        // [GIVEN] No FatturaPA fiscal regimes exist
+        CompanyTypes.DeleteAll(false);
+
+        // [WHEN] The standard catalog is initialized
+        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
+
+        // [THEN] All 19 supported regimes exist
+        Assert.RecordCount(CompanyTypes, 19);
+        CompanyTypes.Get('01');
+        CompanyTypes.Get('19');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StandardFatturaPAFiscalRegimesAreReadOnly()
+    var
+        CompanyTypes: Record "Company Types";
+    begin
+        // [FEATURE] [FatturaPA] [Setup]
+        // [SCENARIO] Standard FatturaPA fiscal regimes cannot be changed by users
+        Initialize();
+        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
+        CompanyTypes.Get('19');
+
+        // [WHEN] A standard regime is modified
+        CompanyTypes.Description := 'Modified';
+        asserterror CompanyTypes.Modify(true);
+
+        // [THEN] The fixed catalog rejects the change
+        Assert.ExpectedError('cannot be changed');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithValidFiscalRegime()
     var
         CompanyInformation: Record "Company Information";
