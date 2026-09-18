@@ -520,6 +520,9 @@ codeunit 20508 "Subc. Price Management"
 
     internal procedure GetAutomaticSubcCostForReqLine(RequisitionLine: Record "Requisition Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Decimal
     begin
+        ProdOrderRoutingLine.SetLoadFields(
+            "Standard Task Code", Type, "Unit Cost Calculation", "Direct Unit Cost",
+            "Expected Operation Cost Amt.", "Expected Capacity Ovhd. Cost");
         GetProdOrderRtngLine(
             RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.",
             RequisitionLine."Routing No.", RequisitionLine."Operation No.", ProdOrderRoutingLine);
