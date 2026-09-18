@@ -557,6 +557,18 @@ codeunit 1550 "Record Restriction Mgt."
         CheckGenJournalLineHasUsageRestrictions(Sender, GenJournalBatch);
     end;
 
+    [Obsolete('Replaced by ItemJournalLineCheckItemPostRestrictions, which now also checks the Item Journal Batch usage restrictions.', '30.0')]
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnCheckItemJournalLinePostRestrictions', '', false, false)]
+    procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        if not ItemJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
+            exit;
+
+        CheckRecordHasUsageRestrictions(ItemJournalBatch);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnCheckSalesPostRestrictions', '', false, false)]
     procedure SalesHeaderCheckSalesPostRestrictions(var Sender: Record "Sales Header")
     var
