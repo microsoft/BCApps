@@ -1015,6 +1015,8 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
 
         SalesHeader1RecordRef.GETTABLE(SalesHeader1);
         SalesHeader2RecordRef.GETTABLE(SalesHeader2);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           SalesHeader1RecordRef, SalesHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
