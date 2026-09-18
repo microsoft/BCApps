@@ -142,6 +142,7 @@ report 31012 "Create Sales Adv. Letter CZZ"
     var
         ConfirmManagement: Codeunit "Confirm Management";
         OpenAdvanceLetterQst: Label 'Do you want to open created Advance Letter?';
+        IsHandled: Boolean;
     begin
         case SourceType of
             SourceType::SalesOrder:
@@ -161,10 +162,11 @@ report 31012 "Create Sales Adv. Letter CZZ"
                     CreateAdvanceLetterLine(TempJobPlanningLine);
                 end;
         end;
-
-        if ConfirmManagement.GetResponseOrDefault(OpenAdvanceLetterQst, false) then
-            if GuiAllowed() then
-                Page.Run(Page::"Sales Advance Letter CZZ", SalesAdvLetterHeaderCZZ);
+        OnPostReportOnBeforeConfitmOpenAdvanceLetter(SalesAdvLetterHeaderCZZ, IsHandled);
+        if not IsHandled then
+            if ConfirmManagement.GetResponseOrDefault(OpenAdvanceLetterQst, false) then
+                if GuiAllowed() then
+                    Page.Run(Page::"Sales Advance Letter CZZ", SalesAdvLetterHeaderCZZ);
     end;
 
     local procedure CreateAdvanceLetterHeader(SalesHeader: Record "Sales Header")
@@ -535,6 +537,11 @@ report 31012 "Create Sales Adv. Letter CZZ"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateAdvancePostingBuffer(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; AmountIncludingVAT: Decimal; var TempAdvancePostingBufferCZZ: Record "Advance Posting Buffer CZZ" temporary; var IsHandled: boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostReportOnBeforeConfitmOpenAdvanceLetter(SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; var IsHandled: boolean)
     begin
     end;
 }
