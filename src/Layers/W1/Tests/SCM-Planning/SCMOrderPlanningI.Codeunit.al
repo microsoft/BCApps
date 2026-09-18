@@ -1661,7 +1661,9 @@ codeunit 137046 "SCM Order Planning - I"
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
     begin
+#pragma warning disable AA0210
         ReqWkshTemplate.SetRange(Type, TemplateType);
+#pragma warning restore AA0210
         RequisitionWkshName.SetRange(Recurring, false);
         ReqWkshTemplate.FindFirst();
         LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);

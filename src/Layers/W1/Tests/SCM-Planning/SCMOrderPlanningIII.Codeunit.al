@@ -4535,7 +4535,9 @@ codeunit 137088 "SCM Order Planning - III"
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
     begin
+#pragma warning disable AA0210
         ReqWkshTemplate.SetRange(Type, TemplateType);
+#pragma warning restore AA0210
         ReqWkshTemplate.FindFirst();
         exit(ReqWkshTemplate.Name);
     end;
