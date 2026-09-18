@@ -489,14 +489,10 @@ codeunit 12184 "Fattura Doc. Helper"
     end;
 
     local procedure IsValidFatturaPAFiscalRegimeCode(FiscalRegimeCode: Code[2]): Boolean
+    var
+        CompanyTypes: Record "Company Types";
     begin
-        case FiscalRegimeCode of
-            '01', '02', '03', '04', '05', '06', '07', '08', '09',
-            '10', '11', '12', '13', '14', '15', '16', '17', '18', '19':
-                exit(true);
-        end;
-
-        exit(false);
+        exit(CompanyTypes.IsValidFatturaPAFiscalRegimeCode(FiscalRegimeCode));
     end;
 
     local procedure CheckFatturaPANos(var ErrorMessage: Record "Error Message")
