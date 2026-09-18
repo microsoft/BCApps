@@ -45,6 +45,13 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         ExpandCodeunit(AITTestMethodLine);
     end;
 
+    procedure RunTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+    begin
+        AITTestSuiteMgt.StartAITSuite(AITTestSuite);
+    end;
+
     internal procedure CreateALTestSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         ALTestSuite: Record "AL Test Suite";
