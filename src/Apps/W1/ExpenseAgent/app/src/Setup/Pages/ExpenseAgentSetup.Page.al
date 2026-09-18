@@ -26,13 +26,13 @@ page 6996 "Expense Agent Setup"
         {
             group(General)
             {
-#if not CLEAN30
+#if not CLEAN29
                 field("Enable Agent"; Rec."Enable Agent")
                 {
                     Editable = false;
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to activate or deactivate the agent.';
                     ToolTip = 'Specifies whether the agent is active in this company. Use the Configure Expense Agent wizard from the agent avatar to activate or deactivate the agent; this page only reflects the current state.';
                 }
@@ -44,7 +44,7 @@ page 6996 "Expense Agent Setup"
                     ShowMandatory = true;
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up receipt submission.';
 
                     trigger OnAssistEdit()
@@ -61,7 +61,7 @@ page 6996 "Expense Agent Setup"
                 {
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up receipt submission.';
                 }
 #endif
@@ -118,14 +118,14 @@ page 6996 "Expense Agent Setup"
                     Importance = Additional;
                 }
             }
-#if not CLEAN30
+#if not CLEAN29
             group(Communication)
             {
                 Caption = 'Communication';
                 InstructionalText = 'Define how users are notified about unsubmitted expenses and approval events.';
                 Visible = false;
                 ObsoleteState = Pending;
-                ObsoleteTag = '30.0';
+                ObsoleteTag = '29.0';
                 ObsoleteReason = 'Use Configure Expense Agent to set up outgoing communication.';
 
                 group(OutgoingEmail)
@@ -133,7 +133,7 @@ page 6996 "Expense Agent Setup"
                     Caption = 'Send mail';
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up outgoing communication.';
 
                     field("Noreply Email Address"; Rec."Noreply Email Address")
@@ -143,7 +143,7 @@ page 6996 "Expense Agent Setup"
                         Editable = false;
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up outgoing communication.';
 
                         trigger OnAssistEdit()
@@ -157,7 +157,7 @@ page 6996 "Expense Agent Setup"
                     Caption = 'Notify users about unsubmitted reports';
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up unsubmitted-report reminders.';
 
                     field("Enable Open Report Notif."; Rec."Enable Open Report Notif.")
@@ -165,7 +165,7 @@ page 6996 "Expense Agent Setup"
                         ShowCaption = false;
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up unsubmitted-report reminders.';
 
                         trigger OnValidate()
@@ -179,7 +179,7 @@ page 6996 "Expense Agent Setup"
                         Enabled = Rec."Enable Open Report Notif.";
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up unsubmitted-report reminders.';
                     }
                     field("Notif. Day of Week"; Rec."Notif. Day of Week")
@@ -187,7 +187,7 @@ page 6996 "Expense Agent Setup"
                         Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Weekly);
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up unsubmitted-report reminders.';
                     }
                     field("Notif. Day In A Month"; Rec."Notif. Day In A Month")
@@ -195,7 +195,7 @@ page 6996 "Expense Agent Setup"
                         Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Monthly);
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up unsubmitted-report reminders.';
                     }
                     field("Custom Notif. Formula"; Rec."Custom Notif. Formula")
@@ -203,7 +203,7 @@ page 6996 "Expense Agent Setup"
                         Enabled = Rec."Enable Open Report Notif." and (Rec."Open Report Notif. Freq." = Rec."Open Report Notif. Freq."::Custom);
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up unsubmitted-report reminders.';
                     }
                 }
@@ -213,7 +213,7 @@ page 6996 "Expense Agent Setup"
                     InstructionalText = 'Sent when reports are submitted, approved, and rejected.';
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up approval notifications.';
 
                     field("Enable Approval Notif."; Rec."Enable Approval Notif.")
@@ -222,7 +222,7 @@ page 6996 "Expense Agent Setup"
                         ToolTip = 'Specifies whether the system sends email notifications when expense reports are submitted, approved, or rejected.';
                         Visible = false;
                         ObsoleteState = Pending;
-                        ObsoleteTag = '30.0';
+                        ObsoleteTag = '29.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up approval notifications.';
                     }
                 }
@@ -239,13 +239,13 @@ page 6996 "Expense Agent Setup"
                 field("Use Rules"; Rec."Use Rules")
                 {
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field("Evaluate Policies"; Rec."Evaluate Policies")
                 {
                     ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up AI policy evaluation.';
 
                     trigger OnValidate()
@@ -264,7 +264,7 @@ page 6996 "Expense Agent Setup"
                 {
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up AI policy evaluation.';
                 }
 #endif
@@ -324,19 +324,19 @@ page 6996 "Expense Agent Setup"
                     end;
                 }
             }
-#if not CLEAN30
+#if not CLEAN29
             group(Projects)
             {
                 Caption = 'Projects';
                 Visible = false;
                 ObsoleteState = Pending;
-                ObsoleteTag = '30.0';
+                ObsoleteTag = '29.0';
                 ObsoleteReason = 'Use Configure Expense Agent to set up project fields.';
                 field("Enable Project Fields"; Rec."Enable Project Fields")
                 {
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up project fields.';
                 }
                 field("Project Visibility"; Rec."Project Visibility")
@@ -344,7 +344,7 @@ page 6996 "Expense Agent Setup"
                     Enabled = Rec."Enable Project Fields";
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up project fields.';
                 }
             }
@@ -429,12 +429,12 @@ page 6996 "Expense Agent Setup"
                         exit(true);
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field("Only Shortest Route"; Rec."Only Shortest Route")
                 {
                     Visible = false;
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up mileage routes.';
                 }
 #endif
@@ -583,11 +583,11 @@ page 6996 "Expense Agent Setup"
 
     var
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
-#if not CLEAN30
+#if not CLEAN29
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 #endif
 
-#if not CLEAN30
+#if not CLEAN29
     local procedure ScheduleAllTasks()
     var
         EAAgentScheduler: Codeunit "EA Agent Scheduler";
