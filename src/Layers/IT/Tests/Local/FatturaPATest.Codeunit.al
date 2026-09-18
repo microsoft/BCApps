@@ -1290,6 +1290,50 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceUsesCountryRegionISOCode()
+    var
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] FatturaPA exports the ISO alpha-2 country code instead of the Business Central Country/Region key
+        Initialize();
+
+        // [GIVEN] A foreign Country/Region whose BC key differs from its ISO Code
+        CountryRegion.Init();
+        CountryRegion.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, 3);
+        CountryRegion.Name := LibraryUtility.GenerateGUID();
+        CountryRegion."ISO Code" := 'US';
+        CountryRegion.Insert();
+
+        // [GIVEN] A posted Sales Invoice for a Customer in that Country/Region
+        CustomerNo := CreateForeignCustomer(CountryRegion.Code);
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CustomerNo));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] FatturaPA uses the Country/Region ISO Code for IdPaese and Nazione
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/DatiAnagrafici/IdFiscaleIVA/IdPaese',
+          CountryRegion."ISO Code");
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CessionarioCommittente/Sede/Nazione',
+          CountryRegion."ISO Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
