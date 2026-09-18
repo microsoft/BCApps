@@ -177,7 +177,7 @@ codeunit 1639 "Office Line Generation"
     end;
 
     [CommitBehavior(CommitBehavior::Ignore)]
-    local procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
+    internal procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         LastItemNo: Text[50];
