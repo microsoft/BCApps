@@ -13,7 +13,11 @@ report 6627 "SN Label"
     ApplicationArea = All;
     Caption = 'SN Label';
     WordMergeDataItem = "Serial No. Information";
+#if CLEAN30
+    DefaultRenderingLayout = WordBody;
+#else
     DefaultRenderingLayout = Word;
+#endif
 
     dataset
     {
@@ -75,11 +79,24 @@ report 6627 "SN Label"
     }
     rendering
     {
+#if not CLEAN30
         layout(Word)
         {
             Type = Word;
             LayoutFile = './Inventory/Tracking/SNLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Inventory/Tracking/SNLabelBody.docx';
+            Caption = 'Body-only: SN Label (Word)';
+            Summary = 'Portrait orientated. Shows the item description and number with the serial number as text and as a 2D barcode. Use it to print labels for serial tracked items.';
         }
     }
 
