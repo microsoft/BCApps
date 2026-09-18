@@ -522,8 +522,13 @@ report 99001020 "Carry Out Action Msg. - Plan."
         if (TemplateName = '') or (BatchName = '') then
             Error(ProdWkshNotSpecifiedErr);
 
-        ReqWkshTemplate.Get(TemplateName);
+        if not ReqWkshTemplate.Get(TemplateName) then
+            Error(WrongProdCopyDestErr, TemplateName, BatchName);
+
         if ReqWkshTemplate.Type <> ReqWkshTemplate.Type::Planning then
+            Error(WrongProdCopyDestErr, TemplateName, BatchName);
+
+        if not RequisitionWkshName.Get(TemplateName, BatchName) then
             Error(WrongProdCopyDestErr, TemplateName, BatchName);
 
         if RequisitionWkshName.Recurring then
