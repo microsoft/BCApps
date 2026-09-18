@@ -1696,6 +1696,65 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure NoApplicablePriceTierClearsStalePricelistStateOnReqLine()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        RequisitionLine: Record "Requisition Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        PriceListUnitCost: Decimal;
+    begin
+        // [SCENARIO 648535] When recalculating a requisition line and no subcontractor price
+        // tier applies (every tier's Minimum Quantity exceeds the line quantity), GetSubcPriceForReqLine
+        // must clear any previously populated Subc. Pricelist Cost, Subc. UoM for Pricelist, and
+        // conversion ratios instead of leaving stale price-list state paired with the fallback cost.
+        Initialize();
+
+        // [GIVEN] Item, vendor, and work center linked as a subcontractor.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A subcontractor price with Minimum Quantity 1, applicable to a line with Quantity 5.
+        PriceListUnitCost := 1000;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), '', 1, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", PriceListUnitCost);
+        SubcontractorPrice.Modify(true);
+
+        RequisitionLine.Init();
+        RequisitionLine."No." := Item."No.";
+        RequisitionLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        RequisitionLine."Vendor No." := Vendor."No.";
+        RequisitionLine."Work Center No." := WorkCenter."No.";
+        RequisitionLine."Order Date" := WorkDate();
+        RequisitionLine.Quantity := 5;
+
+        // [GIVEN] The line is priced once, populating the price-list cost/UoM and conversion ratios.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+        Assert.AreNotEqual(0, RequisitionLine."Subc. Pricelist Cost", 'Test setup expects a nonzero Subc. Pricelist Cost.');
+        Assert.AreNotEqual('', RequisitionLine."Subc. UoM for Pricelist", 'Test setup expects a populated Subc. UoM for Pricelist.');
+
+        // [GIVEN] The line's quantity drops below every price tier's Minimum Quantity.
+        SubcontractorPrice.Validate("Minimum Quantity", 100);
+        SubcontractorPrice.Modify(true);
+        RequisitionLine.Quantity := 1;
+
+        // [WHEN] The requisition line is recalculated and no price tier applies.
+        SubcPriceManagement.GetSubcPriceForReqLine(RequisitionLine, '');
+
+        // [THEN] The stale price-list cost, UoM, and conversion ratios are cleared.
+        Assert.AreEqual(0, RequisitionLine."Subc. Pricelist Cost", 'Subc. Pricelist Cost must be reset when no price tier applies.');
+        Assert.AreEqual('', RequisitionLine."Subc. UoM for Pricelist", 'Subc. UoM for Pricelist must be reset when no price tier applies.');
+        Assert.AreEqual(1, RequisitionLine."Base UM Qty/PL UM Qty", 'Base UM Qty/PL UM Qty must be reset to 1 when no price tier applies.');
+        Assert.AreEqual(1, RequisitionLine."PL UM Qty/Base UM Qty", 'PL UM Qty/Base UM Qty must be reset to 1 when no price tier applies.');
+    end;
+
+    [Test]
     procedure FactboxCountsBlankUoMPriceWhenPurchLineHasUoM()
     var
         Item: Record Item;

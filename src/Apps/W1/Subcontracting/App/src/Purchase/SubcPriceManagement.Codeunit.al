@@ -485,8 +485,13 @@ codeunit 20508 "Subc. Price Management"
             end else
                 GetUOMPrice(RequisitionLine."No.", RequisitionLine.GetQuantityBase(), SubcontractorPrice, PriceListUOM, PriceListQtyPerUOM, PriceListQty);
 
-            if not GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost) then
+            if not GetPriceByUOM(SubcontractorPrice, PriceListQty, PriceListCost) then begin
+                RequisitionLine."Subc. Pricelist Cost" := 0;
+                RequisitionLine."Subc. UoM for Pricelist" := '';
+                RequisitionLine."Base UM Qty/PL UM Qty" := 1;
+                RequisitionLine."PL UM Qty/Base UM Qty" := 1;
                 exit;
+            end;
             if PriceListCost <> 0 then begin
                 ConvertPriceToUOM(RequisitionLine."Unit of Measure Code", RequisitionLine.GetQuantityForUOM(), PriceListUOM, PriceListQtyPerUOM, PriceListCost, DirectCost);
                 ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
