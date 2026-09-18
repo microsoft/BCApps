@@ -595,7 +595,7 @@ table 6906 "Expense Report Header"
         {
             Clustered = true;
         }
-        key(SpendRequestNo; "Spend Request No.")
+        key(SpendRequestNo; "Spend Request No.", "Expense User No.")
         {
         }
     }
@@ -1347,26 +1347,104 @@ table 6906 "Expense Report Header"
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure CreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request")
-    var
-        ExistingExpenseReportHeader: Record "Expense Report Header";
-        NewExpenseReportHeader: Record "Expense Report Header";
     begin
+        CreateFromApprovedTravelRequestIfMissing(SpendRequest);
+    end;
+
+    [CommitBehavior(CommitBehavior::Ignore)]
+    internal procedure CreateFromApprovedTravelRequestIfMissing(SpendRequest: Record "Spend Request"): Boolean
+    begin
+        // Serialize creation for this request even when no expense report exists yet.
+        SpendRequest.LockTable();
+        SpendRequest.Get(SpendRequest."No.");
         SpendRequest.TestField("Document Type", SpendRequest."Document Type"::"Travel Request");
         SpendRequest.TestStatus(SpendRequest.Status::Approved);
         SpendRequest.TestField("Requested For");
 
-        ExistingExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
-        if not ExistingExpenseReportHeader.IsEmpty() then
-            exit;
+        Rec.Reset();
+        Rec.LockTable();
+        Rec.SetRange("Spend Request No.", SpendRequest."No.");
+        Rec.SetRange("Expense User No.", SpendRequest."Requested For");
+        if not Rec.IsEmpty() then
+            exit(false);
 
-        NewExpenseReportHeader.Init();
-        NewExpenseReportHeader.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(NewExpenseReportHeader.Description)));
-        NewExpenseReportHeader.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
-        NewExpenseReportHeader.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
-        NewExpenseReportHeader.SetHideValidationDialog(true);
-        NewExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
-        NewExpenseReportHeader.Insert(true);
+        CheckPostedTravelRequestReports(SpendRequest);
+
+        Rec.Reset();
+        Rec.Init();
+        Rec.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(Rec.Description)));
+        Rec.ValidateExpenseUserFromApprovedTravelRequest(SpendRequest."Requested For");
+        Rec.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
+        Rec.SetHideValidationDialog(true);
+        Rec.Validate("Spend Request No.", SpendRequest."No.");
+        OnBeforeCreateFromApprovedTravelRequest(SpendRequest, Rec);
+        Rec.Insert(true);
+        OnAfterCreateFromApprovedTravelRequest(SpendRequest, Rec);
+        exit(true);
+    end;
+
+    internal procedure HasPostedTravelRequestReport(SpendRequest: Record "Spend Request"): Boolean
+    var
+        PostedReportError: ErrorInfo;
+    begin
+        exit(TryGetPostedTravelRequestReportError(SpendRequest, PostedReportError));
+    end;
+
+    local procedure CheckPostedTravelRequestReports(SpendRequest: Record "Spend Request")
+    var
+        PostedReportError: ErrorInfo;
+    begin
+        if TryGetPostedTravelRequestReportError(SpendRequest, PostedReportError) then
+            Error(PostedReportError);
+    end;
+
+    local procedure TryGetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; var PostedReportError: ErrorInfo): Boolean
+    var
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        PostedExpenseReportHeader.ReadIsolation := IsolationLevel::ReadCommitted;
+        PostedExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        PostedExpenseReportHeader.SetRange("Expense User No.", SpendRequest."Requested For");
+        PostedExpenseReportHeader.SetLoadFields("No.");
+        if PostedExpenseReportHeader.FindFirst() then begin
+            PostedReportError := GetPostedTravelRequestReportError(
+                SpendRequest, PostedExpenseReportHeader."No.", PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report");
+            exit(true);
+        end;
+
+        PostedExpenseReportLine.ReadIsolation := IsolationLevel::ReadCommitted;
+        PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
+        PostedExpenseReportLine.SetRange("Expense User No.", SpendRequest."Requested For");
+        PostedExpenseReportLine.SetLoadFields("Document No.", "Line No.");
+        if PostedExpenseReportLine.FindFirst() then begin
+            PostedReportError := GetPostedTravelRequestReportError(
+                SpendRequest, PostedExpenseReportLine."Document No.", PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines");
+            exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    local procedure GetPostedTravelRequestReportError(SpendRequest: Record "Spend Request"; ReportNo: Code[20]; ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
+    var
+        PostedReportError: ErrorInfo;
+        PostedReportExistsErr: Label 'Expense user %1 already has posted expense report %2 linked to travel request %3.', Comment = '%1 = Expense User No., %2 = Posted Expense Report No., %3 = Travel Request No.';
+        PostedReportTitleErr: Label 'Expense report has already been posted';
+        PostedReportDetailsErr: Label 'Open the posted expense report to review the existing travel request expenses. A new report cannot be created for the same travel request and expense user after posting.';
+        ShowItLbl: Label 'Show it';
+    begin
+        PostedReportError.Message := StrSubstNo(PostedReportExistsErr, SpendRequest."Requested For", ReportNo, SpendRequest."No.");
+        PostedReportError.Title := PostedReportTitleErr;
+        PostedReportError.DetailedMessage := PostedReportDetailsErr;
+        PostedReportError.DataClassification := DataClassification::EndUserIdentifiableInformation;
+        PostedReportError.ErrorType := ErrorType::Client;
+        PostedReportError.RecordId := ReportRecordId;
+        PostedReportError.PageNo := ReportPageNo;
+        PostedReportError.AddNavigationAction(ShowItLbl);
+        exit(PostedReportError);
     end;
 
     internal procedure ValidateExpenseUserFromApprovedTravelRequest(ExpenseUserNo: Code[20])
@@ -1390,6 +1468,16 @@ table 6906 "Expense Report Header"
 
     [IntegrationEvent(true, false)]
     local procedure OnCheckExpenseReportPostRestrictions()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"; var ExpenseReportHeader: Record "Expense Report Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCreateFromApprovedTravelRequest(SpendRequest: Record "Spend Request"; var ExpenseReportHeader: Record "Expense Report Header")
     begin
     end;
 }
