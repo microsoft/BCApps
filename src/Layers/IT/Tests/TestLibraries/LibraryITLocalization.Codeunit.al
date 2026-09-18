@@ -45,9 +45,8 @@ codeunit 143000 "Library - IT Localization"
     [Scope('OnPrem')]
     procedure CreateCompanyType(var CompanyTypes: Record "Company Types")
     begin
-        CompanyTypes.Init();
-        CompanyTypes.Validate(Code, Format(LibraryRandom.RandIntInRange(1, 19), 2, '<Integer,2><Filler Character,0>'));
-        CompanyTypes.Insert(true);
+        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
+        CompanyTypes.Get(GetRandomCompanyType());
     end;
 
     [Scope('OnPrem')]
@@ -362,7 +361,8 @@ codeunit 143000 "Library - IT Localization"
     var
         CompanyTypes: Record "Company Types";
     begin
-        CompanyTypes.Next(LibraryRandom.RandInt(CompanyTypes.Count));
+        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
+        CompanyTypes.Get(Format(LibraryRandom.RandIntInRange(1, 19), 2, '<Integer,2><Filler Character,0>'));
         exit(CompanyTypes.Code);
     end;
 
