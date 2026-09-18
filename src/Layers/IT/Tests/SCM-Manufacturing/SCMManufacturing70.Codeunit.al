@@ -36,6 +36,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 using System.Utilities;
@@ -3897,6 +3898,71 @@ codeunit 137063 "SCM Manufacturing 7.0"
         Assert.ExpectedTestFieldError(ProductionOrder.FieldCaption("Variant Code"), '');
     end;
 
+    [Test]
+    [HandlerFunctions('PostedPurchaseDocumentLinesPageHandler')]
+    procedure PostPurchaseReturnOrderForSubcontractingWhenLastOperationIsNotSubcontracted()
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvLine: Record "Purch. Inv. Line";
+        RequisitionLine: Record "Requisition Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        SubcontractingWorkCenter: Record "Work Center";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        WorkCenter: Record "Work Center";
+        OperationNo: Code[10];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647380] A subcontracting purchase return order can be posted when a later operation is not subcontracted.
+        Initialize();
+
+        // [GIVEN] A released production order whose subcontracting operation is followed by a non-subcontracting operation.
+        OperationNo := Format(10 + LibraryRandom.RandInt(10));
+        CreateSubcontractingSetups(SubcontractingWorkCenter, RoutingHeader, OperationNo);
+        UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::"Under Development");
+        CreateWorkCenterSetup(WorkCenter, CapacityUnitOfMeasure.Type::Minutes, 160000T, 235959T);
+        CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
+        UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+        CreateProdItem(Item, RoutingHeader."No.");
+        CreateAndRefreshProdOrder(
+            ProductionOrder, ProductionOrder.Status::Released, Item."No.", LibraryRandom.RandInt(10),
+            ProductionOrder."Source Type"::Item, false);
+
+        // [GIVEN] A subcontracting purchase order created from the subcontracting worksheet is received and invoiced.
+        CalculateSubcontractOrders(RequisitionLine, SubcontractingWorkCenter."No.", ProductionOrder);
+        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Operation No.", OperationNo);
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] A purchase return order populated from the posted subcontracting invoice.
+        PurchInvLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchInvLine.FindFirst();
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", SubcontractingWorkCenter."Subcontractor No.");
+        LibraryVariableStorage.Enqueue(PurchInvLine."Document No.");
+        PurchaseHeader.GetPstdDocLinesToReverse();
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", PurchaseHeader."Buy-from Vendor No.");
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] The purchase return order is shipped and invoiced.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Posting succeeds.
+        PurchCrMemoHdr.SetRange("Buy-from Vendor No.", PurchaseHeader."Buy-from Vendor No.");
+        Assert.RecordIsNotEmpty(PurchCrMemoHdr);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6251,6 +6317,14 @@ codeunit 137063 "SCM Manufacturing 7.0"
         ProdOrderComponents.OK().Invoke();
     end;
 
+    [ModalPageHandler]
+    procedure PostedPurchaseDocumentLinesPageHandler(var PostedPurchaseDocumentLines: TestPage "Posted Purchase Document Lines")
+    begin
+        PostedPurchaseDocumentLines.PostedReceiptsBtn.SetValue('Posted Invoices');
+        PostedPurchaseDocumentLines.PostedInvoices.Filter.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        PostedPurchaseDocumentLines.OK().Invoke();
+    end;
+
     local procedure GetShopCalendarCodeForProductionOrder(ProductionOrder: Record "Production Order"): Code[10]
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -6515,4 +6589,33 @@ codeunit 137063 "SCM Manufacturing 7.0"
         RoutingLine.Validate("Run Time", LibraryRandom.RandInt(50));
         RoutingLine.Modify(true);
     end;
+
+#if not CLEAN29
+    local procedure CalculateSubcontractOrders(var RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20]; ProductionOrder: Record "Production Order")
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        WorkCenter.SetRange("No.", WorkCenterNo);
+#pragma warning disable AL0432
+        LibraryManufacturing.CalculateSubcontractOrder(WorkCenter);
+#pragma warning restore AL0432
+        FindRequisitionLineForProductionOrder(RequisitionLine, ProductionOrder);
+    end;
+
+    local procedure CreateSubcontractingSetups(var WorkCenter: Record "Work Center"; var RoutingHeader: Record "Routing Header"; OperationNo: Code[10])
+    var
+        RoutingLine: Record "Routing Line";
+        MachineCenter: Record "Machine Center";
+    begin
+        CreateWorkCenter(WorkCenter);
+        CreateMachineCenterSetup(MachineCenter, WorkCenter."No.");
+        CreateRouting(RoutingHeader, RoutingLine, MachineCenter."No.", RoutingHeader.Type::Serial, RoutingLine.Type::"Machine Center");
+        UpdateRoutingLine(RoutingLine, LibraryRandom.RandInt(15), LibraryRandom.RandInt(15), 0);
+
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', OperationNo, RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Wait Time", LibraryRandom.RandInt(5));
+        RoutingLine.Modify(true);
+        UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+    end;
+#endif
 }
