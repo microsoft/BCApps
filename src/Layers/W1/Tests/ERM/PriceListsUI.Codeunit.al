@@ -14,6 +14,7 @@
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryJob: Codeunit "Library - Job";
+        LibraryMarketing: Codeunit "Library - Marketing";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
@@ -4846,6 +4847,119 @@
         Assert.IsTrue(PriceListLineReview.Next(), 'not found second');
         PriceListLineReview."Price List Code".AssertEquals(PriceListHeader[2].Code);
         Assert.IsFalse(PriceListLineReview.Next(), 'found 3rd');
+    end;
+
+    [Test]
+    procedure T217_PricesOverviewCaptionShowsFilteredCustomerName()
+    var
+        Customer: array[2] of Record Customer;
+        PriceSource: Record "Price Source";
+        PricesOverview: TestPage "Prices Overview";
+        DistinctName: array[2] of Text[100];
+        Index: Integer;
+    begin
+        // [FEATURE] [Prices Overview] [Caption]
+        // [SCENARIO 9101] Setting "Assign-to Type Filter" = Customer and "Assign-to Filter" = a customer No. shows that customer's Name in the page caption (not the first customer in the table).
+        Initialize(true);
+
+        // [GIVEN] Two customers, each with a Name distinct from its own No. and from the other customer's Name
+        for Index := 1 to ArrayLen(Customer) do begin
+            LibrarySales.CreateCustomer(Customer[Index]);
+            DistinctName[Index] := 'TST_NAME_' + Customer[Index]."No.";
+            Customer[Index].Validate(Name, DistinctName[Index]);
+            Customer[Index].Modify(true);
+        end;
+
+        // [GIVEN] "Prices Overview" is open with "Assign-to Type Filter" = Customer
+        PricesOverview.OpenEdit();
+        PricesOverview.SourceType.SetValue(Format(PriceSource."Source Type"::Customer));
+
+        // [WHEN] Each of the two customers is used as "Assign-to Filter" in turn
+        // [THEN] The caption contains the Name of the customer that was filtered on.
+        // Both customers are checked so the test cannot pass against an unfiltered FindFirst(): that
+        // returns the same record for either filter value, so it fails on whichever of the two is not
+        // the first customer in the table, whatever the table already holds.
+        for Index := 1 to ArrayLen(Customer) do begin
+            PricesOverview.SourceNo.SetValue(Customer[Index]."No.");
+            Assert.IsTrue(
+              StrPos(PricesOverview.Caption(), DistinctName[Index]) > 0,
+              StrSubstNo('Expected page caption to contain customer name "%1", but caption was: "%2"',
+                DistinctName[Index], PricesOverview.Caption()));
+        end;
+    end;
+
+    [Test]
+    procedure T218_PricesOverviewCaptionShowsFilteredCustomerPriceGroupDescription()
+    var
+        CustomerPriceGroup: array[2] of Record "Customer Price Group";
+        PriceSource: Record "Price Source";
+        PricesOverview: TestPage "Prices Overview";
+        DistinctDesc: array[2] of Text[50];
+        Index: Integer;
+    begin
+        // [FEATURE] [Prices Overview] [Caption]
+        // [SCENARIO 9101] Setting "Assign-to Type Filter" = Customer Price Group and "Assign-to Filter" = a group code shows that group's Description in the page caption.
+        Initialize(true);
+
+        // [GIVEN] Two customer price groups, each with a Description distinct from its own Code and from the other group's Description
+        for Index := 1 to ArrayLen(CustomerPriceGroup) do begin
+            LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup[Index]);
+            DistinctDesc[Index] := 'TST_DESC_' + CustomerPriceGroup[Index].Code;
+            CustomerPriceGroup[Index].Validate(Description, DistinctDesc[Index]);
+            CustomerPriceGroup[Index].Modify(true);
+        end;
+
+        // [GIVEN] "Prices Overview" is open with "Assign-to Type Filter" = Customer Price Group
+        PricesOverview.OpenEdit();
+        PricesOverview.SourceType.SetValue(Format(PriceSource."Source Type"::"Customer Price Group"));
+
+        // [WHEN] Each of the two customer price groups is used as "Assign-to Filter" in turn
+        // [THEN] The caption contains the Description of the group that was filtered on, which an
+        // unfiltered FindFirst() cannot satisfy for both groups.
+        for Index := 1 to ArrayLen(CustomerPriceGroup) do begin
+            PricesOverview.SourceNo.SetValue(CustomerPriceGroup[Index].Code);
+            Assert.IsTrue(
+              StrPos(PricesOverview.Caption(), DistinctDesc[Index]) > 0,
+              StrSubstNo('Expected page caption to contain customer price group description "%1", but caption was: "%2"',
+                DistinctDesc[Index], PricesOverview.Caption()));
+        end;
+    end;
+
+    [Test]
+    procedure T219_PricesOverviewCaptionShowsFilteredCampaignDescription()
+    var
+        Campaign: array[2] of Record Campaign;
+        PriceSource: Record "Price Source";
+        PricesOverview: TestPage "Prices Overview";
+        DistinctDesc: array[2] of Text[50];
+        Index: Integer;
+    begin
+        // [FEATURE] [Prices Overview] [Caption]
+        // [SCENARIO 9101] Setting "Assign-to Type Filter" = Campaign and "Assign-to Filter" = a campaign No. shows that campaign's Description in the page caption.
+        Initialize(true);
+
+        // [GIVEN] Two campaigns, each with a Description distinct from its own No. and from the other campaign's Description
+        for Index := 1 to ArrayLen(Campaign) do begin
+            LibraryMarketing.CreateCampaign(Campaign[Index]);
+            DistinctDesc[Index] := 'TST_DESC_' + Campaign[Index]."No.";
+            Campaign[Index].Validate(Description, DistinctDesc[Index]);
+            Campaign[Index].Modify(true);
+        end;
+
+        // [GIVEN] "Prices Overview" is open with "Assign-to Type Filter" = Campaign
+        PricesOverview.OpenEdit();
+        PricesOverview.SourceType.SetValue(Format(PriceSource."Source Type"::Campaign));
+
+        // [WHEN] Each of the two campaigns is used as "Assign-to Filter" in turn
+        // [THEN] The caption contains the Description of the campaign that was filtered on, which an
+        // unfiltered FindFirst() cannot satisfy for both campaigns.
+        for Index := 1 to ArrayLen(Campaign) do begin
+            PricesOverview.SourceNo.SetValue(Campaign[Index]."No.");
+            Assert.IsTrue(
+              StrPos(PricesOverview.Caption(), DistinctDesc[Index]) > 0,
+              StrSubstNo('Expected page caption to contain campaign description "%1", but caption was: "%2"',
+                DistinctDesc[Index], PricesOverview.Caption()));
+        end;
     end;
 
     [Test]
