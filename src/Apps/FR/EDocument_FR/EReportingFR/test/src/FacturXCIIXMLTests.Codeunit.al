@@ -1507,6 +1507,7 @@ codeunit 148148 "Factur-X CII XML Tests"
             StrSubstNo(IncorrectValueErr, 'BillingMode M1'));
         Assert.AreEqual(OriginalView, SourceDocumentLines.GetView(false), StrSubstNo(IncorrectValueErr, 'Source Document Lines View'));
     end;
+
     #endregion
 
     #region Validation
