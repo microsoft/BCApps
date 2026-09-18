@@ -46,10 +46,7 @@ codeunit 143000 "Library - IT Localization"
     procedure CreateCompanyType(var CompanyTypes: Record "Company Types")
     begin
         CompanyTypes.Init();
-        CompanyTypes.Validate(
-          Code,
-          CopyStr(LibraryUtility.GenerateRandomCode(CompanyTypes.FieldNo(Code), DATABASE::"Company Types"),
-            1, LibraryUtility.GetFieldLength(DATABASE::"Company Types", CompanyTypes.FieldNo(Code))));
+        CompanyTypes.Validate(Code, Format(LibraryRandom.RandIntInRange(1, 19), 2, '<Integer,2><Filler Character,0>'));
         CompanyTypes.Insert(true);
     end;
 
