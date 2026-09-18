@@ -130,6 +130,109 @@ codeunit 6926 "Expense Activity Log Mgt."
         exit(not ExpenseActivityLogEntry.IsEmpty());
     end;
 
+    internal procedure LogPolicyEvaluationIfReady(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        SubmissionEntry: Record "Expense Activity Log Entry";
+        Snapshot: Record "Expense Activity Log Entry";
+        SummaryLbl: Label '%1. Failed policy checks: %2. Passed policy checks: %3.', Comment = '%1 = policy status, %2 = failed line-policy pairs, %3 = passed line-policy pairs';
+    begin
+        // Both submission and line confirmation lock the header before reading the report's lines.
+        ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        if not ExpenseAgentSetup.Get() then
+            exit;
+        if not ExpenseAgentSetup."Evaluate Policies" then
+            exit;
+        // Keep the same pending states as Expense Report Header.TestApprovalPending.
+        if not (ExpenseReportHeader.Status in [ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status::"Interim Approved"]) then
+            exit;
+
+        SubmissionEntry.SetRange("Source Table ID", Database::"Expense Report Header");
+        SubmissionEntry.SetRange("Source Record System ID", ExpenseReportHeader.SystemId);
+        SubmissionEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        SubmissionEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        SubmissionEntry.SetFilter("Event Type", '%1|%2', SubmissionEntry."Event Type"::Submitted, SubmissionEntry."Event Type"::Resubmitted);
+        if not SubmissionEntry.FindLast() then
+            exit;
+
+        Snapshot.CopyFilters(SubmissionEntry);
+        Snapshot.SetRange("Event Type", Snapshot."Event Type"::PolicyEvaluated);
+        Snapshot.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
+        if not Snapshot.IsEmpty() then
+            exit;
+        Snapshot.Reset();
+
+        InitializeExpenseReportEntry(
+            Snapshot, ExpenseReportHeader, Enum::"Expense Activity Event Type"::PolicyEvaluated,
+            Enum::"Expense Activity Initiator"::Agent, Enum::"Expense Activity Actor Role"::" ", '', 0DT);
+        if not AggregatePolicySnapshot(ExpenseReportHeader, Snapshot) then
+            exit;
+
+        Snapshot."Policy Snapshot Present" := true;
+        Snapshot."Occurred At" := CurrentDateTime();
+        Snapshot.Comment := CopyStr(
+            StrSubstNo(SummaryLbl, Format(Snapshot."Policy Status"), Snapshot."Failed Policy Count", Snapshot."Passed Policy Count"),
+            1, MaxStrLen(Snapshot.Comment));
+        InsertExpenseReportEntry(Snapshot, ExpenseReportHeader);
+    end;
+
+    local procedure AggregatePolicySnapshot(ExpenseReportHeader: Record "Expense Report Header"; var Snapshot: Record "Expense Activity Log Entry"): Boolean
+    var
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        Evaluation: Record "Expense Policy Evaluation";
+        CategoryCodes: List of [Code[20]];
+        Categories: JsonArray;
+        CategoriesText: Text;
+    begin
+        Line.ReadIsolation := IsolationLevel::RepeatableRead;
+        Policy.ReadIsolation := IsolationLevel::RepeatableRead;
+        Evaluation.ReadIsolation := IsolationLevel::RepeatableRead;
+        Line.SetRange("Document No.", ExpenseReportHeader."No.");
+        if Line.FindSet() then
+            repeat
+                Policy.SetApplicableToLineFilter(Line);
+                if Policy.FindSet() then begin
+                    if (Line."Policies Evaluated At" = 0DT) or (Line."Evaluated Policy Version" <> Line."Policy Eval Version") then
+                        exit(false);
+                    repeat
+                        if not Evaluation.Get(Policy."Subject Type", Line.SystemId, Policy.SystemId, Line."Policy Eval Version", Policy.Version) then
+                            exit(false);
+                        if (Evaluation."Evaluated At" = 0DT) or (Evaluation."Evaluated At" > Line."Policies Evaluated At") then
+                            exit(false);
+                        if Evaluation."Evaluated At" > Snapshot."Latest Policies Evaluated At" then
+                            Snapshot."Latest Policies Evaluated At" := Evaluation."Evaluated At";
+                        if Evaluation.Compliant then
+                            Snapshot."Passed Policy Count" += 1
+                        else begin
+                            Snapshot."Failed Policy Count" += 1;
+                            if (Line."Expense Category" <> '') and not CategoryCodes.Contains(Line."Expense Category") then begin
+                                CategoryCodes.Add(Line."Expense Category");
+                                Categories.Add(Line."Expense Category");
+                                Categories.WriteTo(CategoriesText);
+                                if StrLen(CategoriesText) > MaxStrLen(Snapshot."Flagged Categories") then
+                                    Categories.RemoveAt(Categories.Count() - 1);
+                            end;
+                        end;
+                    until Policy.Next() = 0;
+                end else
+                    // A previously evaluated line still needs confirmation after a change, even without policies.
+                    if (Line."Policies Evaluated At" <> 0DT) and (Line."Evaluated Policy Version" <> Line."Policy Eval Version") then
+                        exit(false);
+            until Line.Next() = 0;
+
+        Snapshot."Flagged Category Count" := CategoryCodes.Count();
+        Categories.WriteTo(CategoriesText);
+        Snapshot."Flagged Categories" := CopyStr(CategoriesText, 1, MaxStrLen(Snapshot."Flagged Categories"));
+        Snapshot."Policy Status" := Snapshot."Policy Status"::"No Policies";
+        if Snapshot."Passed Policy Count" > 0 then
+            Snapshot."Policy Status" := Snapshot."Policy Status"::Cleared;
+        if Snapshot."Failed Policy Count" > 0 then
+            Snapshot."Policy Status" := Snapshot."Policy Status"::Flagged;
+        exit(true);
+    end;
+
     local procedure InitializeExpenseReportEntry(
         var ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportHeader: Record "Expense Report Header";
