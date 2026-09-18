@@ -106,15 +106,18 @@ codeunit 6951 "Exp. Privacy Notice Reg."
     var
         CompanyRec: Record Company;
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        EAAgentScheduler: Codeunit "EA Agent Scheduler";
     begin
         CompanyRec.SetLoadFields(Name);
         if CompanyRec.FindSet() then
             repeat
                 ExpenseAgentSetup.ChangeCompany(CompanyRec.Name);
+                ExpenseAgentSetup.ReadIsolation(IsolationLevel::UpdLock);
                 if ExpenseAgentSetup.Get() then
                     if ExpenseAgentSetup."Enable Agent" then begin
                         ExpenseAgentSetup.Validate("Enable Agent", false);
                         ExpenseAgentSetup.Modify();
+                        EAAgentScheduler.RemoveAgentTasksForCompany(CompanyRec.Name);
                     end;
             until CompanyRec.Next() = 0;
     end;

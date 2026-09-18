@@ -5,15 +5,19 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using System.Email;
+using System.Environment;
+using System.TestLibraries.Email;
 
 codeunit 148334 "Welcome Email Queue Test"
 {
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Function;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
-        LibraryExpense: Codeunit "Library - Expense";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
 
@@ -286,6 +290,7 @@ codeunit 148334 "Welcome Email Queue Test"
     begin
         // [SCENARIO 636970] The EA Outbox Email correlation id and notification type persist as written.
         // [GIVEN] A correlation id.
+        AssertIsolatedCompany();
         CorrelationId := CreateGuid();
 
         // [WHEN] An outbox email is created with the correlation fields.
@@ -302,9 +307,10 @@ codeunit 148334 "Welcome Email Queue Test"
 
     local procedure CreateExpenseUserWithEmail(var ExpenseUser: Record "Expense User")
     begin
+        AssertIsolatedCompany();
         ExpenseUser.Init();
         ExpenseUser."No." := LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User");
-        ExpenseUser."E-mail" := 'user@contoso.com';
+        ExpenseUser."E-mail" := 'user@example.invalid';
         ExpenseUser."Welcome Email Status" := ExpenseUser."Welcome Email Status"::None;
         ExpenseUser.Insert();
     end;
@@ -312,12 +318,33 @@ codeunit 148334 "Welcome Email Queue Test"
     local procedure EnableAgentWithCommunication()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        TestEmailAccount: Record "Test Email Account";
     begin
-        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
-        ExpenseAgentSetup.Get();
+        AssertIsolatedCompany();
+        TestEmailAccount.Id := CreateGuid();
+        TestEmailAccount.Email := 'noreply@example.invalid';
+        TestEmailAccount.Name := 'Welcome queue mock';
+        TestEmailAccount.Connector := Enum::"Email Connector"::"Test Email Connector v4";
+        TestEmailAccount.Insert();
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert();
+        end;
+        ExpenseAgentSetup."Enable Agent" := true;
         ExpenseAgentSetup."Enable Communication" := true;
-        ExpenseAgentSetup."Noreply Email Account ID" := CreateGuid();
+        ExpenseAgentSetup."Noreply Email Account ID" := TestEmailAccount.Id;
+        ExpenseAgentSetup."Noreply Email Connector" := TestEmailAccount.Connector;
+        ExpenseAgentSetup."Noreply Email Address" := TestEmailAccount.Email;
         ExpenseAgentSetup.Modify();
+    end;
+
+    local procedure AssertIsolatedCompany()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        Assert.AreEqual('EA Email Lifecycle Test', CompanyName(), 'Run only in the dedicated disposable test company, never CRONUS.');
+        Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'These isolated tests must run on-prem.');
+        Assert.IsFalse(EnvironmentInformation.IsSaaSInfrastructure(), 'These tests must not use SaaS infrastructure.');
     end;
 
     local procedure CreateInOutboxUser(var ExpenseUser: Record "Expense User"; CorrelationId: Guid)

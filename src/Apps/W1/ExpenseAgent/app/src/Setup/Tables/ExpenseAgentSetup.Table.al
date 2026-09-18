@@ -62,8 +62,6 @@ table 6930 "Expense Agent Setup"
 
             trigger OnValidate()
             begin
-                if not "Enable Agent" then
-                    RemoveAllScheduledTasks();
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
 
@@ -728,53 +726,112 @@ table 6930 "Expense Agent Setup"
     /// <summary>
     /// Returns whether the agent background task should be scheduled for the current
     /// setup. The task runs when the agent is enabled and there is work with a usable
-    /// account: inbound receipt processing (receipts on + a mailbox) or outbound
-    /// communication (welcome/reimbursement/approval/reminders on + a noreply account).
+    /// registered account: inbound receipt processing or outbound communication.
     /// AgentEnabled is passed in so the setup wizard can use its pending enable/disable
     /// state.
     /// </summary>
     internal procedure ShouldScheduleAgentTask(AgentEnabled: Boolean): Boolean
-    var
-        InboundConfigured: Boolean;
-        OutboundConfigured: Boolean;
     begin
         if not AgentEnabled then
             exit(false);
 
-        InboundConfigured := Rec."Enable Email with Receipts" and not IsNullGuid(Rec."Email Account ID");
-        OutboundConfigured := Rec."Enable Communication" and not IsNullGuid(Rec."Noreply Email Account ID");
-
-        exit(InboundConfigured or OutboundConfigured);
+        exit(IsIncomingCommunicationConfigured() or IsOutgoingCommunicationConfigured());
     end;
 
     /// <summary>
-    /// Returns whether outgoing communication is fully configured: the master toggle is
-    /// on and a no-reply sender account is set. Outbound emails (welcome, reimbursement,
+    /// Compares scheduling inputs without reading accounts, persisting changes or reconciling tasks.
+    /// Callers that save these changes own reconciliation after persistence.
+    /// </summary>
+    internal procedure HasSchedulingChanges(PreviousSetup: Record "Expense Agent Setup"): Boolean
+    begin
+        exit((Rec."Enable Agent" <> PreviousSetup."Enable Agent") or
+             (Rec."Enable Email with Receipts" <> PreviousSetup."Enable Email with Receipts") or
+             (Rec."Enable Communication" <> PreviousSetup."Enable Communication") or
+             (Rec."Email Account ID" <> PreviousSetup."Email Account ID") or
+             (Rec."Email Connector" <> PreviousSetup."Email Connector") or
+             (Rec."Noreply Email Account ID" <> PreviousSetup."Noreply Email Account ID") or
+             (Rec."Noreply Email Connector" <> PreviousSetup."Noreply Email Connector"));
+    end;
+
+    /// <summary>
+    /// Returns whether incoming receipts are enabled and their account is locally registered.
+    /// Account registration does not verify connectivity or the current user's mailbox access.
+    /// </summary>
+    internal procedure IsIncomingCommunicationConfigured(): Boolean
+    var
+        EmailAccount: Codeunit "Email Account";
+    begin
+        if not Rec."Enable Email with Receipts" or IsNullGuid(Rec."Email Account ID") then
+            exit(false);
+
+        exit(EmailAccount.IsAccountRegistered(Rec."Email Account ID", Rec."Email Connector"));
+    end;
+
+    /// <summary>
+    /// Returns whether outgoing communication is enabled and its no-reply account is locally
+    /// registered, without probing mailbox access. Outbound emails (welcome, reimbursement,
     /// approval, reminders) are only sent from the no-reply account; there is no fallback.
     /// </summary>
     internal procedure IsOutgoingCommunicationConfigured(): Boolean
+    var
+        EmailAccount: Codeunit "Email Account";
     begin
-        exit(Rec."Enable Communication" and not IsNullGuid(Rec."Noreply Email Account ID"));
+        if not Rec."Enable Communication" or IsNullGuid(Rec."Noreply Email Account ID") then
+            exit(false);
+
+        exit(EmailAccount.IsAccountRegistered(Rec."Noreply Email Account ID", Rec."Noreply Email Connector"));
     end;
 
     internal procedure RemoveAllScheduledTasks()
     var
-        ExpenseAgentStatus: Record "Expense Agent Status";
         EAAgentScheduler: Codeunit "EA Agent Scheduler";
     begin
-        ExpenseAgentStatus.GetOrCreate();
-        EAAgentScheduler.RemoveAgentTask(ExpenseAgentStatus);
+        if Rec.IsTemporary() then
+            exit;
+
+        EAAgentScheduler.RemoveAgentTasks();
     end;
 
-    internal procedure ClearMailboxAndDependents()
+    internal procedure ClearIncomingMailbox()
     begin
         Rec."Email Address" := '';
         Clear(Rec."Email Account ID");
         Clear(Rec."Email Connector");
         Rec."Email Folder" := '';
         Rec."Email Folder Id" := '';
-        Rec."Enable Email with Receipts" := false;
-        Rec."Enable Open Report Notif." := false;
+    end;
+
+    internal procedure ClearNoreplyMailbox()
+    begin
+        Rec."Noreply Email Address" := '';
+        Clear(Rec."Noreply Email Account ID");
+        Clear(Rec."Noreply Email Connector");
+    end;
+
+    /// <summary>
+    /// Clears only unavailable account references on this record buffer. The caller owns
+    /// persistence and scheduling; user preferences and native agent state remain unchanged.
+    /// </summary>
+    internal procedure RepairMissingEmailAccounts() Changed: Boolean
+    var
+        EmailAccount: Codeunit "Email Account";
+        EmptyEmailConnector: Enum "Email Connector";
+    begin
+        if not EmailAccount.IsAccountRegistered(Rec."Email Account ID", Rec."Email Connector") then
+            if not IsNullGuid(Rec."Email Account ID") or (Rec."Email Address" <> '') or
+               (Rec."Email Connector" <> EmptyEmailConnector) or (Rec."Email Folder" <> '') or (Rec."Email Folder Id" <> '')
+            then begin
+                ClearIncomingMailbox();
+                Changed := true;
+            end;
+
+        if not EmailAccount.IsAccountRegistered(Rec."Noreply Email Account ID", Rec."Noreply Email Connector") then
+            if not IsNullGuid(Rec."Noreply Email Account ID") or (Rec."Noreply Email Address" <> '') or
+               (Rec."Noreply Email Connector" <> EmptyEmailConnector)
+            then begin
+                ClearNoreplyMailbox();
+                Changed := true;
+            end;
     end;
 
     var
@@ -827,11 +884,9 @@ table 6930 "Expense Agent Setup"
             Rec."Noreply Email Address" := TempEmailAccount."Email Address";
             Rec.Modify();
         end else
-            if Rec."Noreply Email Address" <> '' then
+            if not IsNullGuid(Rec."Noreply Email Account ID") or (Rec."Noreply Email Address" <> '') then
                 if Confirm(ClearNoreplyAccountQst) then begin
-                    Clear(Rec."Noreply Email Account ID");
-                    Clear(Rec."Noreply Email Connector");
-                    Rec."Noreply Email Address" := '';
+                    ClearNoreplyMailbox();
                     Rec.Modify();
                 end;
     end;
@@ -855,6 +910,8 @@ table 6930 "Expense Agent Setup"
             // Probe with the chosen account before mutating Rec, so a failed access
             // check leaves the previously selected mailbox intact in the page.
             CheckSelectedIncomingMailboxAccessOrError(TempEmailAccount);
+            if (Rec."Email Account ID" <> TempEmailAccount."Account Id") or (Rec."Email Connector" <> TempEmailAccount.Connector) then
+                ClearIncomingMailbox();
             Rec."Email Account ID" := TempEmailAccount."Account Id";
             Rec."Email Connector" := TempEmailAccount.Connector;
             Rec."Email Address" := TempEmailAccount."Email Address";
@@ -863,12 +920,11 @@ table 6930 "Expense Agent Setup"
                 Rec."Noreply Email Connector" := Rec."Email Connector";
                 Rec."Noreply Email Address" := Rec."Email Address";
             end;
+            Rec.Modify();
         end else
-            if Rec."Email Address" <> '' then
+            if not IsNullGuid(Rec."Email Account ID") or (Rec."Email Address" <> '') then
                 if Confirm(ClearMailboxAccountQst) then begin
-                    Clear(Rec."Email Account ID");
-                    Clear(Rec."Email Connector");
-                    Rec."Email Address" := '';
+                    ClearIncomingMailbox();
                     Rec.Modify();
                 end;
     end;
@@ -979,11 +1035,12 @@ table 6930 "Expense Agent Setup"
     /// Verifies the current user can access every mailbox the enabled features will use before
     /// the agent task is (re)scheduled: the receipts mailbox when incoming receipts are on, and
     /// the no-reply mailbox when outgoing communication is on. Each check is skipped when its
-    /// feature is off or its account is unset, and errors when an account is set but inaccessible.
+    /// feature is off or its account is no longer registered, and errors on registered but
+    /// inaccessible accounts.
     /// </summary>
     internal procedure CheckSchedulingMailboxAccessOrError()
     begin
-        if Rec."Enable Email with Receipts" and not IsNullGuid(Rec."Email Account ID") then
+        if IsIncomingCommunicationConfigured() then
             CheckIncomingMailboxAccessOrError();
         if IsOutgoingCommunicationConfigured() then
             CheckNoreplyMailboxAccessOrError();

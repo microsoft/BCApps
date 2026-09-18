@@ -8,7 +8,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using System.Agents;
 using System.AI;
-using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
@@ -964,6 +963,7 @@ page 6991 "Expense Agent Setup Wizard"
 
         UpdateAgentSetupBuffer();
 
+        UpdateControls();
         if AgentBeingEnabled() then
             if not ConfirmMissingAccountWarnings() then
                 exit(false);
@@ -1176,12 +1176,14 @@ page 6991 "Expense Agent Setup Wizard"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
+        ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Insert(true);
         ExpenseAgentSetup.TransferFields(Rec, false);
         if not IsNullGuid(AgentSetupBuffer."User Security ID") then
             ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
-        ExpenseAgentSetup.Modify(true);
+        // The wizard reconciles once in ApplyScheduleChange after saving state and defaults.
+        ExpenseAgentSetup.Modify(false);
     end;
 
     local procedure ResolveAgentUserSecurityID(): Guid
@@ -1358,8 +1360,12 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure UpdateControls()
     begin
-        ValidateSelectedMailboxExists();
-        ValidateNoreplyMailboxExists();
+        if not Rec.RepairMissingEmailAccounts() then
+            exit;
+
+        Rec.Modify();
+        EnableMailboxChanged := true;
+        ConfigUpdated();
     end;
 
     local procedure ConfigUpdated()
@@ -1370,63 +1376,6 @@ page 6991 "Expense Agent Setup Wizard"
     local procedure StateChanged(): Boolean
     begin
         exit(AgentSetupBuffer.State <> InitialState);
-    end;
-
-    local procedure ValidateSelectedMailboxExists()
-    var
-        EmailAccount: Record "Email Account";
-        EmailAccountCU: Codeunit "Email Account";
-    begin
-        if IsNullGuid(Rec."Email Account ID") then
-            exit;
-
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Email Connector");
-        if not EmailAccount.IsEmpty() then
-            exit;
-
-        // Stage the repair only; validating Enable Agent here would cancel live tasks before Update.
-        Rec.ClearMailboxAndDependents();
-        Rec.Modify();
-        EnableMailboxChanged := true;
-        ConfigUpdated();
-    end;
-
-    local procedure ValidateNoreplyMailboxExists()
-    var
-        EmailAccount: Record "Email Account";
-        EmailAccountCU: Codeunit "Email Account";
-    begin
-        if IsNullGuid(Rec."Noreply Email Account ID") then
-            exit;
-
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
-        if not EmailAccount.IsEmpty() then
-            exit;
-
-        Rec."Noreply Email Address" := '';
-        Clear(Rec."Noreply Email Account ID");
-        Clear(Rec."Noreply Email Connector");
-        Rec.Modify();
-        EnableMailboxChanged := true;
-        ConfigUpdated();
-    end;
-
-    local procedure ScheduleAllTasks()
-    var
-        EAAgentScheduler: Codeunit "EA Agent Scheduler";
-    begin
-        EAAgentScheduler.ScheduleAgent(Rec);
-    end;
-
-    local procedure CancelAllTasks()
-    var
-        EAAgentScheduler: Codeunit "EA Agent Scheduler";
-    begin
-        EAAgentScheduler.RemoveAgentTasks();
     end;
 
     local procedure ValidatePrivacyNoticeApproval()
@@ -1532,13 +1481,14 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure ApplyScheduleChange()
+    var
+        EAAgentScheduler: Codeunit "EA Agent Scheduler";
     begin
         if not ScheduleAffectingChange() then
             exit;
-        if Rec.ShouldScheduleAgentTask(AgentBeingEnabled()) then
-            ScheduleAllTasks()
-        else
-            CancelAllTasks();
+
+        // Reconcile both enable and disable through the scheduler's locked, persisted setup.
+        EAAgentScheduler.ScheduleAgent(Rec);
     end;
 
     local procedure EnsureCurrentUserHasAccess()
@@ -1571,11 +1521,11 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure OnAssistEditMailbox()
     var
-        PrevEmailAddress: Text[250];
+        PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
-        PrevEmailAddress := Rec."Email Address";
+        PreviousSetup := Rec;
         Rec.AssistEditMailbox();
-        if Rec."Email Address" <> PrevEmailAddress then begin
+        if MailboxConfigurationChanged(PreviousSetup) then begin
             EnableMailboxChanged := true;
             ConfigUpdated();
         end;
@@ -1583,14 +1533,23 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure OnAssistEditNoreplyMailbox()
     var
-        PrevNoreplyAddress: Text[250];
+        PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
-        PrevNoreplyAddress := Rec."Noreply Email Address";
+        PreviousSetup := Rec;
         Rec.AssistEditNoreplyMailbox();
-        if Rec."Noreply Email Address" <> PrevNoreplyAddress then begin
+        if MailboxConfigurationChanged(PreviousSetup) then begin
             EnableMailboxChanged := true;
             ConfigUpdated();
         end;
+    end;
+
+    local procedure MailboxConfigurationChanged(PreviousSetup: Record "Expense Agent Setup" temporary): Boolean
+    begin
+        exit(Rec.HasSchedulingChanges(PreviousSetup) or
+             (Rec."Email Address" <> PreviousSetup."Email Address") or
+             (Rec."Email Folder" <> PreviousSetup."Email Folder") or
+             (Rec."Email Folder Id" <> PreviousSetup."Email Folder Id") or
+             (Rec."Noreply Email Address" <> PreviousSetup."Noreply Email Address"));
     end;
 
     local procedure RegisterErpConfiguration(): Boolean

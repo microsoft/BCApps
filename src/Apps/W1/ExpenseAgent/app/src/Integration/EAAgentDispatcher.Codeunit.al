@@ -40,13 +40,10 @@ codeunit 6938 "EA Agent Dispatcher"
         NoRecipientErr: Label 'At least one recipient must be specified in To line, Cc line, or Bcc line.', Comment = 'Shown when an outbox email has no recipients in any of the address lines.';
         NoSetupErr: Label 'Expense Agent is not set up yet.';
         AgentNotEnabledErr: Label 'Expense Agent is not enabled.';
-        NoEmailAccErr: Label 'Expense Agent has no email account specified.';
         CapabilityNotEnabledErr: Label 'The Expense Agent capability is not enabled.';
 
     trigger OnRun()
     begin
-        MaxEmailSendRetryCount := 5;
-        MaxEmailSendsPerRun := 25;
         RunEAAgent(Rec);
     end;
 
@@ -55,13 +52,16 @@ codeunit 6938 "EA Agent Dispatcher"
         EASchedulerTask: Record "EA Scheduler Task";
         ExpenseAgentStatus: Record "Expense Agent Status";
         EAEmailSetup: Codeunit "EA Email Setup";
-        EARetrieveEmails: Codeunit "EA Retrieve Emails";
-        RetrievalSuccess: Boolean;
-        TelemetryDimensions: Dictionary of [Text, Text];
-        LastSync: DateTime;
+        CompletedTaskId: Guid;
         ErrorMessage: Text;
     begin
-        TelemetryDimensions.Add('EASetupId', Format(Setup.SystemId));
+        if ExpenseAgentStatus.Get() then
+            CompletedTaskId := ExpenseAgentStatus."Agent Task ID";
+        Setup.Get();
+        if not Setup.ShouldScheduleAgentTask(Setup."Enable Agent") then begin
+            EAAgentScheduler.CompleteAgentTask(Setup, CompletedTaskId);
+            exit;
+        end;
 
         AddTask(EASchedulerTask);
         ExpenseAgentStatus.ReadIsolation(IsolationLevel::UpdLock);
@@ -70,15 +70,41 @@ codeunit 6938 "EA Agent Dispatcher"
         ExpenseAgentStatus.Modify();
         Commit();
 
-        if not CanRunTask(Setup, ErrorMessage) then begin
+        if not ProcessCommunication(Setup, ErrorMessage) then begin
             EASchedulerTask.Status := EASchedulerTask.Status::Failed;
             EASchedulerTask."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(EASchedulerTask."Error Message"));
             EASchedulerTask.Modify();
+            Commit();
+            EAAgentScheduler.CompleteAgentTask(Setup, CompletedTaskId);
             exit;
         end;
 
+        UpdateTaskSucceeded(EASchedulerTask);
+        EAEmailSetup.RemoveProcessedEmailsOutsideLast24hrs();
+        RemoveSentEmailsOlderThan1Day();
+        Commit();
+        EAAgentScheduler.CompleteAgentTask(Setup, CompletedTaskId);
+    end;
+
+    internal procedure ProcessCommunication(var Setup: Record "Expense Agent Setup"; var ErrorMessage: Text): Boolean
+    var
+        EARetrieveEmails: Codeunit "EA Retrieve Emails";
+        RetrievalSuccess: Boolean;
+        TelemetryDimensions: Dictionary of [Text, Text];
+        LastSync: DateTime;
+    begin
+        MaxEmailSendRetryCount := 5;
+        MaxEmailSendsPerRun := 25;
+        if not Setup.Get() then begin
+            ErrorMessage := NoSetupErr;
+            exit(false);
+        end;
+        if not CanRunTask(Setup, ErrorMessage) then
+            exit(false);
+        TelemetryDimensions.Add('EASetupId', Format(Setup.SystemId));
+
         // === Phase 1: Email Read ===
-        if Setup."Enable Email with Receipts" and not IsNullGuid(Setup."Email Account ID") then begin
+        if Setup.IsIncomingCommunicationConfigured() then begin
             LastSync := CurrentDateTime();
             RetrievalSuccess := EARetrieveEmails.Run(Setup);
             if RetrievalSuccess then begin
@@ -99,12 +125,16 @@ codeunit 6938 "EA Agent Dispatcher"
         // "Enable Communication" toggle is on and a Noreply account is set. This is
         // independent of "Enable Email with Receipts", which only governs the inbound
         // receipts feature (Phase 1). Outbound emails are always sent from the Noreply account.
+        if not RefreshCommunicationSetup(Setup) then
+            exit(true);
         if Setup.IsOutgoingCommunicationConfigured() then begin
             SendPendingEmails(Setup);
             Commit();
         end;
 
         // === Phase 3: Reminder Notifications ===
+        if not RefreshCommunicationSetup(Setup) then
+            exit(true);
         if ShouldRunNotifications(Setup) then begin
             if not TrySendOpenReportReminders(Setup) then
                 FeatureTelemetry.LogError('0000SJG', Setup.GetFeatureName(), 'Send notifications', TelemetryNotifReminderFailedLbl, GetLastErrorCallStack(), TelemetryDimensions)
@@ -114,18 +144,21 @@ codeunit 6938 "EA Agent Dispatcher"
         end;
 
         // === Phase 4: Welcome Emails ===
+        if not RefreshCommunicationSetup(Setup) then
+            exit(true);
         if Setup.IsOutgoingCommunicationConfigured() then
             SendQueuedWelcomeEmails(Setup, TelemetryDimensions);
 
-        // === Reschedule ===
-        Setup.Get();
-        EAAgentScheduler.ScheduleAgent(Setup);
-        Commit();
+        exit(true);
+    end;
 
-        // === Cleanup ===
-        UpdateTaskSucceeded(EASchedulerTask);
-        EAEmailSetup.RemoveProcessedEmailsOutsideLast24hrs();
-        RemoveSentEmailsOlderThan1Day();
+    local procedure RefreshCommunicationSetup(var Setup: Record "Expense Agent Setup"): Boolean
+    var
+        ErrorMessage: Text;
+    begin
+        if not Setup.Get() then
+            exit(false);
+        exit(CanRunTask(Setup, ErrorMessage));
     end;
 
     local procedure CanRunTask(var Setup: Record "Expense Agent Setup"; var ErrorMessage: Text): Boolean
@@ -144,11 +177,6 @@ codeunit 6938 "EA Agent Dispatcher"
 
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then begin
             ErrorMessage := CapabilityNotEnabledErr;
-            exit(false);
-        end;
-
-        if Setup."Enable Email with Receipts" and IsNullGuid(Setup."Email Account ID") then begin
-            ErrorMessage := NoEmailAccErr;
             exit(false);
         end;
 
@@ -364,11 +392,9 @@ codeunit 6938 "EA Agent Dispatcher"
         ExpenseAgentStatus: Record "Expense Agent Status";
         NextRunDT: DateTime;
     begin
-        if not Setup."Enable Communication" then
+        if not Setup.IsOutgoingCommunicationConfigured() then
             exit(false);
         if not Setup."Enable Open Report Notif." then
-            exit(false);
-        if IsNullGuid(Setup."Noreply Email Account ID") then
             exit(false);
         if Setup."Open Report Notif. Freq." = "Expense Report Frequency"::" " then
             exit(false);
@@ -383,6 +409,7 @@ codeunit 6938 "EA Agent Dispatcher"
         end;
 
         NextRunDT := CalcNextRunDateTime(Setup, ExpenseAgentStatus."Last Notif. Run At");
+        Commit();
         if CurrentDateTime() < NextRunDT then
             exit(false);
 
@@ -416,7 +443,6 @@ codeunit 6938 "EA Agent Dispatcher"
             TelemetryDimensions.Set('Sent', '0');
             TelemetryDimensions.Set('Skipped', '0');
             FeatureTelemetry.LogUsage('0000RNC', Setup.GetFeatureName(), TelemetryNotifRunCompleteLbl, TelemetryDimensions);
-            UpdateLastNotifRunAt();
             exit;
         end;
 

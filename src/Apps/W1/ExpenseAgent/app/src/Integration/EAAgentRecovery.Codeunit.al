@@ -5,8 +5,6 @@
 
 namespace Microsoft.ExpenseAgent;
 
-using System.Environment;
-
 codeunit 6937 "EA Agent Recovery"
 {
     Access = Internal;
@@ -21,19 +19,12 @@ codeunit 6937 "EA Agent Recovery"
 
     internal procedure RunEARecovery(var Setup: Record "Expense Agent Setup")
     var
-        ScheduledTask: Record "Scheduled Task";
+        ExpenseAgentStatus: Record "Expense Agent Status";
         EAAgentScheduler: Codeunit "EA Agent Scheduler";
+        CompletedTaskId: Guid;
     begin
-        // Check if task exists
-        ScheduledTask.SetRange("Run Codeunit", Codeunit::"EA Agent Dispatcher");
-        ScheduledTask.SetRange(Company, CompanyName());
-        ScheduledTask.SetRange(Record, Setup.RecordId);
-        if not ScheduledTask.IsEmpty() then
-            exit; // Task already exists
-
-        // Recover task
-        Setup.Get();
-        EAAgentScheduler.ScheduleAgent(Setup);
-        Commit();
+        if ExpenseAgentStatus.Get() then
+            CompletedTaskId := ExpenseAgentStatus."Agent Recovery Task ID";
+        EAAgentScheduler.CompleteAgentTask(Setup, CompletedTaskId);
     end;
 }

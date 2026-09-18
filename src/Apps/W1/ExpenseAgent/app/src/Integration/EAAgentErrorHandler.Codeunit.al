@@ -23,9 +23,11 @@ codeunit 6936 "EA Agent Error Handler"
         ExpenseAgentStatus: Record "Expense Agent Status";
         EASchedulerTask: Record "EA Scheduler Task";
         EAAgentScheduler: Codeunit "EA Agent Scheduler";
+        CompletedTaskId: Guid;
     begin
         EASchedulerTask.ReadIsolation(IsolationLevel::UpdLock);
-        if ExpenseAgentStatus.Get() then
+        if ExpenseAgentStatus.Get() then begin
+            CompletedTaskId := ExpenseAgentStatus."Agent Task ID";
             if ExpenseAgentStatus."EA Scheduler Task ID" <> 0 then
                 if EASchedulerTask.Get(ExpenseAgentStatus."EA Scheduler Task ID") then begin
                     EASchedulerTask.Status := EASchedulerTask.Status::Failed;
@@ -34,7 +36,7 @@ codeunit 6936 "EA Agent Error Handler"
                     EASchedulerTask.Modify();
                     Commit();
                 end;
-        Setup.Get();
-        EAAgentScheduler.ScheduleAgent(Setup);
+        end;
+        EAAgentScheduler.CompleteAgentTask(Setup, CompletedTaskId);
     end;
 }
