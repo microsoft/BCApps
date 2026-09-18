@@ -59,11 +59,11 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.UpdateQuantities(FSBookableResourceBooking, ServiceLine);
     end;
 
-    procedure DisableCustomerAssetConversion(var CRMProduct: Record "CRM Product"; var AdditionalFieldsWereModified: Boolean)
+    procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
     begin
-        FSIntTableSubscriber.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+        exit(FSIntTableSubscriber.GetCustomerAssetConversion(ItemIsManaged));
     end;
 
     procedure IgnorePostedJobJournalLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
