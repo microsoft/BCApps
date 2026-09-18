@@ -391,7 +391,6 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceLine: Record "Service Line";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         Item: Record Item;
-        CRMProduct: Record "CRM Product";
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
         NAVItemUomRecordId: RecordId;
@@ -702,6 +701,23 @@ codeunit 6610 "FS Int. Table Subscriber"
         exit(MaxQuantity);
     end;
 
+    local procedure IsItemCouplingToCustomerAssetConversion(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef): Boolean
+    var
+        Item: Record Item;
+        CRMProduct: Record "CRM Product";
+    begin
+        exit(
+            (SourceFieldRef.Record().Number() = Database::Item) and
+            (SourceFieldRef.Number() = Item.FieldNo("Coupled to Dataverse")) and
+            (DestinationFieldRef.Record().Number() = Database::"CRM Product") and
+            (DestinationFieldRef.Number() = CRMProduct.FieldNo(ConvertToCustomerAsset)));
+    end;
+
+    internal procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
+    begin
+        exit(not ItemIsManaged);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Int. Table. Subscriber", 'OnFindNewValueForCoupledRecordPK', '', true, false)]
     local procedure OnFindNewValueForCoupledRecordPK(IntegrationTableMapping: Record "Integration Table Mapping"; SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef; var NewValue: Variant; var IsValueFound: Boolean)
     var
@@ -905,25 +921,6 @@ codeunit 6610 "FS Int. Table Subscriber"
                                             ClearLastError();
                                         end;
                                     end
-
-                                    local procedure IsItemCouplingToCustomerAssetConversion(SourceFieldRef: FieldRef;
-                    DestinationFieldRef: FieldRef): Boolean
-                                    var
-                                        Item: Record Item;
-            CRMProduct:
-                Record "CRM Product";
-                                    begin
-                                        exit(
-                                            (SourceFieldRef.Record().Number() = Database::Item) and
-                                            (SourceFieldRef.Number() = Item.FieldNo("Coupled to Dataverse")) and
-                                            (DestinationFieldRef.Record().Number() = Database::"CRM Product") and
-                                            (DestinationFieldRef.Number() = CRMProduct.FieldNo(ConvertToCustomerAsset)));
-        end;
-
-        internal procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
-    begin
-        exit(not ItemIsManaged);
-    end;
                                     else
                                         if FSWorkorderService.Get(JobUsageLink."External Id") then begin
                                             FSWorkorderService.DurationInvoiced += (JobPlanningLineInvoice."Quantity Transferred" * 60);
