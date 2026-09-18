@@ -9,7 +9,6 @@ using System.AI;
 using System.Email;
 using System.Environment;
 using System.TestLibraries.Email;
-using System.Utilities;
 
 codeunit 148314 "EA Agent Dispatcher Test"
 {
@@ -37,6 +36,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         OutgoingMockAccountId: Guid;
         FixtureMessageIds: List of [Guid];
         DisableOutgoingAfterSend: Boolean;
+        UseReceiptAttachmentFixture: Boolean;
         TestCompanyTok: Label 'EA Email Lifecycle Test', Locked = true;
         ServiceBaseUrlTok: Label 'https://expense-agent.example.invalid', Locked = true;
         RecipientEmailTok: Label 'recipient@example.invalid', Locked = true;
@@ -354,6 +354,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Clear(OutgoingMockAccountId);
         Clear(FixtureMessageIds);
         Clear(DisableOutgoingAfterSend);
+        Clear(UseReceiptAttachmentFixture);
         ExpectNoService();
         TestEmailConnector.SetEmailInbox(TempEmailInbox);
         ConnectorMock.Initialize();
@@ -457,20 +458,9 @@ codeunit 148314 "EA Agent Dispatcher Test"
         TempEmailInbox: Record "Email Inbox" temporary;
         EmailMessage: Codeunit "Email Message";
         TestEmailConnector: Codeunit "Test Email Connector v4";
-        TempBlob: Codeunit "Temp Blob";
-        AttachmentInStream: InStream;
-        AttachmentOutStream: OutStream;
     begin
         EmailMessage.Create('receipts@example.invalid', 'Receipt € ø', '<p>Two receipts for processing.</p>', true);
-        TempBlob.CreateOutStream(AttachmentOutStream, TextEncoding::UTF8);
-        AttachmentOutStream.WriteText('mock-receipt-one');
-        TempBlob.CreateInStream(AttachmentInStream);
-        EmailMessage.AddAttachment('receipt-one.pdf', 'application/pdf', AttachmentInStream);
-        Clear(TempBlob);
-        TempBlob.CreateOutStream(AttachmentOutStream, TextEncoding::UTF8);
-        AttachmentOutStream.WriteText('mock-receipt-two');
-        TempBlob.CreateInStream(AttachmentInStream);
-        EmailMessage.AddAttachment('receipt-two.png', 'image/png', AttachmentInStream);
+        UseReceiptAttachmentFixture := true;
         ReceiptMessageId := EmailMessage.GetId();
         TempEmailInbox.Id := 1;
         TempEmailInbox."Account Id" := Setup."Email Account ID";
@@ -645,12 +635,12 @@ codeunit 148314 "EA Agent Dispatcher Test"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Http Client", 'OnGetCommunicationBaseUrl', '', false, false)]
-    local procedure SetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText)
+    local procedure SetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: Text)
     begin
         Assert.AreEqual(ExpectedUseCanaryEndpoint, UseCanaryEndpoint, 'Endpoint selection must use the saved company setup flag.');
-        Assert.IsTrue(BaseUrl.IsEmpty(), 'The communication override must precede normal endpoint lookup.');
+        Assert.AreEqual('', BaseUrl, 'The communication override must precede normal endpoint lookup.');
         BaseUrl := ServiceBaseUrlTok;
-        Assert.IsFalse(BaseUrl.IsEmpty(), 'The isolated mock endpoint must be nonempty.');
+        Assert.AreNotEqual('', BaseUrl, 'The isolated mock endpoint must be nonempty.');
         EndpointResolutionCount += 1;
     end;
 
@@ -682,6 +672,32 @@ codeunit 148314 "EA Agent Dispatcher Test"
             Assert.AreEqual(1, HeaderValues.Count(), 'Exactly one request correlation is expected.');
             Evaluate(RequestCorrelationId, HeaderValues.Get(1));
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Retrieve Emails", 'OnGetEmailAttachments', '', false, false)]
+    local procedure SupplyReceiptAttachments(var TempAttachment: Record "EA Email Attachment" temporary; var IsHandled: Boolean)
+    begin
+        if not UseReceiptAttachmentFixture then
+            exit;
+
+        Assert.IsTrue(TempAttachment.IsEmpty(), 'The fixture must be the only attachment source.');
+        AddReceiptAttachment(TempAttachment, 1, 'receipt-one.pdf', 'application/pdf', 'mock-receipt-one');
+        AddReceiptAttachment(TempAttachment, 2, 'receipt-two.png', 'image/png', 'mock-receipt-two');
+        IsHandled := true;
+    end;
+
+    local procedure AddReceiptAttachment(var TempAttachment: Record "EA Email Attachment" temporary; EntryNo: Integer; FileName: Text[250]; ContentType: Text[100]; ContentText: Text)
+    var
+        ContentOutStream: OutStream;
+    begin
+        TempAttachment.Init();
+        TempAttachment."Entry No." := EntryNo;
+        TempAttachment.FileName := FileName;
+        TempAttachment.ContentType := ContentType;
+        TempAttachment.Insert();
+        TempAttachment.Content.CreateOutStream(ContentOutStream, TextEncoding::UTF8);
+        ContentOutStream.WriteText(ContentText);
+        TempAttachment.Modify();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"EA Outbox Email", 'OnAfterModifyEvent', '', false, false)]

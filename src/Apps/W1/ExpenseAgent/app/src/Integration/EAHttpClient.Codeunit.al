@@ -442,6 +442,7 @@ codeunit 6941 "EA Http Client"
     local procedure GetExpenseAgentBaseUrl(var BaseUrl: SecretText): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        BaseUrlOverride: Text;
     begin
         Clear(BaseUrl);
         if not ExpenseAgentSetup.Get() then begin
@@ -449,15 +450,17 @@ codeunit 6941 "EA Http Client"
             exit(false);
         end;
 
-        OnGetCommunicationBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrl);
-        if not BaseUrl.IsEmpty() then
+        OnGetCommunicationBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrlOverride);
+        if BaseUrlOverride <> '' then begin
+            BaseUrl := SecretText.SecretStrSubstNo(BaseUrlOverride);
             exit(true);
+        end;
 
         exit(GetExpenseAgentBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrl));
     end;
 
     [InternalEvent(false, false)]
-    local procedure OnGetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText)
+    local procedure OnGetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: Text)
     begin
     end;
 

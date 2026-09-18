@@ -206,8 +206,13 @@ codeunit 6940 "EA Retrieve Emails"
         OutStream: OutStream;
         FileMIMEType: Text[100];
         FileName: Text[250];
+        IsHandled: Boolean;
         IsFileMimeTypeSupported: Boolean;
     begin
+        OnGetEmailAttachments(TempAttachment, IsHandled);
+        if IsHandled then
+            exit;
+
         if not EmailMessage.Attachments_First() then
             exit;
 
@@ -229,6 +234,11 @@ codeunit 6940 "EA Retrieve Emails"
                 TempAttachment.Insert(true);
             end;
         until EmailMessage.Attachments_Next() = 0;
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnGetEmailAttachments(var TempAttachment: Record "EA Email Attachment" temporary; var IsHandled: Boolean)
+    begin
     end;
 
     [InternalEvent(false, true)]
