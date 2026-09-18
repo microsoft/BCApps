@@ -168,6 +168,7 @@ codeunit 104000 "Upgrade - BaseApp"
         ClearTemporaryTables();
         ClearVATAmountLineTable();
 
+        EnsureStandardFatturaPAFiscalRegimes();
         UpdateGenJournalBatchReferencedIds();
         UpdateJobs();
         UpdateItemTrackingCodes();
@@ -257,6 +258,13 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeDepreciationBooksGLIntegration();
         UpgradePurchaseLineReceiptOnInvoice();
         UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
+    end;
+
+    local procedure EnsureStandardFatturaPAFiscalRegimes()
+    var
+        CompanyTypes: Record "Company Types";
+    begin
+        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
     end;
 
     local procedure ClearTemporaryTables()
