@@ -14,10 +14,10 @@ pageextension 2515 AppSourceExtensionManagement extends "Extension Management"
             action("Microsoft AppSource Gallery")
             {
                 ApplicationArea = All;
-                Caption = 'AppSource Gallery';
+                Caption = 'Marketplace Gallery';
                 Enabled = IsSaas;
                 Image = NewItem;
-                ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
+                ToolTip = 'Browse the Microsoft Marketplace Gallery for new extensions to install.';
                 Visible = not IsOnPremDisplay;
                 RunObject = Page "AppSource Product List";
                 RunPageMode = View;
