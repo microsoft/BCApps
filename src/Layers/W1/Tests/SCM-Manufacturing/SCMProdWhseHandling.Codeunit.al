@@ -1708,12 +1708,12 @@ codeunit 137298 "SCM Prod. Whse. Handling"
     [Test]
     procedure DeleteReleasedProdOrderBlockedWhenComponentHasPickedQty()
     var
-        ParentItem: Record Item;
         CompItem1: Record Item;
         CompItem2: Record Item;
         Location: Record Location;
-        ProductionOrder: Record "Production Order";
+        ParentItem: Record Item;
         ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
         RegisteredWhseActivityLine: Record "Registered Whse. Activity Line";
         WarehouseActivityLine: Record "Warehouse Activity Line";
     begin
@@ -1765,10 +1765,10 @@ codeunit 137298 "SCM Prod. Whse. Handling"
     [Test]
     procedure DeleteProdOrderRelationsBlockedWhenCalledDirectlyWithPickedQty()
     var
-        ParentItem: Record Item;
         CompItem1: Record Item;
         CompItem2: Record Item;
         Location: Record Location;
+        ParentItem: Record Item;
         ProductionOrder: Record "Production Order";
         ProdOrderComponent: Record "Prod. Order Component";
     begin
@@ -2039,13 +2039,13 @@ codeunit 137298 "SCM Prod. Whse. Handling"
     local procedure ReturnExcessBinQtyBeyondOtherClaim(LocationCode: Code[10]; ProdOrderComponent: Record "Prod. Order Component"; OtherClaimQtyBase: Decimal)
     var
         Bin: Record Bin;
-        ToBin: Record Bin;
         BinContent: Record "Bin Content";
         InternalMovementHeader: Record "Internal Movement Header";
         InternalMovementLine: Record "Internal Movement Line";
-        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
+        ToBin: Record Bin;
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         WarehouseActivityLine: Record "Warehouse Activity Line";
+        CreateInventoryPickMovement: Codeunit "Create Inventory Pick/Movement";
         QtyToReturnBase: Decimal;
     begin
         Bin.Get(LocationCode, ProdOrderComponent."Bin Code");
