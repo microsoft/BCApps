@@ -521,11 +521,12 @@ codeunit 18 "Financial Report Mgt."
     procedure FindGLAccountWhereUsedInAccScheduleLine(GLAccNo: Code[20]; var TempGLAccWhereUsed: Record "G/L Account Where-Used" temporary): Boolean
     var
         AccScheduleLine: Record "Acc. Schedule Line";
+        AccScheduleName: Record "Acc. Schedule Name";
     begin
         FilterAccScheduleLineByGLAccount(AccScheduleLine, GLAccNo);
         if AccScheduleLine.FindSet() then begin
             TempGLAccWhereUsed."Table ID" := Database::"Acc. Schedule Line";
-            TempGLAccWhereUsed."Table Name" := CopyStr(AccScheduleLine.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
+            TempGLAccWhereUsed."Table Name" := CopyStr(AccScheduleName.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
             TempGLAccWhereUsed."Field Name" := CopyStr(AccScheduleLine.FieldCaption(Totaling), 1, MaxStrLen(TempGLAccWhereUsed."Field Name"));
             repeat
                 TempGLAccWhereUsed."Key 1" := AccScheduleLine."Schedule Name";
@@ -551,12 +552,13 @@ codeunit 18 "Financial Report Mgt."
     procedure FindGLAccountWhereUsedInColumnLayout(GLAccNo: Code[20]; var TempGLAccWhereUsed: Record "G/L Account Where-Used" temporary): Boolean
     var
         ColumnLayout: Record "Column Layout";
+        ColumnLayoutName: Record "Column Layout Name";
     begin
         FilterColumnLayoutByGLAccount(ColumnLayout, GLAccNo);
         if not ColumnLayout.FindSet() then
             exit(false);
         TempGLAccWhereUsed."Table ID" := Database::"Column Layout";
-        TempGLAccWhereUsed."Table Name" := CopyStr(ColumnLayout.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
+        TempGLAccWhereUsed."Table Name" := CopyStr(ColumnLayoutName.TableCaption(), 1, MaxStrLen(TempGLAccWhereUsed."Table Name"));
         TempGLAccWhereUsed."Field Name" := CopyStr(ColumnLayout.FieldCaption("G/L Account Totaling"), 1, MaxStrLen(TempGLAccWhereUsed."Field Name"));
         repeat
             TempGLAccWhereUsed."Key 1" := ColumnLayout."Column Layout Name";
