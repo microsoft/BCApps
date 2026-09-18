@@ -50,6 +50,151 @@ codeunit 133504 "SCM Costing Performance"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CapacityCostCalculationPreservesCostShares()
+    var
+        SourceInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        CalcInventoryAdjmtOrder: Codeunit "Calc. Inventory Adjmt. - Order";
+    begin
+        // [SCENARIO] Shared routing costs retain subcontracting, overhead, corrections and ACY amounts.
+        Initialize();
+        CreateCapacityCostFixture(SourceInventoryAdjmtEntryOrder, 4);
+
+        CalcInventoryAdjmtOrder.CalcActualUsageCosts(SourceInventoryAdjmtEntryOrder, 1, InventoryAdjmtEntryOrder);
+
+        VerifyCapacityCostShares(InventoryAdjmtEntryOrder, 4);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CapacityCostCalculationWithoutEntries()
+    var
+        SourceInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        CalcInventoryAdjmtOrder: Codeunit "Calc. Inventory Adjmt. - Order";
+    begin
+        // [SCENARIO] An order without capacity entries has zero capacity cost.
+        Initialize();
+        CreateCapacityCostFixture(SourceInventoryAdjmtEntryOrder, 0);
+
+        CalcInventoryAdjmtOrder.CalcActualUsageCosts(SourceInventoryAdjmtEntryOrder, 1, InventoryAdjmtEntryOrder);
+
+        VerifyCapacityCostShares(InventoryAdjmtEntryOrder, 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CapacityCostCalculationSqlGrowthIsBounded()
+    var
+        SmallStatementCount: BigInteger;
+        MediumStatementCount: BigInteger;
+        LargeStatementCount: BigInteger;
+    begin
+        // [SCENARIO] Reading more capacity entries must not issue FlowField queries for every entry.
+        Initialize();
+        SmallStatementCount := MeasureCapacityCostCalculation(10);
+        MediumStatementCount := MeasureCapacityCostCalculation(50);
+        LargeStatementCount := MeasureCapacityCostCalculation(100);
+
+        Assert.IsTrue(
+            (MediumStatementCount <= SmallStatementCount + 10) and
+            (LargeStatementCount <= SmallStatementCount + 10),
+            StrSubstNo('Capacity SQL statements for 10/50/100 entries: %1/%2/%3. Growth must not exceed 10 statements.',
+                SmallStatementCount, MediumStatementCount, LargeStatementCount));
+    end;
+
+    local procedure MeasureCapacityCostCalculation(EntryCount: Integer): BigInteger
+    var
+        SourceInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        CalcInventoryAdjmtOrder: Codeunit "Calc. Inventory Adjmt. - Order";
+        StatementCountBefore: BigInteger;
+        StatementCount: BigInteger;
+    begin
+        CreateCapacityCostFixture(SourceInventoryAdjmtEntryOrder, EntryCount);
+        SelectLatestVersion();
+        StatementCountBefore := SessionInformation.SqlStatementsExecuted();
+        CalcInventoryAdjmtOrder.CalcActualUsageCosts(SourceInventoryAdjmtEntryOrder, 1, InventoryAdjmtEntryOrder);
+        StatementCount := SessionInformation.SqlStatementsExecuted() - StatementCountBefore;
+        VerifyCapacityCostShares(InventoryAdjmtEntryOrder, EntryCount);
+        exit(StatementCount);
+    end;
+
+    local procedure CreateCapacityCostFixture(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; EntryCount: Integer)
+    var
+        Item: Record Item;
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        CapacityEntryNo: Integer;
+        ValueEntryNo: Integer;
+        EntryIndex: Integer;
+    begin
+        LibraryInventory.CreateItem(Item);
+        InventoryAdjmtEntryOrder.Init();
+        InventoryAdjmtEntryOrder."Order Type" := InventoryAdjmtEntryOrder."Order Type"::Production;
+        InventoryAdjmtEntryOrder."Order No." := Item."No.";
+        InventoryAdjmtEntryOrder."Order Line No." := 10000;
+        InventoryAdjmtEntryOrder."Item No." := Item."No.";
+        InventoryAdjmtEntryOrder."Routing No." := 'COST-PERF';
+        InventoryAdjmtEntryOrder."Routing Reference No." := 10000;
+
+        CapacityLedgerEntry.LockTable();
+        if CapacityLedgerEntry.FindLast() then
+            CapacityEntryNo := CapacityLedgerEntry."Entry No.";
+        ValueEntry.LockTable();
+        if ValueEntry.FindLast() then
+            ValueEntryNo := ValueEntry."Entry No.";
+
+        for EntryIndex := 1 to EntryCount do begin
+            CapacityEntryNo += 1;
+            CapacityLedgerEntry.Init();
+            CapacityLedgerEntry."Entry No." := CapacityEntryNo;
+            CapacityLedgerEntry."Order Type" := InventoryAdjmtEntryOrder."Order Type";
+            CapacityLedgerEntry."Order No." := InventoryAdjmtEntryOrder."Order No.";
+            CapacityLedgerEntry."Item No." := InventoryAdjmtEntryOrder."Item No.";
+            CapacityLedgerEntry."Routing No." := InventoryAdjmtEntryOrder."Routing No.";
+            CapacityLedgerEntry."Routing Reference No." := InventoryAdjmtEntryOrder."Routing Reference No.";
+            CapacityLedgerEntry.Subcontracting := EntryIndex mod 2 = 0;
+            if CapacityLedgerEntry.Subcontracting then begin
+                CapacityLedgerEntry."Order Line No." := 20000;
+                CapacityLedgerEntry."Output Quantity" := 3;
+            end else begin
+                CapacityLedgerEntry."Order Line No." := 10000;
+                CapacityLedgerEntry."Output Quantity" := 1;
+            end;
+            CapacityLedgerEntry.Insert();
+            InsertCapacityValueEntry(ValueEntryNo, CapacityEntryNo, ValueEntry."Entry Type"::"Direct Cost", 10);
+            InsertCapacityValueEntry(ValueEntryNo, CapacityEntryNo, ValueEntry."Entry Type"::"Direct Cost", -2);
+            InsertCapacityValueEntry(ValueEntryNo, CapacityEntryNo, ValueEntry."Entry Type"::"Indirect Cost", 2);
+        end;
+    end;
+
+    local procedure InsertCapacityValueEntry(var EntryNo: Integer; CapacityEntryNo: Integer; EntryType: Enum "Cost Entry Type"; Amount: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        EntryNo += 1;
+        ValueEntry.Init();
+        ValueEntry."Entry No." := EntryNo;
+        ValueEntry."Capacity Ledger Entry No." := CapacityEntryNo;
+        ValueEntry."Entry Type" := EntryType;
+        ValueEntry."Cost Amount (Actual)" := Amount;
+        ValueEntry."Cost Amount (Actual) (ACY)" := Amount * 3;
+        ValueEntry.Insert();
+    end;
+
+    local procedure VerifyCapacityCostShares(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; EntryCount: Integer)
+    begin
+        Assert.AreEqual(EntryCount, InventoryAdjmtEntryOrder."Single-Level Capacity Cost", 'Capacity cost');
+        Assert.AreEqual(EntryCount * 3, InventoryAdjmtEntryOrder."Single-Lvl Capacity Cost (ACY)", 'Capacity cost (ACY)');
+        Assert.AreEqual(EntryCount, InventoryAdjmtEntryOrder."Single-Level Subcontrd. Cost", 'Subcontracting cost');
+        Assert.AreEqual(EntryCount * 3, InventoryAdjmtEntryOrder."Single-Lvl Subcontrd Cost(ACY)", 'Subcontracting cost (ACY)');
+        Assert.AreEqual(EntryCount / 2, InventoryAdjmtEntryOrder."Single-Level Cap. Ovhd Cost", 'Capacity overhead cost');
+        Assert.AreEqual(EntryCount * 3 / 2, InventoryAdjmtEntryOrder."Single-Lvl Cap. Ovhd Cost(ACY)", 'Capacity overhead cost (ACY)');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure FIFOAdjustingOptimisationForPurchaseOnceManySales()
     var
         DurationSmallNo: Integer;
@@ -647,4 +792,3 @@ codeunit 133504 "SCM Costing Performance"
             until CodeCover.Next() = 0;
     end;
 }
-
