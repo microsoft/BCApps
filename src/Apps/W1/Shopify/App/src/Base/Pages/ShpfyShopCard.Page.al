@@ -220,16 +220,6 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
-#if not CLEAN26
-                field("Items Mapped to Products"; Rec."Items Mapped to Products")
-                {
-                    ApplicationArea = All;
-                    Visible = false;
-                    ObsoleteReason = 'This setting is not used.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-#endif
                 field(WeightUnit; Rec."Weight Unit")
                 {
                     ApplicationArea = All;

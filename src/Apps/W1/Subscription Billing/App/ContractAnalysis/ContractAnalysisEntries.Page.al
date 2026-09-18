@@ -22,16 +22,6 @@ page 8090 "Contract Analysis Entries"
                 {
                     ToolTip = 'Specifies the contract to which the Subscription Line is to be assigned.';
                 }
-#if not CLEAN26
-                field("Service Object Item No."; Rec."Service Object Item No.")
-                {
-                    ToolTip = 'Specifies the Item No. of the Subscription.';
-                    ObsoleteReason = 'Replaced by field Service Object Source No.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 field("Service Object Source Type"; Rec."Sub. Header Source Type")
                 {
                     ToolTip = 'Specifies the Source Type of the Subscription.';

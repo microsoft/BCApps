@@ -1,18 +1,8 @@
 namespace Microsoft.SubscriptionBilling;
 
-#if not CLEAN26
-using Microsoft.Finance.GeneralLedger.Journal;
-#endif
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
-#if not CLEAN26
-using Microsoft.Projects.Project.Job;
-using Microsoft.Projects.Project.Journal;
-using Microsoft.Projects.Project.Ledger;
-using Microsoft.Projects.Project.Planning;
-using Microsoft.Projects.Resources.Ledger;
-#endif
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -126,139 +116,6 @@ page 8084 "Sub. Billing Role Center"
                     ToolTip = 'Opens the list of Usage Data Supplier References.';
                 }
             }
-#if not CLEAN26
-            group(Job)
-            {
-                ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-                Visible = false;
-                Caption = 'Projects';
-                Image = Job;
-                ToolTip = 'Create, plan, and execute tasks in project management. ';
-                action(Jobs)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Projects';
-                    Image = Job;
-                    RunObject = page "Job List";
-                    ToolTip = 'Define a project activity by creating a project card with integrated project tasks and project planning lines, structured in two layers. The project task enables you to set up project planning lines and to post consumption to the project. The project planning lines specify the detailed use of resources, items, and various general ledger expenses.';
-                }
-                action(Open)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Open';
-                    RunObject = page "Job List";
-                    RunPageView = where(Status = filter(Open));
-                    ToolTip = 'Open the card for the selected record.';
-                }
-                action(JobsPlannedAndQuotd)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Planned and Quoted';
-                    RunObject = page "Job List";
-                    RunPageView = where(Status = filter(Quote | Planning));
-                    ToolTip = 'Open the list of all planned and quoted projects.';
-                }
-                action(JobsComplet)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Completed';
-                    RunObject = page "Job List";
-                    RunPageView = where(Status = filter(Completed));
-                    ToolTip = 'Open the list of all completed projects.';
-                }
-                action(JobsUnassign)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Unassigned';
-                    RunObject = page "Job List";
-                    RunPageView = where("Person Responsible" = filter(''));
-                    ToolTip = 'Open the list of all unassigned projects.';
-                }
-                action(JobTasks)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    ApplicationArea = Suite;
-                    Caption = 'Project Tasks';
-                    RunObject = page "Job Task List";
-                    ToolTip = 'Open the list of ongoing project tasks. Project tasks represent the actual work that is performed in a project, and they enable you to set up project planning lines and to post consumption to the project.';
-                }
-                action(JobRegister)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Project Registers';
-                    Image = JobRegisters;
-                    RunObject = page "Job Registers";
-                    ToolTip = 'View auditing details for all project ledger entries. Every time an entry is posted, a register is created in which you can see the first and last number of its entries in order to document when entries were posted.';
-                }
-                action(JobPlanningLines)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Project Planning Lines';
-                    RunObject = page "Job Planning Lines";
-                    ToolTip = 'Open the list of ongoing project planning lines for the project. You use this window to plan what items, resources, and general ledger expenses that you expect to use on a project (budget) or you can specify what you actually agreed with your customer that he should pay for the project (billable).';
-                }
-                action(JobJournals)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Project Journals';
-                    RunObject = page "Job Journal Batches";
-                    RunPageView = where(Recurring = const(false));
-                    ToolTip = 'Record project expenses or usage in the project ledger, either by reusing project planning lines or by manual entry.';
-                }
-                action(JobGLJournals)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Project G/L Journals';
-                    RunObject = page "General Journal Batches";
-                    RunPageView = where("Template Type" = const(Jobs),
-                                        Recurring = const(false));
-                    ToolTip = 'Record project expenses or usage in project accounts in the general ledger. For expenses or usage of type G/L Account, use the project G/L journal instead of the project journal.';
-                }
-                action(RecurringJobJournals)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Recurring Project Journals';
-                    RunObject = page "Job Journal Batches";
-                    RunPageView = where(Recurring = const(true));
-                    ToolTip = 'Reuse preset journal lines to record recurring project expenses or usage in the project ledger.';
-                }
-            }
-#endif
             group(PostedDocuments)
             {
                 Caption = 'Posted Documents';
@@ -297,19 +154,6 @@ page 8084 "Sub. Billing Role Center"
                     RunObject = page "G/L Registers";
                     ToolTip = 'View auditing details for all G/L entries. Every time an entry is posted, a register is created in which you can see the first and last number of its entries in order to document when entries were posted.';
                 }
-#if not CLEAN26
-                action(JobRegisters)
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Project Registers';
-                    Image = JobRegisters;
-                    RunObject = page "Job Registers";
-                    ToolTip = 'View auditing details for all item ledger entries. Every time an entry is posted, a register is created in which you can see the first and last number of its entries in order to document when entries were posted.';
-                }
-#endif
                 action(ItemRegisters)
                 {
                     Caption = 'Item Registers';
@@ -317,19 +161,6 @@ page 8084 "Sub. Billing Role Center"
                     RunObject = page "Item Registers";
                     ToolTip = 'View auditing details for all item ledger entries. Every time an entry is posted, a register is created in which you can see the first and last number of its entries in order to document when entries were posted.';
                 }
-#if not CLEAN26
-                action(ResourceRegisters)
-                {
-                    ObsoleteReason = 'Removed as it resources are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Resource Registers';
-                    Image = ResourceRegisters;
-                    RunObject = page "Resource Registers";
-                    ToolTip = 'View auditing details for all resource ledger entries. Every time an entry is posted, a register is created in which you can see the first and last number of its entries in order to document when entries were posted.';
-                }
-#endif
             }
             group("Setup")
             {
@@ -384,20 +215,6 @@ page 8084 "Sub. Billing Role Center"
                 RunObject = page "Vendor List";
                 ToolTip = 'View or edit detailed information for the vendors that you trade with. From each vendor card, you can open related information, such as purchase statistics and ongoing orders, and you can define special prices and line discounts that you grant if certain conditions are met.';
             }
-#if not CLEAN26
-            action(JobsList)
-            {
-                ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-                Visible = false;
-                ApplicationArea = All;
-                Caption = 'Projects';
-                Image = Job;
-                RunObject = page "Job List";
-                ToolTip = 'Define a project activity by creating a project card with integrated project tasks and project planning lines, structured in two layers. The project task enables you to set up project planning lines and to post consumption to the project. The project planning lines specify the detailed use of resources, items, and various general ledger expenses.';
-            }
-#endif
             action(ItemsList)
             {
                 ApplicationArea = All;

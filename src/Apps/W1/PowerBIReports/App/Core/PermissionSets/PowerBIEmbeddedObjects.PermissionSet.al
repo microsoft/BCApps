@@ -33,11 +33,6 @@ permissionset 36955 "Power BI Embedded - Objects"
         page "Sales by Customer" = X,
         page "Sales by Salesperson" = X,
         page "Sales Actual vs. Budget Qty." = X,
-#if not CLEAN26
-#pragma warning disable AL0432
-        page "Sales Actual vs. Budget Amt." = X,
-#pragma warning restore AL0432
-#endif
         page "Customer Retention Overview" = X,
         page "Customer Retention History" = X,
         page "Purchases Overview" = X,
@@ -72,16 +67,6 @@ permissionset 36955 "Power BI Embedded - Objects"
         page "Project Performance to Budget" = X,
         page "Project Invoiced Sales by Type" = X,
         page "Project Invd. Sales by Cust." = X,
-#if not CLEAN26
-#pragma warning disable AL0432
-        page "Current Utilization" = X,
-#pragma warning restore AL0432
-#endif
-#if not CLEAN26
-#pragma warning disable AL0432
-        page "Historical Utilization" = X,
-#pragma warning restore AL0432
-#endif
         page "PowerBI Work Center Load" = X,
         page "Allocated Hours" = X,
         page "Expected Capacity Need" = X,

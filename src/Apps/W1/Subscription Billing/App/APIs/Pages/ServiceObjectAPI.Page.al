@@ -72,15 +72,6 @@ page 8020 "Service Object API"
                 field(shipToContact; Rec."Ship-to Contact")
                 {
                 }
-#if not CLEAN26
-                field(itemNo; Rec."Item No.")
-                {
-                    ObsoleteReason = 'Replaced by field Source No.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 field(type; Rec.Type)
                 {
                 }
