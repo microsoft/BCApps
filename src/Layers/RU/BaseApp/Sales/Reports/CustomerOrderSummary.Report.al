@@ -466,7 +466,7 @@ report 107 "Customer - Order Summary"
             Type = Excel;
             Summary = 'Built in layout for the Customer Order Summary excel report.';
         }
-#if not CLEAN30
+#if not CLEAN29
         layout(Word)
         {
             Caption = 'Customer Order Summary Word';
