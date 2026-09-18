@@ -297,12 +297,19 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Declining the incoming-account clear confirmation preserves configuration.
+
+        // [GIVEN] A configured temporary setup is loaded; the account selector is cancelled and the confirm handler replies No.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
         Commit();
 
+
+        // [WHEN] The incoming AssistEdit flow runs.
         Setup.AssistEditMailbox();
 
+
+        // [THEN] Incoming, no-reply, and preference values remain unchanged in the temporary record.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Setup.Get();
         AssertConfigurationUnchanged(PreviousSetup, Setup);
@@ -315,12 +322,19 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Declining the no-reply-account clear confirmation preserves configuration.
+
+        // [GIVEN] A configured temporary setup is loaded; the account selector is cancelled and the confirm handler replies No.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
         Commit();
 
+
+        // [WHEN] The no-reply AssistEdit flow runs.
         Setup.AssistEditNoreplyMailbox();
 
+
+        // [THEN] Incoming, no-reply, and preference values remain unchanged in the temporary record.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Setup.Get();
         AssertConfigurationUnchanged(PreviousSetup, Setup);
@@ -332,11 +346,18 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Explicitly disabling communication clears outgoing notification preferences without changing account identities.
+
+        // [GIVEN] A configured temporary setup has receipts, communication, and notification preferences enabled.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
 
+
+        // [WHEN] The communication preference is validated to false.
         Setup.Validate("Enable Communication", false);
 
+
+        // [THEN] Communication and notification preferences are off, while receipts, agent state, and both account identities are preserved.
         Assert.IsFalse(Setup."Enable Communication", 'The explicit communication preference must be off.');
         Assert.IsFalse(Setup."Enable Open Report Notif.", 'Explicitly disabling communication must still disable reminders.');
         Assert.IsFalse(Setup."Enable Approval Notif.", 'Explicitly disabling communication must still disable approval notifications.');
@@ -354,6 +375,9 @@ codeunit 148317 "EA Mailbox Access Test"
         PreviousSetup: Record "Expense Agent Setup" temporary;
         TestEmailAccount: Record "Test Email Account";
     begin
+        // [SCENARIO] Replacing an incoming account clears folders even when the email address is unchanged.
+
+        // [GIVEN] A configured temporary setup has old folder values, and the selector handler chooses a different registered account with the same address.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
         ConnectorMock.AddAccount(SelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
@@ -363,8 +387,12 @@ codeunit 148317 "EA Mailbox Access Test"
         SelectedEmailAccount."Email Address" := Setup."Email Address";
         Commit();
 
+
+        // [WHEN] The incoming AssistEdit flow applies the selected account.
         Setup.AssistEditMailbox();
 
+
+        // [THEN] The account identity changes, stale folder values clear, and no-reply settings and preferences remain unchanged.
         Setup.Get();
         Assert.AreEqual(SelectedEmailAccount."Account Id", Setup."Email Account ID", 'The incoming identity must change even if the address is unchanged.');
         Assert.AreEqual(PreviousSetup."Email Address", Setup."Email Address", 'The replacement intentionally uses the same address.');
@@ -381,14 +409,21 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Replacing the connector for the same incoming account clears stale folders.
+
+        // [GIVEN] A configured temporary setup holds the selected account ID under a different connector and has old folder values.
         InitConfiguredSetup(Setup);
         SelectIncomingAccount(Setup);
         Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
         PreviousSetup := Setup;
         Commit();
 
+
+        // [WHEN] The incoming AssistEdit flow applies the registered connector identity.
         Setup.AssistEditMailbox();
 
+
+        // [THEN] The connector changes, folder values clear, and no-reply settings and preferences remain unchanged.
         Setup.Get();
         Assert.AreEqual(PreviousSetup."Email Account ID", Setup."Email Account ID", 'Only the connector identity changes.');
         Assert.AreEqual(SelectedEmailAccount.Connector, Setup."Email Connector", 'The selected connector must replace the stale connector.');
@@ -405,14 +440,21 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Reselecting the unchanged incoming account preserves folders and defaults an empty no-reply channel.
+
+        // [GIVEN] A configured temporary setup has no no-reply identity, and the selector handler chooses the current incoming account.
         InitConfiguredSetup(Setup);
         Setup.ClearNoreplyMailbox();
         SelectIncomingAccount(Setup);
         PreviousSetup := Setup;
         Commit();
 
+
+        // [WHEN] The incoming AssistEdit flow runs.
         Setup.AssistEditMailbox();
 
+
+        // [THEN] Incoming fields including folders remain unchanged, and the no-reply identity is copied from the incoming account.
         Setup.Get();
         AssertIncomingUnchanged(PreviousSetup, Setup);
         Assert.AreEqual(Setup."Email Account ID", Setup."Noreply Email Account ID", 'Reselecting the same incoming account must still default an empty no-reply account.');
@@ -428,14 +470,21 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] A replacement incoming account that fails its retrieval probe is rejected without changing configuration.
+
+        // [GIVEN] A configured temporary setup is captured, and the selector handler chooses a registered replacement whose connector retrieval is configured to fail.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
         ConnectorMock.AddAccount(SelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
         ConnectorMock.FailOnRetrieveEmails(true);
         Commit();
 
+
+        // [WHEN] The incoming AssistEdit flow is invoked with asserterror.
         asserterror Setup.AssistEditMailbox();
 
+
+        // [THEN] The specific incoming connection error is asserted and all temporary configuration values remain unchanged.
         Assert.ExpectedError('incoming receipts because the connection failed');
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Setup.Get();
@@ -449,14 +498,21 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] A replacement no-reply account that fails its retrieval probe is rejected without changing configuration.
+
+        // [GIVEN] A configured temporary setup is captured, and the selector handler chooses a registered replacement whose connector retrieval is configured to fail.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
         ConnectorMock.AddAccount(SelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
         ConnectorMock.FailOnRetrieveEmails(true);
         Commit();
 
+
+        // [WHEN] The no-reply AssistEdit flow is invoked with asserterror.
         asserterror Setup.AssistEditNoreplyMailbox();
 
+
+        // [THEN] The specific outgoing connection error is asserted and all temporary configuration values remain unchanged.
         Assert.ExpectedError('outgoing notifications because the connection failed');
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Setup.Get();
@@ -470,7 +526,12 @@ codeunit 148317 "EA Mailbox Access Test"
         RegisteredSetup: Record "Expense Agent Setup" temporary;
         MissingChannels: Integer;
     begin
+        // [SCENARIO] Missing-account repair clears only missing channel identities and preserves preferences.
+
+        // [GIVEN] A configured registered setup is copied across incoming-only, outgoing-only, and both-missing account-ID cases.
         InitConfiguredSetup(RegisteredSetup);
+
+        // [WHEN] RepairMissingEmailAccounts runs for each case and is repeated after repair.
         for MissingChannels := 1 to 3 do begin
             Setup := RegisteredSetup;
             if MissingChannels in [1, 3] then
@@ -478,6 +539,8 @@ codeunit 148317 "EA Mailbox Access Test"
             if MissingChannels in [2, 3] then
                 Setup."Noreply Email Account ID" := CreateGuid();
 
+
+        // [THEN] Only missing identities clear, surviving channels and preferences remain unchanged, and repeated repair is a no-op.
             Assert.IsTrue(Setup.RepairMissingEmailAccounts(), 'Missing references must be repaired.');
 
             if MissingChannels in [1, 3] then
@@ -499,12 +562,19 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Missing-account repair clears orphaned fields for wrong connectors and empty IDs.
+
+        // [GIVEN] A configured setup is varied first to mismatched connectors and then to empty account IDs.
         InitConfiguredSetup(Setup);
         PreviousSetup := Setup;
         Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
         Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
 
+
+        // [WHEN] RepairMissingEmailAccounts runs for each invalid identity state.
         Assert.IsTrue(Setup.RepairMissingEmailAccounts(), 'The ID must be registered under the selected connector.');
+
+        // [THEN] Both channel identities clear while all preferences remain unchanged.
         AssertIncomingCleared(Setup);
         AssertNoreplyCleared(Setup);
         AssertPreferencesUnchanged(PreviousSetup, Setup);
@@ -524,13 +594,20 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Scheduling access checking skips a stale incoming reference when outgoing remains available.
+
+        // [GIVEN] A configured temporary setup has a missing incoming account ID and a registered outgoing account.
         InitConfiguredSetup(Setup);
         Setup."Email Account ID" := CreateGuid();
         PreviousSetup := Setup;
         Commit();
 
+
+        // [WHEN] The scheduling mailbox access check runs.
         Setup.CheckSchedulingMailboxAccessOrError();
 
+
+        // [THEN] Configuration remains unchanged and the outgoing channel keeps the agent eligible.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'The registered outgoing channel must remain usable.');
     end;
@@ -541,13 +618,20 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Scheduling access checking skips a stale outgoing reference when incoming remains available.
+
+        // [GIVEN] A configured temporary setup has a missing no-reply account ID and a registered incoming account.
         InitConfiguredSetup(Setup);
         Setup."Noreply Email Account ID" := CreateGuid();
         PreviousSetup := Setup;
         Commit();
 
+
+        // [WHEN] The scheduling mailbox access check runs.
         Setup.CheckSchedulingMailboxAccessOrError();
 
+
+        // [THEN] Configuration remains unchanged and the incoming channel keeps the agent eligible.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'The registered incoming channel must remain usable.');
     end;
@@ -558,6 +642,9 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Scheduling access checking does not probe account IDs registered under another connector.
+
+        // [GIVEN] Both saved channel identities use connector values that do not match their native mock registrations; retrieval is configured to fail if probed.
         InitConfiguredSetup(Setup);
         Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
         Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
@@ -565,8 +652,12 @@ codeunit 148317 "EA Mailbox Access Test"
         ConnectorMock.FailOnRetrieveEmails(true);
         Commit();
 
+
+        // [WHEN] The scheduling mailbox access check runs.
         Setup.CheckSchedulingMailboxAccessOrError();
 
+
+        // [THEN] Configuration remains unchanged and neither mismatched channel qualifies the agent for scheduling.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Neither account is registered under its selected connector.');
     end;
@@ -578,12 +669,19 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Deleting the registered incoming account preserves the outgoing channel and preferences.
+
+        // [GIVEN] Persisted setup contains distinct registered incoming and no-reply accounts with enabled preferences.
         InitAccountDeletionSetup(Setup);
         PreviousSetup := Setup;
 
+
+        // [WHEN] The native email-account API deletes the incoming account and setup is reloaded.
         DeleteTestEmailAccount(Setup."Email Account ID", Setup."Email Connector");
         ReloadAccountDeletionSetup(Setup);
 
+
+        // [THEN] Only incoming identity and folder fields clear; outgoing identity, preferences, and outgoing readiness remain.
         AssertIncomingCleared(Setup);
         AssertNoreplyUnchanged(PreviousSetup, Setup);
         AssertPreferencesUnchanged(PreviousSetup, Setup);
@@ -597,12 +695,19 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Deleting the registered no-reply account preserves the incoming channel and preferences.
+
+        // [GIVEN] Persisted setup contains distinct registered incoming and no-reply accounts with enabled preferences.
         InitAccountDeletionSetup(Setup);
         PreviousSetup := Setup;
 
+
+        // [WHEN] The native email-account API deletes the no-reply account and setup is reloaded.
         DeleteTestEmailAccount(Setup."Noreply Email Account ID", Setup."Noreply Email Connector");
         ReloadAccountDeletionSetup(Setup);
 
+
+        // [THEN] Only no-reply identity clears; incoming identity, preferences, and incoming readiness remain.
         AssertNoreplyCleared(Setup);
         AssertIncomingUnchanged(PreviousSetup, Setup);
         AssertPreferencesUnchanged(PreviousSetup, Setup);
@@ -616,6 +721,9 @@ codeunit 148317 "EA Mailbox Access Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Deleting one registered account shared by both channels clears both identities without changing preferences.
+
+        // [GIVEN] Persisted setup points incoming and no-reply identities to the same registered mock account.
         InitAccountDeletionSetup(Setup);
         Setup."Noreply Email Account ID" := Setup."Email Account ID";
         Setup."Noreply Email Connector" := Setup."Email Connector";
@@ -623,9 +731,13 @@ codeunit 148317 "EA Mailbox Access Test"
         SaveAccountDeletionSetup(Setup);
         PreviousSetup := Setup;
 
+
+        // [WHEN] The native email-account API deletes the shared account and setup is reloaded.
         DeleteTestEmailAccount(Setup."Email Account ID", Setup."Email Connector");
         ReloadAccountDeletionSetup(Setup);
 
+
+        // [THEN] Both channel identities clear, preferences remain unchanged, and no channel remains schedulable.
         AssertIncomingCleared(Setup);
         AssertNoreplyCleared(Setup);
         AssertPreferencesUnchanged(PreviousSetup, Setup);
@@ -640,6 +752,9 @@ codeunit 148317 "EA Mailbox Access Test"
         PreviousSetup: Record "Expense Agent Setup" temporary;
         RegisteredConnector: Enum "Email Connector";
     begin
+        // [SCENARIO] Deleting an account registration under another connector does not clear saved mismatched selections.
+
+        // [GIVEN] Persisted incoming and no-reply selections use a connector different from the account registration being deleted.
         InitAccountDeletionSetup(Setup);
         RegisteredConnector := Setup."Email Connector";
         Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
@@ -649,9 +764,13 @@ codeunit 148317 "EA Mailbox Access Test"
         SaveAccountDeletionSetup(Setup);
         PreviousSetup := Setup;
 
+
+        // [WHEN] The native email-account API deletes the registered connector identity and setup is reloaded.
         DeleteTestEmailAccount(Setup."Email Account ID", RegisteredConnector);
         ReloadAccountDeletionSetup(Setup);
 
+
+        // [THEN] Both saved channel selections and preferences remain unchanged.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
     end;
 
@@ -663,13 +782,20 @@ codeunit 148317 "EA Mailbox Access Test"
         PreviousSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
+        // [SCENARIO] Deleting an unrelated registered account leaves both configured channels unchanged.
+
+        // [GIVEN] Persisted setup contains two registered channels and the connector mock registers an additional unrelated account.
         InitAccountDeletionSetup(Setup);
         PreviousSetup := Setup;
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
 
+
+        // [WHEN] The native email-account API deletes the unrelated account and setup is reloaded.
         DeleteTestEmailAccount(TempEmailAccount."Account Id", TempEmailAccount.Connector);
         ReloadAccountDeletionSetup(Setup);
 
+
+        // [THEN] Both configured channels, preferences, and channel readiness remain unchanged.
         AssertConfigurationUnchanged(PreviousSetup, Setup);
         Assert.IsTrue(Setup.IsIncomingCommunicationConfigured(), 'An unrelated deletion must not affect the incoming channel.');
         Assert.IsTrue(Setup.IsOutgoingCommunicationConfigured(), 'An unrelated deletion must not affect the outgoing channel.');

@@ -50,13 +50,20 @@ codeunit 148314 "EA Agent Dispatcher Test"
         FirstOutboxEmail: Record "EA Outbox Email";
         SecondOutboxEmail: Record "EA Outbox Email";
     begin
+        // [SCENARIO] Outgoing delivery processes multiple pending rows without an incoming mailbox.
+
+        // [GIVEN] The isolated fixture enables only a registered outgoing channel and creates two pending outbox rows.
         InitializeCommunication(Setup, false, true);
         CreateRecipient(ExpenseUser, false);
         CreatePendingEmail(FirstOutboxEmail);
         CreatePendingEmail(SecondOutboxEmail);
 
+
+        // [WHEN] The production synchronous communication pass runs through the native mocked email connector.
         RunCommunication(Setup);
 
+
+        // [THEN] Both rows are sent, the connector receives a message, and no incoming processing occurs.
         FirstOutboxEmail.Get(FirstOutboxEmail.Id);
         SecondOutboxEmail.Get(SecondOutboxEmail.Id);
         Assert.AreEqual(FirstOutboxEmail.Status::Sent, FirstOutboxEmail.Status, 'Outgoing must work with receipts enabled but no incoming account.');
@@ -75,6 +82,9 @@ codeunit 148314 "EA Agent Dispatcher Test"
         EAKPI: Record "EA KPI";
         FilesReceivedBefore: Integer;
     begin
+        // [SCENARIO] Incoming-only processing submits receipt attachments without consuming outgoing work.
+
+        // [GIVEN] The isolated fixture enables only the incoming channel, supplies a mocked inbox message with two BLOB attachments, and expects an HTTP 202 response.
         InitializeCommunication(Setup, true, false);
         CreateRecipient(ExpenseUser, true);
         CreatePendingEmail(OutboxEmail);
@@ -83,8 +93,12 @@ codeunit 148314 "EA Agent Dispatcher Test"
         FilesReceivedBefore := EAKPI."File Received";
         ExpectService('/api/v1.0/expenses/process', 'receipt-accepted.json', 202);
 
+
+        // [WHEN] The production synchronous communication pass processes the mocked inbox.
         RunCommunication(Setup);
 
+
+        // [THEN] One multipart request is observed, the receipt is persisted and marked processed, the KPI counts both attachments, and outgoing work is unchanged.
         Assert.AreEqual(1, HttpRequestCount, 'Incoming-only must submit one receipt.');
         AssertMultipartReceipt();
         AssertReceiptProcessed();
@@ -102,6 +116,9 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ExpenseAgentStatus: Record "Expense Agent Status";
         PreviousNotificationRun: DateTime;
     begin
+        // [SCENARIO] No communication phase runs when neither channel has a registered account.
+
+        // [GIVEN] Queued welcome, outbox, and reminder work exists, while both channel accounts are unavailable and connector operations are configured to fail if called.
         InitializeCommunication(Setup, false, false);
         CreateRecipient(ExpenseUser, true);
         CreatePendingEmail(OutboxEmail);
@@ -109,8 +126,12 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ConnectorMock.FailOnRetrieveEmails(true);
         ConnectorMock.FailOnSend(true);
 
+
+        // [WHEN] The production synchronous communication pass runs.
         RunCommunication(Setup);
 
+
+        // [THEN] Outgoing work, incoming status, and reminder polling remain unchanged because both channels are skipped.
         AssertOutgoingUnchanged(OutboxEmail, ExpenseUser);
         AssertNoIncomingProcessing();
         ExpenseAgentStatus.Get();
@@ -126,6 +147,9 @@ codeunit 148314 "EA Agent Dispatcher Test"
         OutboxEmail: Record "EA Outbox Email";
         Attempt: Integer;
     begin
+        // [SCENARIO] Repeated mocked connector failures become terminal on the fifth delivery attempt.
+
+        // [GIVEN] A welcome handoff is accepted, a simulated correlated callback creates pending outbox work, and connector sending is configured to fail.
         InitializeCommunication(Setup, false, true);
         CreateRecipient(ExpenseUser, true);
         ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
@@ -136,10 +160,14 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ExpectNoService();
         ConnectorMock.FailOnSend(true);
 
+
+        // [WHEN] The production communication pass is repeated through five failed attempts and once after terminal failure.
         for Attempt := 1 to 5 do begin
             RunCommunication(Setup);
             OutboxEmail.Get(OutboxEmail.Id);
             ExpenseUser.Get(ExpenseUser."No.");
+
+        // [THEN] Retry count advances once per pass, attempts one through four remain pending, attempt five fails the row and welcome, and terminal work is not retried.
             Assert.AreEqual(Attempt, OutboxEmail."Retry Count", 'One failed connector delivery per pass is one retry.');
             if Attempt < 5 then begin
                 Assert.AreEqual(OutboxEmail.Status::Pending, OutboxEmail.Status, 'Attempts one through four remain pending.');
@@ -164,12 +192,19 @@ codeunit 148314 "EA Agent Dispatcher Test"
         OutboxEmail: Record "EA Outbox Email";
         EmailMessage: Codeunit "Email Message";
     begin
+        // [SCENARIO] HTTP handoff acceptance and mocked connector delivery remain distinct welcome-email stages.
+
+        // [GIVEN] An outgoing-only fixture queues a welcome request and the mocked service accepts it with a correlation ID.
         InitializeCommunication(Setup, false, true);
         CreateRecipient(ExpenseUser, true);
         ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
 
+
+        // [WHEN] The first pass records handoff acceptance; a simulated Business Central callback is inserted; the second pass sends through the mocked connector.
         RunCommunication(Setup);
 
+
+        // [THEN] Acceptance alone leaves the user In Outbox, while the correlated callback and connector delivery set Sent and persist the expected message content.
         ExpenseUser.Get(ExpenseUser."No.");
         Assert.AreEqual(1, HttpRequestCount, 'One real welcome request is expected.');
         Assert.IsFalse(IsNullGuid(RequestCorrelationId), 'The production request must carry a correlation header.');
@@ -178,7 +213,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Assert.AreEqual(0DT, ExpenseUser."Welcome Email Sent At", 'HTTP acceptance alone is not Sent.');
         Assert.IsTrue(OutboxEmail.IsEmpty(), 'Returning HTTP 200 alone must not fabricate a callback.');
 
-        // Simulated BC writeback, outside the HTTP TryFunction. This is not OData/auth validation.
         InsertCorrelatedCallback(OutboxEmail, RequestCorrelationId);
         Assert.AreEqual(OutboxEmail.Status::Pending, OutboxEmail.Status, 'The callback inserts pending work.');
         ExpectNoService();
@@ -202,13 +236,19 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ExpenseUser: Record "Expense User";
         OutboxEmail: Record "EA Outbox Email";
     begin
+        // [SCENARIO] A failed welcome HTTP handoff does not fabricate callback or delivery state.
+
+        // [GIVEN] An outgoing-only fixture queues a welcome request and the mocked endpoint returns HTTP 502 without asserting an external error-body contract.
         InitializeCommunication(Setup, false, true);
         CreateRecipient(ExpenseUser, true);
-        // Only the HTTP 502 boundary is asserted; no unverified service error-body contract is invented.
         ExpectService('/api/v1.0/notifications/welcome', '', 502);
 
+
+        // [WHEN] The production synchronous communication pass attempts the handoff.
         RunCommunication(Setup);
 
+
+        // [THEN] The welcome is Failed with no correlation or sent timestamp, and no outbox callback row exists.
         ExpenseUser.Get(ExpenseUser."No.");
         Assert.AreEqual(1, HttpRequestCount, 'The failure must come from the real HTTP status boundary.');
         Assert.AreEqual(ExpenseUser."Welcome Email Status"::Failed, ExpenseUser."Welcome Email Status", 'HTTP 502 fails the handoff.');
@@ -224,14 +264,21 @@ codeunit 148314 "EA Agent Dispatcher Test"
         EAHttpClient: Codeunit "EA Http Client";
         Success: Boolean;
     begin
+        // [SCENARIO] The HTTP wrapper rejects a welcome request before endpoint resolution when persisted setup is missing.
+
+        // [GIVEN] The isolated company has no Expense Agent setup and request counters are reset.
         AssertIsolatedCompany();
         ExpectNoService();
         Setup.DeleteAll();
         Commit();
         BindSubscription(this);
+
+        // [WHEN] The production welcome notification wrapper is invoked with the read-only test subscriptions bound.
         Success := EAHttpClient.SendWelcomeEmailNotification(RecipientEmailTok, CreateGuid());
         UnbindSubscription(this);
 
+
+        // [THEN] The call returns false without resolving an endpoint, constructing an observed request, or reaching mocked HTTP.
         Assert.IsFalse(Success, 'The real HTTP wrapper must reject missing persisted setup.');
         Assert.AreEqual(0, EndpointResolutionCount, 'Missing setup must be checked before the endpoint override event.');
         Assert.AreEqual(0, ObservedRequestCount, 'Missing setup must not construct a service request.');
@@ -245,10 +292,17 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Setup: Record "Expense Agent Setup";
         ExpenseUser: Record "Expense User";
     begin
+        // [SCENARIO] Persisted default and canary selections both reach endpoint resolution.
+
+        // [GIVEN] An outgoing-only fixture uses the safe mocked communication endpoint and queues a welcome recipient.
         InitializeCommunication(Setup, false, true);
         CreateRecipient(ExpenseUser, true);
         ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
+
+        // [WHEN] A communication pass runs with the saved default selection, then another runs after persisting the canary selection.
         RunCommunication(Setup);
+
+        // [THEN] Each saved selection resolves exactly one endpoint and reaches exactly one mocked HTTP request.
         Assert.AreEqual(1, EndpointResolutionCount, 'The saved default selection must reach endpoint resolution.');
         Assert.AreEqual(1, HttpRequestCount, 'The default selection must execute the real HTTP wrapper.');
 
@@ -267,6 +321,13 @@ codeunit 148314 "EA Agent Dispatcher Test"
     [HandlerFunctions('ExpenseServiceHandler')]
     procedure EligibleReminderWithoutIncomingAcceptsSkippedResponse()
     begin
+        // [SCENARIO] An outgoing-only eligible reminder accepts a mocked skipped response.
+
+        // [GIVEN] The helper creates a due open-report reminder with a registered outgoing channel, no incoming account, and the packaged skipped-response fixture.
+
+        // [WHEN] The helper runs the production synchronous communication pass against the mocked endpoint.
+
+        // [THEN] The helper verifies one correlated reminder request, no callback delivery, an advanced polling timestamp, and no incoming processing.
         VerifyReminderResponse('reminder-skipped.json');
     end;
 
@@ -278,14 +339,21 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ExpenseUser: Record "Expense User";
         OutboxEmail: Record "EA Outbox Email";
     begin
+        // [SCENARIO] One communication pass handles available incoming and outgoing work independently.
+
+        // [GIVEN] Both registered channels are enabled with a mocked receipt inbox, an HTTP 202 receipt response, and one pending outbox email.
         InitializeCommunication(Setup, true, true);
         CreateRecipient(ExpenseUser, false);
         CreatePendingEmail(OutboxEmail);
         CreateReceiptInbox(Setup);
         ExpectService('/api/v1.0/expenses/process', 'receipt-accepted.json', 202);
 
+
+        // [WHEN] The production synchronous communication pass runs.
         RunCommunication(Setup);
 
+
+        // [THEN] The receipt is submitted and persisted, and the pending outgoing email is sent in the same pass.
         Assert.AreEqual(1, HttpRequestCount, 'The incoming phase must submit the receipt.');
         AssertMultipartReceipt();
         AssertReceiptProcessed();
@@ -302,14 +370,21 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ExpenseAgentStatus: Record "Expense Agent Status";
         PreviousNotificationRun: DateTime;
     begin
+        // [SCENARIO] Later communication phases re-read persisted setup after the outbox phase commits.
+
+        // [GIVEN] Outgoing delivery, queued welcome work, and a due reminder exist; the delivery subscriber disables communication during the pass.
         InitializeCommunication(Setup, false, true);
         CreateRecipient(ExpenseUser, true);
         CreatePendingEmail(OutboxEmail);
         CreateEligibleReminder(Setup, ExpenseUser, PreviousNotificationRun);
         DisableOutgoingAfterSend := true;
 
+
+        // [WHEN] The production synchronous communication pass sends the pending outbox row.
         RunCommunication(Setup);
 
+
+        // [THEN] The persisted disable is retained, already-running delivery completes, and later welcome and reminder phases do not use stale enabled settings.
         Setup.Get();
         Assert.IsFalse(Setup."Enable Communication", 'The callback must persist the changed setup during the send phase.');
         OutboxEmail.Get(OutboxEmail.Id);

@@ -47,15 +47,6 @@ page 6996 "Expense Agent Setup"
                     ObsoleteTag = '30.0';
                     ObsoleteReason = 'Use Configure Expense Agent to set up receipt submission.';
 
-                    trigger OnAssistEdit()
-                    var
-                        PreviousSetup: Record "Expense Agent Setup";
-                    begin
-                        PreviousSetup := Rec;
-                        Rec.AssistEditMailbox();
-                        if Rec.HasSchedulingChanges(PreviousSetup) then
-                            ScheduleAllTasks();
-                    end;
                 }
                 field("Enable Email with Receipts"; Rec."Enable Email with Receipts")
                 {
@@ -146,15 +137,6 @@ page 6996 "Expense Agent Setup"
                         ObsoleteTag = '30.0';
                         ObsoleteReason = 'Use Configure Expense Agent to set up outgoing communication.';
 
-                        trigger OnAssistEdit()
-                        var
-                            PreviousSetup: Record "Expense Agent Setup";
-                        begin
-                            PreviousSetup := Rec;
-                            Rec.AssistEditNoreplyMailbox();
-                            if Rec.HasSchedulingChanges(PreviousSetup) then
-                                ScheduleAllTasks();
-                        end;
                     }
                 }
                 group(OpenReportReminders)
@@ -592,13 +574,4 @@ page 6996 "Expense Agent Setup"
         ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
 #endif
 
-#if not CLEAN30
-    local procedure ScheduleAllTasks()
-    var
-        EAAgentScheduler: Codeunit "EA Agent Scheduler";
-    begin
-        Rec.Modify();
-        EAAgentScheduler.ScheduleAgent(Rec);
-    end;
-#endif
 }

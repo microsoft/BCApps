@@ -63,9 +63,13 @@ codeunit 148335 "EA Agent Scheduling Test"
         OutgoingAvailable: Boolean;
         Combination: Text;
     begin
+        // [SCENARIO] Channel readiness and scheduling use preferences plus local account registration.
+
+        // [GIVEN] The connector mock provides registered accounts, and each channel is varied across empty, stale, wrong-connector, and registered states with both preference values.
         InitializeSetup(RegisteredSetup);
 
-        // Each channel is empty, stale, registered under another connector, or registered.
+
+        // [WHEN] Incoming readiness, outgoing readiness, and enabled or disabled scheduling are evaluated for every combination.
         for IncomingState := 0 to 3 do
             for OutgoingState := 0 to 3 do
                 for ReceiptsPreference := 0 to 1 do
@@ -81,6 +85,8 @@ codeunit 148335 "EA Agent Scheduling Test"
                             'Incoming state %1, outgoing state %2, receipts preference %3, communication preference %4.',
                             IncomingState, OutgoingState, ReceiptsPreference, CommunicationPreference);
 
+
+        // [THEN] Each decision matches the expected local registration matrix without probing external mailbox connectivity.
                         Assert.AreEqual(IncomingAvailable, Setup.IsIncomingCommunicationConfigured(), 'Incoming availability must use preference, ID and connector registration. ' + Combination);
                         Assert.AreEqual(OutgoingAvailable, Setup.IsOutgoingCommunicationConfigured(), 'Outgoing availability must use preference, ID and connector registration. ' + Combination);
                         Assert.AreEqual(IncomingAvailable or OutgoingAvailable, Setup.ShouldScheduleAgentTask(true), 'An enabled agent requires at least one available channel. ' + Combination);
@@ -93,11 +99,18 @@ codeunit 148335 "EA Agent Scheduling Test"
     var
         Setup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Transient mailbox access failure does not erase registered channel configuration.
+
+        // [GIVEN] Both preferences use locally registered connector accounts, and the connector mock is configured to fail retrieval.
         InitializeSetup(Setup);
         Setup."Enable Email with Receipts" := true;
         Setup."Enable Communication" := true;
         ConnectorMock.FailOnRetrieveEmails(true);
 
+
+        // [WHEN] Readiness, scheduling eligibility, and missing-account repair are evaluated.
+
+        // [THEN] Both channels remain configured, scheduling stays eligible, and repair reports no missing account.
         Assert.IsTrue(Setup.IsIncomingCommunicationConfigured(), 'Mailbox access failure must not be treated as deleted incoming configuration.');
         Assert.IsTrue(Setup.IsOutgoingCommunicationConfigured(), 'Mailbox access failure must not be treated as deleted outgoing configuration.');
         Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'Availability must use local registration, not a live mailbox probe.');
@@ -111,11 +124,16 @@ codeunit 148335 "EA Agent Scheduling Test"
         PreviousSetup: Record "Expense Agent Setup" temporary;
         ChangedInput: Integer;
     begin
+        // [SCENARIO] Every scheduling eligibility input triggers reconciliation when changed in either direction.
+
+        // [GIVEN] A baseline temporary setup has unchanged display addresses and no eligibility differences.
         PreviousSetup.Init();
         PreviousSetup."Email Address" := 'receipts@example.invalid';
         PreviousSetup."Noreply Email Address" := 'noreply@example.invalid';
         Assert.IsFalse(PreviousSetup.HasSchedulingChanges(PreviousSetup), 'Unchanged setup must not trigger reconciliation.');
 
+
+        // [WHEN] Each agent, preference, account ID, and connector input is changed and compared in both directions.
         for ChangedInput := 1 to 7 do begin
             Setup := PreviousSetup;
             case ChangedInput of
@@ -135,6 +153,8 @@ codeunit 148335 "EA Agent Scheduling Test"
                     Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector v4";
             end;
 
+
+        // [THEN] Every eligibility change requires reconciliation, while the unchanged baseline does not.
             Assert.IsTrue(Setup.HasSchedulingChanges(PreviousSetup), StrSubstNo('Changing eligibility input %1 must require reconciliation even when the address stays the same.', ChangedInput));
             Assert.IsTrue(PreviousSetup.HasSchedulingChanges(Setup), StrSubstNo('Reversing eligibility input %1 must also require reconciliation.', ChangedInput));
         end;
@@ -146,6 +166,9 @@ codeunit 148335 "EA Agent Scheduling Test"
         Setup: Record "Expense Agent Setup" temporary;
         PreviousSetup: Record "Expense Agent Setup" temporary;
     begin
+        // [SCENARIO] Non-eligibility setup changes do not trigger scheduling reconciliation.
+
+        // [GIVEN] Only addresses, folder values, notification preferences, rules, and number-series settings differ from the baseline.
         PreviousSetup.Init();
         Setup := PreviousSetup;
         Setup."Email Address" := 'receipts@example.invalid';
@@ -157,6 +180,10 @@ codeunit 148335 "EA Agent Scheduling Test"
         Setup."Use Rules" := not Setup."Use Rules";
         Setup."No. Series Applied" := not Setup."No. Series Applied";
 
+
+        // [WHEN] The changed setup is compared with the baseline for scheduling changes.
+
+        // [THEN] No scheduling reconciliation is required.
         Assert.IsFalse(Setup.HasSchedulingChanges(PreviousSetup), 'Display values, notification preferences and accounting defaults do not change channel eligibility.');
     end;
 
