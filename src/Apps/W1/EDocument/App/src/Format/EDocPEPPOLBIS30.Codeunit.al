@@ -3,11 +3,13 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Format;
 using Microsoft.eServices.EDocument.RemittanceAdvice;
+using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -119,6 +121,9 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                 GenerateTransferShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Purchase Order":
                 GeneratePurchaseOrderXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
+                if ValidateSelfBilledDocument(EDocument, EDocErrorHelper) then
+                    GenerateSelfBilledXMLFile(SourceDocumentHeader, DocOutStream);
             EDocument."Document Type"::"Remittance Advice":
                 GenerateRemittanceAdviceXMLFile(SourceDocumentHeader, DocOutStream);
             else
@@ -237,6 +242,50 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
+    local procedure GenerateSelfBilledXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream)
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        SelfBilledExport: Codeunit "Export Self-Billed PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        PeppolSetup.GetSetup();
+        SelfBilledExport.SetFormat(PeppolSetup."PEPPOL 3.0 Purchase Format");
+        SelfBilledExport.GenerateXML(SourceDocumentHeader);
+        SelfBilledExport.GetXML(TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
+    local procedure ValidateSelfBilledDocument(var EDocument: Record "E-Document"; EDocErrorHelper: Codeunit "E-Document Error Helper"): Boolean
+    var
+        Vendor: Record Vendor;
+        ServiceParticipant: Codeunit "Service Participant";
+        IsValid: Boolean;
+    begin
+        IsValid := true;
+
+        if not Vendor.Get(EDocument."Bill-to/Pay-to No.") then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledVendorNotFoundErr, EDocument."Bill-to/Pay-to No."));
+            exit(false);
+        end;
+
+        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, Vendor."No.") = 0 then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingParticipantErr, Vendor."No."));
+            IsValid := false;
+        end;
+
+        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Company, '') = 0 then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, SelfBilledMissingCompanyParticipantErr);
+            IsValid := false;
+        end;
+
+        if Vendor."VAT Registration No." = '' then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingVendorVATRegNoErr, Vendor."No."));
+            IsValid := false;
+        end;
+
+        exit(IsValid);
+    end;
+
     local procedure GenerateRemittanceAdviceXMLFile(SourceDocumentHeader: RecordRef; DocOutStream: OutStream)
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -289,6 +338,12 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
 
                 EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Service Credit Memo";
                 EDocServiceSupportedType.Insert();
+
+                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purchase Invoice";
+                EDocServiceSupportedType.Insert();
+
+                EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Self-Billed Purch. Cr. Memo";
+                EDocServiceSupportedType.Insert();
             end;
         end;
     end;
@@ -301,4 +356,8 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     var
         ImportPeppol: Codeunit "EDoc Import PEPPOL BIS 3.0";
         DocumentTypeNotSupportedErr: Label '%1 %2 is not supported by PEPPOL BIS30 Format', Comment = '%1 - Document Type caption, %2 - Document Type';
+        SelfBilledVendorNotFoundErr: Label 'Vendor %1 for this self-billed document could not be found.', Comment = '%1 - Vendor No.';
+        SelfBilledMissingParticipantErr: Label 'Vendor %1 has no registered E-Document Service Participation. Self-billed export requires a receiver Participant ID for the vendor.', Comment = '%1 - Vendor No.';
+        SelfBilledMissingCompanyParticipantErr: Label 'The company has no registered E-Document Service Participation. Self-billed export requires a sender Participant ID for the company.';
+        SelfBilledMissingVendorVATRegNoErr: Label 'Vendor %1 has no VAT Registration No. Self-billed invoices require the vendor''s VAT registration number.', Comment = '%1 - Vendor No.';
 }

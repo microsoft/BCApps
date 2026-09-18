@@ -276,6 +276,76 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets seller supplier (vendor) party tax scheme information from the purchase header.
+    /// Not part of "PEPPOL Purchase Party Info Provider" (Order export never needed a vendor VAT
+    /// scheme) — exposed here as a concrete method so self-billed invoice export can call it
+    /// without adding a breaking member to that extensible interface.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record.</param>
+    /// <param name="CompanyID">Returns the vendor's VAT registration ID.</param>
+    /// <param name="CompanyIDSchemeID">Returns the VAT scheme ID.</param>
+    /// <param name="TaxSchemeID">Returns the tax scheme ID.</param>
+    procedure GetSellerSupplierPartyTaxScheme(PurchaseHeader: Record "Purchase Header"; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text)
+    begin
+        PEPPOLManagementImpl.GetSellerSupplierPartyTaxScheme(PurchaseHeader, CompanyID, CompanyIDSchemeID, TaxSchemeID);
+    end;
+
+    /// <summary>
+    /// Gets the vendor's EndpointID/SchemeID/name for a self-billed document's AccountingSupplierParty.
+    /// A corrected, self-billing-only twin of <see cref="GetSellerSupplierPartyInfoBIS"/>: that
+    /// procedure's VAT-based fallback (used whenever the vendor has no GLN) has a pre-existing bug
+    /// that substitutes Company Information's own VAT number for the vendor's — see PEPPOL30Impl's
+    /// doc comment for the full explanation. This twin resolves the vendor's own GLN or VAT
+    /// registration no. correctly instead.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header (or posted-purchase projection) to resolve the vendor from.</param>
+    /// <param name="EndpointId">Returns the vendor's GLN, or its formatted VAT registration no. if it has no GLN.</param>
+    /// <param name="SchemeID">Returns the scheme ID matching whichever identifier was returned in EndpointId.</param>
+    /// <param name="Name">Returns the vendor's name.</param>
+    procedure GetSelfBilledSellerSupplierPartyInfo(PurchaseHeader: Record "Purchase Header"; var EndpointId: Text; var SchemeID: Text; var Name: Text)
+    begin
+        PEPPOLManagementImpl.GetSelfBilledSellerSupplierPartyInfo(PurchaseHeader, EndpointId, SchemeID, Name);
+    end;
+
+    /// <summary>
+    /// Gets the cac:TaxTotal amount and currency for a purchase-sourced (self-billed) document from
+    /// its calculated VAT amount lines. A Purchase-Header-typed overload of <see cref="GetTaxTotalInfo"/>,
+    /// which otherwise only exists Sales-Header-typed — added so self-billed export can render its
+    /// tax total without synthesizing a fake Sales Header for a document that is genuinely a purchase.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header (or posted-purchase projection) to read currency/date context from.</param>
+    /// <param name="VATAmtLine">The calculated VAT amount lines to sum.</param>
+    /// <param name="TaxAmount">Returns the formatted total tax amount.</param>
+    /// <param name="TaxTotalCurrencyID">Returns the currency code for TaxAmount.</param>
+    procedure GetTaxTotalInfo(PurchaseHeader: Record "Purchase Header"; var VATAmtLine: Record "VAT Amount Line"; var TaxAmount: Text; var TaxTotalCurrencyID: Text)
+    begin
+        PEPPOLManagementImpl.GetTaxTotalInfo(PurchaseHeader, VATAmtLine, TaxAmount, TaxTotalCurrencyID);
+    end;
+
+    /// <summary>
+    /// Gets one cac:TaxSubtotal's amounts, tax category, and tax scheme for a purchase-sourced
+    /// (self-billed) document from a single calculated VAT amount line. A Purchase-Header-typed
+    /// overload of <see cref="GetTaxSubtotalInfo"/> — see <see cref="GetTaxTotalInfo"/> above for
+    /// why a Purchase-Header-typed twin exists instead of reusing the Sales-Header-typed version.
+    /// </summary>
+    /// <param name="VATAmtLine">The single calculated VAT amount line to render as one TaxSubtotal.</param>
+    /// <param name="PurchaseHeader">The purchase header (or posted-purchase projection) to read currency/date context from.</param>
+    /// <param name="TaxableAmount">Returns the formatted taxable (base) amount.</param>
+    /// <param name="TaxAmountCurrencyID">Returns the currency code for TaxableAmount.</param>
+    /// <param name="SubtotalTaxAmount">Returns the formatted tax amount for this subtotal.</param>
+    /// <param name="TaxSubtotalCurrencyID">Returns the currency code for SubtotalTaxAmount.</param>
+    /// <param name="TransactionCurrencyTaxAmount">Returns the tax amount converted to LCY, if the document currency differs from LCY.</param>
+    /// <param name="TransCurrTaxAmtCurrencyID">Returns the LCY currency code for TransactionCurrencyTaxAmount, if set.</param>
+    /// <param name="TaxTotalTaxCategoryID">Returns the tax category ID.</param>
+    /// <param name="SchemeID">Returns the scheme ID for the tax category, if applicable.</param>
+    /// <param name="TaxCategoryPercent">Returns the formatted VAT percentage.</param>
+    /// <param name="TaxTotalTaxSchemeID">Returns the tax scheme ID (always VAT).</param>
+    procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; PurchaseHeader: Record "Purchase Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var SchemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
+    begin
+        PEPPOLManagementImpl.GetTaxSubtotalInfo(VATAmtLine, PurchaseHeader, TaxableAmount, TaxAmountCurrencyID, SubtotalTaxAmount, TaxSubtotalCurrencyID, TransactionCurrencyTaxAmount, TransCurrTaxAmtCurrencyID, TaxTotalTaxCategoryID, SchemeID, TaxCategoryPercent, TaxTotalTaxSchemeID);
+    end;
+
+    /// <summary>
     /// Gets the supplier party postal address information from the sales header.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing the supplier address information.</param>
