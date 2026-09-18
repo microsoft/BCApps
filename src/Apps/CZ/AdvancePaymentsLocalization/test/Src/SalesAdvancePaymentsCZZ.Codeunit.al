@@ -2835,9 +2835,14 @@ codeunit 148109 "Sales Advance Payments CZZ"
         CreateBlockedCustomer(Customer, CustomerBlocked, PrivacyBlocked);
 
         // [WHEN] Create sales advance letter with blocked customer
-        asserterror LibrarySalesAdvancesCZZ.CreateSalesAdvLetterHeader(SalesAdvLetterHeaderCZZ, AdvanceLetterTemplateCZZ.Code, Customer."No.", '');
+        if (CustomerBlocked = CustomerBlocked::Ship) and not PrivacyBlocked then
+            LibrarySalesAdvancesCZZ.CreateSalesAdvLetterHeader(SalesAdvLetterHeaderCZZ, AdvanceLetterTemplateCZZ.Code, Customer."No.", '')
+        else
+            asserterror LibrarySalesAdvancesCZZ.CreateSalesAdvLetterHeader(SalesAdvLetterHeaderCZZ, AdvanceLetterTemplateCZZ.Code, Customer."No.", '');
 
-        // [THEN] Error will occur
+        // [THEN] Error will occur when customer is blocked except when shipping is allowed
+        if (CustomerBlocked = CustomerBlocked::Ship) and not PrivacyBlocked then
+            exit;
         if PrivacyBlocked then
             Assert.ExpectedError(StrSubstNo(PrivacyBlockedCustomerErr, 'create', Customer."No."))
         else
@@ -2875,9 +2880,14 @@ codeunit 148109 "Sales Advance Payments CZZ"
         Customer.Modify(true);
 
         // [WHEN] Post sales advance payment
-        asserterror LibrarySalesAdvancesCZZ.PostSalesAdvancePayment(GenJournalLine);
+        if (CustomerBlocked = CustomerBlocked::Ship) and not PrivacyBlocked then
+            LibrarySalesAdvancesCZZ.PostSalesAdvancePayment(GenJournalLine)
+        else
+            asserterror LibrarySalesAdvancesCZZ.PostSalesAdvancePayment(GenJournalLine);
 
-        // [THEN] Error will occur
+        // [THEN] Error will occur when customer is blocked except when shipping is allowed
+        if (CustomerBlocked = CustomerBlocked::Ship) and not PrivacyBlocked then
+            exit;
         if PrivacyBlocked then
             Assert.ExpectedError(StrSubstNo(PrivacyBlockedCustomerErr, 'post', Customer."No."))
         else

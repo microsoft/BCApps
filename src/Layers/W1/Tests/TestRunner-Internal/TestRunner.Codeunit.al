@@ -190,9 +190,9 @@ codeunit 130020 "Test Runner"
             // todo: move to subscribers
             PermissionErrors := PermissionTestCatalog.GetPermissionErrors(FunctionTestPermissions);
             if IsSuccess and (PermissionErrors <> '') then begin // Only show permission errors once everything else succeeds
-#pragma warning disable AS0058, PTE0007 // Accepted violation: this test runner intentionally uses asserterror to surface permission errors as a test failure.
+#pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this test runner intentionally executes assertions to surface reusable test infrastructure failures. Tracked by AB#640773.
                 asserterror Error(PermissionErrors);
-#pragma warning restore AS0058, PTE0007
+#pragma warning restore AA0161, AS0058, PTE0007
                 IsSuccess := false;
             end;
 

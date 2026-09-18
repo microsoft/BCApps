@@ -131,10 +131,10 @@ page 6182 "E-Doc. Readable Purchase Doc."
                     Caption = 'Purchase Order No.';
                     ToolTip = 'Specifies the purchase order number.';
                 }
-                field("Applies-to Ext. Invoice No."; Rec."Applies-to Ext. Invoice No.")
+                field("Vendor Invoice No."; Rec."Vendor Invoice No.")
                 {
                     Caption = 'Applies-to Ext. Invoice No.';
-                    ToolTip = 'Specifies the vendor''s original invoice number that this credit memo references.';
+                    ToolTip = 'Specifies the external invoice number that the document applies to.';
                 }
                 field("Invoice Date"; Rec."Invoice Date")
                 {
