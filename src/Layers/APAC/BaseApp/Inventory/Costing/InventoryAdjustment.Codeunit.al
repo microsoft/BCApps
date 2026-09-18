@@ -57,8 +57,8 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         Window: Dialog;
         ItemLedgerEntryTypesUsed: Dictionary of [Enum "Item Ledger Entry Type", Boolean];
         ItemLedgEntryToAdjust: Dictionary of [Code[20], List of [Integer]];
-        OpenOutboundEntryNos: List of [Integer];
-        FixedAppliedItemEntryNos: List of [Integer];
+        OpenOutboundEntryNos: Dictionary of [Integer, Boolean];
+        FixedAppliedItemEntryNos: Dictionary of [Integer, Boolean];
         ItemsToAdjust: List of [Code[20]];
         JobsToAdjust: List of [Code[20]];
         ItemsBeingAdjusted: List of [Code[20]];
@@ -1599,11 +1599,11 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         // Return "True" if the entry is cost recipient
 
         // outbound open entry - cost recipient
-        if OpenOutboundEntryNos.Contains(ValueEntry."Item Ledger Entry No.") then
+        if OpenOutboundEntryNos.ContainsKey(ValueEntry."Item Ledger Entry No.") then
             exit(false);
 
         // fixed application is taken out
-        if FixedAppliedItemEntryNos.Contains(ValueEntry."Item Ledger Entry No.") then begin
+        if FixedAppliedItemEntryNos.ContainsKey(ValueEntry."Item Ledger Entry No.") then begin
             FixedApplication := true;
             exit(false);
         end;
@@ -1693,7 +1693,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         ItemApplicationEntry.SetFilter("Outbound Item Entry No.", '<>%1', 0);
         if ItemApplicationEntry.FindSet() then
             repeat
-                if FixedAppliedItemEntryNos.Contains(ItemApplicationEntry."Outbound Item Entry No.") then
+                if FixedAppliedItemEntryNos.ContainsKey(ItemApplicationEntry."Outbound Item Entry No.") then
                     if IncludedInCostCalculation(RevaluationValueEntry, ItemApplicationEntry."Outbound Item Entry No.") then
                         FixedApplQty -= ItemApplicationEntry.Quantity;
             until ItemApplicationEntry.Next() = 0;
@@ -2569,12 +2569,13 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         ItemApplnEntry: Record "Item Application Entry";
         ItemApplicationEntriesOutb: Query "Item Application Entries Outb.";
     begin
-        if not FixedAppliedItemEntryNos.Contains(ItemLedgerEntryNo) then
+        if not FixedAppliedItemEntryNos.ContainsKey(ItemLedgerEntryNo) then
             if ItemApplnEntry.AppliedOutbndEntryExists(ItemApplicationEntriesOutb, ItemLedgerEntryNo, true, false) then begin
-                FixedAppliedItemEntryNos.Add(ItemLedgerEntryNo);
+                FixedAppliedItemEntryNos.Add(ItemLedgerEntryNo, true);
                 repeat
                     // buffer is filled with couple of entries which are applied and contains revaluation
-                    FixedAppliedItemEntryNos.Add(ItemApplicationEntriesOutb.Item_Ledger_Entry_No);
+                    if not FixedAppliedItemEntryNos.ContainsKey(ItemApplicationEntriesOutb.Item_Ledger_Entry_No) then
+                        FixedAppliedItemEntryNos.Add(ItemApplicationEntriesOutb.Item_Ledger_Entry_No, true);
                 until not ItemApplicationEntriesOutb.Read();
             end;
     end;
@@ -2601,7 +2602,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
                 end;
     end;
 
-    local procedure FetchOpenOutboundItemEntriesToExclude(AvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point"; var ExcludedValueEntry: Record "Value Entry"; var OpenOutbndEntries: List of [Integer]; CalendarPeriod: Record Date)
+    local procedure FetchOpenOutboundItemEntriesToExclude(AvgCostAdjmtEntryPoint: Record "Avg. Cost Adjmt. Entry Point"; var ExcludedValueEntry: Record "Value Entry"; var OpenOutbndEntries: Dictionary of [Integer, Boolean]; CalendarPeriod: Record Date)
     var
         OpenItemLedgEntry: Record "Item Ledger Entry";
         ItemApplicationTraceAllPeriods: Record "Item Application Trace";
@@ -2697,11 +2698,11 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             end;
     end;
 
-    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: List of [Integer]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: Integer; PeriodStart: Date)
+    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: Dictionary of [Integer, Boolean]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: Integer; PeriodStart: Date)
     begin
         if CollectOpenValueEntries(ExcludedValueEntry, OpenItemLedgEntryNo, PeriodStart) then
-            if not OpenOutbndEntries.Contains(OpenItemLedgEntryNo) then
-                OpenOutbndEntries.Add(OpenItemLedgEntryNo);
+            if not OpenOutbndEntries.ContainsKey(OpenItemLedgEntryNo) then
+                OpenOutbndEntries.Add(OpenItemLedgEntryNo, true);
     end;
 
     local procedure CollectOpenValueEntries(var ExcludedValueEntry: Record "Value Entry"; ItemLedgerEntryNo: Integer; PeriodStart: Date) FoundEntries: Boolean

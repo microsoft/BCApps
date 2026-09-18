@@ -791,11 +791,6 @@ table 5802 "Value Entry"
 
     procedure CalcItemLedgEntryCost(ItemLedgEntryNo: Integer; Expected: Boolean)
     var
-        ItemLedgEntryQty: Decimal;
-        CostAmtActual: Decimal;
-        CostAmtActualACY: Decimal;
-        CostAmtExpected: Decimal;
-        CostAmtExpectedACY: Decimal;
         IsHandled: Boolean;
     begin
         Ishandled := false;
@@ -806,22 +801,19 @@ table 5802 "Value Entry"
         Reset();
         SetCurrentKey("Item Ledger Entry No.");
         SetRange("Item Ledger Entry No.", ItemLedgEntryNo);
-        if Find('-') then
-            repeat
-                if "Expected Cost" = Expected then begin
-                    ItemLedgEntryQty := ItemLedgEntryQty + "Item Ledger Entry Quantity";
-                    CostAmtActual := CostAmtActual + "Cost Amount (Actual)";
-                    CostAmtActualACY := CostAmtActualACY + "Cost Amount (Actual) (ACY)";
-                    CostAmtExpected := CostAmtExpected + "Cost Amount (Expected)";
-                    CostAmtExpectedACY := CostAmtExpectedACY + "Cost Amount (Expected) (ACY)";
-                end;
-            until Next() = 0;
-
-        "Item Ledger Entry Quantity" := ItemLedgEntryQty;
-        "Cost Amount (Actual)" := CostAmtActual;
-        "Cost Amount (Actual) (ACY)" := CostAmtActualACY;
-        "Cost Amount (Expected)" := CostAmtExpected;
-        "Cost Amount (Expected) (ACY)" := CostAmtExpectedACY;
+        // Preserve the last entry's non-total fields, including when it has the other Expected Cost value.
+        if FindLast() then begin
+            SetRange("Expected Cost", Expected);
+            CalcSums("Item Ledger Entry Quantity", "Cost Amount (Actual)", "Cost Amount (Actual) (ACY)",
+                "Cost Amount (Expected)", "Cost Amount (Expected) (ACY)");
+            SetRange("Expected Cost");
+        end else begin
+            "Item Ledger Entry Quantity" := 0;
+            "Cost Amount (Actual)" := 0;
+            "Cost Amount (Actual) (ACY)" := 0;
+            "Cost Amount (Expected)" := 0;
+            "Cost Amount (Expected) (ACY)" := 0;
+        end;
     end;
 
     procedure NotInvdRevaluationExists(ItemLedgEntryNo: Integer): Boolean
