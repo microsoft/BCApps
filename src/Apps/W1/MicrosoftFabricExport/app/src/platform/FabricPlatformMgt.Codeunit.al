@@ -263,6 +263,7 @@ codeunit 48520 "Fabric Platform Mgt"
         FabricPrivacyNotice.EnsureApproved();
 
         // Delegated auth overload: Microsoft first-party authentication is not yet available.
+        CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then begin
             ClientIdText := CredMgt.GetClientId();
@@ -274,7 +275,6 @@ codeunit 48520 "Fabric Platform Mgt"
                 Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
         end;
-        CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
         Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
         Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then
@@ -292,18 +292,19 @@ codeunit 48520 "Fabric Platform Mgt"
         RemainingMs := EnableCooldownDuration() - (CurrentDateTime() - LastEnableRequestedAt);
         if RemainingMs <= 0 then
             exit;
-        // The triggered Setup run already finished (succeeded or failed), so a new Enable is safe despite the timer.
-        if not IsSetupRunInProgress() then
+        // A new Enable is safe only after the Setup run triggered by the prior request has finished.
+        if IsSetupRunFinishedSince(LastEnableRequestedAt) then
             exit;
         Error(EnableOnCooldownErr, (RemainingMs div 60000) + 1);
     end;
 
-    local procedure IsSetupRunInProgress(): Boolean
+    local procedure IsSetupRunFinishedSince(EnableRequestedAt: DateTime): Boolean
     var
         TenantFabricExportSummary: Record "Tenant Fabric Export Summary";
     begin
         TenantFabricExportSummary.SetRange(Type, TenantFabricExportSummary.Type::Setup);
-        TenantFabricExportSummary.SetRange(State, TenantFabricExportSummary.State::Running);
+        TenantFabricExportSummary.SetFilter("Start Time", '>=%1', EnableRequestedAt);
+        TenantFabricExportSummary.SetFilter(State, '<>%1', TenantFabricExportSummary.State::Running);
         exit(not TenantFabricExportSummary.IsEmpty());
     end;
 

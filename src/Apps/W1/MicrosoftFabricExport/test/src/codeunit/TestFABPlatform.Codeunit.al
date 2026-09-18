@@ -247,6 +247,8 @@ codeunit 140012 "Test FAB Platform"
         TenantFabricExportSummary.Insert(false);
         //[GIVEN] Expected requested-action notification for the second request
         ExpectedMessages.Add(EnableRequestedMsg);
+        //[GIVEN] Reset the seam state so the assertion proves the second call, not the sticky flag from the first
+        PlatformTestSub.Reset();
 
         //[WHEN] Enable is requested again immediately
         FabricPlatformMgt.EnableExport();
