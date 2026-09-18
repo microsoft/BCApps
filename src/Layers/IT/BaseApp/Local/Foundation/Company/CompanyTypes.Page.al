@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Company;
 
 page 12169 "Company Types"
 {
-    Caption = 'Company Types';
+    Caption = 'FatturaPA Fiscal Regimes';
     PageType = List;
     SourceTable = "Company Types";
 
@@ -20,12 +20,12 @@ page 12169 "Company Types"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code that defines the company type.';
+                    ToolTip = 'Specifies the two-digit FatturaPA fiscal regime code. The code is exported with the RF prefix, for example 19 as RF19.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the description of the company type.';
+                    ToolTip = 'Specifies the description of the FatturaPA fiscal regime.';
                 }
             }
         }
