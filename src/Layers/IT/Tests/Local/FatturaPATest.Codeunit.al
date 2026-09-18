@@ -1290,6 +1290,38 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithInvalidDomesticProvincia()
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] FatturaPA export rejects a domestic Provincia that is not a two-letter uppercase code
+        Initialize();
+
+        // [GIVEN] A posted Sales Invoice for a local Customer with an invalid Provincia
+        Customer.Get(CreateCustomer());
+        Customer.County := 'Milano';
+        Customer.Modify();
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
+
+        // [WHEN] The document is exported to FatturaPA
+        LibraryErrorMessage.TrapErrorMessages();
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] The invalid Customer County is reported as an error
+        LibraryErrorMessage.LoadErrorMessages();
+        LibraryErrorMessage.AssertLogIfMessageExists(
+          Customer, Customer.FieldNo(County), ErrorMessage."Message Type"::Error);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
