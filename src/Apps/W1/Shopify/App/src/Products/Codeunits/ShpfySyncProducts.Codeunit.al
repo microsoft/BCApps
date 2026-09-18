@@ -193,7 +193,7 @@ codeunit 30185 "Shpfy Sync Products"
             ShopifyShop.FindFirst();
             AddItemConfirm.SetItemDescription(Item.Description);
             AddItemConfirm.SetShopCode(ShopifyShop.Code);
-            AddItemConfirm.SetIsActive(ShopifyShop."Status for Created Products" = ShopifyShop."Status for Created Products"::Active);
+            AddItemConfirm.SetProductStatus(ShopifyShop."Status for Created Products");
             if AddItemConfirm.RunModal() = Action::OK then
                 exit(true);
         end else begin
@@ -216,7 +216,7 @@ codeunit 30185 "Shpfy Sync Products"
                 ShopifyShop.FindFirst();
                 AddItemConfirm.SetItemDescription(Item.Description);
                 AddItemConfirm.SetShopCode(ShopifyShop.Code);
-                AddItemConfirm.SetIsActive(ShopifyShop."Status for Created Products" = ShopifyShop."Status for Created Products"::Active);
+                AddItemConfirm.SetProductStatus(ShopifyShop."Status for Created Products");
                 if AddItemConfirm.RunModal() = Action::OK then
                     exit(true);
             end else begin
