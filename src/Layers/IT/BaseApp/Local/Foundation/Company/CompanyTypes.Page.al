@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Company;
 
+using Microsoft.EServices.EDocument;
+
 page 12169 "Company Types"
 {
     Caption = 'FatturaPA Fiscal Regimes';
