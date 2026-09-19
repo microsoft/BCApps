@@ -17,6 +17,7 @@ using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
 using Microsoft.CRM.Team;
+using Microsoft.EServices.EDocument;
 using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -262,9 +263,9 @@ codeunit 104000 "Upgrade - BaseApp"
 
     local procedure EnsureStandardFatturaPAFiscalRegimes()
     var
-        CompanyTypes: Record "Company Types";
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
     begin
-        CompanyTypes.EnsureStandardFatturaPAFiscalRegimes();
+        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
     end;
 
     local procedure ClearTemporaryTables()
