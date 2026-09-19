@@ -108,26 +108,6 @@ table 9057 "Job Cue"
             Caption = 'User ID Filter';
             FieldClass = FlowFilter;
         }
-#if not CLEANSCHEMA28
-        field(24; "Coupled Data Synch Errors"; Integer)
-        {
-            CalcFormula = count("CRM Integration Record" where(Skipped = const(true)));
-            Caption = 'Coupled Data Synch Errors';
-            FieldClass = FlowField;
-            ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-        field(25; "FS Integration Errors"; Integer)
-        {
-            CalcFormula = count("Integration Synch. Job Errors");
-            Caption = 'Field Service Integration Errors';
-            FieldClass = FlowField;
-            ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
     }
 
     keys

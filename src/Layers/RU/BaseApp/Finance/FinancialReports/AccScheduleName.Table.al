@@ -46,21 +46,6 @@ table 84 "Acc. Schedule Name"
             Caption = 'Description';
             ToolTip = 'Specifies a description of the financial report row definition. The description is not shown on the final report but is used to provide more context when using the definition.';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Default column layout name for report formatting (obsolete - replaced by Financial Report table configuration).
-        /// </summary>
-        field(3; "Default Column Layout"; Code[10])
-        {
-            Caption = 'Default Column Layout';
-            TableRelation = "Column Layout Name";
-            ObsoleteReason = 'Use now the Column Group property in the table Financial Report';
-#pragma warning disable AS0072
-            ObsoleteTag = '25.0';
-            ObsoleteState = Removed;
-#pragma warning restore AS0072
-        }
-#endif
         /// <summary>
         /// Analysis view name providing multi-dimensional analysis capabilities for the account schedule.
         /// </summary>

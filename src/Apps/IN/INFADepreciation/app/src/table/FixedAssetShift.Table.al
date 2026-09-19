@@ -192,22 +192,6 @@ table 18633 "Fixed Asset Shift"
                 ModifyDeprFields();
             end;
         }
-#if not CLEANSCHEMA26
-        field(13; "FA Posting Group"; Code[10])
-        {
-            Caption = 'FA Posting Group';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'New field introduced as Fixed Asset Posting Group';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072
-            ObsoleteTag = '26.0';
-#pragma warning restore AS0072
-#endif
-            trigger OnValidate()
-            begin
-                ModifyDeprFields();
-            end;
-        }
         field(14; "Depreciation ending Date"; Date)
         {
             Caption = 'Depreciation ending Date';

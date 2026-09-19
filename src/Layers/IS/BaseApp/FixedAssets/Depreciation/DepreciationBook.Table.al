@@ -344,25 +344,6 @@ table 5611 "Depreciation Book"
                 end;
             end;
         }
-#if not CLEANSCHEMA27
-        field(10900; "Revalue in Year Purch."; Boolean)
-        {
-            Caption = 'Revalue in Year Purch.';
-            ObsoleteReason = 'The field has been moved to the IS Core App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
-#if not CLEANSCHEMA27
-        field(10901; "Residual Value %"; Decimal)
-        {
-            Caption = 'Residual Value %';
-            DecimalPlaces = 0 : 0;
-            ObsoleteReason = 'The field has been moved to the IS Core App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
     }
 
     keys

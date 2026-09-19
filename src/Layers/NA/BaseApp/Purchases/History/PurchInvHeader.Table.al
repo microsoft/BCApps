@@ -742,15 +742,6 @@ table 122 "Purch. Inv. Header"
             Caption = 'STE Transaction ID';
             Editable = false;
         }
-#if not CLEANSCHEMA28
-        field(10020; "IRS 1099 Code"; Code[10])
-        {
-            Caption = 'IRS 1099 Code';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(10042; "Fiscal Invoice Number PAC"; Text[50])
         {
             Caption = 'Fiscal Invoice Number PAC';

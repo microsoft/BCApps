@@ -906,16 +906,6 @@ table 115 "Sales Cr.Memo Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA26
-        field(10604; "VAT Code"; Code[10])
-        {
-            Caption = 'VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
 #if not CLEANSCHEMA32
         field(10605; "Account Code"; Text[30])
         {

@@ -49,17 +49,6 @@ table 30122 "Shpfy Order Tax Line"
             AutoFormatType = 1;
             AutoFormatExpression = OrderCurrencyCode();
         }
-#if not CLEANSCHEMA25
-        field(6; "Currency Code"; Code[10])
-        {
-            Caption = 'Currency Code';
-            DataClassification = SystemMetadata;
-            Editable = false;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'This information is available in Shopify Order Header table.';
-        }
-#endif
         field(7; "Presentment Amount"; Decimal)
         {
             Caption = 'Presentment Amount';

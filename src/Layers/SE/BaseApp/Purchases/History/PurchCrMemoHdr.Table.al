@@ -671,15 +671,6 @@ table 124 "Purch. Cr. Memo Hdr."
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA26
-        field(11200; "EU 3-Party Trade"; Boolean)
-        {
-            Caption = 'EU 3-Party Trade';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-            ObsoleteReason = 'Moved to the EU 3-Party Trade Purchase app.';
-        }
-#endif
     }
 
     keys

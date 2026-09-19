@@ -56,24 +56,6 @@ table 5380 "Man. Integration Table Mapping"
             OptionCaption = 'Bidirectional,ToIntegrationTable,FromIntegrationTable';
             OptionMembers = Bidirectional,ToIntegrationTable,FromIntegrationTable;
         }
-#if not CLEANSCHEMA28
-        field(8; "Table Config Template Code"; Code[10])
-        {
-            Caption = 'Table Config Template Code';
-            TableRelation = "Config. Template Header".Code where("Table ID" = field("Table ID"));
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Replaced with Table Config Template table';
-            ObsoleteTag = '28.0';
-        }
-        field(9; "Int. Tbl. Config Template Code"; Code[10])
-        {
-            Caption = 'Int. Tbl. Config Template Code';
-            TableRelation = "Config. Template Header".Code where("Table ID" = field("Integration Table ID"));
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Replaced with Integration Table Config Template table';
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(10; "Table Filter"; BLOB)
         {
             Caption = 'Table Filter';

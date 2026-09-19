@@ -350,6 +350,7 @@ table 28076 "Purch. Tax Inv. Line"
                 Rec.ShowDimensions();
             end;
         }
+#if not CLEANSCHEMA31
         field(5401; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
@@ -362,6 +363,7 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
         field(5402; "Variant Code"; Code[10])
         {
             Caption = 'Variant Code';
@@ -485,15 +487,6 @@ table 28076 "Purch. Tax Inv. Line"
             Caption = 'Purchasing Code';
             TableRelation = Purchasing;
         }
-#if not CLEANSCHEMA28
-        field(5712; "Product Group Code"; Code[10])
-        {
-            Caption = 'Product Group Code';
-            ObsoleteReason = 'Product Groups became first level children of Item Categories.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(6608; "Return Reason Code"; Code[10])
         {
             Caption = 'Return Reason Code';
@@ -532,6 +525,7 @@ table 28076 "Purch. Tax Inv. Line"
             Caption = 'External Document No.';
             Editable = false;
         }
+#if not CLEANSCHEMA31
         field(99000750; "Routing No."; Code[20])
         {
             Caption = 'Routing No.';
@@ -544,6 +538,8 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
+#if not CLEANSCHEMA31
         field(99000751; "Operation No."; Code[10])
         {
             Caption = 'Operation No.';
@@ -556,6 +552,8 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
+#if not CLEANSCHEMA31
         field(99000752; "Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
@@ -568,6 +566,8 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
+#if not CLEANSCHEMA31
         field(99000754; "Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No.';
@@ -580,6 +580,8 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
+#if not CLEANSCHEMA31
         field(99000755; "Overhead Rate"; Decimal)
         {
             AutoFormatType = 0;
@@ -594,6 +596,8 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
+#if not CLEANSCHEMA31
         field(99000759; "Routing Reference No."; Integer)
         {
             Caption = 'Routing Reference No.';
@@ -606,6 +610,7 @@ table 28076 "Purch. Tax Inv. Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
     }
 
     keys

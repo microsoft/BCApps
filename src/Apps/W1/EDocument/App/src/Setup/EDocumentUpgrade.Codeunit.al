@@ -20,7 +20,6 @@ codeunit 6168 "E-Document Upgrade"
 
     trigger OnUpgradePerCompany()
     begin
-        UpgradeLogURLMaxLength();
 #if not CLEAN29
         UpgradeProcessDraftEnum();
 #endif
@@ -28,22 +27,6 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeEnableVATOptionsForPurchEDoc();
     end;
 
-    local procedure UpgradeLogURLMaxLength()
-    var
-        EDocumentIntegrationLog: Record "E-Document Integration Log";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        EDocumentIntegrationLogDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(GetUpgradeLogURLMaxLengthUpgradeTag()) then
-            exit;
-
-        EDocumentIntegrationLogDataTransfer.SetTables(Database::"E-Document Integration Log", Database::"E-Document Integration Log");
-        EDocumentIntegrationLogDataTransfer.AddFieldValue(EDocumentIntegrationLog.FieldNo(URL), EDocumentIntegrationLog.FieldNo("Request URL"));
-        EDocumentIntegrationLogDataTransfer.UpdateAuditFields(false);
-        EDocumentIntegrationLogDataTransfer.CopyFields();
-
-        UpgradeTag.SetUpgradeTag(GetUpgradeLogURLMaxLengthUpgradeTag());
-    end;
 
     local procedure UpgradeDataExchV2Defs()
     var

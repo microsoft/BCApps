@@ -1298,16 +1298,6 @@ table 23 Vendor
             ToolTip = 'Specifies the vendor bank account that will be used by default on payment journal lines for export to a payment bank file.';
             TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("No."));
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -1690,15 +1680,6 @@ table 23 Vendor
             Caption = 'Receipt on Invoice Policy';
             ToolTip = 'Specifies whether receipt on invoice is enabled automatically for new purchase orders from this vendor.';
         }
-#if not CLEANSCHEMA26
-        field(10501; "Exclude from Pmt. Pract. Rep."; Boolean)
-        {
-            Caption = 'Exclude from Payment Practices Report';
-            ObsoleteReason = 'Replaced by W1 field "Exclude from Pmt. Practices"';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

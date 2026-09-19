@@ -562,26 +562,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Default G/L Account Quantity';
             ToolTip = 'Specifies that Quantity is set to 1 on lines of type G/L Account.';
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Contains a discontinued setting that previously controlled item creation from item numbers on sales lines.
-        /// </summary>
-        field(57; "Create Item from Item No."; Boolean)
-        {
-            Caption = 'Create Item from Item No.';
-            ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on sales lines.';
-            ObsoleteReason = 'Discontinued function';
-#if CLEAN27
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-#endif
         /// <summary>
         /// Indicates whether the customer name from the customer card is copied to customer ledger entries during posting.
         /// </summary>
@@ -1007,25 +987,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
         }
-#if not CLEANSCHEMA25
-        field(10900; "Credit Memo Nos. Paym. Disc."; Code[10])
-        {
-            Caption = 'Credit Memo Nos. Paym. Disc.';
-            ObsoleteReason = 'This is an unused rogue field from legacy functionality that was removed.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
-#if not CLEANSCHEMA27
-        field(10901; "Electronic Invoicing"; Boolean)
-        {
-            Caption = 'Electronic Invoicing';
-            ObsoleteReason = 'The field has been moved to the IS Core App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-
-        }
-#endif
     }
 
     keys

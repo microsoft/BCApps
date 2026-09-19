@@ -98,7 +98,6 @@ codeunit 104000 "Upgrade - BaseApp"
 {
     Subtype = Upgrade;
     Permissions =
-        TableData "User Group Plan" = rimd,
         TableData "Cust. Ledger Entry" = rm,
         TableData "Employee Ledger Entry" = rm,
         Tabledata "ABC Analysis Setup" = ri;
@@ -181,12 +180,9 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeAddExtraIntegrationFieldMappings();
         UpgradeWorkflowStepArgumentEventFilters();
         SetReviewRequiredOnBankPmtApplRules();
-        CheckLedgerEntriesMoveFromRecordIDToSystemId();
 
         UpgradeAPIs();
         UpgradeTemplates();
-        AddPowerBIWorkspaces();
-        UpgradePowerBiDisplayedElements();
         UpgradeContactMobilePhoneNo();
         UpgradePostCodeServiceKey();
         UpgradeDimensionSetEntry();
@@ -215,18 +211,11 @@ codeunit 104000 "Upgrade - BaseApp"
         UpdatePurchaserOnRequisitionLines();
         SendCloudMigrationUsageTelemetry();
         UpdateCustLedgerEntrySetYourReference();
-        UpgradeICPartnerGLAccountNo();
-        UpgradeICInboxTransactionAccountNo();
-        UpgradeHandledICInboxTransactionAccountNo();
-        UpgradeICOutboxTransactionAccountNo();
-        UpgradeHandledICOutboxTransactionAccountNo();
         UpdateCheckWhseClassOnLocation();
         UpdateDeferralSourceCode();
         UpgradeMapCurrencySymbol();
         UpgradeOptionMapping();
         UpdateProductionSourceCode();
-        UpgradeICGLAccountNoInPostedGenJournalLine();
-        UpgradeICGLAccountNoInStandardGeneralJournalLine();
         UpgradeBankExportImportSetup();
         UpgradePurchasesPayablesAndSalesReceivablesSetups();
         UpgradeLocationBinPolicySetups();
@@ -245,9 +234,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeReminderTextMultilines();
         UpgradeCountryVATSchemeDK();
         UpgradeJobConsumpWhseHandlingForDirectedPutAwayAndPickLocation();
-        UpgradeIntegrationTableMappingTemplates();
-        UpgradeICOutboxTransactionSourceType();
-        UpgradeICTransactionSourceType();
         UpgradeABCAnalysisSetup();
         UpgradePurchRcptLineFields();
         UpgradeSalesShptLineFields();
@@ -1389,79 +1375,13 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetStandardPurchaseCodeUpgradeTag());
     end;
 
-    local procedure AddPowerBIWorkspaces()
-    var
-        PowerBIReportConfiguration: Record "Power BI Report Configuration";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
-        EmptyGuid: Guid;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPowerBIWorkspacesUpgradeTag()) then
-            exit;
 
-        PowerBIReportConfiguration.SetRange("Workspace Name", '');
-        PowerBIReportConfiguration.SetRange("Workspace ID", EmptyGuid);
-
-        if PowerBIReportConfiguration.FindSet() then
-            PowerBIReportConfiguration.ModifyAll("Workspace Name", PowerBIWorkspaceMgt.GetMyWorkspaceLabel());
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPowerBIWorkspacesUpgradeTag());
-    end;
-
-    local procedure UpgradePowerBIDisplayedElements()
-    var
-        PowerBIReportConfiguration: Record "Power BI Report Configuration";
-        PowerBIUserConfiguration: Record "Power BI User Configuration";
-        PowerBIContextSettings: Record "Power BI Context Settings";
-        PowerBIDisplayedElement: Record "Power BI Displayed Element";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPowerBIDisplayedElementUpgradeTag()) then
-            exit;
-
-        if PowerBIReportConfiguration.FindSet() then
-            repeat
-                if not PowerBIDisplayedElement.Get(PowerBIReportConfiguration."User Security ID", PowerBIReportConfiguration.Context, Format(PowerBIReportConfiguration."Report ID"), PowerBIDisplayedElement.ElementType::Report) then begin
-                    Clear(PowerBIDisplayedElement);
-                    PowerBIDisplayedElement.Context := PowerBIReportConfiguration.Context;
-                    PowerBIDisplayedElement.UserSID := PowerBIReportConfiguration."User Security ID";
-                    PowerBIDisplayedElement.ElementId := Format(PowerBIReportConfiguration."Report ID");
-                    PowerBIDisplayedElement.ElementType := PowerBIDisplayedElement.ElementType::Report;
-                    PowerBIDisplayedElement.ElementName := PowerBIReportConfiguration.ReportName;
-                    PowerBIDisplayedElement.ElementEmbedUrl := PowerBIReportConfiguration.ReportEmbedUrl;
-                    PowerBIDisplayedElement.WorkspaceID := PowerBIReportConfiguration."Workspace ID";
-                    PowerBIDisplayedElement.WorkspaceName := PowerBIReportConfiguration."Workspace Name";
-                    PowerBIDisplayedElement.ShowPanesInNormalMode := PowerBIReportConfiguration."Show Panes";
-                    PowerBIDisplayedElement.ShowPanesInExpandedMode := true;
-                    PowerBIDisplayedElement.ReportPage := PowerBIReportConfiguration."Report Page";
-                    PowerBIDisplayedElement.Insert();
-                end;
-            until PowerBIReportConfiguration.Next() = 0;
-
-        if PowerBIUserConfiguration.FindSet() then
-            repeat
-                if not PowerBIContextSettings.Get(PowerBIUserConfiguration."User Security ID", PowerBIUserConfiguration."Page ID") then begin
-                    Clear(PowerBIContextSettings);
-                    PowerBIContextSettings.Context := PowerBIUserConfiguration."Page ID";
-                    PowerBIContextSettings.UserSID := PowerBIUserConfiguration."User Security ID";
-                    PowerBIContextSettings.SelectedElementId := Format(PowerBIUserConfiguration."Selected Report ID");
-                    PowerBIContextSettings.SelectedElementType := PowerBIContextSettings.SelectedElementType::Report;
-                    PowerBIContextSettings.LockToSelectedElement := PowerBIUserConfiguration."Lock to first visual";
-                    PowerBIContextSettings.Insert();
-                end;
-            until PowerBIUserConfiguration.Next() = 0;
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPowerBIDisplayedElementUpgradeTag());
-    end;
 
     local procedure UpgradePowerBiReportUploads()
     var
         PowerBIReportUploads: Record "Power BI Report Uploads";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        EmptyGuid: Guid;
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPowerBIUploadsStatusUpgradeTag()) then
             exit;
@@ -1470,14 +1390,8 @@ codeunit 104000 "Upgrade - BaseApp"
         if PowerBIReportUploads.FindSet(true) then
             repeat
                 case true of
-                    PowerBIReportUploads."Needs Deletion":
-                        PowerBIReportUploads."Report Upload Status" := PowerBIReportUploads."Report Upload Status"::PendingDeletion;
-                    PowerBIReportUploads."Is Selection Done":
-                        PowerBIReportUploads."Report Upload Status" := PowerBIReportUploads."Report Upload Status"::Completed;
                     PowerBIReportUploads."Report Embed Url" <> '':
                         PowerBIReportUploads."Report Upload Status" := PowerBIReportUploads."Report Upload Status"::DataRefreshed;
-                    (PowerBIReportUploads."Import ID" <> EmptyGuid) and (not PowerBIReportUploads."Should Retry"):
-                        PowerBIReportUploads."Report Upload Status" := PowerBIReportUploads."Report Upload Status"::Failed;
                 // Else the status remains NotStarted
                 end;
 
@@ -2907,43 +2821,15 @@ codeunit 104000 "Upgrade - BaseApp"
     local procedure UpgradeAccountSchedulesToFinancialReports()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-        FinancialReport: Record "Financial Report";
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        AnythingModified: Boolean;
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetAccountSchedulesToFinancialReportsUpgradeTag()) then
             exit;
         if not GeneralLedgerSetup.Get() then
             exit;
         FinancialReportMgt.Initialize();
-        if not (GeneralLedgerSetup."Acc. Sched. for Balance Sheet" = '') then
-            if FinancialReport.Get(GeneralLedgerSetup."Acc. Sched. for Balance Sheet") then
-                if GeneralLedgerSetup."Fin. Rep. for Balance Sheet" = '' then begin
-                    GeneralLedgerSetup."Fin. Rep. for Balance Sheet" := GeneralLedgerSetup."Acc. Sched. for Balance Sheet";
-                    AnythingModified := true;
-                end;
-        if not (GeneralLedgerSetup."Acc. Sched. for Cash Flow Stmt" = '') then
-            if FinancialReport.Get(GeneralLedgerSetup."Acc. Sched. for Cash Flow Stmt") then
-                if GeneralLedgerSetup."Fin. Rep. for Cash Flow Stmt" = '' then begin
-                    GeneralLedgerSetup."Fin. Rep. for Cash Flow Stmt" := GeneralLedgerSetup."Acc. Sched. for Cash Flow Stmt";
-                    AnythingModified := true;
-                end;
-        if not (GeneralLedgerSetup."Acc. Sched. for Income Stmt." = '') then
-            if FinancialReport.Get(GeneralLedgerSetup."Acc. Sched. for Income Stmt.") then
-                if GeneralLedgerSetup."Fin. Rep. for Income Stmt." = '' then begin
-                    GeneralLedgerSetup."Fin. Rep. for Income Stmt." := GeneralLedgerSetup."Acc. Sched. for Income Stmt.";
-                    AnythingModified := true;
-                end;
-        if not (GeneralLedgerSetup."Acc. Sched. for Retained Earn." = '') then
-            if FinancialReport.Get(GeneralLedgerSetup."Acc. Sched. for Retained Earn.") then
-                if GeneralLedgerSetup."Fin. Rep. for Retained Earn." = '' then begin
-                    GeneralLedgerSetup."Fin. Rep. for Retained Earn." := GeneralLedgerSetup."Acc. Sched. for Retained Earn.";
-                    AnythingModified := true;
-                end;
-        if AnythingModified then
-            GeneralLedgerSetup.Modify();
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetAccountSchedulesToFinancialReportsUpgradeTag());
     end;
 
@@ -3044,125 +2930,10 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCustLedgerEntryYourReferenceUpdateTag());
     end;
 
-    local procedure UpgradeICPartnerGLAccountNo()
-    var
-        GenJournalLine: Record "Gen. Journal Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
 
-        GenJournalLine.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if GenJournalLine.IsEmpty() then
-            exit;
 
-        GenJournalLineDataTransfer.SetTables(Database::"Gen. Journal Line", Database::"Gen. Journal Line");
-        GenJournalLineDataTransfer.AddSourceFilter(GenJournalLine.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", GenJournalLine.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(GenJournalLine.FieldNo("IC Partner G/L Acc. No."), GenJournalLine.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
 
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
 
-    local procedure UpgradeICInboxTransactionAccountNo()
-    var
-        ICInboxTransaction: Record "IC Inbox Transaction";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        ICInboxTransaction.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if ICInboxTransaction.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"IC Inbox Transaction", Database::"IC Inbox Transaction");
-        GenJournalLineDataTransfer.AddSourceFilter(ICInboxTransaction.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", ICInboxTransaction.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(ICInboxTransaction.FieldNo("IC Partner G/L Acc. No."), ICInboxTransaction.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeHandledICInboxTransactionAccountNo()
-    var
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        HandledICInboxTrans.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if HandledICInboxTrans.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"Handled IC Inbox Trans.", Database::"Handled IC Inbox Trans.");
-        GenJournalLineDataTransfer.AddSourceFilter(HandledICInboxTrans.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", HandledICInboxTrans.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(HandledICInboxTrans.FieldNo("IC Partner G/L Acc. No."), HandledICInboxTrans.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeICOutboxTransactionAccountNo()
-    var
-        ICOutboxTransaction: Record "IC Outbox Transaction";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        ICOutboxTransaction.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if ICOutboxTransaction.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"IC Outbox Transaction", Database::"IC Outbox Transaction");
-        GenJournalLineDataTransfer.AddSourceFilter(ICOutboxTransaction.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", ICOutboxTransaction.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(ICOutboxTransaction.FieldNo("IC Partner G/L Acc. No."), ICOutboxTransaction.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeHandledICOutboxTransactionAccountNo()
-    var
-        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        GenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        HandledICOutboxTrans.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if HandledICOutboxTrans.IsEmpty() then
-            exit;
-
-        GenJournalLineDataTransfer.SetTables(Database::"Handled IC Outbox Trans.", Database::"Handled IC Outbox Trans.");
-        GenJournalLineDataTransfer.AddSourceFilter(HandledICOutboxTrans.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        GenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", HandledICOutboxTrans.FieldNo("IC Account Type"));
-        GenJournalLineDataTransfer.AddFieldValue(HandledICOutboxTrans.FieldNo("IC Partner G/L Acc. No."), HandledICOutboxTrans.FieldNo("IC Account No."));
-        GenJournalLineDataTransfer.CopyFields();
-        Clear(GenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
 
     local procedure UpdateCheckWhseClassOnLocation()
     var
@@ -3338,53 +3109,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetOptionMappingUpgradeTag());
     end;
 
-    local procedure UpgradeICGLAccountNoInPostedGenJournalLine()
-    var
-        PostedGenJournalLine: Record "Posted Gen. Journal Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        PostedGenJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
 
-        PostedGenJournalLine.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if PostedGenJournalLine.IsEmpty() then
-            exit;
-
-        PostedGenJournalLineDataTransfer.SetTables(Database::"Posted Gen. Journal Line", Database::"Posted Gen. Journal Line");
-        PostedGenJournalLineDataTransfer.AddSourceFilter(PostedGenJournalLine.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        PostedGenJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", PostedGenJournalLine.FieldNo("IC Account Type"));
-        PostedGenJournalLineDataTransfer.AddFieldValue(PostedGenJournalLine.FieldNo("IC Partner G/L Acc. No."), PostedGenJournalLine.FieldNo("IC Account No."));
-        PostedGenJournalLineDataTransfer.CopyFields();
-        Clear(PostedGenJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
-
-    local procedure UpgradeICGLAccountNoInStandardGeneralJournalLine()
-    var
-        StandardGeneralJournalLine: Record "Standard General Journal Line";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        StandardGeneralJournalLineDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag()) then
-            exit;
-
-        StandardGeneralJournalLine.SetFilter("IC Partner G/L Acc. No.", '<> ''''');
-        if StandardGeneralJournalLine.IsEmpty() then
-            exit;
-
-        StandardGeneralJournalLineDataTransfer.SetTables(Database::"Standard General Journal Line", Database::"Standard General Journal Line");
-        StandardGeneralJournalLineDataTransfer.AddSourceFilter(StandardGeneralJournalLine.FieldNo("IC Partner G/L Acc. No."), '<> ''''');
-        StandardGeneralJournalLineDataTransfer.AddConstantValue("IC Journal Account Type"::"G/L Account", StandardGeneralJournalLine.FieldNo("IC Account Type"));
-        StandardGeneralJournalLineDataTransfer.AddFieldValue(StandardGeneralJournalLine.FieldNo("IC Partner G/L Acc. No."), StandardGeneralJournalLine.FieldNo("IC Account No."));
-        StandardGeneralJournalLineDataTransfer.CopyFields();
-        Clear(StandardGeneralJournalLineDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICPartnerGLAccountNoUpgradeTag());
-    end;
 
     local procedure UpgradePurchasesPayablesAndSalesReceivablesSetups()
     var
@@ -3685,24 +3410,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCreateExpenseAgentAADApplicationsTag());
     end;
 
-    local procedure CheckLedgerEntriesMoveFromRecordIDToSystemId()
-    var
-        CheckLedgerEntry: Record "Check Ledger Entry";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        CheckManagement: Codeunit CheckManagement;
-        DummyRecordID: RecordId;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCheckLedgerEntriesMoveFromRecordIDToSystemIdUpgradeTag()) then
-            exit;
-        CheckLedgerEntry.SetFilter("Record ID to Print", '<>%1', DummyRecordID);
-        if CheckLedgerEntry.FindSet(true) then
-            repeat
-                CheckLedgerEntry."Print Gen Jnl Line SystemId" := CheckManagement.GenJournalLineGetSystemIdFromRecordId(CheckLedgerEntry."Record ID to Print");
-                CheckLedgerEntry.Modify();
-            until CheckLedgerEntry.Next() = 0;
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCheckLedgerEntriesMoveFromRecordIDToSystemIdUpgradeTag());
-    end;
 
     local procedure UpgradeVATSetupAllowVATDate()
     var
@@ -3794,8 +3501,6 @@ codeunit 104000 "Upgrade - BaseApp"
     local procedure UpgradeReminderTextMultilines()
     var
         ReminderAttachmentText: Record "Reminder Attachment Text";
-        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
-        ReminderAttachmentTextLineToInsert: Record "Reminder Attachment Text Line";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
@@ -3804,41 +3509,7 @@ codeunit 104000 "Upgrade - BaseApp"
 
         if ReminderAttachmentText.FindSet() then
             repeat
-                if ReminderAttachmentText."Beginning Line" <> '' then begin
-                    Clear(ReminderAttachmentTextLineToInsert);
-                    ReminderAttachmentTextLineToInsert.Id := ReminderAttachmentText.Id;
-                    ReminderAttachmentTextLineToInsert."Language Code" := ReminderAttachmentText."Language Code";
-                    ReminderAttachmentTextLineToInsert.Position := ReminderAttachmentTextLineToInsert.Position::"Beginning Line";
-                    ReminderAttachmentTextLineToInsert.Text := ReminderAttachmentText."Beginning Line";
 
-                    ReminderAttachmentTextLine.SetRange(Id, ReminderAttachmentText.Id);
-                    ReminderAttachmentTextLine.SetRange("Language Code", ReminderAttachmentText."Language Code");
-                    ReminderAttachmentTextLine.SetRange(Position, ReminderAttachmentTextLine.Position::"Beginning Line");
-                    if ReminderAttachmentTextLine.FindLast() then
-                        ReminderAttachmentTextLineToInsert."Line No." := ReminderAttachmentTextLine."Line No." + 10000
-                    else
-                        ReminderAttachmentTextLineToInsert."Line No." := 10000;
-
-                    ReminderAttachmentTextLineToInsert.Insert();
-                end;
-
-                if ReminderAttachmentText."Ending Line" <> '' then begin
-                    Clear(ReminderAttachmentTextLineToInsert);
-                    ReminderAttachmentTextLineToInsert.Id := ReminderAttachmentText.Id;
-                    ReminderAttachmentTextLineToInsert."Language Code" := ReminderAttachmentText."Language Code";
-                    ReminderAttachmentTextLineToInsert.Position := ReminderAttachmentTextLineToInsert.Position::"Ending Line";
-                    ReminderAttachmentTextLineToInsert.Text := ReminderAttachmentText."Ending Line";
-
-                    ReminderAttachmentTextLine.SetRange(Id, ReminderAttachmentText.Id);
-                    ReminderAttachmentTextLine.SetRange("Language Code", ReminderAttachmentText."Language Code");
-                    ReminderAttachmentTextLine.SetRange(Position, ReminderAttachmentTextLine.Position::"Ending Line");
-                    if ReminderAttachmentTextLine.FindLast() then
-                        ReminderAttachmentTextLineToInsert."Line No." := ReminderAttachmentTextLine."Line No." + 10000
-                    else
-                        ReminderAttachmentTextLineToInsert."Line No." := 10000;
-
-                    ReminderAttachmentTextLineToInsert.Insert();
-                end;
             until ReminderAttachmentText.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetMultilineReminderTextUpgradeTag());
@@ -3897,85 +3568,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetUpgradeJobConsumpWhseHandlingForDirectedPutAwayAndPickLocationUpgradeTag());
     end;
 
-    local procedure UpgradeIntegrationTableMappingTemplates()
-    var
-        IntegrationTableMapping: Record "Integration Table Mapping";
-        ManIntegrationTableMapping: Record "Man. Integration Table Mapping";
-        TableConfigTemplate: Record "Table Config Template";
-        IntTableConfigTemplate: Record "Int. Table Config Template";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetIntegrationTableMappingTemplatesUpgradeTag()) then
-            exit;
 
-        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::Dataverse);
-        IntegrationTableMapping.FilterGroup(-1);
-        IntegrationTableMapping.SetFilter("Table Config Template Code", '<>%1', '');
-        IntegrationTableMapping.SetFilter("Int. Tbl. Config Template Code", '<>%1', '');
-        if IntegrationTableMapping.FindSet() then
-            repeat
-                if IntegrationTableMapping."Table Config Template Code" <> '' then begin
-                    Clear(TableConfigTemplate);
-                    TableConfigTemplate."Integration Table Mapping Name" := IntegrationTableMapping.Name;
-                    TableConfigTemplate."Table ID" := IntegrationTableMapping."Table ID";
-                    TableConfigTemplate."Integration Table ID" := IntegrationTableMapping."Integration Table ID";
-                    TableConfigTemplate."Table Config Template Code" := IntegrationTableMapping."Table Config Template Code";
-                    TableConfigTemplate.Insert();
-                end;
-                if IntegrationTableMapping."Int. Tbl. Config Template Code" <> '' then begin
-                    Clear(IntTableConfigTemplate);
-                    IntTableConfigTemplate."Integration Table Mapping Name" := IntegrationTableMapping.Name;
-                    IntTableConfigTemplate."Table ID" := IntegrationTableMapping."Table ID";
-                    IntTableConfigTemplate."Integration Table ID" := IntegrationTableMapping."Integration Table ID";
-                    IntTableConfigTemplate."Int. Tbl. Config Template Code" := IntegrationTableMapping."Int. Tbl. Config Template Code";
-                    IntTableConfigTemplate.Insert();
-                end;
-            until IntegrationTableMapping.Next() = 0;
-
-        ManIntegrationTableMapping.FilterGroup(-1);
-        ManIntegrationTableMapping.SetFilter("Table Config Template Code", '<>%1', '');
-        ManIntegrationTableMapping.SetFilter("Int. Tbl. Config Template Code", '<>%1', '');
-        if ManIntegrationTableMapping.FindSet() then
-            repeat
-                if ManIntegrationTableMapping."Table Config Template Code" <> '' then begin
-                    Clear(TableConfigTemplate);
-                    TableConfigTemplate."Integration Table Mapping Name" := ManIntegrationTableMapping.Name;
-                    TableConfigTemplate."Table ID" := ManIntegrationTableMapping."Table ID";
-                    TableConfigTemplate."Integration Table ID" := ManIntegrationTableMapping."Integration Table ID";
-                    TableConfigTemplate."Table Config Template Code" := ManIntegrationTableMapping."Table Config Template Code";
-                    TableConfigTemplate.Insert();
-                end;
-                if ManIntegrationTableMapping."Int. Tbl. Config Template Code" <> '' then begin
-                    Clear(IntTableConfigTemplate);
-                    IntTableConfigTemplate."Integration Table Mapping Name" := ManIntegrationTableMapping.Name;
-                    IntTableConfigTemplate."Integration Table ID" := ManIntegrationTableMapping."Integration Table ID";
-                    IntTableConfigTemplate."Table ID" := ManIntegrationTableMapping."Table ID";
-                    IntTableConfigTemplate."Int. Tbl. Config Template Code" := ManIntegrationTableMapping."Int. Tbl. Config Template Code";
-                    IntTableConfigTemplate.Insert();
-                end;
-            until ManIntegrationTableMapping.Next() = 0;
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetIntegrationTableMappingTemplatesUpgradeTag());
-    end;
-
-    local procedure UpgradeICOutboxTransactionSourceType()
-    var
-        ICOutboxTransaction: Record "IC Outbox Transaction";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        ICOutboxTransactionDataTransfer: DataTransfer;
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICOutboxTransactionSourceTypeUpgradeTag()) then
-            exit;
-
-        ICOutboxTransactionDataTransfer.SetTables(Database::"IC Outbox Transaction", Database::"IC Outbox Transaction");
-        ICOutboxTransactionDataTransfer.AddFieldValue(ICOutboxTransaction.FieldNo("Source Type"), ICOutboxTransaction.FieldNo("IC Source Type"));
-        ICOutboxTransactionDataTransfer.CopyFields();
-        Clear(ICOutboxTransactionDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICOutboxTransactionSourceTypeUpgradeTag());
-    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferFieldsFromNoSeriesLineSales(FromNoSeriesLineSales: Record "No. Series Line Sales"; ToNoSeriesLine: Record "No. Series Line")
@@ -3987,36 +3580,6 @@ codeunit 104000 "Upgrade - BaseApp"
     begin
     end;
 
-    local procedure UpgradeICTransactionSourceType()
-    var
-        ICInboxTransaction: Record "IC Inbox Transaction";
-        HandledICInboxTrans: Record "Handled IC Inbox Trans.";
-        HandledICOutboxTrans: Record "Handled IC Outbox Trans.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        ICTransactionDataTransfer: DataTransfer;
-
-    begin
-        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag()) then
-            exit;
-
-        ICTransactionDataTransfer.SetTables(Database::"IC Inbox Transaction", Database::"IC Inbox Transaction");
-        ICTransactionDataTransfer.AddFieldValue(ICInboxTransaction.FieldNo("Source Type"), ICInboxTransaction.FieldNo("IC Source Type"));
-        ICTransactionDataTransfer.CopyFields();
-        Clear(ICTransactionDataTransfer);
-
-        ICTransactionDataTransfer.SetTables(Database::"Handled IC Inbox Trans.", Database::"Handled IC Inbox Trans.");
-        ICTransactionDataTransfer.AddFieldValue(HandledICInboxTrans.FieldNo("Source Type"), HandledICInboxTrans.FieldNo("IC Source Type"));
-        ICTransactionDataTransfer.CopyFields();
-        Clear(ICTransactionDataTransfer);
-
-        ICTransactionDataTransfer.SetTables(Database::"Handled IC Outbox Trans.", Database::"Handled IC Outbox Trans.");
-        ICTransactionDataTransfer.AddFieldValue(HandledICOutboxTrans.FieldNo("Source Type"), HandledICOutboxTrans.FieldNo("IC Source Type"));
-        ICTransactionDataTransfer.CopyFields();
-        Clear(ICTransactionDataTransfer);
-
-        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag());
-    end;
 
     local procedure UpgradePurchRcptLineFields()
     var

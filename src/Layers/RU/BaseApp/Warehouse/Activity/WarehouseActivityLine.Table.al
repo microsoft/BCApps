@@ -877,15 +877,6 @@ table 5767 "Warehouse Activity Line"
             Caption = 'Dedicated';
             Editable = false;
         }
-#if not CLEANSCHEMA25
-        field(14900; "CD No."; Code[50])
-        {
-            Caption = 'CD No.';
-            ObsoleteReason = 'Replaced by field Package No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(7319; "Over-Receipt Quantity"; Decimal)
         {
             AutoFormatType = 0;

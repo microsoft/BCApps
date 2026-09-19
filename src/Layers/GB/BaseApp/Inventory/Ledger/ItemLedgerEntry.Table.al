@@ -605,15 +605,6 @@ table 32 "Item Ledger Entry"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEANSCHEMA25
-        field(10500; "Shipment Method Code"; Code[10])
-        {
-            Caption = 'Shipment Method Code';
-            ObsoleteReason = 'Merge to W1';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

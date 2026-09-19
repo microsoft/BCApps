@@ -2402,19 +2402,6 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'IC Direction';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete field replaced by IC Account No. for intercompany G/L account references.
-        /// </summary>
-        field(116; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Intercompany transaction number for tracking and matching IC transactions across partner companies.
         /// </summary>
@@ -3889,26 +3876,6 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
-#if not CLEANSCHEMA26
-        field(10604; "VAT Code"; Code[10])
-        {
-            Caption = 'VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(10605; "Bal. VAT Code"; Code[10])
-        {
-            Caption = 'Bal. VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "Bal. VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10608; "VAT Base Amount Type"; Option)
         {
             Caption = 'VAT Base Amount Type';

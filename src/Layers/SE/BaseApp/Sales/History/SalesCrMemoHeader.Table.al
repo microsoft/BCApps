@@ -1142,36 +1142,6 @@ table 114 "Sales Cr.Memo Header"
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA26
-        field(11200; "Source Inv. No."; Code[20])
-        {
-            Caption = 'Source Inv. No.';
-            Editable = false;
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(11201; "Source Inv. VAT"; Decimal)
-        {
-            Caption = 'Source Inv. VAT';
-            Editable = false;
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(11202; "Source Inv. Total"; Decimal)
-        {
-            Caption = 'Source Inv. Total';
-            Editable = false;
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

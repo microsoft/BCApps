@@ -307,15 +307,6 @@ table 740 "VAT Report Header"
                     Error(NoticeAndRevocationMutuallyExclusiveErr);
             end;
         }
-#if not CLEANSCHEMA25
-        field(22; "Date Type"; Enum "VAT Date Type")
-        {
-            Caption = 'Date Type';
-            ObsoleteReason = 'Selected VAT Date type no longer supported';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(28; "Trade Type"; Option)
         {
             Caption = 'Trade Type';

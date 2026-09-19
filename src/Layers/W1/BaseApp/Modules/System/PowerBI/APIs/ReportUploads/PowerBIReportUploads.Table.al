@@ -46,45 +46,12 @@ table 6307 "Power BI Report Uploads"
             DataClassification = CustomerContent;
             Description = 'The version that was uploaded, so we know when to overwrite with newer reports.';
         }
-#if not CLEANSCHEMA26
-        field(6; "Is Selection Done"; Boolean)
-        {
-            Caption = 'Is Selection Done';
-            DataClassification = CustomerContent;
-            Description = 'Whether or not the one-time selection process has been done after uploading.';
-            ObsoleteReason = 'Use Report Upload Status instead to track the upload status.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA26
-        field(8; "Should Retry"; Boolean)
-        {
-            Caption = 'Should Retry';
-            DataClassification = CustomerContent;
-            Description = 'Whether or not we expect the upload to succeed if we try again.';
-            ObsoleteReason = 'Use Report Upload Status instead to track the upload status.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(9; "Retry After"; DateTime)
         {
             Caption = 'Retry After';
             DataClassification = CustomerContent;
             Description = 'The point in time after which it''s ok to retry this upload.';
         }
-#if not CLEANSCHEMA26
-        field(10; "Needs Deletion"; Boolean)
-        {
-            Caption = 'Needs Deletion';
-            DataClassification = CustomerContent;
-            Description = 'Determines if the report needs to be deleted.';
-            ObsoleteReason = 'Use Report Upload Status instead to track the upload status.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(11; IsGP; Boolean)
         {
             Caption = 'IsGP';

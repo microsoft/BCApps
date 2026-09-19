@@ -3898,16 +3898,6 @@ table 39 "Purchase Line"
                 MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
             end;
         }
-#if not CLEANSCHEMA26
-        field(10604; "VAT Code"; Code[10])
-        {
-            Caption = 'VAT Code';
-            TableRelation = "VAT Code".Code;
-            ObsoleteReason = 'Use the field "VAT Number" instead';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10610; "VAT Number"; Code[20])
         {
             TableRelation = "VAT Reporting Code".Code;

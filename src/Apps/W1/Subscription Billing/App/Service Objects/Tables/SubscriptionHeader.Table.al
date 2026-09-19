@@ -320,24 +320,6 @@ table 8057 "Subscription Header"
             Caption = 'Ship-to Contact';
             DataClassification = EndUserIdentifiableInformation;
         }
-#if not CLEANSCHEMA29
-        field(20; "Item No."; Code[20])
-        {
-            Caption = 'Item No.';
-            TableRelation = Item where("Subscription Option" = filter("Sales with Service Commitment" | "Service Commitment Item" | "Invoicing Item"));
-            ObsoleteReason = 'Replaced by field Source No.';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-
-        }
-#endif
         field(21; Description; Text[100])
         {
             Caption = 'Description';
