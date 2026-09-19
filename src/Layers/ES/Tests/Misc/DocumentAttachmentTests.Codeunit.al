@@ -2,6 +2,7 @@ codeunit 134776 "Document Attachment Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -27,13 +28,16 @@ codeunit 134776 "Document Attachment Tests"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        SubscriberSourceRecordId: RecordId;
         ExpectedPurchaseDocumentFlow: Boolean;
         isInitialized: Boolean;
         RecallNotifications: Boolean;
+        ResolveRecRefInSubscriber: Boolean;
         ReportSelectionUsage: Enum "Report Selection Usage";
         AttachedDateInvalidErr: Label 'Attached date is invalid';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
+        CannotResolveSourceRecordErr: Label 'The source record for this attachment cannot be resolved in table %1.', Comment = '%1 = Table Caption';
         ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
         ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
@@ -46,12 +50,15 @@ codeunit 134776 "Document Attachment Tests"
         FlowSalesValueForFirstAttachmentMismatchErr: Label 'Flow sales value not equal for first attachment.';
         FlowSalesValueForSecondAttachmentMismatchErr: Label 'Flow sales value not equal for second attachment.';
         JpegFileNameTok: Label '%1.jpeg';
+        MissingSourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the record does not exist.';
         NoContentErr: Label 'The selected file ''%1'' has no content. Please choose another file.', Comment = '%1=FileName';
         NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
         OpenInDetailNotEnabledErr: Label 'OpenInDetail button must be enabled in FactBox %1 of page %2', Comment = '%1=FactBox PageName, %2= PageName';
         OpportunityOneLbl: Label 'Opportunity1';
         OpportunityTwoLbl: Label 'Opportunity2';
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
+        RecRefMustNotBeOpenErr: Label 'The RecordRef must not be opened when the source table is not mapped.';
+        RecRefMustNotBeOpenForMissingRecordErr: Label 'The RecordRef must not be opened when the source record does not exist.';
         RenameCodeLbl: Label 'T';
         PurchaseCreditMemoFileNamePrefixLbl: Label 'purchasecreditmemo', Locked = true;
         PurchaseInvoiceFileNamePrefixLbl: Label 'purchaseinvoice', Locked = true;
@@ -61,7 +68,11 @@ codeunit 134776 "Document Attachment Tests"
         ServiceCreditMemoFileNamePrefixLbl: Label 'servicecreditmemo', Locked = true;
         ServiceInvoiceFileNamePrefixLbl: Label 'serviceinvoice', Locked = true;
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
+        SourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the source table is not mapped.';
+        SourceRecordNotResolvedErr: Label 'The source record must be resolved for the %1.', Comment = '%1 = Table Caption';
+        UnexpectedSourceTableErr: Label 'The RecordRef must be opened on the %1.', Comment = '%1 = Table Caption';
         TwoAttachmentsExpectedErr: Label 'Two attachments were expected for this record.';
+        UnexpectedAttachmentInDetailsErr: Label 'The Document Attachment Details page must open for the record that the subscriber resolved.';
         UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
         UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
@@ -5378,6 +5389,79 @@ codeunit 134776 "Document Attachment Tests"
         ChangeStatusOfProductionBOM(ProdBOMHeader, ProdBOMHeader.Status::Certified);
         RecRef.GetTable(ProdBOMHeader);
         CreateDocAttachProductionImageType(RecRef, StrSubstNo(AttachmentFileNameLbl, LibraryRandom.RandText(5)), true);
+    end;
+
+    local procedure CreateInventoryPostingSetupForItem(var Item: Record Item)
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+    begin
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, '', InventoryPostingGroup.Code);
+        InventoryPostingSetup.Validate("Inventory Account", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Validate("Inventory Account (Interim)", LibraryERM.CreateGLAccountNo());
+        InventoryPostingSetup.Modify(true);
+
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        Item.Modify(true);
+    end;
+
+    local procedure CreateDocAttachForUnmappedTable(var DocumentAttachment: Record "Document Attachment")
+    var
+        PaymentTerms: Record "Payment Terms";
+    begin
+        // Payment Terms is not mapped in GetRefTable and has no OnAfterGetRefTable subscriber, so the RecordRef is left closed.
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Payment Terms";
+        DocumentAttachment."No." := PaymentTerms.Code;
+        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment.Insert();
+    end;
+
+    local procedure ShowAttachmentDetails(var DocumentAttachment: Record "Document Attachment")
+    var
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        DocumentAttachmentDetails: Page "Document Attachment Details";
+        RecRef: RecordRef;
+    begin
+        if DocumentAttachment."Table ID" = 0 then
+            exit;
+
+        if not DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment) then begin
+            if ResolveRecRefInSubscriber then
+                RecRef.Get(SubscriberSourceRecordId);
+            if RecRef.Number() = 0 then
+                Error(CannotResolveSourceRecordErr, GetTableCaption(DocumentAttachment."Table ID"));
+        end;
+
+        DocumentAttachmentDetails.OpenForRecRef(RecRef);
+        DocumentAttachmentDetails.RunModal();
+    end;
+
+    local procedure GetTableCaption(TableID: Integer): Text
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        if TableMetadata.Get(TableID) then
+            exit(TableMetadata.Caption);
+        exit(Format(TableID));
+    end;
+
+    internal procedure SetSubscriberSourceRecord(SourceRecordId: RecordId)
+    begin
+        SubscriberSourceRecordId := SourceRecordId;
+        ResolveRecRefInSubscriber := true;
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Doc. Attachment List Factbox", 'OnAfterGetRecRefFail', '', false, false)]
+    local procedure ResolveSourceRecordOnAfterGetRecRefFail(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
+    begin
+        if not ResolveRecRefInSubscriber then
+            exit;
+
+        RecRef.Get(SubscriberSourceRecordId);
     end;
 
     [ModalPageHandler]
