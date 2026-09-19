@@ -61,6 +61,7 @@ page 31145 "EET Entries CZL"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount of cash document VAT-exempt.';
+                    Visible = false;
                 }
                 field("Status"; Rec."Status")
                 {
