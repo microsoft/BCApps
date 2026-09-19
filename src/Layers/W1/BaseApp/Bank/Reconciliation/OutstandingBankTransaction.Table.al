@@ -31,7 +31,7 @@ table 1284 "Outstanding Bank Transaction"
         /// Unique entry number for the outstanding bank transaction.
         /// Provides identification and linking to source ledger entries.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';

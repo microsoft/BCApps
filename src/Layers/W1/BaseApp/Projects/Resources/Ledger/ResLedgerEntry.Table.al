@@ -27,7 +27,7 @@ table 203 "Res. Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -211,7 +211,7 @@ table 203 "Res. Ledger Entry"
             AutoFormatType = 0;
             Caption = 'Quantity (Base)';
         }
-        field(34; "Resource Register No."; Integer)
+        field(34; "Resource Register No."; BigInteger)
         {
             Caption = 'Resource Register No.';
             Editable = false;
@@ -355,7 +355,7 @@ table 203 "Res. Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Res. Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

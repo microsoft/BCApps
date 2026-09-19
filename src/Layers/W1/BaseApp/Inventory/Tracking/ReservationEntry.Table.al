@@ -29,7 +29,7 @@ table 337 "Reservation Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
@@ -75,7 +75,7 @@ table 337 "Reservation Entry"
             Caption = 'Creation Date';
             ToolTip = 'Specifies the date on which the entry was created.';
         }
-        field(9; "Transferred from Entry No."; Integer)
+        field(9; "Transferred from Entry No."; BigInteger)
         {
             Caption = 'Transferred from Entry No.';
             ToolTip = 'Specifies a value when the order tracking entry is for the quantity that remains on a document line after a partial posting.';
@@ -107,12 +107,12 @@ table 337 "Reservation Entry"
         {
             Caption = 'Source Prod. Order Line';
         }
-        field(15; "Source Ref. No."; Integer)
+        field(15; "Source Ref. No."; BigInteger)
         {
             Caption = 'Source Ref. No.';
             ToolTip = 'Specifies a reference number for the line, which the reservation entry is related to.';
         }
-        field(16; "Item Ledger Entry No."; Integer)
+        field(16; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             Editable = false;
@@ -351,7 +351,7 @@ table 337 "Reservation Entry"
         Text004: Label 'Codeunit 99000845: Illegal FieldFilter parameter';
 #pragma warning restore AA0074
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

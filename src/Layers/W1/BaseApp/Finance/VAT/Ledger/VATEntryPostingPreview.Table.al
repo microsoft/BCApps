@@ -36,7 +36,7 @@ table 1571 "VAT Entry Posting Preview"
         /// <summary>
         /// Unique sequential identifier for the VAT entry posting preview record.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             Editable = false;
@@ -176,7 +176,7 @@ table 1571 "VAT Entry Posting Preview"
         /// <summary>
         /// Entry number of the VAT entry that closed this entry through VAT settlement.
         /// </summary>
-        field(17; "Closed by Entry No."; Integer)
+        field(17; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             Editable = false;
@@ -356,7 +356,7 @@ table 1571 "VAT Entry Posting Preview"
         /// <summary>
         /// Entry number of the related unrealized VAT entry.
         /// </summary>
-        field(38; "Unrealized VAT Entry No."; Integer)
+        field(38; "Unrealized VAT Entry No."; BigInteger)
         {
             Caption = 'Unrealized VAT Entry No.';
             Editable = false;
@@ -520,7 +520,7 @@ table 1571 "VAT Entry Posting Preview"
         /// <summary>
         /// Entry number of the VAT entry that reversed this entry.
         /// </summary>
-        field(57; "Reversed by Entry No."; Integer)
+        field(57; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -530,7 +530,7 @@ table 1571 "VAT Entry Posting Preview"
         /// <summary>
         /// Entry number of the original VAT entry that this entry reverses.
         /// </summary>
-        field(58; "Reversed Entry No."; Integer)
+        field(58; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';

@@ -555,7 +555,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="BankAccountLedgerEntry">Original bank account ledger entry to reverse</param>
     /// <param name="NewEntryNo">Entry number for the new reversal entry</param>
     /// <param name="SourceCode">Source code to assign to the reversal entry</param>
-    procedure ReverseBankAccLedgEntry(BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; NewEntryNo: Integer; SourceCode: Code[10])
+    procedure ReverseBankAccLedgEntry(BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; NewEntryNo: BigInteger; SourceCode: Code[10])
     var
         NewBankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         ReversedBankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -877,7 +877,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         exit(ReversalEntry."Transaction No." - 1);
     end;
 
-    local procedure GetRegisterNoForTransactionReversal(var ReversalEntry: Record "Reversal Entry"): Integer
+    local procedure GetRegisterNoForTransactionReversal(var ReversalEntry: Record "Reversal Entry"): BigInteger
     var
         GLRegister: Record "G/L Register";
     begin

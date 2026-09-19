@@ -53,7 +53,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Unique sequential identifier for the G/L entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, which is assigned automatically when the entry is posted.';
@@ -321,7 +321,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Transaction number grouping related G/L entries from the same posting.
         /// </summary>
-        field(52; "Transaction No."; Integer)
+        field(52; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -502,7 +502,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the reversing entry that canceled this transaction.
         /// </summary>
-        field(74; "Reversed by Entry No."; Integer)
+        field(74; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -512,7 +512,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the original entry that was reversed by this transaction.
         /// </summary>
-        field(75; "Reversed Entry No."; Integer)
+        field(75; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -549,7 +549,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// G/L Register number for this entry.
         /// </summary>
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -901,7 +901,7 @@ table 17 "G/L Entry"
     /// </summary>
     /// <returns>The last entry number used</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -914,10 +914,10 @@ table 17 "G/L Entry"
     /// <param name="LastEntryNo">Returns the last entry number used</param>
     /// <param name="LastTransactionNo">Returns the last transaction number used</param>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetLastEntry(var LastEntryNo: Integer; var LastTransactionNo: Integer)
+    procedure GetLastEntry(var LastEntryNo: BigInteger; var LastTransactionNo: BigInteger)
     var
         FindRecordManagement: Codeunit "Find Record Management";
-        FieldNoValues: List of [Integer];
+        FieldNoValues: List of [BigInteger];
     begin
         FieldNoValues.Add(FieldNo("Entry No."));
         FieldNoValues.Add(FieldNo("Transaction No."));

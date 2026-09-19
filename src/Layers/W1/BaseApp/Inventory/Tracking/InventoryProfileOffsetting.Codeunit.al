@@ -2321,7 +2321,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     local procedure InsertTempTracking(var FromTrkgReservEntry: Record "Reservation Entry"; var ToTrkgReservEntry: Record "Reservation Entry")
     var
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         ShouldInsert: Boolean;
         IsHandled: Boolean;
     begin
@@ -2395,8 +2395,8 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     local procedure CommitTracking()
     var
-        PrevTempEntryNo: Integer;
-        PrevInsertedEntryNo: Integer;
+        PrevTempEntryNo: BigInteger;
+        PrevInsertedEntryNo: BigInteger;
         IsHandled: Boolean;
         InsertedEntryNos: List of [Integer];
     begin

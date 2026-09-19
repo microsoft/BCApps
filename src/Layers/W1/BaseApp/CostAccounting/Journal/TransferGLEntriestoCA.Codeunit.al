@@ -39,8 +39,8 @@ codeunit 1105 "Transfer GL Entries to CA"
         Window: Dialog;
         LastLineNo: Integer;
         NoOfCombinedEntries: Integer;
-        FirstGLEntryNo: Integer;
-        LastGLEntryNo: Integer;
+        FirstGLEntryNo: BigInteger;
+        LastGLEntryNo: BigInteger;
         NoOfJnlLines: Integer;
         TotalDebit: Decimal;
         TotalCredit: Decimal;

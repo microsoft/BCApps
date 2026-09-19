@@ -24,25 +24,25 @@ table 343 "Item Application Entry History"
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "Item Ledger Entry No."; Integer)
+        field(2; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             ToolTip = 'Specifies the entry number of the item ledger entry, for which the item application entry was recorded.';
             TableRelation = "Item Ledger Entry";
         }
-        field(3; "Inbound Item Entry No."; Integer)
+        field(3; "Inbound Item Entry No."; BigInteger)
         {
             Caption = 'Inbound Item Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory increase or positive quantity in inventory for this entry.';
             TableRelation = "Item Ledger Entry";
         }
-        field(4; "Outbound Item Entry No."; Integer)
+        field(4; "Outbound Item Entry No."; BigInteger)
         {
             Caption = 'Outbound Item Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory decrease for this entry.';
             TableRelation = "Item Ledger Entry";
         }
-        field(9; "Primary Entry No."; Integer)
+        field(9; "Primary Entry No."; BigInteger)
         {
             Caption = 'Primary Entry No.';
             ToolTip = 'Specifies a unique identifying number for each item application entry history record.';
@@ -59,7 +59,7 @@ table 343 "Item Application Entry History"
             Caption = 'Posting Date';
             ToolTip = 'Specifies a date that corresponds to the posting date of the item ledger entry, for which this item application entry was created.';
         }
-        field(23; "Transferred-from Entry No."; Integer)
+        field(23; "Transferred-from Entry No."; BigInteger)
         {
             Caption = 'Transferred-from Entry No.';
             ToolTip = 'Specifies the item ledger entry number of the inventory increase, if an item application entry originates from an item location transfer.';
@@ -134,7 +134,7 @@ table 343 "Item Application Entry History"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry History", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

@@ -86,7 +86,7 @@ table 1022 "Job Planning Line Invoice"
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
-        field(12; "Job Ledger Entry No."; Integer)
+        field(12; "Job Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Project Ledger Entry No.';

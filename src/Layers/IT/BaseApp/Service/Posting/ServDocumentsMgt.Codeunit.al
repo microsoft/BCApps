@@ -98,8 +98,8 @@ codeunit 5988 "Serv-Documents Mgt."
         SrcCode: Code[10];
         GenJnlLineDocType: Enum "Gen. Journal Document Type";
         ItemLedgShptEntryNo: Integer;
-        NextServLedgerEntryNo: Integer;
-        NextWarrantyLedgerEntryNo: Integer;
+        NextServLedgerEntryNo: BigInteger;
+        NextWarrantyLedgerEntryNo: BigInteger;
         Ship: Boolean;
         Consume: Boolean;
         Invoice: Boolean;
@@ -135,7 +135,7 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
-        ServLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
         PaymentJournalLine: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         PostedPayments: Record "Posted Payment Lines";
@@ -235,7 +235,7 @@ codeunit 5988 "Serv-Documents Mgt."
         TotalAmount: Decimal;
         LineCount: Integer;
         ApplToServEntryNo: Integer;
-        WarrantyNo: Integer;
+        WarrantyNo: BigInteger;
         BiggestLineNo: Integer;
         LastLineRetrieved: Boolean;
         Check: Boolean;
@@ -604,7 +604,7 @@ codeunit 5988 "Serv-Documents Mgt."
         OnAfterInsertServLedgerEntrySaleConsume(NextServLedgerEntryNo);
     end;
 
-    local procedure PostServiceItemLine(ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; RemQtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeConsumedBase: Decimal; RemQtyToBeConsumed: Decimal; var WarrantyNo: Integer)
+    local procedure PostServiceItemLine(ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; RemQtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeConsumedBase: Decimal; RemQtyToBeConsumed: Decimal; var WarrantyNo: BigInteger)
     var
         TempServLine: Record "Service Line" temporary;
         TempVATAmountLineForSLE: Record "VAT Amount Line" temporary;
@@ -648,7 +648,7 @@ codeunit 5988 "Serv-Documents Mgt."
                     TempHandlingSpecification, TempTrackingSpecification, ServShptHeader, '');
     end;
 
-    local procedure PostServiceResourceLine(var ServLine: Record "Service Line"; var WarrantyNo: Integer)
+    local procedure PostServiceResourceLine(var ServLine: Record "Service Line"; var WarrantyNo: BigInteger)
     var
         TempServLine: Record "Service Line" temporary;
         TempVATAmountLineForSLE: Record "VAT Amount Line" temporary;
@@ -877,7 +877,7 @@ codeunit 5988 "Serv-Documents Mgt."
         end;
     end;
 
-    local procedure PrepareShipmentLine(var PassedServLine: Record "Service Line"; passedWarrantyNo: Integer)
+    local procedure PrepareShipmentLine(var PassedServLine: Record "Service Line"; passedWarrantyNo: BigInteger)
     var
         WarrantyLedgerEntry: Record "Warranty Ledger Entry";
     begin
@@ -2365,7 +2365,7 @@ codeunit 5988 "Serv-Documents Mgt."
         OnAfterSortLines(ServLine);
     end;
 
-    local procedure UpdateServiceLedgerEntry(ServLedgEntryNo: Integer)
+    local procedure UpdateServiceLedgerEntry(ServLedgEntryNo: BigInteger)
     var
         ServiceLedgerEntry: Record "Service Ledger Entry";
     begin
@@ -2514,7 +2514,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertServLedgerEntrySaleConsume(var NextServLedgerEntryNo: Integer)
+    local procedure OnAfterInsertServLedgerEntrySaleConsume(var NextServLedgerEntryNo: BigInteger)
     begin
     end;
 
@@ -2644,7 +2644,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgerEntrySaleConsume(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; var ServMgtSetup: Record "Service Mgt. Setup"; var NextServLedgerEntryNo: Integer; var GenJnlLineDocNo: Code[20]; Consume: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgerEntrySaleConsume(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; var ServMgtSetup: Record "Service Mgt. Setup"; var NextServLedgerEntryNo: BigInteger; var GenJnlLineDocNo: Code[20]; Consume: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -2794,7 +2794,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterCalcShouldPostShipmentServiceEntry(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var Ship: Boolean; var ApplToServEntryNo: Integer; var NextServLedgerEntryNo: Integer; var ShouldPostShipmentServiceEntry: Boolean)
+    local procedure OnPostDocumentLinesOnAfterCalcShouldPostShipmentServiceEntry(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var Ship: Boolean; var ApplToServEntryNo: Integer; var NextServLedgerEntryNo: BigInteger; var ShouldPostShipmentServiceEntry: Boolean)
     begin
     end;
 
@@ -2815,12 +2815,12 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtCreateCreditEntry(var NextServLedgerEntryNo: Integer; var ApplToServEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
+    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtCreateCreditEntry(var NextServLedgerEntryNo: BigInteger; var ApplToServEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtInsertServLedgerEntrySaleInvoice(var NextServLedgerEntryNo: Integer)
+    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtInsertServLedgerEntrySaleInvoice(var NextServLedgerEntryNo: BigInteger)
     begin
     end;
 

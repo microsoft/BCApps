@@ -37,7 +37,7 @@ table 1206 "Credit Transfer Entry"
         /// <summary>
         /// Reference number of the credit transfer register containing this entry.
         /// </summary>
-        field(1; "Credit Transfer Register No."; Integer)
+        field(1; "Credit Transfer Register No."; BigInteger)
         {
             Caption = 'Credit Transfer Register No.';
             ToolTip = 'Specifies the number of the credit-transfer register entry in the Credit Transfer Registers window that the credit transfer entry relates to.';
@@ -46,7 +46,7 @@ table 1206 "Credit Transfer Entry"
         /// <summary>
         /// Sequential entry number within the credit transfer register.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -200,7 +200,7 @@ table 1206 "Credit Transfer Entry"
     /// <param name="TransActionID">Transaction identifier</param>
     /// <param name="RecipientBankAccount">Recipient bank account code</param>
     /// <param name="MessageToRecipient">Message for the recipient</param>
-    procedure CreateNew(RegisterNo: Integer; EntryNo: Integer; GenJnlAccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; LedgerEntryNo: Integer; TransferDate: Date; CurrencyCode: Code[10]; TransferAmount: Decimal; TransActionID: Text[35]; RecipientBankAccount: Code[20]; MessageToRecipient: Text[140])
+    procedure CreateNew(RegisterNo: BigInteger; EntryNo: BigInteger; GenJnlAccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; LedgerEntryNo: BigInteger; TransferDate: Date; CurrencyCode: Code[10]; TransferAmount: Decimal; TransActionID: Text[35]; RecipientBankAccount: Code[20]; MessageToRecipient: Text[140])
     var
         GenJnlLine: Record "Gen. Journal Line";
     begin

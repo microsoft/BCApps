@@ -2842,7 +2842,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
     local procedure CopyCostElementBufToValueEntryBuf(var ValueEntryBuf: Record "Value Entry"; CostElementBuffer: Record "Cost Element Buffer"; ItemLedgEntryNo: Integer)
     var
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         ValueEntryBuf.Reset();
         if ValueEntryBuf.FindLast() then

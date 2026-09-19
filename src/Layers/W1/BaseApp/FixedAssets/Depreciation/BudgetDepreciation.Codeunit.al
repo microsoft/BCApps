@@ -124,7 +124,7 @@ codeunit 5615 "Budget Depreciation"
         GLBudgetEntry: Record "G/L Budget Entry";
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         FAInsertGLAcc: Codeunit "FA Insert G/L Account";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         GLBudgetEntry.LockTable();
         BudgetName.LockTable();

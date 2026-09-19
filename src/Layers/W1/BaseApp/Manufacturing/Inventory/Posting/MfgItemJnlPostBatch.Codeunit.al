@@ -49,7 +49,7 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostLines', '', true, false)]
-    local procedure OnAfterPostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: Integer; var WhseRegNo: Integer)
+    local procedure OnAfterPostLines(var ItemJournalLine: Record "Item Journal Line"; var ItemRegNo: BigInteger; var WhseRegNo: BigInteger)
     begin
         MfgCreatePutaway.CreateWhsePutAwayForProdOutput();
 

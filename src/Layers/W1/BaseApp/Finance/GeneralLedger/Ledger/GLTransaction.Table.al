@@ -26,7 +26,7 @@ table 57 "G/L Transaction"
         /// <summary>
         /// Sequential register number for G/L Transaction entries.
         /// </summary>
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the general ledger register.';
@@ -34,7 +34,7 @@ table 57 "G/L Transaction"
         /// <summary>
         /// Contains the sequential register number for G/L Transaction entry.
         /// </summary>
-        field(2; "G/L Register No."; Integer)
+        field(2; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             ToolTip = 'Specifies the number of the general ledger register.';

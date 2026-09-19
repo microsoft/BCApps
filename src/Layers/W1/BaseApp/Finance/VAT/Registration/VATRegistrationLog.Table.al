@@ -29,7 +29,7 @@ table 249 "VAT Registration Log"
         /// <summary>
         /// Unique identifier for the VAT registration validation log entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';

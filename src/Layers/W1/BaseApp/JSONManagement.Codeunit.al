@@ -420,6 +420,7 @@ codeunit 5459 "JSON Management"
                     JObject.Add(propertyName, JObject2);
                 end;
             value.IsInteger,
+            value.IsBigInteger,
             value.IsDecimal,
             value.IsBoolean:
                 begin

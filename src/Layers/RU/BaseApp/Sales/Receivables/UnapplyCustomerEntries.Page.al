@@ -247,7 +247,7 @@ page 623 "Unapply Customer Entries"
         ApplyUnapplyParameters: Record "Apply Unapply Parameters";
         DocNo: Code[20];
         PostingDate: Date;
-        CustLedgEntryNo: Integer;
+        CustLedgEntryNo: BigInteger;
 
     /// <summary>
     /// Sets the detailed customer ledger entry to be unapplied and initializes related page variables.

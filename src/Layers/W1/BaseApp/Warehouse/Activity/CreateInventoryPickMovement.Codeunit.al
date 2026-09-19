@@ -58,7 +58,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         ExpiredItemMessageText: Text[100];
         PostingDate: Date;
         NextLineNo: Integer;
-        LastTempHandlingSpecNo: Integer;
+        LastTempHandlingSpecNo: BigInteger;
         ATOInvtMovementsCreated: Integer;
         TotalATOInvtMovementsToBeCreated: Integer;
         HideDialog: Boolean;
