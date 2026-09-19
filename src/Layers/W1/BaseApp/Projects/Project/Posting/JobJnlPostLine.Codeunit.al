@@ -120,15 +120,16 @@ codeunit 1012 "Job Jnl.-Post Line"
 
         OnAfterCopyJobJnlLine(JobJnlLine, JobJnlLine2);
 
-        JobJnlLine2."Source Currency Total Cost" := 0;
-        JobJnlLine2."Source Currency Total Price" := 0;
-        JobJnlLine2."Source Currency Line Amount" := 0;
-
         GetGLSetup();
-        if (GLSetup."Additional Reporting Currency" <> '') and
+        if (GLSetup."Additional Reporting Currency" = '') or
             (JobJnlLine2."Source Currency Code" <> GLSetup."Additional Reporting Currency")
-        then
-            UpdateJobJnlLineSourceCurrencyAmounts(JobJnlLine2);
+        then begin
+            JobJnlLine2."Source Currency Total Cost" := 0;
+            JobJnlLine2."Source Currency Total Price" := 0;
+            JobJnlLine2."Source Currency Line Amount" := 0;
+            if GLSetup."Additional Reporting Currency" <> '' then
+                UpdateJobJnlLineSourceCurrencyAmounts(JobJnlLine2);
+        end;
 
         PostATO(JobJnlLine2);
 
