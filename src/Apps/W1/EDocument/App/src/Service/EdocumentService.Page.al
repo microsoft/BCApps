@@ -266,11 +266,18 @@ page 6133 "E-Document Service"
             }
             action(SupportedDocTypes)
             {
-                Caption = 'Configure documents to export.';
-                ToolTip = 'Set up what documents framework will export.';
+                Caption = 'Configure supported documents';
+                ToolTip = 'Set up which document types the framework can send or receive for this service.';
                 Image = Documents;
-                RunObject = Page "E-Doc Service Supported Types";
-                RunPageLink = "E-Document Service Code" = field(Code);
+
+                trigger OnAction()
+                var
+                    EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
+                begin
+                    InitializeDefaultSupportedTypes();
+                    EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
+                    Page.Run(Page::"E-Doc Service Supported Types", EDocServiceSupportedType);
+                end;
             }
             action(Receive)
             {
@@ -341,7 +348,27 @@ page 6133 "E-Document Service"
         ServiceIntegrationSetupMsg: Label 'There is no configuration setup for this service integration.';
         DocNotCreatedQst: Label 'Failed to create new Purchase %1 from E-Document. Do you want to open E-Document to see reported errors?', Comment = '%1 - Purchase Document Type';
         LegacyIntegrationVisible: Boolean;
+        InitializeSupportedTypes: Boolean;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        InitializeSupportedTypes := true;
+    end;
+
+    trigger OnClosePage()
+    begin
+        InitializeDefaultSupportedTypes();
+    end;
+
+    local procedure InitializeDefaultSupportedTypes()
+    begin
+        if not InitializeSupportedTypes or (Rec.Code = '') then
+            exit;
+
+        CurrPage.SaveRecord();
+        Rec.Validate("Document Format");
+        InitializeSupportedTypes := false;
+    end;
 
     trigger OnOpenPage()
     var
