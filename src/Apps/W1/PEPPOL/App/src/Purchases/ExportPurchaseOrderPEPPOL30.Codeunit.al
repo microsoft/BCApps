@@ -234,8 +234,10 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
     local procedure AddDelivery(PurchaseHeader: Record "Purchase Header")
     var
         PEPPOLDeliveryInfo: Interface "PEPPOL Purchase Delivery Info Provider";
+        PEPPOLDeliveryPeriodInfo: Interface "PEPPOL Purchase Delivery Period Info Provider";
         DeliveryNode: XmlNode;
         DeliveryLocationNode: XmlNode;
+        RequestedDeliveryPeriodNode: XmlNode;
         AddressNode: XmlNode;
         CountryNode: XmlNode;
         ChildNode: XmlNode;
@@ -246,8 +248,11 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         CountrySubentity: Text;
         IdentificationCode: Text;
         ListID: Text;
+        RequestedStartDate: Text;
+        RequestedEndDate: Text;
     begin
         PEPPOLDeliveryInfo := GetFormat();
+        PEPPOLDeliveryPeriodInfo := GetFormat();
         PEPPOLDeliveryInfo.GetDeliveryAddress(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
         this.XMLDOMManagement.AddElement(this.RootNode, 'Delivery', '', CacNamespaceTok, DeliveryNode);
@@ -260,6 +265,13 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         this.AddNonEmptyNode(AddressNode, 'CountrySubentity', CountrySubentity, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(AddressNode, 'Country', '', CacNamespaceTok, CountryNode);
         this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', IdentificationCode, CbcNamespaceTok, ChildNode);
+
+        PEPPOLDeliveryPeriodInfo.GetRequestedDeliveryPeriod(PurchaseHeader, RequestedStartDate, RequestedEndDate);
+        if RequestedStartDate <> '' then begin
+            this.XMLDOMManagement.AddElement(DeliveryNode, 'RequestedDeliveryPeriod', '', CacNamespaceTok, RequestedDeliveryPeriodNode);
+            this.XMLDOMManagement.AddElement(RequestedDeliveryPeriodNode, 'StartDate', RequestedStartDate, CbcNamespaceTok, ChildNode);
+            this.XMLDOMManagement.AddElement(RequestedDeliveryPeriodNode, 'EndDate', RequestedEndDate, CbcNamespaceTok, ChildNode);
+        end;
     end;
 
     local procedure AddPaymentTerms(PurchaseHeader: Record "Purchase Header")
@@ -324,6 +336,7 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
     local procedure AddOrderLineToXML(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
     var
         PEPPOLLineInfo: Interface "PEPPOL Purchase Line Info Provider";
+        PEPPOLLineDeliveryPeriodInfo: Interface "PEPPOL Purchase Line Delivery Period Info Provider";
         OrderLineNode: XmlNode;
         LineItemNode: XmlNode;
         ItemNode: XmlNode;
@@ -332,6 +345,8 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         ClassifiedTaxCategoryNode: XmlNode;
         TaxSchemeNode: XmlNode;
         PriceNode: XmlNode;
+        LineDeliveryNode: XmlNode;
+        LineRequestedDeliveryPeriodNode: XmlNode;
         ChildNode: XmlNode;
         InvoiceLineID: Text;
         InvoiceLineNote: Text;
@@ -354,8 +369,11 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         ItemSchemeID: Text;
         InvoiceLineTaxPercent: Text;
         ClassifiedTaxCategorySchemeID: Text;
+        LineRequestedStartDate: Text;
+        LineRequestedEndDate: Text;
     begin
         PEPPOLLineInfo := GetFormat();
+        PEPPOLLineDeliveryPeriodInfo := GetFormat();
         PEPPOLLineInfo.GetLineGeneralInfo(PurchaseLine, PurchaseHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity, InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
 
         this.XMLDOMManagement.AddElement(this.RootNode, 'OrderLine', '', CacNamespaceTok, OrderLineNode);
@@ -368,6 +386,15 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
         this.XMLDOMManagement.AddAttribute(ChildNode, 'unitCode', UnitCode);
         this.XMLDOMManagement.AddElement(LineItemNode, 'LineExtensionAmount', InvoiceLineExtensionAmount, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', InvLinePriceAmountCurrencyID);
+
+        PEPPOLLineDeliveryPeriodInfo.GetLineRequestedDeliveryPeriod(PurchaseLine, LineRequestedStartDate, LineRequestedEndDate);
+        if LineRequestedStartDate <> '' then begin
+            this.XMLDOMManagement.AddElement(LineItemNode, 'Delivery', '', CacNamespaceTok, LineDeliveryNode);
+            this.XMLDOMManagement.AddElement(LineDeliveryNode, 'RequestedDeliveryPeriod', '', CacNamespaceTok, LineRequestedDeliveryPeriodNode);
+            this.XMLDOMManagement.AddElement(LineRequestedDeliveryPeriodNode, 'StartDate', LineRequestedStartDate, CbcNamespaceTok, ChildNode);
+            this.XMLDOMManagement.AddElement(LineRequestedDeliveryPeriodNode, 'EndDate', LineRequestedEndDate, CbcNamespaceTok, ChildNode);
+        end;
+
         this.XMLDOMManagement.AddElement(LineItemNode, 'Price', '', CacNamespaceTok, PriceNode);
         this.XMLDOMManagement.AddElement(PriceNode, 'PriceAmount', InvoiceLinePriceAmount, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', InvLinePriceAmountCurrencyID);
