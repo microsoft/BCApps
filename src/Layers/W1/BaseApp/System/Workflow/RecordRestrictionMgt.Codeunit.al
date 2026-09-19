@@ -405,19 +405,21 @@ codeunit 1550 "Record Restriction Mgt."
     local procedure ItemJournalLineCheckItemPostRestrictions(var Sender: Record "Item Journal Line")
     var
         Item: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeItemJournalLineCheckItemPostRestrictions(Sender, IsHandled);
         if IsHandled then
             exit;
-
         CheckRecordHasUsageRestrictions(Sender);
-        if Sender."Item No." = '' then
-            exit;
+        if Sender."Item No." <> '' then begin
+            Item.Get(Sender."Item No.");
+            CheckRecordHasUsageRestrictions(Item);
+        end;
 
-        Item.Get(Sender."Item No.");
-        CheckRecordHasUsageRestrictions(Item);
+        if ItemJournalBatch.Get(Sender."Journal Template Name", Sender."Journal Batch Name") then
+            CheckRecordHasUsageRestrictions(ItemJournalBatch);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnCheckGenJournalLinePostRestrictions', '', false, false)]
@@ -555,6 +557,7 @@ codeunit 1550 "Record Restriction Mgt."
         CheckGenJournalLineHasUsageRestrictions(Sender, GenJournalBatch);
     end;
 
+    [Obsolete('Replaced by ItemJournalLineCheckItemPostRestrictions, which now also checks the Item Journal Batch usage restrictions.', '30.0')]
     [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnCheckItemJournalLinePostRestrictions', '', false, false)]
     procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
     var
