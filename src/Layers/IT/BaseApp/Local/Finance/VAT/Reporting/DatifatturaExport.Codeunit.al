@@ -108,7 +108,8 @@ codeunit 12182 "Datifattura Export"
         if FileNameCounter = 0 then
             exit;
 
-        TempNameValueBuffer.FindSet();
+        if not TempNameValueBuffer.FindSet() then
+            exit;
         if FileNameCounter > 1 then begin
             DataCompression.CreateZipArchive();
             repeat
