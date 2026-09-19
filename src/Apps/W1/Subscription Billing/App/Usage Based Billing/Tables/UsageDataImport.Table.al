@@ -212,6 +212,33 @@ table 8013 "Usage Data Import"
         Rec.SetReason(ErrorText);
     end;
 
+    internal procedure UpdateProcessingStatus()
+    var
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
+    begin
+        UsageDataSupplier.Get(Rec."Supplier No.");
+        UsageDataProcessing := UsageDataSupplier.Type;
+        UsageDataProcessing.UpdateImportStatus(Rec);
+        if Rec."Processing Status" = Enum::"Processing Status"::Error then
+            exit;
+
+        if UsageDataBillingHasErrors() then
+            Rec.SetErrorReason(UsageDataLinesProcessingErr)
+        else
+            Rec.Validate("Processing Status", Enum::"Processing Status"::Ok);
+        Rec.Modify(false);
+    end;
+
+    local procedure UsageDataBillingHasErrors(): Boolean
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", Rec."Entry No.");
+        UsageDataBilling.SetRange("Processing Status", Enum::"Processing Status"::Error);
+        exit(not UsageDataBilling.IsEmpty());
+    end;
+
     internal procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
@@ -279,6 +306,24 @@ table 8013 "Usage Data Import"
                         Codeunit.Run(Codeunit::"Process Usage Data Billing", UsageDataImport2);
                 end;
                 OnAfterProcessUsageDataImport(UsageDataImport2, ProcessingStep);
+            until UsageDataImport.Next() = 0;
+    end;
+
+    internal procedure CloseUsageDataImports(var UsageDataImport: Record "Usage Data Import")
+    begin
+        if UsageDataImport.FindSet(true) then
+            repeat
+                if UsageDataImport."Processing Status" <> Enum::"Processing Status"::Closed then
+                    UsageDataImport.SetStatus(Enum::"Processing Status"::Closed);
+            until UsageDataImport.Next() = 0;
+    end;
+
+    internal procedure ReopenUsageDataImports(var UsageDataImport: Record "Usage Data Import")
+    begin
+        if UsageDataImport.FindSet(true) then
+            repeat
+                if UsageDataImport."Processing Status" = Enum::"Processing Status"::Closed then
+                    UsageDataImport.UpdateProcessingStatus();
             until UsageDataImport.Next() = 0;
     end;
 
@@ -392,4 +437,5 @@ table 8013 "Usage Data Import"
         UsageDataBillingWithInvoiceErr: Label 'There are Usage Data Billings which are already in an Invoice.';
         OnlyOneRecordCanBeSelectedErr: Label 'You must choose one record.';
         UsageBasedBillingDoesNotExistsErr: Label 'Usage Based Billing does not exist.';
+        UsageDataLinesProcessingErr: Label 'Errors were detected when processing the usage data lines.';
 }
