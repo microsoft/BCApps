@@ -183,7 +183,7 @@ page 12133 "Withh. Taxes-Contribution Card"
                     begin
                         if xRec."INAIL Non Taxable Amount" <> Rec."INAIL Non Taxable Amount" then
                             if Rec."INAIL Contribution Base" < 0 then
-                                Error(Text1035, Rec.FieldCaption("INAIL Gross Amount"), Rec.FieldCaption("INAIL Non Taxable Amount"));
+                                Error(MustBeGreaterErr, Rec.FieldCaption("INAIL Gross Amount"), Rec.FieldCaption("INAIL Non Taxable Amount"));
                     end;
                 }
                 field("INAIL Contribution Base"; Rec."INAIL Contribution Base")
@@ -262,6 +262,6 @@ page 12133 "Withh. Taxes-Contribution Card"
     var
         PurchHeader: Record "Purchase Header";
         WithholdingSocSec: Codeunit "Withholding - Contribution";
-        Text1035: Label '%1 must be greater than %2.';
+        MustBeGreaterErr: Label '%1 must be greater than %2.', Comment = '%1 - is the field caption of the first field, %2 - is the field caption of the second field.';
 }
 
