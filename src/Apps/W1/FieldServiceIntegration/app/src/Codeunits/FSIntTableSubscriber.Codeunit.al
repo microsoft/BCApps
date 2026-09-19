@@ -284,7 +284,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnAfterTransferRecordFields', '', true, false)]
-    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean)
+    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean; DestinationIsInserted: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";
         FSWorkOrderProduct: Record "FS Work Order Product";
@@ -358,6 +358,25 @@ codeunit 6610 "FS Int. Table Subscriber"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnBeforeIsFieldModified', '', true, false)]
+    local procedure OnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
+    var
+        Item: Record Item;
+        CRMProduct: Record "CRM Product";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+    begin
+        if not IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then
+            exit;
+
+        SourceRecordRef := SourceFieldRef.Record();
+        SourceRecordRef.SetTable(Item);
+        DestinationRecordRef := DestinationFieldRef.Record();
+        DestinationRecordRef.SetTable(CRMProduct);
+        Result := CRMProduct.ConvertToCustomerAsset <> GetCustomerAssetConversion(Item."Coupled to Dataverse");
+        IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnTransferFieldData', '', true, false)]
     local procedure OnTransferFieldData(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef; var NewValue: Variant; var IsValueFound: Boolean; var NeedsConversion: Boolean)
     var
@@ -371,6 +390,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Item: Record Item;
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
         NAVItemUomRecordId: RecordId;
@@ -391,6 +411,15 @@ codeunit 6610 "FS Int. Table Subscriber"
         if SourceFieldRef.Number() = DestinationFieldRef.Number() then
             if SourceFieldRef.Record().Number() = DestinationFieldRef.Record().Number() then
                 exit;
+
+        if IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then begin
+            SourceRecordRef := SourceFieldRef.Record();
+            SourceRecordRef.SetTable(Item);
+            NewValue := GetCustomerAssetConversion(Item."Coupled to Dataverse");
+            IsValueFound := true;
+            NeedsConversion := false;
+            exit;
+        end;
 
         if (SourceFieldRef.Record().Number = Database::"Service Header") and
             (DestinationFieldRef.Record().Number = Database::"FS Work Order") then
@@ -670,6 +699,23 @@ codeunit 6610 "FS Int. Table Subscriber"
             MaxQuantity := Quantity3;
 
         exit(MaxQuantity);
+    end;
+
+    local procedure IsItemCouplingToCustomerAssetConversion(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef): Boolean
+    var
+        Item: Record Item;
+        CRMProduct: Record "CRM Product";
+    begin
+        exit(
+            (SourceFieldRef.Record().Number() = Database::Item) and
+            (SourceFieldRef.Number() = Item.FieldNo("Coupled to Dataverse")) and
+            (DestinationFieldRef.Record().Number() = Database::"CRM Product") and
+            (DestinationFieldRef.Number() = CRMProduct.FieldNo(ConvertToCustomerAsset)));
+    end;
+
+    internal procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
+    begin
+        exit(not ItemIsManaged);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Int. Table. Subscriber", 'OnFindNewValueForCoupledRecordPK', '', true, false)]
@@ -1444,7 +1490,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Setup Defaults", 'OnResetItemProductMappingOnAfterInsertFieldsMapping', '', false, false)]
-    local procedure AddFieldServiceProductTypeFieldMapping(var Sender: Codeunit "CRM Setup Defaults"; IntegrationTableMappingName: Code[20])
+    local procedure AddFieldServiceProductMappings(var Sender: Codeunit "CRM Setup Defaults"; IntegrationTableMappingName: Code[20])
     var
         FSConnectionSetup: Record "FS Connection Setup";
         Item: Record Item;
@@ -1461,6 +1507,14 @@ codeunit 6610 "FS Int. Table Subscriber"
           CRMProduct.FieldNo(FieldServiceProductType),
           IntegrationFieldMapping.Direction::ToIntegrationTable,
           '', false, false);
+
+        // Coupled Business Central items are managed by Field Service customer assets.
+        Sender.InsertIntegrationFieldMapping(
+            IntegrationTableMappingName,
+            Item.FieldNo("Coupled to Dataverse"),
+            CRMProduct.FieldNo(ConvertToCustomerAsset),
+            IntegrationFieldMapping.Direction::ToIntegrationTable,
+            '', false, false);
     end;
 
     local procedure UpdateCorrelatedJobJournalLine(var SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
@@ -2518,8 +2572,6 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreArchievedServiceOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
             Database::"FS Work Order":
                 IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
-            Database::"Service Item":
-                IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
         end;
 
         if FSConnectionSetup.IsEnabled() then
@@ -2685,6 +2737,8 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreRecord := true;
     end;
 
+#pragma warning disable AS0105
+    [Obsolete('Remove calls to this procedure. Service items are always synchronized to Field Service customer assets; item-product synchronization disables customer asset conversion.', '30.0')]
     internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";
@@ -2718,6 +2772,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not CRMProduct.ConvertToCustomerAsset then
             IgnoreRecord := true;
     end;
+#pragma warning restore AS0105
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnAfterInitSynchJob', '', true, true)]
     local procedure LogTelemetryOnAfterInitSynchJob(ConnectionType: TableConnectionType; IntegrationTableID: Integer)

@@ -58,6 +58,13 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.UpdateQuantities(FSBookableResourceBooking, ServiceLine);
     end;
 
+    procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
+    var
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+    begin
+        exit(FSIntTableSubscriber.GetCustomerAssetConversion(ItemIsManaged));
+    end;
+
     procedure IgnorePostedJobJournalLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
@@ -79,12 +86,17 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
     end;
 
+    /// <summary>
+    /// Retained for compatibility. Service items are now always synchronized to Field Service customer assets, so this procedure leaves the synchronization decision unchanged.
+    /// </summary>
+    /// <param name="SourceRecordRef">A reference to the service item to evaluate.</param>
+    /// <param name="IgnoreRecord">The existing synchronization decision, which is left unchanged.</param>
+#pragma warning disable AS0105
+    [Obsolete('Remove calls to this procedure. Service items are always synchronized to Field Service customer assets; item-product synchronization disables customer asset conversion.', '30.0')]
     procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
-    var
-        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
     begin
-        FSIntTableSubscriber.IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
     end;
+#pragma warning restore AS0105
 
     procedure MarkArchivedServiceOrder(ServiceHeader: Record "Service Header")
     var
