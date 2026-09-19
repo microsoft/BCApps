@@ -4,7 +4,7 @@ codeunit 161391 "Create FatturaPA Codes"
     trigger OnRun()
     var
         FatturaCode: Record "Fattura Code";
-        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
         // Fattura Codes
         InsertCodeData(TP01Txt, TP01DescTxt, FatturaCode.Type::"Payment Terms");
@@ -34,7 +34,7 @@ codeunit 161391 "Create FatturaPA Codes"
         InsertCodeData(MP22Txt, MP22DescTxt, FatturaCode.Type::"Payment Method");
 
         // FatturaPA Fiscal Regimes
-        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
     end;
 
     var
