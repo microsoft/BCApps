@@ -22,7 +22,7 @@ codeunit 8069 "Sales Subscription Line Mgmt."
             AddSalesServiceCommitmentsForSalesLine(Rec, false);
     end;
 
-    internal procedure AddSalesServiceCommitmentsForSalesLine(var SalesLine: Record "Sales Line"; SkipAddAdditionalSalesServComm: Boolean)
+    procedure AddSalesServiceCommitmentsForSalesLine(var SalesLine: Record "Sales Line"; SkipAddAdditionalSalesServComm: Boolean)
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         SalesHeader: Record "Sales Header";

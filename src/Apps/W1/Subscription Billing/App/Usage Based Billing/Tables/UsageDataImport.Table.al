@@ -295,7 +295,7 @@ table 8013 "Usage Data Import"
         CreateCustomerInvoices(CustomerContractFilter, CustomerContractLineFilter);
     end;
 
-    internal procedure CollectVendorContractsAndCreateInvoices(var UsageDataImport: Record "Usage Data Import")
+    procedure CollectVendorContractsAndCreateInvoices(var UsageDataImport: Record "Usage Data Import")
     var
         VendorContractFilter: Text;
         VendorContractLineFilter: Text;
