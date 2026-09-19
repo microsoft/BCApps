@@ -1529,6 +1529,11 @@ codeunit 1502 "Workflow Setup"
     end;
 
     procedure InsertDocApprovalWorkflowSteps(Workflow: Record Workflow; DocSendForApprovalConditionString: Text; DocSendForApprovalEventCode: Code[128]; DocCanceledConditionString: Text; DocCanceledEventCode: Code[128]; WorkflowStepArgument: Record "Workflow Step Argument"; ShowConfirmationMessage: Boolean)
+    begin
+        InsertDocApprovalWorkflowSteps(Workflow, DocSendForApprovalConditionString, DocSendForApprovalEventCode, DocCanceledConditionString, DocCanceledEventCode, WorkflowStepArgument, ShowConfirmationMessage, WorkflowResponseHandling.OpenDocumentCode());
+    end;
+
+    procedure InsertDocApprovalWorkflowSteps(Workflow: Record Workflow; DocSendForApprovalConditionString: Text; DocSendForApprovalEventCode: Code[128]; DocCanceledConditionString: Text; DocCanceledEventCode: Code[128]; WorkflowStepArgument: Record "Workflow Step Argument"; ShowConfirmationMessage: Boolean; DocRejectedResponseCode: Code[128])
     var
         SentForApprovalEventID: Integer;
         SetStatusToPendingApprovalResponseID: Integer;
@@ -1585,7 +1590,7 @@ codeunit 1502 "Workflow Setup"
         RejectAllApprovalsResponseID := InsertResponseStep(Workflow, WorkflowResponseHandling.RejectAllApprovalRequestsCode(),
             OnRequestRejectedEventID);
         InsertNotificationArgument(RejectAllApprovalsResponseID, true, '', WorkflowStepArgument."Link Target Page", '');
-        InsertResponseStep(Workflow, WorkflowResponseHandling.OpenDocumentCode(), RejectAllApprovalsResponseID);
+        InsertResponseStep(Workflow, DocRejectedResponseCode, RejectAllApprovalsResponseID);
 
         OnRequestCanceledEventID := InsertEventStep(Workflow, DocCanceledEventCode,
             SendApprovalRequestResponseID);
@@ -2665,4 +2670,3 @@ codeunit 1502 "Workflow Setup"
     begin
     end;
 }
-
