@@ -39,8 +39,10 @@ page 12169 "Company Types"
     }
 
     trigger OnOpenPage()
+    var
+        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
     begin
-        Rec.EnsureStandardFatturaPAFiscalRegimes();
+        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
         Rec.SetFilter(Code, '01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19');
     end;
 }
