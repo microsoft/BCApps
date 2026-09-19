@@ -24,6 +24,7 @@ codeunit 132905 "User Settings Tests"
         PermissionsMock: Codeunit "Permissions Mock";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         CompanyDisplayNameTxt: Label 'Company display name';
+        IsInitialized: Boolean;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -249,6 +250,38 @@ codeunit 132905 "User Settings Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CurrentUserSettingsShowSessionCompany()
+    var
+        TempUserSettingsRec: Record "User Settings";
+        UserPersonalization: Record "User Personalization";
+        UserSettings: Codeunit "User Settings";
+        OtherCompanyName: Text[30];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 630234] My Settings shows session company for current user even when persisted company differs
+        Initialize();
+
+        // [GIVEN] UserPersonalization has a company that differs from the current session company
+        OtherCompanyName := CopyStr('Other Company Tab', 1, MaxStrLen(OtherCompanyName));
+        if not UserPersonalization.Get(UserSecurityId()) then begin
+            UserPersonalization.Init();
+            UserPersonalization."User SID" := UserSecurityId();
+            UserPersonalization.Insert();
+        end;
+        UserPersonalization.Company := OtherCompanyName;
+        UserPersonalization.Modify();
+
+        PermissionsMock.Set('User Settings View');
+
+        // [WHEN] GetUserSettings is called for the current user
+        UserSettings.GetUserSettings(UserSecurityId(), TempUserSettingsRec);
+
+        // [THEN] The company in settings matches the current session company, not the persisted one
+        Assert.AreEqual(CompanyName(), TempUserSettingsRec.Company, 'Company should match session CompanyName, not persisted UserPersonalization.Company');
+    end;
+
+    [Test]
     procedure TestUpdateSettingsOK()
     var
         UserSettingsTests: Codeunit "User Settings Tests";
@@ -285,6 +318,14 @@ codeunit 132905 "User Settings Tests"
     procedure AssertEmptyStorage()
     begin
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsInitialized then
+            exit;
+
+        IsInitialized := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"User Settings", 'OnUpdateUserSettings', '', true, true)]
