@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.TestLibraries.DynamicsFieldService;
 
-using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.DynamicsFieldService;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
