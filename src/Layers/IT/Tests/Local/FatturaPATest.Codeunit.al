@@ -1293,7 +1293,7 @@ codeunit 144200 "FatturaPA Test"
     procedure StandardFatturaPAFiscalRegimesAreSeeded()
     var
         CompanyTypes: Record "Company Types";
-        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
         // [FEATURE] [FatturaPA] [Setup]
         // [SCENARIO] The fixed FatturaPA fiscal regime catalog contains all standard values
@@ -1303,7 +1303,7 @@ codeunit 144200 "FatturaPA Test"
         CompanyTypes.DeleteAll(false);
 
         // [WHEN] The standard catalog is initialized
-        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
 
         // [THEN] All 19 supported regimes exist
         Assert.RecordCount(CompanyTypes, 19);
@@ -1316,12 +1316,12 @@ codeunit 144200 "FatturaPA Test"
     procedure StandardFatturaPAFiscalRegimesAreReadOnly()
     var
         CompanyTypes: Record "Company Types";
-        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
         // [FEATURE] [FatturaPA] [Setup]
         // [SCENARIO] Standard FatturaPA fiscal regimes cannot be changed by users
         Initialize();
-        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
         CompanyTypes.Get('19');
 
         // [WHEN] A standard regime is modified
