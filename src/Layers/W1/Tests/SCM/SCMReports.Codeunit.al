@@ -26,8 +26,8 @@ codeunit 137309 "SCM Reports"
         AvgCostingMethodErr: Label 'You must not revalue items with Costing Method Average, if Calculate Per is Item Ledger Entry.';
         BlockedMsg: Label 'Blocked must be No for Item %1.', Comment = '%1 = The Item Number.';
         DateMsg: Label '%1 is not within your allowed range of registering dates.', Comment = '%1 = The date being tested.';
-        RoutingLineNotExistErr: Label 'Only Routing Line with Operation No. %1 should present.', Comment = '%1 = The routing operation number being tested.';
         ProductionBOMStatusErr: Label 'The maximum number of BOM levels, %1, was exceeded. The process stopped at item number %2, BOM header number', Comment = '%1 = Max. Level Value, %2 = Item No. Value';
+        CircularRefInBOMErr: Label 'The production BOM %1 has a circular reference. Pay attention to the production BOM %2 that closes the loop.', Comment = '%1 = Production BOM No., %2 = Production BOM No.';
         LineCountErr: Label 'Line count on page does not match line count in table for Usage %1.', Comment = '%1 = The report type being tested, e.g. Sales Invoice';
         MustBeEmptyErr: Label '%1 must be empty for %2.', Comment = '%1 = the expected value, %2 = the actual value.';
 #if not CLEAN28
@@ -830,9 +830,9 @@ codeunit 137309 "SCM Reports"
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostSharesWithoutVersion()
+    procedure ProductionCostSharesWithoutVersion()
     var
         ParentItem: Record Item;
         FirstChildItem: Record Item;
@@ -841,7 +841,7 @@ codeunit 137309 "SCM Reports"
         ProductionBOMLine: Record "Production BOM Line";
         ProductionBOMHeaderNo: Code[20];
     begin
-        // Verify Rolled-up Cost Shares Test Report values when Production Bom created without versions.
+        // Verify Production Cost Shares Test Report values when Production Bom created without versions.
 
         // Setup: Create Item with New BOM.
         Initialize();
@@ -852,25 +852,25 @@ codeunit 137309 "SCM Reports"
         CreateItemWithReplSysAndCostingMethod(ParentItem, ParentItem."Costing Method"::FIFO,
           ParentItem."Replenishment System"::"Prod. Order", ProductionBOMHeaderNo, 0);
 
-        // Exercise: Run Rolled-up Cost Shares Report.
+        // Exercise: Run Production Cost Shares Report.
         Commit();
         Item.SetRange("No.", ParentItem."No.");
-        REPORT.Run(REPORT::"Rolled-up Cost Shares", true, false, Item);
+        Report.Run(Report::"Production Cost Shares", true, false, Item);
 
-        // Verify: Verify Values on Rolled-up Cost Shares Test report values.
+        // Verify: Verify Values on Production Cost Shares Test report values.
         LibraryReportDataset.LoadDataSetFile();
         SelectProductionBOMLines(ProductionBOMLine, ParentItem."Production BOM No.");
         repeat
-            LibraryReportDataset.SetRange('ProdBOMLineIndexNo', ProductionBOMLine."No.");
+            LibraryReportDataset.SetRange('No', ProductionBOMLine."No.");
             LibraryReportDataset.GetNextRow();
-            LibraryReportDataset.AssertCurrentRowValueEquals('BOMCompQtyBase', ProductionBOMLine.Quantity);
+            LibraryReportDataset.AssertCurrentRowValueEquals('QtyPerTopItem', ProductionBOMLine.Quantity);
         until ProductionBOMLine.Next() = 0;
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostSharesWithItemAndVersion()
+    procedure ProductionCostSharesWithTypeItemAndVersion()
     var
         Item: Record Item;
         ParentItem: Record Item;
@@ -880,7 +880,8 @@ codeunit 137309 "SCM Reports"
         ProductionBOMVersion: Record "Production BOM Version";
         ProductionBOMHeaderNo: Code[20];
     begin
-        // Verify Rolled-up Cost Shares Test Report values when Production Bom Line created with Type Item and Certified version.
+        // [FEATURE] [Production Cost Shares]
+        // [SCENARIO] Verify Production Cost Shares Test Report values when Production Bom created with Type Item and Certified version.
 
         // Setup: Create Item with New BOM with certified Production BOM Version.
         Initialize();
@@ -896,19 +897,19 @@ codeunit 137309 "SCM Reports"
         CreateProductionBOMVersionWithBOMLines(ProductionBOMHeaderNo, ParentItem."Production BOM No.",
           LibraryInventory.CreateItem(Item), FirstChildItem."No.", ProductionBOMVersion.Status::Certified);
 
-        // Exercise: Run Rolled-up Cost Shares Report .
+        // Exercise: Run Production Cost Shares Report.
         Commit();
         Item.SetRange("No.", ParentItem."No.");
-        REPORT.Run(REPORT::"Rolled-up Cost Shares", true, false, Item);
+        Report.Run(Report::"Production Cost Shares", true, false, Item);
 
-        // Verify: Verify Values on Rolled-up Cost Shares Test report values.
-        VerifyRolledupCostSharesReport(FirstChildItem."No.", ParentItem."Production BOM No.");
+        // Verify: Verify Values on Production Cost Shares Test report values.
+        VerifyProductionCostSharesReport(FirstChildItem."No.", ParentItem."Production BOM No.");
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledUpCostSharesWithTypeProdBomAndVersion()
+    procedure ProductionCostSharesWithTypeProdBomAndVersion()
     var
         Item: Record Item;
         ParentItem: Record Item;
@@ -918,86 +919,8 @@ codeunit 137309 "SCM Reports"
         ProductionBOMVersion: Record "Production BOM Version";
         ProductionBOMHeaderNo: Code[20];
     begin
-        // Verify Rolled-up Cost Shares Test Report values when Production Bom Line created with Type Production BOM and Certified version.
-
-        // Setup: Create Item with New BOM with certified Production BOM Version.
-        Initialize();
-        CreateItemWithReplSysAndCostingMethod(FirstChildItem, FirstChildItem."Costing Method"::FIFO,
-          FirstChildItem."Replenishment System"::"Prod. Order", '', LibraryRandom.RandDec(10, 2));
-        CreateItemWithReplSysAndCostingMethod(SecondChildItem, SecondChildItem."Costing Method"::FIFO,
-          SecondChildItem."Replenishment System"::"Prod. Order", CreateProductionBOMWithLines(FirstChildItem, ProductionBOMLine.Type::Item,
-            LibraryInventory.CreateItem(Item)), 0);
-        ProductionBOMHeaderNo := CreateProductionBOMWithLines(FirstChildItem,
-            ProductionBOMLine.Type::"Production BOM", SecondChildItem."Production BOM No.");
-        CreateItemWithReplSysAndCostingMethod(ParentItem, ParentItem."Costing Method"::FIFO,
-          ParentItem."Replenishment System"::"Prod. Order", ProductionBOMHeaderNo, 0);
-        CreateProductionBOMVersionWithBOMLines(ProductionBOMHeaderNo, ParentItem."Production BOM No.",
-          LibraryInventory.CreateItem(Item), SecondChildItem."No.", ProductionBOMVersion.Status::Certified);
-
-        // Exercise: Run Rolled-up Cost Shares Report.
-        Commit();
-        Item.SetRange("No.", ParentItem."No.");
-        REPORT.Run(REPORT::"Rolled-up Cost Shares", true, false, Item);
-
-        // Verify: Verify Values on Rolled-up Cost Shares Test report values.
-        VerifyRolledupCostSharesReport(SecondChildItem."No.", ParentItem."Production BOM No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationWithTypeItemAndVersion()
-    var
-        Item: Record Item;
-        ParentItem: Record Item;
-        FirstChildItem: Record Item;
-        SecondChildItem: Record Item;
-        ProductionBOMLine: Record "Production BOM Line";
-        ProductionBOMVersion: Record "Production BOM Version";
-        ProductionBOMHeaderNo: Code[20];
-    begin
-        // [FEATURE] [Detailed Calculation]
-        // [SCENARIO] Verify Detailed Calculation Test Report values when Production Bom created with Type Item and Certified version.
-
-        // Setup: Create Item with New BOM with certified Production BOM Version.
-        Initialize();
-        CreateItemWithReplSysAndCostingMethod(FirstChildItem, FirstChildItem."Costing Method"::FIFO,
-          FirstChildItem."Replenishment System"::"Prod. Order", '', LibraryRandom.RandDec(10, 2));
-        CreateItemWithReplSysAndCostingMethod(SecondChildItem, SecondChildItem."Costing Method"::FIFO,
-          SecondChildItem."Replenishment System"::"Prod. Order", CreateProductionBOMWithLines(FirstChildItem, ProductionBOMLine.Type::Item,
-            LibraryInventory.CreateItem(Item)), 0);
-        ProductionBOMHeaderNo := CreateProductionBOMWithLines(SecondChildItem, ProductionBOMLine.Type::Item,
-            LibraryInventory.CreateItem(Item));
-        CreateItemWithReplSysAndCostingMethod(ParentItem, ParentItem."Costing Method"::FIFO,
-          ParentItem."Replenishment System"::"Prod. Order", ProductionBOMHeaderNo, 0);
-        CreateProductionBOMVersionWithBOMLines(ProductionBOMHeaderNo, ParentItem."Production BOM No.",
-          LibraryInventory.CreateItem(Item), FirstChildItem."No.", ProductionBOMVersion.Status::Certified);
-        LibraryVariableStorage.Enqueue(WorkDate());
-
-        // Exercise: Run Detailed Calculation Report.
-        Commit();
-        Item.SetRange("No.", ParentItem."No.");
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, Item);
-
-        // Verify: Verify Values on Detailed Calculation Test report values.
-        VerifyDetailedCalculationReport(FirstChildItem."No.", ParentItem."Production BOM No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationWithTypeProdBomAndVersion()
-    var
-        Item: Record Item;
-        ParentItem: Record Item;
-        FirstChildItem: Record Item;
-        SecondChildItem: Record Item;
-        ProductionBOMLine: Record "Production BOM Line";
-        ProductionBOMVersion: Record "Production BOM Version";
-        ProductionBOMHeaderNo: Code[20];
-    begin
-        // [FEATURE] [Detailed Calculation]
-        // [SCENARIO] Verify Detailed Calculation Test Report values when Production Bom created with Type Production Bom and Certified version.
+        // [FEATURE] [Production Cost Shares]
+        // [SCENARIO] Verify Production Cost Shares Test Report values when Production Bom created with Type Production Bom and Certified version.
 
         // Setup: Create Item with New BOM with certified Production BOM Version.
         Initialize();
@@ -1012,96 +935,20 @@ codeunit 137309 "SCM Reports"
           ParentItem."Replenishment System"::"Prod. Order", ProductionBOMHeaderNo, 0);
         CreateProductionBOMVersionWithBOMLines(ProductionBOMHeaderNo, ParentItem."Production BOM No.",
           LibraryInventory.CreateItem(Item), SecondChildItem."No.", ProductionBOMVersion.Status::Certified);
-        LibraryVariableStorage.Enqueue(WorkDate());
 
-        // Exercise: Run Detailed Calculation Report.
+        // Exercise: Run Production Cost Shares Report.
         Commit();
         Item.SetRange("No.", ParentItem."No.");
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, Item);
+        Report.Run(Report::"Production Cost Shares", true, false, Item);
 
-        // Verify: Verify Values on Detailed Calculation Test report values.
-        VerifyDetailedCalculationReport(SecondChildItem."No.", ParentItem."Production BOM No.");
+        // Verify: Verify Values on Production Cost Shares Test report values.
+        VerifyProductionCostSharesReport(SecondChildItem."No.", ParentItem."Production BOM No.");
     end;
 
     [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure DetailedCalculationWithStatusCertifiedAndGreaterThanWorkDate()
-    var
-        Item: Record Item;
-        ProductionBOMHeader: Record "Production BOM Header";
-        RoutingHeader: Record "Routing Header";
-        RoutingLine: Record "Routing Line";
-        RoutingVersion: Record "Routing Version";
-        StartingDate: Date;
-    begin
-        // [FEATURE] [Detailed Calculation]
-        // [SCENARIO] Verify Detailed Calculation Test Report values when Routing created with certified version and report run for greater than Routing Version Starting Date.
-
-        // Setup: Create Item with Routing Version and delete one routing line from Routing version after copy Routing version.
-        Initialize();
-        CreateManufacturingItem(
-          Item, Item."Costing Method"::Standard, ProductionBOMHeader.Status::New, RoutingHeader.Status::"Under Development");
-        CreateRoutingLineWithTypeMachineCenter(RoutingHeader, Item."Routing No.");
-        CreateRoutingVersion(RoutingVersion, Item."Routing No.");
-        StartingDate := CalcDate(StrSubstNo('<%1D>', LibraryRandom.RandInt(5)), WorkDate());
-        FindRoutingLine(RoutingLine, RoutingVersion."Routing No.", RoutingVersion."Version Code");
-        RoutingLine.Delete(true);
-        UpdateRoutingVersion(RoutingVersion, RoutingVersion.Status::Certified, StartingDate);
-        LibraryVariableStorage.Enqueue(CalcDate(StrSubstNo('<%1D>', LibraryRandom.RandInt(5)), StartingDate));
-
-        // Exercise: Run Detailed Calculation Report greater than Routing version starting date.
-        Commit();
-        Item.SetRange("No.", Item."No.");
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, Item);
-
-        // Verify: Verify values on Detailed Calculation Test report values.
-        FindRoutingLine(RoutingLine, RoutingVersion."Routing No.", RoutingVersion."Version Code");
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('RtngVersionCode', RoutingVersion."Version Code");
-        if LibraryReportDataset.GetNextRow() then
-            LibraryReportDataset.AssertCurrentRowValueEquals('OperationNo_RtngLine', RoutingLine."Operation No.")
-        else
-            Error(RoutingLineNotExistErr, RoutingLine."Operation No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationWithStatusCertifiedAndLessThanWorkDate()
-    begin
-        // [FEATURE] [Detailed Calculation]
-        // [SCENARIO] Verify Detailed Calculation Test Report values when Routing created with certified version and report run for less than Routing Version Starting Date.
-        Initialize();
-        DetailedCalculationWithTypeRoutingVersionAndCalcDate(Enum::"Routing Status"::Certified, -LibraryRandom.RandInt(5));
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationWithStatusClosedAndGreaterThanWorkDate()
-    begin
-        // [FEATURE] [Detailed Calculation]
-        // [SCENARIO] Verify Detailed Calculation Test Report values when Routing created with closed version and report run for greater than Routing Version Starting Date.
-        Initialize();
-        DetailedCalculationWithTypeRoutingVersionAndCalcDate(Enum::"Routing Status"::Closed, LibraryRandom.RandInt(5));
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationWithStatusClosedAndLessThanWorkDate()
-    begin
-        // [FEATURE] [Detailed Calculation]
-        // [SCENARIO] Verify Detailed Calculation Test Report values when Routing created with closed version and report run for less than Routing Version Starting Date.
-        Initialize();
-        DetailedCalculationWithTypeRoutingVersionAndCalcDate(Enum::"Routing Status"::Closed, -LibraryRandom.RandInt(5));
-    end;
-
-    [Test]
-    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure DetailedCalculationWithProdBOMBelowItemLines()
+    procedure ProductionCostSharesWithProdBOMBelowItemLines()
     var
         Item: Record Item;
         ChildItem: Record Item;
@@ -1140,22 +987,21 @@ codeunit 137309 "SCM Reports"
         // [WHEN] Run Detailed Calculation Report for the "ParentItem"
         Commit();
         Item.SetRecFilter();
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, Item);
+        Report.Run(Report::"Production Cost Shares", true, false, Item);
 
         ProductionBOMLine.FindFirst();
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.GetNextRow();
 
         // [THEN] Line for "ChildItem" is exported with 'CostTotal' = 30 (10 * 3)
+        LibraryReportDataset.SetRange('No', ChildItem."No.");
         LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('CostTotal', ChildItem."Unit Cost" * ProductionBOMLine.Quantity);
-        // [THEN] Line for "ChildBOM" is exported with 'CostTotal' = 0
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('CostTotal', 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('TotalCost', ChildItem."Unit Cost" * ProductionBOMLine.Quantity);
+
         // [THEN] Line for "BOMChildItem" is exported with 'CostTotal' = 70 (7 * 5 * 2)
+        LibraryReportDataset.SetRange('No', BOMChildItem."No.");
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.AssertCurrentRowValueEquals(
-          'CostTotal', BOMChildItem."Unit Cost" * ProductionBOMLineChild.Quantity * ChildBOMQty);
+          'TotalCost', BOMChildItem."Unit Cost" * ProductionBOMLineChild.Quantity * ChildBOMQty);
     end;
 
     [Test]
@@ -1197,7 +1043,7 @@ codeunit 137309 "SCM Reports"
         Initialize();
         CreateManufacturingItem(
           Item, Item."Costing Method"::Average, Enum::"BOM Status"::Certified, Enum::"Routing Status"::Certified);
-        VerifyProductionBomErrorForTheReport(Item, Enum::"Production BOM Line Type"::Item,
+        VerifyProductionBomErrorForQuantityExplosionOfBOMReport(Item, Enum::"Production BOM Line Type"::Item,
           Item."No.", Item."Production BOM No.", REPORT::"Quantity Explosion of BOM");
     end;
 
@@ -1212,41 +1058,41 @@ codeunit 137309 "SCM Reports"
         Initialize();
         CreateManufacturingItem(
           Item, Item."Costing Method"::Average, Enum::"BOM Status"::Certified, Enum::"Routing Status"::Certified);
-        VerifyProductionBomErrorForTheReport(Item, Enum::"Production BOM Line Type"::"Production BOM",
+        VerifyProductionBomErrorForQuantityExplosionOfBOMReport(Item, Enum::"Production BOM Line Type"::"Production BOM",
           Item."Production BOM No.", Item."Production BOM No.", REPORT::"Quantity Explosion of BOM");
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledupCostSharesWithProdBomLineTypeItem()
+    procedure ProductionCostSharesWithProdBomLineTypeItem()
     var
         Item: Record Item;
     begin
-        // Verify Error message when Rolled-up Cost Shares report is run for Production Bom Line Type Item.
+        // Verify Error message when Production Cost Shares report is run for Production Bom Line Type Item.
         Initialize();
         CreateManufacturingItem(
           Item, Item."Costing Method"::Average, Enum::"BOM Status"::Certified, Enum::"Routing Status"::Certified);
-        VerifyProductionBomErrorForTheReport(
-            Item, Enum::"Production BOM Line Type"::Item, Item."No.", Item."Production BOM No.", Report::"Rolled-up Cost Shares");
+        VerifyProductionBomErrorForProductionCostSharesReport(
+            Item, Enum::"Production BOM Line Type"::Item, Item."No.", Item."Production BOM No.", Report::"Production Cost Shares");
     end;
 
     [Test]
-    [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
+    [HandlerFunctions('ProductionCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure RolledupCostSharesWithProdBomLineTypeProdBom()
+    procedure ProductionCostSharesWithProdBomLineTypeProdBom()
     var
         Item: Record Item;
     begin
-        // Verify Error message when Rolled-up Cost Shares report is run for Production Bom Line Type Production Bom.
+        // Verify Error message when Production Cost Shares report is run for Production Bom Line Type Production Bom.
         Initialize();
 
         CreateManufacturingItem(
           Item, Item."Costing Method"::Average, Enum::"BOM Status"::Certified, Enum::"Routing Status"::Certified);
 
-        VerifyProductionBomErrorForTheReport(
+        VerifyProductionBomErrorForProductionCostSharesReport(
             Item, Enum::"Production BOM Line Type"::"Production BOM", Item."Production BOM No.", Item."Production BOM No.",
-            Report::"Rolled-up Cost Shares");
+            Report::"Production Cost Shares");
     end;
 
     [Test]
@@ -1896,22 +1742,7 @@ codeunit 137309 "SCM Reports"
         RoutingLineCopyLines.CopyRouting(RoutingNo, '', RoutingHeader, RoutingVersion."Version Code");
     end;
 
-    local procedure CreateRoutingLineWithTypeMachineCenter(var RoutingHeader: Record "Routing Header"; ItemRoutingNo: Code[20])
-    var
-        RoutingLine: Record "Routing Line";
-        MachineCenter: Record "Machine Center";
-        WorkCenter: Record "Work Center";
-    begin
-        RoutingHeader.Get(ItemRoutingNo);
-        CreateWorkCenterWithWorkCenterGroup(WorkCenter);
-        LibraryManufacturing.CreateMachineCenter(MachineCenter, WorkCenter."No.", LibraryRandom.RandInt(5));
-        LibraryManufacturing.CreateRoutingLine(
-          RoutingHeader, RoutingLine, '', Format(LibraryRandom.RandInt(100)),
-          RoutingLine.Type::"Machine Center", MachineCenter."No.");
-    end;
-
-    local procedure CreateSalesLine(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Type: Enum "Sales Line Type"; ItemNo: Code[20];
-                                                                                                                      Quantity: Decimal)
+    local procedure CreateSalesLine(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Type: Enum "Sales Line Type"; ItemNo: Code[20]; Quantity: Decimal)
     begin
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Type, ItemNo, Quantity);
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2)); // Use random Unit Price.
@@ -1992,39 +1823,6 @@ codeunit 137309 "SCM Reports"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
     end;
 
-    local procedure DetailedCalculationWithTypeRoutingVersionAndCalcDate(Status: Enum "Routing Status"; Days: Integer)
-    var
-        Item: Record Item;
-        ProductionBOMHeader: Record "Production BOM Header";
-        RoutingHeader: Record "Routing Header";
-        RoutingLine: Record "Routing Line";
-        RoutingVersion: Record "Routing Version";
-    begin
-        // Setup: Create Item with Routing Version and delete one routing line from Routing version after copy routing version.
-        CreateManufacturingItem(
-          Item, Item."Costing Method"::Standard, ProductionBOMHeader.Status::"Under Development",
-          RoutingHeader.Status::"Under Development");
-        CreateRoutingLineWithTypeMachineCenter(RoutingHeader, Item."Routing No.");
-        CreateRoutingVersion(RoutingVersion, Item."Routing No.");
-        FindRoutingLine(RoutingLine, RoutingVersion."Routing No.", RoutingVersion."Version Code");
-        RoutingLine.Delete(true);
-        UpdateRoutingVersion(RoutingVersion, Status, CalcDate(StrSubstNo('<%1D>', LibraryRandom.RandInt(5)), WorkDate()));
-        LibraryVariableStorage.Enqueue(CalcDate(StrSubstNo('<%1D>', Days), RoutingVersion."Starting Date"));
-
-        // Exercise: Run Detailed Calculation Report.
-        Commit();
-        Item.SetRange("No.", Item."No.");
-        REPORT.Run(REPORT::"Detailed Calculation", true, false, Item);
-
-        // Verify: Verify Values on Detailed Calculation Test report values.
-        LibraryReportDataset.LoadDataSetFile();
-        RoutingHeader.Get(Item."Routing No.");
-        FindRoutingLine(RoutingLine, RoutingHeader."No.", RoutingHeader."Version Nos.");
-        repeat
-            LibraryReportDataset.AssertElementWithValueExists('OperationNo_RtngLine', RoutingLine."Operation No.");
-        until RoutingLine.Next() = 0;
-    end;
-
     local procedure CreateReportSelection(UsageOption: Enum "Report Selection Usage"; ReportID: Integer)
     var
         ReportSelections: Record "Report Selections";
@@ -2098,13 +1896,6 @@ codeunit 137309 "SCM Reports"
         ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Output);
         ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Revaluation);
         ValueEntry.FindFirst();
-    end;
-
-    local procedure FindRoutingLine(var RoutingLine: Record "Routing Line"; RoutingNo: Code[20]; VersionCode: Code[20])
-    begin
-        RoutingLine.SetRange("Routing No.", RoutingNo);
-        RoutingLine.SetRange("Version Code", VersionCode);
-        RoutingLine.FindSet();
     end;
 
     local procedure GetComponent(ProductionBOMNo: Code[20]): Code[20]
@@ -2563,19 +2354,7 @@ codeunit 137309 "SCM Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('BomCompLevelQty', ProductionBOMLine.Quantity);
     end;
 
-    local procedure VerifyRolledupCostSharesReport(ChildItemNo: Code[20]; ParentItemProdBOMNo: Code[20])
-    var
-        ProductionBOMLine: Record "Production BOM Line";
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        ProductionBOMLine.SetRange("No.", ChildItemNo);
-        SelectProductionBOMLines(ProductionBOMLine, ParentItemProdBOMNo);
-        LibraryReportDataset.SetRange('ProdBOMLineIndexNo', ProductionBOMLine."No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('BOMCompQtyBase', ProductionBOMLine.Quantity);
-    end;
-
-    local procedure VerifyDetailedCalculationReport(ChildItemNo: Code[20]; ParentItemProdBOMNo: Code[20])
+    local procedure VerifyProductionCostSharesReport(ChildItemNo: Code[20]; ParentItemProdBOMNo: Code[20])
     var
         ProductionBOMLine: Record "Production BOM Line";
         Item: Record Item;
@@ -2583,15 +2362,14 @@ codeunit 137309 "SCM Reports"
         LibraryReportDataset.LoadDataSetFile();
         ProductionBOMLine.SetRange("No.", ChildItemNo);
         SelectProductionBOMLines(ProductionBOMLine, ParentItemProdBOMNo);
-        LibraryReportDataset.SetRange('ProdBOMLineLevelNo', ProductionBOMLine."No.");
+        LibraryReportDataset.SetRange('No', ProductionBOMLine."No.");
         LibraryReportDataset.GetNextRow();
         Item.Get(ProductionBOMLine."No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('ProdBOMLineLevelDesc', Item.Description);
+        LibraryReportDataset.AssertCurrentRowValueEquals('Description', Item.Description);
+        LibraryReportDataset.AssertCurrentRowValueEquals('QtyPerTopItem', ProductionBOMLine.Quantity);
     end;
 
-    local procedure VerifyProductionBomErrorForTheReport(Item: Record Item; Type: Enum "Production BOM Line Type"; No: Code[20];
-                                                                                      ProdBomNo: Code[20];
-                                                                                      ReportId: Integer)
+    local procedure VerifyProductionBomErrorForQuantityExplosionOfBOMReport(Item: Record Item; Type: Enum "Production BOM Line Type"; No: Code[20]; ProdBomNo: Code[20]; ReportId: Integer)
     begin
         // Setup: Add Type ProductionBom/Item as a Component in BOM.
         AddParentItemAsBOMComponent(Type, No, ProdBomNo);
@@ -2603,6 +2381,20 @@ codeunit 137309 "SCM Reports"
 
         // Verify: Verify Error.
         Assert.ExpectedError(StrSubstNo(ProductionBOMStatusErr, 50, Item."No."));
+    end;
+
+    local procedure VerifyProductionBomErrorForProductionCostSharesReport(Item: Record Item; Type: Enum "Production BOM Line Type"; No: Code[20]; ProdBomNo: Code[20]; ReportId: Integer)
+    begin
+        // Setup: Add Type ProductionBom/Item as a Component in BOM.
+        AddParentItemAsBOMComponent(Type, No, ProdBomNo);
+
+        // Exercise: Run the Report.
+        Commit();
+        Item.SetRange("No.", Item."No.");
+        asserterror REPORT.Run(ReportId, true, false, Item);
+
+        // Verify: Verify Error.
+        Assert.ExpectedError(StrSubstNo(CircularRefInBOMErr, ProdBomNo, ProdBomNo));
     end;
 
     local procedure CountReportSelections(ReportSelectionSalesPage: TestPage "Report Selection - Sales") Result: Integer
@@ -2831,20 +2623,9 @@ codeunit 137309 "SCM Reports"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure DetailedCalculationRequestPageHandler(var DetailedCalculation: TestRequestPage "Detailed Calculation")
-    var
-        CalcDate: Variant;
+    procedure ProductionCostSharesRequestPageHandler(var ProductionCostShares: TestRequestPage "Production Cost Shares")
     begin
-        LibraryVariableStorage.Dequeue(CalcDate);
-        DetailedCalculation.CalculationDate.SetValue(CalcDate);
-        DetailedCalculation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure RolledUpCostSharesRequestPageHandler(var RolledUpCostShares: TestRequestPage "Rolled-up Cost Shares")
-    begin
-        RolledUpCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ProductionCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [RequestPageHandler]
