@@ -124,6 +124,8 @@ page 6122 "E-Documents"
             action(EDocumentLogs)
             {
                 RunObject = Page "E-Document Logs";
+                RunPageLink = "E-Doc. Entry No" = field("Entry No");
+                RunPageMode = View;
                 Caption = 'E-Document Logs';
                 ToolTip = 'Opens E-Document Logs page.';
                 Image = Log;
@@ -131,14 +133,26 @@ page 6122 "E-Documents"
             action(ViewFile)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'View file';
-                ToolTip = 'View the source file.';
+                Caption = 'View source file';
+                ToolTip = 'Opens the original file received for the incoming E-Document.';
                 Image = ViewDetails;
+                Visible = SourceFileAvailable;
 
                 trigger OnAction()
                 begin
                     Rec.ViewSourceFile();
                 end;
+            }
+            action(ViewExportedFiles)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'View exported files';
+                ToolTip = 'Opens the logs where you can export files generated for the outgoing E-Document.';
+                Image = ExportFile;
+                RunObject = Page "E-Document Logs";
+                RunPageLink = "E-Doc. Entry No" = field("Entry No");
+                RunPageMode = View;
+                Visible = IsOutgoingDoc;
             }
         }
         area(Navigation)
@@ -185,4 +199,14 @@ page 6122 "E-Documents"
         EDocImport.ProcessIncomingEDocument(EDocument, EDocument.GetEDocumentService().GetDefaultImportParameters());
         Page.Run(Page::"E-Document", EDocument);
     end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        IsOutgoingDoc := Rec.Direction = Rec.Direction::Outgoing;
+        SourceFileAvailable := (Rec.Direction = Rec.Direction::Incoming) and (Rec."Unstructured Data Entry No." <> 0);
+    end;
+
+    var
+        IsOutgoingDoc: Boolean;
+        SourceFileAvailable: Boolean;
 }

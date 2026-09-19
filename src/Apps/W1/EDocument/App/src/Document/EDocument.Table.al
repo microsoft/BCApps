@@ -511,7 +511,11 @@ table 6121 "E-Document"
         EDocDataStorage: Record "E-Doc. Data Storage";
         IEDocFileFormat: Interface IEDocFileFormat;
     begin
-        EDocDataStorage.Get(Rec."Unstructured Data Entry No.");
+        if Rec."Unstructured Data Entry No." = 0 then
+            Error(NoSourceFileErr);
+        if not EDocDataStorage.Get(Rec."Unstructured Data Entry No.") then
+            Error(NoSourceFileErr);
+
         IEDocFileFormat := EDocDataStorage."File Format";
         IEDocFileFormat.PreviewContent(EDocDataStorage.Name, EDocDataStorage.GetTempBlob());
     end;
@@ -573,6 +577,7 @@ table 6121 "E-Document"
         DeleteProcessedNotAllowedErr: Label 'The E-Document has already been processed and cannot be deleted.';
         DeleteUniqueNotAllowedErr: Label 'Only duplicate E-Documents can be deleted without a confirmation in the user interface.';
         NoFileErr: label 'No previewable attachment exists for this %2.', Comment = '%1 - a table caption';
+        NoSourceFileErr: Label 'No source file is available for this E-Document.';
         DeleteConfirmQst: label 'Are you sure? You may not be able to retrieve this E-Document again.\\ Do you want to continue?';
         EDocumentExistsMsg: Label 'This E-Document is a duplicate of E-Document %1.', Comment = '%1 - E-Document No.';
 }
