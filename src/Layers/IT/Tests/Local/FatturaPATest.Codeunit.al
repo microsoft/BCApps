@@ -1369,6 +1369,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvalidFiscalRegimeErrorMessagesPageHandler')]
     [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithInvalidLegacyFiscalRegime()
     var
@@ -1392,14 +1393,27 @@ codeunit 144200 "FatturaPA Test"
           "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
 
         // [WHEN] The document is exported to FatturaPA
-        LibraryErrorMessage.TrapErrorMessages();
-        asserterror ElectronicDocumentFormat.SendElectronically(
+        ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
 
-        // [THEN] The invalid fiscal regime is reported against Company Type
-        LibraryErrorMessage.LoadErrorMessages();
-        LibraryErrorMessage.AssertLogIfMessageExists(
-          CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error);
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure InvalidFiscalRegimeErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ErrorFound: Boolean;
+    begin
+        if ErrorMessages.First() then
+            repeat
+                if ErrorMessages.Description.Value = '99 is not a valid FatturaPA fiscal regime code.' then begin
+                    Assert.AreEqual(
+                      'Company Type', ErrorMessages."Field Name".Value,
+                      'The invalid fiscal regime error must be reported against Company Type.');
+                    ErrorFound := true;
+                end;
+            until not ErrorMessages.Next();
+
+        Assert.IsTrue(ErrorFound, 'The invalid FatturaPA fiscal regime validation error was not shown.');
     end;
 
     [Test]
