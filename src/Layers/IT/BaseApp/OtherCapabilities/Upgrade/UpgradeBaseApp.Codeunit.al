@@ -263,9 +263,9 @@ codeunit 104000 "Upgrade - BaseApp"
 
     local procedure EnsureStandardFatturaPAFiscalRegimes()
     var
-        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
-        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
     end;
 
     local procedure ClearTemporaryTables()
