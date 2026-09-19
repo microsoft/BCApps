@@ -1,6 +1,7 @@
 namespace Microsoft.eServices.EDocument.RemittanceAdvice;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 
 pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
@@ -14,6 +15,21 @@ pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Remit. Advice E-Doc. Created';
                 ToolTip = 'Specifies whether a remittance advice electronic document has been created for the payment.';
+            }
+        }
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
             }
         }
     }
@@ -71,8 +87,14 @@ pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
     // Action Visible is only evaluated when the page opens; Enabled bound to a global refreshed
     // per row is the dynamic equivalent (same pattern as "E-Doc. Posted Sales Inv.").
     trigger OnAfterGetCurrRecord()
+    var
+        AnchorGenJournalLine: Record "Gen. Journal Line";
     begin
         RemitAdviceEDocExists := Rec."Remit. Advice E-Doc. Created";
+
+        FindGroupAnchor(Rec, AnchorGenJournalLine);
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(AnchorGenJournalLine.RecordId());
+        CurrPage.EDocMessages.Page.SetSourceRecordId(AnchorGenJournalLine.RecordId());
     end;
 
     local procedure VoidSelectedRemittanceAdviceEDocs()
