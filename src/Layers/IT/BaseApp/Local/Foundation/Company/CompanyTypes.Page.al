@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Company;
 
-using Microsoft.EServices.EDocument;
-
 page 12169 "Company Types"
 {
     Caption = 'FatturaPA Fiscal Regimes';
@@ -14,6 +12,7 @@ page 12169 "Company Types"
     ModifyAllowed = false;
     PageType = List;
     SourceTable = "Company Types";
+    SourceTableView = sorting(Code) where(Code = filter('01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19'));
 
     layout
     {
@@ -40,12 +39,5 @@ page 12169 "Company Types"
     {
     }
 
-    trigger OnOpenPage()
-    var
-        FatturaDocHelper: Codeunit "Fattura Doc. Helper";
-    begin
-        FatturaDocHelper.EnsureStandardFatturaPAFiscalRegimes();
-        Rec.SetFilter(Code, '01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19');
-    end;
 }
 
