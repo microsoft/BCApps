@@ -186,6 +186,9 @@ page 47017 "SL Company Add. Settings List"
                 field("Migrate Hist. Purch. Trx."; Rec."Migrate Hist. Purch. Trx.")
                 {
                 }
+                field("Migrate Hist. Project Trans."; Rec."Migrate Hist. Project Trans.")
+                {
+                }
                 field("Skip Posting Account Batches"; Rec."Skip Posting Account Batches")
                 {
                 }
