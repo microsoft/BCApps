@@ -961,7 +961,13 @@ table 8063 "Vendor Subscription Contract"
         if NewParentDimSetID = OldParentDimSetID then
             exit;
 
-        if not ConfirmManagement.GetResponse(UpdateDimensionsOnLinesQst, true) then
+        OnBeforeConfirmUpdateAllLineDim(Rec, Confirmed, IsHandled);
+        if not IsHandled then
+            if GetHideValidationDialog() or not GuiAllowed then
+                Confirmed := true
+            else
+                Confirmed := ConfirmManagement.GetResponse(UpdateDimensionsOnLinesQst, true);
+        if not Confirmed then
             exit;
 
         ServiceCommitment.Reset();
@@ -1782,6 +1788,11 @@ table 8063 "Vendor Subscription Contract"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var VendorSubscriptionContract: Record "Vendor Subscription Contract"; xVendorSubscriptionContract: Record "Vendor Subscription Contract"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeConfirmUpdateAllLineDim(var VendorSubscriptionContract: Record "Vendor Subscription Contract"; var Confirmed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
