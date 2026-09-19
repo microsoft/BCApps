@@ -26,8 +26,12 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT41MiniPreviewLbl: Label 'gpt-41-mini-preview', Locked = true;
         GPT53ChatLatestLbl: Label 'gpt-53-chat-latest', Locked = true;
         GPT53ChatPreviewLbl: Label 'gpt-53-chat-preview', Locked = true;
+#if not CLEAN30
         GPT55ChatLatestLbl: Label 'gpt-55-chat-latest', Locked = true;
         GPT55ChatPreviewLbl: Label 'gpt-55-chat-preview', Locked = true;
+#endif
+        GPT56ChatLatestLbl: Label 'gpt-56-ceres-latest', Locked = true;
+        GPT56ChatPreviewLbl: Label 'gpt-56-ceres-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -83,6 +87,7 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT53ChatPreviewLbl));
     end;
 
+#if not CLEAN30
     procedure GetGPT55ChatLatest(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT55ChatLatestLbl));
@@ -91,6 +96,26 @@ codeunit 7769 "AOAI Deployments Impl"
     procedure GetGPT55ChatPreview(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT55ChatPreviewLbl));
+    end;
+#endif
+
+    procedure GetGPT56ChatLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT56ChatLatestLbl));
+    end;
+
+    procedure GetGPT56ChatPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT56ChatPreviewLbl));
+    end;
+
+    procedure IsFileContentSupported(DeploymentName: Text): Boolean
+    begin
+#if not CLEAN30
+        if DeploymentName = GPT55ChatPreviewLbl then
+            exit(true);
+#endif
+        exit(DeploymentName in [GPT41MiniPreviewLbl, GPT56ChatPreviewLbl]);
     end;
 
     // Initializes dictionary of deprecated models
@@ -105,6 +130,10 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(15, 7, 2025));
         DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
         DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
+#endif
+#if not CLEAN30
+        DeprecatedDeployments.Add(GPT55ChatLatestLbl, DMY2Date(11, 9, 2026));
+        DeprecatedDeployments.Add(GPT55ChatPreviewLbl, DMY2Date(11, 9, 2026));
 #endif
         DeprecationDatesInitialized := true;
     end;
