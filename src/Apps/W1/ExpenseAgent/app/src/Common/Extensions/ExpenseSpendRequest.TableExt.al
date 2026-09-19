@@ -23,6 +23,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                UpdateRequestedForName();
                 if SpendRequestExists() then
                     UpdateRequestedForTraveler(xRec."Requested For");
             end;
@@ -107,6 +108,12 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             begin
                 TestStatusOpen();
             end;
+        }
+        field(6910; "Requested For Name"; Text[100])
+        {
+            Caption = 'Requested For Name';
+            ToolTip = 'Specifies the name of the expense user for whom the spend request is being created.';
+            DataClassification = CustomerContent;
         }
         field(6911; "Actual Start Date and Time"; DateTime)
         {
@@ -359,5 +366,15 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
 
         SpendRequest.SetLoadFields("No.");
         exit(SpendRequest.Get(Rec."No."));
+    end;
+
+    local procedure UpdateRequestedForName()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        if (Rec."Requested For" <> '') and ExpenseUser.Get(Rec."Requested For") then
+            Rec."Requested For Name" := ExpenseUser.Name
+        else
+            Rec."Requested For Name" := '';
     end;
 }
