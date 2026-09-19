@@ -1393,7 +1393,7 @@ codeunit 144200 "FatturaPA Test"
           "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
 
         // [WHEN] The document is exported to FatturaPA
-        ElectronicDocumentFormat.SendElectronically(
+        asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
     end;
 
