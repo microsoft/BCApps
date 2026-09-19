@@ -3104,6 +3104,116 @@
         VerifyTextValueAppearsOnce('Currency');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewColumnDefWithRowDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FallbackAccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        GLSetup: Record "General Ledger Setup";
+        ColumnLayoutNames: TestPage "Column Layout Names";
+        ColumnLayoutPage: TestPage "Column Layout";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a column definition opens the financial report with the column definition itself, and the selected row definition for preview.
+        Initialize();
+
+        // [GIVEN] Two row definitions and a column definition
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateAccScheduleName(FallbackAccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        ColumnLayoutNames.OpenEdit();
+        ColumnLayoutNames.GoToKey(ColumnLayoutName.Name);
+        ColumnLayoutPage.Trap();
+        ColumnLayoutNames.EditColumnLayoutSetup.Invoke();
+
+        // [GIVEN] G/L setup has a preview row definition
+        GLSetup.Get();
+        GLSetup.Validate("Fin. Rep. Preview Row Def.", FallbackAccScheduleName.Name);
+        GLSetup.Modify(true);
+
+        // [THEN] By default the preview falls back to row definition from G/L setup
+        AccScheduleOverview.Trap();
+        ColumnLayoutPage.Preview.Invoke();
+        AccScheduleOverview.CurrentSchedName.AssertEquals(FallbackAccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+        AccScheduleOverview.Close();
+
+        // [WHEN] A row definition for preview is set
+        ColumnLayoutPage.PreviewRowDef.SetValue(AccScheduleName.Name);
+
+        // [THEN] The row definition for preview is saved
+        ColumnLayoutName.Get(ColumnLayoutName.Name);
+        Assert.AreEqual(AccScheduleName.Name, ColumnLayoutName."Preview Row Def.", 'Preview row definition was not saved.');
+
+        // [WHEN] The column definition is previewed
+        AccScheduleOverview.Trap();
+        ColumnLayoutPage.Preview.Invoke();
+
+        // [THEN] The financial report is opened with the current column definition and the selected row definition for preview
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+        AccScheduleOverview.Close();
+        ColumnLayoutPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PreviewRowDefWithColumnDef()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ColumnLayoutName: Record "Column Layout Name";
+        FallbackColumnLayoutName: Record "Column Layout Name";
+        GLSetup: Record "General Ledger Setup";
+        AccScheduleNames: TestPage "Account Schedule Names";
+        AccountSchedule: TestPage "Account Schedule";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [UI]
+        // [SCENARIO] Previewing a row definition opens the financial report with the row definition itself, and the selected column definition for preview.
+        Initialize();
+
+        // [GIVEN] A row definition and two column definitions
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+        LibraryERM.CreateColumnLayoutName(ColumnLayoutName);
+        LibraryERM.CreateColumnLayoutName(FallbackColumnLayoutName);
+        AccScheduleNames.OpenEdit();
+        AccScheduleNames.GoToKey(AccScheduleName.Name);
+        AccountSchedule.Trap();
+        AccScheduleNames.EditAccountSchedule.Invoke();
+
+        // [GIVEN] G/L setup has a preview column definition
+        GLSetup.Get();
+        GLSetup.Validate("Fin. Rep. Preview Column Def.", FallbackColumnLayoutName.Name);
+        GLSetup.Modify(true);
+
+        // [THEN] By default preview falls back to column definition from G/L setup
+        AccScheduleOverview.Trap();
+        AccountSchedule.Preview.Invoke();
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(FallbackColumnLayoutName.Name);
+        AccScheduleOverview.Close();
+
+        // [WHEN] A column definition for preview is set
+        AccountSchedule.PreviewColumnDef.SetValue(ColumnLayoutName.Name);
+
+        // [THEN] The column definition for preview is saved
+        AccScheduleName.Get(AccScheduleName.Name);
+        Assert.AreEqual(ColumnLayoutName.Name, AccScheduleName."Preview Column Def.", 'Preview column definition was not saved.');
+
+        // [WHEN] The row definition is previewed
+        AccScheduleOverview.Trap();
+        AccountSchedule.Preview.Invoke();
+
+        // [THEN] The financial report is opened with the current row definition and the selected column definition for preview
+        AccScheduleOverview.CurrentSchedName.AssertEquals(AccScheduleName.Name);
+        AccScheduleOverview.CurrentColumnName.AssertEquals(ColumnLayoutName.Name);
+        AccScheduleOverview.Close();
+        AccountSchedule.Close();
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";

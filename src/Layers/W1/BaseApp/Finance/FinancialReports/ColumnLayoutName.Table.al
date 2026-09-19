@@ -83,6 +83,12 @@ table 333 "Column Layout Name"
             FieldClass = FlowField;
             ToolTip = 'Specifies the status code is a blocked status.';
         }
+        field(8; "Preview Row Def."; Code[10])
+        {
+            Caption = 'Row Definition (for Preview)';
+            TableRelation = "Acc. Schedule Name";
+            ToolTip = 'Specifies the row definition used when previewing this column definition.';
+        }
     }
 
     keys
