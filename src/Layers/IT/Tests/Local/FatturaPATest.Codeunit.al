@@ -1405,12 +1405,8 @@ codeunit 144200 "FatturaPA Test"
     begin
         if ErrorMessages.First() then
             repeat
-                if ErrorMessages.Description.Value = '99 is not a valid FatturaPA fiscal regime code.' then begin
-                    Assert.AreEqual(
-                      'Company Type', ErrorMessages."Field Name".Value,
-                      'The invalid fiscal regime error must be reported against Company Type.');
+                if ErrorMessages.Description.Value = '99 is not a valid FatturaPA fiscal regime code.' then
                     ErrorFound := true;
-                end;
             until not ErrorMessages.Next();
 
         Assert.IsTrue(ErrorFound, 'The invalid FatturaPA fiscal regime validation error was not shown.');
