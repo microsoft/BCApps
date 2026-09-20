@@ -1289,6 +1289,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvalidProvinciaErrorMessagesPageHandler')]
     [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithInvalidDomesticProvincia()
     var
@@ -1310,14 +1311,23 @@ codeunit 144200 "FatturaPA Test"
           "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
 
         // [WHEN] The document is exported to FatturaPA
-        LibraryErrorMessage.TrapErrorMessages();
         asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
 
-        // [THEN] The invalid Customer County is reported as an error
-        LibraryErrorMessage.LoadErrorMessages();
-        LibraryErrorMessage.AssertLogIfMessageExists(
-          Customer, Customer.FieldNo(County), ErrorMessage."Message Type"::Error);
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure InvalidProvinciaErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ErrorFound: Boolean;
+    begin
+        if ErrorMessages.First() then
+            repeat
+                if ErrorMessages.Description.Value = 'The County must contain exactly two uppercase alphabetic characters for FatturaPA Provincia.' then
+                    ErrorFound := true;
+            until not ErrorMessages.Next();
+
+        Assert.IsTrue(ErrorFound, 'The invalid FatturaPA Provincia validation error was not shown.');
     end;
 
     [Test]
