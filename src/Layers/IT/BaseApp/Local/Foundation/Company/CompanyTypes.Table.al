@@ -57,7 +57,7 @@ table 12169 "Company Types"
         Error(ReadOnlyFiscalRegimesErr);
     end;
 
-    procedure IsValidFatturaPAFiscalRegimeCode(FiscalRegimeCode: Code[2]): Boolean
+    internal procedure IsValidFatturaPAFiscalRegimeCode(FiscalRegimeCode: Code[2]): Boolean
     begin
         case FiscalRegimeCode of
             '01', '02', '03', '04', '05', '06', '07', '08', '09',
