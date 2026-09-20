@@ -1289,6 +1289,53 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvalidISOCountryCodeErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceRejectsMissingCountryRegionISOCode()
+    var
+        CountryRegion: Record "Country/Region";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] FatturaPA export rejects a Country/Region without a two-character ISO Code
+        Initialize();
+
+        // [GIVEN] A foreign Country/Region without an ISO Code
+        CountryRegion.Init();
+        CountryRegion.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, 3);
+        CountryRegion.Name := LibraryUtility.GenerateGUID();
+        CountryRegion.Insert();
+
+        // [GIVEN] A posted Sales Invoice for a Customer in that Country/Region
+        CustomerNo := CreateForeignCustomer(CountryRegion.Code);
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CustomerNo));
+
+        // [WHEN] The document is exported to FatturaPA
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure InvalidISOCountryCodeErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ErrorFound: Boolean;
+    begin
+        if ErrorMessages.First() then
+            repeat
+                if ErrorMessages.Description.Value = 'The Country/Region must have a two-character ISO Code for FatturaPA.' then
+                    ErrorFound := true;
+            until not ErrorMessages.Next();
+
+        Assert.IsTrue(ErrorFound, 'The invalid FatturaPA ISO country code validation error was not shown.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ExportSalesInvoiceUsesCountryRegionISOCode()
     var
