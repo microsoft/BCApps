@@ -1352,11 +1352,7 @@ codeunit 144200 "FatturaPA Test"
         Initialize();
 
         // [GIVEN] A foreign Country/Region whose BC key differs from its ISO Code
-        CountryRegion.Init();
-        CountryRegion.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, 3);
-        CountryRegion.Name := LibraryUtility.GenerateGUID();
-        CountryRegion."ISO Code" := 'US';
-        CountryRegion.Insert();
+        CreateCountryRegionWithISOCode(CountryRegion, 'US');
 
         // [GIVEN] A posted Sales Invoice for a Customer in that Country/Region
         CustomerNo := CreateForeignCustomer(CountryRegion.Code);
@@ -1429,6 +1425,8 @@ codeunit 144200 "FatturaPA Test"
 
         // [GIVEN] Posted Sales Invoice for a foreign customer
         LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", 'GB');
+        CountryRegion.Modify(true);
         CustomerNo := CreateForeignCustomer(CountryRegion.Code);
         SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CustomerNo));
 
@@ -1541,6 +1539,8 @@ codeunit 144200 "FatturaPA Test"
         // [GIVEN]  "Country/Region Code" code is "IT" in Company Information
         // [GIVEN] A posted Sales Invoice with customer that has "Country/Region Code" = "GB" and "Fiscal Code" = "Y"
         LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion.Validate("ISO Code", 'GB');
+        CountryRegion.Modify(true);
         Customer.Get(CreateCustomer());
         CurrCustomer := Customer;
         Customer.Validate("Country/Region Code", CountryRegion.Code);
@@ -2226,6 +2226,18 @@ codeunit 144200 "FatturaPA Test"
         exit(
           LibraryITLocalization.CreateFatturaCustomerNo(
             CopyStr(LibraryUtility.GenerateRandomCode(Customer.FieldNo("PA Code"), DATABASE::Customer), 1, 6)));
+    end;
+
+    local procedure CreateCountryRegionWithISOCode(var CountryRegion: Record "Country/Region"; ISOCode: Code[2])
+    begin
+        repeat
+            CountryRegion.Init();
+            CountryRegion.Code := CopyStr(LibraryUtility.GenerateRandomCode(CountryRegion.FieldNo(Code), Database::"Country/Region"), 1, 3);
+        until not CountryRegion.Get(CountryRegion.Code);
+
+        CountryRegion.Name := LibraryUtility.GenerateGUID();
+        CountryRegion.Validate("ISO Code", ISOCode);
+        CountryRegion.Insert(true);
     end;
 
     local procedure CreateForeignCustomer(CountryRegionCode: Code[10]): Code[20]
