@@ -1296,19 +1296,31 @@ codeunit 144200 "FatturaPA Test"
         FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
         // [FEATURE] [FatturaPA] [Setup]
-        // [SCENARIO] The fixed FatturaPA fiscal regime catalog contains all standard values
+        // [SCENARIO] The fixed FatturaPA fiscal regime catalog is seeded without deleting legacy data
         Initialize();
 
-        // [GIVEN] No FatturaPA fiscal regimes exist
+        // [GIVEN] The standard catalog is missing, an existing regime has an outdated description, and an invalid legacy value exists
         CompanyTypes.DeleteAll(false);
+        CompanyTypes.Code := '19';
+        CompanyTypes.Description := 'Outdated';
+        CompanyTypes.Insert(false);
+        CompanyTypes.Code := '99';
+        CompanyTypes.Description := 'Legacy';
+        CompanyTypes.Insert(false);
 
         // [WHEN] The standard catalog is initialized
         FatturaPASetupMgt.EnsureStandardFiscalRegimes();
 
-        // [THEN] All 19 supported regimes exist
+        // [THEN] All 19 supported regimes exist and standard descriptions are repaired
+        CompanyTypes.SetFilter(Code, '01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19');
         Assert.RecordCount(CompanyTypes, 19);
-        CompanyTypes.Get('01');
         CompanyTypes.Get('19');
+        CompanyTypes.TestField(Description, 'Flat rate');
+
+        // [THEN] Invalid legacy values are preserved
+        CompanyTypes.Reset();
+        CompanyTypes.Get('99');
+        CompanyTypes.TestField(Description, 'Legacy');
     end;
 
     [Test]
@@ -1319,16 +1331,34 @@ codeunit 144200 "FatturaPA Test"
         FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
         // [FEATURE] [FatturaPA] [Setup]
-        // [SCENARIO] Standard FatturaPA fiscal regimes cannot be changed by users
+        // [SCENARIO] Standard FatturaPA fiscal regimes cannot be inserted, changed, or deleted by users
         Initialize();
         FatturaPASetupMgt.EnsureStandardFiscalRegimes();
-        CompanyTypes.Get('19');
+
+        // [WHEN] A fiscal regime is inserted
+        CompanyTypes.Init();
+        CompanyTypes.Code := '20';
+        CompanyTypes.Description := 'Unsupported';
+        asserterror CompanyTypes.Insert(true);
+
+        // [THEN] The fixed catalog rejects the insert
+        Assert.ExpectedError('cannot be changed');
 
         // [WHEN] A standard regime is modified
+        Clear(CompanyTypes);
+        CompanyTypes.Get('19');
         CompanyTypes.Description := 'Modified';
         asserterror CompanyTypes.Modify(true);
 
-        // [THEN] The fixed catalog rejects the change
+        // [THEN] The fixed catalog rejects the modification
+        Assert.ExpectedError('cannot be changed');
+
+        // [WHEN] A standard regime is deleted
+        Clear(CompanyTypes);
+        CompanyTypes.Get('19');
+        asserterror CompanyTypes.Delete(true);
+
+        // [THEN] The fixed catalog rejects the deletion
         Assert.ExpectedError('cannot be changed');
     end;
 
