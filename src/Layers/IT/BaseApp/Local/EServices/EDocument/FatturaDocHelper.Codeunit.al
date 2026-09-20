@@ -96,6 +96,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FixedAssetTransferTxt: Label 'Fixed assed transfer or internal  transfer  (ex art.36 DPR 633/72)';
         SelfConsumingInvoiceTxt: Label 'Invoice for self-consuming or free gift without VAT Compensation';
         FatturaDocTypeDiffQst: Label 'There are one or more different values of Fattura document type coming from the VAT posting setup of lines. As it''''s not possible to identify the value, %1 from the header will be used.\\Do you want to continue?', Comment = '%1 = the value of Fattura Document type from the header';
+        InvalidCAPErr: Label 'The Post Code must contain exactly five numeric characters for FatturaPA.';
 
     [Scope('OnPrem')]
     procedure CollectDocumentInformation(var TempFatturaHeader: Record "Fattura Header" temporary; var TempFatturaLine: Record "Fattura Line" temporary; HeaderRecRef: RecordRef)
@@ -408,9 +409,6 @@ codeunit 12184 "Fattura Doc. Helper"
 
         exit(not ErrorMessage.HasErrors(false));
     end;
-
-    var
-        InvalidCAPErr: Label 'The Post Code must contain exactly five numeric characters for FatturaPA.';
 
     procedure CheckMandatoryFields(HeaderRecRef: RecordRef; var ErrorMessage: Record "Error Message")
     var
