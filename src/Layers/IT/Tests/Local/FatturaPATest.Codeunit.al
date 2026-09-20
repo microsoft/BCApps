@@ -1289,6 +1289,7 @@ codeunit 144200 "FatturaPA Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvalidCAPErrorMessagesPageHandler')]
     [Scope('OnPrem')]
     procedure ExportSalesInvoiceWithInvalidDomesticCAP()
     var
@@ -1310,14 +1311,23 @@ codeunit 144200 "FatturaPA Test"
           "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), Customer."No."));
 
         // [WHEN] The document is exported to FatturaPA
-        LibraryErrorMessage.TrapErrorMessages();
         asserterror ElectronicDocumentFormat.SendElectronically(
           TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
 
-        // [THEN] The invalid Customer Post Code is reported as an error
-        LibraryErrorMessage.LoadErrorMessages();
-        LibraryErrorMessage.AssertLogIfMessageExists(
-          Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure InvalidCAPErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ErrorFound: Boolean;
+    begin
+        if ErrorMessages.First() then
+            repeat
+                if ErrorMessages.Description.Value = 'The Post Code must contain exactly five numeric characters for FatturaPA.' then
+                    ErrorFound := true;
+            until not ErrorMessages.Next();
+
+        Assert.IsTrue(ErrorFound, 'The invalid FatturaPA CAP validation error was not shown.');
     end;
 
     [Test]
