@@ -2230,14 +2230,9 @@ codeunit 144200 "FatturaPA Test"
 
     local procedure CreateCountryRegionWithISOCode(var CountryRegion: Record "Country/Region"; ISOCode: Code[2])
     begin
-        repeat
-            CountryRegion.Init();
-            CountryRegion.Code := CopyStr(LibraryUtility.GenerateRandomCode(CountryRegion.FieldNo(Code), Database::"Country/Region"), 1, 3);
-        until not CountryRegion.Get(CountryRegion.Code);
-
-        CountryRegion.Name := LibraryUtility.GenerateGUID();
+        LibraryERM.CreateCountryRegion(CountryRegion);
         CountryRegion.Validate("ISO Code", ISOCode);
-        CountryRegion.Insert(true);
+        CountryRegion.Modify(true);
     end;
 
     local procedure CreateForeignCustomer(CountryRegionCode: Code[10]): Code[20]
