@@ -6603,9 +6603,9 @@ codeunit 134387 "ERM Sales Documents III"
     procedure LineDiscountPercentAllowsFiveDecimalPlacesOnManualEntry()
     var
         SalesLineDiscount: Record "Sales Line Discount";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         PriceListLine: Record "Price List Line";
+        CustomerCard: TestPage "Customer Card";
+        SalesLineDiscounts: TestPage "Sales Line Discounts";
     begin
         //[Scenario] Sales Line Discount % accepts 5 decimal places through Configuration Package import but rejects manual entry beyond 2 decimal places
 
@@ -6618,8 +6618,18 @@ codeunit 134387 "ERM Sales Documents III"
           LibraryRandom.RandIntInRange(10, 20), 1.12345);
         CopyFromToPriceListLine.CopyFrom(SalesLineDiscount, PriceListLine);
 
-        // [WHEN] Manually enter the line discount percentage   
-        
+        // [WHEN] Manually enter the line discount percentage
+        CustomerCard.OpenEdit();
+        CustomerCard.FILTER.SetFilter("No.", Format(SalesLineDiscount."Sales Code"));
+
+        SalesLineDiscounts.OpenEdit();
+        SalesLineDiscounts.FILTER.SetFilter("Sales Type", Format(SalesLineDiscount."Sales Type"));
+        SalesLineDiscounts.FILTER.SetFilter("Sales Code", SalesLineDiscount."Sales Code");
+        SalesLineDiscounts.FILTER.SetFilter(Type, Format(SalesLineDiscount.Type));
+        SalesLineDiscounts.FILTER.SetFilter(Code, SalesLineDiscount.Code);
+        SalesLineDiscounts.GotoRecord(SalesLineDiscount);
+        SalesLineDiscounts."Line Discount %".SetValue(1.12345);
+
         // [THEN] The line discount percentage should allow 5 decimal places on manual entry
         Assert.AreEqual(1.12345, SalesLineDiscount."Line Discount %", '');
     end;
