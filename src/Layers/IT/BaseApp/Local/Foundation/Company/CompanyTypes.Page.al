@@ -38,6 +38,5 @@ page 12169 "Company Types"
     actions
     {
     }
-
 }
 
