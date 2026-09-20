@@ -468,9 +468,6 @@ report 107 "Customer - Order Summary"
             LayoutFile = '.\Sales\Reports\CustomerOrderSummary.docx';
             Type = Word;
             Summary = 'Built in layout for the Customer Order Summary word report.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
 #if not CLEAN27
         layout(RDLC)
