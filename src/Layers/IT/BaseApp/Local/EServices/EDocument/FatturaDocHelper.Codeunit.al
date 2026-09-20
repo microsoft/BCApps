@@ -467,6 +467,8 @@ codeunit 12184 "Fattura Doc. Helper"
     end;
 
     local procedure CheckCompanyInformationFields(var ErrorMessage: Record "Error Message")
+    var
+        CompanyTypes: Record "Company Types";
     begin
         ErrorMessage.LogIfLengthExceeded(
           CompanyInformation, CompanyInformation.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error, 16);
@@ -476,7 +478,7 @@ codeunit 12184 "Fattura Doc. Helper"
           CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error);
-        if (CompanyInformation."Company Type" <> '') and not IsValidFatturaPAFiscalRegimeCode(CompanyInformation."Company Type") then
+        if (CompanyInformation."Company Type" <> '') and not CompanyTypes.IsValidFatturaPAFiscalRegimeCode(CompanyInformation."Company Type") then
             ErrorMessage.LogMessage(
               CompanyInformation, CompanyInformation.FieldNo("Company Type"), ErrorMessage."Message Type"::Error,
               StrSubstNo(InvalidFiscalRegimeCodeErr, CompanyInformation."Company Type"));
@@ -486,13 +488,6 @@ codeunit 12184 "Fattura Doc. Helper"
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("REA No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("Registry Office Province"), ErrorMessage."Message Type"::Error);
-    end;
-
-    local procedure IsValidFatturaPAFiscalRegimeCode(FiscalRegimeCode: Code[2]): Boolean
-    var
-        CompanyTypes: Record "Company Types";
-    begin
-        exit(CompanyTypes.IsValidFatturaPAFiscalRegimeCode(FiscalRegimeCode));
     end;
 
     local procedure CheckFatturaPANos(var ErrorMessage: Record "Error Message")
