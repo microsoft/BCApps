@@ -1618,6 +1618,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
         // inbound entry cost-applied to outbound - cost recipient
         OutbndEntryItemApplicationTrace.Reset();
+        OutbndEntryItemApplicationTrace.SetCurrentKey("Entry No.");
         OutbndEntryItemApplicationTrace.SetRange("Entry No.", ValueEntry."Item Ledger Entry No.");
         if not OutbndEntryItemApplicationTrace.IsEmpty() then
             exit(true);

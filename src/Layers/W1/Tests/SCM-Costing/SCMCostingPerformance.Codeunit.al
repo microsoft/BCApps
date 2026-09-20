@@ -424,6 +424,75 @@ codeunit 133504 "SCM Costing Performance"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ApplicationTraceEntryLookupPreservesMembership()
+    var
+        ItemApplicationTrace: Record "Item Application Trace";
+    begin
+        // [SCENARIO] Entry membership spans roots and includes parents, duplicate children and negative entries.
+        InsertApplicationTraceEntry(ItemApplicationTrace, 100, 100, 0);
+        InsertApplicationTraceEntry(ItemApplicationTrace, 100, 200, 1);
+        InsertApplicationTraceEntry(ItemApplicationTrace, 101, 101, 0);
+        InsertApplicationTraceEntry(ItemApplicationTrace, 101, 200, 1);
+        InsertApplicationTraceEntry(ItemApplicationTrace, 102, -5, 1);
+        ItemApplicationTrace.SetRange("From Entry No.", 999);
+
+        Assert.IsTrue(ApplicationTraceContainsEntry(ItemApplicationTrace, 100), 'Parent entry must be found.');
+        Assert.IsTrue(ApplicationTraceContainsEntry(ItemApplicationTrace, 200), 'Shared child must be found.');
+        Assert.AreEqual(2, ItemApplicationTrace.Count(), 'Both roots must retain their shared child.');
+        Assert.IsTrue(ApplicationTraceContainsEntry(ItemApplicationTrace, -5), 'Negative entry must be found.');
+        Assert.IsFalse(ApplicationTraceContainsEntry(ItemApplicationTrace, 0), 'Missing zero entry must not be found.');
+        Assert.IsFalse(ApplicationTraceContainsEntry(ItemApplicationTrace, 500), 'Unrelated entry must not be found.');
+
+        ItemApplicationTrace.Reset();
+        ItemApplicationTrace.SetRange("From Entry No.", 100);
+        ItemApplicationTrace.SetFilter(Level, '>0');
+        Assert.AreEqual(1, ItemApplicationTrace.Count(), 'Chain traversal must still exclude the parent.');
+        ItemApplicationTrace.FindFirst();
+        Assert.AreEqual(200, ItemApplicationTrace."Entry No.", 'Chain child');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplicationTraceEntryLookupFollowsMutations()
+    var
+        ItemApplicationTrace: Record "Item Application Trace";
+    begin
+        // [SCENARIO] Membership remains current after deleting one root, deleting all copies and rebuilding a chain.
+        InsertApplicationTraceEntry(ItemApplicationTrace, 100, 200, 1);
+        InsertApplicationTraceEntry(ItemApplicationTrace, 101, 200, 1);
+        Assert.IsTrue(ApplicationTraceContainsEntry(ItemApplicationTrace, 200), 'Initial child');
+        ItemApplicationTrace.Get(100, 200);
+        ItemApplicationTrace.Delete();
+        Assert.IsTrue(ApplicationTraceContainsEntry(ItemApplicationTrace, 200), 'Child under the other root');
+        ItemApplicationTrace.Get(101, 200);
+        ItemApplicationTrace.Delete();
+        Assert.IsFalse(ApplicationTraceContainsEntry(ItemApplicationTrace, 200), 'Deleted child');
+        InsertApplicationTraceEntry(ItemApplicationTrace, 100, 200, 1);
+        Assert.IsTrue(ApplicationTraceContainsEntry(ItemApplicationTrace, 200), 'Rebuilt child');
+        ItemApplicationTrace.Reset();
+        ItemApplicationTrace.DeleteAll();
+        Assert.IsFalse(ApplicationTraceContainsEntry(ItemApplicationTrace, 200), 'Cleared trace');
+    end;
+
+    local procedure InsertApplicationTraceEntry(var ItemApplicationTrace: Record "Item Application Trace"; FromEntryNo: Integer; EntryNo: Integer; EntryLevel: Integer)
+    begin
+        ItemApplicationTrace.Init();
+        ItemApplicationTrace."From Entry No." := FromEntryNo;
+        ItemApplicationTrace."Entry No." := EntryNo;
+        ItemApplicationTrace.Level := EntryLevel;
+        ItemApplicationTrace.Insert();
+    end;
+
+    local procedure ApplicationTraceContainsEntry(var ItemApplicationTrace: Record "Item Application Trace"; EntryNo: Integer): Boolean
+    begin
+        ItemApplicationTrace.Reset();
+        ItemApplicationTrace.SetCurrentKey("Entry No.");
+        ItemApplicationTrace.SetRange("Entry No.", EntryNo);
+        exit(not ItemApplicationTrace.IsEmpty());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure FIFOAdjustingOptimisationForPurchaseOnceManySales()
     var
         DurationSmallNo: Integer;
