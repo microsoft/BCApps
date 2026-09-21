@@ -4721,6 +4721,217 @@ codeunit 134776 "Document Attachment Tests"
         CheckDocAttachments(PostedLineTableId, 1, PostedDocumentNo, ExpectedDocumentType.AsInteger(), FileNamePrefix + 'line');
     end;
 
+    [Test]
+    procedure EnsureAttachmentCanBeUploadedOnPostedSalesShipment()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Sales Shipment must not fail with "The record is not open".
+        Initialize();
+
+        // [GIVEN] Create Customer and Item with a new Inventory Posting Setup for the blank Location, so the shipment can be posted.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        CreateInventoryPostingSetupForItem(Item);
+
+        // [GIVEN] Create and post Sales Order to get a Posted Sales Shipment.
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::Order);
+        SalesShipmentHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+
+        // [GIVEN] Document Attachment record as the Documents FactBox filters it on the Posted Sales Shipment page.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := SalesShipmentHeader."No.";
+
+        // [WHEN] The Documents FactBox resolves the source record before saving the uploaded file.
+        // [THEN] The source record is resolved and the RecordRef is opened on Sales Shipment Header.
+        Assert.IsTrue(
+            DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment),
+            StrSubstNo(SourceRecordNotResolvedErr, SalesShipmentHeader.TableCaption()));
+        Assert.AreEqual(
+            Database::"Sales Shipment Header",
+            RecRef.Number(),
+            StrSubstNo(UnexpectedSourceTableErr, SalesShipmentHeader.TableCaption()));
+
+        // [WHEN] The uploaded file is saved through the resolved RecordRef.
+        CreateDocAttach(RecRef, 'PostedSalesShipment.jpeg', false, false);
+
+        // [THEN] Verify the attachment is stored for the Posted Sales Shipment.
+        CheckDocAttachmentsForPostedDocs(Database::"Sales Shipment Header", 1, SalesShipmentHeader."No.", 'PostedSalesShipment');
+    end;
+
+    [Test]
+    procedure EnsureAttachmentCanBeUploadedOnPostedReturnReceipt()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReturnReceiptHeader: Record "Return Receipt Header";
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] Uploading a file from the Documents FactBox on Posted Return Receipt must not fail with "The record is not open".
+        Initialize();
+
+        // [GIVEN] Create Customer and Item with a new Inventory Posting Setup for the blank Location, so the return receipt can be posted.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        CreateInventoryPostingSetupForItem(Item);
+
+        // [GIVEN] Create and post Sales Return Order to get a Posted Return Receipt.
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::"Return Order");
+        ReturnReceiptHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+
+        // [GIVEN] Document Attachment record as the Documents FactBox filters it on the Posted Return Receipt page.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Return Receipt Header";
+        DocumentAttachment."No." := ReturnReceiptHeader."No.";
+
+        // [WHEN] The Documents FactBox resolves the source record before saving the uploaded file.
+        // [THEN] The source record is resolved and the RecordRef is opened on Return Receipt Header.
+        Assert.IsTrue(
+            DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment),
+            StrSubstNo(SourceRecordNotResolvedErr, ReturnReceiptHeader.TableCaption()));
+        Assert.AreEqual(
+            Database::"Return Receipt Header",
+            RecRef.Number(),
+            StrSubstNo(UnexpectedSourceTableErr, ReturnReceiptHeader.TableCaption()));
+
+        // [WHEN] The uploaded file is saved through the resolved RecordRef.
+        CreateDocAttach(RecRef, 'PostedReturnReceipt.jpeg', false, false);
+
+        // [THEN] Verify the attachment is stored for the Posted Return Receipt.
+        CheckDocAttachmentsForPostedDocs(Database::"Return Receipt Header", 1, ReturnReceiptHeader."No.", 'PostedReturnReceipt');
+    end;
+
+    [Test]
+    procedure EnsureSourceRecordIsNotResolvedForUnmappedTable()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] All Documents FactBox actions share the same source resolution, which must leave the RecordRef closed for an unmapped table.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] The Documents FactBox resolves the source record.
+        // [THEN] Resolution fails and the RecordRef stays closed, so the actions raise the controlled error instead of "The record is not open".
+        Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), SourceRecordMustNotBeResolvedErr);
+        Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenErr);
+    end;
+
+    [Test]
+    procedure EnsureSourceRecordIsNotResolvedForMissingPostedSalesShipment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] A mapped table whose source record is missing must not be reported as resolved, otherwise the attachment lands on an arbitrary shipment.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
+
+        // [WHEN] The Documents FactBox resolves the source record.
+        // [THEN] Resolution fails and the RecordRef stays closed, so no attachment can be stored on another shipment.
+        Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), MissingSourceRecordMustNotBeResolvedErr);
+        Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenForMissingRecordErr);
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenSourceRecordCannotBeResolved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        PaymentTerms: Record "Payment Terms";
+    begin
+        // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
+        // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] Show details is invoked for that attachment.
+        asserterror ShowAttachmentDetails(DocumentAttachment);
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenPostedSalesShipmentIsMissing()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        // [SCENARIO 646549] Show details on an attachment of a Posted Sales Shipment that no longer exists must error instead of opening another shipment.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
+        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment.Insert();
+
+        // [WHEN] Show details is invoked for that attachment.
+        asserterror ShowAttachmentDetails(DocumentAttachment);
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, SalesShipmentHeader.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('DocumentAttachmentDetailsMPH')]
+    procedure EnsureShowDetailsUsesRecRefResolvedBySubscriber()
+    var
+        Customer: Record Customer;
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentTests: Codeunit "Document Attachment Tests";
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
+        Initialize();
+
+        // [GIVEN] Customer with an attachment "SubscriberCust", which the subscriber returns as the source record.
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.Get(Customer.RecordId());
+        CreateDocAttach(RecRef, 'SubscriberCust.jpeg', false, false);
+
+        // [GIVEN] Document Attachment that points to a table the FactBox cannot map on its own.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [GIVEN] Subscriber that resolves the Customer in OnAfterGetRecRefFail.
+        DocumentAttachmentTests.SetSubscriberSourceRecord(Customer.RecordId());
+        BindSubscription(DocumentAttachmentTests);
+
+        // [WHEN] Show details is invoked for that attachment on the factbox.
+        DocAttachmentListFactbox.OpenView();
+        DocAttachmentListFactbox.Filter.SetFilter("Table ID", Format(DocumentAttachment."Table ID"));
+        DocAttachmentListFactbox.Filter.SetFilter("No.", DocumentAttachment."No.");
+        DocAttachmentListFactbox.OpenInDetail.Invoke();
+        UnbindSubscription(DocumentAttachmentTests);
+
+        // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
+        Assert.AreEqual('SubscriberCust', LibraryVariableStorage.DequeueText(), UnexpectedAttachmentInDetailsErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
