@@ -805,8 +805,10 @@ codeunit 140011 "Test FAB Config Package"
     end;
 
     local procedure VerifyPackageLineExists(var PackageLine: Record "Fabric Config Package Line"; TableId: Integer)
+    var
+        ExpectedTableLbl: Label 'Expected table %1 to be part of the MS-STD package.', Locked = true;
     begin
-        Assert.IsTrue(PackageLine.Get('MS-STD', TableId), StrSubstNo('Expected table %1 to be part of the MS-STD package.', TableId));
+        Assert.IsTrue(PackageLine.Get('MS-STD', TableId), StrSubstNo(ExpectedTableLbl, TableId));
     end;
 
     #region Handlers
