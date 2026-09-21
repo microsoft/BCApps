@@ -1740,8 +1740,10 @@ codeunit 139982 "Subc. Pricing Test"
         Assert.AreNotEqual('', RequisitionLine."Subc. UoM for Pricelist", 'Test setup expects a populated Subc. UoM for Pricelist.');
 
         // [GIVEN] The line's quantity drops below every price tier's Minimum Quantity.
-        SubcontractorPrice.Validate("Minimum Quantity", 100);
-        SubcontractorPrice.Modify(true);
+        SubcontractorPrice.Rename(
+            SubcontractorPrice."Vendor No.", SubcontractorPrice."Item No.", SubcontractorPrice."Work Center No.",
+            SubcontractorPrice."Variant Code", SubcontractorPrice."Standard Task Code", SubcontractorPrice."Starting Date",
+            SubcontractorPrice."Unit of Measure Code", 100, SubcontractorPrice."Currency Code");
         RequisitionLine.Quantity := 1;
 
         // [WHEN] The requisition line is recalculated and no price tier applies.
