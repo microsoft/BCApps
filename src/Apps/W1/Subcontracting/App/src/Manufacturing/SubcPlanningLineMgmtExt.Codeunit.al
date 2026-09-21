@@ -37,6 +37,9 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
 #pragma warning restore AL0432
             exit;
 #endif
+        PlanningRoutingLine."Transfer WIP Item" := RoutingLine."Transfer WIP Item";
+        PlanningRoutingLine."Transfer Description" := RoutingLine."Transfer Description";
+        PlanningRoutingLine."Transfer Description 2" := RoutingLine."Transfer Description 2";
         SubcPriceManagement.ApplySubcontractorPricingToPlanningRouting(ReqLine, RoutingLine, PlanningRoutingLine);
     end;
 
