@@ -13,11 +13,13 @@ permissionset 7450 "ExciseTaxes - Objects"
     Permissions =
         table "Excise Tax Type" = X,
         table "Excise Tax Item/FA Rate" = X,
+        table "Excise Tax Rate" = X,
         table "Item Excise Tax" = X,
         table "Excise Tax Entry Permission" = X,
         page "Excise Tax Types" = X,
         page "Excise Tax Type Card" = X,
         page "Excise Tax Item/FA Rates" = X,
+        page "Excise Tax Rates" = X,
         page "Item Excise Taxes" = X,
         page "Item Excise Tax API" = X,
         page "Excise Tax Entry Permissions" = X,
