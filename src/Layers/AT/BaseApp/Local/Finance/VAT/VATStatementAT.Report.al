@@ -472,6 +472,11 @@ report 11110 "VAT Statement AT"
                                 VATEntries.CalcSums("Unrealized Base", "Add.-Currency Unrealized Base");
                                 Amount := Amount + VATEntries."Unrealized Base";
                             end;
+                        VATStmtLine2."Amount Type"::"Non-Deductible Amount":
+                            begin
+                                VATEntries.CalcSums("Non-Deductible VAT Amount", "Non-Deductible VAT Amount ACY");
+                                Amount := Amount + VATEntries."Non-Deductible VAT Amount";
+                            end;
                     end;
                     CalcTotalAmount(VATStmtLine2, TotalAmount);
                 end;

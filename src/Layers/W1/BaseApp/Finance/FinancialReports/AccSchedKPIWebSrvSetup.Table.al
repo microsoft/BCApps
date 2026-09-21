@@ -317,8 +317,10 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
             "View By"::Period:
                 begin
                     AccountingPeriod."Starting Date" := OrgStartDate;
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
                     AccountingPeriod.Find('=><');
                     AccountingPeriod.Next(OffSet);
+#pragma warning restore AA0181, AA0233
                     exit(AccountingPeriod."Starting Date")
                 end;
             "View By"::Year:

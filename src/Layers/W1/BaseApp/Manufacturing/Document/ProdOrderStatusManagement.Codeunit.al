@@ -1162,8 +1162,10 @@ codeunit 5407 "Prod. Order Status Management"
                   ItemJnlLine, ProdOrderRtngLine, OutputQtyBase,
                   GetOutputQtyForProdOrderRoutingLine(ProdOrderLine, ProdOrderRtngLine, IsLastOperation, OutputQty),
                   PutawayQtyBaseToCalc);
-                if ProdOrder.Reopened then
+                if ProdOrder.Reopened then begin
                     ExcludePostedSetupTimeForReopenedProdOrder(ItemJnlLine, ProdOrderRtngLine);
+                    OnAfterExcludePostedSetupTimeForReopenedProdOrder(ItemJnlLine, ProdOrderRtngLine, OutputQtyBase, OutputQty);
+                end;
                 ItemJnlLine."Concurrent Capacity" := ProdOrderRtngLine."Concurrent Capacities";
                 ItemJnlLine."Source Code" := SourceCodeSetup.Flushing;
                 if not (ItemJnlLine.TimeIsEmpty() and (ItemJnlLine."Output Quantity" = 0)) then begin
@@ -1683,6 +1685,11 @@ codeunit 5407 "Prod. Order Status Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetTimeAndQuantityOmItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; OutputQtyBase: Decimal; OutputQty: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterExcludePostedSetupTimeForReopenedProdOrder(var ItemJournalLine: Record "Item Journal Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; OutputQtyBase: Decimal; OutputQty: Decimal)
     begin
     end;
 

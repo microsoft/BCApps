@@ -1,41 +1,16 @@
-# Each line is a file pattern followed by one or more owners.
-# Order is important; the last matching pattern takes the most precedence.
-# CODEOWNERS paths are case sensitive, because GitHub uses a case sensitive file system
-
-# ---------------------------------------------------------------------------
-# Application team ownership (GENERATED - do not hand-edit)
+# CODEOWNERS is case sensitive and uses the last matching rule.
+# Unmatched files fall back to the full Business Central team, while later
+# application and specialist rules override that fallback.
 #
-# One line per thing a team owns: each app, each Base Application area, the
-# System Application and Business Foundation. Nothing else.
-#
-# There is deliberately no `* @microsoft/dynamics-365-business-central` default.
-# A catch-all default makes the 123-member org team a reviewer on every pull
-# request that touches any unclaimed file, which is the noise this file exists
-# to remove. A path no team claims simply has no code owner.
-#
-# Tests, demo data, the demo tool and the localization layers are deliberately
-# unclaimed. Every team writes tests and ships demo data, so naming one team
-# there requests a review nobody needs. The triage agent still labels those
-# issues and pull requests with a team, so the work stays visible on that team's
-# backlog - it just does not pull in a specific reviewer. In short: CODEOWNERS
-# decides who is asked to review, triage decides whose backlog it lands on.
-# Those two answers are allowed to differ.
-#
-# The rules are generated from the routing data the BCApps triage agent uses to
-# classify issues and pull requests:
+# The application map is generated from the BCApps triage routing data:
 #   microsoft/BCAppsTriage
 #     plugins/triage/skills/triage/scripts/ownership/ownership-rules.js
 #     plugins/triage/skills/triage/scripts/ownership/ownership-resolver.js
-# which are themselves seeded from the Business Central Ownership Matrix.
-#
-# To change ownership, edit ownership-rules.js in BCAppsTriage and regenerate.
-# Do not hand-edit the block below; hand edits will be lost and will silently
-# diverge from issue and pull request triage.
-#
-# The specialized cross-cutting rules at the bottom of this file (App Security,
-# App Permissions, app.json, AL-Go and build files, Developer Experience, Code
-# Review Tools) still take precedence over everything here.
-# ---------------------------------------------------------------------------
+# Change generated ownership in BCAppsTriage, then regenerate this file.
+# Dedicated and cross-cutting ownership rules are listed after the generated map.
+
+# Repository fallback
+* @microsoft/dynamics-365-business-central
 
 # Platform. Integration owns these end to end; the sub-sections other
 # teams own are listed further down, after this block.
@@ -88,9 +63,9 @@
 # (GST, TDS, Intrastat, IRS forms, e-invoicing), so Finance owns them by
 # default. Exceptions are listed at the end of this block.
 /src/Apps/*/ @microsoft/d365-bc-finance-1
-# W1 is a layer name, not a country code, so release it from that wildcard.
-# Its apps are listed individually below and override this line.
-/src/Apps/W1/
+# W1 is a layer name, not a country code, so restore the repository fallback
+# before the individual app rules override it.
+/src/Apps/W1/ @microsoft/dynamics-365-business-central
 
 # W1 apps - one line each (100). These also override the wildcard
 # above, since W1 is a layer name rather than a country code.
@@ -99,8 +74,8 @@
 /src/Apps/W1/AIDevelopmentToolkitEvaluation/ @microsoft/d365-bc-integrations
 /src/Apps/W1/AMCBanking365Fundamentals/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/APIReportsFinance/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/APIV1/ @microsoft/d365-bc-integrations
-/src/Apps/W1/APIV2/ @microsoft/d365-bc-integrations
+/src/Apps/W1/APIV1/ @microsoft/d365-bc-app-api
+/src/Apps/W1/APIV2/ @microsoft/d365-bc-app-api
 /src/Apps/W1/AgentDesignExperience/ @microsoft/d365-bc-integrations
 /src/Apps/W1/AgentSamples/ @microsoft/d365-bc-integrations
 /src/Apps/W1/AuditFileExport/ @microsoft/d365-bc-finance-1
@@ -134,8 +109,6 @@
 /src/Apps/W1/EssentialBusinessHeadlines/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ExcelReports/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExciseTaxes/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/ExpenseWithholdingTax/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/External\ File\ Storage\ -\ Azure\ Blob\ Service\ Connector/ @microsoft/d365-bc-integrations
 /src/Apps/W1/External\ File\ Storage\ -\ Azure\ File\ Service\ Connector/ @microsoft/d365-bc-integrations
 /src/Apps/W1/External\ File\ Storage\ -\ SFTP\ Connector/ @microsoft/d365-bc-integrations
@@ -194,27 +167,35 @@
 /src/Apps/W1/VATGroupManagement/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/WithholdingTax/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/WorldPayPaymentsStandard/ @microsoft/d365-bc-finance-1
-# PowerBIReports hosts per-area report folders, which split across teams.
-/src/Apps/W1/PowerBIReports/App/.resources/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/PowerBIReports/App/Core/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/PowerBIReports/App/Finance/ @microsoft/d365-bc-finance-1
+# PowerBIReports defaults to Finance; SCM owns these area-specific folders.
 /src/Apps/W1/PowerBIReports/App/Inventory/ @microsoft/d365-bc-scm
 /src/Apps/W1/PowerBIReports/App/Manufacturing/ @microsoft/d365-bc-scm
-/src/Apps/W1/PowerBIReports/App/Projects/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/PowerBIReports/App/Purchasing/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/PowerBIReports/App/Sales/ @microsoft/d365-bc-scm
-/src/Apps/W1/PowerBIReports/App/_Obsolete/ @microsoft/d365-bc-finance-1
 
 # Localization apps that are not Finance.
 /src/Apps/BE/ShopifyBE/ @microsoft/d365-bc-integrations
+/src/Apps/IT/SubcontractingMigrationIT/ @microsoft/d365-bc-scm
 
-# Demo data. Every team contributes demo data for its own area, so it has no
-# single owner. This line has no owner on purpose: it releases demo data
-# from the localization wildcard above without naming anyone.
-/src/Apps/*/*ContosoCoffeeDemoDataset*/
+# Demo data. Every team contributes demo data for its own area, so non-AL
+# content uses the repository fallback. Integrations owns the AL files that
+# were previously covered by the Official Branches ruleset.
+/src/Apps/*/*ContosoCoffeeDemoDataset*/ @microsoft/dynamics-365-business-central
+/src/Apps/*/*ContosoCoffeeDemoDataset*/**/*.al @microsoft/d365-bc-integrations
+/src/DemoTool/*/ @microsoft/dynamics-365-business-central
+/src/Layers/*/DemoTool/*/ @microsoft/dynamics-365-business-central
+/src/Layers/*/DemoTool/**/*.al @microsoft/d365-bc-integrations
 
-# App Rulesets
-/src/rulesets/ @microsoft/d365-bc-app-rulesets
+
+# Expense Agent application family. These review routes intentionally differ
+# from the Finance functional ownership labels used by triage.
+/src/Apps/*/ExpenseAgent*/ @microsoft/d365-bc-app-expense-agent
+/src/Apps/*/ExpenseWithholdingTax*/ @microsoft/d365-bc-app-expense-agent
+
+# AL ownership migrated from the Official Branches ruleset
+/src/DisabledTests/ @microsoft/d365-bc-app-tests
+# Unanchored intentionally to preserve ownership of every Upgrade folder.
+Upgrade/ @microsoft/d365-bc-app-upgrade
+/src/GDL/ @microsoft/d365-bc-integrations
 
 # Developer Experience
 /src/System\ Application/App/AI @microsoft/d365-bc-copilot-toolkit @microsoft/dynamics-smb-developertools
@@ -227,7 +208,7 @@
 /src/System\ Application/Test/Extension\ Management @microsoft/dynamics-smb-developertools
 
 # App Security
-dotnet.al @microsoft/d365-bc-app-security
+dotnet*.al @microsoft/d365-bc-app-security
 
 # App Permissions
 *.Entitlement.al @microsoft/d365-bc-integrations
@@ -236,13 +217,13 @@ dotnet.al @microsoft/d365-bc-app-security
 # app.json files are owned by the BC app team to control the metadata
 app.json @microsoft/d365-bc-app-required
 
-# AL-Go files and build scripts are owned by Engineering Systems
-.AL-Go/ @microsoft/d365-bc-engineering-systems
-*.ps1 @microsoft/d365-bc-engineering-systems
-/.azuredevops @microsoft/d365-bc-engineering-systems
-/.github @microsoft/d365-bc-engineering-systems
-/build @microsoft/d365-bc-engineering-systems
-/CODEOWNERS @microsoft/d365-bc-engineering-systems
-
-# Code Review Tools
-/tools/Code\ Review @microsoft/d365-bc-code-review-agent
+# Special paths are governed by required-reviewer repository rules. These
+# ownerless entries keep the repository fallback from requesting a second team.
+/src/rulesets/
+/tools/Code\ Review
+.AL-Go/
+*.ps1
+/.azuredevops
+/.github
+/build
+/CODEOWNERS

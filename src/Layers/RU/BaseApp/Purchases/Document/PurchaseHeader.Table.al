@@ -87,6 +87,7 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
@@ -202,6 +203,8 @@ table 38 "Purchase Header"
 
                 if "Empl. Purchase" then
                     "Vendor Invoice No." := "No.";
+
+                MatchedOrderLineMgmt.ApplyVendorsReceiptOnInvoicePolicy(Rec);
             end;
         }
         field(3; "No."; Code[20])
@@ -2778,10 +2781,7 @@ table 38 "Purchase Header"
             var
                 MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
             begin
-                if "Receipt on Invoice" then
-                    MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowed(Rec);
-
-                MatchedOrderLineMgmt.RefreshMatchedOrderLineReceipt(Rec);
+                MatchedOrderLineMgmt.ApplyReceiptOnInvoiceToLines(Rec);
             end;
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")

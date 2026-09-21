@@ -20,6 +20,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
@@ -56,6 +57,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Agents;
 using System.Apps;
 using System.Automation;
 using System.Environment;
@@ -90,6 +92,9 @@ permissionset 6955 "Expense Agent - Data Depen."
                   tabledata "Accounting Period" = r,
                   tabledata "Company Information" = R,
                   tabledata "Gen. Journal Line" = R,
+                  tabledata "Spend Request" = imd,
+                  tabledata "Spend Request Detail" = imd,
+                  tabledata "Spend Request To G/L Link" = d,
                   tabledata "User Setup" = R,
                   tabledata "Customer Posting Group" = R,
                   tabledata "General Ledger Setup" = R,
@@ -158,6 +163,7 @@ permissionset 6955 "Expense Agent - Data Depen."
                   tabledata "Sales Invoice Entity Aggregate" = rimd,
                   tabledata "Value Entry" = R,
                   tabledata "Post Value Entry to G/L" = I,
+                  tabledata Agent = r,
                   tabledata "Application User Settings" = r,
                   tabledata Company = R,
                   tabledata "Record Link" = R,
