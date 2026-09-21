@@ -1543,7 +1543,7 @@ codeunit 134685 "Email Test"
     [Test]
     procedure FindRetrievedEmailFindsExistingEntry()
     var
-        TempEmailAccount: Record "Email Account";
+        EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
         ConnectorMock: Codeunit "Connector Mock";
         ExternalMessageId: Text;
@@ -1555,16 +1555,16 @@ codeunit 134685 "Email Test"
 
         // [Given] An email account and an email that has already been retrieved
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
 
         EmailInbox.DeleteAll();
         ExternalMessageId := 'AAMkAG' + Format(CreateGuid());
-        CreateEmailInboxEntry(TempEmailAccount."Account Id", TempEmailAccount.Connector, ExternalMessageId, EmptyGuid, EmailInbox);
+        CreateEmailInboxEntry(EmailAccount."Account Id", EmailAccount.Connector, ExternalMessageId, EmptyGuid, EmailInbox);
         ExistingId := EmailInbox.Id;
 
         // [When] Looking up the email by its external message id
         // [Then] The existing entry is found, and no new entry is created
-        Assert.IsTrue(Email.FindRetrievedEmail(TempEmailAccount."Account Id", ExternalMessageId, EmailInbox), 'The retrieved email should have been found');
+        Assert.IsTrue(Email.FindRetrievedEmail(EmailAccount."Account Id", ExternalMessageId, EmailInbox), 'The retrieved email should have been found');
         Assert.AreEqual(ExistingId, EmailInbox.Id, 'The existing email inbox entry should have been returned');
 
         EmailInbox.Reset();
@@ -1574,7 +1574,7 @@ codeunit 134685 "Email Test"
     [Test]
     procedure FindRetrievedEmailDoesNotFindOtherAccountsOrMessages()
     var
-        TempEmailAccount: Record "Email Account";
+        EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
         ConnectorMock: Codeunit "Connector Mock";
         ExternalMessageId: Text;
@@ -1585,15 +1585,15 @@ codeunit 134685 "Email Test"
 
         // [Given] An email account and an email that has already been retrieved
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
 
         EmailInbox.DeleteAll();
         ExternalMessageId := 'AAMkAG' + Format(CreateGuid());
-        CreateEmailInboxEntry(TempEmailAccount."Account Id", TempEmailAccount.Connector, ExternalMessageId, EmptyGuid, EmailInbox);
+        CreateEmailInboxEntry(EmailAccount."Account Id", EmailAccount.Connector, ExternalMessageId, EmptyGuid, EmailInbox);
 
         // [When] Looking up another external message id on the same account
         // [Then] Nothing is found
-        Assert.IsFalse(Email.FindRetrievedEmail(TempEmailAccount."Account Id", 'AAMkAG' + Format(CreateGuid()), EmailInbox), 'No email should have been found for another external message id');
+        Assert.IsFalse(Email.FindRetrievedEmail(EmailAccount."Account Id", 'AAMkAG' + Format(CreateGuid()), EmailInbox), 'No email should have been found for another external message id');
 
         // [When] Looking up the same external message id on another account
         // [Then] Nothing is found
@@ -1601,13 +1601,13 @@ codeunit 134685 "Email Test"
 
         // [When] Looking up an empty external message id
         // [Then] Nothing is found
-        Assert.IsFalse(Email.FindRetrievedEmail(TempEmailAccount."Account Id", '', EmailInbox), 'No email should have been found for an empty external message id');
+        Assert.IsFalse(Email.FindRetrievedEmail(EmailAccount."Account Id", '', EmailInbox), 'No email should have been found for an empty external message id');
     end;
 
     [Test]
     procedure FindRetrievedEmailCopiesEntryToTemporaryInbox()
     var
-        TempEmailAccount: Record "Email Account";
+        EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
         TempEmailInbox: Record "Email Inbox" temporary;
         ConnectorMock: Codeunit "Connector Mock";
@@ -1620,15 +1620,15 @@ codeunit 134685 "Email Test"
 
         // [Given] An email account and an email that has already been retrieved
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
 
         EmailInbox.DeleteAll();
         ExternalMessageId := 'AAMkAG' + Format(CreateGuid());
-        CreateEmailInboxEntry(TempEmailAccount."Account Id", TempEmailAccount.Connector, ExternalMessageId, EmptyGuid, EmailInbox);
+        CreateEmailInboxEntry(EmailAccount."Account Id", EmailAccount.Connector, ExternalMessageId, EmptyGuid, EmailInbox);
         ExistingId := EmailInbox.Id;
 
         // [When] Looking up the email with a temporary email inbox record
-        Assert.IsTrue(Email.FindRetrievedEmail(TempEmailAccount."Account Id", ExternalMessageId, TempEmailInbox), 'The retrieved email should have been found');
+        Assert.IsTrue(Email.FindRetrievedEmail(EmailAccount."Account Id", ExternalMessageId, TempEmailInbox), 'The retrieved email should have been found');
 
         // [Then] The existing entry is copied into the temporary record
         Assert.AreEqual(ExistingId, TempEmailInbox.Id, 'The existing email inbox entry should have been copied');
@@ -1636,7 +1636,7 @@ codeunit 134685 "Email Test"
         Assert.AreEqual(1, TempEmailInbox.Count(), 'The temporary inbox should hold the existing entry');
 
         // [When] Looking up the same email again
-        Assert.IsTrue(Email.FindRetrievedEmail(TempEmailAccount."Account Id", ExternalMessageId, TempEmailInbox), 'The retrieved email should have been found');
+        Assert.IsTrue(Email.FindRetrievedEmail(EmailAccount."Account Id", ExternalMessageId, TempEmailInbox), 'The retrieved email should have been found');
 
         // [Then] The entry is not duplicated in the temporary record
         TempEmailInbox.Reset();
@@ -1646,7 +1646,7 @@ codeunit 134685 "Email Test"
     [Test]
     procedure AddAttachmentToRetrievedEmail()
     var
-        TempEmailAccount: Record "Email Account";
+        EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
         EmailMessageAttachment: Record "Email Message Attachment";
         EmailMessage: Codeunit "Email Message";
@@ -1661,13 +1661,13 @@ codeunit 134685 "Email Test"
 
         // [Given] An email that has been retrieved without its attachments
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
 
         EmailMessage.Create('recipient@test.com', 'Test subject', 'Test body');
         MessageId := EmailMessage.GetId();
 
         EmailInbox.DeleteAll();
-        CreateEmailInboxEntry(TempEmailAccount."Account Id", TempEmailAccount.Connector, 'AAMkAG' + Format(CreateGuid()), MessageId, EmailInbox);
+        CreateEmailInboxEntry(EmailAccount."Account Id", EmailAccount.Connector, 'AAMkAG' + Format(CreateGuid()), MessageId, EmailInbox);
 
         Assert.IsFalse(EmailMessage.Attachments_First(), 'The retrieved email should not have any attachments');
 
