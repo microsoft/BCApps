@@ -978,7 +978,7 @@
 
         CompanyInformation.Get();
 
-        // LibraryAzureKVMockMgmt.InitMockAzureKeyvaultSecretProvider();
+        LibraryAzureKVMockMgmt.InitMockAzureKeyvaultSecretProvider();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateAccountInVendorPostingGroups();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
