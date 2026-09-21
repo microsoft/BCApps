@@ -31,17 +31,17 @@ codeunit 6935 "EA Agent Scheduler"
     var
         CompletedTaskId: Guid;
     begin
-        ReconcileAgent(EASetup, CompletedTaskId);
+        ReconcileCommunicationScheduling(EASetup, CompletedTaskId);
         Commit();
     end;
 
     internal procedure CompleteAgentTask(EASetup: Record "Expense Agent Setup"; CompletedTaskId: Guid)
     begin
-        ReconcileAgent(EASetup, CompletedTaskId);
+        ReconcileCommunicationScheduling(EASetup, CompletedTaskId);
         Commit();
     end;
 
-    local procedure ReconcileAgent(RequestedSetup: Record "Expense Agent Setup"; CompletedTaskId: Guid)
+    local procedure ReconcileCommunicationScheduling(RequestedSetup: Record "Expense Agent Setup"; CompletedTaskId: Guid)
     var
         EASetup: Record "Expense Agent Setup";
         ExpenseAgentStatus: Record "Expense Agent Status";
@@ -173,7 +173,7 @@ codeunit 6935 "EA Agent Scheduler"
         if Rec.IsTemporary() or not RunTrigger then
             exit;
         if Rec.HasSchedulingChanges(xRec) then
-            ReconcileAgent(Rec, CompletedTaskId);
+            ReconcileCommunicationScheduling(Rec, CompletedTaskId);
     end;
 
     local procedure ScheduleDelay(): Integer

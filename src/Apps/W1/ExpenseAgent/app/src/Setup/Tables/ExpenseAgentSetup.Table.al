@@ -812,7 +812,7 @@ table 6930 "Expense Agent Setup"
     /// Clears only unavailable account references on this record buffer. The caller owns
     /// persistence and scheduling; user preferences and native agent state remain unchanged.
     /// </summary>
-    internal procedure RepairMissingEmailAccounts(): Boolean
+    internal procedure RepairMissingEmailAccountsInBuffer(): Boolean
     begin
         exit(RepairMissingEmailAccounts(false));
     end;

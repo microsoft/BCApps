@@ -70,7 +70,7 @@ codeunit 6938 "EA Agent Dispatcher"
         ExpenseAgentStatus.Modify();
         Commit();
 
-        if not ProcessCommunication(Setup, ErrorMessage) then begin
+        if not ProcessIncomingAndOutgoingEmails(Setup, ErrorMessage) then begin
             EASchedulerTask.Status := EASchedulerTask.Status::Failed;
             EASchedulerTask."Error Message" := CopyStr(ErrorMessage, 1, MaxStrLen(EASchedulerTask."Error Message"));
             EASchedulerTask.Modify();
@@ -86,7 +86,7 @@ codeunit 6938 "EA Agent Dispatcher"
         EAAgentScheduler.CompleteAgentTask(Setup, CompletedTaskId);
     end;
 
-    internal procedure ProcessCommunication(var Setup: Record "Expense Agent Setup"; var ErrorMessage: Text): Boolean
+    internal procedure ProcessIncomingAndOutgoingEmails(var Setup: Record "Expense Agent Setup"; var ErrorMessage: Text): Boolean
     var
         EARetrieveEmails: Codeunit "EA Retrieve Emails";
         RetrievalSuccess: Boolean;

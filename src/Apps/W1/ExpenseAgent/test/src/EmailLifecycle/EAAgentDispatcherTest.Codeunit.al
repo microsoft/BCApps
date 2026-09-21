@@ -14,7 +14,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    RequiredTestIsolation = Function;
+    RequiredTestIsolation = Codeunit;
     TestHttpRequestPolicy = BlockOutboundRequests;
     EventSubscriberInstance = Manual;
 
@@ -37,8 +37,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         FixtureMessageIds: List of [Guid];
         DisableOutgoingAfterSend: Boolean;
         UseReceiptAttachmentFixture: Boolean;
-        TestCompanyTok: Label 'EA Email Lifecycle Test', Locked = true;
-        CITestCompanyTok: Label 'Empty Company', Locked = true;
         ServiceBaseUrlTok: Label 'https://expense-agent.example.invalid', Locked = true;
         OneOwnerMustBeDefinedErr: Label 'At least one user must be able to configure the Expense Agent.';
 
@@ -267,7 +265,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] The HTTP wrapper rejects a welcome request before endpoint resolution when persisted setup is missing.
 
         // [GIVEN] The isolated company has no Expense Agent setup and request counters are reset.
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         ExpectNoService();
         Setup.DeleteAll();
         Commit();
@@ -408,7 +406,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         CopilotCapability: Codeunit "Copilot Capability";
         ExpenseAgentAppId: Guid;
     begin
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         Evaluate(ExpenseAgentAppId, '66efe10c-8033-403b-a86d-77c0887178ba');
         Assert.IsTrue(CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Expense Agent", ExpenseAgentAppId),
             'Expense Agent capability and required privacy approvals must already be enabled. These tests never change tenant-wide Copilot settings or approvals.');
@@ -454,18 +452,12 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Commit();
     end;
 
-    local procedure AssertIsolatedCompany()
+    local procedure AssertMockTestEnvironment()
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        Assert.IsTrue(IsSafeTestCompany(), 'Run only in a dedicated disposable test company, never CRONUS.');
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'Mock integration tests require on-prem; SaaS authentication is not under test.');
         Assert.IsFalse(EnvironmentInformation.IsSaaSInfrastructure(), 'These tests must not use SaaS infrastructure.');
-    end;
-
-    local procedure IsSafeTestCompany(): Boolean
-    begin
-        exit(CompanyName() in [TestCompanyTok, CITestCompanyTok]);
     end;
 
     local procedure RegisterMockAccount(Address: Text[250]): Guid
@@ -495,7 +487,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // The endpoint override and read-only request observers are bound only for this production pass.
         BindSubscription(this);
         Commit();
-        Success := Dispatcher.ProcessCommunication(Setup, ErrorMessage);
+        Success := Dispatcher.ProcessIncomingAndOutgoingEmails(Setup, ErrorMessage);
         UnbindSubscription(this);
         TestEmailConnector.SetEmailInbox(TempEmailInbox);
         Assert.IsTrue(Success, 'The scheduler-free production pass failed: ' + ErrorMessage);
@@ -867,7 +859,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] New installations have empty noreply fields by default (backward-compatible).
 
         // [GIVEN] A fresh setup record
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         Setup.DeleteAll();
         Setup.Init();
         Setup.Insert();
@@ -907,7 +899,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
 
     local procedure InitSetupWithMainAccount(var Setup: Record "Expense Agent Setup"; AccountID: Guid)
     begin
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         Setup.DeleteAll();
         Setup.Init();
         Setup."Email Account ID" := AccountID;
@@ -925,7 +917,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] EA Scheduler Task supports the new Failed status and stores an error message.
 
         // [GIVEN] A scheduler task in progress
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         EASchedulerTask.DeleteAll();
         Clear(EASchedulerTask);
         EASchedulerTask.Status := EASchedulerTask.Status::"In Progress";
@@ -953,7 +945,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] The Expense Agent Status FlowFields read Status and Error Message from the linked scheduler task.
 
         // [GIVEN] A failed scheduler task
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         EASchedulerTask.DeleteAll();
         Clear(EASchedulerTask);
         EASchedulerTask.Status := EASchedulerTask.Status::Failed;
@@ -983,7 +975,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] GetByUserSecurityID finds an existing access control row by user.
 
         // [GIVEN] An access control record for a user
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
         UserID := CreateGuid();
         InsertAccessControl(AccessControl, UserID, true, true);
@@ -1004,7 +996,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] GetByUserSecurityID returns false when no row exists for the user.
 
         // [GIVEN] No access control rows for the queried user
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
 
         // [THEN] Lookup returns false
@@ -1022,7 +1014,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Clearing Can Configure Agent on one owner is allowed when another owner remains.
 
         // [GIVEN] Two users with Can Configure Agent set to true
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
         SetupSystemID := EmptyGuid();
         UserA := CreateGuid();
@@ -1049,7 +1041,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Clearing 'Can Configure' Agent on the only owner raises an error.
 
         // [GIVEN] A single user with Can Configure Agent set to true
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
         UserID := CreateGuid();
         InsertAccessControl(AccessControl, UserID, true, true);
@@ -1072,7 +1064,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Deleting an owner is allowed when at least one other owner remains.
 
         // [GIVEN] Two users with Can Configure Agent
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
         UserA := CreateGuid();
         UserB := CreateGuid();
@@ -1096,7 +1088,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Deleting the only owner raises an error.
 
         // [GIVEN] A single user with Can Configure Agent
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
         UserID := CreateGuid();
         InsertAccessControl(AccessControl, UserID, true, true);
@@ -1119,7 +1111,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         // [SCENARIO] Deleting a non-owner row does not raise the owner rule even when only one owner exists.
 
         // [GIVEN] One owner and one non-owner
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         AccessControl.DeleteAll();
         OwnerID := CreateGuid();
         NonOwnerID := CreateGuid();

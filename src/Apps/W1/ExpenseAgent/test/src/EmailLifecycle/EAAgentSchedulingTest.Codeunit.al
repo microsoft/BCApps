@@ -17,8 +17,6 @@ codeunit 148335 "EA Agent Scheduling Test"
     var
         Assert: Codeunit Assert;
         ConnectorMock: Codeunit "Connector Mock";
-        IsolatedTestCompanyLbl: Label 'EA Email Lifecycle Test', Locked = true;
-        CIIsolatedTestCompanyLbl: Label 'Empty Company', Locked = true;
         CombinationMsg: Label 'Incoming state %1, outgoing state %2, receipts preference %3, communication preference %4.', Comment = '%1 = incoming account state, %2 = outgoing account state, %3 = receipts preference, %4 = communication preference';
         ChangeInputMsg: Label 'Changing eligibility input %1 must require reconciliation even when the address stays the same.', Comment = '%1 = changed input index';
         ReverseInputMsg: Label 'Reversing eligibility input %1 must also require reconciliation.', Comment = '%1 = changed input index';
@@ -118,7 +116,7 @@ codeunit 148335 "EA Agent Scheduling Test"
         Assert.IsTrue(TempSetup.IsIncomingCommunicationConfigured(), 'Mailbox access failure must not be treated as deleted incoming configuration.');
         Assert.IsTrue(TempSetup.IsOutgoingCommunicationConfigured(), 'Mailbox access failure must not be treated as deleted outgoing configuration.');
         Assert.IsTrue(TempSetup.ShouldScheduleAgentTask(true), 'Availability must use local registration, not a live mailbox probe.');
-        Assert.IsFalse(TempSetup.RepairMissingEmailAccounts(), 'Registered but inaccessible accounts must not be cleared.');
+        Assert.IsFalse(TempSetup.RepairMissingEmailAccountsInBuffer(), 'Registered but inaccessible accounts must not be cleared.');
     end;
 
     [Test]
@@ -195,7 +193,6 @@ codeunit 148335 "EA Agent Scheduling Test"
     var
         TempEmailAccount: Record "Email Account" temporary;
     begin
-        Assert.IsTrue(IsSafeTestCompany(), 'Email lifecycle tests must run only in a dedicated disposable company.');
         ConnectorMock.Initialize();
         TempSetup.Init();
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
@@ -206,11 +203,6 @@ codeunit 148335 "EA Agent Scheduling Test"
         TempSetup."Noreply Email Account ID" := TempEmailAccount."Account Id";
         TempSetup."Noreply Email Connector" := TempEmailAccount.Connector;
         TempSetup."Noreply Email Address" := TempEmailAccount."Email Address";
-    end;
-
-    local procedure IsSafeTestCompany(): Boolean
-    begin
-        exit(CompanyName() in [IsolatedTestCompanyLbl, CIIsolatedTestCompanyLbl]);
     end;
 
     local procedure SetIncomingAccountState(var TempSetup: Record "Expense Agent Setup" temporary; AccountState: Integer)

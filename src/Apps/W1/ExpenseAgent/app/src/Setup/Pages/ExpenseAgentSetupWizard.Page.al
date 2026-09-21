@@ -1182,7 +1182,7 @@ page 6991 "Expense Agent Setup Wizard"
         ExpenseAgentSetup.TransferFields(Rec, false);
         if not IsNullGuid(AgentSetupBuffer."User Security ID") then
             ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
-        // The wizard reconciles once in ApplyScheduleChange after saving state and defaults.
+        // Save without automatic scheduling; ApplyScheduleChange reconciles once after defaults.
         ExpenseAgentSetup.Modify(false);
     end;
 
@@ -1360,7 +1360,7 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure UpdateControls()
     begin
-        if not Rec.RepairMissingEmailAccounts() then
+        if not Rec.RepairMissingEmailAccountsInBuffer() then
             exit;
 
         Rec.Modify();

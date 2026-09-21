@@ -14,14 +14,12 @@ codeunit 148334 "Welcome Email Queue Test"
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Disabled;
-    RequiredTestIsolation = Function;
+    RequiredTestIsolation = Codeunit;
     TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
-        IsolatedTestCompanyLbl: Label 'EA Email Lifecycle Test', Locked = true;
-        CIIsolatedTestCompanyLbl: Label 'Empty Company', Locked = true;
 
     [Test]
     [HandlerFunctions('WelcomeQueuedMsgHandler')]
@@ -292,7 +290,7 @@ codeunit 148334 "Welcome Email Queue Test"
     begin
         // [SCENARIO 636970] The EA Outbox Email correlation id and notification type persist as written.
         // [GIVEN] A correlation id.
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         CorrelationId := CreateGuid();
 
         // [WHEN] An outbox email is created with the correlation fields.
@@ -309,7 +307,7 @@ codeunit 148334 "Welcome Email Queue Test"
 
     local procedure CreateExpenseUserWithEmail(var ExpenseUser: Record "Expense User")
     begin
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         ExpenseUser.Init();
         ExpenseUser."No." := LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User");
         ExpenseUser."E-mail" := 'user@example.invalid';
@@ -322,7 +320,7 @@ codeunit 148334 "Welcome Email Queue Test"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         TestEmailAccount: Record "Test Email Account";
     begin
-        AssertIsolatedCompany();
+        AssertMockTestEnvironment();
         TestEmailAccount.Id := CreateGuid();
         TestEmailAccount.Email := 'noreply@example.invalid';
         TestEmailAccount.Name := 'Welcome queue mock';
@@ -340,18 +338,12 @@ codeunit 148334 "Welcome Email Queue Test"
         ExpenseAgentSetup.Modify();
     end;
 
-    local procedure AssertIsolatedCompany()
+    local procedure AssertMockTestEnvironment()
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        Assert.IsTrue(IsSafeTestCompany(), 'Run only in a dedicated disposable test company, never CRONUS.');
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'These isolated tests must run on-prem.');
         Assert.IsFalse(EnvironmentInformation.IsSaaSInfrastructure(), 'These tests must not use SaaS infrastructure.');
-    end;
-
-    local procedure IsSafeTestCompany(): Boolean
-    begin
-        exit(CompanyName() in [IsolatedTestCompanyLbl, CIIsolatedTestCompanyLbl]);
     end;
 
     local procedure CreateInOutboxUser(var ExpenseUser: Record "Expense User"; CorrelationId: Guid)

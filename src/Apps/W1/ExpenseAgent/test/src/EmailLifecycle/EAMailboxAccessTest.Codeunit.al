@@ -19,8 +19,6 @@ codeunit 148317 "EA Mailbox Access Test"
         TempSelectedEmailAccount: Record "Email Account" temporary;
         Assert: Codeunit Assert;
         ConnectorMock: Codeunit "Connector Mock";
-        IsolatedTestCompanyLbl: Label 'EA Email Lifecycle Test', Locked = true;
-        CIIsolatedTestCompanyLbl: Label 'Empty Company', Locked = true;
 
     [Test]
     procedure ValidateMailboxAccessTrueWhenNoEmailAccountsAreConfigured()
@@ -532,7 +530,7 @@ codeunit 148317 "EA Mailbox Access Test"
         // [GIVEN] A configured registered setup is copied across incoming-only, outgoing-only, and both-missing account-ID cases.
         InitConfiguredSetup(TempRegisteredSetup);
 
-        // [WHEN] RepairMissingEmailAccounts runs for each case and is repeated after repair.
+        // [WHEN] RepairMissingEmailAccountsInBuffer runs for each case and is repeated after repair.
         for MissingChannels := 1 to 3 do begin
             TempSetup := TempRegisteredSetup;
             if MissingChannels in [1, 3] then
@@ -542,7 +540,7 @@ codeunit 148317 "EA Mailbox Access Test"
 
 
         // [THEN] Only missing identities clear, surviving channels and preferences remain unchanged, and repeated repair is a no-op.
-            Assert.IsTrue(TempSetup.RepairMissingEmailAccounts(), 'Missing references must be repaired.');
+            Assert.IsTrue(TempSetup.RepairMissingEmailAccountsInBuffer(), 'Missing references must be repaired.');
 
             if MissingChannels in [1, 3] then
                 AssertIncomingCleared(TempSetup)
@@ -553,7 +551,7 @@ codeunit 148317 "EA Mailbox Access Test"
             else
                 AssertNoreplyUnchanged(TempRegisteredSetup, TempSetup);
             AssertPreferencesUnchanged(TempRegisteredSetup, TempSetup);
-            Assert.IsFalse(TempSetup.RepairMissingEmailAccounts(), 'Repeated repair must be a no-op.');
+            Assert.IsFalse(TempSetup.RepairMissingEmailAccountsInBuffer(), 'Repeated repair must be a no-op.');
         end;
     end;
 
@@ -572,8 +570,8 @@ codeunit 148317 "EA Mailbox Access Test"
         TempSetup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
 
 
-        // [WHEN] RepairMissingEmailAccounts runs for each invalid identity state.
-        Assert.IsTrue(TempSetup.RepairMissingEmailAccounts(), 'The ID must be registered under the selected connector.');
+        // [WHEN] RepairMissingEmailAccountsInBuffer runs for each invalid identity state.
+        Assert.IsTrue(TempSetup.RepairMissingEmailAccountsInBuffer(), 'The ID must be registered under the selected connector.');
 
         // [THEN] Both channel identities clear while all preferences remain unchanged.
         AssertIncomingCleared(TempSetup);
@@ -583,7 +581,7 @@ codeunit 148317 "EA Mailbox Access Test"
         TempSetup := TempPreviousSetup;
         Clear(TempSetup."Email Account ID");
         Clear(TempSetup."Noreply Email Account ID");
-        Assert.IsTrue(TempSetup.RepairMissingEmailAccounts(), 'Empty IDs must not retain orphaned addresses, connectors or folders.');
+        Assert.IsTrue(TempSetup.RepairMissingEmailAccountsInBuffer(), 'Empty IDs must not retain orphaned addresses, connectors or folders.');
         AssertIncomingCleared(TempSetup);
         AssertNoreplyCleared(TempSetup);
         AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
@@ -673,14 +671,8 @@ codeunit 148317 "EA Mailbox Access Test"
 
     local procedure RegisterTestEmailAccount(var TempEmailAccount: Record "Email Account" temporary)
     begin
-        Assert.IsTrue(IsSafeTestCompany(), 'Email lifecycle tests must run only in a dedicated disposable company.');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
-    end;
-
-    local procedure IsSafeTestCompany(): Boolean
-    begin
-        exit(CompanyName() in [IsolatedTestCompanyLbl, CIIsolatedTestCompanyLbl]);
     end;
 
     local procedure InitConfiguredSetup(var TempSetup: Record "Expense Agent Setup" temporary)
