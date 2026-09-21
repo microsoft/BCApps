@@ -3445,11 +3445,5 @@ codeunit 144013 "ERM Payment Management"
     begin
         Reply := true;
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Payment Management Feature FR", OnAfterCheckFeatureEnabled, '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
-    begin
-        IsEnabled := true;
-    end;
 }
 
