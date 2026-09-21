@@ -17,7 +17,7 @@ page 7230 "Master Data Management Setup"
     SourceTable = "Master Data Management Setup";
     UsageCategory = Administration;
     AdditionalSearchTerms = 'mdm,master data';
-    Permissions = tabledata "Master Data Management Setup" = imd;
+    Permissions = tabledata "Master Data Management Setup" = rimd;
 
     layout
     {
