@@ -232,6 +232,47 @@ codeunit 139799 "E-Doc. Helper Test"
         EDocument.Delete();
     end;
 
+    [Test]
+    procedure ValidateReceivingCompanyInfoIgnoresGLNWhenNotConfiguredForElectronicDocuments()
+    var
+        EDocument: Record "E-Document";
+        CompanyInformation: Record "Company Information";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocErrorHelper: Codeunit "E-Document Error Helper";
+        OriginalGLN: Code[13];
+        OriginalVATRegistrationNo: Code[20];
+        OriginalUseGLN: Boolean;
+    begin
+        LibraryLowerPermission.SetOutsideO365Scope();
+        // [SCENARIO] GLN validation is skipped when GLN is not configured for electronic documents
+        CompanyInformation.Get();
+        OriginalGLN := CompanyInformation.GLN;
+        OriginalVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        OriginalUseGLN := CompanyInformation."Use GLN in Electronic Document";
+        CompanyInformation.GLN := '1234567890128';
+        CompanyInformation."VAT Registration No." := 'DE123456789';
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation.Modify();
+
+        EDocument.Init();
+        EDocument."Entry No" := 0;
+        EDocument."Receiving Company GLN" := '9876543210987';
+        EDocument."Receiving Company VAT Reg. No." := CompanyInformation."VAT Registration No.";
+        EDocument.Insert(true);
+
+        // [WHEN] Validating receiving company information
+        EDocumentImportHelper.ValidateReceivingCompanyInfo(EDocument);
+
+        // [THEN] No GLN mismatch error is logged when GLN use is disabled
+        Assert.IsFalse(EDocErrorHelper.HasErrors(EDocument), 'No errors should be logged when GLN use is disabled');
+
+        CompanyInformation.GLN := OriginalGLN;
+        CompanyInformation."VAT Registration No." := OriginalVATRegistrationNo;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalUseGLN;
+        CompanyInformation.Modify();
+        EDocument.Delete();
+    end;
+
     local procedure CreateVendorForLookup(var Vendor: Record Vendor)
     var
         LibraryUtility: Codeunit "Library - Utility";
