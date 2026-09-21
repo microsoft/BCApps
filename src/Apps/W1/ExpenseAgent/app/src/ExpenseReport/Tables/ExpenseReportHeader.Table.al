@@ -1265,9 +1265,14 @@ table 6906 "Expense Report Header"
             Error(InvalidApprovalStatusErr, Rec."No.");
     end;
 
+    internal procedure IsApprovalPending(): Boolean
+    begin
+        exit(Rec.Status in [Rec.Status::"Pending Approval", Rec.Status::"Interim Approved"]);
+    end;
+
     internal procedure TestApprovalPending()
     begin
-        if not (Rec.Status in [Rec.Status::"Pending Approval", Rec.Status::"Interim Approved"]) then
+        if not IsApprovalPending() then
             Error(NotPendingApprovalErr, Rec."No.");
     end;
 

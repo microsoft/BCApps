@@ -137,6 +137,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         Snapshot: Record "Expense Activity Log Entry";
         SummaryLbl: Label '%1. Failed policy checks: %2. Passed policy checks: %3.', Comment = '%1 = policy status, %2 = failed line-policy pairs, %3 = passed line-policy pairs';
     begin
+        // Policy history is opt-in; absent setup also leaves it disabled.
         if not ExpenseAgentSetup.Get() then
             exit;
         if not ExpenseAgentSetup."Evaluate Policies" then
@@ -145,8 +146,8 @@ codeunit 6926 "Expense Activity Log Mgt."
         // Both submission and line confirmation lock the header before reading the report's lines.
         ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
-        // Keep the same pending states as Expense Report Header.TestApprovalPending.
-        if not (ExpenseReportHeader.Status in [ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status::"Interim Approved"]) then
+        // Ignore draft checks and results arriving after the report leaves approval.
+        if not ExpenseReportHeader.IsApprovalPending() then
             exit;
 
         SubmissionEntry.SetRange("Source Table ID", Database::"Expense Report Header");
@@ -154,12 +155,14 @@ codeunit 6926 "Expense Activity Log Mgt."
         SubmissionEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
         SubmissionEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         SubmissionEntry.SetFilter("Event Type", '%1|%2', SubmissionEntry."Event Type"::Submitted, SubmissionEntry."Event Type"::Resubmitted);
+        // Do not create policy history for an untracked submission.
         if not SubmissionEntry.FindLast() then
             exit;
 
         Snapshot.CopyFilters(SubmissionEntry);
         Snapshot.SetRange("Event Type", Snapshot."Event Type"::PolicyEvaluated);
         Snapshot.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
+        // Preserve the first snapshot in this submission round, including on retries.
         if not Snapshot.IsEmpty() then
             exit;
         Snapshot.Reset();
@@ -167,6 +170,7 @@ codeunit 6926 "Expense Activity Log Mgt."
         InitializeExpenseReportEntry(
             Snapshot, ExpenseReportHeader, Enum::"Expense Activity Event Type"::PolicyEvaluated,
             Enum::"Expense Activity Initiator"::Agent, Enum::"Expense Activity Actor Role"::" ", '', 0DT);
+        // Wait for complete, current results across all lines; a later confirmation retries.
         if not AggregatePolicySnapshot(ExpenseReportHeader, Snapshot) then
             exit;
 
