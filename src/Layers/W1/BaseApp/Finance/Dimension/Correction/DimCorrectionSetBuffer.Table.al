@@ -79,7 +79,7 @@ table 2584 "Dim Correction Set Buffer"
     /// Adds a ledger entry number to the list of entries affected by this dimension set correction.
     /// </summary>
     /// <param name="EntryNo">Ledger entry number to add to the affected entries list</param>
-    procedure AddLedgerEntry(EntryNo: Integer)
+    procedure AddLedgerEntry(EntryNo: BigInteger)
     var
         LedgerEntries: Text;
     begin
@@ -93,7 +93,7 @@ table 2584 "Dim Correction Set Buffer"
     /// </summary>
     /// <param name="EntryNo">Ledger entry number to check for inclusion</param>
     /// <returns>True if the entry number is in the affected entries list, false otherwise</returns>
-    procedure ContainsLedgerEntry(EntryNo: Integer): Boolean
+    procedure ContainsLedgerEntry(EntryNo: BigInteger): Boolean
     var
         LedgerEntries: Text;
     begin

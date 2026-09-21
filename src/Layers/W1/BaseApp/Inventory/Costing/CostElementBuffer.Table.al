@@ -239,7 +239,7 @@ table 5820 "Cost Element Buffer"
         OnAfterDeductOutbndValueEntryFromBuf(Rec, OutbndValueEntry, CostElementBuf, IsAvgCostCalcTypeItem);
     end;
 
-    procedure UpdateAvgCostBuffer(CostElementBuf: Record "Cost Element Buffer"; LastValidEntryNo: Integer)
+    procedure UpdateAvgCostBuffer(CostElementBuf: Record "Cost Element Buffer"; LastValidEntryNo: BigInteger)
     begin
         "Actual Cost" := CostElementBuf."Actual Cost";
         "Actual Cost (ACY)" := CostElementBuf."Actual Cost (ACY)";
@@ -261,7 +261,7 @@ table 5820 "Cost Element Buffer"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateAvgCostBuffer(var CostElementBuffer: Record "Cost Element Buffer"; CostElementBuf: Record "Cost Element Buffer"; LastValidEntryNo: Integer)
+    local procedure OnAfterUpdateAvgCostBuffer(var CostElementBuffer: Record "Cost Element Buffer"; CostElementBuf: Record "Cost Element Buffer"; LastValidEntryNo: BigInteger)
     begin
     end;
 

@@ -116,7 +116,7 @@ codeunit 5987 "Serv-Posting Journals Mgt."
                 Location.Get(LocationCode);
     end;
 
-    procedure PostItemJnlLine(var ServiceLine: Record "Service Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeConsumed: Decimal; QtyToBeConsumedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: Integer; var TrackingSpecification: Record "Tracking Specification"; var TempTrackingSpecificationInv: Record "Tracking Specification"; var TempHandlingSpecification: Record "Tracking Specification"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var ServShptHeader: Record "Service Shipment Header"; ServShptLineDocNo: Code[20]): Integer
+    procedure PostItemJnlLine(var ServiceLine: Record "Service Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeConsumed: Decimal; QtyToBeConsumedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; ItemLedgShptEntryNo: BigInteger; var TrackingSpecification: Record "Tracking Specification"; var TempTrackingSpecificationInv: Record "Tracking Specification"; var TempHandlingSpecification: Record "Tracking Specification"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var ServShptHeader: Record "Service Shipment Header"; ServShptLineDocNo: Code[20]): Integer
     var
         ItemJnlLine: Record "Item Journal Line";
         Location: Record Location;

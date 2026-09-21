@@ -386,7 +386,7 @@ codeunit 1105 "Transfer GL Entries to CA"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetGLEntriesOnAfterSetGLEntryFilters(var GLEntry: Record "G/L Entry"; FirstGLEntryNo: Integer; LastGLEntryNo: Integer; StartingDate: Date)
+    local procedure OnGetGLEntriesOnAfterSetGLEntryFilters(var GLEntry: Record "G/L Entry"; FirstGLEntryNo: BigInteger; LastGLEntryNo: BigInteger; StartingDate: Date)
     begin
     end;
 

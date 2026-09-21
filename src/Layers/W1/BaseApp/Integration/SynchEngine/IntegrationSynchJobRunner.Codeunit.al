@@ -18,7 +18,7 @@ codeunit 5339 "Integration Synch. Job Runner"
         RunIntegrationTableSynch(IntegrationTableMapping, Rec.GetLastLogEntryNo());
     end;
 
-    procedure RunIntegrationTableSynch(IntegrationTableMapping: Record "Integration Table Mapping"; JobLogEntryNo: Integer)
+    procedure RunIntegrationTableSynch(IntegrationTableMapping: Record "Integration Table Mapping"; JobLogEntryNo: BigInteger)
     begin
         IntegrationTableMapping.SetJobLogEntryNo(JobLogEntryNo);
         CODEUNIT.Run(IntegrationTableMapping."Synch. Codeunit ID", IntegrationTableMapping);

@@ -720,7 +720,7 @@ table 5970 "Filed Service Contract Header"
         ServiceContractLine: Record "Service Contract Line";
         FiledContractLine: Record "Filed Contract Line";
         RecordLinkManagement: Codeunit "Record Link Management";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         ServiceContractHeader.TestField("Contract No.");
 

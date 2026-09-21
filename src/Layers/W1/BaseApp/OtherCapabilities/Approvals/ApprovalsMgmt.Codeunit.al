@@ -2481,7 +2481,7 @@ codeunit 1535 "Approvals Mgmt."
         ToApprovalEntry: Record "Approval Entry";
         FromApprovalCommentLine: Record "Approval Comment Line";
         ToApprovalCommentLine: Record "Approval Comment Line";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         FromApprovalEntry.SetRange("Table ID", FromRecID.TableNo);
         FromApprovalEntry.SetRange("Record ID to Approve", FromRecID);

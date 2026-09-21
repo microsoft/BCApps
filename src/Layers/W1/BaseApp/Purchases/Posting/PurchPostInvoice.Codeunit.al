@@ -522,7 +522,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobPurchLine: Record "Purchase Line";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         LineCount: Integer;
     begin
         PurchHeader := DocumentHeaderVar;

@@ -1235,7 +1235,7 @@ table 254 "VAT Entry"
         EntryNoFilter: TextBuilder;
         EntryNos: List of [Integer];
         GLAccountNo: Code[20];
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         EntryNoTxt: Text;
         InChunk: Integer;
         ChunkSize: Integer;

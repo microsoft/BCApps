@@ -4566,7 +4566,7 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterCopyPurchLinesToBuffer(TempPurchLineBuf, FromPurchLine2, FromPurchLine);
     end;
 
-    local procedure CreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; JobContractEntryNo: Integer): Integer
+    local procedure CreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; JobContractEntryNo: BigInteger): Integer
     var
         JobPlanningLine: Record "Job Planning Line";
         NewJobPlanningLine: Record "Job Planning Line";
@@ -5671,7 +5671,7 @@ codeunit 6620 "Copy Document Mgt."
         until SalesLine.Next() = 0;
     end;
 
-    local procedure GetQtyOfPurchILENotShipped(ItemLedgerEntryNo: Integer; FromPurchLine: Record "Purchase Line"): Decimal
+    local procedure GetQtyOfPurchILENotShipped(ItemLedgerEntryNo: BigInteger; FromPurchLine: Record "Purchase Line"): Decimal
     var
         ItemApplicationEntry: Record "Item Application Entry";
         ItemLedgerEntryLocal: Record "Item Ledger Entry";
@@ -8695,7 +8695,7 @@ codeunit 6620 "Copy Document Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var JobContractEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var JobContractEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

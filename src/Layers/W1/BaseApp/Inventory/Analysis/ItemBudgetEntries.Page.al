@@ -272,7 +272,7 @@ page 7133 "Item Budget Entries"
         GLSetup: Record "General Ledger Setup";
         ItemBudgetName: Record "Item Budget Name";
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
-        LowestModifiedEntryNo: Integer;
+        LowestModifiedEntryNo: BigInteger;
         GlobalDimension1CodeVisible: Boolean;
         GlobalDimension2CodeVisible: Boolean;
         BudgetDimension1CodeVisible: Boolean;

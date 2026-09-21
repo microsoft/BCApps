@@ -395,7 +395,7 @@ report 1700 "Deferral Summary - G/L"
         BalanceAsOfDateFilter := NewBalanceAsOfDateFilter;
     end;
 
-    local procedure EntryMatchesGlobalDimFilters(GLEntryNo: Integer): Boolean
+    local procedure EntryMatchesGlobalDimFilters(GLEntryNo: BigInteger): Boolean
     var
         GLEntry: Record "G/L Entry";
     begin

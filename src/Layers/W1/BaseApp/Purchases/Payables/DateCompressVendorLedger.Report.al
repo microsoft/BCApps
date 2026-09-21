@@ -393,7 +393,7 @@ report 398 "Date Compress Vendor Ledger"
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
         FoundLastEntryNo: BigInteger;
-        FoundLastLedgEntryNo: Integer;
+        FoundLastLedgEntryNo: BigInteger;
         LastTransactionNo: BigInteger;
     begin
         GLentry.Init();

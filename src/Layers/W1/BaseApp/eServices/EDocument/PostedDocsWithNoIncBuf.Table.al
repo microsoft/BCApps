@@ -174,7 +174,7 @@ table 134 "Posted Docs. With No Inc. Buf."
         exit('');
     end;
 
-    local procedure CheckIfAssignedToUnpostedDoc(IncomingDocEntryNo: Integer)
+    local procedure CheckIfAssignedToUnpostedDoc(IncomingDocEntryNo: BigInteger)
     var
         SalesHeader: Record "Sales Header";
         PurchaseHeader: Record "Purchase Header";

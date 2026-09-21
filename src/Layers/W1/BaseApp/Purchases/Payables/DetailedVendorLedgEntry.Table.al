@@ -386,7 +386,7 @@ table 380 "Detailed Vendor Ledg. Entry"
           not (("Entry Type" = "Entry Type"::Application) or ("Entry Type" = "Entry Type"::"Appln. Rounding"));
     end;
 
-    procedure GetUnrealizedGainLossAmount(EntryNo: Integer): Decimal
+    procedure GetUnrealizedGainLossAmount(EntryNo: BigInteger): Decimal
     begin
         SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
         SetRange("Vendor Ledger Entry No.", EntryNo);

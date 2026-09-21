@@ -549,7 +549,7 @@ codeunit 5503 "Graph Mgt - Attachment Buffer"
         IncomingDocument: Record "Incoming Document";
         DocumentRecordRef: RecordRef;
         DocumentId: Guid;
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
     begin
         TempAttachmentEntityBuffer.Reset();
         TempAttachmentEntityBuffer.DeleteAll();
@@ -1713,7 +1713,7 @@ codeunit 5503 "Graph Mgt - Attachment Buffer"
         DummyGLEntry: Record "G/L Entry";
         DataTypeManagement: Codeunit "Data Type Management";
         EntryNoFieldRef: FieldRef;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if DataTypeManagement.FindFieldByName(DocumentRecordRef, EntryNoFieldRef, DummyGLEntry.FieldName("Entry No.")) then
             Evaluate(EntryNo, Format(EntryNoFieldRef.Value));
@@ -1959,7 +1959,7 @@ codeunit 5503 "Graph Mgt - Attachment Buffer"
         PurchInvAggregator: Codeunit "Purch. Inv. Aggregator";
         TypeHelper: Codeunit "Type Helper";
         Value: Variant;
-        DummyGLEntryNo: Integer;
+        DummyGLEntryNo: BigInteger;
     begin
         if DocumentIdFilter = '' then begin
             ErrorMsg := DocumentIDNotSpecifiedForAttachmentsErr;

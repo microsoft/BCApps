@@ -495,7 +495,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
     procedure InsertDtldCVLedgEntry(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; InsertZeroAmout: Boolean)
     var
         NewDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer";
-        NextDtldBufferEntryNo: Integer;
+        NextDtldBufferEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         if (DtldCVLedgEntryBuf.Amount = 0) and
@@ -670,7 +670,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
     /// <param name="AppliedEntryNo">Entry number of applied ledger entry</param>
     /// <param name="RemainingPmtDiscPossible">Remaining payment discount available</param>
     /// <param name="MaxPaymentTolerance">Maximum payment tolerance amount</param>
-    procedure InitDetailedCVLedgEntryBuf(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; EntryType: Enum "Detailed CV Ledger Entry Type"; AmountFCY: Decimal; AmountLCY: Decimal; AmountAddCurr: Decimal; AppliedEntryNo: Integer; RemainingPmtDiscPossible: Decimal; MaxPaymentTolerance: Decimal)
+    procedure InitDetailedCVLedgEntryBuf(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; EntryType: Enum "Detailed CV Ledger Entry Type"; AmountFCY: Decimal; AmountLCY: Decimal; AmountAddCurr: Decimal; AppliedEntryNo: BigInteger; RemainingPmtDiscPossible: Decimal; MaxPaymentTolerance: Decimal)
     var
         IsHandled: Boolean;
     begin
@@ -758,7 +758,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
     /// <param name="NewDtldCVLedgEntryBuf">Newly inserted detailed entry</param>
     /// <param name="NextDtldBufferEntryNo">Next available entry number for sequencing</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertDtldCVLedgEntry(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var NewDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextDtldBufferEntryNo: Integer)
+    local procedure OnAfterInsertDtldCVLedgEntry(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var NewDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextDtldBufferEntryNo: BigInteger)
     begin
     end;
 
@@ -785,7 +785,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
     /// <param name="IsHandled">Set to true to skip standard consolidation logic</param>
     /// <param name="CVLedgEntryBuf">Parent CV ledger entry buffer</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateDtldCVLedgEntryBuf(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NewDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextDtldBufferEntryNo: Integer; var IsHandled: Boolean; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
+    local procedure OnBeforeCreateDtldCVLedgEntryBuf(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NewDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextDtldBufferEntryNo: BigInteger; var IsHandled: Boolean; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
     begin
     end;
 

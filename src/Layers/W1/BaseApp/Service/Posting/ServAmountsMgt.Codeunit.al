@@ -50,7 +50,7 @@ codeunit 5986 "Serv-Amounts Mgt."
         OnAfterInitialize();
     end;
 
-    procedure GetDimensions(DimensionEntryNo: Integer; var TempDimBuf: Record "Dimension Buffer")
+    procedure GetDimensions(DimensionEntryNo: BigInteger; var TempDimBuf: Record "Dimension Buffer")
     begin
         DimBufMgt.GetDimensions(DimensionEntryNo, TempDimBuf);
     end;

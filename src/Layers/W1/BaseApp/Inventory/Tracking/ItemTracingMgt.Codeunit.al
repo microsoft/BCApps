@@ -27,7 +27,7 @@ codeunit 6520 "Item Tracing Mgt."
         TempLineNo: Integer;
         CurrentLevel: Integer;
         NextLineNo: Integer;
-        CurrentHistoryEntryNo: Integer;
+        CurrentHistoryEntryNo: BigInteger;
 
     procedure FindRecords(var TempTrackEntry: Record "Item Tracing Buffer"; var TempTrackEntry2: Record "Item Tracing Buffer"; SerialNoFilter: Text; LotNoFilter: Text; PackageNoFilter: Text; ItemNoFilter: Text; VariantFilter: Text; Direction: Option Forward,Backward; ShowComponents: Option No,"Item-tracked only",All)
     begin
@@ -845,7 +845,7 @@ codeunit 6520 "Item Tracing Mgt."
         exit(true);
     end;
 
-    local procedure RetrieveHistoryData(EntryNo: Integer; var SerialNoFilter: Text; var LotNoFilter: Text; var PackageNoFilter: Text; var ItemNoFilter: Text; var VariantFilter: Text; var TraceMethod: Option "Origin->Usage","Usage->Origin"; var ShowComponents: Option No,"Item-tracked only",All): Boolean
+    local procedure RetrieveHistoryData(EntryNo: BigInteger; var SerialNoFilter: Text; var LotNoFilter: Text; var PackageNoFilter: Text; var ItemNoFilter: Text; var VariantFilter: Text; var TraceMethod: Option "Origin->Usage","Usage->Origin"; var ShowComponents: Option No,"Item-tracked only",All): Boolean
     begin
         TempItemTracingHistoryBuffer.Reset();
         TempItemTracingHistoryBuffer.SetCurrentKey("Entry No.", TempItemTracingHistoryBuffer.Level);
@@ -882,7 +882,7 @@ codeunit 6520 "Item Tracing Mgt."
         PreviousExists := not TempItemTracingHistoryBuffer.IsEmpty();
     end;
 
-    local procedure IsServiceDocument(ItemLedgEntryNo: Integer; var ItemLedgEntry: Record "Item Ledger Entry"): Boolean
+    local procedure IsServiceDocument(ItemLedgEntryNo: BigInteger; var ItemLedgEntry: Record "Item Ledger Entry"): Boolean
     begin
         if ItemLedgEntry.Get(ItemLedgEntryNo) then
             if ItemLedgEntry."Document Type" in [
@@ -966,7 +966,7 @@ codeunit 6520 "Item Tracing Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateHistory(var TempItemTracingHistoryBuffer: Record "Item Tracing History Buffer" temporary; var CurrentHistoryEntryNo: Integer; SerialNoFilter: Text; LotNoFilter: Text; PackageNoFilter: Text; ItemNoFilter: Text; VariantFilter: Text; TraceMethod: Option; ShowComponents: Option; var OK: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeUpdateHistory(var TempItemTracingHistoryBuffer: Record "Item Tracing History Buffer" temporary; var CurrentHistoryEntryNo: BigInteger; SerialNoFilter: Text; LotNoFilter: Text; PackageNoFilter: Text; ItemNoFilter: Text; VariantFilter: Text; TraceMethod: Option; ShowComponents: Option; var OK: Boolean; var IsHandled: Boolean)
     begin
     end;
 

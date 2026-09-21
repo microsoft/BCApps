@@ -79,7 +79,7 @@ table 5815 "Inventory Period Entry"
     {
     }
 
-    procedure RemoveItemRegNo(EntryNo: Integer; PhysInventory: Boolean)
+    procedure RemoveItemRegNo(EntryNo: BigInteger; PhysInventory: Boolean)
     var
         ItemReg: Record "Item Register";
         InvtPeriodEntry: Record "Inventory Period Entry";

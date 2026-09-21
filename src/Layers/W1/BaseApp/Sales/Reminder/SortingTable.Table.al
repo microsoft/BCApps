@@ -62,7 +62,7 @@ table 1051 "Sorting Table"
     var
         TempSortingTable: Record "Sorting Table" temporary;
         CurrMaxRemAmount: Decimal;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
 
     /// <summary>
     /// Updates the business chart buffer with additional fee visualization data for a reminder level.

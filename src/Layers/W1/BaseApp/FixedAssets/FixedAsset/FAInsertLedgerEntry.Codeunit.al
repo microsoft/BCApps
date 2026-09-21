@@ -52,8 +52,8 @@ codeunit 5600 "FA Insert Ledger Entry"
         NextEntryNo: BigInteger;
         NextMaintenanceEntryNo: BigInteger;
         RegisterInserted: Boolean;
-        LastEntryNo: Integer;
-        GLRegisterNo: Integer;
+        LastEntryNo: BigInteger;
+        GLRegisterNo: BigInteger;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -361,7 +361,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         RecordLinkMgt.CopyLinks(GenJnlLine, FALedgEntry);
     end;
 
-    local procedure InitRegister(CalledFrom: Enum "FA Register Called From"; GLEntryNo: Integer; SourceCode: Code[10]; BatchName: Code[10])
+    local procedure InitRegister(CalledFrom: Enum "FA Register Called From"; GLEntryNo: BigInteger; SourceCode: Code[10]; BatchName: Code[10])
     begin
         if (CalledFrom = "FA Register Called From"::"Fixed Asset") and (NextMaintenanceEntryNo <> 0) then
             exit;
@@ -382,7 +382,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAReg.Insert(true);
     end;
 
-    procedure InsertRegister(CalledFrom: Enum "FA Register Called From"; NextEntryNo: Integer)
+    procedure InsertRegister(CalledFrom: Enum "FA Register Called From"; NextEntryNo: BigInteger)
     begin
         case CalledFrom of
             "FA Register Called From"::"Fixed Asset":
@@ -447,7 +447,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAInsertGLAcc.CorrectEntries();
     end;
 
-    procedure InsertReverseEntry(NewGLEntryNo: Integer; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: Integer; var NewFAEntryNo: Integer; TransactionNo: Integer)
+    procedure InsertReverseEntry(NewGLEntryNo: BigInteger; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: BigInteger; var NewFAEntryNo: BigInteger; TransactionNo: Integer)
     var
         SourceCodeSetup: Record "Source Code Setup";
         FALedgEntry3: Record "FA Ledger Entry";
@@ -602,7 +602,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         end;
     end;
 
-    local procedure SetFAReversalMark(var FALedgEntry: Record "FA Ledger Entry"; NextEntryNo: Integer)
+    local procedure SetFAReversalMark(var FALedgEntry: Record "FA Ledger Entry"; NextEntryNo: BigInteger)
     var
         FALedgEntry2: Record "FA Ledger Entry";
         GenJnlPostReverse: Codeunit "Gen. Jnl.-Post Reverse";
@@ -630,7 +630,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         GenJnlPostReverse.SetReversalDescription(FALedgEntry, FALedgEntry.Description);
     end;
 
-    local procedure SetMaintReversalMark(var MaintenanceLedgEntry: Record "Maintenance Ledger Entry"; NextEntryNo: Integer)
+    local procedure SetMaintReversalMark(var MaintenanceLedgEntry: Record "Maintenance Ledger Entry"; NextEntryNo: BigInteger)
     var
         MaintenanceLedgEntry2: Record "Maintenance Ledger Entry";
         GenJnlPostReverse: Codeunit "Gen. Jnl.-Post Reverse";
@@ -672,7 +672,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             LastEntryNo := FALedgEntry.GetLastEntryNo();
     end;
 
-    procedure SetGLRegisterNo(NewGLRegisterNo: Integer)
+    procedure SetGLRegisterNo(NewGLRegisterNo: BigInteger)
     begin
         GLRegisterNo := NewGLRegisterNo;
     end;

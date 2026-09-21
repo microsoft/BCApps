@@ -2631,7 +2631,7 @@ xmlport 99000751 "Mfg. Export Item Data"
         until InventoryPostingSetup.Next() = 0;
     end;
 
-    procedure CollectItemApplnEntry(ItemLedgEntryNo: Integer)
+    procedure CollectItemApplnEntry(ItemLedgEntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -2644,7 +2644,7 @@ xmlport 99000751 "Mfg. Export Item Data"
             until ItemApplnEntry.Next() = 0;
     end;
 
-    procedure CollectItemApplnEntryHist(ItemLedgEntryNo: Integer)
+    procedure CollectItemApplnEntryHist(ItemLedgEntryNo: BigInteger)
     var
         ItemApplnEntryHistory: Record "Item Application Entry History";
     begin

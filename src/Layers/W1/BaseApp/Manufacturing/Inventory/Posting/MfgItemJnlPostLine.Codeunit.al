@@ -50,12 +50,12 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostConsumption', '', true, false)]
     local procedure OnPostConsumption(
         var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary;
-        var ProdOrderCompModified: Boolean; ItemLedgEntryNo: Integer; var sender: Codeunit "Item Jnl.-Post Line")
+        var ProdOrderCompModified: Boolean; ItemLedgEntryNo: BigInteger; var sender: Codeunit "Item Jnl.-Post Line")
     begin
         PostConsumption(ItemJnlLine, GlobalItemTrackingSetup, TempSplitItemJnlLine, ProdOrderCompModified, ItemLedgEntryNo, sender);
     end;
 
-    local procedure PostConsumption(var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var ProdOrderCompModified: Boolean; ItemLedgEntryNo: Integer; var sender: Codeunit "Item Jnl.-Post Line")
+    local procedure PostConsumption(var ItemJnlLine: Record "Item Journal Line"; GlobalItemTrackingSetup: Record "Item Tracking Setup"; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var ProdOrderCompModified: Boolean; ItemLedgEntryNo: BigInteger; var sender: Codeunit "Item Jnl.-Post Line")
     var
         ProdOrderComp: Record "Prod. Order Component";
         TempHandlingSpecification: Record "Tracking Specification" temporary;
@@ -238,7 +238,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
 #endif
     end;
 
-    local procedure InsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComp: Record "Prod. Order Component"; ProdOrderCompLineNo: Integer; QtyBase: Decimal; ModifyProdOrderComp: Boolean; ItemLedgEntryNo: Integer; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var sender: Codeunit "Item Jnl.-Post Line")
+    local procedure InsertConsumpEntry(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderComp: Record "Prod. Order Component"; ProdOrderCompLineNo: Integer; QtyBase: Decimal; ModifyProdOrderComp: Boolean; ItemLedgEntryNo: BigInteger; var TempSplitItemJnlLine: Record "Item Journal Line" temporary; var sender: Codeunit "Item Jnl.-Post Line")
     var
         PostWhseJnlLine: Boolean;
     begin
@@ -366,7 +366,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record "Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
+    local procedure OnAfterInsertConsumpEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; var ProdOrderComponent: Record "Prod. Order Component"; QtyBase: Decimal; PostWhseJnlLine: Boolean; var ItemJnlLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -885,7 +885,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         TotalRunTime := CapLedgerEntry."Run Time";
     end;
 
-    local procedure UpdateProdOrderLine(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderLine: Record "Prod. Order Line"; ReTrack: Boolean; ItemLedgEntryNo: Integer)
+    local procedure UpdateProdOrderLine(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderLine: Record "Prod. Order Line"; ReTrack: Boolean; ItemLedgEntryNo: BigInteger)
     var
         ReservMgt: Codeunit "Reservation Management";
     begin
@@ -1365,7 +1365,7 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record "Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: Integer)
+    local procedure OnBeforeProdOrderLineModify(var ProdOrderLine: Record "Prod. Order Line"; ItemJournalLine: Record "Item Journal Line"; ItemLedgEntryNo: BigInteger)
     begin
     end;
 

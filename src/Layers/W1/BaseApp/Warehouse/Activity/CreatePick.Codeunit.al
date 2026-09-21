@@ -3768,7 +3768,7 @@ codeunit 7312 "Create Pick"
         exit(b);
     end;
 
-    procedure CalcQtyResvdNotOnILE(ReservEntryNo: Integer; ReservEntryPositive: Boolean) QtyResvdNotOnILE: Decimal
+    procedure CalcQtyResvdNotOnILE(ReservEntryNo: BigInteger; ReservEntryPositive: Boolean) QtyResvdNotOnILE: Decimal
     var
         ReservEntry: Record "Reservation Entry";
         IsHandled: Boolean;
@@ -4302,7 +4302,7 @@ codeunit 7312 "Create Pick"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcQtyResvdNotOnILE(ReservEntryNo: Integer; ReservEntryPositive: Boolean; var QtyResvdNotOnILE: Decimal; var IsHandled: Boolean)
+    local procedure OnBeforeCalcQtyResvdNotOnILE(ReservEntryNo: BigInteger; ReservEntryPositive: Boolean; var QtyResvdNotOnILE: Decimal; var IsHandled: Boolean)
     begin
     end;
 

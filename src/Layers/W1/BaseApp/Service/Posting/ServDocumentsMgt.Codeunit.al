@@ -96,7 +96,7 @@ codeunit 5988 "Serv-Documents Mgt."
         GenJnlLineDocNo: Code[20];
         SrcCode: Code[10];
         GenJnlLineDocType: Enum "Gen. Journal Document Type";
-        ItemLedgShptEntryNo: Integer;
+        ItemLedgShptEntryNo: BigInteger;
         NextServLedgerEntryNo: BigInteger;
         NextWarrantyLedgerEntryNo: BigInteger;
         Ship: Boolean;
@@ -228,7 +228,7 @@ codeunit 5988 "Serv-Documents Mgt."
         RemQtyToBeConsumedBase: Decimal;
         TotalAmount: Decimal;
         LineCount: Integer;
-        ApplToServEntryNo: Integer;
+        ApplToServEntryNo: BigInteger;
         WarrantyNo: BigInteger;
         BiggestLineNo: Integer;
         LastLineRetrieved: Boolean;
@@ -1453,7 +1453,7 @@ codeunit 5988 "Serv-Documents Mgt."
 
     local procedure FindFirstServLedgEntry(var TempServiceLine: Record "Service Line" temporary): Integer
     var
-        ApplServLedgEntryNo: Integer;
+        ApplServLedgEntryNo: BigInteger;
     begin
         if not TempServiceLine.Find('-') then
             exit(0);
@@ -2712,7 +2712,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterCalcShouldPostShipmentServiceEntry(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var Ship: Boolean; var ApplToServEntryNo: Integer; var NextServLedgerEntryNo: BigInteger; var ShouldPostShipmentServiceEntry: Boolean)
+    local procedure OnPostDocumentLinesOnAfterCalcShouldPostShipmentServiceEntry(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var Ship: Boolean; var ApplToServEntryNo: BigInteger; var NextServLedgerEntryNo: BigInteger; var ShouldPostShipmentServiceEntry: Boolean)
     begin
     end;
 
@@ -2733,7 +2733,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtCreateCreditEntry(var NextServLedgerEntryNo: BigInteger; var ApplToServEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
+    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtCreateCreditEntry(var NextServLedgerEntryNo: BigInteger; var ApplToServEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
     begin
     end;
 
@@ -2878,7 +2878,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterAssignApplToServEntryNo(var ServiceHeader: Record "Service Header"; var ApplToServEntryNo: Integer)
+    local procedure OnPostDocumentLinesOnAfterAssignApplToServEntryNo(var ServiceHeader: Record "Service Header"; var ApplToServEntryNo: BigInteger)
     begin
     end;
 

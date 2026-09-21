@@ -743,7 +743,7 @@ table 5802 "Value Entry"
                 QtyFactor := ValueEntry.CalcQtyFactor(FromDate, ToDate);
     end;
 
-    procedure CalcItemLedgEntryCost(ItemLedgEntryNo: Integer; Expected: Boolean)
+    procedure CalcItemLedgEntryCost(ItemLedgEntryNo: BigInteger; Expected: Boolean)
     var
         ItemLedgEntryQty: Decimal;
         CostAmtActual: Decimal;
@@ -778,7 +778,7 @@ table 5802 "Value Entry"
         "Cost Amount (Expected) (ACY)" := CostAmtExpectedACY;
     end;
 
-    procedure NotInvdRevaluationExists(ItemLedgEntryNo: Integer): Boolean
+    procedure NotInvdRevaluationExists(ItemLedgEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetCurrentKey("Item Ledger Entry No.", "Entry Type");
@@ -918,7 +918,7 @@ table 5802 "Value Entry"
         AccountingPeriod := PrevAccountingPeriod;
     end;
 
-    procedure FindFirstValueEntryByItemLedgerEntryNo(ItemLedgerEntryNo: Integer)
+    procedure FindFirstValueEntryByItemLedgerEntryNo(ItemLedgerEntryNo: BigInteger)
     begin
         Reset();
         SetCurrentKey("Item Ledger Entry No.", "Entry No.");
@@ -944,7 +944,7 @@ table 5802 "Value Entry"
     /// </summary>
     /// <param name="EntryNo">The entry no. of the entry we are comparing to</param>
     /// <returns>Boolean</returns>
-    internal procedure EntryNoHasSameSign(EntryNo: integer): Boolean
+    internal procedure EntryNoHasSameSign(EntryNo: BigInteger): Boolean
     begin
         if (Rec."Entry No." >= 0) and (EntryNo >= 0) then
             exit(true);
@@ -984,7 +984,7 @@ table 5802 "Value Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcItemLedgEntryCost(var ValueEntry: Record "Value Entry"; ItemLedgEntryNo: Integer; Expected: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCalcItemLedgEntryCost(var ValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger; Expected: Boolean; var IsHandled: Boolean)
     begin
     end;
 

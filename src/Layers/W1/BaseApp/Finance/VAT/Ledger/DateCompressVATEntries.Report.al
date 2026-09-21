@@ -419,7 +419,7 @@ report 95 "Date Compress VAT Entries"
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
         FoundLastEntryNo: BigInteger;
-        FoundLastVATEntryNo: Integer;
+        FoundLastVATEntryNo: BigInteger;
         LastTransactionNo: BigInteger;
     begin
         GLEntry.Init();

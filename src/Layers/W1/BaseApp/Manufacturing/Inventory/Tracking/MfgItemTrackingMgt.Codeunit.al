@@ -298,7 +298,7 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         ItemTrackingSetup: Record "Item Tracking Setup";
-        BufferEntryNo: Integer;
+        BufferEntryNo: BigInteger;
         RemainingHandledQtyBase: Decimal;
         QtyBaseAvailableToPutAway: Decimal;
         ExitLoop: Boolean;

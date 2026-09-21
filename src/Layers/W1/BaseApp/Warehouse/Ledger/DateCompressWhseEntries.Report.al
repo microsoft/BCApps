@@ -286,7 +286,7 @@ report 7398 "Date Compress Whse. Entries"
         RetainFields: array[3] of Boolean;
         FieldNumber: array[10] of Integer;
         FieldNameArray: array[10] of Text;
-        FirstEntryNo: Integer;
+        FirstEntryNo: BigInteger;
         LastEntryNo: BigInteger;
         NoOfDeleted: Integer;
         i: Integer;

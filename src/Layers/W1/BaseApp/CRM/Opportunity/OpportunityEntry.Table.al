@@ -347,7 +347,7 @@ table 5093 "Opportunity Entry"
     procedure InsertEntry(var OpportunityEntryToInsert: Record "Opportunity Entry"; CancelOldTask: Boolean; CreateNewTask: Boolean)
     var
         OpportunityEntryInserted: Record "Opportunity Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         EntryNo := OpportunityEntryInserted.GetLastEntryNo();
         OpportunityEntryInserted.SetCurrentKey(Active, "Opportunity No.");

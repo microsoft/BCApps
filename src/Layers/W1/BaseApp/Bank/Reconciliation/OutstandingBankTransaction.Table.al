@@ -233,7 +233,7 @@ table 1284 "Outstanding Bank Transaction"
         Insert();
     end;
 
-    procedure GetAppliedAmount(EntryNo: Integer) AppliedAmt: Decimal
+    procedure GetAppliedAmount(EntryNo: BigInteger) AppliedAmt: Decimal
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
     begin
@@ -246,7 +246,7 @@ table 1284 "Outstanding Bank Transaction"
         exit(AppliedAmt);
     end;
 
-    procedure GetRemainingAmount(EntryNo: Integer) RemainingAmt: Decimal
+    procedure GetRemainingAmount(EntryNo: BigInteger) RemainingAmt: Decimal
     var
         AppliedPaymentEntry: Record "Applied Payment Entry";
     begin

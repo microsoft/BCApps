@@ -280,7 +280,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         UnApplyVendor(DtldVendLedgEntry);
     end;
 
-    procedure CheckVendorLedgerEntryToUnapply(VendorLedgerEntryNo: Integer; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    procedure CheckVendorLedgerEntryToUnapply(VendorLedgerEntryNo: BigInteger; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     var
         ApplicationEntryNo: BigInteger;
     begin
@@ -602,7 +602,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         RunOptionPreviewContext := RunOptionPreview::Unapply;
     end;
 
-    procedure GetAppliedVendLedgerEntries(var TempAppliedVendLedgerEntry: Record "Vendor Ledger Entry" temporary; VendLedgerEntryNo: Integer)
+    procedure GetAppliedVendLedgerEntries(var TempAppliedVendLedgerEntry: Record "Vendor Ledger Entry" temporary; VendLedgerEntryNo: BigInteger)
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
         ApplnDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";

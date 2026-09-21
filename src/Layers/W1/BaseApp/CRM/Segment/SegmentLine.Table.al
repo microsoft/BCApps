@@ -630,7 +630,7 @@ table 5077 "Segment Line"
         AttachmentManagement: Codeunit AttachmentManagement;
         CampaignTargetGroupMgt: Codeunit "Campaign Target Group Mgt";
         ResumedAttachmentNo: Integer;
-        InteractionLogEntryNo: Integer;
+        InteractionLogEntryNo: BigInteger;
 
         InheritedTxt: Label 'Inherited';
         UniqueTxt: Label 'Unique';
@@ -1784,7 +1784,7 @@ table 5077 "Segment Line"
         ODataFieldsExport.RunModal();
     end;
 
-    procedure ProcessInterLogEntryComments(InterLogEntryNo: Integer)
+    procedure ProcessInterLogEntryComments(InterLogEntryNo: BigInteger)
     var
         SegManagement: Codeunit SegManagement;
     begin

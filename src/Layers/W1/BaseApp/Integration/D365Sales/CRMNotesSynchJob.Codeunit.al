@@ -26,7 +26,7 @@ codeunit 5355 "CRM Notes Synch Job"
         ConnectionNotEnabledErr: Label 'The %1 connection is not enabled.', Comment = '%1 = CRM product name';
         OrderNotesUpdatedMsg: Label 'The notes on coupled sales orders have been synchronized.';
 
-    local procedure UpdateOrders(JobLogEntryNo: Integer)
+    local procedure UpdateOrders(JobLogEntryNo: BigInteger)
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
         ConnectionName: Text;
@@ -45,7 +45,7 @@ codeunit 5355 "CRM Notes Synch Job"
         CRMConnectionSetup.UnregisterConnectionWithName(ConnectionName);
     end;
 
-    local procedure UpdateSalesOrderNotes(JobLogEntryNo: Integer)
+    local procedure UpdateSalesOrderNotes(JobLogEntryNo: BigInteger)
     var
         CRMAnnotationCoupling: Record "CRM Annotation Coupling";
         IntegrationTableMapping: Record "Integration Table Mapping";

@@ -97,7 +97,7 @@ codeunit 5819 "Undo Service Consumption Line"
     var
         ServLedgEntriesPost: Codeunit "ServLedgEntries-Post";
         Window: Dialog;
-        ItemShptEntryNo: Integer;
+        ItemShptEntryNo: BigInteger;
         ServLedgEntryNo: BigInteger;
         WarrantyLedgEntryNo: BigInteger;
     begin
@@ -200,7 +200,7 @@ codeunit 5819 "Undo Service Consumption Line"
         TrackingSpecificationExists := (TempTrackingSpecToTest.Count <> 0);
     end;
 
-    local procedure PostItemJnlLine(ServShptLine: Record "Service Shipment Line"; ItemEntryNo: Integer; QtyToShip: Decimal; QtyToShipBase: Decimal; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; EntryType: Enum "Item Ledger Entry Type"): Integer
+    local procedure PostItemJnlLine(ServShptLine: Record "Service Shipment Line"; ItemEntryNo: BigInteger; QtyToShip: Decimal; QtyToShipBase: Decimal; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; EntryType: Enum "Item Ledger Entry Type"): Integer
     var
         ItemJnlLine: Record "Item Journal Line";
         ServiceLine: Record "Service Line";
@@ -406,7 +406,7 @@ codeunit 5819 "Undo Service Consumption Line"
         end;
     end;
 
-    local procedure InsertOneNewTrackSpec(OldItemShptEntryNo: Integer; NewItemShptEntryNo: Integer; Balancing: Boolean)
+    local procedure InsertOneNewTrackSpec(OldItemShptEntryNo: BigInteger; NewItemShptEntryNo: BigInteger; Balancing: Boolean)
     var
         TrackingSpecification: Record "Tracking Specification";
         NewTrackingSpecification: Record "Tracking Specification";
@@ -456,7 +456,7 @@ codeunit 5819 "Undo Service Consumption Line"
             LineSpacing := 10000;
     end;
 
-    local procedure InsertCorrectiveShipmentLine(OldServiceShipmentLine: Record "Service Shipment Line"; ItemShptEntryNo: Integer)
+    local procedure InsertCorrectiveShipmentLine(OldServiceShipmentLine: Record "Service Shipment Line"; ItemShptEntryNo: BigInteger)
     var
         NewServiceShipmentLine: Record "Service Shipment Line";
         LineSpacing: Integer;
@@ -520,7 +520,7 @@ codeunit 5819 "Undo Service Consumption Line"
         TempItemEntryRelation.DeleteAll();
     end;
 
-    local procedure UpdateItemJnlLine(NewServShptLine: Record "Service Shipment Line"; ItemShptEntryNo: Integer)
+    local procedure UpdateItemJnlLine(NewServShptLine: Record "Service Shipment Line"; ItemShptEntryNo: BigInteger)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
     begin

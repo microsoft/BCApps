@@ -288,7 +288,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnTestIfAlreadyExists', '', true, false)]
-    local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
+    local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: BigInteger)
     var
         ServiceHeader: Record "Service Header";
     begin
@@ -304,7 +304,7 @@ codeunit 6468 "Serv. Doc. Exchange Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Incoming Document", 'OnAfterClearRelatedRecords', '', true, false)]
-    local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
+    local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: BigInteger)
     var
         ServiceHeader: Record "Service Header";
     begin

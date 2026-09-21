@@ -17,7 +17,7 @@ table 5637 "FA G/L Posting Buffer"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
@@ -60,7 +60,7 @@ table 5637 "FA G/L Posting Buffer"
             OptionCaption = ' ,Fixed Asset,Maintenance';
             OptionMembers = " ","Fixed Asset",Maintenance;
         }
-        field(8; "FA Entry No."; Integer)
+        field(8; "FA Entry No."; BigInteger)
         {
             Caption = 'FA Entry No.';
             DataClassification = SystemMetadata;

@@ -1017,7 +1017,7 @@ codeunit 825 "Sales Post Invoice Events"
     /// <param name="PreviewMode">Indicates whether the posting is in preview mode.</param>
     /// <param name="SuppressCommit">Indicates whether to suppress database commits.</param>
     /// <param name="GLEntryNo">The general ledger entry number that was created.</param>
-    procedure RunOnPostLinesOnAfterGenJnlLinePost(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; SuppressCommit: Boolean; GLEntryNo: Integer)
+    procedure RunOnPostLinesOnAfterGenJnlLinePost(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; SuppressCommit: Boolean; GLEntryNo: BigInteger)
     begin
         OnPostLinesOnAfterGenJnlLinePost(GenJnlLine, SalesHeader, TempInvoicePostingBuffer, GenJnlPostLine, PreviewMode, SuppressCommit, GLEntryNo);
     end;
@@ -1033,7 +1033,7 @@ codeunit 825 "Sales Post Invoice Events"
     /// <param name="SuppressCommit">Indicates whether to suppress database commits.</param>
     /// <param name="GLEntryNo">The general ledger entry number that was created.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnPostLinesOnAfterGenJnlLinePost(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; SuppressCommit: Boolean; GLEntryNo: Integer)
+    local procedure OnPostLinesOnAfterGenJnlLinePost(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; TempInvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; SuppressCommit: Boolean; GLEntryNo: BigInteger)
     begin
     end;
 
@@ -1524,7 +1524,7 @@ codeunit 825 "Sales Post Invoice Events"
     begin
     end;
 
-    internal procedure RunOnPostLinesOnAfterPostJobSalesLines(var SalesHeader: Record "Sales Header"; var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var GLEntryNo: Integer; var InvoicePostingParameters: Record "Invoice Posting Parameters")
+    internal procedure RunOnPostLinesOnAfterPostJobSalesLines(var SalesHeader: Record "Sales Header"; var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var GLEntryNo: BigInteger; var InvoicePostingParameters: Record "Invoice Posting Parameters")
     begin
         OnPostLinesOnAfterPostJobSalesLines(SalesHeader, TempInvoicePostingBuffer, TotalSalesLine, TotalSalesLineLCY, GLEntryNo, InvoicePostingParameters);
     end;
@@ -1539,7 +1539,7 @@ codeunit 825 "Sales Post Invoice Events"
     /// <param name="GLEntryNo">The general ledger entry number.</param>
     /// <param name="InvoicePostingParameters">The invoice posting parameters.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnPostLinesOnAfterPostJobSalesLines(var SalesHeader: Record "Sales Header"; var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var GLEntryNo: Integer; var InvoicePostingParameters: Record "Invoice Posting Parameters")
+    local procedure OnPostLinesOnAfterPostJobSalesLines(var SalesHeader: Record "Sales Header"; var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var GLEntryNo: BigInteger; var InvoicePostingParameters: Record "Invoice Posting Parameters")
     begin
     end;
 }

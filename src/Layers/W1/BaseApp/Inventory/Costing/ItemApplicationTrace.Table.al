@@ -102,7 +102,7 @@ table 5812 "Item Application Trace"
             until AppliedItemLedgerEntry.Next() = 0;
     end;
 
-    procedure AddChain(FromItemLedgerEntryNo: Integer; var ItemApplicationTrace: Record "Item Application Trace")
+    procedure AddChain(FromItemLedgerEntryNo: BigInteger; var ItemApplicationTrace: Record "Item Application Trace")
     begin
         if ItemApplicationTrace.FindSet() then
             repeat

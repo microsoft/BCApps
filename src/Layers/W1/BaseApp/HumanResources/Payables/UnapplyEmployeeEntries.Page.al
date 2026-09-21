@@ -241,7 +241,7 @@ page 625 "Unapply Employee Entries"
         NothingToApplyErr: Label 'There is nothing to unapply.';
         UnapplyEntriesQst: Label 'To unapply these entries, correcting entries will be posted.\Do you want to unapply the entries?';
 
-    procedure SetDtldEmplLedgEntry(EntryNo: Integer)
+    procedure SetDtldEmplLedgEntry(EntryNo: BigInteger)
     begin
         DtldEmplLedgEntry2.Get(EntryNo);
         EmplLedgEntryNo := DtldEmplLedgEntry2."Employee Ledger Entry No.";

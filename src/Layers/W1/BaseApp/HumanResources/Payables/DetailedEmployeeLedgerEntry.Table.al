@@ -283,7 +283,7 @@ table 5223 "Detailed Employee Ledger Entry"
         "Ledger Entry Amount" := not ("Entry Type" = "Entry Type"::Application);
     end;
 
-    procedure GetUnrealizedGainLossAmount(EntryNo: Integer): Decimal
+    procedure GetUnrealizedGainLossAmount(EntryNo: BigInteger): Decimal
     begin
         SetCurrentKey("Employee Ledger Entry No.", "Entry Type");
         SetRange("Employee Ledger Entry No.", EntryNo);

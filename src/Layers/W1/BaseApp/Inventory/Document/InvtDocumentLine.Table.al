@@ -1081,7 +1081,7 @@ table 5851 "Invt. Document Line"
             UnitCost := Round(UnitCost, GLSetup."Unit-Amount Rounding Precision");
     end;
 
-    local procedure CalcUnitCost(ItemLedgEntryNo: Integer): Decimal
+    local procedure CalcUnitCost(ItemLedgEntryNo: BigInteger): Decimal
     var
         ValueEntry: Record "Value Entry";
     begin

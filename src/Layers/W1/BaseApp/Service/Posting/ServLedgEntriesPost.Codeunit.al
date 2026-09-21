@@ -1148,7 +1148,7 @@ codeunit 5912 "ServLedgEntries-Post"
         exit(false);
     end;
 
-    local procedure CopyServicedInfoFromServiceLedgerEntry(var ServiceLedgerEntry: Record "Service Ledger Entry"; EntryNo: Integer): Boolean
+    local procedure CopyServicedInfoFromServiceLedgerEntry(var ServiceLedgerEntry: Record "Service Ledger Entry"; EntryNo: BigInteger): Boolean
     var
         SourceServiceLedgerEntry: Record "Service Ledger Entry";
     begin

@@ -778,7 +778,7 @@ table 130 "Incoming Document"
         CreateGeneralJournalLineWithDataExchange();
     end;
 
-    procedure RemoveReferenceToWorkingDocument(EntryNo: Integer)
+    procedure RemoveReferenceToWorkingDocument(EntryNo: BigInteger)
     begin
         if EntryNo = 0 then
             exit;
@@ -1265,7 +1265,7 @@ table 130 "Incoming Document"
         PAGE.Run(PAGE::"Incoming Document", Rec);
     end;
 
-    procedure ShowCardFromEntryNo(EntryNo: Integer)
+    procedure ShowCardFromEntryNo(EntryNo: BigInteger)
     begin
         if EntryNo = 0 then
             exit;
@@ -1504,7 +1504,7 @@ table 130 "Incoming Document"
 
     procedure SaveErrorMessages(var TempErrorMessageRef: Record "Error Message" temporary)
     var
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if not TempErrorMessageRef.FindSet() then
             exit;
@@ -2366,7 +2366,7 @@ table 130 "Incoming Document"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
+    local procedure OnTestIfAlreadyExists(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: BigInteger)
     begin
     end;
 
@@ -2376,7 +2376,7 @@ table 130 "Incoming Document"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: Integer)
+    local procedure OnAfterClearRelatedRecords(IncomingRelatedDocumentType: Enum "Incoming Related Document Type"; EntryNo: BigInteger)
     begin
     end;
 

@@ -1030,7 +1030,7 @@ table 1294 "Applied Payment Entry"
     /// <param name="BankStmtMatchingBuffer">Matching buffer containing the identified payment candidate details.</param>
     /// <param name="TextMapperAmount">Amount determined by text-to-account mapping rules; zero if not applicable.</param>
     /// <param name="EntryNo">Entry number of the target ledger entry for application.</param>
-    procedure ApplyFromBankStmtMatchingBuf(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; TextMapperAmount: Decimal; EntryNo: Integer)
+    procedure ApplyFromBankStmtMatchingBuf(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; TextMapperAmount: Decimal; EntryNo: BigInteger)
     var
         BankPmtApplRule: Record "Bank Pmt. Appl. Rule";
     begin
@@ -1189,7 +1189,7 @@ table 1294 "Applied Payment Entry"
         end;
     end;
 
-    local procedure ClearCustApplicationData(EntryNo: Integer)
+    local procedure ClearCustApplicationData(EntryNo: BigInteger)
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
     begin
@@ -1201,7 +1201,7 @@ table 1294 "Applied Payment Entry"
         CODEUNIT.Run(CODEUNIT::"Cust. Entry-Edit", CustLedgEntry);
     end;
 
-    local procedure ClearVendApplicationData(EntryNo: Integer)
+    local procedure ClearVendApplicationData(EntryNo: BigInteger)
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
@@ -1213,7 +1213,7 @@ table 1294 "Applied Payment Entry"
         CODEUNIT.Run(CODEUNIT::"Vend. Entry-Edit", VendLedgEntry);
     end;
 
-    local procedure ClearEmployeeApplicationData(EntryNo: Integer)
+    local procedure ClearEmployeeApplicationData(EntryNo: BigInteger)
     var
         EmployeeLedgEntry: Record "Employee Ledger Entry";
     begin
@@ -1409,7 +1409,7 @@ table 1294 "Applied Payment Entry"
     /// <param name="EntryNo">The entry number.</param>
     /// <param name="AppliedPaymentEntry">The applied payment entry record being inserted.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnApplyFromBankStmtMatchingBufOnBeforeInsert(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; TextMapperAmount: Decimal; EntryNo: Integer; var AppliedPaymentEntry: Record "Applied Payment Entry")
+    local procedure OnApplyFromBankStmtMatchingBufOnBeforeInsert(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; BankStmtMatchingBuffer: Record "Bank Statement Matching Buffer"; TextMapperAmount: Decimal; EntryNo: BigInteger; var AppliedPaymentEntry: Record "Applied Payment Entry")
     begin
     end;
 

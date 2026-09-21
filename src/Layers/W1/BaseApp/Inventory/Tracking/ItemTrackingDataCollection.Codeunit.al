@@ -651,7 +651,7 @@ codeunit 6501 "Item Tracking Data Collection"
     procedure AddSelectedTrackingToDataSet(var TempEntrySummary: Record "Entry Summary" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; CurrentSignFactor: Integer)
     var
         TrackingSpecification2: Record "Tracking Specification";
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         ChangeType: Option Insert,Modify,Delete;
     begin
         TempEntrySummary.Reset();
@@ -848,7 +848,7 @@ codeunit 6501 "Item Tracking Data Collection"
 
     local procedure UpdateTempSummaryWithChange(var TempChangedEntrySummary: Record "Entry Summary" temporary)
     var
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         SumOfSNPendingQuantity: Decimal;
         SumOfSNRequestedQuantity: Decimal;
         IsHandled: Boolean;

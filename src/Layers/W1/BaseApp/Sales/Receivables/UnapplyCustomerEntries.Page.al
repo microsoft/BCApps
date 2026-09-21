@@ -244,7 +244,7 @@ page 623 "Unapply Customer Entries"
     /// Sets the detailed customer ledger entry to be unapplied and initializes related page variables.
     /// </summary>
     /// <param name="EntryNo">The entry number of the detailed customer ledger entry to unapply.</param>
-    procedure SetDtldCustLedgEntry(EntryNo: Integer)
+    procedure SetDtldCustLedgEntry(EntryNo: BigInteger)
     begin
         DtldCustLedgEntry2.Get(EntryNo);
         CustLedgEntryNo := DtldCustLedgEntry2."Cust. Ledger Entry No.";

@@ -6341,7 +6341,7 @@ table 36 "Sales Header"
         OnAfterGetStatusStyleText(Rec, StatusStyleText);
     end;
 
-    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: Integer)
+    local procedure CreateTempAdjmtValueEntries(var TempValueEntry: Record "Value Entry" temporary; ItemLedgEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin

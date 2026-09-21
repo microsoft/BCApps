@@ -239,7 +239,7 @@ page 624 "Unapply Vendor Entries"
         PostingDate: Date;
         VendLedgEntryNo: BigInteger;
 
-    procedure SetDtldVendLedgEntry(EntryNo: Integer)
+    procedure SetDtldVendLedgEntry(EntryNo: BigInteger)
     begin
         DtldVendLedgEntry2.Get(EntryNo);
         VendLedgEntryNo := DtldVendLedgEntry2."Vendor Ledger Entry No.";

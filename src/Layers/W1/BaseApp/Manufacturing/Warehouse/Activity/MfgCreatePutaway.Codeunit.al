@@ -61,7 +61,7 @@ codeunit 99000893 "Mfg. Create Put-away"
         LineNo: Integer;
         OldLineNo: Integer;
         BreakbulkNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         SortActivity: Enum "Whse. Activity Sorting Method";
         CalledFromPutAwayWorksheet: Boolean;
         CrossDockInfo: Option;

@@ -38,7 +38,7 @@ codeunit 5350 "CRM Statistics Job"
         DeleteAccountStatisticsFailedMsg: Label 'Failed to delete account statistics: %1', Locked = true;
         CustomerRecordDeletedMsg: Label 'The local customer record have been deleted.', Locked = true;
 
-    local procedure UpdateStatisticsAndInvoices(JobLogEntryNo: Integer)
+    local procedure UpdateStatisticsAndInvoices(JobLogEntryNo: BigInteger)
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
         ConnectionName: Text;
@@ -59,7 +59,7 @@ codeunit 5350 "CRM Statistics Job"
         CRMConnectionSetup.UnregisterConnectionWithName(ConnectionName);
     end;
 
-    local procedure UpdateAccountStatistics(JobLogEntryNo: Integer)
+    local procedure UpdateAccountStatistics(JobLogEntryNo: BigInteger)
     var
         CRMIntegrationRecord: Record "CRM Integration Record";
         CRMSynchStatus: Record "CRM Synch Status";
@@ -195,7 +195,7 @@ codeunit 5350 "CRM Statistics Job"
         OnAfterAddCustomersWithLinesActivity(StartDateTime, CustomerNumbers);
     end;
 
-    local procedure UpdateInvoices(JobLogEntryNo: Integer)
+    local procedure UpdateInvoices(JobLogEntryNo: BigInteger)
     var
         IntegrationTableSynch: Codeunit "Integration Table Synch.";
         SynchActionType: Option "None",Insert,Modify,ForceModify,IgnoreUnchanged,Fail,Skip,Delete;
@@ -379,7 +379,7 @@ codeunit 5350 "CRM Statistics Job"
         end;
     end;
 
-    local procedure UpdateInvoice(CustLedgEntryNo: Integer; var UnexpectedErrorDetected: Boolean): Integer
+    local procedure UpdateInvoice(CustLedgEntryNo: BigInteger; var UnexpectedErrorDetected: Boolean): Integer
     var
         CRMIntegrationRecord: Record "CRM Integration Record";
         CRMInvoice: Record "CRM Invoice";

@@ -49,7 +49,7 @@ codeunit 212 "Res. Jnl.-Post Line"
 
     local procedure "Code"()
     var
-        xNextEntryNo: Integer;
+        xNextEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         xNextEntryNo := NextEntryNo;

@@ -881,7 +881,7 @@ table 382 "CV Ledger Entry Buffer"
     /// <param name="AmountLCY">Amount in local currency used to close the entry</param>
     /// <param name="CurrencyCode">Currency code of the closing amount</param>
     /// <param name="CurrencyAmount">Currency amount used to close the entry</param>
-    procedure SetClosedFields(EntryNo: Integer; PostingDate: Date; NewAmount: Decimal; AmountLCY: Decimal; CurrencyCode: Code[10]; CurrencyAmount: Decimal)
+    procedure SetClosedFields(EntryNo: BigInteger; PostingDate: Date; NewAmount: Decimal; AmountLCY: Decimal; CurrencyCode: Code[10]; CurrencyAmount: Decimal)
     begin
         "Closed by Entry No." := EntryNo;
         "Closed at Date" := PostingDate;

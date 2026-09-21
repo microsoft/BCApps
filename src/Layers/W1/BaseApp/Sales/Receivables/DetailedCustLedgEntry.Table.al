@@ -526,7 +526,7 @@ table 379 "Detailed Cust. Ledg. Entry"
     /// </summary>
     /// <param name="EntryNo">The customer ledger entry number to calculate unrealized gain/loss for.</param>
     /// <returns>The total unrealized gain/loss amount in local currency.</returns>
-    procedure GetUnrealizedGainLossAmount(EntryNo: Integer): Decimal
+    procedure GetUnrealizedGainLossAmount(EntryNo: BigInteger): Decimal
     begin
         SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
         SetRange("Cust. Ledger Entry No.", EntryNo);

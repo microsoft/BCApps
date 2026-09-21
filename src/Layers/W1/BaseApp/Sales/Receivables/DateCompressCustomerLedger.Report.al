@@ -400,7 +400,7 @@ report 198 "Date Compress Customer Ledger"
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
         FoundLastEntryNo: BigInteger;
-        FoundLastLedgEntryNo: Integer;
+        FoundLastLedgEntryNo: BigInteger;
         LastTransactionNo: BigInteger;
     begin
         GLEntry.Init();

@@ -55,7 +55,7 @@ codeunit 5940 ServContractManagement
         ServLineNo: Integer;
         NextEntryNo: BigInteger;
         PrevEntryNo: BigInteger;
-        AppliedEntryNo: Integer;
+        AppliedEntryNo: BigInteger;
         AmountType: Option ,Amount,DiscAmount,UnitPrice,UnitCost;
         TempServLedgEntriesIsSet: Boolean;
 
@@ -884,7 +884,7 @@ codeunit 5940 ServContractManagement
         OnAfterCreateOrGetCreditHeader(ServHeader2, ServContract);
     end;
 
-    local procedure CreateCreditLine(CreditNo: Code[20]; AccountNo: Code[20]; CreditAmount: Decimal; PeriodStarts: Date; PeriodEnds: Date; LineDescription: Text[100]; ServItemNo: Code[20]; ServContract: Record "Service Contract Header"; CreditCost: Decimal; CreditUnitPrice: Decimal; DiscAmount: Decimal; ApplyDiscAmt: Boolean; ServLedgEntryNo: Integer)
+    local procedure CreateCreditLine(CreditNo: Code[20]; AccountNo: Code[20]; CreditAmount: Decimal; PeriodStarts: Date; PeriodEnds: Date; LineDescription: Text[100]; ServItemNo: Code[20]; ServContract: Record "Service Contract Header"; CreditCost: Decimal; CreditUnitPrice: Decimal; DiscAmount: Decimal; ApplyDiscAmt: Boolean; ServLedgEntryNo: BigInteger)
     var
         ServHeader2: Record "Service Header";
         ServLine2: Record "Service Line";
@@ -2518,7 +2518,7 @@ codeunit 5940 ServContractManagement
         var PartInvoiceFrom: Date;
         var PartInvoiceTo: Date)
     var
-        ServiceApplyEntryNo: Integer;
+        ServiceApplyEntryNo: BigInteger;
     begin
         if (ServiceContractLine."Starting Date" < ServiceContractHeader."Next Invoice Date") and
            (ServiceContractLine."Invoiced to Date" = 0D) and (WorkDate() < ServiceContractHeader."Next Invoice Date")

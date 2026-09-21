@@ -456,7 +456,7 @@ report 91 "Export Consolidation"
 
     local procedure WriteFile(var GLEntry2: Record "G/L Entry"; var DimBuf: Record "Dimension Buffer")
     var
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
     begin
         case FileFormat of
             FileFormat::"Version 4.00 or Later (.xml)":

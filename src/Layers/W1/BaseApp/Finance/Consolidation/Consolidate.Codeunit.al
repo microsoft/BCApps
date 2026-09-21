@@ -549,7 +549,7 @@ codeunit 432 Consolidate
     /// </summary>
     /// <param name="NewDimBuf">Dimension buffer containing dimension values for the G/L Entry</param>
     /// <param name="GLEntryNo">Entry number of the G/L Entry to associate dimensions with</param>
-    procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: Integer)
+    procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: BigInteger)
     begin
         if TempSubsidDimBuf.Get(NewDimBuf."Table ID", GLEntryNo, NewDimBuf."Dimension Code") then begin
             if NewDimBuf."Dimension Value Code" <> TempSubsidDimBuf."Dimension Value Code" then

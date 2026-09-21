@@ -380,7 +380,7 @@ table 570 "G/L Account Category"
         Delete(true);
     end;
 
-    local procedure DeleteChildren(ParentEntryNo: Integer)
+    local procedure DeleteChildren(ParentEntryNo: BigInteger)
     var
         GLAccountCategory: Record "G/L Account Category";
     begin

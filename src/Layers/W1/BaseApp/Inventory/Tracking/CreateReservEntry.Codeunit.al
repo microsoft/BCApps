@@ -50,7 +50,7 @@ codeunit 99000830 "Create Reserv. Entry"
         Text001: Label 'Cannot match item tracking.';
 #pragma warning restore AA0074
 
-    procedure CreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: Integer; Status: Enum "Reservation Status")
+    procedure CreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: BigInteger; Status: Enum "Reservation Status")
     var
         ReservEntry: Record "Reservation Entry";
         ReservEntry2: Record "Reservation Entry";
@@ -222,7 +222,7 @@ codeunit 99000830 "Create Reserv. Entry"
         CreateEntry(ItemNo, VariantCode, LocationCode, Description, ExpectedReceiptDate, ShipmentDate, 0, ReservationStatus::Reservation);
     end;
 
-    procedure CreateReservEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferedFromEntryNo: Integer)
+    procedure CreateReservEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferedFromEntryNo: BigInteger)
     var
         ReservationStatus: Enum "Reservation Status";
     begin
@@ -967,17 +967,17 @@ codeunit 99000830 "Create Reserv. Entry"
         end;
     end;
 
-    procedure SetItemLedgEntryNo(EntryNo: Integer)
+    procedure SetItemLedgEntryNo(EntryNo: BigInteger)
     begin
         InsertReservEntry."Item Ledger Entry No." := EntryNo;
     end;
 
-    procedure SetApplyToEntryNo(EntryNo: Integer)
+    procedure SetApplyToEntryNo(EntryNo: BigInteger)
     begin
         InsertReservEntry."Appl.-to Item Entry" := EntryNo;
     end;
 
-    procedure SetApplyFromEntryNo(EntryNo: Integer)
+    procedure SetApplyFromEntryNo(EntryNo: BigInteger)
     begin
         InsertReservEntry."Appl.-from Item Entry" := EntryNo;
     end;
@@ -1029,7 +1029,7 @@ codeunit 99000830 "Create Reserv. Entry"
         until ReservEntry."Source Ref. No." = CurrSourceRefNo;
     end;
 
-    local procedure SynchronizeTransferOutboundToInboundItemTracking(ReservationEntryNo: Integer)
+    local procedure SynchronizeTransferOutboundToInboundItemTracking(ReservationEntryNo: BigInteger)
     var
         FromReservationEntry: Record "Reservation Entry";
         ToReservationEntry: Record "Reservation Entry";
@@ -1350,7 +1350,7 @@ codeunit 99000830 "Create Reserv. Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: Integer; Status: Enum "Reservation Status")
+    local procedure OnBeforeCreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: BigInteger; Status: Enum "Reservation Status")
     begin
     end;
 

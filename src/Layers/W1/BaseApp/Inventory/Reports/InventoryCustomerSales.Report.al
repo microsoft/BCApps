@@ -394,7 +394,7 @@ report 713 "Inventory - Customer Sales"
 #endif
         TableFiltersTxt: Label '%1: %2', Locked = true;
 
-    local procedure CalcDiscountAmount(ItemLedgerEntryNo: Integer): Decimal
+    local procedure CalcDiscountAmount(ItemLedgerEntryNo: BigInteger): Decimal
     var
         ValueEntry: Record "Value Entry";
     begin

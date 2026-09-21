@@ -461,7 +461,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobSalesLine: Record "Sales Line";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         LineCount: Integer;
     begin
         SalesHeader := DocumentHeaderVar;

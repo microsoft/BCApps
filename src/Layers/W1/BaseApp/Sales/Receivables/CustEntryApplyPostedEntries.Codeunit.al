@@ -672,7 +672,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// </summary>
     /// <param name="TempAppliedCustLedgerEntry">Returns a temporary table containing the applied customer ledger entries.</param>
     /// <param name="CustLedgerEntryNo">Specifies the customer ledger entry number to find applied entries for.</param>
-    procedure GetAppliedCustLedgerEntries(var TempAppliedCustLedgerEntry: Record "Cust. Ledger Entry" temporary; CustLedgerEntryNo: Integer)
+    procedure GetAppliedCustLedgerEntries(var TempAppliedCustLedgerEntry: Record "Cust. Ledger Entry" temporary; CustLedgerEntryNo: BigInteger)
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         ApplnDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";

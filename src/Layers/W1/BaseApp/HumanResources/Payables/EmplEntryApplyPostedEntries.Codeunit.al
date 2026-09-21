@@ -231,7 +231,7 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         UnApplyEmployee(DtldEmplLedgEntry);
     end;
 
-    procedure CheckEmployeeLedgerEntryToUnapply(EmployeeLedgerEntryNo: Integer; var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
+    procedure CheckEmployeeLedgerEntryToUnapply(EmployeeLedgerEntryNo: BigInteger; var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
     var
         ApplicationEntryNo: BigInteger;
     begin

@@ -698,7 +698,7 @@ codeunit 23 "Item Jnl.-Post Batch"
         SKU.Modify();
     end;
 
-    local procedure CheckRemainingQty(AppliesToEntryNo: Integer; PostingDate: Date)
+    local procedure CheckRemainingQty(AppliesToEntryNo: BigInteger; PostingDate: Date)
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         RemainingQty: Decimal;
@@ -983,7 +983,7 @@ codeunit 23 "Item Jnl.-Post Batch"
         InvtAdjmtHandler.MakeAutomaticInventoryAdjustment(ItemsToAdjust);
     end;
 
-    local procedure MoveItemJournalBatch(ItemRegisterNo: Integer)
+    local procedure MoveItemJournalBatch(ItemRegisterNo: BigInteger)
     var
         ItemRegister: Record "Item Register";
     begin

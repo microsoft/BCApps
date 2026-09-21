@@ -43,7 +43,7 @@ codeunit 5847 "Get Average Cost Calc Overview"
         ValueEntry: Record "Value Entry";
         Item: Record Item;
         CalendarPeriod: Record Date;
-        AttachedToEntryNo: Integer;
+        AttachedToEntryNo: BigInteger;
 
     procedure Calculate(var AvgCostCalcOverview: Record "Average Cost Calc. Overview")
     var

@@ -90,7 +90,7 @@ xmlport 1231 "Export Generic Fixed Width"
         DataExch: Record "Data Exch.";
         Window: Dialog;
         ErrorText: Text;
-        DataExchEntryNo: Integer;
+        DataExchEntryNo: BigInteger;
         LastLineNo: Integer;
         PrevColumnNo: Integer;
         QuitLoop: Boolean;

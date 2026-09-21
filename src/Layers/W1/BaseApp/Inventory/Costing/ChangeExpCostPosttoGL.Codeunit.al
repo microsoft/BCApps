@@ -111,7 +111,7 @@ codeunit 5811 "Change Exp. Cost Post. to G/L"
         Window.Close();
     end;
 
-    local procedure UpdatePostValueEntryToGL(ItemLedgEntryNo: Integer)
+    local procedure UpdatePostValueEntryToGL(ItemLedgEntryNo: BigInteger)
     var
         PostValueEntryToGL: Record "Post Value Entry to G/L";
         ValueEntry: Record "Value Entry";

@@ -440,7 +440,7 @@ report 400 "Remittance Advice - Entries"
             until DtldVendLedgEntry1.Next() = 0;
     end;
 
-    local procedure IsDiscountAppliedToPayment(VendLedgEntryNo: Integer; DocNo: Code[20]): Boolean
+    local procedure IsDiscountAppliedToPayment(VendLedgEntryNo: BigInteger; DocNo: Code[20]): Boolean
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
     begin
