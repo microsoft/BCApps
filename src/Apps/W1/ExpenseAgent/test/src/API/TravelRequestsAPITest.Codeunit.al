@@ -292,7 +292,7 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         TargetURL: Text;
     begin
-        // [SCENARIO 650247] The user-scoped header API maps LCY without bypassing currency validation.
+        // [SCENARIO] The user-scoped header API maps LCY without bypassing currency validation.
         Initialize();
 
         // [GIVEN] A linked expense user creating a travel request.
@@ -315,7 +315,7 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         TargetURL: Text;
     begin
-        // [SCENARIO 650247] The user-scoped detail API accepts LCY ISO codes and retains foreign-currency rules.
+        // [SCENARIO] The user-scoped detail API accepts LCY ISO codes and retains foreign-currency rules.
         Initialize();
 
         // [GIVEN] An open travel request owned by a linked expense user.
@@ -348,7 +348,7 @@ codeunit 148347 "Travel Requests API Test"
         RequestBody: Text;
         ResponseText: Text;
     begin
-        // [SCENARIO 650247] User-scoped POST and PATCH preserve and validate the final date pair.
+        // [SCENARIO] User-scoped POST and PATCH preserve and validate the final date pair.
         Initialize();
 
         // [GIVEN] A linked user and a future pair, with id first and end before start in the payload.
@@ -637,7 +637,7 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO 650247] The owner can be supplied on POST and resent unchanged on PATCH.
+        // [SCENARIO] The owner can be supplied on POST and resent unchanged on PATCH.
         Initialize();
 
         // [GIVEN] An expense user linked to an employee.
@@ -703,7 +703,7 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO 650247] PATCH cannot reassign a travel request or change its status.
+        // [SCENARIO] PATCH cannot reassign a travel request or change its status.
         Initialize();
 
         // [GIVEN] An open travel request and another expense user.
@@ -784,7 +784,7 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO 650247] The legacy endpoint cannot bypass travel request ownership protection.
+        // [SCENARIO] The legacy endpoint cannot bypass travel request ownership protection.
         Initialize();
 
         // [GIVEN] A travel request owned by one of two expense users.
