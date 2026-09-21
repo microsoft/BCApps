@@ -406,7 +406,6 @@ codeunit 140011 "Test FAB Config Package"
     procedure RegisterPackageSkipsReapplyWhenCapacityWouldBeExceeded()
     var
         Pkg: Record "Fabric Config Package";
-        PackageLine: Record "Fabric Config Package Line";
         TenantFabricTables: Record "Tenant Fabric Tables";
         FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
