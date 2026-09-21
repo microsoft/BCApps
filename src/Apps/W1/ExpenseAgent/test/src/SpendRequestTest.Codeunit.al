@@ -5,9 +5,11 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Employee;
 
 codeunit 148339 "Spend Request Test"
@@ -2171,6 +2173,7 @@ codeunit 148339 "Spend Request Test"
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Spend Request Test");
         CreateGeneralPostingSetup();
+        InitializeVATPostingSetup();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -2195,6 +2198,20 @@ codeunit 148339 "Spend Request Test"
         LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
         LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
         GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure InitializeVATPostingSetup()
+    var
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // Country helpers reuse this VAT template, including account references left by other tests.
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        if not GLAccount.Get(VATPostingSetup."Sales VAT Account") then
+            VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        if not GLAccount.Get(VATPostingSetup."Purchase VAT Account") then
+            VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure CreateExpenseReportWithRefundableLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseUser: Record "Expense User"; Refundable: Boolean)
