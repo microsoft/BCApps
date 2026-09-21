@@ -29,6 +29,7 @@ page 8352 "MCP Config Tool List"
                 field("Object Type"; Rec."Object Type")
                 {
                     ToolTip = 'Specifies the type of the object.';
+                    ValuesAllowed = Page, Query;
                 }
                 field("Object Id"; Rec."Object Id")
                 {

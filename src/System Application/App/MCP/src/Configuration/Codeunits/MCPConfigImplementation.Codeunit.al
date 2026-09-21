@@ -685,6 +685,10 @@ codeunit 8351 "MCP Config Implementation"
         SetAPIQueryFilters(ApiWebService);
         AddAPIObjectsFromWebService(ApiWebService, MCPAPIObjectBuffer, MCPAPIObjectBuffer."Object Type"::Query, false);
 
+        // API codeunits
+        Clear(ApiWebService);
+        SetAPICodeunitFilters(ApiWebService);
+        AddAPIObjectsFromWebService(ApiWebService, MCPAPIObjectBuffer, MCPAPIObjectBuffer."Object Type"::Codeunit, false);
     end;
 
     local procedure AddAPIObjectsFromWebService(var ApiWebService: Record "Api Web Service"; var MCPAPIObjectBuffer: Record "MCP API Object Buffer"; BufferObjectType: Option; ExcludeMicrosoftBeta: Boolean)
