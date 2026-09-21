@@ -137,13 +137,14 @@ codeunit 6926 "Expense Activity Log Mgt."
         Snapshot: Record "Expense Activity Log Entry";
         SummaryLbl: Label '%1. Failed policy checks: %2. Passed policy checks: %3.', Comment = '%1 = policy status, %2 = failed line-policy pairs, %3 = passed line-policy pairs';
     begin
-        // Both submission and line confirmation lock the header before reading the report's lines.
-        ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
-        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         if not ExpenseAgentSetup.Get() then
             exit;
         if not ExpenseAgentSetup."Evaluate Policies" then
             exit;
+
+        // Both submission and line confirmation lock the header before reading the report's lines.
+        ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         // Keep the same pending states as Expense Report Header.TestApprovalPending.
         if not (ExpenseReportHeader.Status in [ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status::"Interim Approved"]) then
             exit;
