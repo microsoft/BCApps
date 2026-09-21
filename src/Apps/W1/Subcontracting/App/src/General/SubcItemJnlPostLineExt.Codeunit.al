@@ -79,20 +79,6 @@ codeunit 20515 "Subc. ItemJnlPostLine Ext"
         CopyItemChargeNoForItemChargeSubAssign(ValueEntry, ItemJnlLine);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", OnBeforeCallFlushOperation, '', false, false)]
-    local procedure OnBeforeCallFlushOperation(var ItemJournalLine: Record "Item Journal Line"; var ShouldFlushOperation: Boolean)
-    begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-            exit;
-#endif
-
-        if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and ItemJournalLine.Subcontracting and (ItemJournalLine."Subc. Purch. Order No." <> '') then
-            ShouldFlushOperation := false;
-    end;
-
     local procedure UpdateProdOrderRoutingLine(var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
