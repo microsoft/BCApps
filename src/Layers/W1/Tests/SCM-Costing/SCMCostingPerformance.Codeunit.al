@@ -27,6 +27,8 @@ codeunit 133504 "SCM Costing Performance"
         NotLinearCCErr: Label 'Computational cost is not linear.';
         NotConstantCCErr: Label 'Computational cost must be constant.';
         OrderSelectionSubscriberFilter: Code[20];
+        SelectionItemsForSubscriber: List of [Code[20]];
+        SelectionReplacementItemNo: Code[20];
 
     local procedure Initialize()
     var
@@ -35,6 +37,9 @@ codeunit 133504 "SCM Costing Performance"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Costing Performance");
 
         LibraryVariableStorage.Clear();
+        Clear(OrderSelectionSubscriberFilter);
+        Clear(SelectionItemsForSubscriber);
+        Clear(SelectionReplacementItemNo);
         // Lazy Setup.
         if isInitialized then
             exit;
@@ -426,6 +431,90 @@ codeunit 133504 "SCM Costing Performance"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SelectedItemsRefreshBetweenAdjustmentRuns()
+    var
+        Item: array[3] of Record Item;
+        FilterItem: Record Item;
+        CostAdjustmentParameter: Record "Cost Adjustment Parameter";
+        CostAdjustmentParamsMgt: Codeunit "Cost Adjustment Params Mgt.";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+        ItemsToAdjust: List of [Code[20]];
+        ItemIndex: Integer;
+    begin
+        Initialize();
+        for ItemIndex := 1 to ArrayLen(Item) do begin
+            CreateOrderSelectionItem(Item[ItemIndex]);
+            Item[ItemIndex]."Cost is Adjusted" := false;
+            Item[ItemIndex].Modify();
+        end;
+        FilterItem.SetFilter("No.", '%1|%2|%3', Item[1]."No.", Item[2]."No.", Item[3]."No.");
+        InventoryAdjustment.SetFilterItem(FilterItem);
+        CostAdjustmentParameter."Online Adjustment" := true;
+        CostAdjustmentParameter."Skip Job Item Cost Update" := true;
+        CostAdjustmentParamsMgt.SetParameters(CostAdjustmentParameter);
+        ItemsToAdjust.Add(Item[1]."No.");
+        ItemsToAdjust.Add(Item[1]."No.");
+        CostAdjustmentParamsMgt.SetItemsToAdjust(ItemsToAdjust);
+
+        InventoryAdjustment.MakeMultiLevelAdjmt(CostAdjustmentParamsMgt);
+        VerifySelectedItemAdjusted(Item[1], true);
+        VerifySelectedItemAdjusted(Item[2], false);
+        VerifySelectedItemAdjusted(Item[3], false);
+
+        ItemsToAdjust.Set(1, Item[2]."No.");
+        ItemsToAdjust.Set(2, Item[2]."No.");
+        InventoryAdjustment.MakeMultiLevelAdjmt(CostAdjustmentParamsMgt);
+        VerifySelectedItemAdjusted(Item[2], true);
+        VerifySelectedItemAdjusted(Item[3], false);
+
+        Clear(ItemsToAdjust);
+        CostAdjustmentParamsMgt.SetItemsToAdjust(ItemsToAdjust);
+        InventoryAdjustment.MakeMultiLevelAdjmt(CostAdjustmentParamsMgt);
+        VerifySelectedItemAdjusted(Item[3], true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SelectedItemsReflectChangesBetweenDiscoveryPasses()
+    var
+        Item: Record Item;
+        OtherItem: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+    begin
+        Initialize();
+        CreateOrderSelectionItem(Item);
+        CreateOrderSelectionItem(OtherItem);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Assembly, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, OtherItem."No.", "Inventory Order Type"::Assembly, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, OtherItem."No.", "Inventory Order Type"::Production, 10000);
+        ItemsToAdjust.Add(Item."No.");
+        ItemsToAdjust.Add(Item."No.");
+        SelectionItemsForSubscriber := ItemsToAdjust;
+        SelectionReplacementItemNo := OtherItem."No.";
+        BindSubscription(this);
+        Item.SetFilter("No.", '%1|%2', Item."No.", OtherItem."No.");
+        InventoryAdjmtEntryOrder.Reset();
+
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        UnbindSubscription(this);
+        Assert.AreEqual(OtherItem."No.", ItemsToAdjust.Get(1), 'Subscriber must replace the shared selection.');
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Assembly, 10000, true);
+        VerifyOrderSelectionEntry(OtherItem."No.", "Inventory Order Type"::Assembly, 10000, false);
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Production, 10000, false);
+        VerifyOrderSelectionEntry(OtherItem."No.", "Inventory Order Type"::Production, 10000, true);
+    end;
+
+    local procedure VerifySelectedItemAdjusted(var Item: Record Item; ExpectedAdjusted: Boolean)
+    begin
+        Item.Get(Item."No.");
+        Assert.AreEqual(ExpectedAdjusted, Item."Cost is Adjusted", 'Selected item adjustment state');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure OrderSelectionRespectsItemAndOrderFilters()
     begin
         Initialize();
@@ -654,7 +743,12 @@ codeunit 133504 "SCM Costing Performance"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", 'OnWIPToAdjustExistOnAfterInventoryAdjmtEntryOrderSetFilters', '', false, false)]
     local procedure FilterProductionOrderSelection(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
     begin
-        InventoryAdjmtEntryOrder.SetRange("Order No.", OrderSelectionSubscriberFilter);
+        if OrderSelectionSubscriberFilter <> '' then
+            InventoryAdjmtEntryOrder.SetRange("Order No.", OrderSelectionSubscriberFilter);
+        if SelectionReplacementItemNo <> '' then begin
+            SelectionItemsForSubscriber.Set(1, SelectionReplacementItemNo);
+            SelectionItemsForSubscriber.Set(2, SelectionReplacementItemNo);
+        end;
     end;
 
     [Test]

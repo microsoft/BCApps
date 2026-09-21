@@ -2339,6 +2339,8 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
     local procedure CopyItemToItem(var FromItem: Record Item; var ToItem: Record Item)
     var
+        ItemsToAdjustLookup: Dictionary of [Code[20], Boolean];
+        SelectionChecked: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2353,9 +2355,8 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         FromItem.Ascending(false);
         if FromItem.FindSet() then
             repeat
-                if ItemsToAdjust.Count() > 0 then
-                    if not ItemsToAdjust.Contains(FromItem."No.") then
-                        continue;
+                if not IsItemSelected(FromItem."No.", ItemsToAdjustLookup, SelectionChecked) then
+                    continue;
                 ToItem."No." := FromItem."No.";
                 ToItem."Low-Level Code" := FromItem."Low-Level Code";
                 ToItem.Insert();
@@ -2376,24 +2377,48 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     local procedure CopyOrderAdmtEntryToOrderAdjmt(var FromInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ToInventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
+    var
+        ItemsToAdjustLookup: Dictionary of [Code[20], Boolean];
+        SelectionChecked: Boolean;
     begin
         ToInventoryAdjmtEntryOrder.Reset();
         ToInventoryAdjmtEntryOrder.DeleteAll();
         FromInventoryAdjmtEntryOrder.ReadIsolation(IsolationLevel::ReadUncommitted);
         if FromInventoryAdjmtEntryOrder.FindSet() then
             repeat
-                if CanAdjustInventoryAdjmtEntryOrder(FromInventoryAdjmtEntryOrder) then begin
+                if CanAdjustInventoryAdjmtEntryOrder(FromInventoryAdjmtEntryOrder, ItemsToAdjustLookup, SelectionChecked) then begin
                     ToInventoryAdjmtEntryOrder := FromInventoryAdjmtEntryOrder;
                     ToInventoryAdjmtEntryOrder.Insert();
                 end;
             until FromInventoryAdjmtEntryOrder.Next() = 0;
     end;
 
-    local procedure CanAdjustInventoryAdjmtEntryOrder(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"): Boolean
+    local procedure IsItemSelected(ItemNo: Code[20]; var ItemsToAdjustLookup: Dictionary of [Code[20], Boolean]; var SelectionChecked: Boolean): Boolean
+    var
+        SelectedItemNo: Code[20];
     begin
-        if ItemsToAdjust.Count() > 0 then
-            if not ItemsToAdjust.Contains(InventoryAdjmtEntryOrder."Item No.") then
-                exit(false);
+        if ItemsToAdjust.Count() = 0 then
+            exit(true);
+
+        // Avoid building a lookup for a single candidate or a single selected item.
+        if not SelectionChecked or (ItemsToAdjust.Count() = 1) then begin
+            SelectionChecked := true;
+            exit(ItemsToAdjust.Contains(ItemNo));
+        end;
+
+        // The lookup is local to each discovery pass so subscriber changes between passes remain visible.
+        if ItemsToAdjustLookup.Count() = 0 then
+            foreach SelectedItemNo in ItemsToAdjust do
+                if not ItemsToAdjustLookup.ContainsKey(SelectedItemNo) then
+                    ItemsToAdjustLookup.Add(SelectedItemNo, true);
+
+        exit(ItemsToAdjustLookup.ContainsKey(ItemNo));
+    end;
+
+    local procedure CanAdjustInventoryAdjmtEntryOrder(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ItemsToAdjustLookup: Dictionary of [Code[20], Boolean]; var SelectionChecked: Boolean): Boolean
+    begin
+        if not IsItemSelected(InventoryAdjmtEntryOrder."Item No.", ItemsToAdjustLookup, SelectionChecked) then
+            exit(false);
 
         FilterItem.ReadIsolation(IsolationLevel::ReadUncommitted);
         FilterItem.SetLoadFields("No.");
