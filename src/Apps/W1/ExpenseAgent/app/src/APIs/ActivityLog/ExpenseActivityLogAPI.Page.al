@@ -147,10 +147,6 @@ page 7122 "Expense Activity Log API"
                 {
                     Caption = 'History Actor Role';
                 }
-                field(policySnapshotPresent; Rec."Policy Snapshot Present")
-                {
-                    Caption = 'Policy Snapshot Present';
-                }
                 field(policyStatus; Rec."Policy Status")
                 {
                     Caption = 'Policy Status';
@@ -166,14 +162,6 @@ page 7122 "Expense Activity Log API"
                 field(flaggedCategories; Rec."Flagged Categories")
                 {
                     Caption = 'Flagged Categories';
-                }
-                field(flaggedCategoryCount; Rec."Flagged Category Count")
-                {
-                    Caption = 'Flagged Category Count';
-                }
-                field(latestPoliciesEvaluatedAt; Rec."Latest Policies Evaluated At")
-                {
-                    Caption = 'Latest Policies Evaluated At';
                 }
             }
         }

@@ -85,7 +85,6 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.AreNotEqual(0, StrPos(ResponseText, '"expensecount"'), 'Response must contain the expense count snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"attachedreceiptcount"'), 'Response must contain the attached receipt count snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"comment":"submitted for approval"'), 'Response must contain the event comment.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, '"policysnapshotpresent":false'), 'Old entries must not imply a policy snapshot.');
         CompleteTest();
     end;
 
@@ -447,13 +446,14 @@ codeunit 148343 "Expense Activity Log API Test"
         HistoryURL: Text;
         RunToken: Code[8];
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] The existing submission action exposes an immutable policy summary through the read-only activity API.
         Initialize();
 
         // [GIVEN] A report with a current failed policy result.
         RunToken := CreateRunToken();
         CreateE2ESetup(SubmitterExpenseUser, ApproverExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
+        ExpenseCategory.Description := TestDescriptionPrefixLbl + 'Meals "and" travel \ expenses';
+        ExpenseCategory.Modify(false);
         CreateE2EReport(ExpenseReportHeader, SubmitterExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Evaluate Policies" := true;
@@ -479,14 +479,14 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
         ExpenseActivityLogEntry.FindFirst();
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, ReportURL + '/' + ServiceNameTok, 200);
+        VerifyPolicyCategoryName(ResponseText, ExpenseCategory.Description);
         ResponseText := LowerCase(ResponseText);
-        Assert.AreNotEqual(0, StrPos(ResponseText, '"policysnapshotpresent":true'), 'The snapshot flag must be exposed.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"eventtype":"policyevaluated"'), 'The event type must identify the policy snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"policystatus":"flagged"'), 'The failed result must not be mapped to cleared.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"failedpolicycount":1'), 'The pair count must be exposed.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"passedpolicycount":0'), 'Passed pairs must be exposed separately.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"flaggedcategories"'), 'The category array text must be exposed.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, '"flaggedcategorycount":1'), 'The category count must be exposed.');
-        Assert.AreNotEqual(0, StrPos(ResponseText, '"latestpoliciesevaluatedat"'), 'The underlying evaluation timestamp must be explicit.');
+        Assert.AreNotEqual(0, StrPos(ResponseText, '"occurredat"'), 'The history event time must be exposed.');
 
         // [WHEN] Submitter and approver participation history is requested.
         HistoryURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
@@ -506,6 +506,35 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpensePolicy.Delete(true);
         LibrarySetupStorage.Restore();
         CompleteTest();
+    end;
+
+    local procedure VerifyPolicyCategoryName(ResponseText: Text; ExpectedCategoryName: Text[250])
+    var
+        Response: JsonObject;
+        EntriesToken: JsonToken;
+        EntryToken: JsonToken;
+        EventTypeToken: JsonToken;
+        CategoriesToken: JsonToken;
+        CategoryToken: JsonToken;
+        EntryObject: JsonObject;
+        Categories: JsonArray;
+        SnapshotCount: Integer;
+    begin
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The API response must be valid JSON.');
+        Response.Get('value', EntriesToken);
+        foreach EntryToken in EntriesToken.AsArray() do begin
+            EntryObject := EntryToken.AsObject();
+            EntryObject.Get('eventType', EventTypeToken);
+            if EventTypeToken.AsValue().AsText() = 'PolicyEvaluated' then begin
+                SnapshotCount += 1;
+                EntryObject.Get('flaggedCategories', CategoriesToken);
+                Assert.IsTrue(Categories.ReadFrom(CategoriesToken.AsValue().AsText()), 'The category text must decode as a JSON array.');
+                Assert.AreEqual(1, Categories.Count(), 'The snapshot must expose one category name.');
+                Categories.Get(0, CategoryToken);
+                Assert.AreEqual(ExpectedCategoryName, CategoryToken.AsValue().AsText(), 'The API must expose the captured display name, not its code.');
+            end;
+        end;
+        Assert.AreEqual(1, SnapshotCount, 'The response must contain exactly one policy snapshot.');
     end;
 
     local procedure CreateE2ESetup(

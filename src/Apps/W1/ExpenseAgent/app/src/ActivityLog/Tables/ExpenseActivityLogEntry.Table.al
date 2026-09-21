@@ -177,11 +177,6 @@ table 7100 "Expense Activity Log Entry"
             Caption = 'Expense Count';
             DataClassification = SystemMetadata;
         }
-        field(54; "Policy Snapshot Present"; Boolean)
-        {
-            Caption = 'Policy Snapshot Present';
-            DataClassification = SystemMetadata;
-        }
         field(55; "Policy Status"; Enum "Expense Policy Status")
         {
             Caption = 'Policy Status';
@@ -201,16 +196,6 @@ table 7100 "Expense Activity Log Entry"
         {
             Caption = 'Flagged Categories';
             DataClassification = CustomerContent;
-        }
-        field(59; "Flagged Category Count"; Integer)
-        {
-            Caption = 'Flagged Category Count';
-            DataClassification = SystemMetadata;
-        }
-        field(61; "Latest Policies Evaluated At"; DateTime)
-        {
-            Caption = 'Latest Policies Evaluated At';
-            DataClassification = SystemMetadata;
         }
         field(100; "History Actor Table ID Filter"; Integer)
         {

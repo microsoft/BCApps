@@ -169,7 +169,6 @@ codeunit 6926 "Expense Activity Log Mgt."
         if not AggregatePolicySnapshot(ExpenseReportHeader, Snapshot) then
             exit;
 
-        Snapshot."Policy Snapshot Present" := true;
         Snapshot."Occurred At" := CurrentDateTime();
         Snapshot.Comment := CopyStr(
             StrSubstNo(SummaryLbl, Format(Snapshot."Policy Status"), Snapshot."Failed Policy Count", Snapshot."Passed Policy Count"),
@@ -182,13 +181,17 @@ codeunit 6926 "Expense Activity Log Mgt."
         Line: Record "Expense Report Line";
         Policy: Record "Expense Policy";
         Evaluation: Record "Expense Policy Evaluation";
-        CategoryCodes: List of [Code[20]];
+        Category: Record "Expense Category";
+        CategoryNames: List of [Text];
+        CategoryName: Text[250];
         Categories: JsonArray;
         CategoriesText: Text;
+        CategoriesTruncated: Boolean;
     begin
         Line.ReadIsolation := IsolationLevel::RepeatableRead;
         Policy.ReadIsolation := IsolationLevel::RepeatableRead;
         Evaluation.ReadIsolation := IsolationLevel::RepeatableRead;
+        Line.SetCurrentKey("Document No.", "Line No.");
         Line.SetRange("Document No.", ExpenseReportHeader."No.");
         if Line.FindSet() then
             repeat
@@ -201,18 +204,20 @@ codeunit 6926 "Expense Activity Log Mgt."
                             exit(false);
                         if (Evaluation."Evaluated At" = 0DT) or (Evaluation."Evaluated At" > Line."Policies Evaluated At") then
                             exit(false);
-                        if Evaluation."Evaluated At" > Snapshot."Latest Policies Evaluated At" then
-                            Snapshot."Latest Policies Evaluated At" := Evaluation."Evaluated At";
                         if Evaluation.Compliant then
                             Snapshot."Passed Policy Count" += 1
                         else begin
                             Snapshot."Failed Policy Count" += 1;
-                            if (Line."Expense Category" <> '') and not CategoryCodes.Contains(Line."Expense Category") then begin
-                                CategoryCodes.Add(Line."Expense Category");
-                                Categories.Add(Line."Expense Category");
-                                Categories.WriteTo(CategoriesText);
-                                if StrLen(CategoriesText) > MaxStrLen(Snapshot."Flagged Categories") then
-                                    Categories.RemoveAt(Categories.Count() - 1);
+                            if (not CategoriesTruncated) and (Line."Expense Category" <> '') then begin
+                                CategoryName := Line."Expense Category";
+                                if Category.Get(Line."Expense Category") then
+                                    if Category.Description <> '' then
+                                        CategoryName := Category.Description;
+                                if not CategoryNames.Contains(CategoryName) then begin
+                                    CategoryNames.Add(CategoryName);
+                                    AddBoundedCategory(
+                                        Categories, CategoryName, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
+                                end;
                             end;
                         end;
                     until Policy.Next() = 0;
@@ -222,7 +227,6 @@ codeunit 6926 "Expense Activity Log Mgt."
                         exit(false);
             until Line.Next() = 0;
 
-        Snapshot."Flagged Category Count" := CategoryCodes.Count();
         Categories.WriteTo(CategoriesText);
         Snapshot."Flagged Categories" := CopyStr(CategoriesText, 1, MaxStrLen(Snapshot."Flagged Categories"));
         Snapshot."Policy Status" := Snapshot."Policy Status"::"No Policies";
@@ -355,7 +359,6 @@ codeunit 6926 "Expense Activity Log Mgt."
         Categories: JsonArray;
         CategoryCodes: List of [Code[20]];
         CategoriesText: Text;
-        CandidateCategoriesText: Text;
         CategoriesTruncated: Boolean;
     begin
         ExpenseReportLine.SetLoadFields("Expense Category", "Receipt Attached");
@@ -372,24 +375,32 @@ codeunit 6926 "Expense Activity Log Mgt."
                    (not CategoryCodes.Contains(ExpenseReportLine."Expense Category"))
                 then begin
                     CategoryCodes.Add(ExpenseReportLine."Expense Category");
-                    Categories.Add(ExpenseReportLine."Expense Category");
-                    Categories.WriteTo(CandidateCategoriesText);
-                    if StrLen(CandidateCategoriesText) > MaxStrLen(ExpenseActivityLogEntry.Categories) then begin
-                        Categories.RemoveAt(Categories.Count() - 1);
-                        Categories.Add('...');
-                        Categories.WriteTo(CandidateCategoriesText);
-                        while StrLen(CandidateCategoriesText) > MaxStrLen(ExpenseActivityLogEntry.Categories) do begin
-                            Categories.RemoveAt(Categories.Count() - 2);
-                            Categories.WriteTo(CandidateCategoriesText);
-                        end;
-                        CategoriesText := CandidateCategoriesText;
-                        CategoriesTruncated := true;
-                    end;
-                    CategoriesText := CandidateCategoriesText;
+                    AddBoundedCategory(
+                        Categories, ExpenseReportLine."Expense Category", MaxStrLen(ExpenseActivityLogEntry.Categories), CategoriesText, CategoriesTruncated);
                 end;
             until ExpenseReportLine.Next() = 0;
 
         ExpenseActivityLogEntry.Categories :=
             CopyStr(CategoriesText, 1, MaxStrLen(ExpenseActivityLogEntry.Categories));
+    end;
+
+    local procedure AddBoundedCategory(var Categories: JsonArray; CategoryName: Text; MaxLength: Integer; var CategoriesText: Text; var CategoriesTruncated: Boolean)
+    begin
+        if CategoriesTruncated then
+            exit;
+
+        Categories.Add(CategoryName);
+        Categories.WriteTo(CategoriesText);
+        if StrLen(CategoriesText) <= MaxLength then
+            exit;
+
+        Categories.RemoveAt(Categories.Count() - 1);
+        Categories.Add('...');
+        Categories.WriteTo(CategoriesText);
+        while StrLen(CategoriesText) > MaxLength do begin
+            Categories.RemoveAt(Categories.Count() - 2);
+            Categories.WriteTo(CategoriesText);
+        end;
+        CategoriesTruncated := true;
     end;
 }
