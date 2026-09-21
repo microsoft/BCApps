@@ -37,7 +37,9 @@ codeunit 144082 "UT Subcontracting"
         CompanyInfoCap: Label '%1 %2  ';
         NoItemCap: Label 'No_Item';
         ProductionBOMNoItemCap: Label 'ProductionBOMNo_Item';
+        ProdOrderCap: Label '%1 %2';
         ProdOrderNoCap: Label 'Purchase_Line_Prod__Order_No_';
+        RefProdOrdCap: Label 'RefProdOrd';
         RoutingNoItemCap: Label 'RoutingNo_Item';
         RoutingNoCap: Label 'Purchase_Line_Routing_No_';
         TransferShipmentHdrNoCap: Label 'Transfer_Shipment_Header_No_';
@@ -76,14 +78,17 @@ codeunit 144082 "UT Subcontracting"
     var
         CompanyInformation: Record "Company Information";
         TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
         No: Code[20];
+        ProdOrderNo: Code[20];
     begin
         // Purpose of the test is to validate generic header data in Report - 12154 Subcontract. Transfer Shipment.
 
         // Setup: Create Transfer Shipment Line and Update Company Information.
         Initialize();
         UpdateCompanyInformation();
-        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type"::Vendor);
+        ProdOrderNo := LibraryUTUtility.GetNewCode();
+        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type"::Vendor, ProdOrderNo);
         LibraryVariableStorage.Enqueue(No);  // Enqueue for SubcontractTransferShipmentRequestPageHandler.
         CompanyInformation.Get();
 
@@ -92,6 +97,8 @@ codeunit 144082 "UT Subcontracting"
 
         // Verify: Verify generic values of report 12154 Subcontract. Transfer Shipment.
         LibraryReportDataset.AssertElementWithValueExists(TransferShipmentHdrNoCap, No);
+        LibraryReportDataset.AssertElementWithValueExists(
+            RefProdOrdCap, StrSubstNo(ProdOrderCap, TransferShipmentLine.FieldCaption("Prod. Order No."), ProdOrderNo));
         LibraryReportDataset.AssertElementWithValueExists(
           CompanyTextCap, StrSubstNo(
             CompanyInfoCap, CompanyInformation.FieldCaption("Register Company No."), CompanyInformation."Register Company No."));
@@ -112,7 +119,7 @@ codeunit 144082 "UT Subcontracting"
         // Setup: Create Transfer Shipment Line and Update Company Information.
         Initialize();
         UpdateCompanyInformation();
-        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type");
+        No := CreateTransferShipmentLine(TransferShipmentHeader."Source Type", '');
         LibraryVariableStorage.Enqueue(No);  // Enqueue for SubcontractTransferShipmentRequestPageHandler.
         CompanyInformation.Get();
 
@@ -265,11 +272,12 @@ codeunit 144082 "UT Subcontracting"
         exit(RoutingLine."Routing No.");
     end;
 
-    local procedure CreateTransferShipmentLine(SourceType: Enum "Analysis Source Type"): Code[20]
+    local procedure CreateTransferShipmentLine(SourceType: Enum "Analysis Source Type"; ProdOrderNo: Code[20]): Code[20]
     var
         TransferShipmentLine: Record "Transfer Shipment Line";
     begin
         TransferShipmentLine."Document No." := CreateTransferShipmentHeader(SourceType);
+        TransferShipmentLine."Prod. Order No." := ProdOrderNo;
         TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
         TransferShipmentLine.Insert();
         exit(TransferShipmentLine."Document No.");

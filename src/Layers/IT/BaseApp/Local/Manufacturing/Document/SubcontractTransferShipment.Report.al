@@ -312,6 +312,9 @@ report 12154 "Subcontract. Transfer Shipment"
                         column(EmptyString; '')
                         {
                         }
+                        column(RefProdOrd; RefProdOrd)
+                        {
+                        }
                         column(Transfer_Shipment_Line__Transfer_Shipment_Line___Line_No__; "Transfer Shipment Line"."Line No.")
                         {
                         }
@@ -412,6 +415,15 @@ report 12154 "Subcontract. Transfer Shipment"
                             if not MoreLines then
                                 CurrReport.Break();
                             SetRange("Line No.", 0, "Line No.");
+                        end;
+
+                        trigger OnAfterGetRecord()
+                        begin
+                            if ("Prod. Order No." <> PrevProdOrd) and ("Prod. Order No." <> '') then begin
+                                PrevProdOrd := "Prod. Order No.";
+                                RefProdOrd := FieldCaption("Prod. Order No.") + ' ' + "Prod. Order No.";
+                            end else
+                                RefProdOrd := '';
                         end;
                     }
                 }
@@ -553,6 +565,8 @@ report 12154 "Subcontract. Transfer Shipment"
         CopyText: Text[30];
         DimText: Text[120];
         OldDimText: Text[75];
+        RefProdOrd: Text[50];
+        PrevProdOrd: Code[20];
         MoreLines: Boolean;
         NoOfCopies: Integer;
         NoOfLoops: Integer;

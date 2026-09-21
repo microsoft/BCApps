@@ -248,21 +248,13 @@ table 5745 "Transfer Shipment Line"
             ObsoleteTag = '31.0';
 #endif
         }
+#endif
         field(12182; "Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
             TableRelation = "Production Order"."No." where(Status = const(Released));
-            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN28
-            ObsoleteState = Pending;
-#pragma warning disable AS0072
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
-#endif
         }
+#if not CLEANSCHEMA31
         field(12183; "Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No.';

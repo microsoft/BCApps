@@ -46,6 +46,7 @@ codeunit 144083 "UT IT Transfer Shipment"
         TransferShipmentLine."Document No." := TransferShipmentHeader."No.";
         TransferShipmentLine."Line No." := 10000;
         TransferShipmentLine.Description := LibraryRandom.RandText(MaxStrLen(TransferShipmentLine.Description));
+        TransferShipmentLine."Prod. Order No." := LibraryRandom.RandText(MaxStrLen(TransferShipmentLine."Prod. Order No."));
         TransferShipmentLine.Quantity := LibraryRandom.RandDec(10, 2);
         TransferShipmentLine.Insert();
 
@@ -58,6 +59,9 @@ codeunit 144083 "UT IT Transfer Shipment"
             'Transfer_Shipment_Header_No_', TransferShipmentHeader."No.");
         LibraryReportDataset.AssertElementWithValueExists(
             'Transfer_Shipment_Header___Goods_Appearance_', TransferShipmentHeader."Goods Appearance");
+        LibraryReportDataset.AssertElementWithValueExists(
+            'RefProdOrd',
+            TransferShipmentLine.FieldCaption("Prod. Order No.") + ' ' + TransferShipmentLine."Prod. Order No.");
         LibraryVariableStorage.AssertEmpty();
     end;
 
