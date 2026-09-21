@@ -360,53 +360,24 @@ page 9802 "Permission Sets"
                     Caption = 'Remove Obsolete Permissions';
                     Enabled = CanManageUsersOnTenant;
                     Image = Delete;
-                    ToolTip = 'Remove permissions related to obsolete or removed objects. In online environments, only user-defined permission sets are updated.';
+                    ToolTip = 'Remove permissions related to obsolete or removed objects from tenant permission sets, including extension-owned permission sets.';
 
                     trigger OnAction()
                     var
                         TableMetadata: Record "Table Metadata";
-                        Permission: Record Permission;
                         TenantPermission: Record "Tenant Permission";
                         AllObjWithCaption: Record AllObjWithCaption;
-                        PermissionToDelete: Record Permission;
                         TenantPermissionToDelete: Record "Tenant Permission";
-                        EnvironmentInformation: Codeunit "Environment Information";
                         PermissionsCount: Integer;
-                        CanModifySystemPermissions: Boolean;
                     begin
-                        // The application database is read-only on SaaS infrastructure.
-                        CanModifySystemPermissions := not EnvironmentInformation.IsSaaSInfrastructure();
-
                         TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::Removed);
                         if TableMetadata.FindSet() then begin
-                            if CanModifySystemPermissions then
-                                Permission.SetRange("Object Type", Permission."Object Type"::"Table Data", Permission."Object Type"::Table);
                             TenantPermission.SetRange("Object Type", TenantPermission."Object Type"::"Table Data", TenantPermission."Object Type"::Table);
                             repeat
-                                if CanModifySystemPermissions then begin
-                                    Permission.SetRange("Object ID", TableMetadata.ID);
-                                    PermissionsCount += Permission.Count();
-                                    Permission.DeleteAll();
-                                end;
                                 TenantPermission.SetRange("Object ID", TableMetadata.ID);
                                 PermissionsCount += TenantPermission.Count();
                                 TenantPermission.DeleteAll();
                             until TableMetadata.Next() = 0;
-                        end;
-                        if CanModifySystemPermissions then begin
-                            Permission.SetFilter(
-                                "Object Type", '%1|%2|%3|%4|%5',
-                                Permission."Object Type"::Codeunit, Permission."Object Type"::Page, Permission."Object Type"::Query,
-                                Permission."Object Type"::Report, Permission."Object Type"::XMLport);
-                            Permission.SetFilter("Object ID", '<>0');
-                            if Permission.FindSet() then
-                                repeat
-                                    if not AllObjWithCaption.Get(Permission."Object Type", Permission."Object ID") then begin
-                                        PermissionToDelete.Get(Permission."Role ID", Permission."Object Type", Permission."Object ID");
-                                        PermissionToDelete.Delete();
-                                        PermissionsCount += 1;
-                                    end;
-                                until Permission.Next() = 0;
                         end;
                         TenantPermission.SetFilter(
                             "Object Type", '%1|%2|%3|%4|%5',

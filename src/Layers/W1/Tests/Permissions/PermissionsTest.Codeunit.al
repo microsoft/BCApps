@@ -728,7 +728,7 @@ codeunit 139400 "Permissions Test"
     [Scope('OnPrem')]
     procedure RemoveObsoletePermissionsOnSaaS()
     begin
-        // [SCENARIO] SaaS cleanup removes obsolete tenant permissions without modifying system permissions.
+        // [SCENARIO] SaaS cleanup removes obsolete tenant permissions for all app IDs without modifying system permissions.
         VerifyRemoveObsoletePermissions(true);
     end;
 
@@ -738,80 +738,85 @@ codeunit 139400 "Permissions Test"
     [Scope('OnPrem')]
     procedure RemoveObsoletePermissionsOnPrem()
     begin
-        // [SCENARIO] On-premises cleanup removes obsolete permissions from both system and tenant permission sets.
+        // [SCENARIO] On-premises cleanup removes obsolete tenant permissions for all app IDs without modifying system permissions.
         VerifyRemoveObsoletePermissions(false);
     end;
 
     local procedure VerifyRemoveObsoletePermissions(IsSaaS: Boolean)
     var
-        Permission: Record Permission;
-        TempObsoletePermission: Record Permission temporary;
-        TempRetainedPermission: Record Permission temporary;
+        SystemPermission: Record Permission;
+        TempObsoletePermission: Record "Tenant Permission" temporary;
+        TempRetainedPermission: Record "Tenant Permission" temporary;
         TenantPermission: Record "Tenant Permission";
-        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermissionSet: array[2] of Record "Tenant Permission Set";
         TableMetadata: Record "Table Metadata";
         AllObjWithCaption: Record AllObjWithCaption;
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        AppInfo: ModuleInfo;
+        Index: Integer;
         MissingCodeunitID: Integer;
+        SystemPermissionsCount: Integer;
         RemainingPermissionsCount: Integer;
     begin
         LibraryVariableStorage.Clear();
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        SystemPermissionsCount := SystemPermission.Count();
 
-        // [GIVEN] System and tenant permissions for a removed table and a missing codeunit.
-        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet, '', NullGuid);
+        // [GIVEN] User-defined and extension-owned tenant permission sets with the same role ID.
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        Assert.IsFalse(IsNullGuid(AppInfo.Id), 'The test extension must have a non-empty App ID.');
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet[1], '', NullGuid);
+        LibraryPermissions.CreateTenantPermissionSet(TenantPermissionSet[2], TenantPermissionSet[1]."Role ID", AppInfo.Id);
+
         TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::Removed);
         Assert.IsTrue(TableMetadata.FindFirst(), 'The test requires a table with ObsoleteState=Removed.');
         MissingCodeunitID := 1;
-        while AllObjWithCaption.Get(Permission."Object Type"::Codeunit, MissingCodeunitID) do
+        while AllObjWithCaption.Get(TenantPermission."Object Type"::Codeunit, MissingCodeunitID) do
             MissingCodeunitID += 1;
-        AddCleanupPermissions(TempObsoletePermission, TenantPermissionSet."Role ID", Permission."Object Type"::"Table Data", TableMetadata.ID);
-        AddCleanupPermissions(TempObsoletePermission, TenantPermissionSet."Role ID", Permission."Object Type"::Table, TableMetadata.ID);
-        AddCleanupPermissions(TempObsoletePermission, TenantPermissionSet."Role ID", Permission."Object Type"::Codeunit, MissingCodeunitID);
+        for Index := 1 to ArrayLen(TenantPermissionSet) do begin
+            // [GIVEN] Permissions for a removed table and a missing codeunit in both permission sets.
+            AddCleanupTenantPermission(TempObsoletePermission, TenantPermissionSet[Index], TenantPermission."Object Type"::"Table Data", TableMetadata.ID);
+            AddCleanupTenantPermission(TempObsoletePermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Table, TableMetadata.ID);
+            AddCleanupTenantPermission(TempObsoletePermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Codeunit, MissingCodeunitID);
 
-        // [GIVEN] Permissions for existing objects and wildcard permissions that must be retained.
-        AddCleanupPermissions(TempRetainedPermission, TenantPermissionSet."Role ID", Permission."Object Type"::"Table Data", Database::Customer);
-        AddCleanupPermissions(TempRetainedPermission, TenantPermissionSet."Role ID", Permission."Object Type"::Table, Database::Customer);
-        AddCleanupPermissions(TempRetainedPermission, TenantPermissionSet."Role ID", Permission."Object Type"::Codeunit, Codeunit::"Permissions Test");
-        AddCleanupPermissions(TempRetainedPermission, TenantPermissionSet."Role ID", Permission."Object Type"::Codeunit, 0);
+            // [GIVEN] Permissions for existing objects and wildcard permissions that must be retained in both sets.
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::"Table Data", Database::Customer);
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Table, Database::Customer);
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Codeunit, Codeunit::"Permissions Test");
+            AddCleanupTenantPermission(TempRetainedPermission, TenantPermissionSet[Index], TenantPermission."Object Type"::Codeunit, 0);
+        end;
 
         // [WHEN] Obsolete permissions are removed.
         InvokeRemoveObsoletePermissions(IsSaaS);
 
-        // [THEN] Obsolete tenant permissions are removed, while system permissions are only removed on-premises.
+        // [THEN] Obsolete user-defined and extension-owned tenant permissions are removed, while system permissions are unchanged.
+        Assert.AreEqual(SystemPermissionsCount, SystemPermission.Count(), 'System permissions must not be removed in any environment.');
         TempObsoletePermission.FindSet();
         repeat
-            Assert.AreEqual(
-                IsSaaS, Permission.Get(TempObsoletePermission."Role ID", TempObsoletePermission."Object Type", TempObsoletePermission."Object ID"),
-                'Obsolete system permissions must only be removed on-premises.');
             Assert.IsFalse(
-                TenantPermission.Get(NullGuid, TempObsoletePermission."Role ID", TempObsoletePermission."Object Type", TempObsoletePermission."Object ID"),
+                TenantPermission.Get(TempObsoletePermission."App ID", TempObsoletePermission."Role ID", TempObsoletePermission."Object Type", TempObsoletePermission."Object ID"),
                 'Obsolete tenant permissions must be removed in every environment.');
         until TempObsoletePermission.Next() = 0;
 
-        // [THEN] Existing-object and wildcard permissions are unchanged in both tables.
+        // [THEN] Existing-object and wildcard tenant permissions are unchanged.
         TempRetainedPermission.FindSet();
         repeat
             Assert.IsTrue(
-                Permission.Get(TempRetainedPermission."Role ID", TempRetainedPermission."Object Type", TempRetainedPermission."Object ID"),
-                'System permissions for existing objects and wildcard permissions must be retained.');
-            Assert.IsTrue(
-                TenantPermission.Get(NullGuid, TempRetainedPermission."Role ID", TempRetainedPermission."Object Type", TempRetainedPermission."Object ID"),
+                TenantPermission.Get(TempRetainedPermission."App ID", TempRetainedPermission."Role ID", TempRetainedPermission."Object Type", TempRetainedPermission."Object ID"),
                 'Tenant permissions for existing objects and wildcard permissions must be retained.');
         until TempRetainedPermission.Next() = 0;
 
-        // [THEN] Repeating cleanup reports nothing to remove, even when obsolete system permissions remain in SaaS.
-        RemainingPermissionsCount := Permission.Count() + TenantPermission.Count();
+        // [THEN] Repeating cleanup reports nothing to remove and leaves all remaining permissions unchanged.
+        RemainingPermissionsCount := TenantPermission.Count();
         InvokeRemoveObsoletePermissions(IsSaaS);
-        Assert.AreEqual(RemainingPermissionsCount, Permission.Count() + TenantPermission.Count(), 'Repeated cleanup must not remove any more permissions.');
+        Assert.AreEqual(RemainingPermissionsCount, TenantPermission.Count(), 'Repeated cleanup must not remove any more tenant permissions.');
+        Assert.AreEqual(SystemPermissionsCount, SystemPermission.Count(), 'Repeated cleanup must not remove any system permissions.');
     end;
 
-    local procedure AddCleanupPermissions(var TempPermission: Record Permission temporary; RoleID: Code[20]; ObjectType: Option; ObjectID: Integer)
+    local procedure AddCleanupTenantPermission(var TempPermission: Record "Tenant Permission" temporary; TenantPermissionSet: Record "Tenant Permission Set"; ObjectType: Option; ObjectID: Integer)
     begin
-        LibraryPermissions.AddPermission(RoleID, ObjectType, ObjectID);
-        LibraryPermissions.AddTenantPermission(NullGuid, RoleID, ObjectType, ObjectID);
+        LibraryPermissions.AddTenantPermission(TenantPermissionSet."App ID", TenantPermissionSet."Role ID", ObjectType, ObjectID);
         TempPermission.Init();
-        TempPermission."Role ID" := RoleID;
+        TempPermission."App ID" := TenantPermissionSet."App ID";
+        TempPermission."Role ID" := TenantPermissionSet."Role ID";
         TempPermission."Object Type" := ObjectType;
         TempPermission."Object ID" := ObjectID;
         TempPermission.Insert();
@@ -819,13 +824,14 @@ codeunit 139400 "Permissions Test"
 
     local procedure InvokeRemoveObsoletePermissions(IsSaaS: Boolean)
     var
-        Permission: Record Permission;
         TenantPermission: Record "Tenant Permission";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        EnvironmentInformation: Codeunit "Environment Information";
         PermissionSets: TestPage "Permission Sets";
     begin
-        LibraryVariableStorage.Enqueue(Permission.Count() + TenantPermission.Count());
+        LibraryVariableStorage.Enqueue(TenantPermission.Count());
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(IsSaaS);
+        Assert.AreEqual(IsSaaS, EnvironmentInformation.IsSaaSInfrastructure(), 'The test must use the requested infrastructure mode.');
         PermissionSets.OpenEdit();
         PermissionSets.RemoveObsoletePermissions.Invoke();
         PermissionSets.Close();
@@ -837,17 +843,16 @@ codeunit 139400 "Permissions Test"
     [Scope('OnPrem')]
     procedure RemoveObsoletePermissionsMessageHandler(MessageText: Text[1024])
     var
-        Permission: Record Permission;
         TenantPermission: Record "Tenant Permission";
         RemovedPermissionsCount: Integer;
         ObsoletePermissionsMsg: Label '%1 obsolete permissions were removed.', Comment = '%1 = number of deleted records.';
         NothingToRemoveMsg: Label 'There is nothing to remove.';
     begin
-        RemovedPermissionsCount := LibraryVariableStorage.DequeueInteger() - Permission.Count() - TenantPermission.Count();
+        RemovedPermissionsCount := LibraryVariableStorage.DequeueInteger() - TenantPermission.Count();
         if RemovedPermissionsCount > 0 then
             Assert.AreEqual(StrSubstNo(ObsoletePermissionsMsg, RemovedPermissionsCount), MessageText, 'The message must count only deleted permissions.')
         else
-            Assert.AreEqual(NothingToRemoveMsg, MessageText, 'The message must not count skipped system permissions.');
+            Assert.AreEqual(NothingToRemoveMsg, MessageText, 'The message must report when no tenant permissions are removed.');
     end;
 
     local procedure CreatePermSetData(var TenantPermissionSet: Record "Tenant Permission Set"; AppId: Guid)
