@@ -10,12 +10,12 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-// These HTTP tests require an authenticated OData endpoint and a dedicated test company
-// with committed fixtures and disabled test isolation. Remaining exclusions are listed in
-// Expense_Agent_Tests.DisabledTest.json.
+// These HTTP tests remain excluded in Expense_Agent_Tests.DisabledTest.json until the
+// authentication prerequisite provides an authenticated OData endpoint and a dedicated
+// test company with committed fixtures and disabled test isolation.
 // In-process employee filtering, traveler mapping/navigation, lifecycle, date, and scope coverage
 // in "Spend Request Test", and restrictive role coverage in "Expense Permissions Test", remain enabled.
-// Other HTTP scenarios remain excluded pending endpoint validation.
+// Only the HTTP scenarios are excluded.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
@@ -292,7 +292,6 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         TargetURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 650247] The user-scoped header API maps LCY without bypassing currency validation.
         Initialize();
 
@@ -316,7 +315,6 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         TargetURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 650247] The user-scoped detail API accepts LCY ISO codes and retains foreign-currency rules.
         Initialize();
 
@@ -350,7 +348,6 @@ codeunit 148347 "Travel Requests API Test"
         RequestBody: Text;
         ResponseText: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 650247] User-scoped POST and PATCH preserve and validate the final date pair.
         Initialize();
 
@@ -640,7 +637,6 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 650247] The owner can be supplied on POST and resent unchanged on PATCH.
         Initialize();
 
@@ -707,7 +703,6 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 650247] PATCH cannot reassign a travel request or change its status.
         Initialize();
 
@@ -789,7 +784,6 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 650247] The legacy endpoint cannot bypass travel request ownership protection.
         Initialize();
 
