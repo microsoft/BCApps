@@ -945,7 +945,7 @@
 
         // [WHEN] Running the DTA Payment Journal report.
         LibraryVariableStorage.Enqueue(DTAPaymentJournalLayout::Bank);
-        commit;
+        Commit();
         Report.Run(Report::"DTA Payment Journal");
 
         // [THEN] Asserting the report dataset contains the expected values.
