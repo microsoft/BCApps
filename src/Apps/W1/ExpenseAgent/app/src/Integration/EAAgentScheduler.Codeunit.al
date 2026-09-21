@@ -176,46 +176,6 @@ codeunit 6935 "EA Agent Scheduler"
             ReconcileAgent(Rec, CompletedTaskId);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Agent Setup", 'RM', InherentPermissionsScope::Permissions)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Agent Status", 'RM', InherentPermissionsScope::Permissions)]
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Email Account", 'OnAfterDeleteEmailAccount', '', false, false)]
-    local procedure OnAfterDeleteEmailAccount(EmailAccountId: Guid; EmailAccountConnector: Enum "Email Connector")
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        ExpenseAgentStatus: Record "Expense Agent Status";
-        EmailAccount: Codeunit "Email Account";
-        Changed: Boolean;
-    begin
-        if IsNullGuid(EmailAccountId) then
-            exit;
-        if EmailAccount.IsAccountRegistered(EmailAccountId, EmailAccountConnector) then
-            exit;
-        ExpenseAgentSetup.ReadIsolation(IsolationLevel::UpdLock);
-        if not ExpenseAgentSetup.Get() then
-            exit;
-        if (ExpenseAgentSetup."Email Account ID" = EmailAccountId) and
-           (ExpenseAgentSetup."Email Connector" = EmailAccountConnector)
-        then begin
-            ExpenseAgentSetup.ClearIncomingMailbox();
-            Changed := true;
-        end;
-        if (ExpenseAgentSetup."Noreply Email Account ID" = EmailAccountId) and
-           (ExpenseAgentSetup."Noreply Email Connector" = EmailAccountConnector)
-        then begin
-            ExpenseAgentSetup.ClearNoreplyMailbox();
-            Changed := true;
-        end;
-        if not Changed then
-            exit;
-
-        // Stay in the connector deletion transaction and current company. Never grant
-        // delegation, change the remaining channel's worker, or commit as the deleting actor.
-        ExpenseAgentSetup.Modify();
-        if not ExpenseAgentSetup.ShouldScheduleAgentTask(ExpenseAgentSetup."Enable Agent") then
-            if GetTaskStatus(ExpenseAgentStatus) then
-                CancelPendingTasks(ExpenseAgentStatus);
-    end;
-
     local procedure ScheduleDelay(): Integer
     begin
         exit(60 * 1000) // 1 minute
