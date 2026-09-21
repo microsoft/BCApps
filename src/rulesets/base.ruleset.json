@@ -34,11 +34,6 @@
       "justification": "Use of implicit 'with' will be removed in the future. Qualify with 'Rec'."
     },
     {
-      "id": "AL0667",
-      "action": "Warning",
-      "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future release."
-    },
-    {
       "id": "AL0684",
       "action": "None",
       "justification": "The permissionset contains permissionsets or permission for objects from other module. Permissions on objects from other modules will be ignored."
@@ -285,10 +280,6 @@
     },
     {
       "id": "AL0607",
-      "action": "Warning"
-    },
-    {
-      "id": "AL1025",
       "action": "Warning"
     },
     {
