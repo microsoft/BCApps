@@ -10,12 +10,12 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-// These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
-// Re-enable them after BCApps CI provisions an authenticated OData endpoint and a dedicated
-// test company with committed fixtures and disabled test isolation, then remove the exclusions.
+// These HTTP tests require an authenticated OData endpoint and a dedicated test company
+// with committed fixtures and disabled test isolation. Remaining exclusions are listed in
+// Expense_Agent_Tests.DisabledTest.json.
 // In-process employee filtering, traveler mapping/navigation, lifecycle, date, and scope coverage
 // in "Spend Request Test", and restrictive role coverage in "Expense Permissions Test", remain enabled.
-// Only the HTTP scenarios are excluded.
+// Other HTTP scenarios remain excluded pending endpoint validation.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
@@ -292,7 +292,8 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         TargetURL: Text;
     begin
-        // [SCENARIO] The user-scoped header API maps LCY without bypassing currency validation.
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 650247] The user-scoped header API maps LCY without bypassing currency validation.
         Initialize();
 
         // [GIVEN] A linked expense user creating a travel request.
@@ -315,7 +316,8 @@ codeunit 148347 "Travel Requests API Test"
         Request: JsonObject;
         TargetURL: Text;
     begin
-        // [SCENARIO] The user-scoped detail API accepts LCY ISO codes and retains foreign-currency rules.
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 650247] The user-scoped detail API accepts LCY ISO codes and retains foreign-currency rules.
         Initialize();
 
         // [GIVEN] An open travel request owned by a linked expense user.
@@ -336,7 +338,6 @@ codeunit 148347 "Travel Requests API Test"
     procedure TravelRequestsAPIPreservesAndUpdatesDates()
     var
         ExpenseUser: Record "Expense User";
-        TravelRequest: Record "Spend Request";
         Request: JsonObject;
         Response: JsonObject;
         ErrorResponse: JsonToken;
@@ -349,7 +350,8 @@ codeunit 148347 "Travel Requests API Test"
         RequestBody: Text;
         ResponseText: Text;
     begin
-        // [SCENARIO] User-scoped POST and PATCH preserve and validate the final date pair.
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 650247] User-scoped POST and PATCH preserve and validate the final date pair.
         Initialize();
 
         // [GIVEN] A linked user and a future pair, with id first and end before start in the payload.
@@ -371,13 +373,10 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
         // [THEN] POST, GET, and storage retain the supplied dates and identity.
-        AssertAPIDates(ResponseText, StartDate, EndDate);
-        TravelRequest.GetBySystemId(RequestSystemId);
-        Assert.AreEqual(StartDate, TravelRequest."Expected Start Date", 'The API start date must be persisted.');
-        Assert.AreEqual(EndDate, TravelRequest."Expected End Date", 'The API end date must be persisted.');
+        VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
         RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(RequestSystemId)) + ')');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
-        AssertAPIDates(ResponseText, StartDate, EndDate);
+        VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
 
         // [WHEN] A start-first PATCH moves the range beyond the old end.
         StartDate += 30;
@@ -389,7 +388,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] The complete later range is accepted.
-        AssertAPIDates(ResponseText, StartDate, EndDate);
+        VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
 
         // [WHEN] An end-first PATCH moves the range before the old start.
         StartDate := WorkDate() - 33;
@@ -401,7 +400,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] The complete earlier range is accepted.
-        AssertAPIDates(ResponseText, StartDate, EndDate);
+        VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
 
         // [WHEN] Only the end date is changed.
         EndDate += 1;
@@ -411,7 +410,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
 
         // [THEN] The omitted start remains unchanged.
-        AssertAPIDates(ResponseText, StartDate, EndDate);
+        VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
 
         // [WHEN] A start-only PATCH would exceed the stored end.
         Clear(Request);
@@ -421,12 +420,13 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] The date-range error is returned and the previous valid pair remains stored.
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
         Response.ReadFrom(ResponseText);
         Response.Get('error', ErrorResponse);
         ErrorResponse.AsObject().Get('message', ErrorMessage);
         Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), InvalidTravelRequestDatesErr), 'The invalid date range must cause the rejection.');
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
-        AssertAPIDates(ResponseText, StartDate, EndDate);
+        VerifyTravelRequestDates(ResponseText, RequestSystemId, StartDate, EndDate);
     end;
 
     [Test]
@@ -640,7 +640,8 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] The owner can be supplied on POST and resent unchanged on PATCH.
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 650247] The owner can be supplied on POST and resent unchanged on PATCH.
         Initialize();
 
         // [GIVEN] An expense user linked to an employee.
@@ -659,6 +660,7 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] The owner mismatch is rejected before a request can be inserted.
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
         Response.ReadFrom(ResponseText);
         Response.Get('error', ErrorResponse);
         ErrorResponse.AsObject().Get('message', ErrorMessage);
@@ -674,6 +676,7 @@ codeunit 148347 "Travel Requests API Test"
         Response.ReadFrom(ResponseText);
         Response.Get('id', RequestId);
         Evaluate(TravelRequestSystemId, RequestId.AsValue().AsText());
+        SelectLatestVersion();
         TravelRequest.GetBySystemId(TravelRequestSystemId);
         Assert.AreEqual(ExpenseUser."Employee No.", TravelRequest."Requested By", 'POST must accept the travel request owner.');
         Assert.AreEqual(TravelRequest."Document Type"::"Travel Request", TravelRequest."Document Type", 'POST must create a travel request.');
@@ -682,6 +685,10 @@ codeunit 148347 "Travel Requests API Test"
         // [THEN] PATCH succeeds without changing the owner.
         TargetURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(TravelRequest.SystemId)) + ')');
         AssertOwnerPreservingPatch(TargetURL, TravelRequest);
+        SelectLatestVersion();
+        TravelRequest.GetBySystemId(TravelRequestSystemId);
+        Assert.AreEqual(ExpenseUser."Employee No.", TravelRequest."Requested By", 'PATCH must preserve the stored owner.');
+        Assert.AreEqual('Updated business trip', TravelRequest.Purpose, 'PATCH must persist the updated purpose.');
     end;
 
     [Test]
@@ -691,6 +698,7 @@ codeunit 148347 "Travel Requests API Test"
         OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         OriginalRequestedBy: Code[20];
+        TravelRequestSystemId: Guid;
         Response: JsonObject;
         ErrorResponse: JsonToken;
         ErrorCode: JsonToken;
@@ -699,7 +707,8 @@ codeunit 148347 "Travel Requests API Test"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] PATCH cannot reassign a travel request or change its status.
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 650247] PATCH cannot reassign a travel request or change its status.
         Initialize();
 
         // [GIVEN] An open travel request and another expense user.
@@ -707,6 +716,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryExpense.CreateExpenseUser(OtherExpenseUser);
         CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
         OriginalRequestedBy := TravelRequest."Requested By";
+        TravelRequestSystemId := TravelRequest.SystemId;
         Commit();
 
         // [WHEN] PATCH attempts to change the owner.
@@ -717,6 +727,7 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] The API identifies the immutable owner and the affected request.
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
         AssertOwnerChangeError(ResponseText, TravelRequest);
 
         // [WHEN] PATCH attempts to change the status.
@@ -726,13 +737,15 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] The API rejects the read-only status, leaving ownership and status unchanged.
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
         Response.ReadFrom(ResponseText);
         Response.Get('error', ErrorResponse);
         ErrorResponse.AsObject().Get('code', ErrorCode);
         ErrorResponse.AsObject().Get('message', ErrorMessage);
         Assert.AreEqual('BadRequest', ErrorCode.AsValue().AsText(), 'The status update must be rejected by the OData read-only guard.');
         Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), StatusReadOnlyErr), 'The API error must identify the read-only status control.');
-        TravelRequest.Get(TravelRequest."No.");
+        SelectLatestVersion();
+        TravelRequest.GetBySystemId(TravelRequestSystemId);
         Assert.AreEqual(
             OriginalRequestedBy, TravelRequest."Requested By",
             'The Travel Requests API must not change the Travel Request owner.');
@@ -771,11 +784,13 @@ codeunit 148347 "Travel Requests API Test"
         OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         OriginalRequestedBy: Code[20];
+        TravelRequestSystemId: Guid;
         RequestBody: Text;
         ResponseText: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] The legacy endpoint cannot bypass travel request ownership protection.
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 650247] The legacy endpoint cannot bypass travel request ownership protection.
         Initialize();
 
         // [GIVEN] A travel request owned by one of two expense users.
@@ -783,6 +798,7 @@ codeunit 148347 "Travel Requests API Test"
         LibraryExpense.CreateExpenseUser(OtherExpenseUser);
         CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
         OriginalRequestedBy := TravelRequest."Requested By";
+        TravelRequestSystemId := TravelRequest.SystemId;
         Commit();
 
         // [WHEN] PATCH through the legacy endpoint attempts to change the owner.
@@ -793,8 +809,10 @@ codeunit 148347 "Travel Requests API Test"
 
         // [THEN] The owner change is rejected and the original owner is preserved.
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
         AssertOwnerChangeError(ResponseText, TravelRequest);
-        TravelRequest.Get(TravelRequest."No.");
+        SelectLatestVersion();
+        TravelRequest.GetBySystemId(TravelRequestSystemId);
         Assert.AreEqual(
             OriginalRequestedBy, TravelRequest."Requested By",
             'The legacy Spend Requests API must not change the Travel Request owner.');
@@ -820,7 +838,8 @@ codeunit 148347 "Travel Requests API Test"
         // [GIVEN] Configured LCY and a foreign currency with a non-unit exchange rate.
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.TestField("LCY Code");
-        ForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(Today(), 1, 2);
+        // The third argument is the adjustment rate; the relational rate is always 1.
+        ForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(Today(), 2, 2);
         Currency.Get(ForeignCurrencyCode);
         ForeignExchangeRate := Currency.GetExchangeRate(Today());
         Assert.AreNotEqual(GeneralLedgerSetup."LCY Code", ForeignCurrencyCode, 'The fixture must use a foreign currency.');
@@ -885,6 +904,7 @@ codeunit 148347 "Travel Requests API Test"
         AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
 
         // [GIVEN] The request is no longer Open.
+        SelectLatestVersion();
         if IsDetail then begin
             TravelRequestDetail.GetBySystemId(SystemId);
             TravelRequest.Get(TravelRequestDetail."Spend Request No.");
@@ -923,6 +943,7 @@ codeunit 148347 "Travel Requests API Test"
         Request.WriteTo(RequestBody);
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.ExpectedErrorCode('Dialog');
         Response.ReadFrom(ResponseText);
         Response.Get('error', ErrorResponse);
         ErrorResponse.AsObject().Get('message', ErrorMessage);
@@ -939,6 +960,8 @@ codeunit 148347 "Travel Requests API Test"
         Response.ReadFrom(ResponseText);
         Response.Get('currencyCode', CurrencyCode);
         Assert.AreEqual(APICurrencyCode, CurrencyCode.AsValue().AsText(), 'The API must expose the canonical currency code.');
+        // HTTP writes run in another session; do not verify a cached record image.
+        SelectLatestVersion();
         if IsDetail then begin
             TravelRequestDetail.GetBySystemId(SystemId);
             Assert.AreEqual(StoredCurrencyCode, TravelRequestDetail."Currency Code", 'The detail must store the BC currency representation.');
@@ -993,6 +1016,17 @@ codeunit 148347 "Travel Requests API Test"
         Response.Get('expectedEndDate', EndDateToken);
         Assert.AreEqual(StartDate, StartDateToken.AsValue().AsDate(), 'The API must return the effective start date.');
         Assert.AreEqual(EndDate, EndDateToken.AsValue().AsDate(), 'The API must return the effective end date.');
+    end;
+
+    local procedure VerifyTravelRequestDates(ResponseText: Text; RequestSystemId: Guid; StartDate: Date; EndDate: Date)
+    var
+        TravelRequest: Record "Spend Request";
+    begin
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+        SelectLatestVersion();
+        TravelRequest.GetBySystemId(RequestSystemId);
+        Assert.AreEqual(StartDate, TravelRequest."Expected Start Date", 'The API start date must be persisted.');
+        Assert.AreEqual(EndDate, TravelRequest."Expected End Date", 'The API end date must be persisted.');
     end;
 
     local procedure AssertOwnerPreservingPatch(TargetURL: Text; TravelRequest: Record "Spend Request")
