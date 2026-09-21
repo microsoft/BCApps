@@ -690,18 +690,35 @@ codeunit 8224 "Create Expense G/L Accounts"
     end;
 
     local procedure UpdateIncomeStatementBalanceAccountES()
+    var
+        ProfitLossAccountNo: Code[20];
     begin
-        UpdateIncomeStmtBalAccES(CompanyCreditCardsClearingAccountES(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(ExpensesPrepaymentsES(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(ExpenseGLAccount.PerDiemTravelExpensesAccount(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(ExpenseGLAccount.MileageTravelExpensesAccount(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(ExpenseGLAccount.MealExpensesDeductibleAccount(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(ExpenseGLAccount.MealExpensesNondeductibleAccount(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(ExpenseGLAccount.OtherNondeductibleTravelExpensesAccount(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(RentalCarExpensesES(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(TravelExpensesES(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(EntertainmentExpensesAccountES(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
-        UpdateIncomeStmtBalAccES(RoundingExpensesOperatingAccountES(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName()));
+        ProfitLossAccountNo := ExpenseProfitLossAccountNo();
+
+        UpdateIncomeStmtBalAccES(CompanyCreditCardsClearingAccountES(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(ExpensesPrepaymentsES(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(ExpenseGLAccount.PerDiemTravelExpensesAccount(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(ExpenseGLAccount.MileageTravelExpensesAccount(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(ExpenseGLAccount.MealExpensesDeductibleAccount(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(ExpenseGLAccount.MealExpensesNondeductibleAccount(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(ExpenseGLAccount.OtherNondeductibleTravelExpensesAccount(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(RentalCarExpensesES(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(TravelExpensesES(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(EntertainmentExpensesAccountES(), ProfitLossAccountNo);
+        UpdateIncomeStmtBalAccES(RoundingExpensesOperatingAccountES(), ProfitLossAccountNo);
+    end;
+
+    local procedure ExpenseProfitLossAccountNo(): Code[20]
+    var
+        ExistingAccNo: Code[20];
+    begin
+        ExistingAccNo := ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNames.ProfitOrLossName());
+        if ExistingAccNo <> '' then
+            exit(ExistingAccNo);
+
+        ExistingAccNo := ExpenseGLAccount.FindGLAccountByNo('1290001');
+        if ExistingAccNo <> '' then
+            exit(ExistingAccNo);
     end;
 
     local procedure UpdateIncomeStmtBalAccES(No: Code[20]; IncomeStmtBalAcc: Code[20])

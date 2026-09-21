@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.History;
 
-tableextension 7000114 "SII Purch. Inv. Header" extends "Purch. Inv. Header"
+#pragma warning disable AS0088
+tableextension 7000014 "SII Purch. Inv. Header" extends "Purch. Inv. Header"
 {
     fields
     {

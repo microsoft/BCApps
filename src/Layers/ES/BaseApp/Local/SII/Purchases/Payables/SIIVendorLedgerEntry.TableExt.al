@@ -6,7 +6,8 @@ namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Purchases.Payables;
 
-tableextension 7000118 "SII Vendor Ledger Entry" extends "Vendor Ledger Entry"
+#pragma warning disable AS0088
+tableextension 7000018 "SII Vendor Ledger Entry" extends "Vendor Ledger Entry"
 {
     fields
     {
