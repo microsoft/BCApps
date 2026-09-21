@@ -19,11 +19,17 @@ Describe 'API test credential materialization' {
                 throw 'Docker must be mocked.'
             }
         }
-        $script:credential = [PSCredential]::new('unit-test', (ConvertTo-SecureString 'synthetic-fixture-only' -AsPlainText -Force))
+        $script:fixturePassword = [System.Security.SecureString]::new()
+        foreach ($character in 'synthetic-fixture-only'.ToCharArray()) {
+            $script:fixturePassword.AppendChar($character)
+        }
+        $script:fixturePassword.MakeReadOnly()
+        $script:credential = [PSCredential]::new('unit-test', $script:fixturePassword)
         $script:mount = Join-Path $PSScriptRoot 'unused-mount'
     }
 
     AfterAll {
+        $script:fixturePassword.Dispose()
         $env:GITHUB_ENV = $script:previousGitHubEnv
         $global:LASTEXITCODE = $script:previousExitCode
         if ($script:createdMountStub) { Remove-Item function:global:Get-BcContainerSharedFolders }
