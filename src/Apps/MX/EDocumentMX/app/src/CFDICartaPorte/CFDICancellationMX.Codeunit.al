@@ -9,7 +9,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.eServices.EDocument;
 using System.Utilities;
 
-codeunit 3311 "CFDI Cancellation MX"
+codeunit 3359 "CFDI Cancellation MX"
 {
     procedure CreateCancellationXML(CancelDateTime: Text[50]; DateTimeStamped: Text; UUID: Text[50]; CancellationReasonCode: Code[10]; SubstitutionUUID: Text[50]; var TempBlob: Codeunit "Temp Blob")
     var

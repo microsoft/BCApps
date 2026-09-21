@@ -5,7 +5,7 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-table 3320 "MX PAC Web Service Detail"
+table 3353 "MX PAC Web Service Detail"
 {
     Caption = 'MX PAC Web Service Detail';
     DataClassification = CustomerContent;

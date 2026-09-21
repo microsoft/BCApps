@@ -7,11 +7,11 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.FixedAssets.FixedAsset;
 
-tableextension 3304 FixedAssetsTableExt extends "Fixed Asset"
+tableextension 3353 FixedAssetsTableExt extends "Fixed Asset"
 {
     fields
     {
-        field(3304; "Property tax account No"; Text[150])
+        field(3353; "Property tax account No"; Text[150])
         {
             Caption = 'Property tax account No';
         }

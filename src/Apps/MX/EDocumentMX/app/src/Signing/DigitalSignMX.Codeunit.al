@@ -8,7 +8,7 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.EServices.EDocument;
 using System.Security.Encryption;
 
-codeunit 3308 "Digital Sign MX"
+codeunit 3358 "Digital Sign MX"
 {
     var
         EInvoiceCommunication: Codeunit "EInvoice Communication";

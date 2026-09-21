@@ -7,15 +7,18 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 
-enumextension 3304 "Service Integration MX" extends "Service Integration"
+enumextension 3352 "Service Integration MX" extends "Service Integration"
 {
 
     value(3300; "Interfactura Service")
     {
         Implementation =
                 IDocumentSender = "MX Interfactura Impl.",
-                IDocumentReceiver = "MX Interfactura Impl.";
+                IDocumentReceiver = "MX Interfactura Impl.",
+                IMessageSender = "MX Interfactura Impl.",
+                IMessageResponseHandler = "MX Interfactura Impl.";
 
         Caption = 'Interfactura';
     }

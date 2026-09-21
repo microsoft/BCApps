@@ -14,7 +14,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
-codeunit 3310 "EDoc Carta Porte Validation MX"
+codeunit 3362 "EDoc Carta Porte Validation MX"
 {
     procedure CheckShipmentDocument(SourceDocumentHeader: RecordRef)
     var

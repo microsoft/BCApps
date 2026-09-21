@@ -8,10 +8,11 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Sales.History;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Processing.Message;
 using System.Security.Encryption;
 using System.Utilities;
 
-codeunit 3305 "Interfactura Processing"
+codeunit 3355 "Interfactura Processing"
 {
     Access = Internal;
 
@@ -22,7 +23,6 @@ codeunit 3305 "Interfactura Processing"
         NoResponseErr: Label 'Remote service did not provide a response. Open Interfactura Setup page and make sure that the Document Registration Endpoint and the certificate are correctly specified and try again.';
         NoResponseTelemetryErr: Label 'Could not get response.', Locked = true;
         CommunicationErr: Label 'Remote service returned an unexpected response: %1.', Comment = '%1 is the error message.';
-        CommunicationTelemetryErr: Label 'Communication error: %1.', Comment = '%1 is the error message.', Locked = true;
         BatchSoapRequestSuccMsg: Label 'Batch soap request of type %1 successfully executed', Locked = true;
         FeatureNameTxt: Label 'Interfactura Document Registration';
         EmptyRequestLbl: Label 'The request is empty.';
@@ -51,6 +51,28 @@ codeunit 3305 "Interfactura Processing"
 
         TryProcessAdvanceReverseAfterSettle(EDocument);
 
+    end;
+
+    internal procedure SendPaymentComplement(var TempBlob: Codeunit "Temp Blob"; MessageContext: Codeunit "E-Doc. Message Context")
+    var
+        HttpRequest: HttpRequestMessage;
+        HttpResponse: HttpResponseMessage;
+        RequestTxt: Text;
+        ResponseTxt: Text;
+        ErrorText: Text;
+        RequestType: Option "Request Stamp",Cancel,CancelRequest;
+    begin
+        RequestTxt := GetRequestText(TempBlob);
+        if RequestTxt = '' then
+            Error(EmptyRequestLbl);
+        RequestType := RequestType::"Request Stamp";
+        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then
+            Error(ErrorText);
+        MessageContext.Http().SetHttpRequestMessage(HttpRequest);
+        MessageContext.Http().SetHttpResponseMessage(HttpResponse);
+        if GetResultCodeFromResponse(ResponseTxt) <> '1' then
+            Error(GetResponseErrorText(ResponseTxt));
+        MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
     local procedure TryProcessAdvanceReverseAfterSettle(var EDocument: Record "E-Document")

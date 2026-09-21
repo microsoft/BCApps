@@ -25,7 +25,7 @@ using System.Security.Encryption;
 using System.Telemetry;
 using System.Utilities;
 
-codeunit 3303 "Export Interfactura MX"
+codeunit 3354 "Export Interfactura MX"
 {
     var
         CompanyInformation: Record "Company Information";
@@ -623,6 +623,7 @@ codeunit 3303 "Export Interfactura MX"
         TaxTotal: Decimal;
         CalculatedTaxBase: Decimal;
         CalculatedTaxTotal: Decimal;
+        SummaryVATPct: Decimal;
         CurrencyCode: Code[10];
         LineAmount: Decimal;
         LineDiscount: Decimal;
@@ -702,12 +703,13 @@ codeunit 3303 "Export Interfactura MX"
                 if SalesCrMemoLine."VAT %" <> 0 then begin
                     CalculatedTaxBase += SalesCrMemoLine.Amount;
                     CalculatedTaxTotal += SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount;
+                    SummaryVATPct := SalesCrMemoLine."VAT %";
 
                     ImpuestosNode := CreateCFDIElement('Impuestos');
                     TrasladosNode := CreateCFDIElement('Traslados');
                     TrasladoNode := CreateCFDIElement('Traslado');
                     TrasladoNode.SetAttribute('Base', FormatDecimal(SalesCrMemoLine.Amount, 6));
-                    TrasladoNode.SetAttribute('Impuesto', '002');
+                    TrasladoNode.SetAttribute('Impuesto', GetTaxCode(SalesCrMemoLine."VAT %", SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount));
                     TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
                     TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SalesCrMemoLine."VAT %" / 100, 6), 8, '0'));
                     TrasladoNode.SetAttribute('Importe', FormatDecimal(SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount, 6));
@@ -728,9 +730,9 @@ codeunit 3303 "Export Interfactura MX"
             TrasladosNode := CreateCFDIElement('Traslados');
             TrasladoNode := CreateCFDIElement('Traslado');
             TrasladoNode.SetAttribute('Base', FormatAmount(CalculatedTaxBase, CurrencyCode));
-            TrasladoNode.SetAttribute('Impuesto', '002');
+            TrasladoNode.SetAttribute('Impuesto', GetTaxCode(SummaryVATPct, TaxTotal));
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
-            TrasladoNode.SetAttribute('TasaOCuota', '0.160000');
+            TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SummaryVATPct / 100, 6), 8, '0'));
             TrasladoNode.SetAttribute('Importe', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode.Add(TrasladoNode.AsXmlNode());
             ImpuestosNode.Add(TrasladosNode.AsXmlNode());
@@ -755,6 +757,7 @@ codeunit 3303 "Export Interfactura MX"
         TaxTotal: Decimal;
         CalculatedTaxBase: Decimal;
         CalculatedTaxTotal: Decimal;
+        SummaryVATPct: Decimal;
         CurrencyCode: Code[10];
         LineAmount: Decimal;
         LineDiscount: Decimal;
@@ -834,12 +837,13 @@ codeunit 3303 "Export Interfactura MX"
                 if ServiceInvoiceLine."VAT %" <> 0 then begin
                     CalculatedTaxBase += ServiceInvoiceLine.Amount;
                     CalculatedTaxTotal += ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount;
+                    SummaryVATPct := ServiceInvoiceLine."VAT %";
 
                     ImpuestosNode := CreateCFDIElement('Impuestos');
                     TrasladosNode := CreateCFDIElement('Traslados');
                     TrasladoNode := CreateCFDIElement('Traslado');
                     TrasladoNode.SetAttribute('Base', FormatDecimal(ServiceInvoiceLine.Amount, 6));
-                    TrasladoNode.SetAttribute('Impuesto', '002');
+                    TrasladoNode.SetAttribute('Impuesto', GetTaxCode(ServiceInvoiceLine."VAT %", ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount));
                     TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
                     TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(ServiceInvoiceLine."VAT %" / 100, 6), 8, '0'));
                     TrasladoNode.SetAttribute('Importe', FormatDecimal(ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount, 6));
@@ -860,9 +864,9 @@ codeunit 3303 "Export Interfactura MX"
             TrasladosNode := CreateCFDIElement('Traslados');
             TrasladoNode := CreateCFDIElement('Traslado');
             TrasladoNode.SetAttribute('Base', FormatDecimal(CalculatedTaxBase, 6));
-            TrasladoNode.SetAttribute('Impuesto', '002');
+            TrasladoNode.SetAttribute('Impuesto', GetTaxCode(SummaryVATPct, TaxTotal));
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
-            TrasladoNode.SetAttribute('TasaOCuota', '0.160000');
+            TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SummaryVATPct / 100, 6), 8, '0'));
             TrasladoNode.SetAttribute('Importe', FormatDecimal(TaxTotal, 6));
             TrasladosNode.Add(TrasladoNode.AsXmlNode());
             ImpuestosNode.Add(TrasladosNode.AsXmlNode());
@@ -887,6 +891,7 @@ codeunit 3303 "Export Interfactura MX"
         TaxTotal: Decimal;
         CalculatedTaxBase: Decimal;
         CalculatedTaxTotal: Decimal;
+        SummaryVATPct: Decimal;
         CurrencyCode: Code[10];
         LineAmount: Decimal;
         LineDiscount: Decimal;
@@ -966,12 +971,13 @@ codeunit 3303 "Export Interfactura MX"
                 if ServiceCrMemoLine."VAT %" <> 0 then begin
                     CalculatedTaxBase += ServiceCrMemoLine.Amount;
                     CalculatedTaxTotal += ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount;
+                    SummaryVATPct := ServiceCrMemoLine."VAT %";
 
                     ImpuestosNode := CreateCFDIElement('Impuestos');
                     TrasladosNode := CreateCFDIElement('Traslados');
                     TrasladoNode := CreateCFDIElement('Traslado');
                     TrasladoNode.SetAttribute('Base', FormatDecimal(ServiceCrMemoLine.Amount, 6));
-                    TrasladoNode.SetAttribute('Impuesto', '002');
+                    TrasladoNode.SetAttribute('Impuesto', GetTaxCode(ServiceCrMemoLine."VAT %", ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount));
                     TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
                     TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(ServiceCrMemoLine."VAT %" / 100, 6), 8, '0'));
                     TrasladoNode.SetAttribute('Importe', FormatDecimal(ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount, 6));
@@ -992,9 +998,9 @@ codeunit 3303 "Export Interfactura MX"
             TrasladosNode := CreateCFDIElement('Traslados');
             TrasladoNode := CreateCFDIElement('Traslado');
             TrasladoNode.SetAttribute('Base', FormatAmount(CalculatedTaxBase, CurrencyCode));
-            TrasladoNode.SetAttribute('Impuesto', '002');
+            TrasladoNode.SetAttribute('Impuesto', GetTaxCode(SummaryVATPct, TaxTotal));
             TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
-            TrasladoNode.SetAttribute('TasaOCuota', '0.160000');
+            TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SummaryVATPct / 100, 6), 8, '0'));
             TrasladoNode.SetAttribute('Importe', FormatAmount(TaxTotal, CurrencyCode));
             TrasladosNode.Add(TrasladoNode.AsXmlNode());
             ImpuestosNode.Add(TrasladosNode.AsXmlNode());
@@ -3565,10 +3571,10 @@ codeunit 3303 "Export Interfactura MX"
         CFDIXMLHelperMX.AddElementCFDI(TrasladosNode, 'Traslado', '', TrasladoNode);
 
         CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Base', FormatDecimal(SalesInvoiceLine.Amount, 6));
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', '002');
+        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Impuesto', GetTaxCode(SalesInvoiceLine."VAT %", SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount));
         CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TipoFactor', 'Tasa');
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TasaOCuota', '0.160000');
-        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Importe', FormatDecimal(LineAmount * 0.16, 6));
+        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'TasaOCuota', PadStr(FormatDecimal(SalesInvoiceLine."VAT %" / 100, 6), 8, '0'));
+        CFDIXMLHelperMX.AddAttribute(TrasladoNode, 'Importe', FormatDecimal(LineAmount * (SalesInvoiceLine."VAT %" / 100), 6));
 
         exit(TempNode.AsXmlElement());
     end;

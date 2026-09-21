@@ -2,15 +2,15 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
-enumextension 3353 "E-Document Format MX" extends "E-Document Format"
+enumextension 3354 "E-Document Message Type MX" extends "E-Document Message Type"
 {
-    value(3352; CFDI)
+    value(3355; "MX CFDI Payment Complement")
     {
-        Implementation = "E-Document" = "EDoc CFDI MX";
-        Caption = 'CFDI / Carta Porte';
+        Caption = 'MX CFDI Payment Complement';
     }
 }

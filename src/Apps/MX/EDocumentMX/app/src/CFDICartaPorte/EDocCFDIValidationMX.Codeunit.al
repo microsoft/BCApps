@@ -21,7 +21,7 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 
-codeunit 3309 "EDoc CFDI Validation MX"
+codeunit 3363 "EDoc CFDI Validation MX"
 {
     procedure CheckSalesDocument(SourceDocumentHeader: RecordRef)
     var

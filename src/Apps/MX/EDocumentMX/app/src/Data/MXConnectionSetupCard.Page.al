@@ -5,7 +5,7 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-page 3303 "Interfactura Connection Setup"
+page 3352 "Interfactura Connection Setup"
 {
     PageType = Card;
     Caption = 'Interfactura Connection Setup';

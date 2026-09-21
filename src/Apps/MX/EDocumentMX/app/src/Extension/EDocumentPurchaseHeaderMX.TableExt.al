@@ -4,13 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-enumextension 3353 "E-Document Format MX" extends "E-Document Format"
+tableextension 3356 "EDoc Purchase Header MX" extends "E-Document Purchase Header"
 {
-    value(3352; CFDI)
+    fields
     {
-        Implementation = "E-Document" = "EDoc CFDI MX";
-        Caption = 'CFDI / Carta Porte';
+        field(3352; "Fiscal Invoice Number PAC"; Text[50])
+        {
+            Caption = 'Fiscal Invoice Number PAC';
+            DataClassification = CustomerContent;
+        }
     }
 }

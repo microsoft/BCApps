@@ -14,7 +14,7 @@ using Microsoft.eServices.EDocument;
 using System.Text;
 using System.Utilities;
 
-codeunit 3313 "CFDI Write-Back MX"
+codeunit 3360 "CFDI Write-Back MX"
 {
     procedure GetUUIDForDocument(DocumentRecordId: RecordId): Text
     var
@@ -119,20 +119,6 @@ codeunit 3313 "CFDI Write-Back MX"
                         SaveQRCode(CustLedgerEntry, CompanyInfo."RFC Number", Customer."RFC No.", CustLedgerEntry.Amount, UUID);
                 end;
         end;
-    end;
-
-    local procedure IsValidMXFormat(ServiceCode: Code[20]): Boolean
-    var
-        EDocumentService: Record "E-Document Service";
-    begin
-        if ServiceCode = '' then
-            exit(false);
-
-        if not EDocumentService.Get(ServiceCode) then
-            exit(false);
-
-        // Only CFDI format from MX app
-        exit((EDocumentService."Document Format" = EDocumentService."Document Format"::CFDI));
     end;
 
     local procedure TryGetStampedXml(EDocument: Record "E-Document"; var StampedXML: Text): Boolean

@@ -6,36 +6,36 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.eServices.EDocument;
 
-tableextension 3303 "E-Document Service MX" extends "E-Document Service"
+tableextension 3352 "E-Document Service MX" extends "E-Document Service"
 {
     fields
     {
-        field(3303; "SAT Certificate"; Blob)
+        field(3352; "SAT Certificate"; Blob)
         {
             Caption = 'SAT Certificate';
             DataClassification = CustomerContent;
         }
-        field(3304; "SAT Certificate Key"; Blob)
+        field(3353; "SAT Certificate Key"; Blob)
         {
             Caption = 'SAT Certificate Key';
             DataClassification = CustomerContent;
         }
-        field(3305; "SAT Certificate Password"; Text[250])
+        field(3354; "SAT Certificate Password"; Text[250])
         {
             Caption = 'SAT Certificate Password';
             DataClassification = CustomerContent;
         }
-        field(3306; "SAT Certificate Serial"; Text[250])
+        field(3355; "SAT Certificate Serial"; Text[250])
         {
             Caption = 'SAT Certificate Serial';
             DataClassification = CustomerContent;
         }
-        field(3307; "SAT Certificate Expiry"; Date)
+        field(3356; "SAT Certificate Expiry"; Date)
         {
             Caption = 'SAT Certificate Expiry';
             DataClassification = CustomerContent;
         }
-        field(3308; "Send PDF Report"; Boolean)
+        field(3357; "Send PDF Report"; Boolean)
         {
             Caption = 'Send PDF Report';
             DataClassification = CustomerContent;

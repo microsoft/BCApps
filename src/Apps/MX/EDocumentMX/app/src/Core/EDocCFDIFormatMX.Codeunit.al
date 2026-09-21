@@ -5,15 +5,18 @@
 namespace Microsoft.EServices.EDocument.Interfactura;
 
 using Microsoft.Inventory.Transfer;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using System.Utilities;
 
-codeunit 3304 "EDoc CFDI MX" implements "E-Document"
+codeunit 3352 "EDoc CFDI MX" implements "E-Document"
 {
 
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
@@ -108,26 +111,14 @@ codeunit 3304 "EDoc CFDI MX" implements "E-Document"
     /// <param name="TempBlob">Contians received blob from external service</param>
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
-        Error(ImportNotSupportedErr);
     end;
 
-    /// <summary>
-    /// Use it to create a document from imported blob.
-    /// </summary>
-    /// <param name="EDocument">Electronic document.</param>
-    /// <param name="CreatedDocumentHeader">The document header that should be populated from the blob as a recored ref.</param>
-    /// <param name="CreatedDocumentLines">The document lines that should be populated from the blob as a recored ref.</param>
-    /// <param name="TempBlob">Tempblob that should contatin the exported document in the correspondant format.</param>
     procedure GetCompleteInfoFromReceivedDocument(var EDocument: Record "E-Document"; var CreatedDocumentHeader: RecordRef; var CreatedDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     begin
-        Error(ImportNotSupportedErr);
     end;
 
     var
         SourceDocumentNotSupportedErr: Label 'The source document %1 is not supported for CFDI MX.', Comment = '%1 = source document caption';
-        ElectronicDocumentNotCreatedErr: Label 'The electronic document has not been created.';
-        BatchNotSupportedErr: Label 'Batch creation is not supported for CFDI MX.';
-        ImportNotSupportedErr: Label 'Importing CFDI MX documents is not supported.';
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)
@@ -173,6 +164,43 @@ codeunit 3304 "EDoc CFDI MX" implements "E-Document"
         EDocServiceSupportedType."E-Document Service Code" := EDocumentServiceCode;
         EDocServiceSupportedType."Source Document Type" := SourceDocumentType;
         EDocServiceSupportedType.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnBeforeModifyEvent', '', false, false)]
+    local procedure OnBeforePurchaseHeaderModify(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentService: Record "E-Document Service";
+    begin
+        if IsNullGuid(Rec."E-Document Link") then
+            exit;
+        if Rec."Fiscal Invoice Number PAC" <> '' then
+            exit;
+        if not EDocument.GetBySystemId(Rec."E-Document Link") then
+            exit;
+        if not EDocumentService.Get(EDocument.Service) then
+            exit;
+        if EDocumentService."Document Format" <> EDocumentService."Document Format"::CFDI then
+            exit;
+        if not EDocumentPurchaseHeader.Get(EDocument."Entry No") then
+            exit;
+        Rec."Fiscal Invoice Number PAC" := EDocumentPurchaseHeader."Fiscal Invoice Number PAC";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"E-Document", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure OnBeforeEDocumentInsert(var Rec: Record "E-Document"; RunTrigger: Boolean)
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        if Rec.Direction <> Rec.Direction::Incoming then
+            exit;
+        if not EDocumentService.Get(Rec.Service) then
+            exit;
+        if EDocumentService."Document Format" <> EDocumentService."Document Format"::CFDI then
+            exit;
+        Rec."Structure Data Impl." := "Structure Received E-Doc."::"Already Structured";
+        Rec."Read into Draft Impl." := "E-Doc. Read into Draft"::"CFDI MX";
     end;
 
     [IntegrationEvent(false, false)]

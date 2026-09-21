@@ -8,7 +8,7 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Inventory.Location;
 using System.Xml;
 
-codeunit 3312 "CFDI XML Helper MX"
+codeunit 3361 "CFDI XML Helper MX"
 {
     procedure AddElement(var XMLNode: XmlNode; NodeName: Text; NodeText: Text; NamespaceURI: Text; var CreatedXmlNode: XmlNode): Boolean
     begin

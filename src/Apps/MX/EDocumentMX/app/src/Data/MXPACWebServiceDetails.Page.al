@@ -5,7 +5,7 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-page 3321 "MX PAC Web Service Details"
+page 3353 "MX PAC Web Service Details"
 {
     Caption = 'PAC Web Service Details';
     PageType = ListPart;

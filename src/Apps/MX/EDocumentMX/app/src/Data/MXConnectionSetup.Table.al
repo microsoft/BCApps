@@ -8,7 +8,7 @@ namespace Microsoft.EServices.EDocument.Interfactura;
 using Microsoft.Finance.Currency;
 using System.Security.Encryption;
 
-table 3318 "MX Connection Setup"
+table 3352 "MX Connection Setup"
 {
     Caption = 'Interfactura Connection Setup';
 

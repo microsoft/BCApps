@@ -4,13 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
 
-enumextension 3353 "E-Document Format MX" extends "E-Document Format"
+enumextension 3355 "EDoc Read Into Draft MX" extends "E-Doc. Read into Draft"
 {
-    value(3352; CFDI)
+    value(3355; "CFDI MX")
     {
-        Implementation = "E-Document" = "EDoc CFDI MX";
-        Caption = 'CFDI / Carta Porte';
+        Caption = 'CFDI MX';
+        Implementation = IStructuredFormatReader = "EDoc CFDI Read Draft MX";
     }
 }

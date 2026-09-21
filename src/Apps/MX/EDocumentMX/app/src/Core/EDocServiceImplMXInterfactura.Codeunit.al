@@ -9,9 +9,10 @@ using Microsoft.EServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
-codeunit 3314 "MX Interfactura Impl." implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, IDocumentAction, ISentDocumentActions
+codeunit 3353 "MX Interfactura Impl." implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, IDocumentAction, ISentDocumentActions, IMessageSender, IMessageResponseHandler
 {
     Access = Internal;
 
@@ -82,6 +83,23 @@ codeunit 3314 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         exit(false);
     end;
 
+    procedure SendMessage(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context")
+    var
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        if MessageContext.GetMessageType() <> "E-Document Message Type"::"MX CFDI Payment Complement" then
+            Error(UnsupportedMessageErr, Format(MessageContext.GetMessageType()));
+        TempBlob := MessageContext.GetTempBlob();
+        InterfacturaProcessing.SendPaymentComplement(TempBlob, MessageContext);
+    end;
+
+    procedure GetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context"): Boolean
+    begin
+        // Interfactura returns the stamped CFDI synchronously for payment complements.
+        MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
+        exit(true);
+    end;
+
     [EventSubscriber(ObjectType::Page, Page::"E-Document Service", OnBeforeOpenServiceIntegrationSetupPage, '', false, false)]
     local procedure OnBeforeOpenServiceIntegrationSetupPage(EDocumentService: Record "E-Document Service"; var IsServiceIntegrationSetupRun: Boolean)
     var
@@ -99,5 +117,6 @@ codeunit 3314 "MX Interfactura Impl." implements IDocumentSender, IDocumentRecei
         InterfacturaProcessing: Codeunit "Interfactura Processing";
         MissingSetupErr: Label 'Interfactura Connection Setup must be configured before sending.';
         DisabledSetupErr: Label 'Interfactura Connection Setup must be enabled before sending.';
+        UnsupportedMessageErr: Label 'Interfactura does not support E-Document message type %1.', Comment = '%1 = message type';
 
 }

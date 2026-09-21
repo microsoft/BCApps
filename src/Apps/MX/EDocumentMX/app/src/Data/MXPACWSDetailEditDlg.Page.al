@@ -5,7 +5,7 @@
 
 namespace Microsoft.EServices.EDocument.Interfactura;
 
-page 3322 "MX PAC WS Detail Edit Dlg"
+page 3354 "MX PAC WS Detail Edit Dlg"
 {
     PageType = StandardDialog;
     Caption = 'Edit PAC Web Service Detail';
