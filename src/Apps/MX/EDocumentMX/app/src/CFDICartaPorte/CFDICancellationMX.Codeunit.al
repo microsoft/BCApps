@@ -66,7 +66,7 @@ codeunit 3359 "CFDI Cancellation MX"
         XmlDoc.WriteTo(OutStr);
     end;
 
-    procedure ProcessCancellationResponse(ResponseXML: Text; var EDocument: Record "E-Document")
+    procedure ProcessCancellationResponse(ResponseXML: Text; var EDocument: Record "E-Document"; var ResultStatus: Enum "E-Document Service Status")
     var
         ServiceStatus: Enum "E-Document Service Status";
         StatusToken: Text;
@@ -93,6 +93,7 @@ codeunit 3359 "CFDI Cancellation MX"
             end;
         end;
 
+        ResultStatus := ServiceStatus;
         ApplyCancellationToEDocument(EDocument, ServiceStatus, ResultText, DateTimeCancelledTxt, CancellationId);
 
         OnAfterProcessCancellationResponse(EDocument, StatusToken, ResultText, DateTimeCancelledTxt, CancellationId);

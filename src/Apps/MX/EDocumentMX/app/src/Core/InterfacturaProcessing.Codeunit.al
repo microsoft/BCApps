@@ -30,8 +30,17 @@ codeunit 3355 "Interfactura Processing"
         MissingPACWebServiceDetailErr: Label 'PAC Web Service Detail for %1 is missing or incomplete.';
         MissingStampedDataErr: Label 'No stamped CFDI data was found for this document. Cancellation requires a stamped UUID.';
         MissingCancelRequestErr: Label 'The cancellation request could not be generated.';
-        MissingCancellationIdErr: Label 'Cancellation status cannot be requested because CFDI Cancellation ID is missing.';
-        DefaultCancellationReasonLbl: Label '02', Locked = true;
+        CFDIServiceNameTxt: Label 'CFDI', Locked = true;
+        StampRequestedMsg: Label 'Sending stamp request for E-Document %1.', Locked = true;
+        StampSuccessMsg: Label 'Stamp request successful for E-Document %1.', Locked = true;
+        StampFailedMsg: Label 'Stamp request failed for E-Document %1: %2', Locked = true;
+        CancelRequestedMsg: Label 'Cancellation request submitted for E-Document %1.', Locked = true;
+        CancelSuccessMsg: Label 'Cancellation succeeded for E-Document %1.', Locked = true;
+        PaymentStampRequestedMsg: Label 'Sending payment complement stamp request.', Locked = true;
+        PaymentStampSuccessMsg: Label 'Payment complement stamp request successful.', Locked = true;
+        PaymentStampFailedMsg: Label 'Payment complement stamp request failed: %1', Locked = true;
+        SecurityAuditPACRejectedTxt: Label 'PAC rejected CFDI stamp request for E-Document %1: %2', Locked = true, Comment = '%1 - E-Document entry no, %2 - PAC error';
+        SecurityAuditCancelRequestedTxt: Label 'CFDI cancellation request submitted for E-Document %1.', Locked = true, Comment = '%1 - E-Document entry no';
 
 
     procedure SendEDocument(var TempBlob: Codeunit "Temp Blob"; var EDocument: Record "E-Document"; var SendContext: Codeunit SendContext)
@@ -46,9 +55,11 @@ codeunit 3355 "Interfactura Processing"
             exit;
         end;
         RequestType := RequestType::"Request Stamp";
+        Session.LogMessage('0000QX4', StrSubstNo(StampRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         if not InvokeSoapRequest(EDocument, RequestTxt, RequestType, ErrorText, SendContext) then
             Error(ErrorText);
 
+        Session.LogMessage('0000QX5', StrSubstNo(StampSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         TryProcessAdvanceReverseAfterSettle(EDocument);
 
     end;
@@ -66,12 +77,19 @@ codeunit 3355 "Interfactura Processing"
         if RequestTxt = '' then
             Error(EmptyRequestLbl);
         RequestType := RequestType::"Request Stamp";
-        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then
+        Session.LogMessage('0000QX6', PaymentStampRequestedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
+            Session.LogMessage('0000QX7', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
             Error(ErrorText);
+        end;
         MessageContext.Http().SetHttpRequestMessage(HttpRequest);
         MessageContext.Http().SetHttpResponseMessage(HttpResponse);
-        if GetResultCodeFromResponse(ResponseTxt) <> '1' then
-            Error(GetResponseErrorText(ResponseTxt));
+        if GetResultCodeFromResponse(ResponseTxt) <> '1' then begin
+            ErrorText := GetResponseErrorText(ResponseTxt);
+            Session.LogMessage('0000QX7', StrSubstNo(PaymentStampFailedMsg, ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Error(ErrorText);
+        end;
+        Session.LogMessage('0000QX8', PaymentStampSuccessMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
@@ -404,8 +422,10 @@ codeunit 3355 "Interfactura Processing"
             SaveStampedCFDI(EDocument, StampedXml);
         end;
 
-        if ErrorText <> '' then
-            Session.LogMessage('0000QX3', ErrorText, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        if ErrorText <> '' then begin
+            Session.LogMessage('0000QX3', StrSubstNo(StampFailedMsg, EDocument."Entry No", ErrorText), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+            Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Failure, StrSubstNo(SecurityAuditPACRejectedTxt, EDocument."Entry No", ErrorText), AuditCategory::CustomerFacing);
+        end;
 
         UpdateEdocument(EDocument, ResultCode = '1', ClearanceDateTime, SendContext, ErrorText);
         exit(ErrorText = '');
@@ -553,7 +573,7 @@ codeunit 3355 "Interfactura Processing"
     var
         CFDICancellationMX: Codeunit "CFDI Cancellation MX";
         TempBlob: Codeunit "Temp Blob";
-        RequestType: Option "Request Stamp",Cancel,CancelRequest;
+        RequestType: Option "Request Stamp",Cancel;
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         RequestTxt, ResponseTxt, ErrorText : Text;
@@ -563,17 +583,16 @@ codeunit 3355 "Interfactura Processing"
     begin
         EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
 
-        if EDocumentServiceStatus.Status = EDocumentServiceStatus.Status::"Pending Response" then
-            exit(RequestCancellationStatus(EDocument, EDocumentServiceStatus, HttpRequest, HttpResponse, Status));
-
         if not GetStampedCFDIData(EDocument, UUID, DateTimeStampedTxt) then begin
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, MissingStampedDataErr);
             Status := EDocumentServiceStatus.Status;
             exit(false);
         end;
 
-        CancellationReasonCode := GetCancellationReasonCode(EDocument);
-        SubstitutionUUID := GetSubstitutionUUID(EDocument);
+        if not ConfirmCancellationReason(CancellationReasonCode, SubstitutionUUID) then begin
+            Status := EDocumentServiceStatus.Status;
+            exit(false);
+        end;
         CancelDateTimeTxt := Format(CurrentDateTime(), 0, 9);
 
         CFDICancellationMX.CreateCancellationXML(CancelDateTimeTxt, DateTimeStampedTxt, UUID, CancellationReasonCode, SubstitutionUUID, TempBlob);
@@ -585,6 +604,8 @@ codeunit 3355 "Interfactura Processing"
         end;
 
         RequestType := RequestType::Cancel;
+        Session.LogMessage('0000QX9', StrSubstNo(CancelRequestedMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
+        Session.LogSecurityAudit(CFDIServiceNameTxt, SecurityOperationResult::Success, StrSubstNo(SecurityAuditCancelRequestedTxt, EDocument."Entry No"), AuditCategory::CustomerFacing);
         if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
             if ErrorText <> '' then
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
@@ -592,45 +613,9 @@ codeunit 3355 "Interfactura Processing"
             exit(false);
         end;
 
-        CFDICancellationMX.ProcessCancellationResponse(ResponseTxt, EDocument);
-        Status := MapCancellationStatusFromResponse(ResponseTxt, EDocumentServiceStatus.Status);
-        exit(true);
-    end;
-
-    local procedure RequestCancellationStatus(var EDocument: Record "E-Document"; EDocumentServiceStatus: Record "E-Document Service Status"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var Status: Enum "E-Document Service Status"): Boolean
-    var
-        CFDICancellationMX: Codeunit "CFDI Cancellation MX";
-        EDocErrorHelper: Codeunit "E-Document Error Helper";
-        TempBlob: Codeunit "Temp Blob";
-        RequestType: Option "Request Stamp",Cancel,CancelRequest;
-        RequestTxt, ResponseTxt, ErrorText : Text;
-        CancellationId: Text;
-    begin
-        CancellationId := GetCancellationId(EDocument);
-        if CancellationId = '' then begin
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, MissingCancellationIdErr);
-            Status := EDocumentServiceStatus.Status;
-            exit(false);
-        end;
-
-        CFDICancellationMX.CreateCancelStatusRequestXML(CancellationId, TempBlob);
-        RequestTxt := GetRequestText(TempBlob);
-        if RequestTxt = '' then begin
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, MissingCancelRequestErr);
-            Status := EDocumentServiceStatus.Status;
-            exit(false);
-        end;
-
-        RequestType := RequestType::CancelRequest;
-        if not InvokeSoapRequestCore(RequestTxt, RequestType, HttpRequest, HttpResponse, ResponseTxt, ErrorText) then begin
-            if ErrorText <> '' then
-                EDocErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
-            Status := EDocumentServiceStatus.Status;
-            exit(false);
-        end;
-
-        CFDICancellationMX.ProcessCancellationResponse(ResponseTxt, EDocument);
-        Status := MapCancellationStatusFromResponse(ResponseTxt, EDocumentServiceStatus.Status);
+        CFDICancellationMX.ProcessCancellationResponse(ResponseTxt, EDocument, Status);
+        if Status = Enum::"E-Document Service Status"::Canceled then
+            Session.LogMessage('0000QXA', StrSubstNo(CancelSuccessMsg, EDocument."Entry No"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureNameTxt);
         exit(true);
     end;
 
@@ -656,91 +641,15 @@ codeunit 3355 "Interfactura Processing"
         exit(true);
     end;
 
-    local procedure GetCancellationReasonCode(EDocument: Record "E-Document"): Code[10]
+    local procedure ConfirmCancellationReason(var CancellationReasonCode: Code[10]; var SubstitutionUUID: Text[50]): Boolean
     var
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-        ReasonTxt: Text;
+        CancelReasonDlg: Page "MX CFDI Cancel Reason Dlg";
     begin
-        RecRef.GetTable(EDocument);
-        if TryGetFieldRefByName(RecRef, 'Cancellation Reason Code', FieldRef) then begin
-            ReasonTxt := Format(FieldRef.Value);
-            if ReasonTxt <> '' then
-                exit(CopyStr(ReasonTxt, 1, 10));
-        end;
-
-        exit(CopyStr(DefaultCancellationReasonLbl, 1, 10));
-    end;
-
-    local procedure GetSubstitutionUUID(EDocument: Record "E-Document"): Text[50]
-    var
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-    begin
-        RecRef.GetTable(EDocument);
-        if TryGetFieldRefByName(RecRef, 'Substitution UUID', FieldRef) then
-            exit(CopyStr(Format(FieldRef.Value), 1, 50));
-
-        exit('');
-    end;
-
-    local procedure GetCancellationId(EDocument: Record "E-Document"): Text
-    var
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-    begin
-        RecRef.GetTable(EDocument);
-        if TryGetFieldRefByName(RecRef, 'CFDI Cancellation ID', FieldRef) then
-            exit(Format(FieldRef.Value));
-
-        if TryGetFieldRefByName(RecRef, 'Cancellation ID', FieldRef) then
-            exit(Format(FieldRef.Value));
-
-        exit('');
-    end;
-
-    local procedure MapCancellationStatusFromResponse(ResponseTxt: Text; FallbackStatus: Enum "E-Document Service Status"): Enum "E-Document Service Status"
-    var
-        XmlDoc: XmlDocument;
-        ResultNode: XmlNode;
-        StatusTxt: Text;
-    begin
-        if not TryReadXml(ResponseTxt, XmlDoc) then
-            exit(FallbackStatus);
-
-        if not TryGetResultNode(XmlDoc, ResultNode) then
-            exit(FallbackStatus);
-
-        StatusTxt := GetXmlAttribute(ResultNode, 'Estatus');
-        if StatusTxt = '' then
-            StatusTxt := GetXmlAttribute(ResultNode, 'Resultado');
-
-        case UpperCase(StatusTxt) of
-            'ENPROCESO':
-                exit(Enum::"E-Document Service Status"::"Pending Response");
-            'RECHAZADO':
-                exit(Enum::"E-Document Service Status"::Rejected);
-            'CANCELADO':
-                exit(Enum::"E-Document Service Status"::Canceled);
-            else
-                exit(FallbackStatus);
-        end;
-    end;
-
-    local procedure TryGetFieldRefByName(var RecRef: RecordRef; FieldName: Text; var FoundFieldRef: FieldRef): Boolean
-    var
-        Index: Integer;
-        CurrentFieldRef: FieldRef;
-    begin
-        for Index := 1 to RecRef.FieldCount do begin
-            CurrentFieldRef := RecRef.FieldIndex(Index);
-            if LowerCase(CurrentFieldRef.Name) = LowerCase(FieldName) then begin
-                FoundFieldRef := CurrentFieldRef;
-                exit(true);
-            end;
-        end;
-
-        exit(false);
+        if CancelReasonDlg.RunModal() <> Action::OK then
+            exit(false);
+        CancellationReasonCode := CancelReasonDlg.GetReasonCode();
+        SubstitutionUUID := CancelReasonDlg.GetSubstitutionUUID();
+        exit(true);
     end;
 
 }

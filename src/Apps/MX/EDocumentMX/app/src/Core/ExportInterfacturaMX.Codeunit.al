@@ -702,7 +702,7 @@ codeunit 3354 "Export Interfactura MX"
 
                 if SalesCrMemoLine."VAT %" <> 0 then begin
                     CalculatedTaxBase += SalesCrMemoLine.Amount;
-                    CalculatedTaxTotal += SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount;
+                    CalculatedTaxTotal += Round(SalesCrMemoLine.Amount * SalesCrMemoLine."VAT %" / 100, 0.000001);
                     SummaryVATPct := SalesCrMemoLine."VAT %";
 
                     ImpuestosNode := CreateCFDIElement('Impuestos');
@@ -712,7 +712,7 @@ codeunit 3354 "Export Interfactura MX"
                     TrasladoNode.SetAttribute('Impuesto', GetTaxCode(SalesCrMemoLine."VAT %", SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount));
                     TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
                     TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(SalesCrMemoLine."VAT %" / 100, 6), 8, '0'));
-                    TrasladoNode.SetAttribute('Importe', FormatDecimal(SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount, 6));
+                    TrasladoNode.SetAttribute('Importe', FormatDecimal(Round(SalesCrMemoLine.Amount * SalesCrMemoLine."VAT %" / 100, 0.000001), 6));
                     TrasladosNode.Add(TrasladoNode.AsXmlNode());
                     ImpuestosNode.Add(TrasladosNode.AsXmlNode());
                     ConceptoNode.Add(ImpuestosNode.AsXmlNode());
@@ -724,6 +724,7 @@ codeunit 3354 "Export Interfactura MX"
         RootNode.Add(ConceptosNode.AsXmlNode());
 
         TaxTotal := CalculatedTaxTotal;
+        RootNode.SetAttribute('Total', FormatAmount(SubTotal + TaxTotal, CurrencyCode));
         if TaxTotal <> 0 then begin
             ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
@@ -836,7 +837,7 @@ codeunit 3354 "Export Interfactura MX"
 
                 if ServiceInvoiceLine."VAT %" <> 0 then begin
                     CalculatedTaxBase += ServiceInvoiceLine.Amount;
-                    CalculatedTaxTotal += ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount;
+                    CalculatedTaxTotal += Round(ServiceInvoiceLine.Amount * ServiceInvoiceLine."VAT %" / 100, 0.000001);
                     SummaryVATPct := ServiceInvoiceLine."VAT %";
 
                     ImpuestosNode := CreateCFDIElement('Impuestos');
@@ -846,7 +847,7 @@ codeunit 3354 "Export Interfactura MX"
                     TrasladoNode.SetAttribute('Impuesto', GetTaxCode(ServiceInvoiceLine."VAT %", ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount));
                     TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
                     TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(ServiceInvoiceLine."VAT %" / 100, 6), 8, '0'));
-                    TrasladoNode.SetAttribute('Importe', FormatDecimal(ServiceInvoiceLine."Amount Including VAT" - ServiceInvoiceLine.Amount, 6));
+                    TrasladoNode.SetAttribute('Importe', FormatDecimal(Round(ServiceInvoiceLine.Amount * ServiceInvoiceLine."VAT %" / 100, 0.000001), 6));
                     TrasladosNode.Add(TrasladoNode.AsXmlNode());
                     ImpuestosNode.Add(TrasladosNode.AsXmlNode());
                     ConceptoNode.Add(ImpuestosNode.AsXmlNode());
@@ -858,6 +859,7 @@ codeunit 3354 "Export Interfactura MX"
         RootNode.Add(ConceptosNode.AsXmlNode());
 
         TaxTotal := CalculatedTaxTotal;
+        RootNode.SetAttribute('Total', FormatDecimal(SubTotal + TaxTotal, 6));
         if TaxTotal <> 0 then begin
             ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatDecimal(TaxTotal, 6));
@@ -970,7 +972,7 @@ codeunit 3354 "Export Interfactura MX"
 
                 if ServiceCrMemoLine."VAT %" <> 0 then begin
                     CalculatedTaxBase += ServiceCrMemoLine.Amount;
-                    CalculatedTaxTotal += ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount;
+                    CalculatedTaxTotal += Round(ServiceCrMemoLine.Amount * ServiceCrMemoLine."VAT %" / 100, 0.000001);
                     SummaryVATPct := ServiceCrMemoLine."VAT %";
 
                     ImpuestosNode := CreateCFDIElement('Impuestos');
@@ -980,7 +982,7 @@ codeunit 3354 "Export Interfactura MX"
                     TrasladoNode.SetAttribute('Impuesto', GetTaxCode(ServiceCrMemoLine."VAT %", ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount));
                     TrasladoNode.SetAttribute('TipoFactor', 'Tasa');
                     TrasladoNode.SetAttribute('TasaOCuota', PadStr(FormatDecimal(ServiceCrMemoLine."VAT %" / 100, 6), 8, '0'));
-                    TrasladoNode.SetAttribute('Importe', FormatDecimal(ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount, 6));
+                    TrasladoNode.SetAttribute('Importe', FormatDecimal(Round(ServiceCrMemoLine.Amount * ServiceCrMemoLine."VAT %" / 100, 0.000001), 6));
                     TrasladosNode.Add(TrasladoNode.AsXmlNode());
                     ImpuestosNode.Add(TrasladosNode.AsXmlNode());
                     ConceptoNode.Add(ImpuestosNode.AsXmlNode());
@@ -992,6 +994,7 @@ codeunit 3354 "Export Interfactura MX"
         RootNode.Add(ConceptosNode.AsXmlNode());
 
         TaxTotal := CalculatedTaxTotal;
+        RootNode.SetAttribute('Total', FormatAmount(SubTotal + TaxTotal, CurrencyCode));
         if TaxTotal <> 0 then begin
             ImpuestosNode := CreateCFDIElement('Impuestos');
             ImpuestosNode.SetAttribute('TotalImpuestosTrasladados', FormatAmount(TaxTotal, CurrencyCode));
@@ -2137,6 +2140,7 @@ codeunit 3354 "Export Interfactura MX"
         XMLNewChild: XmlNode;
         LineDiscount: Decimal;
         LineAmount: Decimal;
+        CorrectedTotalTax: Decimal;
     begin
         CompanyInfo.Get();
         GetCustomer(Customer, SalesInvoiceHeader."Bill-to Customer No.", false);
@@ -2208,7 +2212,8 @@ codeunit 3354 "Export Interfactura MX"
                 AddNodeCuentaPredial(ConceptoNode, SalesInvoiceLine."No.");
             until SalesInvoiceLine.Next() = 0;
 
-        AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine);
+        AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine, CorrectedTotalTax);
+        RootNode.SetAttribute('Total', FormatAmount(SubTotal - TotalDiscount + CorrectedTotalTax - TotalRetention, SalesInvoiceHeader."Currency Code"));
 
         if SalesInvoiceHeader."Foreign Trade" then begin
             CurrentNode := RootNode.AsXmlNode();
@@ -2217,7 +2222,7 @@ codeunit 3354 "Export Interfactura MX"
         end;
     end;
 
-    local procedure AddDocumentTaxNode(var RootNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
+    local procedure AddDocumentTaxNode(var RootNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; var CorrectedTotalTax: Decimal)
     var
         TempVATAmountLine: Record "VAT Amount Line" temporary;
         TotalTax: Decimal;
@@ -2245,6 +2250,7 @@ codeunit 3354 "Export Interfactura MX"
             until TempVATAmountLine.Next() = 0;
 
         CurrencyCode := SalesInvoiceHeader."Currency Code";
+        CorrectedTotalTax := TotalTax;
         AddDocumentTaxNodeFromTempVATAmountLine(RootNode, TempVATAmountLine, TotalTax, TotalRetention, CurrencyCode);
 
         SalesInvoiceLine.Reset();
@@ -2335,7 +2341,7 @@ codeunit 3354 "Export Interfactura MX"
         if SalesInvoiceLine."Retention Attached to Line No." = 0 then begin
             TempVATAmountLine."Amount Including VAT" += SalesInvoiceLine."Amount Including VAT";
             TempVATAmountLine."VAT %" := SalesInvoiceLine."VAT %";
-            TempVATAmountLine."VAT Amount" += SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount;
+            TempVATAmountLine."VAT Amount" += Round(SalesInvoiceLine.Amount * SalesInvoiceLine."VAT %" / 100, 0.000001);
             TempVATAmountLine."VAT Base" += SalesInvoiceLine.Amount;
             TempVATAmountLine.Modify();
         end else begin
@@ -2439,6 +2445,7 @@ codeunit 3354 "Export Interfactura MX"
         XMLNewChild: XmlNode;
         LineDiscount: Decimal;
         LineAmount: Decimal;
+        CorrectedTotalTax: Decimal;
         CalculatedTotalDiscount: Decimal;
     begin
         CompanyInfo.Get();
@@ -2511,7 +2518,8 @@ codeunit 3354 "Export Interfactura MX"
             until SalesInvoiceLine.Next() = 0;
 
         RootNode.SetAttribute('Descuento', FormatAmount(CalculatedTotalDiscount, SalesInvoiceHeader."Currency Code"));
-        AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine);
+        AddDocumentTaxNode(RootNode, SalesInvoiceHeader, SalesInvoiceLine, CorrectedTotalTax);
+        RootNode.SetAttribute('Total', FormatAmount(SubTotal - TotalDiscount + CorrectedTotalTax - TotalRetention, SalesInvoiceHeader."Currency Code"));
 
         if SalesInvoiceHeader."Foreign Trade" then begin
             CurrentNode := RootNode.AsXmlNode();
@@ -3474,7 +3482,7 @@ codeunit 3354 "Export Interfactura MX"
             TrasladoNode,
             SalesInvoiceLine.Amount,
             SalesInvoiceLine."VAT %",
-            SalesInvoiceLine."Amount Including VAT" - SalesInvoiceLine.Amount,
+            Round(SalesInvoiceLine.Amount * SalesInvoiceLine."VAT %" / 100, 0.000001),
             IsVATExempt);
 
         SalesInvoiceRetentionLine.SetRange("Document No.", SalesInvoiceLine."Document No.");
