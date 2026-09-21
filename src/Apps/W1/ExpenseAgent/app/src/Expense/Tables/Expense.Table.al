@@ -67,7 +67,7 @@ table 6900 Expense
                         if not Employee.Get(ExpenseUser."Employee No.") then
                             Error(ExpenseUserMustBeLinkedToAnEmployeeErr, Rec."Expense User No.");
 
-                        Employee.TestField("Employee Posting Group");
+                        ApplyRule(false, true);
                     end;
 
                 CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -334,7 +334,7 @@ table 6900 Expense
                 CreateDimFromDefaultDim(Rec.FieldNo("Billable to Customer"));
             end;
         }
-        field(23; "Expense Location"; Code[30])
+        field(23; "Expense Location"; Code[30]) // NB: Expense Location Code has length 20.
         {
             Caption = 'Expense Location';
             TableRelation = "Expense Location";

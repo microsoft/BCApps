@@ -1589,7 +1589,7 @@ table 39 "Purchase Line"
                                     TestField("No.", VATPostingSetup.GetPurchAccount(false));
                                 end;
                         end;
-                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::"G/L Account", Rec.Type::Item, Rec.Type::Resource]);
+                    ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::Item, Rec.Type::Resource]);
                     OnValidateVATProdPostingGroupOnAfterCalcShouldUpdateUnitCost(Rec, VATPostingSetup, ShouldUpdateUnitCost);
                     if ShouldUpdateUnitCost then
                         Validate("Direct Unit Cost",
@@ -2634,6 +2634,7 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
+                TestStatusOpen();
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
@@ -7253,6 +7254,11 @@ table 39 "Purchase Line"
                                     VATAmount := PurchLine.CalcLineAmount() - PurchLine."Pmt. Discount Amount";
                                     NewAmount := 0;
                                     NewVATBaseAmount := 0;
+                                    if VATAmountLine.CalcLineAmount() = 0 then
+                                        NonDedVATAmount := 0
+                                    else
+                                        NonDedVATAmount :=
+                                            NonDeductibleVAT.GetNonDedVATAmountFromVATAmountLine(TempVATAmountLineRemainder, VATAmountLine, Currency, PurchLine.CalcLineAmount(), VATAmountLine.CalcLineAmount());
                                 end else begin
                                     NewAmount := PurchLine.CalcLineAmount() - PurchLine."Pmt. Discount Amount";
                                     NewVATBaseAmount :=
