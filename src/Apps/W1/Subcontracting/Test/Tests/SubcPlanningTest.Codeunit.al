@@ -365,7 +365,6 @@ codeunit 139996 "Subc. Planning Test"
         Item: Record Item;
         Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
-        ManufacturingUserTemplate: Record "Manufacturing User Template";
         PlanningComponent: Record "Planning Component";
         ProdOrderComponent: Record "Prod. Order Component";
         ProductionBOMLine: Record "Production BOM Line";
@@ -435,19 +434,12 @@ codeunit 139996 "Subc. Planning Test"
         PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
 
         // [WHEN] Carry out the parent item's planning line to create a planned production order
-        if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
-            LibraryPlanning.CreateManufUserTemplate(
-                ManufacturingUserTemplate, CopyStr(UserId(), 1, 50),
-                ManufacturingUserTemplate."Make Orders"::"All Lines",
-                ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
-                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
-                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
         RequisitionLine.Reset();
         RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
         RequisitionLine.SetRange("No.", Item."No.");
         RequisitionLine.FindFirst();
-        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+        CarryOutPlanningLine(RequisitionLine);
 
         // [THEN] The created planned production order contains the Vendor-Supplied component
         // (carrying out the planning line must not strip the component from the production order)
@@ -666,6 +658,7 @@ codeunit 139996 "Subc. Planning Test"
         RequisitionLine.Modify(true);
 
         LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+        RequisitionLine.Find();
     end;
 
     local procedure FindPlanningRoutingLine(var PlanningRoutingLine: Record "Planning Routing Line"; RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20])
@@ -736,8 +729,8 @@ codeunit 139996 "Subc. Planning Test"
         LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
