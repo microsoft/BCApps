@@ -43,7 +43,7 @@ codeunit 20601 "Basic Mgmt BF"
         AllProfile.SetRange(Enabled, true);
         AllProfile.SetFilter("Profile ID", AllProfileFilterTxt);
 
-        if AllProfile.FindSet(true, false) then
+        if AllProfile.FindSet(true) then
             repeat
                 if not IsAssignedToGroupsOrUsers(AllProfile) then begin // Disable Role Center, which is not assigned to Groups Or Users. It is not possible to disable Role Center which is in use.
                     AllProfile.Enabled := false;

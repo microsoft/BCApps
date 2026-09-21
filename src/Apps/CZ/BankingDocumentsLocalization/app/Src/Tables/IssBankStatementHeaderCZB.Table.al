@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -294,7 +295,7 @@ table 31254 "Iss. Bank Statement Header CZB"
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
-        DummyInStream: InStream;
+        ReportLayoutList: Record "Report Layout List";
         ReportOutStream: OutStream;
         DocumentInStream: InStream;
         FileName: Text[250];
@@ -305,7 +306,9 @@ table 31254 "Iss. Bank Statement Header CZB"
         RecordRef.GetTable(IssBankStatementHeaderCZB);
         if not RecordRef.FindFirst() then
             exit;
-        if not Report.RdlcLayout(Report::"Iss. Bank Statement CZB", DummyInStream) then
+        ReportLayoutList.SetRange("Report ID", Report::"Iss. Bank Statement CZB");
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::RDLC);
+        if not ReportLayoutList.FindFirst() then
             exit;
 
         Clear(TempBlob);

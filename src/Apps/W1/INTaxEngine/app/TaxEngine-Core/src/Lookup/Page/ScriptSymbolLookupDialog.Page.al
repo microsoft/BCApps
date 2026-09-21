@@ -571,9 +571,7 @@ page 20142 "Script Symbol Lookup Dialog"
         RecordFieldName: Text[30];
         ExpectedDatatype: Enum "Symbol Data Type";
         ApplyDatatypeFilter: Boolean;
-        [InDataSet]
         ShowFullLoookup: Boolean;
-        [InDataSet]
         IsSymbolType: Boolean;
         LookupTableName: Text[30];
         LookupTableFieldName: Text[30];

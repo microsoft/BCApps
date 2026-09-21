@@ -136,6 +136,5 @@ pageextension 18086 "GST Purchase Quote Ext" extends "Purchase Quote"
 
     var
         GstPurchaseSubscriber: Codeunit "GST Purchase Subscribers";
-        [InDataSet]
         IsLocationVisible: Boolean;
 }

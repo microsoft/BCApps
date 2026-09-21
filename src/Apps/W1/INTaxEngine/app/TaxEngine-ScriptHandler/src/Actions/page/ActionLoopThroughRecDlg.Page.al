@@ -232,6 +232,5 @@ page 20171 "Action Loop Through Rec. Dlg"
         TableSorting2: Text;
         IndexVariable2: Text[30];
         CountVariable2: Text[30];
-        [InDataSet]
         CounterVisible: Boolean;
 }

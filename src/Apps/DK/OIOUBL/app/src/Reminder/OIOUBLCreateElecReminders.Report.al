@@ -123,7 +123,6 @@ report 13632 "OIOUBL-Create Elec. Reminders"
         DocumentAlreadyCreatedQst: Label 'One or more electronic reminders that match your filter criteria have been created before.\\Do you want to continue?';
         SuccessMsg: Label 'Successfully created %1 electronic reminders.', Comment = '%1 = amount of electronic reminders';
         NothingToCreateErr: Label 'There is nothing to create.';
-        [InDataSet]
         LogInteractionEnable: Boolean;
 
     procedure InitLogInteraction();

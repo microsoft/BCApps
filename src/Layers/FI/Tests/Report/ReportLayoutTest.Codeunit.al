@@ -402,10 +402,16 @@ codeunit 134600 "Report Layout Test"
     procedure TestReportDefaultWord()
     var
         FileManagement: Codeunit "File Management";
+        ReportLayoutList: Record "Report Layout List";
+        ReportMetadata: Record "Report Metadata";
     begin
         Initialize();
         // Verify start condition
-        Assert.IsTrue(REPORT.DefaultLayout(134600) = DEFAULTLAYOUT::Word, '');
+        Assert.IsTrue(ReportMetadata.Get(134600), '');
+        ReportLayoutList.SetRange("Report ID", 134600);
+        ReportLayoutList.SetRange(Name, ReportMetadata.DefaultLayoutName);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        Assert.RecordIsNotEmpty(ReportLayoutList);
 
         // Execute / verify
         REPORT.SaveAsWord(134600, FileManagement.ServerTempFileName('docx'));

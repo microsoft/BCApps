@@ -1024,7 +1024,6 @@ report 18010 "Purchase - Credit Memo GST"
         OtherTaxesAmount: Decimal;
         ChargesAmount: Decimal;
         SupplementaryText: Text[30];
-        [InDataSet]
         LogInteractionEnable: Boolean;
         TotalSubTotal: Decimal;
         TotalAmount: Decimal;
