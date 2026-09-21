@@ -13,11 +13,26 @@ using System.Utilities;
 codeunit 149034 "AIT Test Suite Mgt."
 {
     Access = Internal;
+    TableNo = "AIT Test Suite";
     Permissions = tabledata "Test Input Group" = rmid,
                   tabledata "Test Input" = rmid;
 
+    trigger OnRun()
+    begin
+        if CleanupWorker then
+            InvokeSuiteCleanup(Rec)
+        else
+            RunAITests(Rec);
+    end;
+
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
+        LifecycleSuite: Record "AIT Test Suite";
+        LifecycleEnabled: Boolean;
+        SetupAttempted: Boolean;
+        CleanupWorker: Boolean;
+        ExecutionReturned: Boolean;
+        FixtureState: JsonObject;
         NoDatasetInLineErr: Label 'The dataset %1 specified for AI Eval Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AI Eval Line No.';
         NoInputsInLineErr: Label 'The dataset %1 specified for AI Eval line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Eval Line No.';
         LanguageMismatchInLineErr: Label 'The dataset %1 specified for AI Eval line %2 does not have inputs for language %3.', Comment = '%1 is the Dataset name, %2 is the AI Eval Line No., %3 is the Language ID';
@@ -49,7 +64,9 @@ codeunit 149034 "AIT Test Suite Mgt."
     procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuite2: Record "AIT Test Suite";
+        AITTestContext: Codeunit "AIT Test Context";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+        UseLifecycle: Boolean;
     begin
         // If there is already a suite running, then error
         AITTestSuite2.ReadIsolation := IsolationLevel::ReadUncommitted;
@@ -60,8 +77,79 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITEvalLimitProvider := AITTestSuite."Test Type";
         AITEvalLimitProvider.CheckBeforeRun(AITTestSuite);
 
-        RunAITests(AITTestSuite);
+        AITTestContext.OnGetSuiteLifecycleEnabled(AITTestSuite, UseLifecycle);
+        if UseLifecycle then
+            RunWithLifecycle(AITTestSuite)
+        else
+            RunAITests(AITTestSuite);
         if AITTestSuite.Find() then;
+    end;
+
+    local procedure RunWithLifecycle(var AITTestSuite: Record "AIT Test Suite")
+    var
+        Worker: Codeunit "AIT Test Suite Mgt.";
+        Cleanup: Codeunit "AIT Test Suite Mgt.";
+        Failure: Text;
+        CleanupFailure: Text;
+        Succeeded: Boolean;
+    begin
+        Worker.EnableLifecycle();
+        Commit();
+        ClearLastError();
+        Succeeded := Worker.Run(AITTestSuite);
+        if not Succeeded then
+            Failure := GetLastErrorText();
+        if Worker.GetLifecycleState(AITTestSuite, FixtureState) then begin
+            Cleanup.InitializeCleanup(FixtureState, Succeeded);
+            Commit();
+            ClearLastError();
+            if not Cleanup.Run(AITTestSuite) then
+                CleanupFailure := GetLastErrorText();
+        end;
+        if Failure <> '' then begin
+            if CleanupFailure <> '' then
+                Error('%1\Suite cleanup also failed: %2', Failure, CleanupFailure);
+            Error('%1', Failure);
+        end;
+        if CleanupFailure <> '' then
+            Error('Suite cleanup failed: %1', CleanupFailure);
+    end;
+
+    internal procedure EnableLifecycle()
+    begin
+        LifecycleEnabled := true;
+    end;
+
+    internal procedure GetLifecycleState(var AITTestSuite: Record "AIT Test Suite"; var State: JsonObject): Boolean
+    begin
+        if not SetupAttempted then
+            exit(false);
+        AITTestSuite := LifecycleSuite;
+        State := FixtureState;
+        exit(true);
+    end;
+
+    internal procedure InitializeCleanup(State: JsonObject; Succeeded: Boolean)
+    begin
+        CleanupWorker := true;
+        FixtureState := State;
+        ExecutionReturned := Succeeded;
+    end;
+
+    [CommitBehavior(CommitBehavior::Error)]
+    local procedure InvokeSuiteSetup(AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestContext: Codeunit "AIT Test Context";
+    begin
+        AITTestContext.OnSetupSuite(AITTestSuite, FixtureState);
+    end;
+
+    [CommitBehavior(CommitBehavior::Error)]
+    local procedure InvokeSuiteCleanup(AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestContext: Codeunit "AIT Test Context";
+    begin
+        AITTestContext.OnCleanupSuite(AITTestSuite, ExecutionReturned, FixtureState);
     end;
 
     local procedure RunAITests(AITTestSuite: Record "AIT Test Suite")
@@ -96,6 +184,13 @@ codeunit 149034 "AIT Test Suite Mgt."
         FeatureTelemetry.LogUptake('0000NEW', FeatureNameLbl, Enum::"Feature Uptake Status"::"Set up", FeatureTelemetryCD);
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
+
+        if LifecycleEnabled then begin
+            LifecycleSuite := AITTestSuite;
+            SetupAttempted := true;
+            InvokeSuiteSetup(AITTestSuite);
+            Commit();
+        end;
 
         AITEvalLimitProvider := AITTestSuite."Test Type";
         LimitReached := false;

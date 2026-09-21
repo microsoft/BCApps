@@ -287,6 +287,21 @@ codeunit 149044 "AIT Test Context"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetSuiteLifecycleEnabled(AITTestSuite: Record "AIT Test Suite"; var Enabled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnSetupSuite(AITTestSuite: Record "AIT Test Suite"; var FixtureState: JsonObject)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnCleanupSuite(AITTestSuite: Record "AIT Test Suite"; ExecutionReturned: Boolean; var FixtureState: JsonObject)
+    begin
+    end;
+
     var
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
 }
