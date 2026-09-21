@@ -12,6 +12,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -679,6 +680,7 @@ codeunit 139996 "Subc. Planning Test"
 
     local procedure CarryOutPlanningLine(var RequisitionLine: Record "Requisition Line")
     var
+        ManufacturingSetup: Record "Manufacturing Setup";
         ManufacturingUserTemplate: Record "Manufacturing User Template";
     begin
         if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
@@ -689,6 +691,8 @@ codeunit 139996 "Subc. Planning Test"
                 ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
                 ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
 
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Firm Planned Order Nos."));
         RequisitionLine.SetRecFilter();
         LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
     end;
@@ -733,6 +737,7 @@ codeunit 139996 "Subc. Planning Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryUtility: Codeunit "Library - Utility";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
