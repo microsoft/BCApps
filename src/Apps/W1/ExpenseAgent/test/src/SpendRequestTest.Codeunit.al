@@ -348,6 +348,26 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The spend request is approved automatically because there is no agent to approve it.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, SpendReqApprovedMsg);
+    end;
+
+    [Test]
+    procedure ReleaseSpendReqAutoApproveRecordsApproverInfo()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 650348] Auto-approving a travel request records approver audit fields.
+        Initialize();
+
+        // [GIVEN] A releasable spend request with every prerequisite satisfied.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The spend request is Released.
+        ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] Approver user id, user name, and timestamp are recorded.
+        SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
         Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
         Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", ApproverDateTimeRecordedMsg);
