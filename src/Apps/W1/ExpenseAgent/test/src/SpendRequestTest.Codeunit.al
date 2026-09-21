@@ -19,6 +19,7 @@ codeunit 148339 "Spend Request Test"
     var
         Assert: Codeunit "Assert";
         LibraryExpense: Codeunit "Library - Expense";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
@@ -2169,6 +2170,7 @@ codeunit 148339 "Spend Request Test"
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Spend Request Test");
+        CreateGeneralPostingSetup();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -2182,6 +2184,17 @@ codeunit 148339 "Spend Request Test"
         IsInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Spend Request Test");
+    end;
+
+    local procedure CreateGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        // Country setup helpers need a complete posting setup even without demo data.
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure CreateExpenseReportWithRefundableLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseUser: Record "Expense User"; Refundable: Boolean)
