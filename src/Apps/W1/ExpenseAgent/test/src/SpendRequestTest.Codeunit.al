@@ -13,7 +13,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148339 "Spend Request Test"
 {
     Subtype = Test;
-    TestType = IntegrationTest;
+    TestType = UnitTest;
     TestPermissions = Disabled;
 
     var
