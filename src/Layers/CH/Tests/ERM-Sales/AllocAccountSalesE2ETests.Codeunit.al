@@ -1655,4 +1655,5 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         RedistributeAccAllocations.Dimensions.Invoke();
     end;
 }
+
 #pragma warning restore AA0210
