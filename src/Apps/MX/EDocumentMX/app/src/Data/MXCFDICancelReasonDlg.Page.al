@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Interfactura;
 
+using Microsoft.eServices.EDocument;
+
 page 3367 "MX CFDI Cancel Reason Dlg"
 {
     Caption = 'CFDI Cancellation Request';
@@ -17,62 +19,79 @@ page 3367 "MX CFDI Cancel Reason Dlg"
             group(Reason)
             {
                 Caption = 'Cancellation Details';
-                field(CancellationReason; CancellationReason)
+                field(CancellationReasonCode; CancellationReasonCode)
                 {
                     ApplicationArea = All;
                     Caption = 'Reason';
-                    OptionCaption = '01 - Issued with errors (substitution),02 - Issued with errors (no substitution),03 - Operation did not take place,04 - Nominative operation in global invoice';
+                    TableRelation = "CFDI Cancellation Reason";
                     ToolTip = 'Specifies the SAT cancellation reason code. Use 01 if you are replacing this document with another CFDI.';
 
                     trigger OnValidate()
+                    var
+                        CFDICancellationReason: Record "CFDI Cancellation Reason";
                     begin
-                        SubstitutionUUIDEditable := CancellationReason = CancellationReason::"01";
-                        if not SubstitutionUUIDEditable then
-                            SubstitutionUUID := '';
+                        SubstitutionRequired := false;
+                        SubstitutionDocumentNo := '';
+                        SubstitutionUUID := '';
+                        if CancellationReasonCode <> '' then
+                            if CFDICancellationReason.Get(CancellationReasonCode) then
+                                SubstitutionRequired := CFDICancellationReason."Substitution Number Required";
+                        CurrPage.Update(false);
+                    end;
+                }
+                field(SubstitutionDocumentNo; SubstitutionDocumentNo)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Substitution Document';
+                    Editable = SubstitutionRequired;
+                    ToolTip = 'Specifies the document number of the CFDI that replaces this one. Required when the cancellation reason requires a substitution.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        EDocument: Record "E-Document";
+                        EDocuments: Page "E-Documents";
+                        CFDIWriteBackMX: Codeunit "CFDI Write-Back MX";
+                        UUID: Text;
+                    begin
+                        EDocument.SetRange(Direction, EDocument.Direction::Outgoing);
+                        EDocuments.SetTableView(EDocument);
+                        EDocuments.LookupMode := true;
+                        if EDocuments.RunModal() <> Action::LookupOK then
+                            exit(false);
+                        EDocuments.GetRecord(EDocument);
+                        UUID := CFDIWriteBackMX.GetUUIDForDocument(EDocument."Document Record ID");
+                        if UUID = '' then
+                            Error(SubstitutionDocNotStampedErr);
+                        SubstitutionDocumentNo := CopyStr(EDocument."Document No.", 1, MaxStrLen(SubstitutionDocumentNo));
+                        SubstitutionUUID := CopyStr(UUID, 1, MaxStrLen(SubstitutionUUID));
+                        Text := SubstitutionDocumentNo;
+                        exit(true);
                     end;
                 }
                 field(SubstitutionUUID; SubstitutionUUID)
                 {
                     ApplicationArea = All;
                     Caption = 'Substitution UUID';
-                    Editable = SubstitutionUUIDEditable;
-                    ToolTip = 'Specifies the UUID of the CFDI document that replaces this one. Required when reason is 01.';
-
-                    trigger OnValidate()
-                    begin
-                        if (CancellationReason = CancellationReason::"01") and (SubstitutionUUID = '') then
-                            Error(SubstitutionUUIDRequiredErr);
-                    end;
+                    Editable = false;
+                    ToolTip = 'Specifies the UUID of the CFDI that replaces this one, as assigned by SAT.';
                 }
             }
         }
     }
 
-    trigger OnOpenPage()
-    begin
-        SubstitutionUUIDEditable := CancellationReason = CancellationReason::"01";
-    end;
-
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if CloseAction <> Action::OK then
             exit(true);
-        if (CancellationReason = CancellationReason::"01") and (SubstitutionUUID = '') then
-            Error(SubstitutionUUIDRequiredErr);
+        if CancellationReasonCode = '' then
+            Error(CancellationReasonRequiredErr);
+        if SubstitutionRequired and (SubstitutionUUID = '') then
+            Error(SubstitutionDocRequiredErr);
     end;
 
     procedure GetReasonCode(): Code[10]
     begin
-        case CancellationReason of
-            CancellationReason::"01":
-                exit('01');
-            CancellationReason::"02":
-                exit('02');
-            CancellationReason::"03":
-                exit('03');
-            CancellationReason::"04":
-                exit('04');
-        end;
+        exit(CancellationReasonCode);
     end;
 
     procedure GetSubstitutionUUID(): Text[50]
@@ -81,8 +100,11 @@ page 3367 "MX CFDI Cancel Reason Dlg"
     end;
 
     var
+        CancellationReasonCode: Code[10];
+        SubstitutionDocumentNo: Text[50];
         SubstitutionUUID: Text[50];
-        SubstitutionUUIDEditable: Boolean;
-        SubstitutionUUIDRequiredErr: Label 'Substitution UUID is required when cancellation reason is 01.';
-        CancellationReason: Option "01","02","03","04";
+        SubstitutionRequired: Boolean;
+        CancellationReasonRequiredErr: Label 'You must select a cancellation reason before proceeding.';
+        SubstitutionDocRequiredErr: Label 'A substitution document is required for this cancellation reason. Use the lookup to select a stamped CFDI document.';
+        SubstitutionDocNotStampedErr: Label 'The selected document has not been stamped and does not have a UUID. Select a document with a stamped CFDI.';
 }

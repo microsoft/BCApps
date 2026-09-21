@@ -29,6 +29,7 @@ codeunit 3355 "Interfactura Processing"
         ParseErr: Label 'Failed to parse document from Interfactura API';
         MissingPACWebServiceDetailErr: Label 'PAC Web Service Detail for %1 is missing or incomplete.';
         MissingStampedDataErr: Label 'No stamped CFDI data was found for this document. Cancellation requires a stamped UUID.';
+        InvalidStatusForCancellationErr: Label 'The document cannot be cancelled because it has status %1.', Comment = '%1 = current service status';
         MissingCancelRequestErr: Label 'The cancellation request could not be generated.';
         CFDIServiceNameTxt: Label 'CFDI', Locked = true;
         StampRequestedMsg: Label 'Sending stamp request for E-Document %1.', Locked = true;
@@ -583,6 +584,12 @@ codeunit 3355 "Interfactura Processing"
     begin
         EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
 
+        if not IsStatusValidForCancellation(EDocumentServiceStatus.Status) then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(InvalidStatusForCancellationErr, EDocumentServiceStatus.Status));
+            Status := EDocumentServiceStatus.Status;
+            exit(false);
+        end;
+
         if not GetStampedCFDIData(EDocument, UUID, DateTimeStampedTxt) then begin
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, MissingStampedDataErr);
             Status := EDocumentServiceStatus.Status;
@@ -639,6 +646,15 @@ codeunit 3355 "Interfactura Processing"
             DateTimeStampedTxt := CopyStr(Format(CurrentDateTime(), 0, 9), 1, MaxStrLen(DateTimeStampedTxt));
 
         exit(true);
+    end;
+
+    local procedure IsStatusValidForCancellation(ServiceStatus: Enum "E-Document Service Status"): Boolean
+    begin
+        exit(ServiceStatus in [
+            Enum::"E-Document Service Status"::Sent,
+            Enum::"E-Document Service Status"::"Pending Response",
+            Enum::"E-Document Service Status"::"Cancel Error",
+            Enum::"E-Document Service Status"::Approved]);
     end;
 
     local procedure ConfirmCancellationReason(var CancellationReasonCode: Code[10]; var SubstitutionUUID: Text[50]): Boolean
