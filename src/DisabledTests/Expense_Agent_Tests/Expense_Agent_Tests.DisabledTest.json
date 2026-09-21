@@ -32,6 +32,21 @@
   {
     "codeunitId": 148347,
     "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIPreservesAndUpdatesDates"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
     "method": "TravelRequestsAreScopedByEmployeeNumber"
   },
   {
@@ -52,7 +67,22 @@
   {
     "codeunitId": 148347,
     "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIAllowsOwnerOnInsertAndUnchangedPatch"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIRejectsLifecycleFieldChanges"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
     "method": "LegacySpendRequestsAPIAllowsUnchangedOwner"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIRejectsTravelRequestOwnerChange"
   },
   {
     "codeunitId": 148318,
