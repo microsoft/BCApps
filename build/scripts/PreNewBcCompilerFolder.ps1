@@ -12,5 +12,5 @@ if ($platformVersion) {
     $platformUrl = Get-PlatformVersionUrl -Version $platformVersion
     # $parameters.platformArtifactUrl = "$platformUrl/platform" # TODO: Re-enable
 
-    Write-Host "Platform artifact URL set to: $($parameters.platformArtifactUrl)"
+    # Write-Host "Platform artifact URL set to: $($parameters.platformArtifactUrl)"
 }
