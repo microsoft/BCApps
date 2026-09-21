@@ -818,7 +818,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         IntegrationSystemId: Guid;
     begin
-        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] Re-creating an existing coupling (as when a concurrent customer/vendor run already coupled the
         // auto-created company contact) is a no-op instead of failing the record on a duplicate key.
         Initialize();
@@ -839,6 +839,124 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Assert.AreEqual(1, MasterDataMgtCoupling.Count(), 'A duplicate coupling insert must be a no-op, not a second row or a duplicate-key error');
 
         MasterDataMgtCoupling.DeleteAll(); // couplings are outside DeleteTestArtifacts' cleanup
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvInlineMediaSurvivesAncillaryReFetch()
+    var
+        FirstRecord, SecondRecord : Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        Watermark: DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A batch caches every record's picture; a per-record re-fetch (GetBySystemId, as the write loop
+        // does for coupling/conflict checks) must NOT drop the OTHER records' cached pictures. Regression guard for
+        // the bug where only the first record kept its image.
+        Initialize();
+
+        // [GIVEN] two source records with pictures, materialized as one batch (both pictures cached)
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        CreateTestTableAWithImage(FirstRecord, 'first picture bytes');
+        CreateTestTableAWithImage(SecondRecord, 'second picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(FirstRecord.SystemId, FirstRecord.FieldNo("Test Image")), 'Precondition: first record picture should be cached');
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SecondRecord.SystemId, SecondRecord.FieldNo("Test Image")), 'Precondition: second record picture should be cached');
+
+        // [WHEN] the write loop re-fetches one record by SystemId (coupling/conflict lookup)
+        LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", FirstRecord.SystemId, SourceRecordRef);
+
+        // [THEN] the other record's cached picture is still there for the transfer-time apply
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SecondRecord.SystemId, SecondRecord.FieldNo("Test Image")), 'A per-record re-fetch must not drop the batch''s other cached pictures');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSourceWatermarkSurvivesAncillaryReFetch()
+    var
+        FirstRecord, SecondRecord : Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        Watermark, CachedModifiedAt : DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The per-batch source watermark cache (read by GetRowLastModifiedOn during the write loop) must
+        // survive a per-record re-fetch, so conflict detection keeps each record's real source timestamp.
+        Initialize();
+
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        CreateTestTableAWithImage(FirstRecord, 'first picture bytes');
+        CreateTestTableAWithImage(SecondRecord, 'second picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+        Assert.IsTrue(LibraryMasterDataMgt.TryGetSourceWatermark(SecondRecord.SystemId, CachedModifiedAt), 'Precondition: second record source watermark should be cached');
+
+        // [WHEN] the write loop re-fetches the first record by SystemId
+        LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", FirstRecord.SystemId, SourceRecordRef);
+
+        // [THEN] the other record's source watermark is still cached for conflict detection
+        Assert.IsTrue(LibraryMasterDataMgt.TryGetSourceWatermark(SecondRecord.SystemId, CachedModifiedAt), 'A per-record re-fetch must not drop the batch''s other source watermarks');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvInlineMediaSurvivesRelatedTableRead()
+    var
+        FirstRecord, SecondRecord : Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        Watermark: DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Resolving a related table (contact business relations) during the write loop must NOT drop the
+        // batch's cached pictures. Regression guard for the contact-side variant of the "only one picture" bug.
+        Initialize();
+
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        CreateTestTableAWithImage(FirstRecord, 'first picture bytes');
+        CreateTestTableAWithImage(SecondRecord, 'second picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(FirstRecord.SystemId, FirstRecord.FieldNo("Test Image")), 'Precondition: first record picture should be cached');
+
+        // [WHEN] a related-table read runs during the write loop (contact business relation resolution)
+        LibraryMasterDataMgt.DataSourceGetRecordsByFilter(Database::"Contact Business Relation", '', SourceRecordRef);
+
+        // [THEN] the batch's cached pictures are still there for the transfer-time apply
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(FirstRecord.SystemId, FirstRecord.FieldNo("Test Image")), 'A related-table read must not drop the batch''s cached pictures');
+        Assert.IsTrue(LibraryMasterDataMgt.InlineMediaCacheContains(SecondRecord.SystemId, SecondRecord.FieldNo("Test Image")), 'A related-table read must not drop the batch''s cached pictures');
+
         CleanUp();
     end;
 

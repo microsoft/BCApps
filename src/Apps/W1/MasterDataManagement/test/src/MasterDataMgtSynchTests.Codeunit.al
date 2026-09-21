@@ -174,6 +174,69 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure SynchronizingBlankedDateAndDateTimeClearsDestination()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        NeedsConversion: Boolean;
+        IsValueFound: Boolean;
+        NewValue: Variant;
+        TransferredDate: Date;
+        TransferredDateTime: DateTime;
+    begin
+        // [FEATURE] [AI test 0.4]
+        Initialize();
+
+        // [GIVEN] a coupled pair whose source Date/DateTime are blank and destination Date/DateTime are set
+        SourceRecord."Primary Key" := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert(); // Test Date / Test DateTime left blank (0D / 0DT)
+        DestinationRecord."Primary Key" := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Date" := Today();
+        DestinationRecord."Test DateTime" := CurrentDateTime();
+        DestinationRecord.Insert();
+        MasterDataMgtCoupling."Integration System ID" := SourceRecord.SystemId;
+        MasterDataMgtCoupling."Local System ID" := DestinationRecord.SystemId;
+        MasterDataMgtCoupling."Table ID" := Database::"MDM Test Table A";
+        MasterDataMgtCoupling."Last Synch. Modified On" := DestinationRecord.SystemModifiedAt;
+        MasterDataMgtCoupling.Insert();
+
+        SourceRecordRef.Open(Database::"MDM Test Table A");
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.Open(Database::"MDM Test Table A");
+        DestinationRecordRef.GetTable(DestinationRecord);
+
+        // [WHEN] synch transfers the blanked Date [THEN] the blank is transferred (bug 648540: BaseApp skips it)
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Date"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Date"));
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+        Assert.AreEqual(true, IsValueFound, 'The blanked Date must be transferred, not skipped');
+        Assert.AreEqual(false, NeedsConversion, '');
+        TransferredDate := NewValue;
+        Assert.AreEqual(0D, TransferredDate, 'The destination Date must be cleared to match the source');
+
+        // [WHEN] synch transfers the blanked DateTime [THEN] the blank is transferred
+        Clear(NewValue);
+        IsValueFound := false;
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test DateTime"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test DateTime"));
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+        Assert.AreEqual(true, IsValueFound, 'The blanked DateTime must be transferred, not skipped');
+        Assert.AreEqual(false, NeedsConversion, '');
+        TransferredDateTime := NewValue;
+        Assert.AreEqual(0DT, TransferredDateTime, 'The destination DateTime must be cleared to match the source');
+
+        MasterDataMgtCoupling.Delete();
+        SourceRecord.Delete();
+        DestinationRecord.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
     procedure SynchronizingPrimaryKeyChange()
     var
         SourceCustomer: Record Customer;
