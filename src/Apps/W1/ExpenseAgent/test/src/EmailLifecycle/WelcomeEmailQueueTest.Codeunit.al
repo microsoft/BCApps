@@ -20,6 +20,8 @@ codeunit 148334 "Welcome Email Queue Test"
     var
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
+        IsolatedTestCompanyLbl: Label 'EA Email Lifecycle Test', Locked = true;
+        CIIsolatedTestCompanyLbl: Label 'Empty Company', Locked = true;
 
     [Test]
     [HandlerFunctions('WelcomeQueuedMsgHandler')]
@@ -342,9 +344,14 @@ codeunit 148334 "Welcome Email Queue Test"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        Assert.AreEqual('EA Email Lifecycle Test', CompanyName(), 'Run only in the dedicated disposable test company, never CRONUS.');
+        Assert.IsTrue(IsSafeTestCompany(), 'Run only in a dedicated disposable test company, never CRONUS.');
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'These isolated tests must run on-prem.');
         Assert.IsFalse(EnvironmentInformation.IsSaaSInfrastructure(), 'These tests must not use SaaS infrastructure.');
+    end;
+
+    local procedure IsSafeTestCompany(): Boolean
+    begin
+        exit(CompanyName() in [IsolatedTestCompanyLbl, CIIsolatedTestCompanyLbl]);
     end;
 
     local procedure CreateInOutboxUser(var ExpenseUser: Record "Expense User"; CorrelationId: Guid)

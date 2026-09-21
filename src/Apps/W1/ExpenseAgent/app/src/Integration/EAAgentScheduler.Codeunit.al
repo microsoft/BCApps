@@ -176,6 +176,8 @@ codeunit 6935 "EA Agent Scheduler"
             ReconcileAgent(Rec, CompletedTaskId);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Agent Setup", 'RM', InherentPermissionsScope::Permissions)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Agent Status", 'RM', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Email Account", 'OnAfterDeleteEmailAccount', '', false, false)]
     local procedure OnAfterDeleteEmailAccount(EmailAccountId: Guid; EmailAccountConnector: Enum "Email Connector")
     var

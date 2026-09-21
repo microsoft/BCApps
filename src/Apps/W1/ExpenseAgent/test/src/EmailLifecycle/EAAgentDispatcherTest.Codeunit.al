@@ -38,6 +38,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         DisableOutgoingAfterSend: Boolean;
         UseReceiptAttachmentFixture: Boolean;
         TestCompanyTok: Label 'EA Email Lifecycle Test', Locked = true;
+        CITestCompanyTok: Label 'Empty Company', Locked = true;
         ServiceBaseUrlTok: Label 'https://expense-agent.example.invalid', Locked = true;
         OneOwnerMustBeDefinedErr: Label 'At least one user must be able to configure the Expense Agent.';
 
@@ -457,9 +458,14 @@ codeunit 148314 "EA Agent Dispatcher Test"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        Assert.AreEqual(TestCompanyTok, CompanyName(), 'Run only in the dedicated disposable EA Email Lifecycle Test company, never CRONUS.');
+        Assert.IsTrue(IsSafeTestCompany(), 'Run only in a dedicated disposable test company, never CRONUS.');
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'Mock integration tests require on-prem; SaaS authentication is not under test.');
         Assert.IsFalse(EnvironmentInformation.IsSaaSInfrastructure(), 'These tests must not use SaaS infrastructure.');
+    end;
+
+    local procedure IsSafeTestCompany(): Boolean
+    begin
+        exit(CompanyName() in [TestCompanyTok, CITestCompanyTok]);
     end;
 
     local procedure RegisterMockAccount(Address: Text[250]): Guid

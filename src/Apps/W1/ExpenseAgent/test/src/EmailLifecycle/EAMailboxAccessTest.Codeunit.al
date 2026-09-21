@@ -20,6 +20,7 @@ codeunit 148317 "EA Mailbox Access Test"
         Assert: Codeunit Assert;
         ConnectorMock: Codeunit "Connector Mock";
         IsolatedTestCompanyLbl: Label 'EA Email Lifecycle Test', Locked = true;
+        CIIsolatedTestCompanyLbl: Label 'Empty Company', Locked = true;
 
     [Test]
     procedure ValidateMailboxAccessTrueWhenNoEmailAccountsAreConfigured()
@@ -806,7 +807,7 @@ codeunit 148317 "EA Mailbox Access Test"
         PersistedSetup: Record "Expense Agent Setup";
         ExpenseAgentStatus: Record "Expense Agent Status";
     begin
-        Assert.AreEqual(IsolatedTestCompanyLbl, CompanyName(), 'Account-deletion tests must run only in their isolated test company.');
+        Assert.IsTrue(IsSafeTestCompany(), 'Account-deletion tests must run only in a dedicated disposable company.');
         PersistedSetup.ReadIsolation(IsolationLevel::UpdLock);
         if PersistedSetup.Get() then;
         ExpenseAgentStatus.ReadIsolation(IsolationLevel::UpdLock);
@@ -867,9 +868,14 @@ codeunit 148317 "EA Mailbox Access Test"
 
     local procedure RegisterTestEmailAccount(var TempEmailAccount: Record "Email Account" temporary)
     begin
-        Assert.AreEqual(IsolatedTestCompanyLbl, CompanyName(), 'Email lifecycle tests must run only in their isolated test company.');
+        Assert.IsTrue(IsSafeTestCompany(), 'Email lifecycle tests must run only in a dedicated disposable company.');
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+    end;
+
+    local procedure IsSafeTestCompany(): Boolean
+    begin
+        exit(CompanyName() in [IsolatedTestCompanyLbl, CIIsolatedTestCompanyLbl]);
     end;
 
     local procedure InitConfiguredSetup(var TempSetup: Record "Expense Agent Setup" temporary)
