@@ -16,6 +16,7 @@ pageextension 6977 "Exp. Approval User Setup" extends "Approval User Setup"
             field("Expense Amount Approval Limit"; Rec."Expense Amount Approval Limit")
             {
                 ApplicationArea = Suite;
+                Visible = false;
                 ToolTip = 'Specifies the maximum amount in local currency this user can approve for the record.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Replaced by the Approval Limit field on Expense User.';
@@ -24,6 +25,7 @@ pageextension 6977 "Exp. Approval User Setup" extends "Approval User Setup"
             field("Unlimited Expense Approval"; Rec."Unlimited Expense Approval")
             {
                 ApplicationArea = Suite;
+                Visible = false;
                 ToolTip = 'Specifies that the user can approve expense records without a maximum amount. When selected, leave the Expense Amount Approval Limit field empty.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Replaced by the approval settings on Expense User.';
