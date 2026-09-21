@@ -52,6 +52,7 @@ codeunit 11041 "E-Document ZUGFeRD Handler" implements IStructuredFormatReader, 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentDEInboundValidator: Codeunit "E-Doc. DE Inbound Validator";
         CIIXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         RootElement: XmlElement;
@@ -73,6 +74,7 @@ codeunit 11041 "E-Document ZUGFeRD Handler" implements IStructuredFormatReader, 
                 Error(UnsupportedTypeCodeErr, TypeCode);
         end;
 
+        EDocumentDEInboundValidator.ValidateCII(EDocument, CIIXml, XmlNamespaces);
         EDocument.Direction := EDocument.Direction::Incoming;
         ResetDraft(EDocument);
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
