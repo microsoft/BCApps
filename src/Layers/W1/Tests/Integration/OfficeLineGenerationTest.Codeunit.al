@@ -86,7 +86,7 @@ codeunit 139061 "Office Line Generation Test"
         LibraryAssert.AreEqual(2, PurchaseLine.Count(), 'Unexpected number of purchase lines.');
         PurchaseLine.CalcSums("Line Amount");
         PurchInvEntityAggregate.Get(PurchaseHeader."No.", false);
-        LibraryAssert.AreEqual(PurchaseLine."Line Amount", PurchInvEntityAggregate."Subtotal Amount", 'The purchase invoice aggregate has incorrect totals.');
+        LibraryAssert.AreEqual(PurchaseLine."Line Amount", PurchInvEntityAggregate.Amount, 'The purchase invoice aggregate has incorrect totals.');
         LibraryAssert.AreEqual(1, OfficeLineGenerationTest.GetAggregateUpdateCount(), 'The purchase invoice aggregate should be updated once.');
     end;
 
