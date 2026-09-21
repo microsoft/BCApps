@@ -1627,6 +1627,36 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure ItemProductComparisonIgnoredWhenFieldServiceIsDisabled()
+    var
+        Item: Record Item;
+        CRMProduct: Record "CRM Product";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] Field Service does not handle synchronization comparisons while its integration is disabled.
+        Initialize();
+
+        // [GIVEN] The fields used to derive customer asset conversion and no Field Service connection setup.
+        SourceRecordRef.GetTable(Item);
+        SourceFieldRef := SourceRecordRef.Field(Item.FieldNo("Coupled to Dataverse"));
+        DestinationRecordRef.GetTable(CRMProduct);
+        DestinationFieldRef := DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset));
+
+        // [WHEN] The synchronization engine compares those fields.
+        FSIntegrationTestLibrary.HandleOnBeforeIsFieldModified(SourceFieldRef, DestinationFieldRef, Result, IsHandled);
+
+        // [THEN] Field Service leaves the comparison to the synchronization engine.
+        Assert.IsFalse(IsHandled, 'Field Service should not handle synchronization comparisons while its integration is disabled.');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure ItemProductMappingDisablesCustomerAssetConversion()
     var

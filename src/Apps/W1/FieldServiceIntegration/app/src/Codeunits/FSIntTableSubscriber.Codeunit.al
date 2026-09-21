@@ -360,12 +360,21 @@ codeunit 6610 "FS Int. Table Subscriber"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnBeforeIsFieldModified', '', true, false)]
     local procedure OnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        HandleOnBeforeIsFieldModified(SourceFieldRef, DestinationFieldRef, Result, IsHandled);
+    end;
+
+    internal procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
     var
+        FSConnectionSetup: Record "FS Connection Setup";
         Item: Record Item;
         CRMProduct: Record "CRM Product";
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
     begin
+        if not FSConnectionSetup.IsEnabled() then
+            exit;
+
         if not IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then
             exit;
 
