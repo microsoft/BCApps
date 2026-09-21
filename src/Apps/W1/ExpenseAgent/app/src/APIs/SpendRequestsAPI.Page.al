@@ -173,7 +173,7 @@ page 7099 "Spend Requests API"
 
     trigger OnModifyRecord(): Boolean
     begin
-        // Protect travel request ownership while the legacy endpoint remains available before CLEAN30.
+        // Protect travel request ownership through the legacy endpoint.
         if (Rec."Document Type" = Rec."Document Type"::"Travel Request") and
            (Rec."Requested By" <> xRec."Requested By")
         then

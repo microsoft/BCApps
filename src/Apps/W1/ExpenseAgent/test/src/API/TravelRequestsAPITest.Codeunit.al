@@ -33,7 +33,7 @@ codeunit 148347 "Travel Requests API Test"
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
-#if not CLEAN30
+#if not CLEAN29
         SpendRequestsServiceNameTok: Label 'spendRequests', Locked = true;
 #endif
         ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
@@ -71,7 +71,7 @@ codeunit 148347 "Travel Requests API Test"
         ExpandedTravelerId: JsonToken;
         ExpectedEmployeeNumbers: Dictionary of [Text, Code[20]];
         ExpectedEmployeeNo: Code[20];
-#if not CLEAN30
+#if not CLEAN29
         ExpenseUserNo: JsonToken;
         ExpenseUserName: JsonToken;
 #endif
@@ -113,7 +113,7 @@ codeunit 148347 "Travel Requests API Test"
         // [THEN] The API returns the employee mapping, retaining compatibility fields until removal.
         Response.ReadFrom(ResponseText);
         AssertTravelerEmployeeNumber(Response, ExpenseUser."Employee No.");
-#if not CLEAN30
+#if not CLEAN29
         Response.Get('expenseUserNo', ExpenseUserNo);
         Response.Get('expenseUserName', ExpenseUserName);
         Assert.AreEqual(ExpenseUser."No.", ExpenseUserNo.AsValue().AsText(), 'The obsolete Expense User number must remain compatible.');
@@ -150,7 +150,7 @@ codeunit 148347 "Travel Requests API Test"
             ExpectedEmployeeNumbers.Remove(LowerCase(ExpandedTravelerId.AsValue().AsText()));
         end;
         Assert.AreEqual(0, ExpectedEmployeeNumbers.Count(), 'The response must include both the requested-for and explicitly added travelers.');
-#if not CLEAN30
+#if not CLEAN29
         Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserNo'), 'Expanded travelers must retain the obsolete Expense User number.');
         Assert.AreNotEqual(0, StrPos(ResponseText, 'expenseUserName'), 'Expanded travelers must retain the obsolete Expense User name.');
 #else
@@ -741,7 +741,7 @@ codeunit 148347 "Travel Requests API Test"
             'The Travel Requests API must not change the Travel Request status.');
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     [Test]
     procedure LegacySpendRequestsAPIAllowsUnchangedOwner()
     var

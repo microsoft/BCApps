@@ -54,20 +54,20 @@ page 7103 "Travelers API"
                         Rec.ValidateEmployeeNo(EmployeeNumber);
                     end;
                 }
-#if not CLEAN30
+#if not CLEAN29
                 field(expenseUserNo; Rec."Expense User No.")
                 {
                     Caption = 'Expense User No.';
                     ObsoleteReason = 'Use employeeNumber instead. Expense User identifiers are an internal implementation detail.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                 }
                 field(expenseUserName; Rec."Expense User Name")
                 {
                     Caption = 'Expense User Name';
                     ObsoleteReason = 'Use employeeNumber and the employees navigation instead.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+                    ObsoleteTag = '29.0';
                 }
 #endif
             }
