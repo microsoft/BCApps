@@ -208,9 +208,10 @@ page 8704 "Indexes List Part"
                 trigger OnAction()
                 var
                     KeyRec: Record "Key";
+                    IndexManagement: Codeunit "Index Management";
                 begin
                     if FindKeyFromDatabaseIndex(Rec, KeyRec) then
-                        EnableIndex(KeyRec, Rec."Company Name", Rec."Index Type" = Rec."Index Type"::SIFT);
+                        IndexManagement.EnableKey(KeyRec, Rec."Company Name");
 
                     Message(TurnOnIndexQueueInfoMsg);
                 end;
@@ -226,13 +227,14 @@ page 8704 "Indexes List Part"
                 var
                     Company: Record Company;
                     KeyRec: Record "Key";
+                    IndexManagement: Codeunit "Index Management";
                 begin
                     if not FindKeyFromDatabaseIndex(Rec, KeyRec) then
                         exit;
 
                     if Company.FindSet() then
                         repeat
-                            EnableIndex(KeyRec, Company.Name, Rec."Index Type" = Rec."Index Type"::SIFT);
+                            IndexManagement.EnableKey(KeyRec, Company.Name);
                         until Company.Next() = 0;
 
                     Message(TurnOnIndexQueueInfoMsg);
@@ -361,16 +363,6 @@ page 8704 "Indexes List Part"
             exit(NoDateTimeValueLbl);
 
         exit(Format(DateTimeValue));
-    end;
-
-    local procedure EnableIndex(KeyRec: Record "Key"; CompanyName: Text; IsSift: Boolean)
-    var
-        IndexManagement: Codeunit "Index Management";
-    begin
-        if IsSift then
-            IndexManagement.EnableSiftKey(KeyRec, CompanyName)
-        else
-            IndexManagement.EnableKey(KeyRec, CompanyName);
     end;
 
     var
