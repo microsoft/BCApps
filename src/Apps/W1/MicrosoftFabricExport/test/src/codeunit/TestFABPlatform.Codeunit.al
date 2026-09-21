@@ -579,12 +579,13 @@ codeunit 140012 "Test FAB Platform"
     var
         Token: SecretText;
         CachedToken: SecretText;
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
     begin
         //[SCENARIO] The cached token is returned while it has not expired
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] A token value to cache
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -601,13 +602,14 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure LookupStateReportsNoTokenAfterShortTtlElapses()
     var
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Token: SecretText;
     begin
         //[SCENARIO] A token cached with a TTL at or below the safety margin is immediately treated as expired
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] A token value to cache
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -622,13 +624,14 @@ codeunit 140012 "Test FAB Platform"
     [Test]
     procedure LookupStateClearRemovesCachedToken()
     var
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Token: SecretText;
     begin
         //[SCENARIO] Clearing the cache removes a previously cached token
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] A token is already cached
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         LookupState.SetFabricApiToken(Token, 3600);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -723,12 +726,13 @@ codeunit 140012 "Test FAB Platform"
     var
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         Secret: SecretText;
+        SampleSecretLbl: Label 'super-secret-value', Locked = true;
     begin
         //[SCENARIO] Storing a Client Secret is rejected when encryption is not enabled
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] A secret value to store
-        Secret := SecretStrSubstNo('super-secret-value');
+        Secret := SecretStrSubstNo(SampleSecretLbl);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
@@ -745,12 +749,13 @@ codeunit 140012 "Test FAB Platform"
     var
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         Token: SecretText;
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
     begin
         //[SCENARIO] ClearTokenCache clears the cached Fabric API token
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] A token is already cached
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         LookupState.SetFabricApiToken(Token, 3600);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -797,6 +802,7 @@ codeunit 140012 "Test FAB Platform"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Token: SecretText;
     begin
         //[SCENARIO] GetWorkspaces treats a success response without a value array as malformed
@@ -806,7 +812,7 @@ codeunit 140012 "Test FAB Platform"
         FabricPrivacyNotice.Approve();
         //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         LookupState.SetFabricApiToken(Token, 3600);
         //[GIVEN] The HTTP handler is mocked to return a success response without a value array
         BindSubscription(PlatformTestSub);
@@ -831,6 +837,7 @@ codeunit 140012 "Test FAB Platform"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Token: SecretText;
     begin
         //[SCENARIO] GetMirroredDatabases treats a success response without a value array as malformed
@@ -840,7 +847,7 @@ codeunit 140012 "Test FAB Platform"
         FabricPrivacyNotice.Approve();
         //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         LookupState.SetFabricApiToken(Token, 3600);
         //[GIVEN] The HTTP handler is mocked to return a success response without a value array
         BindSubscription(PlatformTestSub);
@@ -864,6 +871,7 @@ codeunit 140012 "Test FAB Platform"
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
         Token: SecretText;
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Success: Boolean;
     begin
         //[SCENARIO] AddServicePrincipalToWorkspace succeeds on a successful Fabric response
@@ -873,7 +881,7 @@ codeunit 140012 "Test FAB Platform"
         FabricPrivacyNotice.Approve();
         //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         LookupState.SetFabricApiToken(Token, 3600);
         //[GIVEN] The HTTP handler is mocked to return a successful role assignment response
         BindSubscription(PlatformTestSub);
@@ -897,6 +905,7 @@ codeunit 140012 "Test FAB Platform"
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         FabricPrivacyNotice: Codeunit "Fabric Privacy Notice";
         PlatformTestSub: Codeunit "Fabric Platform Test Sub";
+        SampleTokenLbl: Label 'sample-token0', Locked = true;
         Token: SecretText;
     begin
         //[SCENARIO] AddServicePrincipalToWorkspace reports a friendly error on HTTP 409
@@ -906,7 +915,7 @@ codeunit 140012 "Test FAB Platform"
         FabricPrivacyNotice.Approve();
         //[GIVEN] A cached Fabric API token so no real OAuth flow is triggered
         CredMgt.SetClientId('11111111-1111-1111-1111-111111111111');
-        Token := SecretStrSubstNo('sample-token');
+        Token := SecretStrSubstNo(SampleTokenLbl);
         LookupState.SetFabricApiToken(Token, 3600);
         //[GIVEN] The HTTP handler is mocked to return a 409 conflict response
         BindSubscription(PlatformTestSub);
