@@ -16,7 +16,7 @@ codeunit 148317 "EA Mailbox Access Test"
     TestPermissions = Disabled;
 
     var
-        SelectedEmailAccount: Record "Email Account" temporary;
+        TempSelectedEmailAccount: Record "Email Account" temporary;
         Assert: Codeunit Assert;
         ConnectorMock: Codeunit "Connector Mock";
         IsolatedTestCompanyLbl: Label 'EA Email Lifecycle Test', Locked = true;
@@ -24,784 +24,784 @@ codeunit 148317 "EA Mailbox Access Test"
     [Test]
     procedure ValidateMailboxAccessTrueWhenNoEmailAccountsAreConfigured()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
     begin
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
 
-        Assert.IsTrue(Setup.ValidateIncomingMailboxAccess(), 'Expected true when no incoming account is configured.');
-        Assert.IsTrue(Setup.ValidateNoreplyMailboxAccess(), 'Expected true when no noreply account is configured.');
+        Assert.IsTrue(TempSetup.ValidateIncomingMailboxAccess(), 'Expected true when no incoming account is configured.');
+        Assert.IsTrue(TempSetup.ValidateNoreplyMailboxAccess(), 'Expected true when no noreply account is configured.');
     end;
 
     [Test]
     procedure CheckMailboxAccessOrErrorIsNoOpWhenNoEmailAccountsAreConfigured()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
     begin
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
 
-        Setup.CheckMailboxAccessOrError();
-        Assert.IsTrue(IsNullGuid(Setup."Email Account ID"), 'Email Account ID should still be empty.');
-        Assert.IsTrue(IsNullGuid(Setup."Noreply Email Account ID"), 'Noreply Email Account ID should still be empty.');
+        TempSetup.CheckMailboxAccessOrError();
+        Assert.IsTrue(IsNullGuid(TempSetup."Email Account ID"), 'Email Account ID should still be empty.');
+        Assert.IsTrue(IsNullGuid(TempSetup."Noreply Email Account ID"), 'Noreply Email Account ID should still be empty.');
     end;
 
     [Test]
     procedure ValidateAccessFalseWhenRetrieveEmailsFails()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // The probe runs against a real test account; the connector is configured to fail
         // on RetrieveEmails to simulate the current user not having access to the mailbox.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
 
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
-        Setup."Noreply Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Noreply Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Noreply Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Noreply Email Connector" := TempEmailAccount.Connector;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
-        Assert.IsFalse(Setup.ValidateIncomingMailboxAccess(), 'Expected false when RetrieveEmails fails on the incoming account.');
-        Assert.IsFalse(Setup.ValidateNoreplyMailboxAccess(), 'Expected false when RetrieveEmails fails on the noreply account.');
+        Assert.IsFalse(TempSetup.ValidateIncomingMailboxAccess(), 'Expected false when RetrieveEmails fails on the incoming account.');
+        Assert.IsFalse(TempSetup.ValidateNoreplyMailboxAccess(), 'Expected false when RetrieveEmails fails on the noreply account.');
     end;
 
     [Test]
     procedure DeactivationWarningProceedsWhenNoMailbox()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
     begin
         // No mailbox -> warning skipped, deactivation proceeds.
-        InitEmptySetup(Setup);
-        Assert.IsTrue(Setup.ShowDeactivationAccessWarning(), 'Expected proceed when no mailbox is configured.');
+        InitEmptySetup(TempSetup);
+        Assert.IsTrue(TempSetup.ShowDeactivationAccessWarning(), 'Expected proceed when no mailbox is configured.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure DeactivationWarningProceedsWhenUserConfirms()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // Inaccessible mailbox -> warning shown; user clicks Yes -> proceed.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
 
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
-        Assert.IsTrue(Setup.ShowDeactivationAccessWarning(), 'Expected proceed when user confirms.');
+        Assert.IsTrue(TempSetup.ShowDeactivationAccessWarning(), 'Expected proceed when user confirms.');
     end;
 
     [Test]
     [HandlerFunctions('ConfirmNoHandler')]
     procedure DeactivationWarningCancelsWhenUserDeclines()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // Inaccessible mailbox -> warning shown; user clicks No -> cancel.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
 
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
-        Assert.IsFalse(Setup.ShowDeactivationAccessWarning(), 'Expected cancel when user declines.');
+        Assert.IsFalse(TempSetup.ShowDeactivationAccessWarning(), 'Expected cancel when user declines.');
     end;
 
     [Test]
     procedure SchedulingAccessCheckIsNoOpWhenNoAccountsConfigured()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO 636970] The scheduling access check does nothing when the enabled features have no mailbox.
         // [GIVEN] Receipts and communication on, but no accounts configured.
-        InitEmptySetup(Setup);
-        Setup."Enable Email with Receipts" := true;
-        Setup."Enable Communication" := true;
+        InitEmptySetup(TempSetup);
+        TempSetup."Enable Email with Receipts" := true;
+        TempSetup."Enable Communication" := true;
 
         // [THEN] The check is a no-op (no error) because there is no account to probe.
-        Setup.CheckSchedulingMailboxAccessOrError();
-        Assert.IsTrue(IsNullGuid(Setup."Email Account ID"), 'Email Account ID should still be empty.');
-        Assert.IsTrue(IsNullGuid(Setup."Noreply Email Account ID"), 'Noreply Email Account ID should still be empty.');
+        TempSetup.CheckSchedulingMailboxAccessOrError();
+        Assert.IsTrue(IsNullGuid(TempSetup."Email Account ID"), 'Email Account ID should still be empty.');
+        Assert.IsTrue(IsNullGuid(TempSetup."Noreply Email Account ID"), 'Noreply Email Account ID should still be empty.');
     end;
 
     [Test]
     procedure SchedulingAccessCheckErrorsWhenReceiptsOnAndIncomingInaccessible()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // [SCENARIO 636970] Receipts on with an inaccessible incoming mailbox blocks scheduling.
         // [GIVEN] Receipts on with a mailbox the current user cannot access.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
-        Setup."Enable Email with Receipts" := true;
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Enable Email with Receipts" := true;
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
         // [THEN] The check errors so the task is not scheduled to fail silently.
-        asserterror Setup.CheckSchedulingMailboxAccessOrError();
+        asserterror TempSetup.CheckSchedulingMailboxAccessOrError();
         Assert.ExpectedError('incoming receipts because the connection failed');
     end;
 
     [Test]
     procedure SchedulingAccessCheckErrorsWhenCommunicationOnAndNoreplyInaccessible()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // [SCENARIO 636970] Communication on with an inaccessible no-reply mailbox blocks scheduling.
         // [GIVEN] Communication on with a no-reply account the current user cannot access, receipts off.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
-        Setup."Enable Email with Receipts" := false;
-        Setup."Enable Communication" := true;
-        Setup."Noreply Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Noreply Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Enable Email with Receipts" := false;
+        TempSetup."Enable Communication" := true;
+        TempSetup."Noreply Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Noreply Email Connector" := TempEmailAccount.Connector;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
         // [THEN] The check errors on the no-reply account.
-        asserterror Setup.CheckSchedulingMailboxAccessOrError();
+        asserterror TempSetup.CheckSchedulingMailboxAccessOrError();
         Assert.ExpectedError('outgoing notifications because the connection failed');
     end;
 
     [Test]
     procedure SchedulingAccessCheckSkipsIncomingWhenReceiptsOff()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // [SCENARIO 636970] An inaccessible incoming mailbox is ignored when receipts are off (the task won't read it).
         // [GIVEN] Receipts off with an inaccessible incoming account set, communication off.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
-        Setup."Enable Email with Receipts" := false;
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
-        Setup."Enable Communication" := false;
+        TempSetup."Enable Email with Receipts" := false;
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Enable Communication" := false;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
         // [THEN] The check does not error because the incoming mailbox is not needed.
-        Setup.CheckSchedulingMailboxAccessOrError();
-        Assert.IsFalse(Setup."Enable Email with Receipts", 'Receipts should remain off.');
+        TempSetup.CheckSchedulingMailboxAccessOrError();
+        Assert.IsFalse(TempSetup."Enable Email with Receipts", 'Receipts should remain off.');
     end;
 
     [Test]
     procedure SchedulingAccessCheckSkipsNoreplyWhenCommunicationOff()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // [SCENARIO 636970] An inaccessible no-reply mailbox is ignored when communication is off (the task won't send).
         // [GIVEN] Communication off with an inaccessible no-reply account set, receipts off.
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
         ConnectorMock.FailOnRetrieveEmails(true);
-        Setup."Enable Communication" := false;
-        Setup."Noreply Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Noreply Email Connector" := TempEmailAccount.Connector;
-        Setup."Enable Email with Receipts" := false;
+        TempSetup."Enable Communication" := false;
+        TempSetup."Noreply Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Noreply Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Enable Email with Receipts" := false;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
         // [THEN] The check does not error because the no-reply mailbox is not needed.
-        Setup.CheckSchedulingMailboxAccessOrError();
-        Assert.IsFalse(Setup."Enable Communication", 'Communication should remain off.');
+        TempSetup.CheckSchedulingMailboxAccessOrError();
+        Assert.IsFalse(TempSetup."Enable Communication", 'Communication should remain off.');
     end;
 
     [Test]
     procedure SchedulingAccessCheckPassesWhenMailboxesAccessible()
     var
-        Setup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // [SCENARIO 636970] The scheduling access check succeeds (no error) when the enabled features
         // point at mailboxes the current user can access.
         // [GIVEN] Receipts and communication on with an accessible account (RetrieveEmails succeeds).
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
-        Setup."Enable Email with Receipts" := true;
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
-        Setup."Enable Communication" := true;
-        Setup."Noreply Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Noreply Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Enable Email with Receipts" := true;
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Enable Communication" := true;
+        TempSetup."Noreply Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Noreply Email Connector" := TempEmailAccount.Connector;
         Commit(); // Close the write transaction before running Codeunit.Run()
 
         // [THEN] The check does not error.
-        Setup.CheckSchedulingMailboxAccessOrError();
-        Assert.IsTrue(Setup."Enable Communication", 'Communication should remain on after a successful check.');
+        TempSetup.CheckSchedulingMailboxAccessOrError();
+        Assert.IsTrue(TempSetup."Enable Communication", 'Communication should remain on after a successful check.');
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountsCancelHandler,ConfirmYesHandler')]
     procedure AssistEditNoreplyClearsAccountWhenLookupCancelledAndConfirmed()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO 636970] Cancelling the no-reply account lookup and confirming the prompt clears
         // the no-reply mailbox so the agent stops sending until a new account is chosen.
         // [GIVEN] A configured no-reply account (an account exists, so the wizard is skipped).
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
         Commit();
 
         // [WHEN] The user cancels the account lookup and confirms clearing the no-reply account.
-        Setup.AssistEditNoreplyMailbox();
+        TempSetup.AssistEditNoreplyMailbox();
 
         // [THEN] The no-reply account fields are cleared.
-        Setup.Get();
-        AssertNoreplyCleared(Setup);
-        AssertIncomingUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        TempSetup.Get();
+        AssertNoreplyCleared(TempSetup);
+        AssertIncomingUnchanged(TempPreviousSetup, TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountsCancelHandler,ConfirmYesHandler')]
     procedure AssistEditMailboxClearsAccountWhenLookupCancelledAndConfirmed()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO 636970] Cancelling the incoming (receipts) account lookup and confirming the
         // prompt clears the mailbox so the agent stops processing receipts until a new account is chosen.
         // [GIVEN] A configured incoming mailbox (an account exists, so the wizard is skipped).
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
         Commit();
 
         // [WHEN] The user cancels the account lookup and confirms clearing the mailbox account.
-        Setup.AssistEditMailbox();
+        TempSetup.AssistEditMailbox();
 
         // [THEN] The incoming mailbox fields are cleared.
-        Setup.Get();
-        AssertIncomingCleared(Setup);
-        AssertNoreplyUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        TempSetup.Get();
+        AssertIncomingCleared(TempSetup);
+        AssertNoreplyUnchanged(TempPreviousSetup, TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountsCancelHandler,ConfirmNoHandler')]
     procedure DecliningIncomingClearPreservesConfiguration()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Declining the incoming-account clear confirmation preserves configuration.
 
         // [GIVEN] A configured temporary setup is loaded; the account selector is cancelled and the confirm handler replies No.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
         Commit();
 
 
         // [WHEN] The incoming AssistEdit flow runs.
-        Setup.AssistEditMailbox();
+        TempSetup.AssistEditMailbox();
 
 
         // [THEN] Incoming, no-reply, and preference values remain unchanged in the temporary record.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        TempSetup.Get();
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountsCancelHandler,ConfirmNoHandler')]
     procedure DecliningNoreplyClearPreservesConfiguration()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Declining the no-reply-account clear confirmation preserves configuration.
 
         // [GIVEN] A configured temporary setup is loaded; the account selector is cancelled and the confirm handler replies No.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
         Commit();
 
 
         // [WHEN] The no-reply AssistEdit flow runs.
-        Setup.AssistEditNoreplyMailbox();
+        TempSetup.AssistEditNoreplyMailbox();
 
 
         // [THEN] Incoming, no-reply, and preference values remain unchanged in the temporary record.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        TempSetup.Get();
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     procedure ExplicitCommunicationDisableStillClearsNotificationPreferences()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Explicitly disabling communication clears outgoing notification preferences without changing account identities.
 
         // [GIVEN] A configured temporary setup has receipts, communication, and notification preferences enabled.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
 
 
         // [WHEN] The communication preference is validated to false.
-        Setup.Validate("Enable Communication", false);
+        TempSetup.Validate("Enable Communication", false);
 
 
         // [THEN] Communication and notification preferences are off, while receipts, agent state, and both account identities are preserved.
-        Assert.IsFalse(Setup."Enable Communication", 'The explicit communication preference must be off.');
-        Assert.IsFalse(Setup."Enable Open Report Notif.", 'Explicitly disabling communication must still disable reminders.');
-        Assert.IsFalse(Setup."Enable Approval Notif.", 'Explicitly disabling communication must still disable approval notifications.');
-        Assert.IsTrue(Setup."Enable Email with Receipts", 'Disabling outgoing communication must not disable receipts.');
-        Assert.AreEqual(PreviousSetup."Enable Agent", Setup."Enable Agent", 'The native agent state must not change.');
-        AssertIncomingUnchanged(PreviousSetup, Setup);
-        AssertNoreplyUnchanged(PreviousSetup, Setup);
+        Assert.IsFalse(TempSetup."Enable Communication", 'The explicit communication preference must be off.');
+        Assert.IsFalse(TempSetup."Enable Open Report Notif.", 'Explicitly disabling communication must still disable reminders.');
+        Assert.IsFalse(TempSetup."Enable Approval Notif.", 'Explicitly disabling communication must still disable approval notifications.');
+        Assert.IsTrue(TempSetup."Enable Email with Receipts", 'Disabling outgoing communication must not disable receipts.');
+        Assert.AreEqual(TempPreviousSetup."Enable Agent", TempSetup."Enable Agent", 'The native agent state must not change.');
+        AssertIncomingUnchanged(TempPreviousSetup, TempSetup);
+        AssertNoreplyUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountSelectionHandler')]
     procedure SameAddressIncomingReplacementClearsOldFolders()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
         TestEmailAccount: Record "Test Email Account";
     begin
         // [SCENARIO] Replacing an incoming account clears folders even when the email address is unchanged.
 
         // [GIVEN] A configured temporary setup has old folder values, and the selector handler chooses a different registered account with the same address.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-        ConnectorMock.AddAccount(SelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
-        TestEmailAccount.Get(SelectedEmailAccount."Account Id");
-        TestEmailAccount.Email := Setup."Email Address";
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
+        ConnectorMock.AddAccount(TempSelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        TestEmailAccount.Get(TempSelectedEmailAccount."Account Id");
+        TestEmailAccount.Email := TempSetup."Email Address";
         TestEmailAccount.Modify();
-        SelectedEmailAccount."Email Address" := Setup."Email Address";
+        TempSelectedEmailAccount."Email Address" := TempSetup."Email Address";
         Commit();
 
 
         // [WHEN] The incoming AssistEdit flow applies the selected account.
-        Setup.AssistEditMailbox();
+        TempSetup.AssistEditMailbox();
 
 
         // [THEN] The account identity changes, stale folder values clear, and no-reply settings and preferences remain unchanged.
-        Setup.Get();
-        Assert.AreEqual(SelectedEmailAccount."Account Id", Setup."Email Account ID", 'The incoming identity must change even if the address is unchanged.');
-        Assert.AreEqual(PreviousSetup."Email Address", Setup."Email Address", 'The replacement intentionally uses the same address.');
-        Assert.AreEqual('', Setup."Email Folder", 'The previous account folder must be cleared.');
-        Assert.AreEqual('', Setup."Email Folder Id", 'The previous account folder ID must be cleared.');
-        AssertNoreplyUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        TempSetup.Get();
+        Assert.AreEqual(TempSelectedEmailAccount."Account Id", TempSetup."Email Account ID", 'The incoming identity must change even if the address is unchanged.');
+        Assert.AreEqual(TempPreviousSetup."Email Address", TempSetup."Email Address", 'The replacement intentionally uses the same address.');
+        Assert.AreEqual('', TempSetup."Email Folder", 'The previous account folder must be cleared.');
+        Assert.AreEqual('', TempSetup."Email Folder Id", 'The previous account folder ID must be cleared.');
+        AssertNoreplyUnchanged(TempPreviousSetup, TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountSelectionHandler')]
     procedure IncomingConnectorReplacementClearsOldFolders()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Replacing the connector for the same incoming account clears stale folders.
 
         // [GIVEN] A configured temporary setup holds the selected account ID under a different connector and has old folder values.
-        InitConfiguredSetup(Setup);
-        SelectIncomingAccount(Setup);
-        Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        SelectIncomingAccount(TempSetup);
+        TempSetup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
+        TempPreviousSetup := TempSetup;
         Commit();
 
 
         // [WHEN] The incoming AssistEdit flow applies the registered connector identity.
-        Setup.AssistEditMailbox();
+        TempSetup.AssistEditMailbox();
 
 
         // [THEN] The connector changes, folder values clear, and no-reply settings and preferences remain unchanged.
-        Setup.Get();
-        Assert.AreEqual(PreviousSetup."Email Account ID", Setup."Email Account ID", 'Only the connector identity changes.');
-        Assert.AreEqual(SelectedEmailAccount.Connector, Setup."Email Connector", 'The selected connector must replace the stale connector.');
-        Assert.AreEqual('', Setup."Email Folder", 'Changing the connector must clear the folder.');
-        Assert.AreEqual('', Setup."Email Folder Id", 'Changing the connector must clear the folder ID.');
-        AssertNoreplyUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        TempSetup.Get();
+        Assert.AreEqual(TempPreviousSetup."Email Account ID", TempSetup."Email Account ID", 'Only the connector identity changes.');
+        Assert.AreEqual(TempSelectedEmailAccount.Connector, TempSetup."Email Connector", 'The selected connector must replace the stale connector.');
+        Assert.AreEqual('', TempSetup."Email Folder", 'Changing the connector must clear the folder.');
+        Assert.AreEqual('', TempSetup."Email Folder Id", 'Changing the connector must clear the folder ID.');
+        AssertNoreplyUnchanged(TempPreviousSetup, TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountSelectionHandler')]
     procedure ReselectingIncomingPreservesFoldersAndDefaultsEmptyNoreply()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Reselecting the unchanged incoming account preserves folders and defaults an empty no-reply channel.
 
         // [GIVEN] A configured temporary setup has no no-reply identity, and the selector handler chooses the current incoming account.
-        InitConfiguredSetup(Setup);
-        Setup.ClearNoreplyMailbox();
-        SelectIncomingAccount(Setup);
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempSetup.ClearNoreplyMailbox();
+        SelectIncomingAccount(TempSetup);
+        TempPreviousSetup := TempSetup;
         Commit();
 
 
         // [WHEN] The incoming AssistEdit flow runs.
-        Setup.AssistEditMailbox();
+        TempSetup.AssistEditMailbox();
 
 
         // [THEN] Incoming fields including folders remain unchanged, and the no-reply identity is copied from the incoming account.
-        Setup.Get();
-        AssertIncomingUnchanged(PreviousSetup, Setup);
-        Assert.AreEqual(Setup."Email Account ID", Setup."Noreply Email Account ID", 'Reselecting the same incoming account must still default an empty no-reply account.');
-        Assert.AreEqual(Setup."Email Connector", Setup."Noreply Email Connector", 'The defaulted no-reply connector must match.');
-        Assert.AreEqual(Setup."Email Address", Setup."Noreply Email Address", 'The defaulted no-reply address must match.');
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        TempSetup.Get();
+        AssertIncomingUnchanged(TempPreviousSetup, TempSetup);
+        Assert.AreEqual(TempSetup."Email Account ID", TempSetup."Noreply Email Account ID", 'Reselecting the same incoming account must still default an empty no-reply account.');
+        Assert.AreEqual(TempSetup."Email Connector", TempSetup."Noreply Email Connector", 'The defaulted no-reply connector must match.');
+        Assert.AreEqual(TempSetup."Email Address", TempSetup."Noreply Email Address", 'The defaulted no-reply address must match.');
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountSelectionHandler')]
     procedure InaccessibleIncomingReplacementPreservesPreviousConfiguration()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] A replacement incoming account that fails its retrieval probe is rejected without changing configuration.
 
         // [GIVEN] A configured temporary setup is captured, and the selector handler chooses a registered replacement whose connector retrieval is configured to fail.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-        ConnectorMock.AddAccount(SelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
+        ConnectorMock.AddAccount(TempSelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
         ConnectorMock.FailOnRetrieveEmails(true);
         Commit();
 
 
         // [WHEN] The incoming AssistEdit flow is invoked with asserterror.
-        asserterror Setup.AssistEditMailbox();
+        asserterror TempSetup.AssistEditMailbox();
 
 
         // [THEN] The specific incoming connection error is asserted and all temporary configuration values remain unchanged.
         Assert.ExpectedError('incoming receipts because the connection failed');
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        TempSetup.Get();
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [HandlerFunctions('EmailAccountSelectionHandler')]
     procedure InaccessibleNoreplyReplacementPreservesPreviousConfiguration()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] A replacement no-reply account that fails its retrieval probe is rejected without changing configuration.
 
         // [GIVEN] A configured temporary setup is captured, and the selector handler chooses a registered replacement whose connector retrieval is configured to fail.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-        ConnectorMock.AddAccount(SelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
+        ConnectorMock.AddAccount(TempSelectedEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
         ConnectorMock.FailOnRetrieveEmails(true);
         Commit();
 
 
         // [WHEN] The no-reply AssistEdit flow is invoked with asserterror.
-        asserterror Setup.AssistEditNoreplyMailbox();
+        asserterror TempSetup.AssistEditNoreplyMailbox();
 
 
         // [THEN] The specific outgoing connection error is asserted and all temporary configuration values remain unchanged.
         Assert.ExpectedError('outgoing notifications because the connection failed');
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Setup.Get();
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        TempSetup.Get();
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     procedure MissingAccountRepairPreservesPreferencesAndOtherChannel()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        RegisteredSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempRegisteredSetup: Record "Expense Agent Setup" temporary;
         MissingChannels: Integer;
     begin
         // [SCENARIO] Missing-account repair clears only missing channel identities and preserves preferences.
 
         // [GIVEN] A configured registered setup is copied across incoming-only, outgoing-only, and both-missing account-ID cases.
-        InitConfiguredSetup(RegisteredSetup);
+        InitConfiguredSetup(TempRegisteredSetup);
 
         // [WHEN] RepairMissingEmailAccounts runs for each case and is repeated after repair.
         for MissingChannels := 1 to 3 do begin
-            Setup := RegisteredSetup;
+            TempSetup := TempRegisteredSetup;
             if MissingChannels in [1, 3] then
-                Setup."Email Account ID" := CreateGuid();
+                TempSetup."Email Account ID" := CreateGuid();
             if MissingChannels in [2, 3] then
-                Setup."Noreply Email Account ID" := CreateGuid();
+                TempSetup."Noreply Email Account ID" := CreateGuid();
 
 
         // [THEN] Only missing identities clear, surviving channels and preferences remain unchanged, and repeated repair is a no-op.
-            Assert.IsTrue(Setup.RepairMissingEmailAccounts(), 'Missing references must be repaired.');
+            Assert.IsTrue(TempSetup.RepairMissingEmailAccounts(), 'Missing references must be repaired.');
 
             if MissingChannels in [1, 3] then
-                AssertIncomingCleared(Setup)
+                AssertIncomingCleared(TempSetup)
             else
-                AssertIncomingUnchanged(RegisteredSetup, Setup);
+                AssertIncomingUnchanged(TempRegisteredSetup, TempSetup);
             if MissingChannels in [2, 3] then
-                AssertNoreplyCleared(Setup)
+                AssertNoreplyCleared(TempSetup)
             else
-                AssertNoreplyUnchanged(RegisteredSetup, Setup);
-            AssertPreferencesUnchanged(RegisteredSetup, Setup);
-            Assert.IsFalse(Setup.RepairMissingEmailAccounts(), 'Repeated repair must be a no-op.');
+                AssertNoreplyUnchanged(TempRegisteredSetup, TempSetup);
+            AssertPreferencesUnchanged(TempRegisteredSetup, TempSetup);
+            Assert.IsFalse(TempSetup.RepairMissingEmailAccounts(), 'Repeated repair must be a no-op.');
         end;
     end;
 
     [Test]
     procedure WrongConnectorAndEmptyIdentityRepairClearsOrphanedFields()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Missing-account repair clears orphaned fields for wrong connectors and empty IDs.
 
         // [GIVEN] A configured setup is varied first to mismatched connectors and then to empty account IDs.
-        InitConfiguredSetup(Setup);
-        PreviousSetup := Setup;
-        Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
+        InitConfiguredSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
+        TempSetup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
+        TempSetup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
 
 
         // [WHEN] RepairMissingEmailAccounts runs for each invalid identity state.
-        Assert.IsTrue(Setup.RepairMissingEmailAccounts(), 'The ID must be registered under the selected connector.');
+        Assert.IsTrue(TempSetup.RepairMissingEmailAccounts(), 'The ID must be registered under the selected connector.');
 
         // [THEN] Both channel identities clear while all preferences remain unchanged.
-        AssertIncomingCleared(Setup);
-        AssertNoreplyCleared(Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        AssertIncomingCleared(TempSetup);
+        AssertNoreplyCleared(TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
 
-        Setup := PreviousSetup;
-        Clear(Setup."Email Account ID");
-        Clear(Setup."Noreply Email Account ID");
-        Assert.IsTrue(Setup.RepairMissingEmailAccounts(), 'Empty IDs must not retain orphaned addresses, connectors or folders.');
-        AssertIncomingCleared(Setup);
-        AssertNoreplyCleared(Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
+        TempSetup := TempPreviousSetup;
+        Clear(TempSetup."Email Account ID");
+        Clear(TempSetup."Noreply Email Account ID");
+        Assert.IsTrue(TempSetup.RepairMissingEmailAccounts(), 'Empty IDs must not retain orphaned addresses, connectors or folders.');
+        AssertIncomingCleared(TempSetup);
+        AssertNoreplyCleared(TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     procedure SchedulingAccessSkipsStaleIncomingWithAvailableOutgoing()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Scheduling access checking skips a stale incoming reference when outgoing remains available.
 
         // [GIVEN] A configured temporary setup has a missing incoming account ID and a registered outgoing account.
-        InitConfiguredSetup(Setup);
-        Setup."Email Account ID" := CreateGuid();
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempSetup."Email Account ID" := CreateGuid();
+        TempPreviousSetup := TempSetup;
         Commit();
 
 
         // [WHEN] The scheduling mailbox access check runs.
-        Setup.CheckSchedulingMailboxAccessOrError();
+        TempSetup.CheckSchedulingMailboxAccessOrError();
 
 
         // [THEN] Configuration remains unchanged and the outgoing channel keeps the agent eligible.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'The registered outgoing channel must remain usable.');
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsTrue(TempSetup.ShouldScheduleAgentTask(true), 'The registered outgoing channel must remain usable.');
     end;
 
     [Test]
     procedure SchedulingAccessSkipsStaleOutgoingWithAvailableIncoming()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Scheduling access checking skips a stale outgoing reference when incoming remains available.
 
         // [GIVEN] A configured temporary setup has a missing no-reply account ID and a registered incoming account.
-        InitConfiguredSetup(Setup);
-        Setup."Noreply Email Account ID" := CreateGuid();
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempSetup."Noreply Email Account ID" := CreateGuid();
+        TempPreviousSetup := TempSetup;
         Commit();
 
 
         // [WHEN] The scheduling mailbox access check runs.
-        Setup.CheckSchedulingMailboxAccessOrError();
+        TempSetup.CheckSchedulingMailboxAccessOrError();
 
 
         // [THEN] Configuration remains unchanged and the incoming channel keeps the agent eligible.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Assert.IsTrue(Setup.ShouldScheduleAgentTask(true), 'The registered incoming channel must remain usable.');
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsTrue(TempSetup.ShouldScheduleAgentTask(true), 'The registered incoming channel must remain usable.');
     end;
 
     [Test]
     procedure SchedulingAccessDoesNotProbeAccountsWithWrongConnector()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Scheduling access checking does not probe account IDs registered under another connector.
 
         // [GIVEN] Both saved channel identities use connector values that do not match their native mock registrations; retrieval is configured to fail if probed.
-        InitConfiguredSetup(Setup);
-        Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        Setup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        PreviousSetup := Setup;
+        InitConfiguredSetup(TempSetup);
+        TempSetup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
+        TempSetup."Noreply Email Connector" := Enum::"Email Connector"::"Test Email Connector";
+        TempPreviousSetup := TempSetup;
         ConnectorMock.FailOnRetrieveEmails(true);
         Commit();
 
 
         // [WHEN] The scheduling mailbox access check runs.
-        Setup.CheckSchedulingMailboxAccessOrError();
+        TempSetup.CheckSchedulingMailboxAccessOrError();
 
 
         // [THEN] Configuration remains unchanged and neither mismatched channel qualifies the agent for scheduling.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Neither account is registered under its selected connector.');
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsFalse(TempSetup.ShouldScheduleAgentTask(true), 'Neither account is registered under its selected connector.');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingIncomingAccountPreservesOutgoingSenderAndPreferences()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Deleting the registered incoming account preserves the outgoing channel and preferences.
 
         // [GIVEN] Persisted setup contains distinct registered incoming and no-reply accounts with enabled preferences.
-        InitAccountDeletionSetup(Setup);
-        PreviousSetup := Setup;
+        InitAccountDeletionSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
 
 
         // [WHEN] The native email-account API deletes the incoming account and setup is reloaded.
-        DeleteTestEmailAccount(Setup."Email Account ID", Setup."Email Connector");
-        ReloadAccountDeletionSetup(Setup);
+        DeleteTestEmailAccount(TempSetup."Email Account ID", TempSetup."Email Connector");
+        ReloadAccountDeletionSetup(TempSetup);
 
 
         // [THEN] Only incoming identity and folder fields clear; outgoing identity, preferences, and outgoing readiness remain.
-        AssertIncomingCleared(Setup);
-        AssertNoreplyUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
-        Assert.IsTrue(Setup.IsOutgoingCommunicationConfigured(), 'The surviving registered sender must remain available.');
+        AssertIncomingCleared(TempSetup);
+        AssertNoreplyUnchanged(TempPreviousSetup, TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsTrue(TempSetup.IsOutgoingCommunicationConfigured(), 'The surviving registered sender must remain available.');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingNoreplyAccountPreservesIncomingAndPreferences()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Deleting the registered no-reply account preserves the incoming channel and preferences.
 
         // [GIVEN] Persisted setup contains distinct registered incoming and no-reply accounts with enabled preferences.
-        InitAccountDeletionSetup(Setup);
-        PreviousSetup := Setup;
+        InitAccountDeletionSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
 
 
         // [WHEN] The native email-account API deletes the no-reply account and setup is reloaded.
-        DeleteTestEmailAccount(Setup."Noreply Email Account ID", Setup."Noreply Email Connector");
-        ReloadAccountDeletionSetup(Setup);
+        DeleteTestEmailAccount(TempSetup."Noreply Email Account ID", TempSetup."Noreply Email Connector");
+        ReloadAccountDeletionSetup(TempSetup);
 
 
         // [THEN] Only no-reply identity clears; incoming identity, preferences, and incoming readiness remain.
-        AssertNoreplyCleared(Setup);
-        AssertIncomingUnchanged(PreviousSetup, Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
-        Assert.IsTrue(Setup.IsIncomingCommunicationConfigured(), 'The surviving registered incoming account must remain available.');
+        AssertNoreplyCleared(TempSetup);
+        AssertIncomingUnchanged(TempPreviousSetup, TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsTrue(TempSetup.IsIncomingCommunicationConfigured(), 'The surviving registered incoming account must remain available.');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingSharedAccountClearsBothChannelsWithoutChangingPreferences()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
         // [SCENARIO] Deleting one registered account shared by both channels clears both identities without changing preferences.
 
         // [GIVEN] Persisted setup points incoming and no-reply identities to the same registered mock account.
-        InitAccountDeletionSetup(Setup);
-        Setup."Noreply Email Account ID" := Setup."Email Account ID";
-        Setup."Noreply Email Connector" := Setup."Email Connector";
-        Setup."Noreply Email Address" := Setup."Email Address";
-        SaveAccountDeletionSetup(Setup);
-        PreviousSetup := Setup;
+        InitAccountDeletionSetup(TempSetup);
+        TempSetup."Noreply Email Account ID" := TempSetup."Email Account ID";
+        TempSetup."Noreply Email Connector" := TempSetup."Email Connector";
+        TempSetup."Noreply Email Address" := TempSetup."Email Address";
+        SaveAccountDeletionSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
 
 
         // [WHEN] The native email-account API deletes the shared account and setup is reloaded.
-        DeleteTestEmailAccount(Setup."Email Account ID", Setup."Email Connector");
-        ReloadAccountDeletionSetup(Setup);
+        DeleteTestEmailAccount(TempSetup."Email Account ID", TempSetup."Email Connector");
+        ReloadAccountDeletionSetup(TempSetup);
 
 
         // [THEN] Both channel identities clear, preferences remain unchanged, and no channel remains schedulable.
-        AssertIncomingCleared(Setup);
-        AssertNoreplyCleared(Setup);
-        AssertPreferencesUnchanged(PreviousSetup, Setup);
-        Assert.IsFalse(Setup.ShouldScheduleAgentTask(true), 'Deleting the shared account leaves no available channel.');
+        AssertIncomingCleared(TempSetup);
+        AssertNoreplyCleared(TempSetup);
+        AssertPreferencesUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsFalse(TempSetup.ShouldScheduleAgentTask(true), 'Deleting the shared account leaves no available channel.');
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingAccountWithMismatchedConnectorPreservesSelections()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
         RegisteredConnector: Enum "Email Connector";
     begin
         // [SCENARIO] Deleting an account registration under another connector does not clear saved mismatched selections.
 
         // [GIVEN] Persisted incoming and no-reply selections use a connector different from the account registration being deleted.
-        InitAccountDeletionSetup(Setup);
-        RegisteredConnector := Setup."Email Connector";
-        Setup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
-        Setup."Noreply Email Account ID" := Setup."Email Account ID";
-        Setup."Noreply Email Connector" := Setup."Email Connector";
-        Setup."Noreply Email Address" := Setup."Email Address";
-        SaveAccountDeletionSetup(Setup);
-        PreviousSetup := Setup;
+        InitAccountDeletionSetup(TempSetup);
+        RegisteredConnector := TempSetup."Email Connector";
+        TempSetup."Email Connector" := Enum::"Email Connector"::"Test Email Connector";
+        TempSetup."Noreply Email Account ID" := TempSetup."Email Account ID";
+        TempSetup."Noreply Email Connector" := TempSetup."Email Connector";
+        TempSetup."Noreply Email Address" := TempSetup."Email Address";
+        SaveAccountDeletionSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
 
 
         // [WHEN] The native email-account API deletes the registered connector identity and setup is reloaded.
-        DeleteTestEmailAccount(Setup."Email Account ID", RegisteredConnector);
-        ReloadAccountDeletionSetup(Setup);
+        DeleteTestEmailAccount(TempSetup."Email Account ID", RegisteredConnector);
+        ReloadAccountDeletionSetup(TempSetup);
 
 
         // [THEN] Both saved channel selections and preferences remain unchanged.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure DeletingUnrelatedAccountPreservesBothChannels()
     var
-        Setup: Record "Expense Agent Setup" temporary;
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
         TempEmailAccount: Record "Email Account" temporary;
     begin
         // [SCENARIO] Deleting an unrelated registered account leaves both configured channels unchanged.
 
         // [GIVEN] Persisted setup contains two registered channels and the connector mock registers an additional unrelated account.
-        InitAccountDeletionSetup(Setup);
-        PreviousSetup := Setup;
+        InitAccountDeletionSetup(TempSetup);
+        TempPreviousSetup := TempSetup;
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
 
 
         // [WHEN] The native email-account API deletes the unrelated account and setup is reloaded.
         DeleteTestEmailAccount(TempEmailAccount."Account Id", TempEmailAccount.Connector);
-        ReloadAccountDeletionSetup(Setup);
+        ReloadAccountDeletionSetup(TempSetup);
 
 
         // [THEN] Both configured channels, preferences, and channel readiness remain unchanged.
-        AssertConfigurationUnchanged(PreviousSetup, Setup);
-        Assert.IsTrue(Setup.IsIncomingCommunicationConfigured(), 'An unrelated deletion must not affect the incoming channel.');
-        Assert.IsTrue(Setup.IsOutgoingCommunicationConfigured(), 'An unrelated deletion must not affect the outgoing channel.');
+        AssertConfigurationUnchanged(TempPreviousSetup, TempSetup);
+        Assert.IsTrue(TempSetup.IsIncomingCommunicationConfigured(), 'An unrelated deletion must not affect the incoming channel.');
+        Assert.IsTrue(TempSetup.IsOutgoingCommunicationConfigured(), 'An unrelated deletion must not affect the outgoing channel.');
     end;
 
-    local procedure InitAccountDeletionSetup(var Setup: Record "Expense Agent Setup" temporary)
+    local procedure InitAccountDeletionSetup(var TempSetup: Record "Expense Agent Setup" temporary)
     var
         PersistedSetup: Record "Expense Agent Setup";
         ExpenseAgentStatus: Record "Expense Agent Status";
@@ -818,18 +818,18 @@ codeunit 148317 "EA Mailbox Access Test"
             ExpenseAgentStatus.Insert();
         end;
 
-        InitConfiguredSetup(Setup);
-        SaveAccountDeletionSetup(Setup);
+        InitConfiguredSetup(TempSetup);
+        SaveAccountDeletionSetup(TempSetup);
     end;
 
-    local procedure SaveAccountDeletionSetup(Setup: Record "Expense Agent Setup" temporary)
+    local procedure SaveAccountDeletionSetup(TempSetup: Record "Expense Agent Setup" temporary)
     var
         PersistedSetup: Record "Expense Agent Setup";
     begin
         PersistedSetup.ReadIsolation(IsolationLevel::UpdLock);
         if not PersistedSetup.Get() then
             PersistedSetup.Insert();
-        PersistedSetup.TransferFields(Setup, false);
+        PersistedSetup.TransferFields(TempSetup, false);
         PersistedSetup.Modify();
     end;
 
@@ -845,24 +845,24 @@ codeunit 148317 "EA Mailbox Access Test"
         Assert.IsFalse(EmailAccount.IsAccountRegistered(AccountId, Connector), 'The registered mock account must actually be deleted.');
     end;
 
-    local procedure ReloadAccountDeletionSetup(var Setup: Record "Expense Agent Setup" temporary)
+    local procedure ReloadAccountDeletionSetup(var TempSetup: Record "Expense Agent Setup" temporary)
     var
         PersistedSetup: Record "Expense Agent Setup";
         ExpenseAgentStatus: Record "Expense Agent Status";
     begin
         PersistedSetup.Get();
-        Setup := PersistedSetup;
+        TempSetup := PersistedSetup;
         ExpenseAgentStatus.Get();
         Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Task ID"), 'Deletion must leave the dispatcher task ID empty.');
         Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Recovery Task ID"), 'Deletion must leave the recovery task ID empty.');
     end;
 
-    local procedure InitEmptySetup(var Setup: Record "Expense Agent Setup" temporary)
+    local procedure InitEmptySetup(var TempSetup: Record "Expense Agent Setup" temporary)
     begin
-        Setup.DeleteAll();
-        Setup.Init();
-        Setup."Primary Key" := '';
-        Setup.Insert();
+        TempSetup.DeleteAll();
+        TempSetup.Init();
+        TempSetup."Primary Key" := '';
+        TempSetup.Insert();
     end;
 
     local procedure RegisterTestEmailAccount(var TempEmailAccount: Record "Email Account" temporary)
@@ -872,40 +872,40 @@ codeunit 148317 "EA Mailbox Access Test"
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
     end;
 
-    local procedure InitConfiguredSetup(var Setup: Record "Expense Agent Setup" temporary)
+    local procedure InitConfiguredSetup(var TempSetup: Record "Expense Agent Setup" temporary)
     var
         TempEmailAccount: Record "Email Account" temporary;
     begin
-        InitEmptySetup(Setup);
+        InitEmptySetup(TempSetup);
         RegisterTestEmailAccount(TempEmailAccount);
-        Setup."Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Email Connector" := TempEmailAccount.Connector;
-        Setup."Email Address" := TempEmailAccount."Email Address";
-        Setup."Email Folder" := 'Receipts';
-        Setup."Email Folder Id" := 'old-folder-id';
+        TempSetup."Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Email Address" := TempEmailAccount."Email Address";
+        TempSetup."Email Folder" := 'Receipts';
+        TempSetup."Email Folder Id" := 'old-folder-id';
         ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector v4");
-        Setup."Noreply Email Account ID" := TempEmailAccount."Account Id";
-        Setup."Noreply Email Connector" := TempEmailAccount.Connector;
-        Setup."Noreply Email Address" := TempEmailAccount."Email Address";
-        Setup."Enable Agent" := true;
-        Setup."User Security ID" := CreateGuid();
-        Setup."Enable Email with Receipts" := true;
-        Setup."Enable Communication" := true;
-        Setup."Enable Open Report Notif." := true;
-        Setup."Enable Approval Notif." := true;
-        Setup."Open Report Notif. Freq." := Setup."Open Report Notif. Freq."::Weekly;
-        Setup."Notif. Day of Week" := Setup."Notif. Day of Week"::Friday;
-        Setup."Notif. Day In A Month" := 15;
-        Evaluate(Setup."Custom Notif. Formula", '<2D>');
-        Evaluate(Setup."Approval Reminder After", '<3D>');
-        Setup.Modify();
+        TempSetup."Noreply Email Account ID" := TempEmailAccount."Account Id";
+        TempSetup."Noreply Email Connector" := TempEmailAccount.Connector;
+        TempSetup."Noreply Email Address" := TempEmailAccount."Email Address";
+        TempSetup."Enable Agent" := true;
+        TempSetup."User Security ID" := CreateGuid();
+        TempSetup."Enable Email with Receipts" := true;
+        TempSetup."Enable Communication" := true;
+        TempSetup."Enable Open Report Notif." := true;
+        TempSetup."Enable Approval Notif." := true;
+        TempSetup."Open Report Notif. Freq." := TempSetup."Open Report Notif. Freq."::Weekly;
+        TempSetup."Notif. Day of Week" := TempSetup."Notif. Day of Week"::Friday;
+        TempSetup."Notif. Day In A Month" := 15;
+        Evaluate(TempSetup."Custom Notif. Formula", '<2D>');
+        Evaluate(TempSetup."Approval Reminder After", '<3D>');
+        TempSetup.Modify();
     end;
 
-    local procedure SelectIncomingAccount(Setup: Record "Expense Agent Setup" temporary)
+    local procedure SelectIncomingAccount(TempSetup: Record "Expense Agent Setup" temporary)
     begin
-        SelectedEmailAccount."Account Id" := Setup."Email Account ID";
-        SelectedEmailAccount.Connector := Setup."Email Connector";
-        SelectedEmailAccount."Email Address" := Setup."Email Address";
+        TempSelectedEmailAccount."Account Id" := TempSetup."Email Account ID";
+        TempSelectedEmailAccount.Connector := TempSetup."Email Connector";
+        TempSelectedEmailAccount."Email Address" := TempSetup."Email Address";
     end;
 
     local procedure AssertConfigurationUnchanged(ExpectedSetup: Record "Expense Agent Setup" temporary; ActualSetup: Record "Expense Agent Setup" temporary)
@@ -946,30 +946,30 @@ codeunit 148317 "EA Mailbox Access Test"
         Assert.AreEqual(ExpectedSetup."User Security ID", ActualSetup."User Security ID", 'The native agent identity must be preserved.');
     end;
 
-    local procedure AssertIncomingCleared(Setup: Record "Expense Agent Setup" temporary)
+    local procedure AssertIncomingCleared(TempSetup: Record "Expense Agent Setup" temporary)
     var
         EmptyEmailConnector: Enum "Email Connector";
     begin
-        Assert.IsTrue(IsNullGuid(Setup."Email Account ID"), 'The incoming account ID must be cleared.');
-        Assert.AreEqual(EmptyEmailConnector, Setup."Email Connector", 'The incoming connector must be cleared.');
-        Assert.AreEqual('', Setup."Email Address", 'The incoming address must be cleared.');
-        Assert.AreEqual('', Setup."Email Folder", 'The incoming folder must be cleared.');
-        Assert.AreEqual('', Setup."Email Folder Id", 'The incoming folder ID must be cleared.');
+        Assert.IsTrue(IsNullGuid(TempSetup."Email Account ID"), 'The incoming account ID must be cleared.');
+        Assert.AreEqual(EmptyEmailConnector, TempSetup."Email Connector", 'The incoming connector must be cleared.');
+        Assert.AreEqual('', TempSetup."Email Address", 'The incoming address must be cleared.');
+        Assert.AreEqual('', TempSetup."Email Folder", 'The incoming folder must be cleared.');
+        Assert.AreEqual('', TempSetup."Email Folder Id", 'The incoming folder ID must be cleared.');
     end;
 
-    local procedure AssertNoreplyCleared(Setup: Record "Expense Agent Setup" temporary)
+    local procedure AssertNoreplyCleared(TempSetup: Record "Expense Agent Setup" temporary)
     var
         EmptyEmailConnector: Enum "Email Connector";
     begin
-        Assert.IsTrue(IsNullGuid(Setup."Noreply Email Account ID"), 'The no-reply account ID must be cleared.');
-        Assert.AreEqual(EmptyEmailConnector, Setup."Noreply Email Connector", 'The no-reply connector must be cleared.');
-        Assert.AreEqual('', Setup."Noreply Email Address", 'The no-reply address must be cleared.');
+        Assert.IsTrue(IsNullGuid(TempSetup."Noreply Email Account ID"), 'The no-reply account ID must be cleared.');
+        Assert.AreEqual(EmptyEmailConnector, TempSetup."Noreply Email Connector", 'The no-reply connector must be cleared.');
+        Assert.AreEqual('', TempSetup."Noreply Email Address", 'The no-reply address must be cleared.');
     end;
 
     [ModalPageHandler]
     procedure EmailAccountSelectionHandler(var EmailAccounts: TestPage "Email Accounts")
     begin
-        Assert.IsTrue(EmailAccounts.GoToRecord(SelectedEmailAccount), 'The selected mock account must be listed.');
+        Assert.IsTrue(EmailAccounts.GoToRecord(TempSelectedEmailAccount), 'The selected mock account must be listed.');
         EmailAccounts.OK().Invoke();
     end;
 

@@ -39,7 +39,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         UseReceiptAttachmentFixture: Boolean;
         TestCompanyTok: Label 'EA Email Lifecycle Test', Locked = true;
         ServiceBaseUrlTok: Label 'https://expense-agent.example.invalid', Locked = true;
-        RecipientEmailTok: Label 'recipient@example.invalid', Locked = true;
         OneOwnerMustBeDefinedErr: Label 'At least one user must be able to configure the Expense Agent.';
 
     [Test]
@@ -274,7 +273,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         BindSubscription(this);
 
         // [WHEN] The production welcome notification wrapper is invoked with the read-only test subscriptions bound.
-        Success := EAHttpClient.SendWelcomeEmailNotification(RecipientEmailTok, CreateGuid());
+        Success := EAHttpClient.SendWelcomeEmailNotification(GetRecipientEmail(), CreateGuid());
         UnbindSubscription(this);
 
 
@@ -504,7 +503,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
     begin
         ExpenseUser.Init();
         ExpenseUser."No." := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(ExpenseUser."No."));
-        ExpenseUser."E-mail" := RecipientEmailTok;
+        ExpenseUser."E-mail" := GetRecipientEmail();
         if QueueWelcome then
             ExpenseUser."Welcome Email Status" := ExpenseUser."Welcome Email Status"::Queued;
         ExpenseUser.Insert();
@@ -514,7 +513,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
     begin
         OutboxEmail.Init();
         OutboxEmail.Id := 0;
-        OutboxEmail.ToLine := RecipientEmailTok;
+        OutboxEmail.ToLine := GetRecipientEmail();
         OutboxEmail.Subject := 'Isolated communication test';
         OutboxEmail.WriteBody('<p>Mock notification.</p>');
         OutboxEmail.Insert();
@@ -533,7 +532,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         TempEmailInbox."Account Id" := Setup."Email Account ID";
         TempEmailInbox.Connector := Setup."Email Connector";
         TempEmailInbox."Message Id" := ReceiptMessageId;
-        TempEmailInbox."Sender Address" := RecipientEmailTok;
+        TempEmailInbox."Sender Address" := GetRecipientEmail();
         TempEmailInbox."Sender Name" := 'Mock expense user';
         TempEmailInbox."Received DateTime" := CurrentDateTime();
         TempEmailInbox."Sent DateTime" := CurrentDateTime();
@@ -726,7 +725,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Assert.IsFalse(Headers.Contains('Authorization'), 'The observation boundary must not expose authorization headers.');
         Assert.IsTrue(Headers.GetValues('On-Behalf-Of', HeaderValues), 'The request must carry the intended expense user.');
         Assert.AreEqual(1, HeaderValues.Count(), 'Exactly one expense user is expected.');
-        Assert.AreEqual(RecipientEmailTok, HeaderValues.Get(1), 'Only sanitized mock recipients are allowed.');
+        Assert.AreEqual(GetRecipientEmail(), HeaderValues.Get(1), 'Only sanitized mock recipients are allowed.');
         Clear(HeaderValues);
         if ExpectedPath.EndsWith('/expenses/process') then begin
             Content := RequestMessage.Content();
@@ -765,6 +764,11 @@ codeunit 148314 "EA Agent Dispatcher Test"
         TempAttachment.Content.CreateOutStream(ContentOutStream, TextEncoding::UTF8);
         ContentOutStream.WriteText(ContentText);
         TempAttachment.Modify();
+    end;
+
+    local procedure GetRecipientEmail(): Text[80]
+    begin
+        exit('recipient@example.invalid');
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"EA Outbox Email", 'OnAfterModifyEvent', '', false, false)]

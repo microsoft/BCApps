@@ -812,7 +812,16 @@ table 6930 "Expense Agent Setup"
     /// Clears only unavailable account references on this record buffer. The caller owns
     /// persistence and scheduling; user preferences and native agent state remain unchanged.
     /// </summary>
-    internal procedure RepairMissingEmailAccounts() Changed: Boolean
+    internal procedure RepairMissingEmailAccounts(): Boolean
+    begin
+        exit(RepairMissingEmailAccounts(false));
+    end;
+
+    /// <summary>
+    /// Clears unavailable account references and optionally persists this record buffer.
+    /// User preferences and native agent state remain unchanged.
+    /// </summary>
+    internal procedure RepairMissingEmailAccounts(PersistChanges: Boolean) Changed: Boolean
     var
         EmailAccount: Codeunit "Email Account";
         EmptyEmailConnector: Enum "Email Connector";
@@ -821,7 +830,11 @@ table 6930 "Expense Agent Setup"
             if not IsNullGuid(Rec."Email Account ID") or (Rec."Email Address" <> '') or
                (Rec."Email Connector" <> EmptyEmailConnector) or (Rec."Email Folder" <> '') or (Rec."Email Folder Id" <> '')
             then begin
-                ClearIncomingMailbox();
+                Rec."Email Address" := '';
+                Clear(Rec."Email Account ID");
+                Clear(Rec."Email Connector");
+                Rec."Email Folder" := '';
+                Rec."Email Folder Id" := '';
                 Changed := true;
             end;
 
@@ -829,9 +842,14 @@ table 6930 "Expense Agent Setup"
             if not IsNullGuid(Rec."Noreply Email Account ID") or (Rec."Noreply Email Address" <> '') or
                (Rec."Noreply Email Connector" <> EmptyEmailConnector)
             then begin
-                ClearNoreplyMailbox();
+                Rec."Noreply Email Address" := '';
+                Clear(Rec."Noreply Email Account ID");
+                Clear(Rec."Noreply Email Connector");
                 Changed := true;
             end;
+
+        if Changed and PersistChanges then
+            Rec.Modify();
     end;
 
     var

@@ -46,8 +46,8 @@ codeunit 6935 "EA Agent Scheduler"
         EASetup: Record "Expense Agent Setup";
         ExpenseAgentStatus: Record "Expense Agent Status";
         ExpenseAgentAccessControl: Record "Expense Agent Access Control";
-        ExpenseAgentSetupPage: Page "Expense Agent Setup";
         AzureOpenAI: Codeunit "Azure OpenAI";
+        ExpenseAgentSetupPage: Page "Expense Agent Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         // Setup is always locked before access control and task status, including saves and deletion.
@@ -58,8 +58,7 @@ codeunit 6935 "EA Agent Scheduler"
             exit;
         end;
 
-        if EASetup.RepairMissingEmailAccounts() then
-            EASetup.Modify();
+        EASetup.RepairMissingEmailAccounts(true);
 
         if not EASetup.ShouldScheduleAgentTask(EASetup."Enable Agent") or
            not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true)
