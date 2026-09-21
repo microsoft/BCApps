@@ -55,8 +55,12 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
+        Backend: Interface "AIT Suite Backend";
         CurrentIteration: Integer;
     begin
+        Backend := AITTestSuite."Suite Backend";
+        if (Iterations > 1) and not Backend.UsesLocalTestRunner() then
+            Error('This suite backend supports only one invocation at a time.');
         for CurrentIteration := 1 to Iterations do
             StartAITSuite(AITTestSuite);
     end;
@@ -65,9 +69,12 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestSuite2: Record "AIT Test Suite";
         AITTestContext: Codeunit "AIT Test Context";
+        Backend: Interface "AIT Suite Backend";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         UseLifecycle: Boolean;
     begin
+        Backend := AITTestSuite."Suite Backend";
+        Backend.CheckBeforeRun(AITTestSuite);
         // If there is already a suite running, then error
         AITTestSuite2.ReadIsolation := IsolationLevel::ReadUncommitted;
         AITTestSuite2.SetRange(Status, AITTestSuite2.Status::Running);
@@ -77,7 +84,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITEvalLimitProvider := AITTestSuite."Test Type";
         AITEvalLimitProvider.CheckBeforeRun(AITTestSuite);
 
-        AITTestContext.OnGetSuiteLifecycleEnabled(AITTestSuite, UseLifecycle);
+        if AITTestSuite."Suite Backend" = Enum::"AIT Suite Backend"::Local then
+            AITTestContext.OnGetSuiteLifecycleEnabled(AITTestSuite, UseLifecycle);
         if UseLifecycle then
             RunWithLifecycle(AITTestSuite)
         else
@@ -157,9 +165,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+        Backend: Interface "AIT Suite Backend";
         FeatureTelemetryCD: Dictionary of [Text, Text];
-        LimitReached: Boolean;
     begin
         ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
@@ -192,6 +199,20 @@ codeunit 149034 "AIT Test Suite Mgt."
             Commit();
         end;
 
+        Backend := AITTestSuite."Suite Backend";
+        if Backend.Execute(AITTestSuite) then
+            LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
+    end;
+
+    internal procedure RunLocalTests(AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+        LimitReached: Boolean;
+    begin
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
+        AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
+        AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
         AITEvalLimitProvider := AITTestSuite."Test Type";
         LimitReached := false;
 
@@ -204,7 +225,6 @@ codeunit 149034 "AIT Test Suite Mgt."
                     RunAITestLine(AITTestMethodLine, true);
             until (AITTestMethodLine.Next() = 0) or LimitReached;
 
-        LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
     end;
 
     internal procedure RerunTest(var AITLogEntry: Record "AIT Log Entry"): Integer
@@ -212,12 +232,18 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite: Record "AIT Test Suite";
         AITTestMethodLineForLogEntry: Record "AIT Test Method Line";
         AITTestRunInputHandler: Codeunit "AIT Test Run Input Handler";
+        Backend: Interface "AIT Suite Backend";
     begin
         if not AITTestMethodLineForLogEntry.Get(AITLogEntry."Test Suite Code", AITLogEntry."Test Method Line No.") then
             Error(TestMethodLineNotFoundErr, AITLogEntry."Test Method Line No.", AITLogEntry."Test Suite Code");
 
         if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
             Error(TestSuiteChangedErr);
+
+        AITTestSuite.Get(AITTestMethodLineForLogEntry."Test Suite Code");
+        Backend := AITTestSuite."Suite Backend";
+        if not Backend.UsesLocalTestRunner() then
+            Error('Individual evals cannot run with this suite backend. Run the whole suite.');
 
         AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
 
@@ -235,10 +261,14 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+        Backend: Interface "AIT Suite Backend";
         TelemetryCustomDimensions: Dictionary of [Text, Text];
         EmptyGuid: Guid;
     begin
         AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
+        Backend := AITTestSuite."Suite Backend";
+        if not Backend.UsesLocalTestRunner() then
+            Error('Individual evals cannot run with this suite backend. Run the whole suite.');
         if not IsExecutedFromTestSuiteHeader then begin
             AITTestSuite.Version += 1;
             AITTestSuite.Modify(true);
@@ -372,6 +402,14 @@ codeunit 149034 "AIT Test Suite Mgt."
     end;
 
     internal procedure CancelRun(var AITTestSuite: Record "AIT Test Suite")
+    var
+        Backend: Interface "AIT Suite Backend";
+    begin
+        Backend := AITTestSuite."Suite Backend";
+        Backend.Cancel(AITTestSuite);
+    end;
+
+    internal procedure CancelLocalRun(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
     begin

@@ -61,6 +61,10 @@ page 149031 "AIT Test Suite"
                 field(Description; Rec.Description)
                 {
                 }
+                field("Suite Backend"; Rec."Suite Backend")
+                {
+                    Importance = Additional;
+                }
                 field(TestType; Rec."Test Type")
                 {
                     Importance = Additional;

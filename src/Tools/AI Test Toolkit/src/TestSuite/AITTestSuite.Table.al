@@ -20,6 +20,17 @@ table 149030 "AIT Test Suite"
 
     fields
     {
+        field(100; "Suite Backend"; Enum "AIT Suite Backend")
+        {
+            Caption = 'Suite Backend';
+            ToolTip = 'Specifies how the whole eval suite is executed.';
+
+            trigger OnValidate()
+            begin
+                if Status = Status::Running then
+                    Error('The suite backend cannot change while a run is active.');
+            end;
+        }
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
@@ -65,11 +76,16 @@ table 149030 "AIT Test Suite"
             var
                 AITTestMethodLine: Record "AIT Test Method Line";
                 AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                Backend: Interface "AIT Suite Backend";
             begin
                 if "No. of Tests Running" < 0 then
                     "No. of Tests Running" := 0;
 
                 if "No. of Tests Running" <> 0 then
+                    exit;
+
+                Backend := "Suite Backend";
+                if not Backend.UsesLocalTestRunner() then
                     exit;
 
                 case Status of
