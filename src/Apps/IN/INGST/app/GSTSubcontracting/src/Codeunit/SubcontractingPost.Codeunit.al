@@ -2587,16 +2587,6 @@ codeunit 18466 "Subcontracting Post"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", 'OnBeforeCallFlushOperation', '', false, false)]
-    local procedure OnBeforeCallFlushOperation(var ItemJournalLine: Record "Item Journal Line"; var ShouldFlushOperation: Boolean)
-    begin
-        if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Output) and
-            ItemJournalLine.Subcontracting and
-            (ItemJournalLine."Subcon Order No." <> '')
-        then
-            ShouldFlushOperation := false;
-    end;
-
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateQtyToInvoice', '', false, false)]
     local procedure OnBeforeValidateQtyToInvoice(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
