@@ -131,7 +131,9 @@ report 10813 "Customer Journal"
                 dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
                 {
                     DataItemLink = "Source Code" = field(Code);
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                     DataItemTableView = sorting("Source Code", "Posting Date");
+#pragma warning restore AL0254
                     column(SourceCode2_Code; SourceCode2.Code)
                     {
                     }

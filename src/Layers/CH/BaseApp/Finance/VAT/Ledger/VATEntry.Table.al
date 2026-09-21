@@ -959,10 +959,6 @@ table 254 "VAT Entry"
         key(Key18; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", Reversed, "Posting Date", "G/L Acc. No.", "VAT Reporting Date")
         {
         }
-        key(Key19; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Tax Jurisdiction Code", "Use Tax", "VAT Reporting Date")
-        {
-            SumIndexFields = Base, Amount, "Additional-Currency Base", "Additional-Currency Amount";
-        }
     }
 
     fieldgroups

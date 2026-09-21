@@ -81,6 +81,8 @@ page 565 "CrossIntercompany Modify Setup"
                     ApplicationArea = Intercompany;
                     Importance = Additional;
                     ToolTip = 'Specifies the OAuth 2.0 redirect URL of the Microsoft Entra authentication application.';
+                    // The connector always uses the environment's default redirect URL, so this field is hidden to avoid promising configurable behavior.
+                    Visible = false;
                 }
             }
         }

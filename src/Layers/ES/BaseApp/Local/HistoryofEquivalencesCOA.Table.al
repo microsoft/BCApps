@@ -36,7 +36,9 @@ table 10724 "History of Equivalences COA"
             TableRelation = "G/L Account"."No.";
             ValidateTableRelation = true;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(5; "New G/L Account Name"; Text[30])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("New G/L Account No.")));
             Caption = 'New G/L Account Name';

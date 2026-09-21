@@ -187,6 +187,9 @@ page 20410 "Qlty. Inspect. Source Config."
         UpdateControls();
     end;
 
+    /// <summary>
+    /// Updates target-table visibility and the shipped-default indicator for the current configuration.
+    /// </summary>
     local procedure UpdateControls()
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -195,6 +198,10 @@ page 20410 "Qlty. Inspect. Source Config."
         IsShippedDefault := QltyAutoConfigure.IsShippedDefaultSourceConfiguration(Rec.Code);
     end;
 
+    /// <summary>
+    /// Builds a caption from the configuration code and source and target table captions.
+    /// </summary>
+    /// <returns>The source configuration page caption.</returns>
     local procedure GetDataCaptionExpression(): Text
     begin
         exit(StrSubstNo(DataCaptionExprLbl, Rec.Code, Rec."From Table Caption", Rec."To Table Caption"));

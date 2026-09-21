@@ -89,11 +89,21 @@ page 6945 "Expense Category Card"
                     ToolTip = 'Opens the Subcategories page to view and manage subcategories for this category.';
                     Scope = Repeater;
                 }
+                action(Policies)
+                {
+                    Caption = 'Policies';
+                    Image = SetupList;
+                    RunObject = Page "Expense Policies";
+                    RunPageLink = "Expense Category Code" = field(Code);
+                    ToolTip = 'Opens the Policies page to view and manage policies for this category.';
+                    Scope = Repeater;
+                }
             }
         }
         area(Promoted)
         {
             actionref("Subcategories_Promoted"; Subcategories) { }
+            actionref("Policies_Promoted"; Policies) { }
         }
     }
 

@@ -5261,11 +5261,12 @@ codeunit 7201 "CDS Integration Impl."
         CRMConnectionSetup.DeleteAll();
 
         OnBeforeCleanCRMIntegrationRecords(DisableIntegrationRecordCleanup);
-        if not DisableIntegrationRecordCleanup then begin
-            // Deleting all couplings can timeout so disable the keys before deleting
-            TableKey.DisableAll(Database::"CRM Integration Record");
-            CRMIntegrationRecord.DeleteAll();
-        end;
+        if not DisableIntegrationRecordCleanup then
+            if not CRMIntegrationRecord.Truncate() then begin
+                // Deleting all couplings can timeout so disable the keys before deleting
+                TableKey.DisableAll(Database::"CRM Integration Record");
+                CRMIntegrationRecord.DeleteAll();
+            end;
     end;
 
     internal procedure GetEntityMetadata(TableNo: Integer): Text

@@ -11,7 +11,9 @@ using Microsoft.Manufacturing.Comment;
 #if not CLEAN27
 using Microsoft.Manufacturing.Document;
 #endif
+#if not CLEAN29
 using Microsoft.Manufacturing.Reports;
+#endif
 
 page 99000754 "Work Center Card"
 {
@@ -357,18 +359,23 @@ page 99000754 "Work Center Card"
             }
 #endif
         }
+#if not CLEAN29
         area(reporting)
         {
             action("Subcontractor - Dispatch List")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Subcontractor - Dispatch List';
+                Caption = 'Subcontractor - Dispatch List (Obsolete)';
                 Image = "Report";
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete. Use the "Subcontractor - Dispatch List (New)" report instead from Subcontracting app.';
+                ObsoleteTag = '29.0';
             }
         }
+#endif
         area(Promoted)
         {
             group(Category_Process)

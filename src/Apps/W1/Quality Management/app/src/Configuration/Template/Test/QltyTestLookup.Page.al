@@ -415,6 +415,9 @@ page 20445 "Qlty. Test Lookup"
         UpdateRowData();
     end;
 
+    /// <summary>
+    /// Loads promoted result data and updates condition editability for the current test.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -435,6 +438,10 @@ page 20445 "Qlty. Test Lookup"
         Editable10 := Visible10 and DummyMatrixVisibleState[10];
     end;
 
+    /// <summary>
+    /// Persists a promoted result condition from the lookup matrix.
+    /// </summary>
+    /// <param name="MatrixField">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataCondition(MatrixField: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -445,6 +452,10 @@ page 20445 "Qlty. Test Lookup"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Persists a promoted result condition description from the lookup matrix.
+    /// </summary>
+    /// <param name="MatrixField">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataConditionDescription(MatrixField: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
