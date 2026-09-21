@@ -2,6 +2,7 @@ codeunit 133504 "SCM Costing Performance"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -25,6 +26,7 @@ codeunit 133504 "SCM Costing Performance"
         isInitialized: Boolean;
         NotLinearCCErr: Label 'Computational cost is not linear.';
         NotConstantCCErr: Label 'Computational cost must be constant.';
+        OrderSelectionSubscriberFilter: Code[20];
 
     local procedure Initialize()
     var
@@ -420,6 +422,239 @@ codeunit 133504 "SCM Costing Performance"
         Assert.AreEqual(ExpectedQuantity * 13, ValueEntry."Cost Amount (Actual) (ACY)", 'Ledger actual ACY cost');
         Assert.AreEqual(ExpectedQuantity * 17, ValueEntry."Cost Amount (Expected)", 'Ledger expected cost');
         Assert.AreEqual(ExpectedQuantity * 19, ValueEntry."Cost Amount (Expected) (ACY)", 'Ledger expected ACY cost');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderSelectionRespectsItemAndOrderFilters()
+    begin
+        Initialize();
+        VerifyOrderSelectionFilters("Inventory Order Type"::Assembly);
+        VerifyOrderSelectionFilters("Inventory Order Type"::Production);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderSelectionEmptyItemListAllowsMatchingOrders()
+    var
+        Item: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+    begin
+        Initialize();
+        CreateOrderSelectionItem(Item);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Assembly, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 10000);
+        Item.SetRecFilter();
+        InventoryAdjmtEntryOrder.Reset();
+        InventoryAdjmtEntryOrder.SetRange("Item No.", Item."No.");
+
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        InventoryAdjmtEntryOrder.SetRange("Cost is Adjusted", true);
+        Assert.AreEqual(2, InventoryAdjmtEntryOrder.Count(), 'An empty selection must not exclude matching orders.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderSelectionPreservesProductionSubscriberFilter()
+    var
+        Item: Record Item;
+        OtherItem: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+    begin
+        Initialize();
+        CreateOrderSelectionItem(Item);
+        CreateOrderSelectionItem(OtherItem);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, OtherItem."No.", "Inventory Order Type"::Production, 10000);
+        ItemsToAdjust.Add(Item."No.");
+        ItemsToAdjust.Add(OtherItem."No.");
+        OrderSelectionSubscriberFilter := Item."No.";
+        BindSubscription(this);
+        Item.SetFilter("No.", '%1|%2', Item."No.", OtherItem."No.");
+        InventoryAdjmtEntryOrder.Reset();
+
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        UnbindSubscription(this);
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Production, 10000, true);
+        VerifyOrderSelectionEntry(OtherItem."No.", "Inventory Order Type"::Production, 10000, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderSelectionPreservesOnlineAndFinishedRestrictions()
+    var
+        Item: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+    begin
+        Initialize();
+        CreateOrderSelectionItem(Item);
+        ItemsToAdjust.Add(Item."No.");
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Assembly, 10000);
+        InventoryAdjmtEntryOrder."Allow Online Adjustment" := false;
+        InventoryAdjmtEntryOrder.Modify();
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 10000);
+        InventoryAdjmtEntryOrder."Is Finished" := false;
+        InventoryAdjmtEntryOrder.Modify();
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 20000);
+        InventoryAdjmtEntryOrder."Allow Online Adjustment" := false;
+        InventoryAdjmtEntryOrder.Modify();
+        Item.SetRecFilter();
+        InventoryAdjmtEntryOrder.Reset();
+
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Assembly, 10000, false);
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Production, 10000, false);
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Production, 20000, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderSelectionSkipsMissingSelectedItem()
+    var
+        Item: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+    begin
+        Initialize();
+        CreateOrderSelectionItem(Item);
+        ItemsToAdjust.Add(Item."No.");
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Assembly, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 10000);
+        Item.Delete();
+        Item.SetRecFilter();
+        InventoryAdjmtEntryOrder.Reset();
+
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Assembly, 10000, false);
+        VerifyOrderSelectionEntry(Item."No.", "Inventory Order Type"::Production, 10000, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OrderSelectionRejectedItemsSqlGrowthIsBounded()
+    var
+        Item: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+        ItemIndex: Integer;
+        SmallStatementCount: BigInteger;
+        LargeStatementCount: BigInteger;
+    begin
+        // [SCENARIO] Orders outside an explicit item selection do not cause per-item SQL reads.
+        Initialize();
+        CreateOrderSelectionItem(Item);
+        ItemsToAdjust.Add(Item."No.");
+        for ItemIndex := 1 to 100 do begin
+            CreateOrderSelectionItem(Item);
+            CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Assembly, 10000);
+            CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", "Inventory Order Type"::Production, 10000);
+            InventoryAdjmtEntryOrder.Reset();
+            if ItemIndex = 10 then
+                SmallStatementCount := MeasureOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+        end;
+        LargeStatementCount := MeasureOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        Assert.IsTrue(LargeStatementCount <= SmallStatementCount + 10,
+            StrSubstNo('Order selection SQL statements for 10/100 rejected items: %1/%2. Growth must not exceed 10 statements.',
+                SmallStatementCount, LargeStatementCount));
+    end;
+
+    local procedure VerifyOrderSelectionFilters(OrderType: Enum "Inventory Order Type")
+    var
+        Item: Record Item;
+        FilteredItem: Record Item;
+        UnselectedItem: Record Item;
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemsToAdjust: List of [Code[20]];
+    begin
+        CreateOrderSelectionItem(Item);
+        CreateOrderSelectionItem(FilteredItem);
+        CreateOrderSelectionItem(UnselectedItem);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", OrderType, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, Item."No.", OrderType, 20000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, FilteredItem."No.", OrderType, 10000);
+        CreateOrderSelectionEntry(InventoryAdjmtEntryOrder, UnselectedItem."No.", OrderType, 10000);
+        ItemsToAdjust.Add(Item."No.");
+        ItemsToAdjust.Add(Item."No.");
+        ItemsToAdjust.Add(FilteredItem."No.");
+        Item.SetFilter("No.", '%1|%2', Item."No.", UnselectedItem."No.");
+        InventoryAdjmtEntryOrder.Reset();
+        InventoryAdjmtEntryOrder.SetRange("Order Type", OrderType);
+        InventoryAdjmtEntryOrder.SetRange("Order Line No.", 10000);
+
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+
+        VerifyOrderSelectionEntry(Item."No.", OrderType, 10000, true);
+        VerifyOrderSelectionEntry(Item."No.", OrderType, 20000, false);
+        VerifyOrderSelectionEntry(FilteredItem."No.", OrderType, 10000, false);
+        VerifyOrderSelectionEntry(UnselectedItem."No.", OrderType, 10000, false);
+    end;
+
+    local procedure CreateOrderSelectionItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item."Cost is Adjusted" := true;
+        Item."Inventory Value Zero" := true;
+        Item.Modify();
+    end;
+
+    local procedure CreateOrderSelectionEntry(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemNo: Code[20]; OrderType: Enum "Inventory Order Type"; LineNo: Integer)
+    begin
+        InventoryAdjmtEntryOrder.Init();
+        InventoryAdjmtEntryOrder."Order Type" := OrderType;
+        InventoryAdjmtEntryOrder."Order No." := ItemNo;
+        InventoryAdjmtEntryOrder."Order Line No." := LineNo;
+        InventoryAdjmtEntryOrder."Item No." := ItemNo;
+        InventoryAdjmtEntryOrder."Cost is Adjusted" := false;
+        InventoryAdjmtEntryOrder."Completely Invoiced" := true;
+        InventoryAdjmtEntryOrder."Is Finished" := true;
+        InventoryAdjmtEntryOrder.Insert();
+    end;
+
+    local procedure VerifyOrderSelectionEntry(ItemNo: Code[20]; OrderType: Enum "Inventory Order Type"; LineNo: Integer; ExpectedAdjusted: Boolean)
+    var
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+    begin
+        InventoryAdjmtEntryOrder.Get(OrderType, ItemNo, LineNo);
+        Assert.AreEqual(ExpectedAdjusted, InventoryAdjmtEntryOrder."Cost is Adjusted", 'Order selection');
+    end;
+
+    local procedure MeasureOrderSelection(var Item: Record Item; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ItemsToAdjust: List of [Code[20]]): BigInteger
+    var
+        StatementsBefore: BigInteger;
+    begin
+        SelectLatestVersion();
+        StatementsBefore := SessionInformation.SqlStatementsExecuted();
+        RunOrderSelection(Item, InventoryAdjmtEntryOrder, ItemsToAdjust);
+        exit(SessionInformation.SqlStatementsExecuted() - StatementsBefore);
+    end;
+
+    local procedure RunOrderSelection(var Item: Record Item; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ItemsToAdjust: List of [Code[20]])
+    var
+        CostAdjustmentParameter: Record "Cost Adjustment Parameter";
+        CostAdjustmentParamsMgt: Codeunit "Cost Adjustment Params Mgt.";
+        InventoryAdjustment: Codeunit "Inventory Adjustment";
+    begin
+        CostAdjustmentParameter."Online Adjustment" := true;
+        CostAdjustmentParameter."Skip Job Item Cost Update" := true;
+        CostAdjustmentParamsMgt.SetParameters(CostAdjustmentParameter);
+        CostAdjustmentParamsMgt.SetItemsToAdjust(ItemsToAdjust);
+        CostAdjustmentParamsMgt.SetInventoryAdjmtEntryOrder(InventoryAdjmtEntryOrder);
+        InventoryAdjustment.SetFilterItem(Item);
+        InventoryAdjustment.MakeMultiLevelAdjmt(CostAdjustmentParamsMgt);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", 'OnWIPToAdjustExistOnAfterInventoryAdjmtEntryOrderSetFilters', '', false, false)]
+    local procedure FilterProductionOrderSelection(var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)")
+    begin
+        InventoryAdjmtEntryOrder.SetRange("Order No.", OrderSelectionSubscriberFilter);
     end;
 
     [Test]

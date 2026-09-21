@@ -2391,15 +2391,15 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
     local procedure CanAdjustInventoryAdjmtEntryOrder(InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"): Boolean
     begin
+        if ItemsToAdjust.Count() > 0 then
+            if not ItemsToAdjust.Contains(InventoryAdjmtEntryOrder."Item No.") then
+                exit(false);
+
         FilterItem.ReadIsolation(IsolationLevel::ReadUncommitted);
         FilterItem.SetLoadFields("No.");
         FilterItem."No." := InventoryAdjmtEntryOrder."Item No.";
         if not FilterItem.Find() then
             exit(false);
-
-        if ItemsToAdjust.Count() > 0 then
-            if not ItemsToAdjust.Contains(InventoryAdjmtEntryOrder."Item No.") then
-                exit(false);
 
         InventoryAdjmtEntryOrderToAdjust.ReadIsolation(IsolationLevel::ReadUncommitted);
         InventoryAdjmtEntryOrderToAdjust.SetLoadFields("Order Type", "Order No.", "Order Line No.");
