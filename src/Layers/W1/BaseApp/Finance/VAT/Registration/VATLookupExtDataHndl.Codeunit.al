@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using Microsoft.Sales.Customer;
 using System;
 using System.Integration;
 using System.Reflection;
+using System.Telemetry;
 using System.Utilities;
 using System.Xml;
 
@@ -48,6 +49,9 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         EUVATRegNoValidationServiceTok: Label 'EUVATRegNoValidationServiceTelemetryCategoryTok', Locked = true;
         ValidationSuccessfulMsg: Label 'The VAT reg. no. validation was successful', Locked = true;
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
+        ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
+        ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
+        SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         VATRegistrationURL: Text;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)
@@ -94,6 +98,8 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
             TempBlobBody.CreateOutStream(ResponseOutStream);
             CopyStream(ResponseOutStream, ResponseInStream);
+
+            CheckResponseSize(TempBlobBody);
 
             Session.LogMessage('0000C3Q', ValidationSuccessfulMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EUVATRegNoValidationServiceTok);
         end else begin
@@ -186,6 +192,31 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         XMLDOMManagement.LoadXMLDocumentFromInStream(InStream, XMLDocOut);
 
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, XMLDocOut, NamespaceTxt);
+    end;
+
+    /// <summary>
+    /// Rejects VIES responses that exceed the maximum expected size, protecting downstream
+    /// XML parsing from abnormally large or malicious payloads received over the unauthenticated service.
+    /// </summary>
+    /// <param name="TempBlob">Temp blob holding the raw response content received from the VIES service.</param>
+    internal procedure CheckResponseSize(var TempBlob: Codeunit "Temp Blob")
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        if TempBlob.Length() <= GetMaxResponseSize() then
+            exit;
+
+        AuditLog.LogAuditMessage(SecurityAuditResponseTooLargeTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0); // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+        Session.LogMessage('0000VEQ', ResponseTooLargeMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+        Clear(TempBlob);
+        Error(ResponseTooLargeErr);
+    end;
+
+    local procedure GetMaxResponseSize(): Integer
+    begin
+        // A single checkVatApprox response is one company record (typically < 2 KB incl. SOAP envelope).
+        // 64 KB leaves ample headroom for long trader details while still rejecting abnormally large payloads.
+        exit(65536);
     end;
 
     /// <summary>
