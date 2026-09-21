@@ -237,6 +237,33 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure DeletionConflictErrorIdentifiesSourceRecord()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceCustomer: Record Customer;
+        SourceRecordRef: RecordRef;
+        DeletionConflictHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An unresolved deletion conflict fails with an error that names the specific source record, not just its table (bug 647736).
+        Initialize();
+
+        // [GIVEN] a mapping whose Deletion-Conflict Resolution is None (the default); Initialize() has enabled MDM
+        IntegrationTableMapping.Init();
+        IntegrationTableMapping.Type := IntegrationTableMapping.Type::"Master Data Management";
+        IntegrationTableMapping."Table ID" := Database::Customer;
+        IntegrationTableMapping."Integration Table ID" := Database::Customer;
+        LibrarySales.CreateCustomer(SourceCustomer);
+        SourceRecordRef.GetTable(SourceCustomer);
+
+        // [WHEN] the deletion-conflict subscriber runs and cannot resolve the conflict
+        // [THEN] the error identifies the specific source record (its number), not just the table
+        asserterror LibraryMasterDataMgt.HandleOnDeletionConflictDetected(IntegrationTableMapping, SourceRecordRef, DeletionConflictHandled);
+        Assert.ExpectedError(SourceCustomer."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
     procedure SynchronizingPrimaryKeyChange()
     var
         SourceCustomer: Record Customer;

@@ -16,6 +16,15 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataMgtSubscribers.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    /// <summary>Invokes the deletion-conflict subscriber logic that resolves or fails a coupled-to-deleted-record conflict.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
+    /// <param name="SourceRecordRef">The source record whose coupled record was deleted.</param>
+    /// <param name="DeletionConflictHandled">Returns whether the conflict was resolved.</param>
+    procedure HandleOnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
+    begin
+        MasterDataManagement.HandleOnDeletionConflictDetected(IntegrationTableMapping, SourceRecordRef, DeletionConflictHandled);
+    end;
+
     /// <summary>Renames the destination record before modification when the source primary key has changed.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
     /// <param name="SourceRecordRef">The source record providing the new primary key.</param>
