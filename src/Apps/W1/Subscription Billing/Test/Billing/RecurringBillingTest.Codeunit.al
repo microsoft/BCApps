@@ -1641,10 +1641,7 @@ codeunit 139688 "Recurring Billing Test"
 
         // [WHEN] CalculateNextToDate is called for the monthly period.
         // [THEN] Next To Date is the Subscription Line End Date.
-        CheckNextToDateWithEndDate(
-            MonthlyPeriodLbl,
-            MonthlyStartDate,
-            MonthlyEndDate);
+        CheckNextToDateWithEndDate(MonthlyPeriodLbl, MonthlyStartDate, MonthlyEndDate);
 
         // [GIVEN] A Subscription Line starts on 29/05/2026, uses Align to End of Month,
         // has a monthly period, and its end date is the next period start date, 29/06/2026.
@@ -1653,10 +1650,7 @@ codeunit 139688 "Recurring Billing Test"
 
         // [WHEN] CalculateNextToDate is called for the monthly period.
         // [THEN] The next period start date is not included in the current period.
-        CheckNextToDateWithEndDate(
-            MonthlyPeriodLbl,
-            MonthlyStartDate,
-            20260627D);
+        CheckNextToDateWithEndDate(MonthlyPeriodLbl, MonthlyStartDate, 20260627D);
 
         // [GIVEN] A Subscription Line starts away from month-end, uses Align to End of Month,
         // has a fixed daily period, and its end date equals CalcDate(1D, StartDate).
@@ -1669,10 +1663,7 @@ codeunit 139688 "Recurring Billing Test"
         // [WHEN] CalculateNextToDate is called for the fixed daily period.
         // [THEN] Next To Date remains one day before the Subscription Line End Date,
         // so the next one-day period can start on the following day.
-        CheckNextToDateWithEndDate(
-            DailyPeriodLbl,
-            DailyStartDate,
-            DailyEndDate - 1);
+        CheckNextToDateWithEndDate(DailyPeriodLbl, DailyStartDate, DailyEndDate - 1);
     end;
 
     #endregion Tests
