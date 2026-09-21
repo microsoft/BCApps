@@ -9,6 +9,10 @@ using System.Automation;
 
 pageextension 6977 "Exp. Approval User Setup" extends "Approval User Setup"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'No Longer Required.';
+    ObsoleteTag = '30.0';
+
     layout
     {
         addafter("Unlimited Purchase Approval")
@@ -18,18 +22,12 @@ pageextension 6977 "Exp. Approval User Setup" extends "Approval User Setup"
                 ApplicationArea = Suite;
                 Visible = false;
                 ToolTip = 'Specifies the maximum amount in local currency this user can approve for the record.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Replaced by the Approval Limit field on Expense User.';
-                ObsoleteTag = '30.0';
             }
             field("Unlimited Expense Approval"; Rec."Unlimited Expense Approval")
             {
                 ApplicationArea = Suite;
                 Visible = false;
                 ToolTip = 'Specifies that the user can approve expense records without a maximum amount. When selected, leave the Expense Amount Approval Limit field empty.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Replaced by the approval settings on Expense User.';
-                ObsoleteTag = '30.0';
             }
         }
     }
