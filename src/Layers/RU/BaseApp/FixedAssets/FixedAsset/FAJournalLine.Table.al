@@ -344,7 +344,7 @@ table 5621 "FA Journal Line"
             Caption = 'FA Reclassification Entry';
             ToolTip = 'Specifies if the entry was generated from a fixed asset reclassification journal.';
         }
-        field(35; "FA Error Entry No."; BigInteger)
+        field(35; "FA Error Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';

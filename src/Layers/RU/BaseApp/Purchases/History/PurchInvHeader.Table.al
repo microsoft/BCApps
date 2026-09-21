@@ -653,7 +653,7 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(1304; "Vendor Ledger Entry No."; BigInteger)
+        field(1304; "Vendor Ledger Entry No."; Integer)
         {
             Caption = 'Vendor Ledger Entry No.';
             Editable = false;

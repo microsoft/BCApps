@@ -919,7 +919,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     /// can filter temp entries per posting group. The actual register number is assigned
     /// when the entry is copied to the real table.
     /// </summary>
-    local procedure TagExchRateAdjmtLedgEntry(BufferIndex: BigInteger)
+    local procedure TagExchRateAdjmtLedgEntry(BufferIndex: Integer)
     begin
         if TempExchRateAdjmtLedgEntry.Get(0, NewRegLedgEntryNo) then begin
             TempExchRateAdjmtLedgEntry.Delete();
@@ -1183,8 +1183,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     var
         DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry";
         GLEntry: Record "G/L Entry";
-        LastEntryNo: BigInteger;
-        LastTransactionNo: BigInteger;
+        LastEntryNo: Integer;
+        LastTransactionNo: Integer;
     begin
         GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
 
@@ -1204,8 +1204,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     var
         DtldVendLedgEntry2: Record "Detailed Vendor Ledg. Entry";
         GLEntry: Record "G/L Entry";
-        LastEntryNo: BigInteger;
-        LastTransactionNo: BigInteger;
+        LastEntryNo: Integer;
+        LastTransactionNo: Integer;
     begin
         GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
 
@@ -1225,8 +1225,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     var
         DtldEmplLedgEntry2: Record "Detailed Employee Ledger Entry";
         GLEntry: Record "G/L Entry";
-        LastEntryNo: BigInteger;
-        LastTransactionNo: BigInteger;
+        LastEntryNo: Integer;
+        LastTransactionNo: Integer;
     begin
         GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
 

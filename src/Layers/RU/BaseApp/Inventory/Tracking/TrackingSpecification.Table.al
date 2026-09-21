@@ -24,7 +24,7 @@ table 336 "Tracking Specification"
 
     fields
     {
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
@@ -99,16 +99,16 @@ table 336 "Tracking Specification"
         {
             Caption = 'Source Prod. Order Line';
         }
-        field(15; "Source Ref. No."; BigInteger)
+        field(15; "Source Ref. No."; Integer)
         {
             Caption = 'Source Ref. No.';
         }
-        field(16; "Item Ledger Entry No."; BigInteger)
+        field(16; "Item Ledger Entry No."; Integer)
         {
             Caption = 'Item Ledger Entry No.';
             TableRelation = "Item Ledger Entry";
         }
-        field(17; "Transfer Item Entry No."; BigInteger)
+        field(17; "Transfer Item Entry No."; Integer)
         {
             Caption = 'Transfer Item Entry No.';
             TableRelation = "Item Ledger Entry";
@@ -562,7 +562,7 @@ table 336 "Tracking Specification"
 #pragma warning restore AA0470
         WrongQtyForItemErr: Label '%1 in the item tracking assigned to the document line for item %2 is currently %3. It must be %4.\\Check the assignment for serial number %5, lot number %6, package number %7.', Comment = '%1 - Qty. to Handle or Qty. to Invoice, %2 - Item No., %3 - actual value, %4 - expected value, %5 - Serial No., %6 - Lot No., %7 - Package No.';
 
-    procedure GetLastEntryNo(): BigInteger;
+    procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

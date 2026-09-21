@@ -14,7 +14,7 @@ table 317 "Payable Vendor Ledger Entry"
 
     fields
     {
-        field(1; Priority; BigInteger)
+        field(1; Priority; Integer)
         {
             Caption = 'Priority';
         }
@@ -23,11 +23,11 @@ table 317 "Payable Vendor Ledger Entry"
             Caption = 'Vendor No.';
             TableRelation = Vendor;
         }
-        field(3; "Entry No."; BigInteger)
+        field(3; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
-        field(4; "Vendor Ledg. Entry No."; BigInteger)
+        field(4; "Vendor Ledg. Entry No."; Integer)
         {
             Caption = 'Vendor Ledg. Entry No.';
             TableRelation = "Vendor Ledger Entry";

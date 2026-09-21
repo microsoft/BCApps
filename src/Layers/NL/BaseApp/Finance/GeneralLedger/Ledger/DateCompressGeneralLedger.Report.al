@@ -383,12 +383,12 @@ report 98 "Date Compress General Ledger"
         DimMgt: Codeunit DimensionManagement;
         DataArchive: Codeunit "Data Archive";
         Window: Dialog;
-        LastEntryNo: BigInteger;
-        NextTransactionNo: BigInteger;
+        LastEntryNo: Integer;
+        NextTransactionNo: Integer;
         NoOfDeleted: Integer;
         GLRegExists: Boolean;
-        ComprDimEntryNo: BigInteger;
-        DimEntryNo: BigInteger;
+        ComprDimEntryNo: Integer;
+        DimEntryNo: Integer;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -456,8 +456,8 @@ report 98 "Date Compress General Ledger"
 
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        FoundLastEntryNo: BigInteger;
-        LastTransactionNo: BigInteger;
+        FoundLastEntryNo: Integer;
+        LastTransactionNo: Integer;
     begin
         GLReg."To Entry No." := NewGLEntry."Entry No.";
 
@@ -555,9 +555,9 @@ report 98 "Date Compress General Ledger"
     procedure ComprCollectedEntries()
     var
         GLEntry: Record "G/L Entry";
-        OldDimEntryNo: BigInteger;
+        OldDimEntryNo: Integer;
         Found: Boolean;
-        GLEntryNo: BigInteger;
+        GLEntryNo: Integer;
         DummyCount: Integer;
     begin
         OldDimEntryNo := 0;
@@ -623,7 +623,7 @@ report 98 "Date Compress General Ledger"
         OnAfterInitNewEntry(NewGLEntry);
     end;
 
-    local procedure InsertNewEntry(var GLEntry: Record "G/L Entry"; DimEntryNo: BigInteger)
+    local procedure InsertNewEntry(var GLEntry: Record "G/L Entry"; DimEntryNo: Integer)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

@@ -113,7 +113,7 @@ report 198 "Date Compress Customer Ledger"
             trigger OnPreDataItem()
             var
                 GLSetup: Record "General Ledger Setup";
-                LastTransactionNo: BigInteger;
+                LastTransactionNo: Integer;
             begin
                 if EntrdDateComprReg."Ending Date" = 0D then
                     Error(Text003, EntrdDateComprReg.FieldCaption("Ending Date"));
@@ -328,14 +328,14 @@ report 198 "Date Compress Customer Ledger"
         DataArchive: Codeunit "Data Archive";
         Window: Dialog;
         CustLedgEntryFilter: Text[250];
-        LastEntryNo: BigInteger;
-        NextTransactionNo: BigInteger;
+        LastEntryNo: Integer;
+        NextTransactionNo: Integer;
         NoOfDeleted: Integer;
-        LastDtldEntryNo: BigInteger;
-        LastTmpDtldEntryNo: BigInteger;
+        LastDtldEntryNo: Integer;
+        LastTmpDtldEntryNo: Integer;
         GLRegExists: Boolean;
-        ComprDimEntryNo: BigInteger;
-        DimEntryNo: BigInteger;
+        ComprDimEntryNo: Integer;
+        DimEntryNo: Integer;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -399,9 +399,9 @@ report 198 "Date Compress Customer Ledger"
 
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        FoundLastEntryNo: BigInteger;
+        FoundLastEntryNo: Integer;
         FoundLastLedgEntryNo: Integer;
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         GLEntry.Init();
         LastEntryNo := LastEntryNo + 1;
@@ -484,9 +484,9 @@ report 198 "Date Compress Customer Ledger"
     local procedure ComprCollectedEntries()
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
-        OldDimEntryNo: BigInteger;
+        OldDimEntryNo: Integer;
         Found: Boolean;
-        CustLedgEntryNo: BigInteger;
+        CustLedgEntryNo: Integer;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, CustLedgEntryNo) then begin
@@ -546,7 +546,7 @@ report 198 "Date Compress Customer Ledger"
         Window.Update(3, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewCustLedgEntry: Record "Cust. Ledger Entry"; DimEntryNo: BigInteger)
+    local procedure InsertNewEntry(var NewCustLedgEntry: Record "Cust. Ledger Entry"; DimEntryNo: Integer)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

@@ -34,12 +34,12 @@ table 5625 "Maintenance Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "G/L Entry No."; BigInteger)
+        field(2; "G/L Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'G/L Entry No.';
@@ -295,14 +295,14 @@ table 5625 "Maintenance Ledger Entry"
             Caption = 'Reversed';
             ToolTip = 'Specifies whether the entry has been part of a reverse transaction (correction) made by the Reverse function.';
         }
-        field(51; "Reversed by Entry No."; BigInteger)
+        field(51; "Reversed by Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             ToolTip = 'Specifies the number of the correcting entry.';
             TableRelation = "Maintenance Ledger Entry";
         }
-        field(52; "Reversed Entry No."; BigInteger)
+        field(52; "Reversed Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -434,7 +434,7 @@ table 5625 "Maintenance Ledger Entry"
     var
         DimMgt: Codeunit DimensionManagement;
 
-    procedure GetLastEntryNo(): BigInteger;
+    procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

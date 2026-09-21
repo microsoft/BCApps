@@ -456,34 +456,34 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         OnAfterPostResJnlLine(ServiceHeader, ResJnlLine);
     end;
 
-    procedure InitServiceRegister(var NextServLedgerEntryNo: BigInteger; var NextWarrantyLedgerEntryNo: BigInteger)
+    procedure InitServiceRegister(var NextServLedgerEntryNo: Integer; var NextWarrantyLedgerEntryNo: Integer)
     begin
         ServLedgEntriesPost.InitServiceRegister(NextServLedgerEntryNo, NextWarrantyLedgerEntryNo);
     end;
 
-    procedure FinishServiceRegister(var nextServEntryNo: BigInteger; var nextWarrantyEntryNo: BigInteger)
+    procedure FinishServiceRegister(var nextServEntryNo: Integer; var nextWarrantyEntryNo: Integer)
     begin
         ServLedgEntriesPost.FinishServiceRegister(nextServEntryNo, nextWarrantyEntryNo);
     end;
 
-    procedure InsertServLedgerEntry(var NextEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; DocNo: Code[20]): BigInteger
+    procedure InsertServLedgerEntry(var NextEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; DocNo: Code[20]): Integer
     begin
         exit(
           ServLedgEntriesPost.InsertServLedgerEntry(NextEntryNo, ServiceHeader, ServiceLine, ServItemLine, Qty, DocNo));
     end;
 
-    procedure InsertServLedgerEntrySale(var passedNextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; QtyToCharge: Decimal; GenJnlLineDocNo: Code[20]; DocLineNo: Integer)
+    procedure InsertServLedgerEntrySale(var passedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; QtyToCharge: Decimal; GenJnlLineDocNo: Code[20]; DocLineNo: Integer)
     begin
         ServLedgEntriesPost.InsertServLedgerEntrySale(
           passedNextEntryNo, ServHeader, ServLine, ServItemLine, Qty, QtyToCharge, GenJnlLineDocNo, DocLineNo);
     end;
 
-    procedure CreateCreditEntry(var passedNextEntryNo: BigInteger; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; GenJnlLineDocNo: Code[20])
+    procedure CreateCreditEntry(var passedNextEntryNo: Integer; var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; GenJnlLineDocNo: Code[20])
     begin
         ServLedgEntriesPost.CreateCreditEntry(passedNextEntryNo, ServHeader, ServLine, GenJnlLineDocNo);
     end;
 
-    procedure InsertWarrantyLedgerEntry(var NextWarrantyEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; GenJnlLineDocNo: Code[20]): BigInteger
+    procedure InsertWarrantyLedgerEntry(var NextWarrantyEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; Qty: Decimal; GenJnlLineDocNo: Code[20]): Integer
     begin
         exit(
           ServLedgEntriesPost.InsertWarrantyLedgerEntry(

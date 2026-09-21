@@ -227,10 +227,10 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         exit(DtldVendLedgEntry.GetLastEntryNo());
     end;
 
-    procedure FindLastApplEntry(VendLedgEntryNo: BigInteger): BigInteger
+    procedure FindLastApplEntry(VendLedgEntryNo: Integer): Integer
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         DtldVendLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
         DtldVendLedgEntry.SetRange("Vendor Ledger Entry No.", VendLedgEntryNo);
@@ -246,10 +246,10 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         exit(ApplicationEntryNo);
     end;
 
-    local procedure FindLastTransactionNo(VendLedgEntryNo: BigInteger): BigInteger
+    local procedure FindLastTransactionNo(VendLedgEntryNo: Integer): Integer
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         DtldVendLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
         DtldVendLedgEntry.SetRange("Vendor Ledger Entry No.", VendLedgEntryNo);
@@ -268,7 +268,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
 
     procedure UnApplyDtldVendLedgEntry(DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
     var
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         DtldVendLedgEntry.TestField("Entry Type", DtldVendLedgEntry."Entry Type"::Application);
         DtldVendLedgEntry.TestField(Unapplied, false);
@@ -280,7 +280,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
         UnApplyVendor(DtldVendLedgEntry);
     end;
 
-    procedure UnApplyVendLedgEntry(VendLedgEntryNo: BigInteger)
+    procedure UnApplyVendLedgEntry(VendLedgEntryNo: Integer)
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
     begin
@@ -290,7 +290,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
 
     procedure CheckVendorLedgerEntryToUnapply(VendorLedgerEntryNo: Integer; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     var
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         CheckReversal(VendorLedgerEntryNo);
         ApplicationEntryNo := FindLastApplEntry(VendorLedgerEntryNo);
@@ -466,7 +466,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
                 Error(CannotUnapplyExchRateErr, NewPostingDate);
     end;
 
-    procedure CheckReversal(VendLedgEntryNo: BigInteger)
+    procedure CheckReversal(VendLedgEntryNo: Integer)
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
@@ -560,10 +560,10 @@ codeunit 227 "VendEntry-Apply Posted Entries"
             until DetailedVendorLedgEntry.Next() = 0;
     end;
 
-    local procedure FindLastApplTransactionEntry(VendLedgEntryNo: BigInteger): BigInteger
+    local procedure FindLastApplTransactionEntry(VendLedgEntryNo: Integer): Integer
     var
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         DtldVendLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
         DtldVendLedgEntry.SetRange("Vendor Ledger Entry No.", VendLedgEntryNo);
@@ -655,7 +655,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
 
     local procedure CheckUnappliedEntries(DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
     var
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
         IsHandled: Boolean;
     begin
         if DtldVendLedgEntry."Entry Type" = DtldVendLedgEntry."Entry Type"::Application then begin
@@ -777,7 +777,7 @@ codeunit 227 "VendEntry-Apply Posted Entries"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCheckUnappliedEntriesOnBeforeUnapplyAllEntriesError(DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; LastTransactionNo: BigInteger; var IsHandled: Boolean);
+    local procedure OnCheckUnappliedEntriesOnBeforeUnapplyAllEntriesError(DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; LastTransactionNo: Integer; var IsHandled: Boolean);
     begin
     end;
 

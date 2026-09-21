@@ -241,10 +241,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// </summary>
     /// <param name="CustLedgEntryNo">Specifies the customer ledger entry number to search for applications.</param>
     /// <returns>The entry number of the last application entry, or 0 if no application exists.</returns>
-    procedure FindLastApplEntry(CustLedgEntryNo: BigInteger): BigInteger
+    procedure FindLastApplEntry(CustLedgEntryNo: Integer): Integer
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
         DtldCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgEntryNo);
@@ -260,10 +260,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
         exit(ApplicationEntryNo);
     end;
 
-    local procedure FindLastTransactionNo(CustLedgEntryNo: BigInteger): BigInteger
+    local procedure FindLastTransactionNo(CustLedgEntryNo: Integer): Integer
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
         DtldCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgEntryNo);
@@ -286,7 +286,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// <param name="DtldCustLedgEntry">Specifies the detailed customer ledger entry to unapply.</param>
     procedure UnApplyDtldCustLedgEntry(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         DtldCustLedgEntry.TestField("Entry Type", DtldCustLedgEntry."Entry Type"::Application);
         DtldCustLedgEntry.TestField(Unapplied, false);
@@ -303,9 +303,9 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// </summary>
     /// <param name="CustLedgEntryNo">Specifies the customer ledger entry number to check.</param>
     /// <param name="DetailedCustLedgEntry">Returns the detailed customer ledger entry containing the last application.</param>
-    procedure CheckCustLedgEntryToUnapply(CustLedgEntryNo: BigInteger; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    procedure CheckCustLedgEntryToUnapply(CustLedgEntryNo: Integer; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         CheckReversal(CustLedgEntryNo);
         ApplicationEntryNo := FindLastApplEntry(CustLedgEntryNo);
@@ -319,7 +319,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// Unapplies the customer ledger entry by its entry number.
     /// </summary>
     /// <param name="CustLedgEntryNo">Specifies the entry number of the customer ledger entry to unapply.</param>
-    procedure UnApplyCustLedgEntry(CustLedgEntryNo: BigInteger)
+    procedure UnApplyCustLedgEntry(CustLedgEntryNo: Integer)
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
@@ -508,7 +508,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// Checks whether the customer ledger entry is part of a reversal and raises an error if it is.
     /// </summary>
     /// <param name="CustLedgEntryNo">Specifies the customer ledger entry number to check for reversal status.</param>
-    procedure CheckReversal(CustLedgEntryNo: BigInteger)
+    procedure CheckReversal(CustLedgEntryNo: Integer)
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
     begin
@@ -606,10 +606,10 @@ codeunit 226 "CustEntry-Apply Posted Entries"
             until DetailedCustLedgEntry.Next() = 0;
     end;
 
-    local procedure FindLastApplTransactionEntry(CustLedgEntryNo: BigInteger): BigInteger
+    local procedure FindLastApplTransactionEntry(CustLedgEntryNo: Integer): Integer
     var
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
         DtldCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgEntryNo);
@@ -725,7 +725,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
 
     local procedure CheckUnappliedEntries(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
         IsHandled: Boolean;
     begin
         if DtldCustLedgEntry."Entry Type" = DtldCustLedgEntry."Entry Type"::Application then begin
@@ -963,7 +963,7 @@ codeunit 226 "CustEntry-Apply Posted Entries"
     /// <param name="LastTransactionNo">The last transaction number found.</param>
     /// <param name="IsHandled">Set to true to skip the error.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnCheckUnappliedEntriesOnBeforeUnapplyAllEntriesError(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; LastTransactionNo: BigInteger; var IsHandled: Boolean);
+    local procedure OnCheckUnappliedEntriesOnBeforeUnapplyAllEntriesError(DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; LastTransactionNo: Integer; var IsHandled: Boolean);
     begin
     end;
 

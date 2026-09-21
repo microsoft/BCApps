@@ -174,10 +174,10 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         exit(DtldEmplLedgEntry.GetLastEntryNo());
     end;
 
-    procedure FindLastApplEntry(EmplLedgEntryNo: BigInteger): BigInteger
+    procedure FindLastApplEntry(EmplLedgEntryNo: Integer): Integer
     var
         DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry";
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         DtldEmplLedgEntry.SetCurrentKey("Employee Ledger Entry No.", "Entry Type");
         DtldEmplLedgEntry.SetRange("Employee Ledger Entry No.", EmplLedgEntryNo);
@@ -192,10 +192,10 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         exit(ApplicationEntryNo);
     end;
 
-    local procedure FindLastTransactionNo(EmplLedgEntryNo: BigInteger): BigInteger
+    local procedure FindLastTransactionNo(EmplLedgEntryNo: Integer): Integer
     var
         DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry";
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         DtldEmplLedgEntry.SetCurrentKey("Employee Ledger Entry No.", "Entry Type");
         DtldEmplLedgEntry.SetRange("Employee Ledger Entry No.", EmplLedgEntryNo);
@@ -215,7 +215,7 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
 
     procedure UnApplyDtldEmplLedgEntry(DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry")
     var
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         DtldEmplLedgEntry.TestField("Entry Type", DtldEmplLedgEntry."Entry Type"::Application);
         DtldEmplLedgEntry.TestField(Unapplied, false);
@@ -226,7 +226,7 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         UnApplyEmployee(DtldEmplLedgEntry);
     end;
 
-    procedure UnApplyEmplLedgEntry(EmplLedgEntryNo: BigInteger)
+    procedure UnApplyEmplLedgEntry(EmplLedgEntryNo: Integer)
     var
         DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry";
     begin
@@ -236,7 +236,7 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
 
     procedure CheckEmployeeLedgerEntryToUnapply(EmployeeLedgerEntryNo: Integer; var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry")
     var
-        ApplicationEntryNo: BigInteger;
+        ApplicationEntryNo: Integer;
     begin
         CheckReversal(EmployeeLedgerEntryNo);
         ApplicationEntryNo := FindLastApplEntry(EmployeeLedgerEntryNo);
@@ -418,7 +418,7 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         exit(VATPostingSetup."Unrealized VAT Type" <> VATPostingSetup."Unrealized VAT Type"::" ");
     end;
 
-    local procedure CheckReversal(EmplLedgEntryNo: BigInteger)
+    local procedure CheckReversal(EmplLedgEntryNo: Integer)
     var
         VendLedgEntry: Record "Employee Ledger Entry";
     begin
@@ -466,10 +466,10 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         end;
     end;
 
-    local procedure FindLastApplTransactionEntry(EmplLedgEntryNo: BigInteger): BigInteger
+    local procedure FindLastApplTransactionEntry(EmplLedgEntryNo: Integer): Integer
     var
         DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry";
-        LastTransactionNo: BigInteger;
+        LastTransactionNo: Integer;
     begin
         DtldEmplLedgEntry.SetCurrentKey("Employee Ledger Entry No.", "Entry Type");
         DtldEmplLedgEntry.SetRange("Employee Ledger Entry No.", EmplLedgEntryNo);
