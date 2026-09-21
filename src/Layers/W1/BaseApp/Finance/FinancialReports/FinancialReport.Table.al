@@ -317,7 +317,7 @@ table 88 "Financial Report"
             Fieldclass = FlowField;
             Calcformula = max("Financial Report Audit Log".SystemCreatedAt where(
                 "Report Name" = field(Name),
-                User = filter('%user')));
+                User = filter('user')));
             Editable = false;
         }
         field(63; CategoryCode; Code[20])
