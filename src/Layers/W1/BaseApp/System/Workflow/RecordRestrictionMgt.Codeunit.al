@@ -557,9 +557,10 @@ codeunit 1550 "Record Restriction Mgt."
         CheckGenJournalLineHasUsageRestrictions(Sender, GenJournalBatch);
     end;
 
+#if not CLEAN30
     [Obsolete('Replaced by ItemJournalLineCheckItemPostRestrictions, which now also checks the Item Journal Batch usage restrictions.', '30.0')]
     [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnCheckItemJournalLinePostRestrictions', '', false, false)]
-    procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
+    local procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
     var
         ItemJournalBatch: Record "Item Journal Batch";
     begin
@@ -568,6 +569,7 @@ codeunit 1550 "Record Restriction Mgt."
 
         CheckRecordHasUsageRestrictions(ItemJournalBatch);
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnCheckSalesPostRestrictions', '', false, false)]
     procedure SalesHeaderCheckSalesPostRestrictions(var Sender: Record "Sales Header")
