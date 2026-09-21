@@ -3052,8 +3052,8 @@
 
         // [GIVEN] LCY Code is blank
         GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("LCY Code", '');
-        GeneralLedgerSetup.Modify(true);
+        GeneralLedgerSetup."LCY Code" := '';
+        GeneralLedgerSetup.Modify();
 
         // [GIVEN] An Account Schedule
         LibraryERM.CreateAccScheduleName(AccScheduleName);
