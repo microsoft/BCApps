@@ -412,7 +412,7 @@ codeunit 134600 "Report Layout Test"
         ReportLayoutList.SetRange("Report ID", 134600);
         ReportLayoutList.SetRange(Name, ReportMetadata.DefaultLayoutName);
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        Assert.RecordIsNotEmpty(ReportLayoutList);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), '');
 
         // Execute / verify
         REPORT.SaveAsWord(134600, FileManagement.ServerTempFileName('docx'));
