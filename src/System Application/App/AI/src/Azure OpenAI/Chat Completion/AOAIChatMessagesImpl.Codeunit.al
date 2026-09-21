@@ -43,7 +43,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         TelemetryPrepromptRetrievalErr: Label 'Preprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         TelemetryPostpromptRetrievalErr: Label 'Postprompt failed to be retrieved from Azure Key Vault.', Locked = true;
         WrongTypeErr: Label 'Wrong type when preparing sanitized message variant.', Locked = true;
-        IncompatibleModelErr: Label 'The current message history contains file content. Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.';
+        IncompatibleModelErr: Label 'The current message history contains file content. Use the GPT-4.1 mini preview or GPT-5.6 Ceres preview deployment.';
 
 
     [NonDebuggable]

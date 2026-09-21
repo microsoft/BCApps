@@ -29,13 +29,13 @@ codeunit 132684 "Azure OpenAI Test"
 #endif
 
     [Test]
-    procedure TestGPT56ChatDeploymentNames()
+    procedure TestGPT56CeresDeploymentNames()
     var
         AOAIDeployments: Codeunit "AOAI Deployments";
     begin
-        // [SCENARIO] GPT-5.6 chat exposes distinct latest and preview deployment names.
-        LibraryAssert.AreEqual('gpt-56-ceres-latest', AOAIDeployments.GetGPT56ChatLatest(), 'The GPT-5.6 chat latest deployment name should be returned.');
-        LibraryAssert.AreEqual('gpt-56-ceres-preview', AOAIDeployments.GetGPT56ChatPreview(), 'The GPT-5.6 chat preview deployment name should be returned.');
+        // [SCENARIO] GPT-5.6 Ceres exposes distinct latest and preview deployment names.
+        LibraryAssert.AreEqual('gpt-56-ceres-latest', AOAIDeployments.GetGPT56CeresLatest(), 'The GPT-5.6 Ceres latest deployment name should be returned.');
+        LibraryAssert.AreEqual('gpt-56-ceres-preview', AOAIDeployments.GetGPT56CeresPreview(), 'The GPT-5.6 Ceres preview deployment name should be returned.');
     end;
 
 #if not CLEAN30
@@ -884,7 +884,7 @@ codeunit 132684 "Azure OpenAI Test"
         // [WHEN] Checking file-content compatibility
         // [THEN] Supported preview deployments do not raise an error.
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniPreview());
-        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatPreview());
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56CeresPreview());
 #if not CLEAN30
 #pragma warning disable AL0432
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT55ChatPreview());
@@ -907,12 +907,12 @@ codeunit 132684 "Azure OpenAI Test"
 
         // [WHEN] Checking deployments without file-content support
         // [THEN] The error recommends supported preview deployments.
-        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatLatest());
-        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
+        asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56CeresLatest());
+        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 Ceres preview deployment.');
         asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniLatest());
-        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
+        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 Ceres preview deployment.');
         asserterror AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, Format(DeploymentTxt));
-        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 chat preview deployment.');
+        LibraryAssert.ExpectedError('Use the GPT-4.1 mini preview or GPT-5.6 Ceres preview deployment.');
     end;
 
     [Test]
@@ -929,8 +929,8 @@ codeunit 132684 "Azure OpenAI Test"
         AOAIUserMessage.AddTextPart('Text content part');
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
-        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatLatest());
-        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56ChatPreview());
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56CeresLatest());
+        AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56CeresPreview());
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, Format(DeploymentTxt));
     end;
 

@@ -30,8 +30,8 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT55ChatLatestLbl: Label 'gpt-55-chat-latest', Locked = true;
         GPT55ChatPreviewLbl: Label 'gpt-55-chat-preview', Locked = true;
 #endif
-        GPT56ChatLatestLbl: Label 'gpt-56-ceres-latest', Locked = true;
-        GPT56ChatPreviewLbl: Label 'gpt-56-ceres-preview', Locked = true;
+        GPT56CeresLatestLbl: Label 'gpt-56-ceres-latest', Locked = true;
+        GPT56CeresPreviewLbl: Label 'gpt-56-ceres-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -99,14 +99,14 @@ codeunit 7769 "AOAI Deployments Impl"
     end;
 #endif
 
-    procedure GetGPT56ChatLatest(CallerModuleInfo: ModuleInfo): Text
+    procedure GetGPT56CeresLatest(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT56ChatLatestLbl));
+        exit(GetDeploymentName(GPT56CeresLatestLbl));
     end;
 
-    procedure GetGPT56ChatPreview(CallerModuleInfo: ModuleInfo): Text
+    procedure GetGPT56CeresPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetDeploymentName(GPT56ChatPreviewLbl));
+        exit(GetDeploymentName(GPT56CeresPreviewLbl));
     end;
 
     procedure IsFileContentSupported(DeploymentName: Text): Boolean
@@ -115,7 +115,7 @@ codeunit 7769 "AOAI Deployments Impl"
         if DeploymentName = GPT55ChatPreviewLbl then
             exit(true);
 #endif
-        exit(DeploymentName in [GPT41MiniPreviewLbl, GPT56ChatPreviewLbl]);
+        exit(DeploymentName in [GPT41MiniPreviewLbl, GPT56CeresPreviewLbl]);
     end;
 
     // Initializes dictionary of deprecated models
