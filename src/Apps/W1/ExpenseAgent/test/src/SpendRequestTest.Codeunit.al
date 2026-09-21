@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
+using System.Security.AccessControl;
 
 codeunit 148339 "Spend Request Test"
 {
@@ -51,6 +52,11 @@ codeunit 148339 "Spend Request Test"
         CategoryClearedMsg: Label 'The expense category should be cleared when the line is not a Category line.';
         MixedTypesMsg: Label 'Category and Lump Sum lines should coexist on the same travel request.';
         CategoryLineOnlyErr: Label 'You can select an %1 only when %2 is %3.', Locked = true;
+        ApproverUserIdRecordedMsg: Label 'The approving user should be recorded on the travel request.';
+        ApproverUserNameRecordedMsg: Label 'The approving user name should be recorded on the travel request.';
+        ApproverDateTimeRecordedMsg: Label 'The approval date and time should be recorded on the travel request.';
+        RequestedForNameMirrorsMsg: Label 'The requested-for name should mirror the expense user name.';
+        RequestedForNameClearedMsg: Label 'The requested-for name should be cleared when the requester is removed.';
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -342,6 +348,9 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The spend request is approved automatically because there is no agent to approve it.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, SpendReqApprovedMsg);
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+        Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", ApproverDateTimeRecordedMsg);
     end;
 
     [Test]
@@ -551,6 +560,35 @@ codeunit 148339 "Spend Request Test"
         Assert.RecordCount(Traveler, 0);
         Traveler.SetRange("Expense User No.", SecondExpenseUser."No.");
         Assert.RecordCount(Traveler, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure RequestedForNameMirrorsExpenseUserName()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 650348] "Requested For Name" mirrors the requester and is cleared when the requester is removed.
+        Initialize();
+
+        // [GIVEN] An expense user and an open travel request.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+
+        // [WHEN] The expense user is set as requester.
+        SpendRequest.Validate("Requested For", ExpenseUser."No.");
+        SpendRequest.Modify(true);
+
+        // [THEN] The denormalized requester name is populated.
+        Assert.AreEqual(ExpenseUser.Name, SpendRequest."Requested For Name", RequestedForNameMirrorsMsg);
+
+        // [WHEN] The requester is removed.
+        SpendRequest.Validate("Requested For", '');
+        SpendRequest.Modify(true);
+
+        // [THEN] The denormalized requester name is cleared.
+        Assert.AreEqual('', SpendRequest."Requested For Name", RequestedForNameClearedMsg);
     end;
 
     [Test]
@@ -1094,6 +1132,16 @@ codeunit 148339 "Spend Request Test"
     begin
         Traveler.SetRange("Spend Request No.", SpendRequestNo);
         Traveler.DeleteAll();
+    end;
+
+    local procedure GetExpectedApproverName(): Code[50]
+    var
+        User: Record User;
+    begin
+        if User.ReadPermission() then
+            if User.Get(UserSecurityId()) then
+                exit(CopyStr(User."User Name", 1, 50));
+        exit(CopyStr(UserId(), 1, 50));
     end;
 
     [PageHandler]
