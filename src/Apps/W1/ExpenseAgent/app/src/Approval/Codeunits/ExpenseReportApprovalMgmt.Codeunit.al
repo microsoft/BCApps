@@ -3,8 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
-using System.Automation;
-using System.Security.User;
 
 codeunit 6901 "Expense Report Approval Mgmt"
 {
@@ -21,11 +19,11 @@ codeunit 6901 "Expense Report Approval Mgmt"
         NoExpenseReportLinesToProcessErr: Label 'There are no Expense Report Lines to process in %1 action.', Comment = '%1 = Action';
         NotAuthorizedToOpenExpReportErr: Label 'You are not authorized to open expense reports. Please configure your %1 in the %2.', Comment = '%1 = Field Caption,%2 = Table Caption';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = User Setup field caption';
-        MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
-        MissingUserSetupWithoutPermissionErr: Label 'Your user is not configured for expense approval. Please contact your administrator to configure your user on the User Setup page.';
-        MissingUserSetupTitleTxt: Label 'User Setup is missing';
-        MissingUserSetupDetailedMessageTxt: Label 'The approval workflow for expenses is enabled, but no User Setup record exists for the current user.';
-        OpenApprovalUserSetupLbl: Label 'Open the Approval User Setup';
+        MissingExpenseUserErr: Label 'Please configure your user ''%1'' on the Expense Users page, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
+        MissingExpenseUserWithoutPermissionErr: Label 'Your user is not configured for expense approval. Please contact your administrator to configure your user on the Expense Users page.';
+        MissingExpenseUserTitleTxt: Label 'Expense User is missing';
+        MissingExpenseUserDetailedMessageTxt: Label 'The approval workflow for expenses is enabled, but no Expense User record exists for the current user.';
+        OpenExpenseUsersLbl: Label 'Open Expense Users';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
@@ -36,6 +34,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         InterimApproverActorErr: Label 'Only the expense report owner %1 can assign an interim approver.', Comment = '%1 = Expense User No. of the report owner';
         InterimApproverAssignedCommentTxt: Label 'Interim approver set to %1 (%2).', Comment = '%1 = Interim Approver No., %2 = Interim Approver Name';
+        ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
+        ApproverRequiredErr: Label 'Expense report %1 exceeds the %2 for approver %3. Configure the approver in Expense Approval Setup.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
 
     procedure ProcessAction(var ExpenseReportHeader: Record "Expense Report Header"; ActionType: Enum "Expense Approval Action")
     begin
@@ -107,7 +107,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseUser.Get(SubmitterExpenseUserNo);
         ExpenseReportHeader.TestApprovalStatus();
         ExpenseReportHeader.UpdateApproverID();
-        ExpenseReportHeader."Final Approver No." := ExpenseReportHeader."Approver Expense User No.";
+        SetApproverBasedOnApprovalLimit(ExpenseReportHeader);
         RouteToInterimIfAssigned(ExpenseReportHeader);
 
         UpdateSubmitterComment(ExpenseReportHeader, SubmissionComment);
@@ -157,7 +157,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     )
     begin
         ExpenseReportHeader.UpdateApproverID();
-        ExpenseReportHeader."Final Approver No." := ExpenseReportHeader."Approver Expense User No.";
+        SetApproverBasedOnApprovalLimit(ExpenseReportHeader);
         RouteToInterimIfAssigned(ExpenseReportHeader);
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
         ExpenseReportHeader.Modify(true);
@@ -215,6 +215,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverExpenseUserNo := GetExpenseUserNo();
         CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
         CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckApproverApprovalLimit(ExpenseReportHeader, ApproverExpenseUserNo);
 
         if ShouldRouteToFinalApprover(ExpenseReportHeader) then begin
             RouteToFinalApprover(ExpenseReportHeader, ApproverExpenseUserNo);
@@ -236,6 +237,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         CheckApproverPermissions(ExpenseUser);
         CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
         CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckApproverApprovalLimit(ExpenseReportHeader, ApproverExpenseUserNo);
 
         if ShouldRouteToFinalApprover(ExpenseReportHeader) then begin
             RouteToFinalApprover(ExpenseReportHeader, ApproverExpenseUserNo);
@@ -272,6 +274,9 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         InterimApprover.Get(NewApproverExpenseUserNo);
         CheckApproverPermissions(InterimApprover);
+        ExpenseReportHeader.CalcFields("Amount (LCY)");
+        if not InterimApprover."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > InterimApprover."Approval Limit") then
+            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit"), InterimApprover."No.");
 
         SetInterimApproverInExpenseReport(ExpenseReportHeader, InterimApprover);
         LogInterimApproverAssigned(ExpenseReportHeader, InterimApprover, ActorExpenseUserNo);
@@ -339,6 +344,45 @@ codeunit 6901 "Expense Report Approval Mgmt"
             (ExpenseReportHeader."Final Approver No." <> ExpenseReportHeader."Interim Approver No."));
     end;
 
+    local procedure SetApproverBasedOnApprovalLimit(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ApproverExpenseUser: Record "Expense User";
+        NextApproverNo: Code[20];
+        ProcessedApproverNos: List of [Code[20]];
+    begin
+        ApproverExpenseUser.Get(ExpenseReportHeader."Approver Expense User No.");
+        ExpenseReportHeader.CalcFields("Amount (LCY)");
+
+        while not ApproverExpenseUser."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit") do begin
+            ProcessedApproverNos.Add(ApproverExpenseUser."No.");
+            NextApproverNo := GetNextApproverNo(ApproverExpenseUser."No.");
+            if (NextApproverNo = '') or ProcessedApproverNos.Contains(NextApproverNo) then
+                Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
+
+            ApproverExpenseUser.Get(NextApproverNo);
+            if not ApproverExpenseUser."Can Approve" then
+                Error(ApproverMustBeEnabledInExpenseUserErr, ApproverExpenseUser.FieldCaption("Can Approve"), ApproverExpenseUser.TableCaption());
+        end;
+
+        ApproverExpenseUser.TestField("User Id For Approvals");
+
+        ExpenseReportHeader."Final Approver No." := ApproverExpenseUser."No.";
+        ExpenseReportHeader."Approver Expense User No." := ApproverExpenseUser."No.";
+        ExpenseReportHeader."Approver Expense User ID" := ApproverExpenseUser."User Id For Approvals";
+    end;
+
+    local procedure GetNextApproverNo(CurrentApproverNo: Code[20]): Code[20]
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if ExpenseApprovalSetup.Get(CurrentApproverNo) and (ExpenseApprovalSetup."Approver No." <> '') then
+            exit(ExpenseApprovalSetup."Approver No.");
+
+        ExpenseAgentSetup.GetRecordOnce();
+        exit(ExpenseAgentSetup."Default Approver No.");
+    end;
+
     local procedure RouteToFinalApprover(var ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])
     var
         FinalApprover: Record "Expense User";
@@ -384,6 +428,19 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         if ActingApproverExpenseUserNo <> ExpenseReportHeader."Approver Expense User No." then
             Error(ActorNotActiveApproverErr, ExpenseReportHeader."Approver Expense User No.");
+    end;
+
+    local procedure CheckApproverApprovalLimit(ExpenseReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
+    var
+        ApproverExpenseUser: Record "Expense User";
+    begin
+        ApproverExpenseUser.Get(ApproverExpenseUserNo);
+        if ApproverExpenseUser."Unlimited Approval" then
+            exit;
+
+        ExpenseReportHeader.CalcFields("Amount (LCY)");
+        if ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit" then
+            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
     end;
 
     local procedure SetApprovalStatusInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportStatus: Enum "Expense Report Status"; ApproverExpenseUserNo: Code[20]; ApproverUserId: Code[50])
@@ -507,41 +564,50 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
     local procedure GetRecallActorRole(ExpenseReportHeader: Record "Expense Report Header"): Enum "Expense Activity Actor Role"
     var
-        UserSetup: Record "User Setup";
+        ExpenseUser: Record "Expense User";
     begin
         if ExpenseReportHeader."Submitter Expense User Id" = UserId() then
             exit(Enum::"Expense Activity Actor Role"::Submitter);
 
-        UserSetup.SetLoadFields("Unlimited Expense Approval");
-        if UserSetup.Get(UserId()) and UserSetup."Unlimited Expense Approval" then
+        if IsApprovalAdministrator() then
             exit(Enum::"Expense Activity Actor Role"::Administrator);
 
-        Error(NotAuthorizedToRecallExpReportErr, UserSetup.FieldCaption("Unlimited Expense Approval"));
+        Error(NotAuthorizedToRecallExpReportErr, ExpenseUser.FieldCaption("Unlimited Approval"));
     end;
 
-    internal procedure GetCurrentUserSetupForApproval(var UserSetup: Record "User Setup")
-    begin
-        UserSetup.SetLoadFields("Unlimited Expense Approval");
-        if not UserSetup.Get(UserId()) then
-            Error(CreateMissingUserSetupErrorInfo());
-    end;
-
-    local procedure CreateMissingUserSetupErrorInfo(): ErrorInfo
+    internal procedure IsApprovalAdministrator(): Boolean
     var
-        UserSetup: Record "User Setup";
-        MissingUserSetupErrorInfo: ErrorInfo;
+        ExpenseUser: Record "Expense User";
     begin
-        MissingUserSetupErrorInfo.Title := MissingUserSetupTitleTxt;
-        MissingUserSetupErrorInfo.DetailedMessage := MissingUserSetupDetailedMessageTxt;
-        MissingUserSetupErrorInfo.ErrorType := ErrorType::Client;
-        if UserSetup.ReadPermission() then begin
-            MissingUserSetupErrorInfo.Message := StrSubstNo(MissingUserSetupErr, UserId());
-            MissingUserSetupErrorInfo.DataClassification := DataClassification::EndUserIdentifiableInformation;
-            MissingUserSetupErrorInfo.PageNo := Page::"Approval User Setup";
-            MissingUserSetupErrorInfo.AddNavigationAction(OpenApprovalUserSetupLbl);
+        ExpenseUser.SetRange("User Id For Approvals", UserId());
+        ExpenseUser.SetRange("Can Approve", true);
+        ExpenseUser.SetRange("Unlimited Approval", true);
+        exit(not ExpenseUser.IsEmpty());
+    end;
+
+    internal procedure GetCurrentExpenseUserForApproval(var ExpenseUser: Record "Expense User")
+    begin
+        ExpenseUser.SetRange("User Id For Approvals", UserId());
+        if not ExpenseUser.FindFirst() then
+            Error(CreateMissingExpenseUserErrorInfo());
+    end;
+
+    local procedure CreateMissingExpenseUserErrorInfo(): ErrorInfo
+    var
+        ExpenseUser: Record "Expense User";
+        MissingExpenseUserErrorInfo: ErrorInfo;
+    begin
+        MissingExpenseUserErrorInfo.Title := MissingExpenseUserTitleTxt;
+        MissingExpenseUserErrorInfo.DetailedMessage := MissingExpenseUserDetailedMessageTxt;
+        MissingExpenseUserErrorInfo.ErrorType := ErrorType::Client;
+        if ExpenseUser.ReadPermission() then begin
+            MissingExpenseUserErrorInfo.Message := StrSubstNo(MissingExpenseUserErr, UserId());
+            MissingExpenseUserErrorInfo.DataClassification := DataClassification::EndUserIdentifiableInformation;
+            MissingExpenseUserErrorInfo.PageNo := Page::"Expense Users";
+            MissingExpenseUserErrorInfo.AddNavigationAction(OpenExpenseUsersLbl);
         end else
-            MissingUserSetupErrorInfo.Message := MissingUserSetupWithoutPermissionErr;
-        exit(MissingUserSetupErrorInfo);
+            MissingExpenseUserErrorInfo.Message := MissingExpenseUserWithoutPermissionErr;
+        exit(MissingExpenseUserErrorInfo);
     end;
 
     internal procedure NoExpenseLinesToProcess(ExpenseApprovalAction: Enum "Expense Approval Action")
