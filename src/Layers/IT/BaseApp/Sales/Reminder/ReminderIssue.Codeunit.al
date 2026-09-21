@@ -222,7 +222,7 @@ codeunit 393 "Reminder-Issue"
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorContextElement: Codeunit "Error Context Element";
         DocNo: Code[20];
-        NextEntryNo: BigInteger;
+        NextEntryNo: Integer;
         ReplacePostingDate, ReplaceVATDate : Boolean;
         PostingDate, VATDate : Date;
         SrcCode: Code[10];

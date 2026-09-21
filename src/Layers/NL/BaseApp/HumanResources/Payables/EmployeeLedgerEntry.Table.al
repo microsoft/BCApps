@@ -31,7 +31,7 @@ table 5222 "Employee Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the entry number that is assigned to the entry.';
@@ -178,7 +178,7 @@ table 5222 "Employee Ledger Entry"
             Caption = 'Positive';
             ToolTip = 'Specifies if the entry to be applied is positive.';
         }
-        field(44; "Closed by Entry No."; BigInteger)
+        field(44; "Closed by Entry No."; Integer)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Employee Ledger Entry";
@@ -237,7 +237,7 @@ table 5222 "Employee Ledger Entry"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
         }
-        field(53; "Transaction No."; BigInteger)
+        field(53; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -376,21 +376,21 @@ table 5222 "Employee Ledger Entry"
             Caption = 'Reversed';
             DataClassification = CustomerContent;
         }
-        field(88; "Reversed by Entry No."; BigInteger)
+        field(88; "Reversed by Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             DataClassification = CustomerContent;
             TableRelation = "Employee Ledger Entry";
         }
-        field(89; "Reversed Entry No."; BigInteger)
+        field(89; "Reversed Entry No."; Integer)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
             DataClassification = CustomerContent;
             TableRelation = "Employee Ledger Entry";
         }
-        field(95; "G/L Register No."; BigInteger)
+        field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
             Editable = false;

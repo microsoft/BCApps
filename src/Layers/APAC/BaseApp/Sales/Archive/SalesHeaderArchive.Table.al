@@ -1135,7 +1135,7 @@ table 5107 "Sales Header Archive"
         /// <summary>
         /// Specifies the entry number of the incoming document linked to this sales document.
         /// </summary>
-        field(165; "Incoming Document Entry No."; BigInteger)
+        field(165; "Incoming Document Entry No."; Integer)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";

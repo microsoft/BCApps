@@ -14,7 +14,7 @@ table 5647 "FA Matrix Posting Type"
 
     fields
     {
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }

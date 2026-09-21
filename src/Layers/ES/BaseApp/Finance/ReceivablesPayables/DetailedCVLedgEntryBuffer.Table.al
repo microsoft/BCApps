@@ -38,7 +38,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         /// <summary>
         /// Unique entry number identifying the detailed ledger entry record.
         /// </summary>
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;

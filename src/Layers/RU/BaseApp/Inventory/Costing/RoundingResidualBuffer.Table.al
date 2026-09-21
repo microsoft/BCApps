@@ -14,7 +14,7 @@ table 5810 "Rounding Residual Buffer"
 
     fields
     {
-        field(1; "Item Ledger Entry No."; BigInteger)
+        field(1; "Item Ledger Entry No."; Integer)
         {
             Caption = 'Item Ledger Entry No.';
             DataClassification = SystemMetadata;

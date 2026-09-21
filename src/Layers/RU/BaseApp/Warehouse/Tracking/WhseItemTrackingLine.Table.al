@@ -26,7 +26,7 @@ table 6550 "Whse. Item Tracking Line"
 
     fields
     {
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
         }
@@ -369,7 +369,7 @@ table 6550 "Whse. Item Tracking Line"
         exit(SequenceNoMgt.GetNextSeqNo(Database::"Whse. Item Tracking Line"));
     end;
 
-    procedure GetLastEntryNo(): BigInteger;
+    procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

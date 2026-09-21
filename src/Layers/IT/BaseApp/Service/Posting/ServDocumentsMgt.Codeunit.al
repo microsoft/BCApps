@@ -604,7 +604,7 @@ codeunit 5988 "Serv-Documents Mgt."
         OnAfterInsertServLedgerEntrySaleConsume(NextServLedgerEntryNo);
     end;
 
-    local procedure PostServiceItemLine(ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; RemQtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeConsumedBase: Decimal; RemQtyToBeConsumed: Decimal; var WarrantyNo: BigInteger)
+    local procedure PostServiceItemLine(ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; RemQtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeConsumedBase: Decimal; RemQtyToBeConsumed: Decimal; var WarrantyNo: Integer)
     var
         TempServLine: Record "Service Line" temporary;
         TempVATAmountLineForSLE: Record "VAT Amount Line" temporary;
@@ -648,7 +648,7 @@ codeunit 5988 "Serv-Documents Mgt."
                     TempHandlingSpecification, TempTrackingSpecification, ServShptHeader, '');
     end;
 
-    local procedure PostServiceResourceLine(var ServLine: Record "Service Line"; var WarrantyNo: BigInteger)
+    local procedure PostServiceResourceLine(var ServLine: Record "Service Line"; var WarrantyNo: Integer)
     var
         TempServLine: Record "Service Line" temporary;
         TempVATAmountLineForSLE: Record "VAT Amount Line" temporary;
@@ -877,7 +877,7 @@ codeunit 5988 "Serv-Documents Mgt."
         end;
     end;
 
-    local procedure PrepareShipmentLine(var PassedServLine: Record "Service Line"; passedWarrantyNo: BigInteger)
+    local procedure PrepareShipmentLine(var PassedServLine: Record "Service Line"; passedWarrantyNo: Integer)
     var
         WarrantyLedgerEntry: Record "Warranty Ledger Entry";
     begin
@@ -2365,7 +2365,7 @@ codeunit 5988 "Serv-Documents Mgt."
         OnAfterSortLines(ServLine);
     end;
 
-    local procedure UpdateServiceLedgerEntry(ServLedgEntryNo: BigInteger)
+    local procedure UpdateServiceLedgerEntry(ServLedgEntryNo: Integer)
     var
         ServiceLedgerEntry: Record "Service Ledger Entry";
     begin
@@ -2514,7 +2514,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertServLedgerEntrySaleConsume(var NextServLedgerEntryNo: BigInteger)
+    local procedure OnAfterInsertServLedgerEntrySaleConsume(var NextServLedgerEntryNo: Integer)
     begin
     end;
 
@@ -2644,7 +2644,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgerEntrySaleConsume(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; var ServMgtSetup: Record "Service Mgt. Setup"; var NextServLedgerEntryNo: BigInteger; var GenJnlLineDocNo: Code[20]; Consume: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgerEntrySaleConsume(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; var ServMgtSetup: Record "Service Mgt. Setup"; var NextServLedgerEntryNo: Integer; var GenJnlLineDocNo: Code[20]; Consume: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -2820,7 +2820,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtInsertServLedgerEntrySaleInvoice(var NextServLedgerEntryNo: BigInteger)
+    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtInsertServLedgerEntrySaleInvoice(var NextServLedgerEntryNo: Integer)
     begin
     end;
 

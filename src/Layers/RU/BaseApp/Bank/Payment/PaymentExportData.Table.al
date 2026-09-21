@@ -32,7 +32,7 @@ table 1226 "Payment Export Data"
         /// <summary>
         /// Unique identifier for the payment export data entry.
         /// </summary>
-        field(1; "Entry No."; BigInteger)
+        field(1; "Entry No."; Integer)
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
