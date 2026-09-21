@@ -4903,8 +4903,8 @@ codeunit 134776 "Document Attachment Tests"
         Customer: Record Customer;
         DocumentAttachment: Record "Document Attachment";
         DocumentAttachmentTests: Codeunit "Document Attachment Tests";
-        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
         RecRef: RecordRef;
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
     begin
         // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
         Initialize();
