@@ -509,16 +509,14 @@ page 8903 "Manufacturing Manager RC"
                         ObsoleteState = Pending;
                         ObsoleteTag = '27.0';
                     }
+#endif
                     action("Subcontracting Transfer Shipme")
                     {
-                        ApplicationArea = LegacySubcontracting;
+                        ApplicationArea = Manufacturing;
                         Caption = 'Subcontracting Transfer Shipment';
                         RunObject = report "Subcontract. Transfer Shipment";
-                        ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '27.0';
+                        ToolTip = 'Print an Italian transfer shipment document.';
                     }
-#endif
                     group("Group14")
                     {
                         Caption = 'Prod. Order';

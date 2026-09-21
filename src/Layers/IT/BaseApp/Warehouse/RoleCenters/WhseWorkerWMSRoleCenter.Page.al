@@ -120,27 +120,17 @@ page 9009 "Whse. Worker WMS Role Center"
                 Image = "Report";
                 RunObject = Report "Customer - Labels";
             }
-#if not CLEAN28
             separator(Action1130001)
             {
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '28.0';
             }
             action("Subcontract. Transfer Shipment")
             {
-                ApplicationArea = LegacySubcontracting;
+                ApplicationArea = Warehouse;
                 Caption = 'Subcontract. Transfer Shipment';
                 Image = "Report";
                 RunObject = Report "Subcontract. Transfer Shipment";
-                ToolTip = 'Create a subcontracting transfer shipment.';
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-#pragma warning disable AS0072
-                ObsoleteTag = '27.0';
-#pragma warning restore AS0072
+                ToolTip = 'Print an Italian transfer shipment document.';
             }
-#endif
         }
         area(embedding)
         {
@@ -452,4 +442,3 @@ page 9009 "Whse. Worker WMS Role Center"
         }
     }
 }
-
