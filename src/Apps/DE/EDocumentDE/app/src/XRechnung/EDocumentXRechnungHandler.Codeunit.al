@@ -32,7 +32,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
     /// <param name="EDocument">The E-Document record that contains the document metadata and information.</param>
     /// <param name="TempBlob">A temporary blob containing the XML document stream to be processed.</param>
     /// <returns>Returns an enum indicating that the process resulted in a purchase document draft.</returns>
-    internal procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -88,7 +88,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
     /// </summary>
     /// <param name="EDocument">The E-Document record that contains the document to be displayed.</param>
     /// <param name="TempBlob">A temporary blob containing the document data (not used in current implementation).</param>
-    internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
+    procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
         EDocPurchaseLine: Record "E-Document Purchase Line";

@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 
-codeunit 139541 "E-Doc. Log File Extension Test"
+codeunit 139748 "E-Doc. Log File Extension Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -23,9 +23,9 @@ codeunit 139541 "E-Doc. Log File Extension Test"
     procedure ExportDataStorageFallsBackToDefaultFileExtension()
     var
         EDocument: Record "E-Document";
+        EDocLogRecord: Record "E-Document Log";
         EDocumentService: Record "E-Document Service";
         EDocumentLog: Codeunit "E-Document Log";
-        EDocLogRecord: Record "E-Document Log";
     begin
         // [SCENARIO] ExportDataStorage falls back to the E-Document Service default file extension
         // when no subscriber has added an extension to the file name.
