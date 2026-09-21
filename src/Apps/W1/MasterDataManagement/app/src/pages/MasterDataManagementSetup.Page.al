@@ -29,7 +29,7 @@ page 7230 "Master Data Management Setup"
                 {
                     ApplicationArea = Suite;
                     Editable = IsEditable;
-                    Visible = not CrossEnvConfigured; // same-environment source company; hidden once a source environment is configured
+                    Visible = not (CrossEnvConfigured and Rec."Is Enabled"); // same-env source company: blank under cross-env, so hide it once cross-env is set up and enabled (view cross-env details via the wizard)
                     ToolTip = 'Specifies the name of the source company that you synchronize data from.';
                 }
                 field("Source Environment Name"; Rec."Source Environment Name")

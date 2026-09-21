@@ -102,6 +102,17 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagement.GetIntegrationRecordRef(IntegrationTableID, MasterDataMgtCoupling, RecRef));
     end;
 
+    /// <summary>Creates a Master Data Mgt. coupling via the table's InsertRecord (used to exercise duplicate-coupling resilience).</summary>
+    /// <param name="IntegrationSystemId">The source record SystemId.</param>
+    /// <param name="LocalSystemId">The local record SystemId.</param>
+    /// <param name="TableId">The coupled local table ID.</param>
+    procedure InsertCoupling(IntegrationSystemId: Guid; LocalSystemId: Guid; TableId: Integer)
+    var
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+    begin
+        MasterDataMgtCoupling.InsertRecord(IntegrationSystemId, LocalSystemId, TableId);
+    end;
+
     /// <summary>Gets the integration record reference identified by a coupling ID.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping to resolve against.</param>
     /// <param name="ID">The coupling ID to resolve.</param>
