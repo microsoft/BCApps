@@ -61,7 +61,7 @@ page 6968 "Expense User Cons. API"
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
         ExpenseEmployeeCodeErr: Label 'Expense Employee Code must be provided.';
         ConsumptionUsageErr: Label 'Usage cannot be negative.';
-        ModelResolvedNameErr: Label 'Model Resolved Name must be provided.';
+        AiConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON.';
         ActionsSummaryOrDescriptionErr: Label 'Actions Summary and Description must be provided.';
         EmptyConsumptionOperationErr: Label 'Operation must be provided.';
 
@@ -101,26 +101,21 @@ page 6968 "Expense User Cons. API"
 
     [ServiceEnabled]
     procedure LogV2AIConsumption(
+        AiConsumptionRequest: Text;
         AgentConversationSessionId: Guid;
         AgentTurnInteractionId: Guid;
-        InputTokenCount: Integer;
-        OutputTokenCount: Integer;
-        PromptCacheReadTokenCount: Integer;
-        PromptCacheCreationTokenCount: Integer;
-        ModelResolvedName: Text[1024];
         ActionsSummary: Text[2048];
         ExpenseUserEntraId: Guid;
         ConsumptionSourceType: Enum "Expense Agent Cons. Source";
         ConsumptionSourceSystemId: Guid;
-        ConsumptionSourceOperationName: Code[50]): Text[1024]
+        ConsumptionSourceOperationName: Code[50]): Guid
+    var
+        AiConsumptionRequestJson: JsonObject;
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
 
-        if (InputTokenCount < 0) or (OutputTokenCount < 0) or (PromptCacheReadTokenCount < 0) or (PromptCacheCreationTokenCount < 0) then
-            Error(ConsumptionUsageErr);
-
-        if ModelResolvedName = '' then
-            Error(ModelResolvedNameErr);
+        if (AiConsumptionRequest = '') or not AiConsumptionRequestJson.ReadFrom(AiConsumptionRequest) then
+            Error(AiConsumptionRequestErr);
 
         if ActionsSummary = '' then
             Error(ActionsSummaryOrDescriptionErr);
@@ -139,10 +134,11 @@ page 6968 "Expense User Cons. API"
 
         if not IsNullGuid(Rec."Entra Id") then
             if Rec."Entra Id" <> ExpenseUserEntraId then
-                Session.LogMessage('', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+                Session.LogMessage('0000VKU', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
+                    TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
-        exit(ExpenseConsumptionHandler.LogV2AIConsumption(AgentConversationSessionId, AgentTurnInteractionId, InputTokenCount, OutputTokenCount, PromptCacheReadTokenCount, PromptCacheCreationTokenCount,
-            ModelResolvedName, ActionsSummary, ExpenseUserEntraId, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
+        exit(ExpenseConsumptionHandler.LogV2AIConsumption(AgentConversationSessionId, AgentTurnInteractionId, AiConsumptionRequestJson, ActionsSummary,
+            ExpenseUserEntraId, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
 
     [ServiceEnabled]
