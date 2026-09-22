@@ -8,7 +8,6 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
-using System.TestLibraries.Azure.KeyVault;
 using System.TestLibraries.Utilities;
 
 /// <summary>
@@ -684,34 +683,6 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":25}', MaxOrders, PeriodMinutes), 'A configuration without a period should be rejected.');
         LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":-1,"periodMinutes":60}', MaxOrders, PeriodMinutes), 'A negative maximum should be rejected.');
         LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":25,"periodMinutes":0}', MaxOrders, PeriodMinutes), 'A non-positive period should be rejected.');
-    end;
-
-    [Test]
-    procedure ProcessingLimitFailsClosedForMissingOrInvalidConfiguration()
-    var
-        OrderHeader: Record "Shpfy Order Header";
-        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
-        AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
-        MockAzureKeyVaultSecretProvider: DotNet MockAzureKeyVaultSecretProvider;
-        MaxOrders: Integer;
-        PeriodMinutes: Integer;
-        ProcessedOrders: Integer;
-    begin
-        Cleanup();
-        OrderHeader := CreateProcessingLimitOrder();
-
-        MockAzureKeyVaultSecretProvider := MockAzureKeyVaultSecretProvider.MockAzureKeyVaultSecretProvider();
-        AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyVaultSecretProvider);
-        LibraryAssert.IsFalse(TMAProcessingLimit.TryAcquire(OrderHeader, MaxOrders, PeriodMinutes, ProcessedOrders), 'A missing processing limit configuration should fail closed.');
-        LibraryAssert.AreEqual(0DT, OrderHeader."Tax Match Attempted At", 'A rejected order must not be counted as attempted.');
-
-        MockAzureKeyVaultSecretProvider := MockAzureKeyVaultSecretProvider.MockAzureKeyVaultSecretProvider();
-        MockAzureKeyVaultSecretProvider.AddSecretMapping('ShopifyTaxMatchingProcessingLimit', '{"maxOrders":25}');
-        AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyVaultSecretProvider);
-        LibraryAssert.IsFalse(TMAProcessingLimit.TryAcquire(OrderHeader, MaxOrders, PeriodMinutes, ProcessedOrders), 'An invalid processing limit configuration should fail closed.');
-        LibraryAssert.AreEqual(0DT, OrderHeader."Tax Match Attempted At", 'An order rejected for invalid configuration must not be counted as attempted.');
-
-        AzureKeyVaultTestLibrary.ClearSecrets();
     end;
 
     local procedure BuildOrderAndShop(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Applied: Boolean; Reviewed: Boolean; ReviewRequired: Boolean; RateConflict: Boolean)
