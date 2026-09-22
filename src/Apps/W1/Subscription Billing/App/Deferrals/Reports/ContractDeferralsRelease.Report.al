@@ -126,6 +126,7 @@ report 8051 "Contract Deferrals Release"
         GlobalVendorContractDeferral.SetRange("Posting Date", 0D, PostUntilDate);
         GlobalVendorContractDeferral.SetRange("Document Posting Date", 0D, PostUntilDate);
         GlobalVendorContractDeferral.SetRange(Released, false);
+        OnFilterAndCountContractDeferralsOnAfterSetFilters(GlobalCustomerContractDeferral, GlobalVendorContractDeferral);
         TotalContractDeferralsCount := GlobalVendorContractDeferral.Count + GlobalCustomerContractDeferral.Count;
     end;
 
@@ -450,6 +451,11 @@ report 8051 "Contract Deferrals Release"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostGenJnlLine(TempGenJournalLine: Record "Gen. Journal Line"; var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFilterAndCountContractDeferralsOnAfterSetFilters(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; var VendorContractDeferral: Record "Vend. Sub. Contract Deferral")
     begin
     end;
 }
