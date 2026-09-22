@@ -22,6 +22,19 @@ pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
             {
                 Caption = 'Shopify Tax Matching';
 
+                field(PreviewDisclaimer; PreviewDisclaimerLbl)
+                {
+                    ApplicationArea = All;
+                    ShowCaption = false;
+                    Style = StrongAccent;
+
+                    trigger OnDrillDown()
+                    var
+                        TMARegister: Codeunit "Shpfy TMA Register";
+                    begin
+                        Hyperlink(TMARegister.LearnMoreUrl());
+                    end;
+                }
                 field("Tax Matching Agent Enabled"; Rec."Tax Matching Agent Enabled")
                 {
                     ApplicationArea = All;
@@ -49,6 +62,9 @@ pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
             }
         }
     }
+
+    var
+        PreviewDisclaimerLbl: Label 'Shopify Tax Matching (preview). Learn more';
 
     trigger OnOpenPage()
     var
