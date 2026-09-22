@@ -59,6 +59,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(ExpenseReportLine."Policy Eval Version", ExpenseReportLine."Evaluated Policy Version", 'Evaluated must catch up to Policy Eval Version after MarkPoliciesEvaluated.');
         Assert.AreNotEqual(0DT, ExpenseReportLine."Policies Evaluated At", 'Policies Evaluated At must be stamped.');
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with no applicable policy must report No Policies.');
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
     [Test]
@@ -105,6 +106,14 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(1, ExpenseReportLine."Policy Eval Version", 'A relevant field change must bump Policy Eval Version.');
         Assert.AreEqual(0, ExpenseReportLine."Evaluated Policy Version", 'Evaluated must not move on a plain modify.');
         Assert.AreEqual("Expense Policy Status"::Stale, ExpenseReportLine.GetPolicyStatus(), 'A relevant change after evaluation must report Stale.');
+        VerifyEvaluationState(ExpenseReportLine, false, false);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+
+        // [WHEN] The changed line is confirmed against the empty policy set.
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+
+        // [THEN] Both completion overloads report No Policies rather than Cleared.
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
     [Test]
@@ -205,6 +214,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         // [THEN] The Policy Evaluations FlowField sees the live evaluation and the status is Flagged.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'An evaluated line with a current-version evaluation must report Flagged.');
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Flagged, 1, 0);
     end;
 
     [Test]
@@ -990,6 +1000,8 @@ codeunit 148340 "Expense Policy Evaluation Test"
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Already evaluated');
         AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, UnchangedExpensePolicy, 'Also evaluated');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Flagged, 1, 1);
 
         // [WHEN] The set is built.
         Builder.Build(TempPolicyToEval, Format(ExpenseReportLine.SystemId));
@@ -1010,6 +1022,18 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual(1, TempPolicyToEval.Count(), 'Only the changed policy must require re-evaluation.');
         Assert.IsTrue(TempPolicyToEval.Get(ExpenseReportLine.SystemId, ExpensePolicy.SystemId), 'A policy bumped to a new version must be listed for re-evaluation.');
         Assert.IsFalse(TempPolicyToEval.Get(ExpenseReportLine.SystemId, UnchangedExpensePolicy.SystemId), 'An unchanged policy must keep its current verdict.');
+        VerifyEvaluationState(ExpenseReportLine, true, true);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+
+        // [WHEN] Current results are confirmed and then the subject version changes.
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Updated policy passes.');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Cleared, 0, 2);
+        ExpenseReportLine.InvalidatePolicyEvaluation();
+
+        // [THEN] Old subject results cannot complete the new version.
+        VerifyEvaluationState(ExpenseReportLine, true, true);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
     end;
 
     // --- Status of never-evaluated lines -----------------------------------------------------
@@ -1036,15 +1060,26 @@ codeunit 148340 "Expense Policy Evaluation Test"
 
         // [THEN] The policy is outstanding and the line cannot be marked evaluated.
         Assert.IsTrue(Builder.HasOutstandingPolicies(ExpenseReportLine), 'An applicable policy without a evaluation must be outstanding.');
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::"Not Evaluated", 0, 0);
         Commit();
         asserterror ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         Assert.ExpectedError('one or more applicable policies have not yet been evaluated');
+        Assert.ExpectedErrorCode('Dialog');
 
         // [WHEN] A verdict (evaluation) is recorded for the policy at the current version.
         AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Compliant.');
 
         // [THEN] Nothing is outstanding anymore.
         Assert.IsFalse(Builder.HasOutstandingPolicies(ExpenseReportLine), 'Once every applicable policy has a evaluation, nothing is outstanding.');
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'Legacy status must remain independent of confirmation.');
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::"Not Evaluated", 0, 0);
+
+        // [WHEN] Existing results are explicitly confirmed.
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+
+        // [THEN] Mark does not require already-confirmed completion.
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Cleared, 0, 1);
     end;
 
     [Test]
@@ -1061,6 +1096,8 @@ codeunit 148340 "Expense Policy Evaluation Test"
 
         // [THEN] The line reports No Policies because nothing needs to be evaluated against it.
         Assert.AreEqual("Expense Policy Status"::"No Policies", ExpenseReportLine.GetPolicyStatus(), 'A never-evaluated line with no applicable policy must be No Policies.');
+        VerifyEvaluationState(ExpenseReportLine, false, false);
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
     [Test]
@@ -1182,6 +1219,129 @@ codeunit 148340 "Expense Policy Evaluation Test"
         Assert.AreEqual("Expense Policy Status"::Cleared, ExpenseReportLine.GetPolicyStatus(), 'An applicable policy evaluated with no violation must report Cleared.');
     end;
 
+    [Test]
+    procedure CompletionRejectsResultsAfterConfirmation()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+    begin
+        // [SCENARIO] Result presence does not authorize a result newer than the last confirmation.
+        Initialize();
+
+        // [GIVEN] L has a confirmed passing result and another valid result to count first.
+        CreateConfirmedTimestampScenario(ExpenseReportLine, ExpensePolicy, ExpensePolicyEvaluation);
+
+        // [WHEN] The last result has a timestamp after confirmation (controlled immutable-result fixture).
+        ExpensePolicyEvaluation."Evaluated At" := ExpenseReportLine."Policies Evaluated At" + 1000;
+        ExpensePolicyEvaluation.Modify(false);
+
+        // [THEN] Presence is unchanged but completion rejects the set without leaking partial counts.
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+    end;
+
+    [Test]
+    procedure CompletionRejectsResultsWithoutTimestamp()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+    begin
+        // [SCENARIO] A zero evaluation timestamp cannot form confirmed evidence.
+        Initialize();
+
+        // [GIVEN] L has two confirmed passing results.
+        CreateConfirmedTimestampScenario(ExpenseReportLine, ExpensePolicy, ExpensePolicyEvaluation);
+
+        // [WHEN] The last result has no timestamp (controlled immutable-result fixture).
+        ExpensePolicyEvaluation."Evaluated At" := 0DT;
+        ExpensePolicyEvaluation.Modify(false);
+
+        // [THEN] Presence is unchanged but completion returns no partial counts.
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        VerifyPolicyCompletion(ExpenseReportLine, false, "Expense Policy Status"::Stale, 0, 0);
+    end;
+
+    [Test]
+    procedure EvaluationStateReturnsOnlyApplicableCurrentResults()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        OtherLine: Record "Expense Report Line";
+        MatchingPolicy: Record "Expense Policy";
+        GlobalPolicy: Record "Expense Policy";
+        DisabledPolicy: Record "Expense Policy";
+        DeletedPolicy: Record "Expense Policy";
+        MovedPolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        Builder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+    begin
+        // [SCENARIO] The rich builder returns only matched current scalar rows and replaces reused output.
+        Initialize();
+
+        // [GIVEN] L has current local/global results and obsolete, disabled, deleted and inapplicable results.
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestReportLine(OtherLine);
+        CreateTestPolicy(MatchingPolicy, ExpenseReportLine."Expense Category", 'Original category policy');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, MatchingPolicy, 'Old failure');
+        MatchingPolicy."Policy Text" := 'Revised category policy';
+        MatchingPolicy.Modify(true);
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, MatchingPolicy, 'Current pass');
+        CreateTestPolicy(GlobalPolicy, '', 'Global policy');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, GlobalPolicy, 'Current global failure');
+        CreateTestPolicy(DisabledPolicy, ExpenseReportLine."Expense Category", 'Disabled after evaluation');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, DisabledPolicy, 'Ignored failure');
+        // Keep the captured version to test applicability independently of version matching.
+        DisabledPolicy.Enabled := false;
+        DisabledPolicy.Modify(false);
+        CreateTestPolicy(DeletedPolicy, ExpenseReportLine."Expense Category", 'Deleted after evaluation');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, DeletedPolicy, 'Ignored failure');
+        DeletedPolicy.Delete(true);
+        CreateTestPolicy(MovedPolicy, ExpenseReportLine."Expense Category", 'Moved after evaluation');
+        AddEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, MovedPolicy, 'Ignored failure');
+        MovedPolicy."Expense Category Code" := OtherLine."Expense Category";
+        MovedPolicy.Modify(false);
+
+        // [WHEN] The current result set is read.
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+
+        // [THEN] Exactly the category and global current pairs remain, with no large text copied.
+        Assert.IsTrue(HasApplicablePolicies, 'Current policies apply.');
+        Assert.IsFalse(HasOutstandingPolicies, 'All applicable current versions have results.');
+        Assert.RecordCount(TempMatchedEvaluations, 2);
+        VerifyMatchedEvaluation(TempMatchedEvaluations, ExpenseReportLine, MatchingPolicy, true);
+        VerifyMatchedEvaluation(TempMatchedEvaluations, ExpenseReportLine, GlobalPolicy, false);
+        VerifyEvaluationState(ExpenseReportLine, true, false);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::Flagged, 1, 1);
+
+        // [WHEN] The same filtered output variable is reused for a different subject with one missing result.
+        AddCompliantEvaluation(ExpensePolicyEvaluation, OtherLine, GlobalPolicy, 'Other subject pass');
+        TempMatchedEvaluations.SetRange(Compliant, false);
+        Builder.GetEvaluationState(OtherLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+
+        // [THEN] Old rows and filters are gone, and only the new subject's matched result is returned.
+        Assert.IsTrue(HasApplicablePolicies, 'The global and moved policies apply to the other line.');
+        Assert.IsTrue(HasOutstandingPolicies, 'The moved policy has no result for the other subject.');
+        Assert.RecordCount(TempMatchedEvaluations, 1);
+        VerifyMatchedEvaluation(TempMatchedEvaluations, OtherLine, GlobalPolicy, true);
+        VerifyEvaluationState(OtherLine, true, true);
+
+        // [WHEN] No policies remain applicable and the output is reused again.
+        GlobalPolicy.Delete(true);
+        MatchingPolicy.Delete(true);
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+
+        // [THEN] The empty set clears the previous output too.
+        Assert.IsFalse(HasApplicablePolicies, 'No enabled policy applies.');
+        Assert.IsFalse(HasOutstandingPolicies, 'An empty policy set has nothing outstanding.');
+        Assert.RecordIsEmpty(TempMatchedEvaluations);
+        VerifyEvaluationState(ExpenseReportLine, false, false);
+    end;
+
     // --- Fixtures ----------------------------------------------------------------------------
 
     local procedure Initialize()
@@ -1206,6 +1366,97 @@ codeunit 148340 "Expense Policy Evaluation Test"
         IsInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Policy Evaluation Test");
+    end;
+
+    local procedure VerifyPolicyCompletion(ExpenseReportLine: Record "Expense Report Line"; ExpectedComplete: Boolean; ExpectedStatus: Enum "Expense Policy Status"; ExpectedFailedCount: Integer; ExpectedPassedCount: Integer)
+    var
+        StoredLine: Record "Expense Report Line";
+        Evaluation: Record "Expense Policy Evaluation";
+        Policy: Record "Expense Policy";
+        ActivityEntry: Record "Expense Activity Log Entry";
+        PolicyStatus: Enum "Expense Policy Status";
+        EvaluationVersions: List of [BigInteger];
+        PolicyVersions: List of [BigInteger];
+        LineVersion: BigInteger;
+        ActivityCount: Integer;
+        FailedCount: Integer;
+        PassedCount: Integer;
+        Index: Integer;
+    begin
+        StoredLine.GetBySystemId(ExpenseReportLine.SystemId);
+        LineVersion := StoredLine.SystemRowVersion;
+        ActivityCount := ActivityEntry.Count();
+        Evaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        if Evaluation.FindSet() then
+            repeat
+                EvaluationVersions.Add(Evaluation.SystemRowVersion);
+            until Evaluation.Next() = 0;
+        if Policy.FindSet() then
+            repeat
+                PolicyVersions.Add(Policy.SystemRowVersion);
+            until Policy.Next() = 0;
+
+        FailedCount := 99;
+        PassedCount := 99;
+        Assert.AreEqual(ExpectedComplete, ExpenseReportLine.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount), 'Metadata completion must match readiness.');
+        Assert.AreEqual(ExpectedComplete, ExpenseReportLine.IsPolicyEvaluationComplete(), 'Boolean and metadata overloads must agree.');
+        Assert.AreEqual(ExpectedStatus, PolicyStatus, 'Completion status must reflect confirmed evidence.');
+        Assert.AreEqual(ExpectedFailedCount, FailedCount, 'Failed counts must be exact, or zero when incomplete.');
+        Assert.AreEqual(ExpectedPassedCount, PassedCount, 'Passed counts must be exact, or zero when incomplete.');
+        StoredLine.GetBySystemId(ExpenseReportLine.SystemId);
+        Assert.AreEqual(LineVersion, StoredLine.SystemRowVersion, 'Completion must not update the line.');
+        Assert.AreEqual(ActivityCount, ActivityEntry.Count(), 'Completion must not write activity.');
+        Assert.RecordCount(Evaluation, EvaluationVersions.Count());
+        if Evaluation.FindSet() then
+            repeat
+                Index += 1;
+                Assert.AreEqual(EvaluationVersions.Get(Index), Evaluation.SystemRowVersion, 'Completion must not update results.');
+            until Evaluation.Next() = 0;
+        Index := 0;
+        Assert.RecordCount(Policy, PolicyVersions.Count());
+        if Policy.FindSet() then
+            repeat
+                Index += 1;
+                Assert.AreEqual(PolicyVersions.Get(Index), Policy.SystemRowVersion, 'Completion must not update policies.');
+            until Policy.Next() = 0;
+    end;
+
+    local procedure VerifyEvaluationState(ExpenseReportLine: Record "Expense Report Line"; ExpectedApplicable: Boolean; ExpectedOutstanding: Boolean)
+    var
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        Builder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+    begin
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies);
+        Assert.AreEqual(ExpectedApplicable, HasApplicablePolicies, 'Legacy state must report applicability.');
+        Assert.AreEqual(ExpectedOutstanding, HasOutstandingPolicies, 'Legacy state must report missing current pairs.');
+        Assert.AreEqual(ExpectedOutstanding, Builder.HasOutstandingPolicies(ExpenseReportLine), 'The write guard must use result presence only.');
+        Builder.GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, IsolationLevel::Default);
+        Assert.AreEqual(ExpectedApplicable, HasApplicablePolicies, 'Rich state must agree with legacy applicability.');
+        Assert.AreEqual(ExpectedOutstanding, HasOutstandingPolicies, 'Rich state must agree with legacy result presence.');
+    end;
+
+    local procedure VerifyMatchedEvaluation(var TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; ExpectedCompliant: Boolean)
+    begin
+        Assert.IsTrue(TempMatchedEvaluations.Get(ExpensePolicy."Subject Type", ExpenseReportLine.SystemId, ExpensePolicy.SystemId, ExpenseReportLine."Policy Eval Version", ExpensePolicy.Version), 'The exact current pair must be returned.');
+        Assert.AreEqual(ExpectedCompliant, TempMatchedEvaluations.Compliant, 'The verdict must be retained.');
+        Assert.AreNotEqual(0DT, TempMatchedEvaluations."Evaluated At", 'The result timestamp must be retained.');
+        Assert.AreEqual('', TempMatchedEvaluations.Reason, 'The scalar output must not copy reason text.');
+        Assert.AreEqual('', TempMatchedEvaluations."Policy Text", 'The scalar output must not copy policy text.');
+    end;
+
+    local procedure CreateConfirmedTimestampScenario(var ExpenseReportLine: Record "Expense Report Line"; var ExpensePolicy: Record "Expense Policy"; var ExpensePolicyEvaluation: Record "Expense Policy Evaluation")
+    begin
+        CreateTestReportLine(ExpenseReportLine);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'First policy');
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'First pass');
+        Clear(ExpensePolicy);
+        CreateTestPolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Second policy');
+        AddCompliantEvaluation(ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Second pass');
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        ExpensePolicyEvaluation.FindLast();
     end;
 
     local procedure CreateTestReportLine(var ExpenseReportLine: Record "Expense Report Line")

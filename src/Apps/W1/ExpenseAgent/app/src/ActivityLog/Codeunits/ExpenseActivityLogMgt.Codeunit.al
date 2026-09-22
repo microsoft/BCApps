@@ -184,9 +184,10 @@ codeunit 6926 "Expense Activity Log Mgt."
     local procedure AggregatePolicySnapshot(ExpenseReportHeader: Record "Expense Report Header"; var Snapshot: Record "Expense Activity Log Entry"): Boolean
     var
         Line: Record "Expense Report Line";
-        Policy: Record "Expense Policy";
-        Evaluation: Record "Expense Policy Evaluation";
         Category: Record "Expense Category";
+        LinePolicyStatus: Enum "Expense Policy Status";
+        LineFailedCount: Integer;
+        LinePassedCount: Integer;
         CategoryNames: List of [Text];
         CategoryName: Text[250];
         Categories: JsonArray;
@@ -194,42 +195,27 @@ codeunit 6926 "Expense Activity Log Mgt."
         CategoriesTruncated: Boolean;
     begin
         Line.ReadIsolation := IsolationLevel::RepeatableRead;
-        Policy.ReadIsolation := IsolationLevel::RepeatableRead;
-        Evaluation.ReadIsolation := IsolationLevel::RepeatableRead;
+        Line.SetLoadFields(SystemId, "Expense Category", "Policy Eval Version", "Evaluated Policy Version", "Policies Evaluated At");
+        Category.SetLoadFields(Description);
         Line.SetCurrentKey("Document No.", "Line No.");
         Line.SetRange("Document No.", ExpenseReportHeader."No.");
         if Line.FindSet() then
             repeat
-                Policy.SetApplicableToLineFilter(Line);
-                if Policy.FindSet() then begin
-                    if (Line."Policies Evaluated At" = 0DT) or (Line."Evaluated Policy Version" <> Line."Policy Eval Version") then
-                        exit(false);
-                    repeat
-                        if not Evaluation.Get(Policy."Subject Type", Line.SystemId, Policy.SystemId, Line."Policy Eval Version", Policy.Version) then
-                            exit(false);
-                        if (Evaluation."Evaluated At" = 0DT) or (Evaluation."Evaluated At" > Line."Policies Evaluated At") then
-                            exit(false);
-                        if Evaluation.Compliant then
-                            Snapshot."Passed Policy Count" += 1
-                        else begin
-                            Snapshot."Failed Policy Count" += 1;
-                            if (not CategoriesTruncated) and (Line."Expense Category" <> '') then begin
-                                CategoryName := Line."Expense Category";
-                                if Category.Get(Line."Expense Category") then
-                                    if Category.Description <> '' then
-                                        CategoryName := Category.Description;
-                                if not CategoryNames.Contains(CategoryName) then begin
-                                    CategoryNames.Add(CategoryName);
-                                    AddBoundedCategory(
-                                        Categories, CategoryName, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
-                                end;
-                            end;
-                        end;
-                    until Policy.Next() = 0;
-                end else
-                    // A previously evaluated line still needs confirmation after a change, even without policies.
-                    if (Line."Policies Evaluated At" <> 0DT) and (Line."Evaluated Policy Version" <> Line."Policy Eval Version") then
-                        exit(false);
+                if not Line.IsPolicyEvaluationComplete(LinePolicyStatus, LineFailedCount, LinePassedCount) then
+                    exit(false);
+                Snapshot."Failed Policy Count" += LineFailedCount;
+                Snapshot."Passed Policy Count" += LinePassedCount;
+                if (LineFailedCount > 0) and (not CategoriesTruncated) and (Line."Expense Category" <> '') then begin
+                    CategoryName := Line."Expense Category";
+                    if Category.Get(Line."Expense Category") then
+                        if Category.Description <> '' then
+                            CategoryName := Category.Description;
+                    if not CategoryNames.Contains(CategoryName) then begin
+                        CategoryNames.Add(CategoryName);
+                        AddBoundedCategory(
+                            Categories, CategoryName, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
+                    end;
+                end;
             until Line.Next() = 0;
 
         Categories.WriteTo(CategoriesText);

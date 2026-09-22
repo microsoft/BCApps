@@ -1279,6 +1279,71 @@ table 6907 "Expense Report Line"
         exit("Expense Policy Status"::Cleared);
     end;
 
+    /// <summary>
+    /// Checks confirmed current results without writing. Unlike result presence, completion requires
+    /// confirmation at or after every result; a never-confirmed empty policy set is complete.
+    /// </summary>
+    internal procedure IsPolicyEvaluationComplete(): Boolean
+    var
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+    begin
+        exit(IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount));
+    end;
+
+    /// <summary>
+    /// Returns counts only for a complete current policy set. Uses the caller's line read isolation
+    /// for policy and evaluation reads, preserving stable snapshots without strengthening ordinary reads.
+    /// </summary>
+    internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer): Boolean
+    var
+        TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPolicies: Boolean;
+        CurrentFailedCount: Integer;
+        CurrentPassedCount: Integer;
+    begin
+        FailedCount := 0;
+        PassedCount := 0;
+        PolicyStatus := PolicyStatus::"Not Evaluated";
+        if Rec."Policies Evaluated At" <> 0DT then begin
+            PolicyStatus := PolicyStatus::Stale;
+            if Rec."Evaluated Policy Version" <> Rec."Policy Eval Version" then
+                exit(false);
+        end;
+
+        PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePolicies, HasOutstandingPolicies, TempMatchedEvaluations, Rec.ReadIsolation);
+        if HasOutstandingPolicies then
+            exit(false);
+        if not HasApplicablePolicies then begin
+            PolicyStatus := PolicyStatus::"No Policies";
+            exit(true);
+        end;
+        if Rec."Policies Evaluated At" = 0DT then
+            exit(false);
+
+        if TempMatchedEvaluations.FindSet() then
+            repeat
+                if (TempMatchedEvaluations."Evaluated At" = 0DT) or
+                   (TempMatchedEvaluations."Evaluated At" > Rec."Policies Evaluated At")
+                then
+                    exit(false);
+                if TempMatchedEvaluations.Compliant then
+                    CurrentPassedCount += 1
+                else
+                    CurrentFailedCount += 1;
+            until TempMatchedEvaluations.Next() = 0;
+
+        FailedCount := CurrentFailedCount;
+        PassedCount := CurrentPassedCount;
+        PolicyStatus := PolicyStatus::Cleared;
+        if FailedCount > 0 then
+            PolicyStatus := PolicyStatus::Flagged;
+        exit(true);
+    end;
+
     internal procedure HasCurrentPolicyViolation(): Boolean
     var
         ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
