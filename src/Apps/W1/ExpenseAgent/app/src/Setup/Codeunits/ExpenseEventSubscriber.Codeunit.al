@@ -323,7 +323,7 @@ codeunit 6908 "Expense Event Subscriber"
         if SpendRequest.Status <> SpendRequest.Status::Released then
             exit;
 
-        // Without the agent there is no separate approver, so the user releasing the request is recorded as the approver.
+        // Without the agent there is no approver, so a Releaseted request is approved right away.
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Enable Agent" then
             exit;
@@ -331,16 +331,7 @@ codeunit 6908 "Expense Event Subscriber"
         SpendRequest.Status := SpendRequest.Status::Approved;
         SpendRequest."Approved/Rejected At" := CurrentDateTime();
         SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
-        SpendRequest."Approved/Rejected by User Name" := GetCurrentUserName();
+        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
         SpendRequest.Modify();
-    end;
-
-    local procedure GetCurrentUserName(): Code[50]
-    var
-        User: Record User;
-    begin
-        if User.Get(UserSecurityId()) then
-            exit(CopyStr(User."User Name", 1, 50));
-        exit(CopyStr(UserId(), 1, 50));
     end;
 }

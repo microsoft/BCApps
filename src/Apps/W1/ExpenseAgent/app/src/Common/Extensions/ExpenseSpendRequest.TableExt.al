@@ -113,6 +113,11 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             Caption = 'Requested For Name';
             ToolTip = 'Specifies the name of the expense user for whom the spend request is being created.';
             DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+            end;
         }
         field(6911; "Actual Start Date and Time"; DateTime)
         {
