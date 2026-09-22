@@ -12,8 +12,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
-#pragma warning disable AS0031
-#pragma warning disable AA0073
 page 6991 "Expense Agent Setup Wizard"
 {
     PageType = ConfigurationDialog;
@@ -937,7 +935,7 @@ page 6991 "Expense Agent Setup Wizard"
         CurrPage.AgentSetupPart.Page.Initialize(AgentUserSecurityID, "Agent Metadata Provider"::"Expense Agent", AgentUserName(), AgentDisplayNameLbl, AgentSummaryLbl);
         UpdateAgentSetupBuffer();
 
-        InitialState := AgentSetupBuffer.State;
+        InitialState := TempAgentSetupBuffer.State;
         UpdateControls();
     end;
 
@@ -946,7 +944,7 @@ page 6991 "Expense Agent Setup Wizard"
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
     begin
         UpdateAgentSetupBuffer();
-        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(AgentSetupBuffer);
+        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
         EnableSendingEmailWithReceipts := EnableSendingEmailWithReceipts or (Rec."Email Address" <> '');
         if Rec."Default Mileage UOM" = '' then
             Rec."Default Mileage UOM" := CreateExpenseAgentSetup.GetDefaultMileageUOM();
@@ -985,7 +983,7 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     var
-        AgentSetupBuffer: Record "Agent Setup Buffer";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
         InitialState: Option;
         EnableMailboxChanged: Boolean;
@@ -1180,8 +1178,8 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Insert(true);
         ExpenseAgentSetup.TransferFields(Rec, false);
-        if not IsNullGuid(AgentSetupBuffer."User Security ID") then
-            ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
+        if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            ExpenseAgentSetup."User Security ID" := TempAgentSetupBuffer."User Security ID";
         // Save without automatic scheduling; ApplyScheduleChange reconciles once after defaults.
         ExpenseAgentSetup.Modify(false);
     end;
@@ -1284,7 +1282,7 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure UpdateAgentSetupBuffer()
     begin
-        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(AgentSetupBuffer);
+        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
     end;
 
     local procedure EditPerDiemPartialSettings()
@@ -1375,7 +1373,7 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure StateChanged(): Boolean
     begin
-        exit(AgentSetupBuffer.State <> InitialState);
+        exit(TempAgentSetupBuffer.State <> InitialState);
     end;
 
     local procedure ValidatePrivacyNoticeApproval()
@@ -1406,12 +1404,12 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure AgentBeingEnabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled);
     end;
 
     local procedure AgentBeingDisabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Disabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled);
     end;
 
     local procedure ScheduleAffectingChange(): Boolean
@@ -1472,10 +1470,10 @@ page 6991 "Expense Agent Setup Wizard"
         // creating a duplicate through the platform CreateAgent branch.
         ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if ExpenseAgentSetup.Get() then;
-        if IsNullGuid(AgentSetupBuffer."User Security ID") then
-            AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
+        if IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            TempAgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
 
-        AgentSetup.SaveChanges(AgentSetupBuffer);
+        AgentSetup.SaveChanges(TempAgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
     end;
@@ -1521,11 +1519,11 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure OnAssistEditMailbox()
     var
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
-        PreviousSetup := Rec;
+        TempPreviousSetup := Rec;
         Rec.AssistEditMailbox();
-        if MailboxConfigurationChanged(PreviousSetup) then begin
+        if MailboxConfigurationChanged(TempPreviousSetup) then begin
             EnableMailboxChanged := true;
             ConfigUpdated();
         end;
@@ -1533,23 +1531,23 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure OnAssistEditNoreplyMailbox()
     var
-        PreviousSetup: Record "Expense Agent Setup" temporary;
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
-        PreviousSetup := Rec;
+        TempPreviousSetup := Rec;
         Rec.AssistEditNoreplyMailbox();
-        if MailboxConfigurationChanged(PreviousSetup) then begin
+        if MailboxConfigurationChanged(TempPreviousSetup) then begin
             EnableMailboxChanged := true;
             ConfigUpdated();
         end;
     end;
 
-    local procedure MailboxConfigurationChanged(PreviousSetup: Record "Expense Agent Setup" temporary): Boolean
+    local procedure MailboxConfigurationChanged(TempPreviousSetup: Record "Expense Agent Setup" temporary): Boolean
     begin
-        exit(Rec.HasSchedulingChanges(PreviousSetup) or
-             (Rec."Email Address" <> PreviousSetup."Email Address") or
-             (Rec."Email Folder" <> PreviousSetup."Email Folder") or
-             (Rec."Email Folder Id" <> PreviousSetup."Email Folder Id") or
-             (Rec."Noreply Email Address" <> PreviousSetup."Noreply Email Address"));
+        exit(Rec.HasSchedulingChanges(TempPreviousSetup) or
+             (Rec."Email Address" <> TempPreviousSetup."Email Address") or
+             (Rec."Email Folder" <> TempPreviousSetup."Email Folder") or
+             (Rec."Email Folder Id" <> TempPreviousSetup."Email Folder Id") or
+             (Rec."Noreply Email Address" <> TempPreviousSetup."Noreply Email Address"));
     end;
 
     local procedure RegisterErpConfiguration(): Boolean
@@ -1593,4 +1591,3 @@ page 6991 "Expense Agent Setup Wizard"
         exit('');
     end;
 }
-#pragma warning restore AS0031
