@@ -234,8 +234,8 @@ page 6949 "Expense User"
 
     trigger OnDeleteRecord(): Boolean
     begin
-        IsDeletingExpenseUser := true;
-        exit(Rec.ConfirmApproverReassignment());
+        IsDeletingExpenseUser := Rec.ConfirmApproverReassignment();
+        exit(IsDeletingExpenseUser);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
