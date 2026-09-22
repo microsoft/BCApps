@@ -220,8 +220,10 @@ codeunit 3702 "Environment Information Impl."
 
     local procedure GetEnvironmentInformationSafe(var EnvironmentInformation: Record "Environment Information")
     begin
-        if not EnvironmentInformation.Get() then
-            if EnvironmentInformation.Insert() then;
+        if EnvironmentInformation.Get() then
+            exit;
+
+        EnvironmentInformation.Insert();
         EnvironmentInformation.Find();
     end;
 
