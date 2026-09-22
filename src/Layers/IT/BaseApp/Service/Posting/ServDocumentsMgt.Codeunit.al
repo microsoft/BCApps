@@ -135,8 +135,6 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
-<<<<<<< src/Layers/IT/BaseApp/Service/Posting/ServDocumentsMgt.Codeunit.al
-        ServLedgEntryNo: Integer;
         PaymentJournalLine: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         PostedPayments: Record "Posted Payment Lines";
