@@ -187,9 +187,26 @@ codeunit 1639 "Office Line Generation"
         TempLastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary;
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         LastLinePending: Boolean;
+        ErrorText: Text;
     begin
         DisableAggregateTableUpdate.SetDisableAllRecords(true);
         BindSubscription(DisableAggregateTableUpdate);
+        if not TryInsertLineItemsWithAggregateUpdateDisabled(TempOfficeSuggestedLineItem, HeaderRecRef, AddedCount, TempLastOfficeSuggestedLineItem, LastLinePending) then begin
+            ErrorText := GetLastErrorText();
+            if UnbindSubscription(DisableAggregateTableUpdate) then;
+            Error(ErrorText);
+        end;
+        if UnbindSubscription(DisableAggregateTableUpdate) then;
+
+        if LastLinePending then begin
+            InsertLineItem(HeaderRecRef, TempLastOfficeSuggestedLineItem."Item No.", TempLastOfficeSuggestedLineItem.Quantity);
+            AddedCount += 1;
+        end;
+    end;
+
+    [TryFunction]
+    local procedure TryInsertLineItemsWithAggregateUpdateDisabled(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer; var TempLastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var LastLinePending: Boolean)
+    begin
         repeat
             if TempOfficeSuggestedLineItem.Add then begin
                 if LastLinePending then begin
@@ -200,12 +217,6 @@ codeunit 1639 "Office Line Generation"
                 LastLinePending := true;
             end;
         until TempOfficeSuggestedLineItem.Next() = 0;
-        if UnbindSubscription(DisableAggregateTableUpdate) then;
-
-        if LastLinePending then begin
-            InsertLineItem(HeaderRecRef, TempLastOfficeSuggestedLineItem."Item No.", TempLastOfficeSuggestedLineItem.Quantity);
-            AddedCount += 1;
-        end;
     end;
 
     local procedure CalculateMatchStrength(ItemNo: Text[50]; Matches: Integer; SearchText: Text; AlreadyFound: Boolean) Strength: Decimal
