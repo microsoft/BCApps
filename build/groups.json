@@ -6897,7 +6897,7 @@
     ]
   },
   {
-    "name": "Microsoft Fabric Export",
+    "name": "Microsoft Fabric Mirroring",
     "groups": [
       {
         "name": "AllExtensions"
@@ -6919,7 +6919,7 @@
     ]
   },
   {
-    "name": "Microsoft Fabric Export Tests",
+    "name": "Microsoft Fabric Mirroring Tests",
     "groups": [
       {
         "name": "AllExtensions"
