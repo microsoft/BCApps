@@ -17,6 +17,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
+using System.Automation;
 
 table 5621 "FA Journal Line"
 {
@@ -571,13 +572,28 @@ table 5621 "FA Journal Line"
     {
     }
 
+    trigger OnDelete()
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        if FAJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
+            ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(FAJournalBatch);
+    end;
+
     trigger OnInsert()
     begin
         LockTable();
         FAJnlSetup.SetFAJnlTrailCodes(Rec);
 
-        ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
+        ApprovalsMgmt.PreventInsertRecIfOpenApprovalEntryExist(FAJnlBatch);
+	
+	    ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
         ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
+    end;
+
+    trigger OnModify()
+    begin
+        PreventModifyRecIfOpenApprovalEntryExist();
     end;
 
     var
@@ -589,6 +605,7 @@ table 5621 "FA Journal Line"
         FAJnlSetup: Record "FA Journal Setup";
         FADeprBook: Record "FA Depreciation Book";
         GLSetup: Record "General Ledger Setup";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         DimMgt: Codeunit DimensionManagement;
 #pragma warning disable AA0074
         Text12401: Label 'New ';
@@ -833,6 +850,14 @@ table 5621 "FA Journal Line"
         exit(AcquisitionCost);
     end;
 
+    local procedure PreventModifyRecIfOpenApprovalEntryExist()
+    var
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        if FAJournalBatch.Get("Journal Template Name", "Journal Batch Name") then
+            ApprovalsMgmt.PreventModifyRecIfOpenApprovalEntryExist(FAJournalBatch);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var FAJournalLine: Record "FA Journal Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
@@ -890,6 +915,12 @@ table 5621 "FA Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsAcquisitionCost(var FAJournalLine: Record "FA Journal Line"; var AcquisitionCost: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    [Scope('OnPrem')]
+    procedure OnCheckFAJournalLinePostRestrictions()
     begin
     end;
 }
