@@ -3898,6 +3898,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         Assert.ExpectedTestFieldError(ProductionOrder.FieldCaption("Variant Code"), '');
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('PostedPurchaseDocumentLinesPageHandler')]
     procedure PostPurchaseReturnOrderForSubcontractingWhenLastOperationIsNotSubcontracted()
@@ -3962,6 +3963,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         Assert.RecordIsNotEmpty(PurchCrMemoHdr);
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     local procedure Initialize()
     var

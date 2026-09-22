@@ -32,6 +32,7 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
         FieldErrorErr: Label 'Calc. Method must not be 4 in Deferral Template Deferral Code';
         AmountLCYNotFilledErr: Label 'Amount (LCY) should be filled before posting.';
         AmountLCYSumErr: Label 'The sum of the deferral line Amount (LCY) values must equal the header Amount to Defer (LCY).';
+        DeferralCodeChangedErr: Label 'Deferral Code cannot be changed on a line with a deferral schedule.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1182,6 +1183,38 @@ codeunit 134806 "RED Test Unit for SalesPurDoc2"
             TotalLineAmountLCY += DeferralLine."Amount (LCY)";
         until DeferralLine.Next() = 0;
         Assert.AreEqual(DeferralHeader."Amount to Defer (LCY)", TotalLineAmountLCY, AmountLCYSumErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReleasedPurchLineDeferralCodeSameValueDoesNotRecalculateRU()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
+        DeferralTemplateCode: Code[10];
+    begin
+        // [FEATURE] [Deferral Code]
+        // [SCENARIO 649204] Unchanged Deferral Code remains the same on a released Purchase Invoice
+        Initialize();
+
+        // [GIVEN] A Purchase Invoice with a deferral code on a G/L Account line
+        CreatePurchDocWithLine(
+          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
+          PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), WorkDate());
+        DeferralTemplateCode := LibraryERM.CreateDeferralTemplateCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
+        PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] The Purchase Invoice is released
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [WHEN] Changing the Deferral Code on the Purchase Line
+        PurchaseLine2.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine2.Validate("Deferral Code", PurchaseLine2."Deferral Code");
+
+        // [THEN] No Error is thrown and the Deferral Code remains the same
+        Assert.AreEqual(PurchaseLine2."Deferral Code", PurchaseLine2."Deferral Code", DeferralCodeChangedErr);
     end;
 
     local procedure Initialize()

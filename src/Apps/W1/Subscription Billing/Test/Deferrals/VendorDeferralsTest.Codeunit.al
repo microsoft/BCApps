@@ -26,6 +26,7 @@ codeunit 139913 "Vendor Deferrals Test"
         BillingLine: Record "Billing Line";
         BillingTemplate: Record "Billing Template";
         CurrExchRate: Record "Currency Exchange Rate";
+        LineGLAccount: Record "G/L Account";
         GLSetup: Record "General Ledger Setup";
         GeneralPostingSetup: Record "General Posting Setup";
         Item: Record Item;
@@ -65,6 +66,9 @@ codeunit 139913 "Vendor Deferrals Test"
         IsInitialized: Boolean;
         ReleasedContractDeferralErr: Label 'Released Contract Deferrals were not reversed properly';
         AmountNotMovedFromDeferralsAccountErr: Label 'Amount was not moved from Deferrals Account to Contract Account';
+        CostNotPostedToLineGLAccountErr: Label 'The cost must be posted directly to the G/L account selected on the contract line when no contract deferrals are created.';
+        DeferralsMissingLineGLAccountErr: Label 'Every deferral entry must carry the G/L account from the contract line.';
+        ReleasedAmountNotPostedToLineGLAccountErr: Label 'Releasing the contract deferrals must post to the G/L account selected on the contract line.';
 
     #region Tests
 
@@ -544,6 +548,96 @@ codeunit 139913 "Vendor Deferrals Test"
         CopyDocumentMgt.CopyPurchDoc(Enum::"Purchase Document Type From"::"Posted Invoice", PurchaseInvoiceHeader."No.", PurchaseCrMemoHeader);
         CorrectedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseCrMemoHeader, true, true);
         asserterror FetchVendorContractDeferrals(CorrectedDocumentNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    procedure GLAccountContractLinePostsToLineGLAccountWithoutDeferrals()
+    var
+        GLEntry: Record "G/L Entry";
+        ExpectedAmount: Decimal;
+    begin
+        // [SCENARIO] When a contract line of type G/L Account is invoiced without contract deferrals,
+        // the cost is posted directly to the G/L account selected on the contract line instead of
+        // the Vendor Subscription Contract Account from the General Posting Setup.
+        Initialize();
+
+        // [GIVEN] A vendor contract with a G/L Account contract line and contract deferrals disabled
+        CreateVendorContractWithGLAccountLine('<2M-CM>');
+        ContractTestLibrary.DisableDeferralsForVendorContract(VendorContract, false);
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] The Vendor Subscription Contract Account is not set in the General Posting Setup
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        GeneralPostingSetup."Vend. Sub. Contract Account" := '';
+        GeneralPostingSetup.Modify(false);
+
+        // [WHEN] The contract invoice is posted
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::"G/L Account");
+        PurchaseLine.CalcSums(Amount);
+        ExpectedAmount := PurchaseLine.Amount;
+        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] No deferrals are created and the cost is posted to the G/L account from the contract line
+        VendorContractDeferral.SetRange("Document No.", PostedDocumentNo);
+        Assert.RecordIsEmpty(VendorContractDeferral);
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", LineGLAccount."No.");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, CostNotPostedToLineGLAccountErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ContractDeferralsReleaseRequestPageHandler,MessageHandler')]
+    procedure GLAccountContractLineReleasesDeferralsToLineGLAccount()
+    var
+        GLEntry: Record "G/L Entry";
+        ContractDeferralsRelease: Report "Contract Deferrals Release";
+        TotalDeferralCount: Integer;
+    begin
+        // [SCENARIO] When a contract line of type G/L Account is invoiced with contract deferrals,
+        // the deferral entries carry the G/L account from the contract line and releasing them posts
+        // to that account instead of the Vendor Subscription Contract Account from the General Posting Setup.
+        Initialize();
+        SetPostingAllowTo(0D);
+
+        // [GIVEN] A vendor contract with a G/L Account contract line and contract deferrals enabled
+        CreateVendorContractWithGLAccountLine('<2M-CM>');
+        CreateBillingProposalAndCreateBillingDocuments('<2M-CM>', '<8M+CM>');
+
+        // [GIVEN] The Vendor Subscription Contract Account is not set in the General Posting Setup
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        GeneralPostingSetup."Vend. Sub. Contract Account" := '';
+        GeneralPostingSetup.Modify(false);
+
+        // [WHEN] The contract invoice is posted
+        PostPurchDocumentAndFetchDeferrals();
+
+        // [THEN] Every deferral entry carries the G/L account from the contract line
+        TotalDeferralCount := VendorContractDeferral.Count();
+        VendorContractDeferral.SetRange("G/L Account No.", LineGLAccount."No.");
+        Assert.RecordCount(VendorContractDeferral, TotalDeferralCount);
+        Assert.AreNotEqual(0, TotalDeferralCount, DeferralsMissingLineGLAccountErr);
+        VendorContractDeferral.FindFirst();
+
+        // [THEN] The invoice posting does not post to the G/L account from the contract line
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", LineGLAccount."No.");
+        Assert.RecordIsEmpty(GLEntry);
+
+        // [WHEN] The contract deferrals are released for the first deferral posting date
+        PostingDate := VendorContractDeferral."Posting Date";
+        Commit(); // close transaction before report is called
+        ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
+
+        // [THEN] The released amount is posted to the G/L account from the contract line
+        VendorContractDeferral.SetRange("G/L Account No.");
+        VendorContractDeferral.SetRange(Released, true);
+        VendorContractDeferral.CalcSums(Amount);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(VendorContractDeferral.Amount, GLEntry.Amount, ReleasedAmountNotPostedToLineGLAccountErr);
+        Assert.AreNotEqual(0, GLEntry.Amount, ReleasedAmountNotPostedToLineGLAccountErr);
     end;
 
     [Test]
@@ -1205,6 +1299,25 @@ codeunit 139913 "Vendor Deferrals Test"
         ServiceObject.InsertServiceCommitmentsFromServCommPackage(CalcDate(BillingDateFormula, WorkDate()), ServiceCommitmentPackage);
 
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
+    end;
+
+    local procedure CreateVendorContractWithGLAccountLine(BillingDateFormula: Text)
+    var
+        TempServiceCommitment: Record "Subscription Line" temporary;
+    begin
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
+        LineGLAccount.Get(LibraryERM.CreateGLAccountWithPurchSetup());
+        ContractTestLibrary.CreateServiceObjectForGLAccountWithServiceCommitments(ServiceObject, LineGLAccount, 0, 1, '<1M>', '<1M>', CalcDate(BillingDateFormula, WorkDate()), 1200);
+
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        ContractTestLibrary.FillTempServiceCommitmentForVendor(TempServiceCommitment, ServiceObject, VendorContract);
+        ContractTestLibrary.CreateVendorContractLinesFromServiceCommitments(VendorContract, TempServiceCommitment);
+        ContractTestLibrary.SetGeneralPostingSetup(Vendor."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Vendor);
+        GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", LineGLAccount."Gen. Prod. Posting Group");
+        if GeneralPostingSetup."Purch. Line Disc. Account" = '' then begin
+            GeneralPostingSetup."Purch. Line Disc. Account" := LibraryERM.CreateGLAccountNo();
+            GeneralPostingSetup.Modify(false);
+        end;
     end;
 
     local procedure FetchAndTestUpdatedVendorContractDeferral()

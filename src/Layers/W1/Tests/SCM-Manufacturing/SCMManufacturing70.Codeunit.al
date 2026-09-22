@@ -3794,6 +3794,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         Assert.AreEqual(SKURoutingHeader."No.", ProdOrderLine."Routing No.", ProductionRoutingErr);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('PostedPurchaseDocumentLinesPageHandler')]
     procedure PostPurchaseReturnOrderForSubcontractingWhenLastOperationIsNotSubcontracted()
@@ -3858,6 +3859,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         Assert.RecordIsNotEmpty(PurchCrMemoHdr);
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     local procedure Initialize()
     var
