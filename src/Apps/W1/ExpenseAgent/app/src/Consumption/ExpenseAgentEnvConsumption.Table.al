@@ -20,8 +20,6 @@ table 6969 "Expense Agent Env. Consumption"
         field(1; "Consumption Unique ID"; Text[1024])
         {
             Caption = 'User AI Consumption Data Unique ID';
-            TableRelation = "User AI Consumption Data"."Unique Id";
-            ValidateTableRelation = false;
             NotBlank = true;
             DataClassification = CustomerContent;
         }
@@ -50,41 +48,85 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Consumption Source Operation';
             DataClassification = SystemMetadata;
         }
+
+#if not CLEANSCHEMA30
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Consumption DateTime" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Consumption DateTime';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(102; "User Id"; Guid)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."User Id" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'User Id';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(106; "App Version"; Text[50])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."App Version" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'App Version';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(108; "Feature Name"; Text[256])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Feature Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Feature Name';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(109; "Actions"; Text[1024])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Actions" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Actions';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(110; "Copilot Studio Feature"; Text[1024])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(111; "Copilot Credits"; Decimal)
         {
@@ -92,32 +134,67 @@ table 6969 "Expense Agent Env. Consumption"
             AutoFormatType = 0;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Credits" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Credits';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(113; "Company Name"; Text[30])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Company Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Company Name';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(115; "Processed For Billing"; Boolean)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Processed For Billing" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Processed For Billing';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(116; "CS Feature Quantity"; Integer)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature Quantity" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature Quantity';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
         field(117; "CS Feature Display Name"; Text[1024])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature Display Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature Display Name';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Replaced by new consumption fields';
+            ObsoleteTag = '30.0';
         }
-
+#endif
     }
     keys
     {
@@ -142,9 +219,11 @@ table 6969 "Expense Agent Env. Consumption"
     var
         DestinationCompany: Text[30];
     begin
+#if not CLEAN30
         Rec.CalcFields("Company Name");
         if Rec."Company Name" <> CompanyName() then
             DestinationCompany := Rec."Company Name";
+#endif
 
         case Rec."Consumption Source Type" of
             Rec."Consumption Source Type"::Expense:

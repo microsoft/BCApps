@@ -13,6 +13,81 @@ codeunit 6969 "Expense Consumption Handler"
     var
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         CopilotQuota: Codeunit "Copilot Quota";
+        LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 input and %2 output tokens for model %3. Operation name: %4.', Locked = true;
+
+    internal procedure LogV2AIConsumption(
+        AgentConversationSessionId: Guid;
+        AgentTurnInteractionId: Guid;
+        InputTokenCount: Integer;
+        OutputTokenCount: Integer;
+        PromptCacheReadTokenCount: Integer;
+        PromptCacheCreationTokenCount: Integer;
+        ModelResolvedName: Text[1024];
+        Description: Text;
+        ExpenseUserEntraId: Guid;
+        ConsumptionSourceType: Enum "Expense Agent Cons. Source";
+        ConsumptionSourceSystemId: Guid;
+        ConsumptionSourceOperationName: Code[50];
+        ExpenseUserNo: Code[20]): Guid
+    var
+        UniqueId: Guid;
+    begin
+        Session.LogMessage('', StrSubstNo(LogV2QuotaStartedTelemetryMsg, InputTokenCount, OutputTokenCount, ModelResolvedName, ConsumptionSourceOperationName),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+
+        UniqueId := FindOrCreateCompanionTableSystemId(ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, ExpenseUserNo);
+
+        CopilotQuota.LogAgentUserAIConsumption(
+            Enum::"Copilot Capability"::"Expense Agent",
+            MapOperationToUsage(ConsumptionSourceOperationName),
+            Enum::"Copilot Quota Usage Type"::"Autonomous Action",
+            0, // We have no Agent Task ID
+            Copystr(Description, 1, 1024),
+            Description,
+            UniqueId);
+
+        exit(UniqueId);
+    end;
+
+    local procedure MapOperationToUsage(Operation: Text): Integer
+    begin
+        // This is a workaround only used until we move fully to new consumption reporting
+        if (LowerCase(Operation) = 'process') then
+            exit(50)
+        else
+            exit(15);
+    end;
+
+    local procedure FindOrCreateCompanionTableSystemId(ConsumptionSourceType: Enum "Expense Agent Cons. Source";
+        ConsumptionSourceSystemId: Guid;
+        ConsumptionSourceOperationName: Code[50];
+        ExpenseUserNo: Code[20]): Guid
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+    begin
+        ExpenseAgentEnvConsumption.ReadIsolation := IsolationLevel::UpdLock;
+
+        ExpenseAgentEnvConsumption.SetRange("Expense User No.", ExpenseUserNo);
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source Type", ConsumptionSourceType);
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", ConsumptionSourceSystemId);
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source Operation", ConsumptionSourceOperationName);
+
+        if not ExpenseAgentEnvConsumption.FindFirst() then begin
+            ExpenseAgentEnvConsumption.Init();
+            ExpenseAgentEnvConsumption."Consumption Unique ID" := CreateGuid();
+            ExpenseAgentEnvConsumption.SystemId := ExpenseAgentEnvConsumption."Consumption Unique ID";
+            ExpenseAgentEnvConsumption."Expense User No." := ExpenseUserNo;
+            ExpenseAgentEnvConsumption."Consumption Source Type" := ConsumptionSourceType;
+            ExpenseAgentEnvConsumption."Consumption Source System ID" := ConsumptionSourceSystemId;
+            ExpenseAgentEnvConsumption."Consumption Source Operation" := ConsumptionSourceOperationName;
+            ExpenseAgentEnvConsumption.Insert();
+        end;
+
+        exit(ExpenseAgentEnvConsumption.SystemId);
+    end;
+
+#if not CLEAN30
+    var
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
 
@@ -58,11 +133,6 @@ codeunit 6969 "Expense Consumption Handler"
         exit(UniqueId);
     end;
 
-    internal procedure CanConsume(): Boolean
-    begin
-        exit(CopilotQuota.CanConsume());
-    end;
-
     local procedure MakeUniqueId(ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]) UniqueId: Text[1024]
     var
         TempUniqueId: Text;
@@ -80,5 +150,11 @@ codeunit 6969 "Expense Consumption Handler"
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         exit(CopyStr(TempUniqueId, 1, MaxStrLen(UniqueId)));
+    end;
+#endif
+
+    internal procedure CanConsume(): Boolean
+    begin
+        exit(CopilotQuota.CanConsume());
     end;
 }

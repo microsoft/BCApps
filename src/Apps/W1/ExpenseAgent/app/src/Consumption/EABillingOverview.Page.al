@@ -25,10 +25,6 @@ page 7079 "EA Billing Overview"
         {
             repeater(GroupName)
             {
-                field(ConsumptionDateTime; Rec."Consumption DateTime")
-                {
-                    ToolTip = 'Specifies the date and time when the consumption occurred.';
-                }
                 field(ExpenseUserNo; Rec."Expense User No.")
                 {
                     ToolTip = 'Specifies the expense user associated with this consumption entry.';
@@ -47,15 +43,11 @@ page 7079 "EA Billing Overview"
                 {
                     ToolTip = 'Specifies the operation that triggered the consumption, such as creating, updating, or processing an expense.';
                 }
-                field(ActionsField; Rec."Actions")
-                {
-                    Caption = 'Actions';
-                    ToolTip = 'Specifies the actions performed during this consumption entry.';
-                }
                 field(Description; ViewDescriptionLbl)
                 {
                     Caption = 'Description';
                     ToolTip = 'Specifies the full description of the operation. Click to view details.';
+
                     trigger OnDrillDown()
                     var
                         UserAIConsumptionData: Record "User AI Consumption Data";
@@ -81,29 +73,68 @@ page 7079 "EA Billing Overview"
                             Message(NoDescriptionAvailableLbl);
                     end;
                 }
+#if not CLEAN30
+                field(ConsumptionDateTime; Rec."Consumption DateTime")
+                {
+                    ToolTip = 'Specifies the date and time when the consumption occurred.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
+                }
+                field(ActionsField; Rec."Actions")
+                {
+                    Caption = 'Actions';
+                    ToolTip = 'Specifies the actions performed during this consumption entry.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
+                }
                 field(Credits; Rec."Copilot Credits")
                 {
                     AutoFormatType = 0;
                     ToolTip = 'Specifies the number of Copilot credits consumed by this entry.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
                 }
                 field(CSFeatureDisplayName; Rec."CS Feature Display Name")
                 {
                     Caption = 'Copilot Studio Feature Display Name';
                     ToolTip = 'Specifies the display name of the Copilot Studio feature used.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
                 }
                 field(CSFeatureQuantity; Rec."CS Feature Quantity")
                 {
                     Caption = 'Copilot Studio Feature Quantity';
                     ToolTip = 'Specifies the quantity of Copilot Studio feature units consumed.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
                 }
                 field(ProcessedForBilling; Rec."Processed For Billing")
                 {
                     ToolTip = 'Specifies whether this consumption entry has been processed for billing.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
                 }
                 field(CompanyName; Rec."Company Name")
                 {
                     ToolTip = 'Specifies the company in which this consumption entry was recorded.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by new consumption fields';
+                    ObsoleteTag = '30.0';
+                    Visible = false;
                 }
+#endif
             }
         }
     }
