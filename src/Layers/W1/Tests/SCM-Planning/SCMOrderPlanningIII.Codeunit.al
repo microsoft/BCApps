@@ -135,7 +135,9 @@ codeunit 137088 "SCM Order Planning - III"
         FindRequisitionLine(RequisitionLine, ProdOrder."No.", Item."No.", LocationBlue.Code);
 
         // [GIVEN] A Planning-type worksheet template with a RECURRING batch
+#pragma warning disable AA0210
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Planning);
+#pragma warning restore AA0210
         ReqWkshTemplate.FindFirst();
         ReqWkshTemplate.Validate(Recurring, true);
         ReqWkshTemplate.Modify(true);
@@ -156,7 +158,9 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.ExpectedError(StrSubstNo(WrongProdCopyDestErr, ReqWkshTemplate.Name));
 
         // Tear Down]
+#pragma warning disable AA0210
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Planning);
+#pragma warning restore AA0210
         ReqWkshTemplate.FindFirst();
         ReqWkshTemplate.Validate(Recurring, false);
         ReqWkshTemplate.Modify(true);
