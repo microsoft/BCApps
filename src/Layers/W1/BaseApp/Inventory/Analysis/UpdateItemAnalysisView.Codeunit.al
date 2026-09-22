@@ -226,7 +226,7 @@ codeunit 7150 "Update Item Analysis View"
         FlushAnalysisViewEntry();
     end;
 
-    local procedure UpdateBudgetEntries(DeleteFromEntry: Integer)
+    local procedure UpdateBudgetEntries(DeleteFromEntry: BigInteger)
     begin
         ItemAnalysisViewBudgetEntry.SetRange("Analysis Area", ItemAnalysisView."Analysis Area");
         ItemAnalysisViewBudgetEntry.SetRange("Analysis View Code", ItemAnalysisView.Code);
@@ -560,7 +560,7 @@ codeunit 7150 "Update Item Analysis View"
         exit(TempDimBuf.FindFirst());
     end;
 
-    procedure DimSetIDInFilter(DimSetID: BigInteger; var ItemAnalysisView: Record "Item Analysis View"): Boolean
+    procedure DimSetIDInFilter(DimSetID: Integer; var ItemAnalysisView: Record "Item Analysis View"): Boolean
     var
         InFilters: Boolean;
     begin

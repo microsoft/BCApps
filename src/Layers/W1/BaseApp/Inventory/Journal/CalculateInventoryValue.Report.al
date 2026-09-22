@@ -652,7 +652,7 @@ report 5899 "Calculate Inventory Value"
         ValidateCalcLevel();
     end;
 
-    local procedure ItemJnlLineExists(ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; ApplyToEntry: Integer): Boolean
+    local procedure ItemJnlLineExists(ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; ApplyToEntry: BigInteger): Boolean
     begin
         ItemJournalLine.SetRange("Journal Template Name", ItemJournalLine."Journal Template Name");
         ItemJournalLine.SetRange("Journal Batch Name", ItemJournalLine."Journal Batch Name");

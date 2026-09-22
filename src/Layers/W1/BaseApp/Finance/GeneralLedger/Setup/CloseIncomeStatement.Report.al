@@ -557,7 +557,7 @@ report 94 "Close Income Statement"
         Text020: Label 'The following G/L Accounts have mandatory dimension codes that have not been selected:';
         Text021: Label '\\In order to post to these accounts you must also select these dimensions:';
 #pragma warning restore AA0074
-        MaxEntry: Integer;
+        MaxEntry: BigInteger;
         EntryCount: Integer;
         LastWindowUpdateDateTime: DateTime;
         NoFiscalYearsErr: Label 'No closed fiscal year exists.';

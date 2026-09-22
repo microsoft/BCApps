@@ -697,7 +697,7 @@ table 32 "Item Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

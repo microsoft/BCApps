@@ -391,7 +391,7 @@ codeunit 410 "Update Analysis View"
             UpdateWindowCounter(CFForecastEntry."Entry No.");
     end;
 
-    local procedure UpdateBudgetEntries(DeleteFromEntry: Integer)
+    local procedure UpdateBudgetEntries(DeleteFromEntry: BigInteger)
     begin
         AnalysisViewBudgetEntry.SetRange("Analysis View Code", AnalysisView.Code);
         AnalysisViewBudgetEntry.SetFilter("Entry No.", '>=%1', DeleteFromEntry);

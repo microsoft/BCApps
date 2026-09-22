@@ -707,7 +707,7 @@ table 5970 "Filed Service Contract Header"
         CancelContract: Boolean;
         InvocePeriodRangeLbl: Label '%1 to %2', Comment = '%1 = Next Invoice Period Start, %2 = Next Invoice Period End';
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

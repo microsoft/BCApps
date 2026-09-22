@@ -1241,7 +1241,7 @@ codeunit 22 "Item Jnl.-Post Line"
     /// </summary>
     /// <param name="ItemLedgEntry">Item ledger entry to reaplly.</param>
     /// <param name="ApplyWith">Apply to item ledger entry no.</param>
-    procedure ReApply(ItemLedgEntry: Record "Item Ledger Entry"; ApplyWith: Integer)
+    procedure ReApply(ItemLedgEntry: Record "Item Ledger Entry"; ApplyWith: BigInteger)
     var
         ItemLedgEntry2: Record "Item Ledger Entry";
         ValueEntry: Record "Value Entry";
@@ -2246,7 +2246,7 @@ codeunit 22 "Item Jnl.-Post Line"
         exit(GlobalValueEntry.GetNextEntryNo());
     end;
 
-    local procedure GetNextItemLedgerEntryNo(CurrEntryNo: BigInteger): Integer
+    local procedure GetNextItemLedgerEntryNo(CurrEntryNo: BigInteger): BigInteger
     begin
         if InvtSetup.UseLegacyPosting() then
             exit(CurrEntryNo + 1);
@@ -4436,7 +4436,7 @@ codeunit 22 "Item Jnl.-Post Line"
             (ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Rounding));
     end;
 
-    local procedure GetAppliedEntryNo(): Integer
+    local procedure GetAppliedEntryNo(): BigInteger
     begin
         if ItemJnlLine."Applies-to Entry" <> 0 then
             exit(ItemJnlLine."Applies-to Entry");
@@ -5691,7 +5691,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure ReservationPreventsApplication(ApplicationEntry: Integer; ItemNo: Code[20]; ReservationsEntry: Record "Item Ledger Entry")
+    local procedure ReservationPreventsApplication(ApplicationEntry: BigInteger; ItemNo: Code[20]; ReservationsEntry: Record "Item Ledger Entry")
     var
         ReservationEntries: Record "Reservation Entry";
         ReservEngineMgt: Codeunit "Reservation Engine Mgt.";
@@ -8026,7 +8026,7 @@ codeunit 22 "Item Jnl.-Post Line"
             until TempTrackingSpecification.Next() = 0;
     end;
 
-    internal procedure GetItemLedgerEntryNo(): Integer
+    internal procedure GetItemLedgerEntryNo(): BigInteger
     begin
         exit(ItemLedgEntryNo);
     end;
@@ -8884,7 +8884,7 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReApply(ItemLedgerEntry: Record "Item Ledger Entry"; ApplyWith: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeReApply(ItemLedgerEntry: Record "Item Ledger Entry"; ApplyWith: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

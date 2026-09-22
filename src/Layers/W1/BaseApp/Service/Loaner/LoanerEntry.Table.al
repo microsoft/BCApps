@@ -116,7 +116,7 @@ table 5914 "Loaner Entry"
         exit(FindRecordManagement.GetLastEntryIntFieldValue(Rec, FieldNo("Entry No.")))
     end;
 
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     begin
         exit(GetLastEntryNo() + 1);
     end;

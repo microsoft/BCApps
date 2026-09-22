@@ -632,7 +632,7 @@ table 169 "Job Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Job Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

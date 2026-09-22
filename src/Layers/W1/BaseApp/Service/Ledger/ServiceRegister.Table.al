@@ -91,7 +91,7 @@ table 5934 "Service Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Service Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

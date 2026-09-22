@@ -92,7 +92,7 @@ table 240 "Resource Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Resource Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

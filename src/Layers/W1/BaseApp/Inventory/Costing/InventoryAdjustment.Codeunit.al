@@ -77,9 +77,9 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         WindowItem: Code[20];
         WindowAdjust: Text[20];
         WindowFWLevel: Integer;
-        WindowEntry: Integer;
+        WindowEntry: BigInteger;
         IsAvgCostCalcTypeItem: Boolean;
-        WindowOutbndEntry: Integer;
+        WindowOutbndEntry: BigInteger;
         ConsumpAdjmtInPeriodWithOutput: Date;
         AdjustTillDate: Date;
         StartDateTime: DateTime;
@@ -2286,7 +2286,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         WindowIsOpen := true;
     end;
 
-    local procedure UpDateWindow(NewWindowAdjmtLevel: Integer; NewWindowItem: Code[20]; NewWindowAdjust: Text[20]; NewWindowFWLevel: Integer; NewWindowEntry: Integer; NewWindowOutbndEntry: Integer)
+    local procedure UpDateWindow(NewWindowAdjmtLevel: Integer; NewWindowItem: Code[20]; NewWindowAdjust: Text[20]; NewWindowFWLevel: Integer; NewWindowEntry: BigInteger; NewWindowOutbndEntry: BigInteger)
     var
         IsHandled: Boolean;
     begin

@@ -779,7 +779,7 @@ codeunit 900 "Assembly-Post"
     local procedure PostItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     var
         OrigItemJnlLine: Record "Item Journal Line";
-        ItemShptEntry: Integer;
+        ItemShptEntry: BigInteger;
     begin
         OrigItemJnlLine := ItemJnlLine;
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
@@ -788,7 +788,7 @@ codeunit 900 "Assembly-Post"
         ItemJnlLine."Item Shpt. Entry No." := ItemShptEntry;
     end;
 
-    local procedure PostCorrectionItemJnLine(var ItemJnlLine: Record "Item Journal Line"; AssemblyHeader: Record "Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; SourceType: Integer; ApplyToEntry: Integer)
+    local procedure PostCorrectionItemJnLine(var ItemJnlLine: Record "Item Journal Line"; AssemblyHeader: Record "Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; SourceType: Integer; ApplyToEntry: BigInteger)
     var
         TempItemLedgEntry2: Record "Item Ledger Entry" temporary;
         ATOLink: Record "Assemble-to-Order Link";

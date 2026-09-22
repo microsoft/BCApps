@@ -504,7 +504,7 @@ table 5907 "Service Ledger Entry"
     /// </summary>
     /// <returns>The next available entry number.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Service Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

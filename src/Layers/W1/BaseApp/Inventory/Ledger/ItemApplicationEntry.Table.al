@@ -198,7 +198,7 @@ table 339 "Item Application Entry"
         AppliedFromEntryToAdjustErr: Label 'You have to run the %1 batch job, before you can revalue %2 %3.', Comment = '%1 = Report::"Adjust Cost - Item Entries", %2 = Item Ledger Entry table caption, %3 = Inbound Item Ledger Entry No.';
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -378,7 +378,7 @@ table 339 "Item Application Entry"
             until Next() = 0;
     end;
 
-    procedure CostReceiver(): Integer
+    procedure CostReceiver(): BigInteger
     begin
         if "Outbound Item Entry No." = 0 then
             exit(0);
@@ -939,7 +939,7 @@ table 339 "Item Application Entry"
         exit(-OutboundApplied(EntryNo, true) - InboundApplied(EntryNo, true));
     end;
 
-    procedure ExistsBetween(ILE1: Integer; ILE2: Integer): Boolean
+    procedure ExistsBetween(ILE1: BigInteger; ILE2: BigInteger): Boolean
     var
         ItemApplicationEntry: Record "Item Application Entry";
     begin

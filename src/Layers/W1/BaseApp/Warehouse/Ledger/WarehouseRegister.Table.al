@@ -112,7 +112,7 @@ table 7313 "Warehouse Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

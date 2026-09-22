@@ -119,7 +119,7 @@ table 5617 "FA Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"FA Register", 'r')]
-    procedure GetLastGLRegisterNo(): Integer;
+    procedure GetLastGLRegisterNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

@@ -347,7 +347,7 @@ table 203 "Res. Ledger Entry"
         DimMgt: Codeunit DimensionManagement;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Res. Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

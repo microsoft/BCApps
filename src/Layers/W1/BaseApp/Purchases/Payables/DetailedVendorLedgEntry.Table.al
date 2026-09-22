@@ -198,7 +198,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             Caption = 'Initial Document Type';
             ToolTip = 'Specifies the document type that the initial vendor ledger entry was created with.';
         }
-        field(36; "Applied Vend. Ledger Entry No."; Integer)
+        field(36; "Applied Vend. Ledger Entry No."; BigInteger)
         {
             Caption = 'Applied Vend. Ledger Entry No.';
         }
@@ -231,7 +231,7 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             TableRelation = "Tax Jurisdiction";
         }
-        field(42; "Application No."; Integer)
+        field(42; "Application No."; BigInteger)
         {
             Caption = 'Application No.';
             Editable = false;
@@ -355,7 +355,7 @@ table 380 "Detailed Vendor Ledg. Entry"
         OnAfterUpdateDebitCredit(rec, Correction);
     end;
 
-    procedure SetZeroTransNo(TransactionNo: Integer)
+    procedure SetZeroTransNo(TransactionNo: BigInteger)
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         ApplicationNo: BigInteger;

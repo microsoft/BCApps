@@ -19,8 +19,8 @@ codeunit 105 "Calc. Running Acc. Balance"
         ClientTypeManagement: Codeunit System.Environment."Client Type Management";
         DayTotals: Dictionary of [Date, Decimal];
         DayTotalsLCY: Dictionary of [Date, Decimal];
-        EntryValues: Dictionary of [Integer, Decimal];
-        EntryValuesLCY: Dictionary of [Integer, Decimal];
+        EntryValues: Dictionary of [BigInteger, Decimal];
+        EntryValuesLCY: Dictionary of [BigInteger, Decimal];
         PrevAccNo: Code[20];
 
     /// <summary>

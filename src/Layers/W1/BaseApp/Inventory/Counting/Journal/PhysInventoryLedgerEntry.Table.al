@@ -315,7 +315,7 @@ table 281 "Phys. Inventory Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Phys. Inventory Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

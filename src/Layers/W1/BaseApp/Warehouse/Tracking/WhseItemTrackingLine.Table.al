@@ -352,7 +352,7 @@ table 6550 "Whse. Item Tracking Line"
     /// </summary>
     /// <returns>The next available entry number.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Whse. Item Tracking Line", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

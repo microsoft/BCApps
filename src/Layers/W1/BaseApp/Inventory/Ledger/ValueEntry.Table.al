@@ -625,7 +625,7 @@ table 5802 "Value Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Value Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

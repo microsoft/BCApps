@@ -123,7 +123,7 @@ table 343 "Item Application Entry History"
     }
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry History", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         InventorySetup: Record "Inventory Setup";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";

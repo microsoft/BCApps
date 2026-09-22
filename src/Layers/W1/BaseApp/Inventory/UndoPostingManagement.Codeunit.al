@@ -1177,7 +1177,7 @@ codeunit 5817 "Undo Posting Management"
         exit(false);
     end;
 
-    local procedure SetItemJnlLineAppliesToEntry(var ItemJnlLine: Record "Item Journal Line"; AppliesToEntry: Integer)
+    local procedure SetItemJnlLineAppliesToEntry(var ItemJnlLine: Record "Item Journal Line"; AppliesToEntry: BigInteger)
     var
         Item: Record Item;
     begin

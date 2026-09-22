@@ -335,7 +335,7 @@ table 5832 "Capacity Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Capacity Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

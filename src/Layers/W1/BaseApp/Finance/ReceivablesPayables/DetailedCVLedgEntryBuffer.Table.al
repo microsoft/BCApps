@@ -45,7 +45,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         /// <summary>
         /// Reference to the parent customer or vendor ledger entry.
         /// </summary>
-        field(2; "CV Ledger Entry No."; Integer)
+        field(2; "CV Ledger Entry No."; BigInteger)
         {
             Caption = 'CV Ledger Entry No.';
             DataClassification = SystemMetadata;
@@ -140,7 +140,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         /// <summary>
         /// Transaction number linking related detailed entries and postings.
         /// </summary>
-        field(13; "Transaction No."; Integer)
+        field(13; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             DataClassification = SystemMetadata;
@@ -350,7 +350,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
         /// <summary>
         /// Entry number of the CV ledger entry that this detailed entry was applied to.
         /// </summary>
-        field(36; "Applied CV Ledger Entry No."; Integer)
+        field(36; "Applied CV Ledger Entry No."; BigInteger)
         {
             Caption = 'Applied CV Ledger Entry No.';
             DataClassification = SystemMetadata;
@@ -695,7 +695,7 @@ table 383 "Detailed CV Ledg. Entry Buffer"
     /// </summary>
     /// <param name="VATEntry">VAT entry record to populate with found entry</param>
     /// <param name="TransactionNo">Transaction number to search for</param>
-    procedure FindVATEntry(var VATEntry: Record "VAT Entry"; TransactionNo: Integer)
+    procedure FindVATEntry(var VATEntry: Record "VAT Entry"; TransactionNo: BigInteger)
     begin
         VATEntry.Reset();
         VATEntry.SetCurrentKey("Transaction No.");

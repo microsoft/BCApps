@@ -143,7 +143,7 @@ table 46 "Item Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

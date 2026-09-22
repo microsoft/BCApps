@@ -92,7 +92,7 @@ table 241 "Job Register"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Job Register", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

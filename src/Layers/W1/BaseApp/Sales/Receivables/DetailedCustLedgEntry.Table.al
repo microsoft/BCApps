@@ -290,7 +290,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the customer ledger entry number to which this entry was applied during payment application.
         /// </summary>
-        field(36; "Applied Cust. Ledger Entry No."; Integer)
+        field(36; "Applied Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Applied Cust. Ledger Entry No.';
         }
@@ -341,7 +341,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the application number that groups all entries from the same application operation.
         /// </summary>
-        field(42; "Application No."; Integer)
+        field(42; "Application No."; BigInteger)
         {
             Caption = 'Application No.';
             Editable = false;

@@ -363,7 +363,7 @@ table 7312 "Warehouse Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

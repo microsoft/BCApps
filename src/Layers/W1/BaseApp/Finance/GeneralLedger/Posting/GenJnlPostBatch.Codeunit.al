@@ -301,7 +301,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 GLRegNo := 0;
 
         GenJnlLine.Init();
-        GenJnlLine."Line No." := GLRegNo;
+        if GLRegNo <= 2147483647 then
+            GenJnlLine."Line No." := GLRegNo
+        else
+            GenJnlLine."Line No." := 2147483647;
 
         OnProcessLinesOnAfterAssignGLNegNo(GenJnlLine, GLReg, GLRegNo);
 

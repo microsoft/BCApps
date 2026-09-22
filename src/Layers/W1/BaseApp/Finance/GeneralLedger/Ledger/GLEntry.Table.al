@@ -716,7 +716,7 @@ table 17 "G/L Entry"
         /// <summary>
         /// Entry number of the related fixed asset ledger entry.
         /// </summary>
-        field(5601; "FA Entry No."; Integer)
+        field(5601; "FA Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Entry No.';
@@ -876,7 +876,7 @@ table 17 "G/L Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

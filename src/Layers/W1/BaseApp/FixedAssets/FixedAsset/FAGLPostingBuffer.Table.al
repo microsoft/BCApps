@@ -119,7 +119,7 @@ table 5637 "FA G/L Posting Buffer"
     {
     }
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
