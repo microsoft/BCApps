@@ -1031,4 +1031,3 @@ table 79 "Company Information"
     end;
 
 }
-}

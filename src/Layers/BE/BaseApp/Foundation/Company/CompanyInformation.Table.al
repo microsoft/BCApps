@@ -1004,5 +1004,3 @@ table 79 "Company Information"
     begin
     end;
 }
-
-}
