@@ -67,7 +67,7 @@ page 48507 "Fabric API Setup"
     end;
 
     [ServiceEnabled]
-    [Caption('Enable the Fabric export')]
+    [Caption('Enable Fabric mirroring')]
     [Scope('Cloud')]
     procedure Enableexport(var ActionContext: WebServiceActionContext)
     var
@@ -78,7 +78,7 @@ page 48507 "Fabric API Setup"
     end;
 
     [ServiceEnabled]
-    [Caption('Start the Fabric export')]
+    [Caption('Start Fabric mirroring')]
     [Scope('Cloud')]
     procedure Startexport(var ActionContext: WebServiceActionContext)
     var
@@ -89,7 +89,7 @@ page 48507 "Fabric API Setup"
     end;
 
     [ServiceEnabled]
-    [Caption('Stop the Fabric export')]
+    [Caption('Stop Fabric mirroring')]
     [Scope('Cloud')]
     procedure Stopexport(var ActionContext: WebServiceActionContext)
     var
@@ -100,7 +100,7 @@ page 48507 "Fabric API Setup"
     end;
 
     [ServiceEnabled]
-    [Caption('Disable the Fabric export')]
+    [Caption('Disable Fabric mirroring')]
     [Scope('Cloud')]
     procedure Disableexport(var ActionContext: WebServiceActionContext)
     var

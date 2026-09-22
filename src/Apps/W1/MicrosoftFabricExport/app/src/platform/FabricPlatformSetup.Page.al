@@ -5,7 +5,7 @@ using System.Fabric;
 
 page 48511 "Fabric Platform Setup"
 {
-    Caption = 'Microsoft Fabric Export Setup';
+    Caption = 'Microsoft Fabric Mirroring Setup';
     PageType = Card;
     SourceTable = "Tenant Fabric Setup";
     UsageCategory = Administration;
@@ -247,7 +247,7 @@ page 48511 "Fabric Platform Setup"
                     Caption = 'Reset';
                     ApplicationArea = All;
                     Image = Delete;
-                    ToolTip = 'Cancels in-flight runs, removes the Fabric export resources for this tenant, and resets the synchronization state. Use Stop synchronization instead if you only want to pause and resume later.';
+                    ToolTip = 'Cancels in-flight runs, removes the Fabric mirroring resources for this tenant, and resets the synchronization state. Use Stop synchronization instead if you only want to pause and resume later.';
 
                     trigger OnAction()
                     var

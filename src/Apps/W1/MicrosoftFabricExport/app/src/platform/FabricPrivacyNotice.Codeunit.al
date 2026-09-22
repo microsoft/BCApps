@@ -10,7 +10,7 @@ codeunit 48529 "Fabric Privacy Notice"
 
     var
         PrivacyNoticeIdTok: Label 'MicrosoftFabricExport', Locked = true;
-        IntegrationServiceNameTxt: Label 'Microsoft Fabric Export - Open Mirroring';
+        IntegrationServiceNameTxt: Label 'Microsoft Fabric Mirroring - Open Mirroring';
         NotApprovedErr: Label 'Exporting data to Microsoft Fabric requires the privacy notice to be approved.';
         OpenSetupActionTxt: Label 'Open Fabric Platform Setup';
 

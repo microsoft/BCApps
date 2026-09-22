@@ -22,7 +22,7 @@ page 48517 "Fabric Companies FactBox"
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the company included in the Fabric export.';
+                    ToolTip = 'Specifies the company included in Fabric mirroring.';
                 }
             }
         }
@@ -38,7 +38,7 @@ page 48517 "Fabric Companies FactBox"
                 ApplicationArea = All;
                 Image = Company;
                 RunObject = page "Fabric Platform Companies";
-                ToolTip = 'Opens the full list of companies selected for the Fabric export.';
+                ToolTip = 'Opens the full list of companies selected for Fabric mirroring.';
             }
         }
     }

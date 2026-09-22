@@ -40,7 +40,7 @@ page 48503 "Fabric API Companies"
     }
 
     [ServiceEnabled]
-    [Caption('Add a company to Fabric export')]
+    [Caption('Add a company to Fabric mirroring')]
     [Scope('Cloud')]
     procedure Addcompany(NewCompanyName: Text[30]; var ActionContext: WebServiceActionContext)
     var

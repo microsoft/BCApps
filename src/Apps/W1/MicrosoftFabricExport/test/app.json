@@ -1,9 +1,9 @@
 {
     "id": "46efa2e4-0567-4657-82a2-48ae2d905d7c",
-    "name": "Microsoft Fabric Export Tests",
+    "name": "Microsoft Fabric Mirroring Tests",
     "publisher": "Microsoft",
-    "brief": "Test extension for Microsoft Fabric Export.",
-    "description": "AL test codeunits for the Microsoft Fabric Export app.",
+    "brief": "Test extension for Microsoft Fabric Mirroring.",
+    "description": "AL test codeunits for the Microsoft Fabric Mirroring app.",
     "version": "30.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -15,7 +15,7 @@
         {
             "id": "11c0c133-baf4-4e23-8e14-4ba647f86804",
             "publisher": "Microsoft",
-            "name": "Microsoft Fabric Export",
+            "name": "Microsoft Fabric Mirroring",
             "version": "30.0.0.0"
         },
         {

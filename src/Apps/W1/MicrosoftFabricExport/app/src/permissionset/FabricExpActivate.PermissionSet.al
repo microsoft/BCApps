@@ -4,7 +4,7 @@ using System.Fabric;
 
 permissionset 48532 "Fabric Exp Activate"
 {
-    Caption = 'MS Fabric Export - Activate', MaxLength = 30;
+    Caption = 'MS Fabric Mirroring - Activate', MaxLength = 30;
     Assignable = true;
 
     Permissions =

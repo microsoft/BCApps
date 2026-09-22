@@ -291,6 +291,6 @@ codeunit 48522 "Fabric Install"
 
     var
         GuidedSetupTitleLbl: Label 'Connect to Microsoft Fabric';
-        GuidedSetupShortTitleLbl: Label 'Fabric Export';
+        GuidedSetupShortTitleLbl: Label 'Fabric Mirroring';
         GuidedSetupDescriptionLbl: Label 'Connect your environment to Microsoft Fabric, grant access, and choose the companies and tables to synchronize.';
 }

@@ -42,7 +42,7 @@ page 48518 "Fabric Tables FactBox"
                 ApplicationArea = All;
                 Image = Table;
                 RunObject = page "Fabric Platform Tables";
-                ToolTip = 'Opens the full list of tables selected for the Fabric export.';
+                ToolTip = 'Opens the full list of tables selected for Fabric mirroring.';
             }
         }
     }

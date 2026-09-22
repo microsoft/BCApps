@@ -23,7 +23,7 @@ page 48508 "Fabric Platform Companies"
                 field("Company Name"; Rec."Company Name")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the company included in the Fabric export.';
+                    ToolTip = 'Specifies the company included in Fabric mirroring.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
@@ -42,7 +42,7 @@ page 48508 "Fabric Platform Companies"
                 Caption = 'Add company';
                 ApplicationArea = All;
                 Image = New;
-                ToolTip = 'Adds a company to the Fabric export selection.';
+                ToolTip = 'Adds a company to the Fabric mirroring selection.';
 
                 trigger OnAction()
                 var

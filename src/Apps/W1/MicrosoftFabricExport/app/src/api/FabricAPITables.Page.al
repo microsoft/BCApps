@@ -55,7 +55,7 @@ page 48502 "Fabric API Tables"
     }
 
     [ServiceEnabled]
-    [Caption('Add a table to Fabric export')]
+    [Caption('Add a table to Fabric mirroring')]
     [Scope('Cloud')]
     procedure Addtable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
     var

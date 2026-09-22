@@ -27,12 +27,12 @@ codeunit 48520 "Fabric Platform Mgt"
         EnableOnCooldownErr: Label 'Enable was already requested recently. Try again in %1 minute(s).', Comment = '%1 = minutes remaining';
         SyncAlreadyRunningMsg: Label 'A synchronization run is already in progress. Use Stop synchronization before starting a new run.';
         TestConnectionSuccessMsg: Label 'Connection to Microsoft Fabric succeeded.';
-        ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling export.';
+        ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
-        ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling export.';
+        ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
         SetupRequiredTitleLbl: Label 'Setup required';
-        SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable again.';
+        SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable mirroring again.';
 
     internal procedure MaxTableCount(): Integer
     begin
@@ -287,7 +287,7 @@ codeunit 48520 "Fabric Platform Mgt"
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
         end else
             CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
-        Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
+        Telemetry.LogEvent('FAB-100', 'Fabric mirroring enable requested.');
         Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then
             Message(EnableRequestedMsg);
@@ -354,7 +354,7 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeStartExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StartFabricExport();
-        Telemetry.LogEvent('FAB-101', 'Fabric export start requested.');
+        Telemetry.LogEvent('FAB-101', 'Fabric mirroring start requested.');
         Telemetry.LogAudit('FAB-101-AUD', 'Microsoft Fabric Open Mirroring - export start requested.');
         if GuiAllowed() then
             Message(StartRequestedMsg);
@@ -378,7 +378,7 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeStopExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StopFabricExport();
-        Telemetry.LogEvent('FAB-102', 'Fabric export stop requested.');
+        Telemetry.LogEvent('FAB-102', 'Fabric mirroring stop requested.');
         Telemetry.LogAudit('FAB-102-AUD', 'Microsoft Fabric Open Mirroring - export stop requested.');
         if GuiAllowed() then
             Message(StopRequestedMsg);
@@ -393,7 +393,7 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeDisableExport(IsHandled);
         if not IsHandled then
             FabricExportManager.DisableFabricExport();
-        Telemetry.LogEvent('FAB-103', 'Fabric export disable requested.');
+        Telemetry.LogEvent('FAB-103', 'Fabric mirroring disable requested.');
         Telemetry.LogAudit('FAB-103-AUD', 'Microsoft Fabric Open Mirroring - export disable requested.');
         if GuiAllowed() then
             Message(DisableRequestedMsg);

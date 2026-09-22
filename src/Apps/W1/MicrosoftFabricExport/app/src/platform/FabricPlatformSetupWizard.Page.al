@@ -6,7 +6,7 @@ using System.Fabric;
 
 page 48519 "Fabric Platform Setup Wizard"
 {
-    Caption = 'Set up Microsoft Fabric Export';
+    Caption = 'Set Up Microsoft Fabric Mirroring';
     PageType = NavigatePage;
     SourceTable = "Tenant Fabric Setup";
     ApplicationArea = All;
