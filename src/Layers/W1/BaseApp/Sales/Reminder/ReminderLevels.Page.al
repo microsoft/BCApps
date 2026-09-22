@@ -18,7 +18,9 @@ page 432 "Reminder Levels"
     SourceTable = "Reminder Level";
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 1896 "Reminder Level Setup" instead.';
-    ObsoleteTag = '30.0';
+#pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
+    ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 
     layout
     {

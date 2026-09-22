@@ -20,7 +20,9 @@ page 433 "Reminder Text"
     SourceTable = "Reminder Text";
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 835 "Reminder Level Communication" instead.';
-    ObsoleteTag = '30.0';
+#pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
+    ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 
     layout
     {
