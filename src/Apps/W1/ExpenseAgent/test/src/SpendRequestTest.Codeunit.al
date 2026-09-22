@@ -89,7 +89,6 @@ codeunit 148339 "Spend Request Test"
         ExpenseUser: Record "Expense User";
         Employee: Record Employee;
         UnlinkedEmployee: Record Employee;
-        LibraryHumanResource: Codeunit "Library - Human Resource";
     begin
         // [SCENARIO] The API source field filters both linked and unlinked employees without HTTP.
         Initialize();
@@ -138,7 +137,6 @@ codeunit 148339 "Spend Request Test"
         SpendRequest: Record "Spend Request";
         Employee: Record Employee;
         Traveler: Record Traveler;
-        LibraryHumanResource: Codeunit "Library - Human Resource";
     begin
         // [SCENARIO] An employee without an Expense User cannot be added as a traveler.
         Initialize();
