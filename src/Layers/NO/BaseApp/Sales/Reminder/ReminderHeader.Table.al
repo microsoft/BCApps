@@ -1822,11 +1822,11 @@ table 295 "Reminder Header"
 #if not CLEAN29
 #pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
     [Obsolete('The legacy Reminder Text flow is no longer used. Use OnBeforeInsertEndTexts instead.', '29.0')]
-#pragma warning restore AS0072
     [IntegrationEvent(false, false)]
     internal procedure OnInsertEndTextsOnAfterReminderLineSetFilters(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header")
     begin
     end;
+#pragma warning restore AS0072
 #endif
 
     /// <summary>
@@ -1975,11 +1975,11 @@ table 295 "Reminder Header"
 #if not CLEAN29
 #pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
     [Obsolete('The legacy Reminder Text flow is no longer used. Use OnBeforeInsertBeginTexts instead.', '29.0')]
-#pragma warning restore AS0072
     [IntegrationEvent(false, false)]
     internal procedure OnInsertBeginTextsOnAfterReminderTextSetFilters(var ReminderText: Record "Reminder Text"; ReminderHeader: Record "Reminder Header")
     begin
     end;
+#pragma warning restore AS0072
 #endif
 
     /// <summary>
@@ -1990,11 +1990,11 @@ table 295 "Reminder Header"
 #if not CLEAN29
 #pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
     [Obsolete('The legacy Reminder Text flow is no longer used. Use OnBeforeInsertEndTexts instead.', '29.0')]
-#pragma warning restore AS0072
     [IntegrationEvent(false, false)]
     internal procedure OnInsertEndTextsOnAfterReminderTextSetFilters(var ReminderText: Record "Reminder Text"; ReminderHeader: Record "Reminder Header")
     begin
     end;
+#pragma warning restore AS0072
 #endif
 
     /// <summary>
