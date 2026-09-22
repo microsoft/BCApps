@@ -53,12 +53,15 @@ page 6968 "Expense User Cons. API"
     end;
 
     var
+        ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        MismatchingEntraIdsTelemetryErr: Label 'The Expense User has an Entra Id saved in the database, but it''s different from the ID used for consumption reporting.', Locked = true;
         ConsumptionSourceTypeErr: Label 'Consumption Source Type must be provided and valid.';
         ConsumptionSourceSystemIdErr: Label 'Consumption Source System ID must be provided.';
         ExpenseEmployeeCodeErr: Label 'Expense Employee Code must be provided.';
         ConsumptionUsageErr: Label 'Usage cannot be negative.';
+        ModelResolvedNameErr: Label 'Model Resolved Name must be provided.';
         ActionsSummaryOrDescriptionErr: Label 'Actions Summary and Description must be provided.';
         EmptyConsumptionOperationErr: Label 'Operation must be provided.';
 
@@ -94,6 +97,52 @@ page 6968 "Expense User Cons. API"
 
         exit(ExpenseConsumptionHandler.LogAIConsumption(CopilotQuotaUsageAmount, CopilotQuotaUsageType,
             ActionsSummary, ActionsDescription, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
+    end;
+
+    [ServiceEnabled]
+    procedure LogV2AIConsumption(
+        AgentConversationSessionId: Guid;
+        AgentTurnInteractionId: Guid;
+        InputTokenCount: Integer;
+        OutputTokenCount: Integer;
+        PromptCacheReadTokenCount: Integer;
+        PromptCacheCreationTokenCount: Integer;
+        ModelResolvedName: Text[1024];
+        ActionsSummary: Text[2048];
+        ExpenseUserEntraId: Guid;
+        ConsumptionSourceType: Enum "Expense Agent Cons. Source";
+        ConsumptionSourceSystemId: Guid;
+        ConsumptionSourceOperationName: Code[50]): Text[1024]
+    begin
+        ExpenseAgentAPIValidation.VerifyAgentAccess();
+
+        if (InputTokenCount < 0) or (OutputTokenCount < 0) or (PromptCacheReadTokenCount < 0) or (PromptCacheCreationTokenCount < 0) then
+            Error(ConsumptionUsageErr);
+
+        if ModelResolvedName = '' then
+            Error(ModelResolvedNameErr);
+
+        if ActionsSummary = '' then
+            Error(ActionsSummaryOrDescriptionErr);
+
+        if ConsumptionSourceType = ConsumptionSourceType::Invalid then
+            Error(ConsumptionSourceTypeErr);
+
+        if IsNullGuid(ConsumptionSourceSystemId) then
+            Error(ConsumptionSourceSystemIdErr);
+
+        if Rec."No." = '' then
+            Error(ExpenseEmployeeCodeErr);
+
+        if ConsumptionSourceOperationName = '' then
+            Error(EmptyConsumptionOperationErr);
+
+        if not IsNullGuid(Rec."Entra Id") then
+            if Rec."Entra Id" <> ExpenseUserEntraId then
+                Session.LogMessage('', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
+
+        exit(ExpenseConsumptionHandler.LogV2AIConsumption(AgentConversationSessionId, AgentTurnInteractionId, InputTokenCount, OutputTokenCount, PromptCacheReadTokenCount, PromptCacheCreationTokenCount,
+            ModelResolvedName, ActionsSummary, ExpenseUserEntraId, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
 
     [ServiceEnabled]
