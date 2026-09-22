@@ -263,7 +263,6 @@ codeunit 48520 "Fabric Platform Mgt"
         FabricPrivacyNotice.EnsureApproved();
 
         // Delegated auth overload: Microsoft first-party authentication is not yet available.
-        CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
         OnBeforeEnableExport(IsHandled);
         if not IsHandled then begin
             ClientIdText := CredMgt.GetClientId();
@@ -273,8 +272,11 @@ codeunit 48520 "Fabric Platform Mgt"
                 Error(CreateSetupErrorInfo(StrSubstNo(ClientIdInvalidErr, ClientIdText)));
             if not CredMgt.IsClientSecretSet() then
                 Error(CreateSetupErrorInfo(ClientSecretRequiredErr));
+            // Only a validated request starts the cooldown, so a failed validation can be retried immediately.
+            CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
-        end;
+        end else
+            CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
         Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
         Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then

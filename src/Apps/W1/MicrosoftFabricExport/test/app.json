@@ -13,7 +13,7 @@
     "logo": "ExtensionLogo.png",
     "dependencies": [
         {
-            "id": "cafecafe-1111-4111-8111-cafecafe1111",
+            "id": "11c0c133-baf4-4e23-8e14-4ba647f86804",
             "publisher": "Microsoft",
             "name": "Microsoft Fabric Export",
             "version": "30.0.0.0"

@@ -8,7 +8,7 @@ page 48514 "Fabric Config Package Subform"
     Editable = true;
     InsertAllowed = true;
     ModifyAllowed = true;
-    DeleteAllowed = true;
+    DeleteAllowed = false;
 
     layout
     {

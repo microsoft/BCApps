@@ -8,6 +8,13 @@ codeunit 140012 "Test FAB Platform"
 {
     Subtype = Test;
     TestPermissions = Restrictive;
+    // Initialize() clears these tables before LowerPermissions is applied in each test.
+    Permissions =
+        tabledata "Tenant Fabric Setup" = RD,
+        tabledata "Tenant Fabric Tables" = RD,
+        tabledata "Tenant Fabric Companies" = RD,
+        tabledata "Fabric Table Claim" = RD,
+        tabledata "Tenant Fabric Export Summary" = RD;
 
     var
         Assert: Codeunit "Assert";
