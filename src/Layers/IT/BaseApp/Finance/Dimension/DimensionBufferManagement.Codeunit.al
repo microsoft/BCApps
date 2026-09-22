@@ -180,7 +180,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="ForgetDimEntryNo">Dimension entry number to remove from collection</param>
     /// <param name="DoCollect">Whether to actually collect the dimension entry</param>
     /// <param name="DimEntryNo">Variable to receive the collected dimension entry number</param>
-    procedure CollectDimEntryNo(var SelectedDim: Record "Selected Dimension"; DimSetID: Integer; EntryNo: Integer; ForgetDimEntryNo: Integer; DoCollect: Boolean; var DimEntryNo: Integer)
+    procedure CollectDimEntryNo(var SelectedDim: Record "Selected Dimension"; DimSetID: Integer; EntryNo: BigInteger; ForgetDimEntryNo: BigInteger; DoCollect: Boolean; var DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         DimSetEntry: Record "Dimension Set Entry";
@@ -213,7 +213,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="DimEntryNo">Variable to receive the first dimension entry number</param>
     /// <param name="EntryNo">Variable to receive the first entry number</param>
     /// <returns>True if entries exist and first entry found, false if collection is empty</returns>
-    procedure FindFirstDimEntryNo(var DimEntryNo: Integer; var EntryNo: Integer): Boolean
+    procedure FindFirstDimEntryNo(var DimEntryNo: BigInteger; var EntryNo: BigInteger): Boolean
     var
         Found: Boolean;
     begin
@@ -231,7 +231,7 @@ codeunit 411 "Dimension Buffer Management"
     /// <param name="DimEntryNo">Variable to receive the next dimension entry number</param>
     /// <param name="EntryNo">Variable to receive the next entry number</param>
     /// <returns>True if next entry exists, false if end of collection reached</returns>
-    procedure NextDimEntryNo(var DimEntryNo: Integer; var EntryNo: Integer): Boolean
+    procedure NextDimEntryNo(var DimEntryNo: BigInteger; var EntryNo: BigInteger): Boolean
     var
         Found: Boolean;
     begin

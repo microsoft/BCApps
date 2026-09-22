@@ -35,7 +35,7 @@ table 169 "Job Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -131,7 +131,7 @@ table 169 "Job Ledger Entry"
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."));
         }
-        field(19; "Job Register No."; Integer)
+        field(19; "Job Register No."; BigInteger)
         {
             Caption = 'Job Register No.';
             Editable = false;
@@ -650,7 +650,7 @@ table 169 "Job Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Job Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

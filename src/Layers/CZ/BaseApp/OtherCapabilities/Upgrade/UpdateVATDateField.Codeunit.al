@@ -56,10 +56,27 @@ codeunit 104051 "Update VAT Date Field"
     end;
 
     local procedure UpdateGLEntries()
+    var
+        GLEntry: Record "G/L Entry";
+        TotalRows: BigInteger;
+        FromNo, ToNo : BigInteger;
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetVATDateFieldGLEntriesUpgrade()) then
             exit;
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetVATDateFieldGLEntriesUpgrade());
+    end;
+
+    local procedure DataTransferGLEntries(FromEntryNo: BigInteger; ToEntryNo: BigInteger)
+    var
+        GLEntry: Record "G/L Entry";
+        VATDateDataTransfer: DataTransfer;
+    begin
+        VATDateDataTransfer.SetTables(Database::"G/L Entry", Database::"G/L Entry");
+        VATDateDataTransfer.AddSourceFilter(GLEntry.FieldNo("Entry No."), '%1..%2', FromEntryNo, ToEntryNo);
+        VATDateDataTransfer.AddFieldValue(GLEntry.FieldNo("Posting Date"), GLEntry.FieldNo("VAT Reporting Date"));
+        VATDateDataTransfer.UpdateAuditFields(false);
+        VATDateDataTransfer.CopyFields();
+        Clear(VATDateDataTransfer);
     end;
 
     local procedure UpdatePurchSalesEntries()

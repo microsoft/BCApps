@@ -36,7 +36,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the unique sequential number assigned to this detailed customer ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -44,7 +44,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the parent customer ledger entry that this detailed entry belongs to.
         /// </summary>
-        field(2; "Cust. Ledger Entry No."; Integer)
+        field(2; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             TableRelation = "Cust. Ledger Entry";
@@ -149,7 +149,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the transaction number that groups all entries from the same posting operation.
         /// </summary>
-        field(13; "Transaction No."; Integer)
+        field(13; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -306,7 +306,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the entry number of the correcting entry that unapplied this original entry.
         /// </summary>
-        field(38; "Unapplied by Entry No."; Integer)
+        field(38; "Unapplied by Entry No."; BigInteger)
         {
             Caption = 'Unapplied by Entry No.';
             TableRelation = "Detailed Cust. Ledg. Entry";
@@ -374,7 +374,7 @@ table 379 "Detailed Cust. Ledg. Entry"
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -477,7 +477,7 @@ table 379 "Detailed Cust. Ledg. Entry"
     /// </summary>
     /// <returns>The entry number of the last detailed customer ledger entry.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Cust. Ledg. Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -514,7 +514,7 @@ table 379 "Detailed Cust. Ledg. Entry"
     procedure SetZeroTransNo(TransactionNo: Integer)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        ApplicationNo: Integer;
+        ApplicationNo: BigInteger;
     begin
         DetailedCustLedgEntry.SetCurrentKey("Transaction No.");
         DetailedCustLedgEntry.SetRange("Transaction No.", TransactionNo);

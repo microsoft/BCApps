@@ -188,7 +188,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsGLRegInserted: Boolean;
         TransVATAccNo: Code[20];
         ThisIsSpecialRun: Boolean;
-        FirstGLEntryNo: BigInteger;
+        FirstGLEntryNo: Integer;
         FinVoidedCheck: Boolean;
         VATAgentVATPayment: Boolean;
         VATAgentVATPmtAmount: Decimal;

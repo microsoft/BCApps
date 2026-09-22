@@ -39,7 +39,7 @@ table 32 "Item Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -109,7 +109,7 @@ table 32 "Item Ledger Entry"
             ToolTip = 'Specifies how many units of the item on the line have been invoiced.';
             DecimalPlaces = 0 : 5;
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -725,7 +725,7 @@ table 32 "Item Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Ledger Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

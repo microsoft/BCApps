@@ -23,24 +23,24 @@ table 339 "Item Application Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "Item Ledger Entry No."; Integer)
+        field(2; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             ToolTip = 'Specifies one or more item application entries for each inventory transaction that is posted.';
             TableRelation = "Item Ledger Entry";
         }
-        field(3; "Inbound Item Entry No."; Integer)
+        field(3; "Inbound Item Entry No."; BigInteger)
         {
             Caption = 'Inbound Item Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory increase or positive quantity in inventory.';
             TableRelation = "Item Ledger Entry";
         }
-        field(4; "Outbound Item Entry No."; Integer)
+        field(4; "Outbound Item Entry No."; BigInteger)
         {
             Caption = 'Outbound Item Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory decrease for this entry.';
@@ -53,7 +53,7 @@ table 339 "Item Application Entry"
             ToolTip = 'Specifies the quantity of the item that is being applied from the inventory decrease in the Outbound Item Entry No. field, to the inventory increase in the Inbound Item Entry No. field.';
             DecimalPlaces = 0 : 5;
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -64,7 +64,7 @@ table 339 "Item Application Entry"
             Caption = 'Posting Date';
             ToolTip = 'Specifies the posting date that corresponds to the posting date of the item ledger entry, for which this item application entry was created.';
         }
-        field(23; "Transferred-from Entry No."; Integer)
+        field(23; "Transferred-from Entry No."; BigInteger)
         {
             Caption = 'Transferred-from Entry No.';
             ToolTip = 'Specifies the item ledger entry number of the original inventory increase of the item if the item application entry originates from a transfer.';
@@ -214,7 +214,7 @@ table 339 "Item Application Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -241,7 +241,7 @@ table 339 "Item Application Entry"
 
 #if not CLEAN28
     [Obsolete('Replaced with namesake procedure with "Item Application Entries Outb." as parameter.', '28.0')]
-    procedure AppliedOutbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
+    procedure AppliedOutbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Inbound_Item_Entry_No, InbndItemLedgEntryNo);
         ItemApplicationEntries.SetFilter(Item_Ledger_Entry_No, '<>%1', InbndItemLedgEntryNo);
@@ -316,7 +316,7 @@ table 339 "Item Application Entry"
 
 #if not CLEAN28
     [Obsolete('Replaced with namesake procedure with "Item Application Entries Inb." as parameter.', '28.0')]
-    procedure AppliedInbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; OutbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
+    procedure AppliedInbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; OutbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Outbound_Item_Entry_No, OutbndItemLedgEntryNo);
         ItemApplicationEntries.SetFilter(Item_Ledger_Entry_No, '<>%1', OutbndItemLedgEntryNo);
@@ -424,7 +424,7 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    procedure InsertHistory(): Integer
+    procedure InsertHistory(): BigInteger
     var
         ItemApplicationEntryHistory: Record "Item Application Entry History";
         InventorySetup: Record "Inventory Setup";
