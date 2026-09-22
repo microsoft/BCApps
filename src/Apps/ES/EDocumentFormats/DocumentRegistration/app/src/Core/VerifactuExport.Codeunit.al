@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocument.Verifactu;
 
 using Microsoft.EServices.EDocument;
+using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
@@ -29,6 +30,7 @@ codeunit 10778 "Verifactu Export"
                   tabledata "Sales Cr.Memo Line" = rm,
                   tabledata "Service Invoice Header" = rm,
                   tabledata "Service Invoice Line" = rm;
+                  tabledata "No Taxable Entry" = r,
 
     var
         CompanyInformation: Record "Company Information";
@@ -211,6 +213,7 @@ codeunit 10778 "Verifactu Export"
     var
         TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
         DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
+        OperationQualification: Text;
     begin
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
@@ -235,10 +238,12 @@ codeunit 10778 "Verifactu Export"
             repeat
                 DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
                 DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(SalesInvoiceHeader."Special Scheme Code")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CalificacionOperacion', XmlNamespaceSum1, GetVATIdentifier(TempSalesInvoiceLine."VAT Identifier")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('TipoImpositivo', XmlNamespaceSum1, Format(TempSalesInvoiceLine."VAT %", 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(TempSalesInvoiceLine.Amount, 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(TempSalesInvoiceLine."Amount Including VAT" - TempSalesInvoiceLine.Amount, 0, 9)));
+                OperationQualification := GetOperationQualification(
+                    SalesInvoiceHeader."No.", SalesInvoiceHeader."Posting Date", TempSalesInvoiceLine."VAT Bus. Posting Group",
+                    TempSalesInvoiceLine."VAT Prod. Posting Group", TempSalesInvoiceLine."VAT Identifier", false);
+                AddVATBreakdownNodes(
+                    DetalleIVAXMLNode, OperationQualification, TempSalesInvoiceLine."VAT %", TempSalesInvoiceLine.Amount,
+                    TempSalesInvoiceLine."Amount Including VAT" - TempSalesInvoiceLine.Amount);
                 DesgloseXMLNode.Add(DetalleIVAXMLNode);
             until TempSalesInvoiceLine.Next() = 0;
         TempSalesInvoiceLine.CalcSums(Amount, "Amount Including VAT");
@@ -256,6 +261,9 @@ codeunit 10778 "Verifactu Export"
     begin
         TempSalesInvoiceLine.SetRange("Document No.", SalesInvoiceLine."Document No.");
         TempSalesInvoiceLine.SetRange("VAT %", SalesInvoiceLine."VAT %");
+        TempSalesInvoiceLine.SetRange("VAT Bus. Posting Group", SalesInvoiceLine."VAT Bus. Posting Group");
+        TempSalesInvoiceLine.SetRange("VAT Prod. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group");
+        TempSalesInvoiceLine.SetRange("VAT Identifier", SalesInvoiceLine."VAT Identifier");
         exit(TempSalesInvoiceLine.FindFirst());
     end;
 
@@ -401,6 +409,7 @@ codeunit 10778 "Verifactu Export"
     var
         TempServiceInvoiceLine: Record "Service Invoice Line" temporary;
         DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
+        OperationQualification: Text;
     begin
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         ServiceInvoiceLine.SetFilter(Type, '<>%1', ServiceInvoiceLine.Type::" ");
@@ -425,10 +434,12 @@ codeunit 10778 "Verifactu Export"
             repeat
                 DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
                 DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(ServiceInvoiceHeader."Special Scheme Code")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CalificacionOperacion', XmlNamespaceSum1, GetVATIdentifier(TempServiceInvoiceLine."VAT Identifier")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('TipoImpositivo', XmlNamespaceSum1, Format(TempServiceInvoiceLine."VAT %", 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(TempServiceInvoiceLine.Amount, 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(TempServiceInvoiceLine."Amount Including VAT" - TempServiceInvoiceLine.Amount, 0, 9)));
+                OperationQualification := GetOperationQualification(
+                    ServiceInvoiceHeader."No.", ServiceInvoiceHeader."Posting Date", TempServiceInvoiceLine."VAT Bus. Posting Group",
+                    TempServiceInvoiceLine."VAT Prod. Posting Group", TempServiceInvoiceLine."VAT Identifier", false);
+                AddVATBreakdownNodes(
+                    DetalleIVAXMLNode, OperationQualification, TempServiceInvoiceLine."VAT %", TempServiceInvoiceLine.Amount,
+                    TempServiceInvoiceLine."Amount Including VAT" - TempServiceInvoiceLine.Amount);
                 DesgloseXMLNode.Add(DetalleIVAXMLNode);
             until TempServiceInvoiceLine.Next() = 0;
         TempServiceInvoiceLine.CalcSums(Amount, "Amount Including VAT");
@@ -446,6 +457,9 @@ codeunit 10778 "Verifactu Export"
     begin
         TempServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceLine."Document No.");
         TempServiceInvoiceLine.SetRange("VAT %", ServiceInvoiceLine."VAT %");
+        TempServiceInvoiceLine.SetRange("VAT Bus. Posting Group", ServiceInvoiceLine."VAT Bus. Posting Group");
+        TempServiceInvoiceLine.SetRange("VAT Prod. Posting Group", ServiceInvoiceLine."VAT Prod. Posting Group");
+        TempServiceInvoiceLine.SetRange("VAT Identifier", ServiceInvoiceLine."VAT Identifier");
         exit(TempServiceInvoiceLine.FindFirst());
     end;
 
@@ -593,6 +607,7 @@ codeunit 10778 "Verifactu Export"
     var
         TempSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
         DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
+        OperationQualification: Text;
     begin
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
@@ -617,10 +632,12 @@ codeunit 10778 "Verifactu Export"
             repeat
                 DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
                 DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(TempSalesCrMemoLine."Special Scheme Code")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CalificacionOperacion', XmlNamespaceSum1, GetVATIdentifier(TempSalesCrMemoLine."VAT Identifier")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('TipoImpositivo', XmlNamespaceSum1, Format(TempSalesCrMemoLine."VAT %", 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(-TempSalesCrMemoLine.Amount, 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(-(TempSalesCrMemoLine."Amount Including VAT" - TempSalesCrMemoLine.Amount), 0, 9)));
+                OperationQualification := GetOperationQualification(
+                    SalesCrMemoHeader."No.", SalesCrMemoHeader."Posting Date", TempSalesCrMemoLine."VAT Bus. Posting Group",
+                    TempSalesCrMemoLine."VAT Prod. Posting Group", TempSalesCrMemoLine."VAT Identifier", true);
+                AddVATBreakdownNodes(
+                    DetalleIVAXMLNode, OperationQualification, TempSalesCrMemoLine."VAT %", -TempSalesCrMemoLine.Amount,
+                    -(TempSalesCrMemoLine."Amount Including VAT" - TempSalesCrMemoLine.Amount));
                 DesgloseXMLNode.Add(DetalleIVAXMLNode);
             until TempSalesCrMemoLine.Next() = 0;
         TempSalesCrMemoLine.CalcSums(Amount, "Amount Including VAT");
@@ -665,6 +682,9 @@ codeunit 10778 "Verifactu Export"
     begin
         TempSalesCrMemoLine.SetRange("Document No.", SalesCrMemoLine."Document No.");
         TempSalesCrMemoLine.SetRange("VAT %", SalesCrMemoLine."VAT %");
+        TempSalesCrMemoLine.SetRange("VAT Bus. Posting Group", SalesCrMemoLine."VAT Bus. Posting Group");
+        TempSalesCrMemoLine.SetRange("VAT Prod. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group");
+        TempSalesCrMemoLine.SetRange("VAT Identifier", SalesCrMemoLine."VAT Identifier");
         exit(TempSalesCrMemoLine.FindFirst());
     end;
 
@@ -802,6 +822,7 @@ codeunit 10778 "Verifactu Export"
     var
         TempServiceCrMemoLine: Record "Service Cr.Memo Line" temporary;
         DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
+        OperationQualification: Text;
     begin
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         ServiceCrMemoLine.SetFilter(Type, '<>%1', ServiceCrMemoLine.Type::" ");
@@ -826,10 +847,12 @@ codeunit 10778 "Verifactu Export"
             repeat
                 DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
                 DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(TempServiceCrMemoLine."Special Scheme Code")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CalificacionOperacion', XmlNamespaceSum1, GetVATIdentifier(TempServiceCrMemoLine."VAT Identifier")));
-                DetalleIVAXMLNode.Add(XmlElement.Create('TipoImpositivo', XmlNamespaceSum1, Format(TempServiceCrMemoLine."VAT %", 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(-TempServiceCrMemoLine.Amount, 0, 9)));
-                DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(-(TempServiceCrMemoLine."Amount Including VAT" - TempServiceCrMemoLine.Amount), 0, 9)));
+                OperationQualification := GetOperationQualification(
+                    ServiceCrMemoHeader."No.", ServiceCrMemoHeader."Posting Date", TempServiceCrMemoLine."VAT Bus. Posting Group",
+                    TempServiceCrMemoLine."VAT Prod. Posting Group", TempServiceCrMemoLine."VAT Identifier", true);
+                AddVATBreakdownNodes(
+                    DetalleIVAXMLNode, OperationQualification, TempServiceCrMemoLine."VAT %", -TempServiceCrMemoLine.Amount,
+                    -(TempServiceCrMemoLine."Amount Including VAT" - TempServiceCrMemoLine.Amount));
                 DesgloseXMLNode.Add(DetalleIVAXMLNode);
             until TempServiceCrMemoLine.Next() = 0;
         TempServiceCrMemoLine.CalcSums(Amount, "Amount Including VAT");
@@ -847,6 +870,9 @@ codeunit 10778 "Verifactu Export"
     begin
         TempServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoLine."Document No.");
         TempServiceCrMemoLine.SetRange("VAT %", ServiceCrMemoLine."VAT %");
+        TempServiceCrMemoLine.SetRange("VAT Bus. Posting Group", ServiceCrMemoLine."VAT Bus. Posting Group");
+        TempServiceCrMemoLine.SetRange("VAT Prod. Posting Group", ServiceCrMemoLine."VAT Prod. Posting Group");
+        TempServiceCrMemoLine.SetRange("VAT Identifier", ServiceCrMemoLine."VAT Identifier");
         exit(TempServiceCrMemoLine.FindFirst());
     end;
 
@@ -1072,6 +1098,41 @@ codeunit 10778 "Verifactu Export"
     local procedure FormatAmount(Amount: Decimal): Text
     begin
         exit(Format(Amount, 0, '<Precision,2:2><Standard Format,9>'));
+    end;
+
+    local procedure AddVATBreakdownNodes(var DetalleIVAXMLNode: XmlElement; OperationQualification: Text; VATPercentage: Decimal; BaseAmount: Decimal; VATAmount: Decimal)
+    begin
+        DetalleIVAXMLNode.Add(XmlElement.Create('CalificacionOperacion', XmlNamespaceSum1, OperationQualification));
+        if OperationQualification = 'S1' then
+            DetalleIVAXMLNode.Add(XmlElement.Create('TipoImpositivo', XmlNamespaceSum1, Format(VATPercentage, 0, 9)));
+        DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(BaseAmount, 0, 9)));
+        if OperationQualification = 'S1' then
+            DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(VATAmount, 0, 9)));
+    end;
+
+    local procedure GetOperationQualification(DocumentNo: Code[20]; PostingDate: Date; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATIdentifier: Code[20]; IsCreditMemo: Boolean): Text
+    var
+        NoTaxableEntry: Record "No Taxable Entry";
+    begin
+        NoTaxableEntry.SetRange(Type, NoTaxableEntry.Type::Sale);
+        if IsCreditMemo then
+            NoTaxableEntry.SetRange("Document Type", NoTaxableEntry."Document Type"::"Credit Memo")
+        else
+            NoTaxableEntry.SetRange("Document Type", NoTaxableEntry."Document Type"::Invoice);
+        NoTaxableEntry.SetRange("Document No.", DocumentNo);
+        NoTaxableEntry.SetRange("Posting Date", PostingDate);
+        NoTaxableEntry.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        NoTaxableEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
+        NoTaxableEntry.SetRange(Reversed, false);
+        if NoTaxableEntry.FindFirst() then
+            case NoTaxableEntry."No Taxable Type" of
+                NoTaxableEntry."No Taxable Type"::"Non Taxable Art 7-14 and others":
+                    exit('N1');
+                NoTaxableEntry."No Taxable Type"::"Non Taxable Due To Localization Rules":
+                    exit('N2');
+            end;
+
+        exit(GetVATIdentifier(VATIdentifier));
     end;
 
     local procedure GetVATIdentifier(VATIdentifier: Code[20]): Text
