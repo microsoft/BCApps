@@ -90,12 +90,8 @@ page 1 "Company Information"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Company Description';
                             MultiLine = true;
-                            ToolTip = 'Specifies a description that applies to the current company.';
+                            ToolTip = 'Specifies the company''s nature and intended purpose to provide context for AI. The description applies to the current company.';
 
-                            trigger OnValidate()
-                            begin
-                                CompanyDescriptionChanged := CompanyDescription <> OriginalCompanyDescription;
-                            end;
                         }
                     }
                     group(EnvironmentDescriptionGroup)
@@ -106,12 +102,8 @@ page 1 "Company Information"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Environment Description';
                             MultiLine = true;
-                            ToolTip = 'Specifies a description that applies to all companies in the current environment.';
+                            ToolTip = 'Specifies the environment''s nature and intended purpose to provide context for AI. The description applies to all companies in the current environment.';
 
-                            trigger OnValidate()
-                            begin
-                                EnvironmentDescriptionChanged := EnvironmentDescription <> OriginalEnvironmentDescription;
-                            end;
                         }
                     }
                 }
@@ -981,9 +973,7 @@ page 1 "Company Information"
         EnvironmentInformation: Codeunit "Environment Information";
         Experience: Text;
         CompanyDescription: Text;
-        OriginalCompanyDescription: Text;
         EnvironmentDescription: Text;
-        OriginalEnvironmentDescription: Text;
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
@@ -1005,8 +995,6 @@ page 1 "Company Information"
         DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
-        CompanyDescriptionChanged: Boolean;
-        EnvironmentDescriptionChanged: Boolean;
 
     protected var
         SystemIndicatorChanged: Boolean;
@@ -1038,31 +1026,14 @@ page 1 "Company Information"
 
     local procedure LoadDescriptions()
     begin
-        if not CompanyDescriptionChanged then begin
-            CompanyDescription := Rec.GetCompanyDescription();
-            OriginalCompanyDescription := CompanyDescription;
-        end;
-
-        if not EnvironmentDescriptionChanged then begin
-            EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
-            OriginalEnvironmentDescription := EnvironmentDescription;
-        end;
+        CompanyDescription := Rec.GetCompanyDescription();
+        EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
     end;
 
     local procedure SaveDescriptions()
     begin
-        if CompanyDescriptionChanged then begin
-            Rec.SetCompanyDescription(CompanyDescription);
-            Rec.Modify(true);
-            OriginalCompanyDescription := CompanyDescription;
-            CompanyDescriptionChanged := false;
-        end;
-
-        if EnvironmentDescriptionChanged then begin
-            EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
-            OriginalEnvironmentDescription := EnvironmentDescription;
-            EnvironmentDescriptionChanged := false;
-        end;
+        Rec.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
     end;
 
     local procedure SetShowMandatoryConditions()

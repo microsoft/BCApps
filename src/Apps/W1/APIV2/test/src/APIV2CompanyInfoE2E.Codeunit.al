@@ -35,9 +35,6 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     procedure TestGetCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
-        EnvironmentInformation: Codeunit "Environment Information";
-        CompanyDescription: Text;
-        EnvironmentDescription: Text;
         Response: Text;
         TargetURL: Text;
     begin
@@ -46,11 +43,6 @@ codeunit 139806 "APIV2 - Company Info. E2E"
 
         // [GIVEN] The company information record exists and has values assigned to the fields contained in complex types.
         CompanyInformation.Get();
-        CompanyDescription := CreateMultilineDescription('Company');
-        EnvironmentDescription := CreateMultilineDescription('Environment');
-        CompanyInformation.SetCompanyDescription(CompanyDescription);
-        CompanyInformation.Modify();
-        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
 
         // [WHEN] The user calls GET for the given Company Information.
         TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
@@ -61,27 +53,32 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
-    procedure TestDescriptionsAreReadOnly()
+    procedure TestGetCompanyAndEnvironmentDescriptions()
     var
         CompanyInformation: Record "Company Information";
-        RequestBody: Text;
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
         Response: Text;
         TargetURL: Text;
     begin
-        // [SCENARIO] Company and environment descriptions cannot be modified through the API.
+        // [SCENARIO] User can get multiline company and environment descriptions.
         Initialize();
 
-        // [GIVEN] A request contains the read-only description properties.
+        // [GIVEN] The company and environment have multiline descriptions.
         CompanyInformation.Get();
-        RequestBody := LibraryGraphMgt.AddPropertytoJSON('', 'companyDescription', CreateMultilineDescription('Modified company'));
-        RequestBody := LibraryGraphMgt.AddPropertytoJSON(RequestBody, 'environmentDescription', CreateMultilineDescription('Modified environment'));
+        CompanyDescription := CreateMultilineDescription('Company');
+        EnvironmentDescription := CreateMultilineDescription('Environment');
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
 
-        // [WHEN] The user makes a patch request to the service.
+        // [WHEN] The user calls GET for the given Company Information.
         TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
-        asserterror LibraryGraphMgt.PatchToWebService(TargetURL, RequestBody, Response);
+        LibraryGraphMgt.GetFromWebService(Response, TargetURL);
 
-        // [THEN] The request fails because the properties are read-only.
-        Assert.AreNotEqual(0, StrPos(GetLastErrorText(), 'read-only'), 'The string "read-only" should exist in the error message.');
+        // [THEN] The response contains the complete descriptions.
+        VerifyPropertyInJSON(Response, 'companyDescription', CompanyDescription);
+        VerifyPropertyInJSON(Response, 'environmentDescription', EnvironmentDescription);
     end;
 
     [Test]
@@ -179,9 +176,9 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         GeneralLedgerSetup: Record "General Ledger Setup";
         CompanyInformationRecordRef: RecordRef;
         EnterpriseNoFieldRef: FieldRef;
+        EnvironmentInformation: Codeunit "Environment Information";
         TaxRegistrationNumber: Text;
         Experience: Text;
-        EnvironmentInformation: Codeunit "Environment Information";
     begin
         Assert.AreNotEqual('', CompanyInformationJSON, EmptyJSONErr);
         GeneralLedgerSetup.Get();
@@ -248,7 +245,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         DescriptionBuilder: TextBuilder;
     begin
         DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
-        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        DescriptionBuilder.AppendLine(DescriptionType + ' description second line with Unicode: ÆØÅ');
         exit(DescriptionBuilder.ToText());
     end;
 }

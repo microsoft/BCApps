@@ -14,6 +14,7 @@ codeunit 3702 "Environment Information Impl."
     SingleInstance = true;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Environment Information" = rimd;
 
     var
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
@@ -65,9 +66,8 @@ codeunit 3702 "Environment Information Impl."
         DescriptionInStream: InStream;
         DescriptionBuilder: TextBuilder;
         DescriptionLine: Text;
-        NewLine: Text;
     begin
-        GetEnvironmentInformation(EnvironmentInformation);
+        GetEnvironmentInformationSafe(EnvironmentInformation);
         EnvironmentInformation.CalcFields(Description);
         if not EnvironmentInformation.Description.HasValue() then
             exit('');
@@ -78,8 +78,7 @@ codeunit 3702 "Environment Information Impl."
             DescriptionBuilder.AppendLine(DescriptionLine);
         end;
 
-        NewLine := GetNewLine();
-        exit(DescriptionBuilder.ToText().TrimEnd(NewLine));
+        exit(DescriptionBuilder.ToText());
     end;
 
     procedure SetEnvironmentDescription(Description: Text)
@@ -87,7 +86,7 @@ codeunit 3702 "Environment Information Impl."
         EnvironmentInformation: Record "Environment Information";
         DescriptionOutStream: OutStream;
     begin
-        GetEnvironmentInformation(EnvironmentInformation);
+        GetEnvironmentInformationSafe(EnvironmentInformation);
         Clear(EnvironmentInformation.Description);
         EnvironmentInformation.Description.CreateOutStream(DescriptionOutStream, GetTextEncoding());
         DescriptionOutStream.WriteText(Description);
@@ -219,29 +218,16 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetEnvironmentApplicationSetting(SettingName));
     end;
 
-    local procedure GetEnvironmentInformation(var EnvironmentInformation: Record "Environment Information")
+    local procedure GetEnvironmentInformationSafe(var EnvironmentInformation: Record "Environment Information")
     begin
-        if EnvironmentInformation.Get() then
-            exit;
-
-        EnvironmentInformation.Init();
-        if EnvironmentInformation.Insert() then
-            exit;
-
-        EnvironmentInformation.Get();
+        if not EnvironmentInformation.Get() then
+            if EnvironmentInformation.Insert() then;
+        EnvironmentInformation.Find();
     end;
 
     local procedure GetTextEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
-    end;
-
-    local procedure GetNewLine(): Text
-    var
-        NewLineBuilder: TextBuilder;
-    begin
-        NewLineBuilder.AppendLine();
-        exit(NewLineBuilder.ToText());
     end;
 
     [InternalEvent(false)]

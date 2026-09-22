@@ -656,7 +656,7 @@ table 79 "Company Information"
         field(7612; "Company Description"; Blob)
         {
             Caption = 'Company Description';
-            ToolTip = 'Specifies a description of the company.';
+            ToolTip = 'Specifies the company''s nature and intended purpose to provide context for AI.';
         }
     }
 
@@ -830,7 +830,6 @@ table 79 "Company Information"
         DescriptionInStream: InStream;
         DescriptionBuilder: TextBuilder;
         DescriptionLine: Text;
-        NewLine: Text;
     begin
         CalcFields("Company Description");
         if not "Company Description".HasValue() then
@@ -842,8 +841,7 @@ table 79 "Company Information"
             DescriptionBuilder.AppendLine(DescriptionLine);
         end;
 
-        NewLine := GetNewLine();
-        exit(DescriptionBuilder.ToText().TrimEnd(NewLine));
+        exit(DescriptionBuilder.ToText());
     end;
 
     procedure SetCompanyDescription(Description: Text)
@@ -853,6 +851,7 @@ table 79 "Company Information"
         Clear("Company Description");
         "Company Description".CreateOutStream(DescriptionOutStream, GetTextEncoding());
         DescriptionOutStream.WriteText(Description);
+        Modify(true);
     end;
 
     local procedure GetTextEncoding(): TextEncoding
@@ -860,13 +859,6 @@ table 79 "Company Information"
         exit(TextEncoding::UTF8);
     end;
 
-    local procedure GetNewLine(): Text
-    var
-        NewLineBuilder: TextBuilder;
-    begin
-        NewLineBuilder.AppendLine();
-        exit(NewLineBuilder.ToText());
-    end;
 
     procedure GetVATRegistrationNumber() Result: Text
     begin

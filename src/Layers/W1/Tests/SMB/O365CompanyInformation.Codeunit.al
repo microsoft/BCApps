@@ -161,7 +161,6 @@ codeunit 138041 "O365 Company Information"
         // [GIVEN] Multiline descriptions are saved.
         CompanyInformation.Get();
         CompanyInformation.SetCompanyDescription(CompanyDescription);
-        CompanyInformation.Modify();
         EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
 
         // [THEN] The complete descriptions can be read.
@@ -201,7 +200,7 @@ codeunit 138041 "O365 Company Information"
         DescriptionBuilder: TextBuilder;
     begin
         DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
-        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        DescriptionBuilder.AppendLine(DescriptionType + ' description second line with Unicode: ÆØÅ');
         exit(DescriptionBuilder.ToText());
     end;
 }
