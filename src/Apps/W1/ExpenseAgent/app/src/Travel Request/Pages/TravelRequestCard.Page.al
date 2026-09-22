@@ -29,6 +29,7 @@ page 7129 "Travel Request Card"
                 field("No."; Rec."No.")
                 {
                     ToolTip = 'Specifies the number of the travel request.';
+                    Editable = Rec."No." = '';
 
                     trigger OnAssistEdit()
                     begin
