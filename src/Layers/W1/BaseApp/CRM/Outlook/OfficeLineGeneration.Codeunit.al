@@ -187,6 +187,7 @@ codeunit 1639 "Office Line Generation"
     begin
         DisableAggregateTableUpdate.SetDisableAllRecords(true);
         BindSubscription(DisableAggregateTableUpdate);
+        LastQuantity := 0;
         repeat
             if TempOfficeSuggestedLineItem.Add then begin
                 if LastLinePending then begin
@@ -629,4 +630,3 @@ codeunit 1639 "Office Line Generation"
     begin
     end;
 }
-

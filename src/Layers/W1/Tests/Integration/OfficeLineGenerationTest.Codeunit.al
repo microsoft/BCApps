@@ -1,3 +1,11 @@
+namespace Microsoft.CRM.Outlook;
+
+using Microsoft.Integration.Entity;
+using Microsoft.Integration.Graph;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
+
 codeunit 139061 "Office Line Generation Test"
 {
     Subtype = Test;
