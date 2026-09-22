@@ -2916,6 +2916,80 @@ codeunit 137621 "SCM Costing Bugs II"
         // [THEN] Error message indicates unadjusted cost entries for Item "I"
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure AssemblyCostReadjustmentPreservesUnitCostPrecision()
+    var
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyItem: Record Item;
+        ComponentItem: Record Item;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
+        ItemJournalBatch: Record "Item Journal Batch";
+        Location: Record Location;
+        ProdItem: Record Item;
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        RoutingHeader: Record "Routing Header";
+        RoutingLink: Record "Routing Link";
+        ValueEntry: Record "Value Entry";
+        ExpectedVariance: Decimal;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Adjust Cost Item Entries] [Assembly] [Standard Cost]
+        // [SCENARIO 647273] Re-adjusting an assembly order preserves standard cost precision when unit-amount and amount rounding precisions differ.
+        Initialize();
+        Quantity := 1000;
+
+        // [GIVEN] Unit-amount rounding precision is 0.00001.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Unit-Amount Rounding Precision" := 0.00001;
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] Create a location with inventory posting setup.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Create Items for the Prod. Order, Assembly and Component.
+        CreateStandardCostItem(ProdItem, 11.11, ProdItem."Replenishment System"::"Prod. Order");
+        CreateStandardCostItem(ComponentItem, 3.31, ComponentItem."Replenishment System"::Purchase);
+        CreateStandardCostItem(AssemblyItem, 14.43881, AssemblyItem."Replenishment System"::Assembly);
+
+        // [GIVEN] Create routing and production BOM.
+        RoutingLink.FindFirst();
+        LibraryManufacturing.CreateRouting(RoutingHeader, ProdItem, RoutingLink.Code, 0);
+        LibraryManufacturing.CreateProductionBOM(ProductionBOMHeader, ProdItem, ComponentItem, 1, RoutingLink.Code);
+
+        LibraryAssembly.CreateAssemblyListComponent(
+            "BOM Component Type"::Item, ProdItem."No.", AssemblyItem."No.", '', 0, 1, true);
+        LibraryAssembly.CreateAssemblyListComponent(
+            "BOM Component Type"::Item, ComponentItem."No.", AssemblyItem."No.", '', 0, 1, true);
+
+        // [GIVEN] Create and release a production order for the Prod. Item.
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ProdItem, Location."Code", '', Quantity, WorkDate());
+        FindProdOrderLine(ProdOrderLine, ProductionOrder);
+
+        // [GIVEN] Post output.
+        LibraryManufacturing.CreateOutputJournalLine(ItemJournalBatch, ProdOrderLine, WorkDate(), Quantity, 0);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [GIVEN] An assembly order for 1000 units is posted.
+        LibraryInventory.PostPositiveAdjustment(
+            ComponentItem, Location."Code", '', '', Quantity, WorkDate(), ComponentItem."Standard Cost");
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate(), AssemblyItem."No.", Location.Code, Quantity, '');
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+
+        // [THEN] Total variance remains 18.81; no additional variance is introduced by rounding the unit cost to 14.44.
+        ExpectedVariance :=
+            (AssemblyItem."Standard Cost" - ProdItem."Standard Cost" - ComponentItem."Standard Cost") * Quantity;
+        ValueEntry.SetRange("Item No.", AssemblyItem."No.");
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Assembly);
+        ValueEntry.SetRange("Order No.", AssemblyHeader."No.");
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(ExpectedVariance, ValueEntry."Cost Amount (Actual)", WrongStandardCostVarianceErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2940,6 +3014,16 @@ codeunit 137621 "SCM Costing Bugs II"
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Costing Bugs II");
+    end;
+
+    local procedure CreateStandardCostItem(var Item: Record Item; StandardCost: Decimal; ReplenishmentSystem: Enum "Replenishment System")
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Standard);
+        Item.Validate("Standard Cost", StandardCost);
+        Item.Validate("Replenishment System", ReplenishmentSystem);
+        Item.Validate("Rounding Precision", 0.0001);
+        Item.Modify(true);
     end;
 
     local procedure BlockItemWithApplWorksheet(var Item: Record Item)
