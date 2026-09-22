@@ -17,6 +17,7 @@ codeunit 48520 "Fabric Platform Mgt"
         MaxTablesErr: Label 'A maximum of %1 tables can be exported to Microsoft Fabric. Remove a table before adding another.', Comment = '%1 = maximum number of tables';
         TableInvalidErr: Label 'Table %1 does not exist or is not accessible.', Comment = '%1 = table id';
         TableExistsErr: Label 'Table %1 is already selected for export.', Comment = '%1 = table id';
+        TableClaimedByPackageErr: Label 'Table %1 is included in an active configuration package. Deactivate or edit the package to remove it.', Comment = '%1 = table id';
         CompanyInvalidErr: Label 'Company %1 does not exist.', Comment = '%1 = company name';
         CompanyExistsErr: Label 'Company %1 is already selected for export.', Comment = '%1 = company name';
         EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
@@ -96,6 +97,15 @@ codeunit 48520 "Fabric Platform Mgt"
         CheckCanAddTable();
         InsertTable(TableId);
         InsertClaim(TableId, "Fabric Table Claim Source"::Manual, '');
+    end;
+
+    internal procedure RemoveTable(TableId: Integer)
+    begin
+        // A table still claimed by a package must be removed via the package, not here.
+        if IsClaimedByOthers(TableId, "Fabric Table Claim Source"::Manual, '') then
+            Error(TableClaimedByPackageErr, TableId);
+
+        ReleaseTable(TableId, "Fabric Table Claim Source"::Manual, '');
     end;
 
     local procedure InsertTable(TableId: Integer)

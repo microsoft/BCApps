@@ -25,7 +25,7 @@
     "target": "Cloud",
     "internalsVisibleTo": [
         {
-            "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "id": "46efa2e4-0567-4657-82a2-48ae2d905d7c",
             "publisher": "Microsoft",
             "name": "Microsoft Fabric Export Tests"
         }

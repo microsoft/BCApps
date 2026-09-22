@@ -19,7 +19,7 @@ permissionset 48530 "Fabric Exp Admin"
         tabledata "Tenant Fabric Export Summary" = R,
         tabledata "Tenant Fabric Setup" = RIMD,
         tabledata "Tenant Fabric Table Fields" = RIMD,
-        tabledata "Tenant Fabric Tables" = R,
+        tabledata "Tenant Fabric Tables" = RM,
         codeunit "Fabric Config Package Mgt" = X,
         codeunit "Fabric Install" = X,
         codeunit "Fabric Platform Admin Client" = X,

@@ -10,6 +10,7 @@ page 48512 "Fabric Platform Tables"
     SourceTable = "Tenant Fabric Tables";
     ApplicationArea = All;
     InsertAllowed = false;
+    DeleteAllowed = false;
     AboutTitle = 'Choose tables to synchronize';
     AboutText = 'Add the Business Central tables you want to send to Microsoft Fabric. You can select up to 500 tables.';
 
@@ -77,6 +78,21 @@ page 48512 "Fabric Platform Tables"
                     CurrPage.Update(false);
                 end;
             }
+            action(RemoveTable)
+            {
+                Caption = 'Remove table';
+                ApplicationArea = All;
+                Image = Delete;
+                ToolTip = 'Removes the selected table from the export selection. Tables still claimed by an active configuration package cannot be removed here.';
+
+                trigger OnAction()
+                var
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                begin
+                    FabricPlatformMgt.RemoveTable(Rec."Table ID");
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -85,6 +101,7 @@ page 48512 "Fabric Platform Tables"
                 Caption = 'Process';
 
                 actionref(AddTable_Promoted; AddTable) { }
+                actionref(RemoveTable_Promoted; RemoveTable) { }
             }
         }
     }

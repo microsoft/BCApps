@@ -13,6 +13,7 @@ permissionset 48532 "Fabric Exp Activate"
         table "Fabric Config Package Line" = X,
         tabledata "Fabric Config Package Line" = R,
         tabledata "Fabric Table Claim" = R,
+        tabledata "Tenant Fabric Companies" = R,
         tabledata "Tenant Fabric Enum Mapping" = R,
         tabledata "Tenant Fabric Export Details" = R,
         tabledata "Tenant Fabric Export Summary" = R,
@@ -26,8 +27,10 @@ permissionset 48532 "Fabric Exp Activate"
         codeunit "Fabric Platform Lookup State" = X,
         codeunit "Fabric Platform Mgt" = X,
         codeunit "Fabric Platform Telemetry" = X,
+        page "Fabric Companies FactBox" = X,
         page "Fabric Config Package Card" = X,
         page "Fabric Config Packages" = X,
         page "Fabric Config Package Subform" = X,
-        page "Fabric Platform Setup" = X;
+        page "Fabric Platform Setup" = X,
+        page "Fabric Tables FactBox" = X;
 }

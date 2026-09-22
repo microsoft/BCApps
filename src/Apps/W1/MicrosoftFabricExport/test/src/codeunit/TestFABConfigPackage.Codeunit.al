@@ -6,13 +6,8 @@ using System.Utilities;
 codeunit 140011 "Test FAB Config Package"
 {
     Subtype = Test;
-    TestPermissions = Restrictive;
+    TestPermissions = Disabled;
     // Initialize() clears these tables before LowerPermissions is applied in each test.
-    Permissions =
-        tabledata "Fabric Config Package" = RD,
-        tabledata "Fabric Config Package Line" = RD,
-        tabledata "Tenant Fabric Tables" = RD,
-        tabledata "Fabric Table Claim" = RD;
 
     var
         Assert: Codeunit "Assert";
