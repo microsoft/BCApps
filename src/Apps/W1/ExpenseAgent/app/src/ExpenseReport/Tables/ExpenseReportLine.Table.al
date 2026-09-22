@@ -1280,21 +1280,9 @@ table 6907 "Expense Report Line"
     end;
 
     /// <summary>
-    /// Checks confirmed current results without writing. Unlike result presence, completion requires
-    /// confirmation at or after every result; a never-confirmed empty policy set is complete.
-    /// </summary>
-    internal procedure IsPolicyEvaluationComplete(): Boolean
-    var
-        PolicyStatus: Enum "Expense Policy Status";
-        FailedCount: Integer;
-        PassedCount: Integer;
-    begin
-        exit(IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount));
-    end;
-
-    /// <summary>
     /// Returns counts only for a complete current policy set. Uses the caller's line read isolation
     /// for policy and evaluation reads, preserving stable snapshots without strengthening ordinary reads.
+    /// Completion requires confirmation at or after every result; a never-confirmed empty policy set is complete.
     /// </summary>
     internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer): Boolean
     var

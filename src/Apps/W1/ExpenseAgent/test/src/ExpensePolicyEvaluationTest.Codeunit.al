@@ -112,7 +112,7 @@ codeunit 148340 "Expense Policy Evaluation Test"
         // [WHEN] The changed line is confirmed against the empty policy set.
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
 
-        // [THEN] Both completion overloads report No Policies rather than Cleared.
+        // [THEN] The completion summary reports No Policies rather than Cleared.
         VerifyPolicyCompletion(ExpenseReportLine, true, "Expense Policy Status"::"No Policies", 0, 0);
     end;
 
@@ -1399,7 +1399,6 @@ codeunit 148340 "Expense Policy Evaluation Test"
         FailedCount := 99;
         PassedCount := 99;
         Assert.AreEqual(ExpectedComplete, ExpenseReportLine.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount), 'Metadata completion must match readiness.');
-        Assert.AreEqual(ExpectedComplete, ExpenseReportLine.IsPolicyEvaluationComplete(), 'Boolean and metadata overloads must agree.');
         Assert.AreEqual(ExpectedStatus, PolicyStatus, 'Completion status must reflect confirmed evidence.');
         Assert.AreEqual(ExpectedFailedCount, FailedCount, 'Failed counts must be exact, or zero when incomplete.');
         Assert.AreEqual(ExpectedPassedCount, PassedCount, 'Passed counts must be exact, or zero when incomplete.');

@@ -703,32 +703,42 @@ codeunit 148342 "Expense Activity Log Test"
         Header: Record "Expense Report Header";
         Line: Record "Expense Report Line";
         SecondLine: Record "Expense Report Line";
+        ThirdLine: Record "Expense Report Line";
         Policy: Record "Expense Policy";
         PassedPolicy: Record "Expense Policy";
+        ExpectedCategories: JsonArray;
         SubmissionID: Guid;
     begin
         // [SCENARIO] Global policies count line-policy pairs and use line categories, not blank policy scope.
         Initialize();
 
-        // [GIVEN] L1 and L2 have different category codes sharing one display name and two global policies.
+        // [GIVEN] L1 and L2 have distinct codes sharing a description; L3 repeats L1's code.
         CreatePolicyHistoryScenario(Header, Line, Policy);
         AddHistoryLine(Header, SecondLine);
         SetHistoryCategoryName(Line, 'Meals "and" travel');
         SetHistoryCategoryName(SecondLine, 'Meals "and" travel');
+        AddHistoryLine(Header, ThirdLine);
+        ThirdLine."Expense Category" := Line."Expense Category";
+        ThirdLine.Modify(false);
         LibraryExpense.CreateExpensePolicy(PassedPolicy, '', 'Passing global policy');
         AddHistoryEvaluation(Line, Policy, false);
         AddHistoryEvaluation(Line, PassedPolicy, false);
         AddHistoryEvaluation(SecondLine, Policy, false);
         AddHistoryEvaluation(SecondLine, PassedPolicy, true);
+        AddHistoryEvaluation(ThirdLine, Policy, false);
+        AddHistoryEvaluation(ThirdLine, PassedPolicy, true);
         Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
         SecondLine.MarkPoliciesEvaluated(SecondLine."Policy Eval Version");
+        ThirdLine.MarkPoliciesEvaluated(ThirdLine."Policy Eval Version");
+        ExpectedCategories.Add(Line."Expense Category");
+        ExpectedCategories.Add(SecondLine."Expense Category");
 
         // [WHEN] The report is submitted with already-current manual results.
         SubmissionID := SubmitHistoryReport(Header);
 
-        // [THEN] Three failed pairs and one pass retain only the distinct displayed line category name.
-        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 3, 1, 1);
-        VerifyFlaggedCategory(SubmissionID, 'Meals "and" travel');
+        // [THEN] All four failures and two passes count, but repeated codes appear only at their first line position.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 4, 2, 2);
+        VerifyFlaggedCategoryCodes(SubmissionID, ExpectedCategories);
     end;
 
     [Test]
@@ -803,7 +813,7 @@ codeunit 148342 "Expense Activity Log Test"
         // [SCENARIO] Confirmation before and after category and policy changes preserves the original snapshot.
         Initialize();
 
-        // [GIVEN] A flagged snapshot with a captured category display name.
+        // [GIVEN] A flagged snapshot with a captured category code.
         CreatePolicyHistoryScenario(Header, Line, Policy);
         SetHistoryCategoryName(Line, 'Original meals');
         AddHistoryEvaluation(Line, Policy, false);
@@ -819,7 +829,7 @@ codeunit 148342 "Expense Activity Log Test"
         VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 1, 0, 1);
         VerifyUnchangedPolicySnapshot(OriginalEntry);
 
-        // [GIVEN] The category is renamed and P is disabled.
+        // [GIVEN] The category description changes and P is disabled.
         SetHistoryCategoryName(Line, 'Renamed meals');
         Policy.Enabled := false;
         Policy.Modify(true);
@@ -831,7 +841,7 @@ codeunit 148342 "Expense Activity Log Test"
         // [THEN] The one stored failure is not re-derived as cleared or no policies.
         VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 1, 0, 1);
         VerifyUnchangedPolicySnapshot(OriginalEntry);
-        VerifyFlaggedCategory(SubmissionID, 'Original meals');
+        VerifyFlaggedCategory(SubmissionID, Line."Expense Category");
     end;
 
     [Test]
@@ -1208,7 +1218,7 @@ codeunit 148342 "Expense Activity Log Test"
     end;
 
     [Test]
-    procedure FlaggedCategoryNamesOverflowWithEllipsis()
+    procedure FlaggedCategoryCodesOverflowWithEllipsis()
     var
         Header: Record "Expense Report Header";
         Line: Record "Expense Report Line";
@@ -1217,20 +1227,20 @@ codeunit 148342 "Expense Activity Log Test"
         Entry: Record "Expense Activity Log Entry";
         ExpectedCategories: JsonArray;
         CategoriesText: Text;
-        CategoryName: Text[250];
+        CategoryCode: Code[20];
         SubmissionID: Guid;
         Index: Integer;
     begin
-        // [SCENARIO] Escaped display names fill the boundary; overflow replaces the tail with one final marker.
+        // [SCENARIO] Escaped category codes fill the boundary; overflow replaces the tail with one final marker.
         Initialize();
 
-        // [GIVEN] Four long escaped names and one short name exactly fill the snapshot field.
+        // [GIVEN] 51 escaped 20-character codes and a short code exactly fill the snapshot field.
         CreatePolicyHistoryScenario(Header, Line, Policy);
         LibraryExpense.CreateExpensePolicy(PassedPolicy, '', 'Passing global policy');
-        for Index := 1 to 4 do begin
-            CategoryName := Format(Index) + PadStr('', 245, '"') + '\end';
-            SetHistoryCategoryName(Line, CategoryName);
-            ExpectedCategories.Add(CategoryName);
+        for Index := 1 to 51 do begin
+            CategoryCode := PadStr('', 3 - StrLen(Format(Index)), '0') + Format(Index) + PadStr('', 16, '"') + '\';
+            SetHistoryCategoryCode(Line, CategoryCode);
+            ExpectedCategories.Add(CategoryCode);
             AddHistoryEvaluation(Line, Policy, false);
             AddHistoryEvaluation(Line, PassedPolicy, true);
             Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
@@ -1238,21 +1248,21 @@ codeunit 148342 "Expense Activity Log Test"
             AddHistoryLine(Header, Line);
         end;
         ExpectedCategories.WriteTo(CategoriesText);
-        CategoryName := CopyStr(PadStr('Tail', MaxStrLen(Entry."Flagged Categories") - StrLen(CategoriesText) - 3, 'T'), 1, MaxStrLen(CategoryName));
-        SetHistoryCategoryName(Line, CategoryName);
-        ExpectedCategories.Add(CategoryName);
+        CategoryCode := CopyStr(PadStr('TAIL', MaxStrLen(Entry."Flagged Categories") - StrLen(CategoriesText) - 3, 'T'), 1, MaxStrLen(CategoryCode));
+        SetHistoryCategoryCode(Line, CategoryCode);
+        ExpectedCategories.Add(CategoryCode);
         ExpectedCategories.WriteTo(CategoriesText);
         Assert.AreEqual(MaxStrLen(Entry."Flagged Categories"), StrLen(CategoriesText), 'The fixture must exactly fill the serialized boundary.');
         AddHistoryEvaluation(Line, Policy, false);
         AddHistoryEvaluation(Line, PassedPolicy, true);
         Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
 
-        // [GIVEN] Two further names overflow, with both failed and passing checks after the boundary.
-        for Index := 5 to 6 do begin
+        // [GIVEN] Two further codes overflow, with both failed and passing checks after the boundary.
+        for Index := 52 to 53 do begin
             Clear(Line);
             AddHistoryLine(Header, Line);
-            CategoryName := Format(Index) + PadStr('', 245, '"') + '\end';
-            SetHistoryCategoryName(Line, CategoryName);
+            CategoryCode := PadStr('', 3 - StrLen(Format(Index)), '0') + Format(Index) + PadStr('', 16, '"') + '\';
+            SetHistoryCategoryCode(Line, CategoryCode);
             AddHistoryEvaluation(Line, Policy, false);
             AddHistoryEvaluation(Line, PassedPolicy, true);
             Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
@@ -1263,8 +1273,8 @@ codeunit 148342 "Expense Activity Log Test"
         // [WHEN] H is submitted.
         SubmissionID := SubmitHistoryReport(Header);
 
-        // [THEN] Counts include every pair while the valid preview keeps four distinct names and one marker.
-        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 7, 7, 5);
+        // [THEN] Counts include every pair while the valid preview keeps 51 distinct codes and one marker.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 54, 54, 52);
         VerifyFlaggedCategoryPreview(SubmissionID, ExpectedCategories);
     end;
 
@@ -1282,10 +1292,10 @@ codeunit 148342 "Expense Activity Log Test"
         PolicyStatus: Enum "Expense Policy Status";
         FailedCount: Integer;
         PassedCount: Integer;
-        FlaggedCategoryNames: List of [Text];
+        FlaggedCategories: List of [Code[20]];
         IsComplete: Boolean;
     begin
-        // [SCENARIO] The header reads all current pairs and distinct category names without changing an unsubmitted report.
+        // [SCENARIO] The header reads all current pairs and distinct category codes without changing an unsubmitted report.
         Initialize();
 
         // [GIVEN] H has three flagged lines and one cleared line, each evaluated against two global policies.
@@ -1317,17 +1327,17 @@ codeunit 148342 "Expense Activity Log Test"
         OriginalExpenseReportHeader := ExpenseReportHeader;
         FailedCount := 99;
         PassedCount := 99;
-        FlaggedCategoryNames.Add('Old category');
+        FlaggedCategories.Add('OLD-CATEGORY');
 
         // [WHEN] H is read directly through the rich helper.
-        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
-        // [THEN] Both overloads agree, count all pairs, and return distinct names in line order with code fallback.
+        // [THEN] The summary counts all pairs and returns distinct codes in line order regardless of descriptions.
         Assert.IsTrue(IsComplete, 'Confirmed results must be complete even before submission.');
-        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both header overloads must agree.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::Flagged, 3, 5, 2);
-        Assert.AreEqual('Meals "and" travel', FlaggedCategoryNames.Get(1), 'Shared descriptions must appear only once at their first line position.');
-        Assert.AreEqual(ThirdExpenseReportLine."Expense Category", FlaggedCategoryNames.Get(2), 'A blank description must fall back to the category code.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::Flagged, 3, 5, 3);
+        Assert.AreEqual(FirstExpenseReportLine."Expense Category", FlaggedCategories.Get(1), 'The first flagged code must retain line order.');
+        Assert.AreEqual(SecondExpenseReportLine."Expense Category", FlaggedCategories.Get(2), 'Distinct codes sharing a description must remain distinct.');
+        Assert.AreEqual(ThirdExpenseReportLine."Expense Category", FlaggedCategories.Get(3), 'A blank description must not affect the category code.');
 
         // [THEN] H and every line retain their stored versions and status, and no activity is created.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -1351,7 +1361,7 @@ codeunit 148342 "Expense Activity Log Test"
         PolicyStatus: Enum "Expense Policy Status";
         FailedCount: Integer;
         PassedCount: Integer;
-        FlaggedCategoryNames: List of [Text];
+        FlaggedCategories: List of [Code[20]];
         IsComplete: Boolean;
     begin
         // [SCENARIO] A later unconfirmed line discards partial results on repeated and freshly loaded header reads.
@@ -1368,49 +1378,47 @@ codeunit 148342 "Expense Activity Log Test"
         PolicyStatus := PolicyStatus::Flagged;
         FailedCount := 99;
         PassedCount := 99;
-        FlaggedCategoryNames.Add('Old category');
+        FlaggedCategories.Add('OLD-CATEGORY');
 
         // [WHEN] H is read before L2 is confirmed.
-        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
-        // [THEN] No partial flagged result escapes, and both overloads return false.
+        // [THEN] No partial flagged result escapes when the summary is incomplete.
         Assert.IsFalse(IsComplete, 'An unconfirmed later line must prevent report completion.');
-        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both header overloads must agree for an incomplete report.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"Not Evaluated", 0, 0, 0);
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"Not Evaluated", 0, 0, 0);
 
         // [WHEN] The same header and outputs are reused.
-        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
-        // [THEN] Reading again cannot expose L1's accumulated counts or names.
+        // [THEN] Reading again cannot expose L1's accumulated counts or codes.
         Assert.IsFalse(IsComplete, 'Repeated reads must still wait for L2.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"Not Evaluated", 0, 0, 0);
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"Not Evaluated", 0, 0, 0);
 
         // [WHEN] A fresh H is read with newly seeded outputs.
         FreshExpenseReportHeader.Get(ExpenseReportHeader."No.");
         PolicyStatus := PolicyStatus::Flagged;
         FailedCount := 99;
         PassedCount := 99;
-        FlaggedCategoryNames.Add('Another old category');
-        IsComplete := FreshExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        FlaggedCategories.Add('ANOTHER-OLD-CATEGORY');
+        IsComplete := FreshExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
         // [THEN] Fresh reads also discard all partial and caller-provided outputs without logging.
         Assert.IsFalse(IsComplete, 'A fresh header must observe the unconfirmed line.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"Not Evaluated", 0, 0, 0);
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"Not Evaluated", 0, 0, 0);
         VerifyNoReportActivity(ExpenseReportHeader);
 
         // [WHEN] L2 is confirmed and the rich helper is called again with reused, seeded outputs.
         SecondExpenseReportLine.MarkPoliciesEvaluated(SecondExpenseReportLine."Policy Eval Version");
         FailedCount := 99;
         PassedCount := 99;
-        FlaggedCategoryNames.Add('Obsolete category');
-        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        FlaggedCategories.Add('OBSOLETE-CATEGORY');
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
-        // [THEN] The complete summary includes both current names and no stale entries or activity.
+        // [THEN] The complete summary includes both current codes and no stale entries or activity.
         Assert.IsTrue(IsComplete, 'Confirming the remaining line must complete the report.');
-        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both overloads must agree after final confirmation.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::Flagged, 2, 0, 2);
-        Assert.AreEqual('First category', FlaggedCategoryNames.Get(1), 'The first flagged category must retain line order.');
-        Assert.AreEqual('Second category', FlaggedCategoryNames.Get(2), 'The newly confirmed category must replace stale caller entries.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::Flagged, 2, 0, 2);
+        Assert.AreEqual(FirstExpenseReportLine."Expense Category", FlaggedCategories.Get(1), 'The first flagged category must retain line order.');
+        Assert.AreEqual(SecondExpenseReportLine."Expense Category", FlaggedCategories.Get(2), 'The newly confirmed category must replace stale caller entries.');
         VerifyNoReportActivity(ExpenseReportHeader);
     end;
 
@@ -1423,7 +1431,7 @@ codeunit 148342 "Expense Activity Log Test"
         PolicyStatus: Enum "Expense Policy Status";
         FailedCount: Integer;
         PassedCount: Integer;
-        FlaggedCategoryNames: List of [Text];
+        FlaggedCategories: List of [Code[20]];
         IsComplete: Boolean;
     begin
         // [SCENARIO] No applicable policies and zero lines are complete helper results with empty overwritten outputs.
@@ -1435,15 +1443,14 @@ codeunit 148342 "Expense Activity Log Test"
         PolicyStatus := PolicyStatus::Flagged;
         FailedCount := 99;
         PassedCount := 99;
-        FlaggedCategoryNames.Add('Old category');
+        FlaggedCategories.Add('OLD-CATEGORY');
 
         // [WHEN] H is read without applicable policies.
-        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
-        // [THEN] No confirmation is required and both overloads report completion without retaining caller data.
+        // [THEN] No confirmation is required and the summary reports completion without retaining caller data.
         Assert.IsTrue(IsComplete, 'A line with no applicable policies must be complete without confirmation.');
-        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both overloads must agree when no policies apply.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"No Policies", 0, 0, 0);
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"No Policies", 0, 0, 0);
         VerifyNoReportActivity(ExpenseReportHeader);
 
         // [GIVEN] H now has zero lines and the outputs contain earlier caller data again.
@@ -1451,15 +1458,14 @@ codeunit 148342 "Expense Activity Log Test"
         PolicyStatus := PolicyStatus::Flagged;
         FailedCount := 99;
         PassedCount := 99;
-        FlaggedCategoryNames.Add('Another old category');
+        FlaggedCategories.Add('ANOTHER-OLD-CATEGORY');
 
         // [WHEN] The helper reads H with zero lines, independently of submission validation.
-        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
 
         // [THEN] An empty header has the same complete, empty No Policies summary.
         Assert.IsTrue(IsComplete, 'The helper must return complete for a header with zero lines.');
-        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both overloads must agree when the header has zero lines.');
-        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"No Policies", 0, 0, 0);
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"No Policies", 0, 0, 0);
         VerifyNoReportActivity(ExpenseReportHeader);
     end;
 
@@ -1481,12 +1487,12 @@ codeunit 148342 "Expense Activity Log Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
     end;
 
-    local procedure VerifyHeaderPolicySummary(PolicyStatus: Enum "Expense Policy Status"; FailedCount: Integer; PassedCount: Integer; FlaggedCategoryNames: List of [Text]; ExpectedPolicyStatus: Enum "Expense Policy Status"; ExpectedFailedCount: Integer; ExpectedPassedCount: Integer; ExpectedCategoryCount: Integer)
+    local procedure VerifyHeaderPolicySummary(PolicyStatus: Enum "Expense Policy Status"; FailedCount: Integer; PassedCount: Integer; FlaggedCategories: List of [Code[20]]; ExpectedPolicyStatus: Enum "Expense Policy Status"; ExpectedFailedCount: Integer; ExpectedPassedCount: Integer; ExpectedCategoryCount: Integer)
     begin
         Assert.AreEqual(ExpectedPolicyStatus, PolicyStatus, 'The summary must return the complete status or the offending incomplete line status.');
         Assert.AreEqual(ExpectedFailedCount, FailedCount, 'The failed count must contain only complete current line-policy pairs.');
         Assert.AreEqual(ExpectedPassedCount, PassedCount, 'The passed count must contain only complete current line-policy pairs.');
-        Assert.AreEqual(ExpectedCategoryCount, FlaggedCategoryNames.Count(), 'The category list must discard caller entries and incomplete partial results.');
+        Assert.AreEqual(ExpectedCategoryCount, FlaggedCategories.Count(), 'The category list must discard caller entries and incomplete partial results.');
     end;
 
     local procedure VerifyUnchangedPolicySummaryLine(OriginalExpenseReportLine: Record "Expense Report Line")
@@ -1534,16 +1540,27 @@ codeunit 148342 "Expense Activity Log Test"
         Entry: Record "Expense Activity Log Entry";
         Categories: JsonArray;
         LastCategory: JsonToken;
-        ExpectedText: Text;
     begin
         SetPolicySnapshotFilter(SubmissionID, Entry);
         Entry.FindFirst();
         Assert.IsTrue(StrLen(Entry."Flagged Categories") <= MaxStrLen(Entry."Flagged Categories"), 'The preview must fit the field.');
         Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'The preview must be a valid JSON array.');
-        ExpectedCategories.WriteTo(ExpectedText);
-        Assert.AreEqual(ExpectedText, Entry."Flagged Categories", 'Distinct escaped names must retain line order with exactly one final marker.');
+        VerifyFlaggedCategoryCodes(SubmissionID, ExpectedCategories);
         Categories.Get(Categories.Count() - 1, LastCategory);
         Assert.AreEqual('...', LastCategory.AsValue().AsText(), 'Overflow must end with a separate ellipsis entry.');
+    end;
+
+    local procedure VerifyFlaggedCategoryCodes(SubmissionID: Guid; ExpectedCategories: JsonArray)
+    var
+        Entry: Record "Expense Activity Log Entry";
+        Categories: JsonArray;
+        ExpectedText: Text;
+    begin
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Entry.FindFirst();
+        Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'Flagged categories must be a valid JSON array.');
+        ExpectedCategories.WriteTo(ExpectedText);
+        Assert.AreEqual(ExpectedText, Entry."Flagged Categories", 'Distinct codes must retain first-line order without partial entries or duplicate markers.');
     end;
 
     local procedure VerifyUnchangedPolicySnapshot(OriginalEntry: Record "Expense Activity Log Entry")
@@ -1606,6 +1623,17 @@ codeunit 148342 "Expense Activity Log Test"
         Category.Modify(false);
     end;
 
+    local procedure SetHistoryCategoryCode(var Line: Record "Expense Report Line"; CategoryCode: Code[20])
+    var
+        Category: Record "Expense Category";
+    begin
+        Category.Get(Line."Expense Category");
+        Category.Rename(CategoryCode);
+        Line.Get(Line."Document No.", Line."Line No.");
+        Line."Expense Category" := Category.Code;
+        Line.Modify(false);
+    end;
+
     local procedure SubmitHistoryReport(var Header: Record "Expense Report Header") SubmissionID: Guid
     var
         Entry: Record "Expense Activity Log Entry";
@@ -1639,7 +1667,7 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.AreNotEqual(0DT, Entry."Occurred At", 'A captured policy event must have a history timestamp.');
     end;
 
-    local procedure VerifyFlaggedCategory(SubmissionID: Guid; CategoryName: Text[250])
+    local procedure VerifyFlaggedCategory(SubmissionID: Guid; CategoryCode: Code[20])
     var
         Entry: Record "Expense Activity Log Entry";
         Categories: JsonArray;
@@ -1648,9 +1676,9 @@ codeunit 148342 "Expense Activity Log Test"
         SetPolicySnapshotFilter(SubmissionID, Entry);
         Entry.FindFirst();
         Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'Flagged categories must be valid JSON.');
-        Assert.AreEqual(1, Categories.Count(), 'Repeated failures and shared display names must not duplicate categories.');
+        Assert.AreEqual(1, Categories.Count(), 'Repeated failures for one code must not duplicate categories.');
         Categories.Get(0, Category);
-        Assert.AreEqual(CategoryName, Category.AsValue().AsText(), 'Capture the display name, falling back to the code for a blank description.');
+        Assert.AreEqual(CategoryCode, Category.AsValue().AsText(), 'Capture the category code regardless of its description.');
     end;
 
     local procedure SetPolicySnapshotFilter(SubmissionID: Guid; var Entry: Record "Expense Activity Log Entry")

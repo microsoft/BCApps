@@ -454,6 +454,7 @@ codeunit 148343 "Expense Activity Log API Test"
         CreateE2ESetup(SubmitterExpenseUser, ApproverExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
         ExpenseCategory.Description := TestDescriptionPrefixLbl + 'Meals "and" travel \ expenses';
         ExpenseCategory.Modify(false);
+        ExpenseCategory.Rename('MEALS"\' + RunToken);
         CreateE2EReport(ExpenseReportHeader, SubmitterExpenseUser, ExpenseCategory, ExpensePaymentMethod, RunToken);
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Evaluate Policies" := true;
@@ -479,7 +480,7 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.RecordCount(ExpenseActivityLogEntry, 1);
         ExpenseActivityLogEntry.FindFirst();
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, ReportURL + '/' + ServiceNameTok, 200);
-        VerifyPolicyCategoryName(ResponseText, ExpenseCategory.Description);
+        VerifyPolicyCategoryCode(ResponseText, ExpenseCategory.Code);
         ResponseText := LowerCase(ResponseText);
         Assert.AreNotEqual(0, StrPos(ResponseText, '"eventtype":"policyevaluated"'), 'The event type must identify the policy snapshot.');
         Assert.AreNotEqual(0, StrPos(ResponseText, '"policystatus":"flagged"'), 'The failed result must not be mapped to cleared.');
@@ -508,7 +509,7 @@ codeunit 148343 "Expense Activity Log API Test"
         CompleteTest();
     end;
 
-    local procedure VerifyPolicyCategoryName(ResponseText: Text; ExpectedCategoryName: Text[250])
+    local procedure VerifyPolicyCategoryCode(ResponseText: Text; ExpectedCategoryCode: Code[20])
     var
         Response: JsonObject;
         EntriesToken: JsonToken;
@@ -529,9 +530,9 @@ codeunit 148343 "Expense Activity Log API Test"
                 SnapshotCount += 1;
                 EntryObject.Get('flaggedCategories', CategoriesToken);
                 Assert.IsTrue(Categories.ReadFrom(CategoriesToken.AsValue().AsText()), 'The category text must decode as a JSON array.');
-                Assert.AreEqual(1, Categories.Count(), 'The snapshot must expose one category name.');
+                Assert.AreEqual(1, Categories.Count(), 'The snapshot must expose one category code.');
                 Categories.Get(0, CategoryToken);
-                Assert.AreEqual(ExpectedCategoryName, CategoryToken.AsValue().AsText(), 'The API must expose the captured display name, not its code.');
+                Assert.AreEqual(ExpectedCategoryCode, CategoryToken.AsValue().AsText(), 'The API must expose the captured category code, not its description.');
             end;
         end;
         Assert.AreEqual(1, SnapshotCount, 'The response must contain exactly one policy snapshot.');

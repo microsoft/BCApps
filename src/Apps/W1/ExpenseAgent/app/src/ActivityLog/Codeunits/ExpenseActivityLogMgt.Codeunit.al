@@ -135,8 +135,8 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseAgentSetup: Record "Expense Agent Setup";
         SubmissionEntry: Record "Expense Activity Log Entry";
         Snapshot: Record "Expense Activity Log Entry";
-        FlaggedCategoryNames: List of [Text];
-        CategoryName: Text;
+        FlaggedCategories: List of [Code[20]];
+        CategoryCode: Code[20];
         Categories: JsonArray;
         CategoriesText: Text;
         CategoriesTruncated: Boolean;
@@ -168,8 +168,9 @@ codeunit 6926 "Expense Activity Log Mgt."
         Snapshot.SetRange("Event Type", Snapshot."Event Type"::PolicyEvaluated);
         Snapshot.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
         // Log at most one PolicyEvaluated entry after the latest Submitted/Resubmitted entry.
-        // Repeated line confirmations leave that snapshot unchanged; a resubmission permits a new one.
-        // Example: Submitted 100, PolicyEvaluated 101 => skip; Resubmitted 105 => 101 no longer matches.
+        // Example (Entry No.): Submitted 100, PolicyEvaluated 101 => skip duplicate.
+        // Resubmitted 105 starts a new round; entry 101 remains in history.
+        // Only PolicyEvaluated entries after 105 prevent another snapshot in that round.
         if not Snapshot.IsEmpty() then
             exit;
         Snapshot.Reset();
@@ -179,12 +180,12 @@ codeunit 6926 "Expense Activity Log Mgt."
             Enum::"Expense Activity Initiator"::Agent, Enum::"Expense Activity Actor Role"::" ", '', 0DT);
         // Wait for complete, current results across all lines; a later confirmation retries.
         if not ExpenseReportHeader.IsPolicyEvaluationComplete(
-            Snapshot."Policy Status", Snapshot."Failed Policy Count", Snapshot."Passed Policy Count", FlaggedCategoryNames)
+            Snapshot."Policy Status", Snapshot."Failed Policy Count", Snapshot."Passed Policy Count", FlaggedCategories)
         then
             exit;
 
-        foreach CategoryName in FlaggedCategoryNames do
-            AddBoundedCategory(Categories, CategoryName, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
+        foreach CategoryCode in FlaggedCategories do
+            AddBoundedCategory(Categories, CategoryCode, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
         Categories.WriteTo(CategoriesText);
         Snapshot."Flagged Categories" := CopyStr(CategoriesText, 1, MaxStrLen(Snapshot."Flagged Categories"));
         Snapshot."Occurred At" := CurrentDateTime();
@@ -341,12 +342,12 @@ codeunit 6926 "Expense Activity Log Mgt."
             CopyStr(CategoriesText, 1, MaxStrLen(ExpenseActivityLogEntry.Categories));
     end;
 
-    local procedure AddBoundedCategory(var Categories: JsonArray; CategoryName: Text; MaxLength: Integer; var CategoriesText: Text; var CategoriesTruncated: Boolean)
+    local procedure AddBoundedCategory(var Categories: JsonArray; CategoryValueText: Text; MaxLength: Integer; var CategoriesText: Text; var CategoriesTruncated: Boolean)
     begin
         if CategoriesTruncated then
             exit;
 
-        Categories.Add(CategoryName);
+        Categories.Add(CategoryValueText);
         Categories.WriteTo(CategoriesText);
         if StrLen(CategoriesText) <= MaxLength then
             exit;

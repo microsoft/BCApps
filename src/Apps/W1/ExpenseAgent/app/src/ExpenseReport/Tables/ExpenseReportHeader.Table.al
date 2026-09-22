@@ -1276,40 +1276,32 @@ table 6906 "Expense Report Header"
             Error(NotPendingApprovalErr, Rec."No.");
     end;
 
-    internal procedure IsPolicyEvaluationComplete(): Boolean
-    var
-        PolicyStatus: Enum "Expense Policy Status";
-        FailedCount: Integer;
-        PassedCount: Integer;
-        FlaggedCategoryNames: List of [Text];
-    begin
-        exit(IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames));
-    end;
-
     /// <summary>
-    /// Reads confirmed current results across the report. Incomplete reports return no partial counts or names.
-    /// Category names are unbounded here; presentation and activity storage limits belong to the caller.
+    /// Checks policy evaluation completion across the report's lines and returns a read-only summary.
+    /// Replaces all output values; incomplete reports return zero counts and an empty category list.
     /// </summary>
-    internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer; var FlaggedCategoryNames: List of [Text]): Boolean
+    /// <param name="PolicyStatus">Flagged, Cleared, or No Policies when complete; otherwise the first incomplete line's Not Evaluated or Stale status.</param>
+    /// <param name="FailedCount">Number of failed current line-policy evaluations, not the number of expenses or categories.</param>
+    /// <param name="PassedCount">Number of passed current line-policy evaluations.</param>
+    /// <param name="FlaggedCategories">Distinct nonblank failed-line category codes in line order. Not truncated; formatting and storage limits belong to the caller.</param>
+    /// <returns>True when every line's applicable current policies have confirmed results, including flagged results. Lines without applicable policies need no initial confirmation, but previously evaluated lines changed since confirmation remain incomplete. An empty report returns true with No Policies.</returns>
+    internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer; var FlaggedCategories: List of [Code[20]]): Boolean
     var
         ExpenseReportLine: Record "Expense Report Line";
-        ExpenseCategory: Record "Expense Category";
         LinePolicyStatus: Enum "Expense Policy Status";
         LineFailedCount: Integer;
         LinePassedCount: Integer;
         TotalFailedCount: Integer;
         TotalPassedCount: Integer;
-        CategoryNames: List of [Text];
-        CategoryName: Text[250];
+        CategoryCodes: List of [Code[20]];
     begin
         PolicyStatus := PolicyStatus::"Not Evaluated";
         FailedCount := 0;
         PassedCount := 0;
-        Clear(FlaggedCategoryNames);
+        Clear(FlaggedCategories);
 
         ExpenseReportLine.ReadIsolation := IsolationLevel::RepeatableRead;
         ExpenseReportLine.SetLoadFields(SystemId, "Expense Category", "Policy Eval Version", "Evaluated Policy Version", "Policies Evaluated At");
-        ExpenseCategory.SetLoadFields(Description);
         ExpenseReportLine.SetCurrentKey("Document No.", "Line No.");
         ExpenseReportLine.SetRange("Document No.", Rec."No.");
         if ExpenseReportLine.FindSet() then
@@ -1320,19 +1312,15 @@ table 6906 "Expense Report Header"
                 end;
                 TotalFailedCount += LineFailedCount;
                 TotalPassedCount += LinePassedCount;
-                if (LineFailedCount > 0) and (ExpenseReportLine."Expense Category" <> '') then begin
-                    CategoryName := ExpenseReportLine."Expense Category";
-                    if ExpenseCategory.Get(ExpenseReportLine."Expense Category") then
-                        if ExpenseCategory.Description <> '' then
-                            CategoryName := ExpenseCategory.Description;
-                    if not CategoryNames.Contains(CategoryName) then
-                        CategoryNames.Add(CategoryName);
-                end;
+                if (LineFailedCount > 0) and (ExpenseReportLine."Expense Category" <> '') and
+                   (not CategoryCodes.Contains(ExpenseReportLine."Expense Category"))
+                then
+                    CategoryCodes.Add(ExpenseReportLine."Expense Category");
             until ExpenseReportLine.Next() = 0;
 
         FailedCount := TotalFailedCount;
         PassedCount := TotalPassedCount;
-        FlaggedCategoryNames := CategoryNames;
+        FlaggedCategories := CategoryCodes;
         PolicyStatus := PolicyStatus::"No Policies";
         if PassedCount > 0 then
             PolicyStatus := PolicyStatus::Cleared;
