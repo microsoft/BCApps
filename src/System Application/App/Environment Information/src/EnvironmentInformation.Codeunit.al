@@ -37,18 +37,18 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
-    /// Gets the description of the environment's nature and intended purpose, which provides context for AI.
+    /// Gets the description of the environment's nature and intended purpose. The description can provide context for AI-powered experiences.
     /// </summary>
-    /// <returns>The description that provides environment context for AI.</returns>
+    /// <returns>The description of the environment.</returns>
     procedure GetEnvironmentDescription(): Text
     begin
         exit(EnvironmentInformationImpl.GetEnvironmentDescription());
     end;
 
     /// <summary>
-    /// Sets the description of the environment's nature and intended purpose, which provides context for AI.
+    /// Sets the description of the environment's nature and intended purpose. The description can provide context for AI-powered experiences.
     /// </summary>
-    /// <param name="Description">The description that provides environment context for AI.</param>
+    /// <param name="Description">The description of the environment.</param>
     procedure SetEnvironmentDescription(Description: Text)
     begin
         EnvironmentInformationImpl.SetEnvironmentDescription(Description);

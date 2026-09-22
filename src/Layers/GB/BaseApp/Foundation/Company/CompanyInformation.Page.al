@@ -90,7 +90,7 @@ page 1 "Company Information"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Company Description';
                             MultiLine = true;
-                            ToolTip = 'Specifies the company''s nature and intended purpose to provide context for AI. The description applies to the current company.';
+                            ToolTip = 'Specifies the company''s nature and intended purpose. The description applies to the current company and can provide context for AI-powered experiences.';
 
                         }
                     }
@@ -102,7 +102,7 @@ page 1 "Company Information"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Environment Description';
                             MultiLine = true;
-                            ToolTip = 'Specifies the environment''s nature and intended purpose to provide context for AI. The description applies to all companies in the current environment.';
+                            ToolTip = 'Specifies the environment''s nature and intended purpose. The description can provide context for AI-powered experiences.';
 
                         }
                     }

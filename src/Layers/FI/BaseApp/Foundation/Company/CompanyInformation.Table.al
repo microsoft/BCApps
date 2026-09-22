@@ -529,7 +529,7 @@ table 79 "Company Information"
         field(7612; "Company Description"; Blob)
         {
             Caption = 'Company Description';
-            ToolTip = 'Specifies the company''s nature and intended purpose to provide context for AI.';
+            ToolTip = 'Specifies the company''s nature and intended purpose. The description can provide context for AI-powered experiences.';
         }
     }
 
