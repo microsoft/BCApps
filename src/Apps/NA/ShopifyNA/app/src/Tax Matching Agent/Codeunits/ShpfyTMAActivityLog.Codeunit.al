@@ -10,7 +10,7 @@ using System.Log;
 
 /// <summary>
 /// Codeunit Shpfy TMA Activity Log (ID 30477).
-/// Writes "Activity Log" entries (Type = AI) for each Tax Matching Agent decision so a
+/// Writes "Activity Log" entries (Type = AI) for each Shopify Tax Matching decision so a
 /// human can review what the AI did, with confidence, explanation, and a drill-back link.
 /// Anchors per-tax-line entries on the Shpfy Order Tax Line and per-tax-area entries on
 /// the Shpfy Order Header.
@@ -25,12 +25,12 @@ codeunit 30477 "Shpfy TMA Activity Log"
         PerLineExplanationLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3.', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code';
         PerLineExplanationWithReasonLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = LLM reason';
         PerLineConflictLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3, but its rate differs from Business Central. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = conflict reason';
-        TaxAreaCreatedLbl: Label 'Created new Tax Area %1 from agent-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
-        TaxAreaReusedLbl: Label 'Reused existing Tax Area %1 covering agent-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
+        TaxAreaCreatedLbl: Label 'Created new Tax Area %1 from AI-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
+        TaxAreaReusedLbl: Label 'Reused existing Tax Area %1 covering AI-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
         TaxJurisdictionTitleLbl: Label 'Tax Jurisdiction %1', Comment = '%1 = jurisdiction code';
         TaxAreaTitleLbl: Label 'Tax Area %1', Comment = '%1 = tax area code';
-        PerLineMatchedMsg: Label 'Tax Matching Agent matched a Shopify tax line to a Tax Jurisdiction.', Locked = true;
-        TaxAreaResolvedMsg: Label 'Tax Matching Agent resolved a Tax Area for a Shopify order.', Locked = true;
+        PerLineMatchedMsg: Label 'Shopify Tax Matching matched a Shopify tax line to a Tax Jurisdiction.', Locked = true;
+        TaxAreaResolvedMsg: Label 'Shopify Tax Matching resolved a Tax Area for a Shopify order.', Locked = true;
         JurisdictionCodeDimTok: Label 'JurisdictionCode', Locked = true;
         TaxAreaCodeDimTok: Label 'TaxAreaCode', Locked = true;
 

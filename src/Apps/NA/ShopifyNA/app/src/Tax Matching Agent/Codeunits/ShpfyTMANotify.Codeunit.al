@@ -26,20 +26,20 @@ codeunit 30476 "Shpfy TMA Notify"
     var
         FeatureNotificationIdLbl: Label '{e9d8c7b6-a5f4-4e32-9d10-cb87a65f43e2}', Locked = true;
         OrderNotificationIdLbl: Label '{a7c3f1e2-9b4d-4c8a-8e6f-2d1b0a9c8e7d}', Locked = true;
-        NotifMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order. Review before posting.', Comment = '%1 = Tax Area Code';
-        OrderNotifMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions.', Comment = '%1 = Tax Area Code';
-        OrderNotifConflictMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order, but one or more tax rates differ from Business Central. Review the highlighted rates before creating the sales document.', Comment = '%1 = Tax Area Code';
+        NotifMsgLbl: Label 'Shopify Tax Matching set Tax Area %1 on this Shopify order. Review before posting.', Comment = '%1 = Tax Area Code';
+        OrderNotifMsgLbl: Label 'Shopify Tax Matching set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions.', Comment = '%1 = Tax Area Code';
+        OrderNotifConflictMsgLbl: Label 'Shopify Tax Matching set Tax Area %1 on this Shopify order, but one or more tax rates differ from Business Central. Review the highlighted rates before creating the sales document.', Comment = '%1 = Tax Area Code';
         ShowDecisionsActionLbl: Label 'Show Tax Match Decisions';
         OrderReviewActionLbl: Label 'Review';
         MarkReviewedActionLbl: Label 'Mark as reviewed';
         DisableActionLbl: Label 'Don''t show again';
-        MyNotificationCaptionLbl: Label 'Shopify Tax Matching Agent review prompt';
-        MyNotificationDescriptionLbl: Label 'Shows a one-time prompt on each Sales Order where the Tax Matching Agent populated tax fields from a Shopify order, so you can review the AI-generated decisions before posting.';
-        OrderMyNotifCaptionLbl: Label 'Shopify Tax Matching Agent order review prompt';
-        OrderMyNotifDescriptionLbl: Label 'Shows a prompt on a Shopify order whose tax was matched by the Tax Matching Agent, so you can review and approve the AI-generated tax match.';
+        MyNotificationCaptionLbl: Label 'Shopify Tax Matching review prompt';
+        MyNotificationDescriptionLbl: Label 'Shows a one-time prompt on each Sales Order where Shopify Tax Matching populated tax fields from a Shopify order, so you can review the AI-generated decisions before posting.';
+        OrderMyNotifCaptionLbl: Label 'Shopify Tax Matching order review prompt';
+        OrderMyNotifDescriptionLbl: Label 'Shows a prompt on a Shopify order whose tax was matched by Shopify Tax Matching, so you can review and approve the AI-generated tax match.';
 
     /// <summary>
-    /// Fires the review prompt on the Sales Order when the Tax Matching Agent populated its tax fields and
+    /// Fires the review prompt on the Sales Order when Shopify Tax Matching populated its tax fields and
     /// the originating Shopify order has not yet been reviewed. Stateless — whether to prompt
     /// comes from the order's Tax Match Reviewed flag plus the per-user My
     /// Notifications toggle, so no per-user row is stored.

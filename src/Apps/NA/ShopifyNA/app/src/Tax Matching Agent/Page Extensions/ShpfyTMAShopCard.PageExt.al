@@ -9,7 +9,7 @@ using System.Telemetry;
 
 /// <summary>
 /// PageExtension Shpfy TMA Shop Card (ID 30470) extends Shpfy Shop Card.
-/// Adds a Tax Matching Agent tab to the Shop Card. Dependent settings are disabled until
+/// Adds a Shopify Tax Matching tab to the Shop Card. Dependent settings are disabled until
 /// their prerequisite is set, so a field that has no effect cannot be edited.
 /// </summary>
 pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
@@ -20,7 +20,7 @@ pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
         {
             group(TaxMatchingAgent)
             {
-                Caption = 'Tax Matching Agent';
+                Caption = 'Shopify Tax Matching';
 
                 field("Tax Matching Agent Enabled"; Rec."Tax Matching Agent Enabled")
                 {

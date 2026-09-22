@@ -7,7 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 /// <summary>
 /// TableExtension Shpfy TMA Shop (ID 30470) extends Shpfy Shop.
-/// Adds Tax Matching Agent configuration fields to the Shop table.
+/// Adds Shopify Tax Matching configuration fields to the Shop table.
 /// </summary>
 tableextension 30470 "Shpfy TMA Shop" extends "Shpfy Shop"
 {
@@ -15,9 +15,9 @@ tableextension 30470 "Shpfy TMA Shop" extends "Shpfy Shop"
     {
         field(30470; "Tax Matching Agent Enabled"; Boolean)
         {
-            Caption = 'Tax Matching Agent Enabled';
+            Caption = 'Shopify Tax Matching Enabled';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies whether Tax Matching Agent is enabled for this shop.';
+            ToolTip = 'Specifies whether Shopify Tax Matching is enabled for this shop.';
         }
         field(30471; "Auto Create Tax Jurisdictions"; Boolean)
         {
@@ -44,7 +44,7 @@ tableextension 30470 "Shpfy TMA Shop" extends "Shpfy Shop"
             Caption = 'Tax Match Review Mode';
             DataClassification = CustomerContent;
             InitValue = Always;
-            ToolTip = 'Specifies when an order matched by the Tax Matching Agent is held until a user approves the tax match on the Tax Match Review page. Always holds every matched order (default). Low Confidence Only holds an order only when at least one match is not high confidence (including a match to a provisional, agent-created Tax Jurisdiction). Never does not hold orders for review preference. A rate conflict or an incomplete match always holds the order regardless of this setting.';
+            ToolTip = 'Specifies when an order matched by Shopify Tax Matching is held until a user approves the tax match on the Tax Match Review page. Always holds every matched order (default). Low Confidence Only holds an order only when at least one match is not high confidence (including a match to a provisional, AI-created Tax Jurisdiction). Never does not hold orders for review preference. A rate conflict or an incomplete match always holds the order regardless of this setting.';
         }
     }
 }

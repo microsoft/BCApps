@@ -20,7 +20,7 @@ codeunit 30470 "Shpfy TMA Register"
     InherentEntitlements = X;
 
     var
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2179727', Locked = true;
+        LearnMoreUrlTxt: Label 'https://learn.microsoft.com/dynamics365/business-central/faqs-shopify-tax-matching-agent', Locked = true;
         FeatureNameTxt: Label 'Shopify Tax Matching Agent', Locked = true;
 
     procedure RegisterCopilotCapability()

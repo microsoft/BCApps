@@ -33,20 +33,37 @@ codeunit 30471 "Shpfy TMA Matcher"
         JurisdictionNotFoundMsg: Label 'Jurisdiction %1 not found and auto-create disabled', Locked = true, Comment = '%1 = Jurisdiction code';
         TaxDetailRateMismatchMsg: Label 'Existing Tax Detail for jurisdiction %1, tax group %2 has rate %3, but Shopify reported %4. Existing detail left untouched.', Locked = true, Comment = '%1 = jurisdiction code, %2 = tax group code, %3 = BC rate, %4 = Shopify rate';
         RateConflictReasonTok: Label 'Shopify charged %1%, but Business Central has a Tax Detail rate of %2% for tax group %3. Business Central will post at its own rate unless you correct the Tax Detail.', Comment = '%1 = Shopify rate, %2 = existing BC rate, %3 = tax group code';
-        ProvisionalMatchReasonTok: Label 'This Tax Jurisdiction was created by the Tax Matching Agent and has not been verified yet. The match is set to low confidence until you approve an order that uses it.';
+        ProvisionalMatchReasonTok: Label 'This Tax Jurisdiction was created by Shopify Tax Matching and has not been verified yet. The match is set to low confidence until you approve an order that uses it.';
         SecurityPromptSecretNameTok: Label 'ShopifyTaxMatchingAgentSecurityPrompt', Locked = true;
-        AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching Agent (AI) auto-created Tax Jurisdiction %1 from Shopify order %2, based on buyer-controlled Shopify tax data.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
+        AuditJurisdictionCreatedLbl: Label 'Shopify Tax Matching auto-created Tax Jurisdiction %1 from Shopify order %2, based on buyer-controlled Shopify tax data.', Comment = '%1 = Tax Jurisdiction code, %2 = Shopify order id';
         UnknownSentinelTok: Label 'UNKNOWN', Locked = true;
         UnresolvedTaxLineMsg: Label 'Tax line could not be resolved to a jurisdiction (model returned UNKNOWN); left unmatched for review.', Locked = true;
         TaxLineIdDimTok: Label 'TaxLineId', Locked = true;
+        StartingMatchMsg: Label 'Starting tax match for order', Locked = true;
+        MatchCompletedMsg: Label 'Shopify tax matching request completed.', Locked = true;
+        ShopifyOrderIdDimTok: Label 'ShopifyOrderId', Locked = true;
+        MaxOrdersDimTok: Label 'MaxOrders', Locked = true;
+        PeriodMinutesDimTok: Label 'PeriodMinutes', Locked = true;
+        ProcessedOrdersDimTok: Label 'ProcessedOrders', Locked = true;
 
     procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean): Boolean
+    begin
+        exit(MatchTaxLinesImpl(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch, true));
+    end;
+
+    internal procedure MatchTaxLinesWithoutProcessingLimit(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean): Boolean
+    begin
+        exit(MatchTaxLinesImpl(OrderHeader, Shop, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch, false));
+    end;
+
+    local procedure MatchTaxLinesImpl(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean; EnforceProcessingLimit: Boolean): Boolean
     var
         OrderLine: Record "Shpfy Order Line";
         ShippingCharge: Record "Shpfy Order Shipping Charges";
         TaxJurisdiction: Record "Tax Jurisdiction";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TMARegister: Codeunit "Shpfy TMA Register";
+        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
         TaxLinesArray: JsonArray;
         JurisdictionsArray: JsonArray;
         AddressObj: JsonObject;
@@ -57,11 +74,14 @@ codeunit 30471 "Shpfy TMA Matcher"
         AddressText: Text;
         RepIdBySignature: Dictionary of [Text, Text];
         TaxLineIdsByRepId: Dictionary of [Text, List of [Text]];
+        MatchApplied: Boolean;
+        MaxOrders: Integer;
+        PeriodMinutes: Integer;
+        ProcessedOrders: Integer;
     begin
         HasRateConflict := false;
         HasUnresolvedLine := false;
         HasLowConfidenceMatch := false;
-        FeatureTelemetry.LogUptake('0000UML', TMARegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
 
         // Gather the order's tax lines — both product-line tax lines (Parent Id = order line
         // "Line Id") and shipping-charge tax lines (Parent Id = "Shopify Shipping Line Id"). Lines
@@ -90,6 +110,15 @@ codeunit 30471 "Shpfy TMA Matcher"
         if TaxLinesArray.Count() = 0 then
             exit(false);
 
+        if EnforceProcessingLimit then begin
+            if not TMAProcessingLimit.TryAcquire(OrderHeader, MaxOrders, PeriodMinutes, ProcessedOrders) then
+                exit(false);
+            LogMatchStarted(OrderHeader, MaxOrders, PeriodMinutes, ProcessedOrders);
+        end;
+
+        ResetMatchState(OrderHeader);
+        FeatureTelemetry.LogUptake('0000UML', TMARegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+
         // Gather all Tax Jurisdictions
         TaxJurisdiction.SetLoadFields(Code, Description);
         if TaxJurisdiction.FindSet() then
@@ -115,7 +144,22 @@ codeunit 30471 "Shpfy TMA Matcher"
         // Call LLM and process results. HasRateConflict is accumulated per line inside
         // ApplyMatches -> ApplyAssignedJurisdiction, then stored on the order by the caller as the
         // single source of truth.
-        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, SecurityPrompt, TaxLineIdsByRepId, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch));
+        MatchApplied := CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, SecurityPrompt, TaxLineIdsByRepId, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch);
+        LogMatchCompleted(TaxLineIdsByRepId, TaxLinesArray.Count(), JurisdictionsArray.Count(), MatchedJurisdictions.Count(), MatchApplied, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch);
+        exit(MatchApplied);
+    end;
+
+    local procedure ResetMatchState(var OrderHeader: Record "Shpfy Order Header")
+    begin
+        if not (OrderHeader."Tax Match Applied" or OrderHeader."Tax Match Reviewed" or OrderHeader."Tax Rate Conflict" or OrderHeader."Tax Match Incomplete" or OrderHeader."Tax Match Low Confidence") then
+            exit;
+
+        OrderHeader."Tax Match Applied" := false;
+        OrderHeader."Tax Match Reviewed" := false;
+        OrderHeader."Tax Rate Conflict" := false;
+        OrderHeader."Tax Match Incomplete" := false;
+        OrderHeader."Tax Match Low Confidence" := false;
+        OrderHeader.Modify();
     end;
 
     [NonDebuggable]
@@ -695,6 +739,49 @@ codeunit 30471 "Shpfy TMA Matcher"
         TaxLineIdsByRepId.Get(RepId, GroupIds);
         GroupIds.Add(TaxLineId);
         TaxLineIdsByRepId.Set(RepId, GroupIds);
+    end;
+
+    local procedure LogMatchStarted(OrderHeader: Record "Shpfy Order Header"; MaxOrders: Integer; PeriodMinutes: Integer; ProcessedOrders: Integer)
+    var
+        TMARegister: Codeunit "Shpfy TMA Register";
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        CustomDimensions.Add('Category', TMARegister.FeatureName());
+        CustomDimensions.Add(ShopifyOrderIdDimTok, Format(OrderHeader."Shopify Order Id"));
+        CustomDimensions.Add(MaxOrdersDimTok, Format(MaxOrders, 0, 9));
+        CustomDimensions.Add(PeriodMinutesDimTok, Format(PeriodMinutes, 0, 9));
+        CustomDimensions.Add(ProcessedOrdersDimTok, Format(ProcessedOrders, 0, 9));
+        Session.LogMessage('0000UMK', StartingMatchMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+    end;
+
+    local procedure LogMatchCompleted(var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]]; UniqueTaxLineCount: Integer; CandidateJurisdictionCount: Integer; MatchedJurisdictionCount: Integer; MatchApplied: Boolean; HasRateConflict: Boolean; HasUnresolvedLine: Boolean; HasLowConfidenceMatch: Boolean)
+    var
+        TMARegister: Codeunit "Shpfy TMA Register";
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        CustomDimensions.Add('Category', TMARegister.FeatureName());
+        CustomDimensions.Add('TaxLineCount', Format(GetTaxLineCount(TaxLineIdsByRepId), 0, 9));
+        CustomDimensions.Add('UniqueTaxLineCount', Format(UniqueTaxLineCount, 0, 9));
+        CustomDimensions.Add('CandidateJurisdictionCount', Format(CandidateJurisdictionCount, 0, 9));
+        CustomDimensions.Add('MatchedJurisdictionCount', Format(MatchedJurisdictionCount, 0, 9));
+        CustomDimensions.Add('MatchApplied', Format(MatchApplied, 0, 9));
+        CustomDimensions.Add('HasRateConflict', Format(HasRateConflict, 0, 9));
+        CustomDimensions.Add('HasUnresolvedLine', Format(HasUnresolvedLine, 0, 9));
+        CustomDimensions.Add('HasLowConfidenceMatch', Format(HasLowConfidenceMatch, 0, 9));
+        Session.LogMessage('0000UNY', MatchCompletedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+    end;
+
+    local procedure GetTaxLineCount(var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]]): Integer
+    var
+        GroupIds: List of [Text];
+        RepId: Text;
+        TaxLineCount: Integer;
+    begin
+        foreach RepId in TaxLineIdsByRepId.Keys() do begin
+            TaxLineIdsByRepId.Get(RepId, GroupIds);
+            TaxLineCount += GroupIds.Count();
+        end;
+        exit(TaxLineCount);
     end;
 
     /// <summary>
