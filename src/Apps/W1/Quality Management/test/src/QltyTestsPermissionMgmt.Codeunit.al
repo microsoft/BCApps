@@ -17,7 +17,6 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
     var
         TestUser: Record User;
-        LibraryPermissions: Codeunit "Library - Permissions";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         LibraryAssert: Codeunit "Library Assert";
@@ -165,25 +164,13 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
 
     local procedure InitializePermissions(PermissionSetRoleID: Code[20])
     var
-        AggregatePermissionSet: Record "Aggregate Permission Set";
         UserPermissions: Codeunit "User Permissions";
-        TestUserSecurityId: Guid;
+        QltyPermissionTestFixture: Codeunit "Qlty. Permission Test Fixture";
     begin
-        LibraryLowerPermissions.PushPermissionSet(SuperRoleIDTok);
-
-        Clear(TestUser);
-        LibraryPermissions.CreateUser(TestUser, '', false);
-        TestUserSecurityId := TestUser."User Security ID";
-
-        AggregatePermissionSet.SetRange(Scope, AggregatePermissionSet.Scope::System);
-        AggregatePermissionSet.SetRange("Role ID", PermissionSetRoleID);
-        AggregatePermissionSet.FindFirst();
-        AggregatePermissionSet.SetRecFilter();
-        UserPermissions.AssignPermissionSets(TestUserSecurityId, '', AggregatePermissionSet);
-        TestUser.Get(TestUserSecurityId);
+        TestUser.Get(QltyPermissionTestFixture.GetUserSecurityId(PermissionSetRoleID));
 
         LibraryLowerPermissions.SetO365Basic();
-        LibraryAssert.AreEqual(PermissionSetRoleID = SuperRoleIDTok, UserPermissions.IsSuper(TestUserSecurityId), 'Unexpected SUPER status for the test user.');
+        LibraryAssert.AreEqual(PermissionSetRoleID = SuperRoleIDTok, UserPermissions.IsSuper(TestUser."User Security ID"), 'Unexpected SUPER status for the test user.');
     end;
 
 }
