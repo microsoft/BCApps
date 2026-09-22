@@ -444,6 +444,25 @@ Note the shape of that investigation: one probe found a symptom, and three contr
 *claim about the cause*. A single run would have produced the wrong report ("Generate fails when
 nothing is selected").
 
+### 8.2 A confirmed diagnosis is not the same as an unblocked tour
+
+The obvious fix for that failure was "generate into a company that has no demo data to collide
+with". `New-CompanyInBcContainer` makes that a 2-minute experiment, and it worked exactly as
+predicted — the collision vanished. It did not make the area tourable: generation then failed on a
+chain of unsatisfied prerequisites, and stalled permanently at 8 of 22 modules.
+
+Two things worth carrying forward:
+
+- **Test the cheap hypothesis anyway.** It cost minutes and converted "Generate is broken" into a
+  precise, two-route description of *how* it is broken, which is what an owning team can act on.
+- **Re-run your census after the workaround, not just after the failure.** In CRONUS the failed
+  generation rolled back cleanly; in a fresh company it left 8 modules half-generated with no
+  warning. Had the tour continued at that point, it would have been running against a silently
+  half-built company — the worst possible oracle.
+
+When the bootstrap path for an area is broken, stop. Report it, and pick an area that has data.
+A tour against half-populated master data produces findings nobody can trust.
+
 ## 9. Metadata is the specification — read it before you probe
 
 BC pages and tables are generated from metadata, so a large part of the behaviour you are about to
@@ -540,3 +559,90 @@ going to add a row.
 
 **Rule: before you write "nothing happened", read the page's property block.** It costs one file
 read and it is the difference between a finding and a false report.
+
+### 9.6 A one-hop static scan *under-predicts* guarding
+
+The scanner tells you which fields *declare* a constraint. It cannot tell you which fields are
+*effectively* constrained, because in AL a guard is frequently two or three hops away from the
+field that triggers it.
+
+A scan of `Purchase Line` reported `Direct Unit Cost` as having no `TestStatusOpen()` guard,
+predicting that the cost could be changed on a released order. The UI refused it. The source
+explains why:
+
+```
+field(22; "Direct Unit Cost")  OnValidate -> Validate("Line Discount %")
+field(27; "Line Discount %")   OnValidate -> ValidateLineDiscountPercent(true)
+                                              -> TestStatusOpen()
+                                                 -> PurchHeader.TestField(Status, Status::Open)
+```
+
+Guards also arrive from places no per-field scan looks at:
+
+- **Table triggers** — `OnInsert`/`OnDelete` on `Purchase Line` both call `TestStatusOpen()`, so
+  inserting or deleting a line is guarded even though no *field* declares it.
+- **Validation chains** — one field's `OnValidate` calling `Validate(<other field>)`.
+- **Shared procedures** — `ValidateLineDiscountPercent`, `UpdateAmounts`, and friends.
+
+> **Use the scanner to generate candidates, never to reach a conclusion.** "The scan says
+> unguarded" is a hypothesis. Only the running product, read through a *working* error oracle,
+> settles it. A predicted gap that the product closes is still a useful result — it tells you the
+> guard is implicit, which is a maintainability risk worth reporting even when behaviour is correct.
+
+## 10. Differential touring across parallel modules
+
+BC contains several near-duplicate subsystems: Sales vs Purchase documents, Quote/Order/Invoice/
+Credit Memo, Item vs Resource vs G/L Account lines. They were written from the same template and
+are maintained separately, so **they drift**. That drift is a rich, cheap source of findings,
+because each module is its own control: if two parallel fields behave differently, at least one of
+them is wrong, and you do not need a specification to say so.
+
+The method:
+
+1. Extract the same property from both tables — here, which fields call `TestStatusOpen()`.
+2. Join them on an **explicit list of analogous field pairs**.
+3. Every divergence is a candidate; every *agreement* generalises a finding you already have.
+
+Applied to `SalesHeader`/`PurchaseHeader` and `SalesLine`/`PurchaseLine`:
+
+| Sales | Purchase | Sales guarded | Purchase guarded |
+|---|---|---|---|
+| `Assigned User ID` | `Assigned User ID` | yes | **no** |
+| `VAT Base Discount %` | `VAT Base Discount %` | yes | **no** |
+| `Shipment Date` | `Expected Receipt Date` | yes | **no** |
+| `Job No.` | `Job No.` | no | **yes** |
+| `Unit Price` | `Direct Unit Cost` | no | no (symmetric) |
+| `External Document No.` | `Vendor Invoice No.` | no | no (symmetric) |
+
+The symmetric rows are as valuable as the divergent ones. `External Document No.` and
+`Vendor Invoice No.` are both unguarded, which predicted — and the UI then confirmed — that the
+Sales finding about the Release tooltip applies verbatim to Purchase Orders. That converts an
+app-specific bug report into a document-framework one, which is a far stronger thing to file.
+
+### ⚠️ Join on explicit pairs, never on a regex rename
+
+The first attempt normalised names with blanket substitutions (`Buy-from Vendor` → `PARTY`,
+`Sell-to Customer` → `PARTY`) and reported that `Buy-from Vendor No.` was unguarded. It is not.
+`Purchase Header` contains **both** `Buy-from Vendor No.` (field 2, guarded) and `Sell-to Customer
+No.` (field 72, the drop-shipment customer, unguarded). Both normalised to the same key and the
+later one overwrote the earlier in the hash map.
+
+A differential is only as good as its join. Write the pairs out by hand and keep the unmatched
+fields visible so you can see what the join dropped.
+
+### 10.1 What a page-level "editable" property does *not* mean
+
+`SalesLinesEditable()` and `PurchaseLinesEditable()` both key off whether a **party is selected** —
+not off `Status`:
+
+```al
+IsEditable := Rec."Buy-from Vendor No." <> '';
+```
+
+So the lines grid on a *released* document still takes focus, still shows a text cursor, and still
+accepts typing. Nothing is read-only at the page level. The refusal happens later, at validate
+time, from the table. Two consequences for touring:
+
+- "The released grid let me type into it" is **not** a finding. Expect it.
+- A probe that concludes from `aria-readonly` or from a successful click that the field is editable
+  has measured the page, not the product. Commit the value and read the database.

@@ -111,11 +111,54 @@ async function lineCell(frame, rowIndex = 1, markerHeader = 'Type') {
 
 // BC reports validation failures as a modal error dialog, an inline notification, or
 // a red field. Collect all three; never use loose page text as an oracle.
+// Read whatever BC is complaining about.
+//
+// BC reports validation failures on FOUR different surfaces, and a tour that reads
+// only one of them will report false "silent failure" defects:
+//   1. modal dialogs                     role=dialog
+//   2. the page-level error bar          "The page has an error. Refresh (F5) ..."
+//   3. an inline bubble next to the cell "Status must be equal to 'Open' in ..."
+//   4. notifications                     the collapsible bar under the title
+//
+// Do NOT fall back to scanning body text with a loose regex. The original version did,
+// and /is not/ matched the substring inside "There is nothing to show in this view"
+// (a FactBox caption), so every probe returned that string as its "error" while the
+// real message sat further down the page. That single bug made a correctly behaving
+// product look like it was silently discarding edits on a released document.
 async function readError(frame) {
+  const texts = async (sel) => (await frame.locator(sel).allInnerTexts().catch(() => []))
+    .map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+
   const dialogs = await frame.getByRole('dialog').allInnerTexts().catch(() => []);
-  const body = await frame.locator('body').innerText().catch(() => '');
-  const m = body.match(/.*(?:must be|cannot|not valid|is not|already exists|between 0 and 100|too long).*/i);
-  return { dialogs, message: m ? m[0].trim() : '' };
+  const alerts = await texts('[role="alert"]');
+  // Class-based surfaces: BC marks the error bar and inline bubbles with 'error' or
+  // 'validation' somewhere in the class name.
+  const marked = await texts('[class*="error" i], [class*="validation" i]');
+  // The inline bubble is wired to the offending input via aria-describedby.
+  const described = await frame.evaluate(() => {
+    const out = [];
+    for (const el of document.querySelectorAll('[aria-invalid="true"], input:focus')) {
+      for (const id of (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean)) {
+        const t = document.getElementById(id)?.innerText?.trim();
+        if (t) out.push(t.replace(/\s+/g, ' '));
+      }
+    }
+    return out;
+  }).catch(() => []);
+
+  const all = [...new Set([...alerts, ...marked, ...described])]
+    .filter(t => !/there is nothing to show/i.test(t));
+
+  // Prefer a real validation sentence over the generic "the page has an error" banner.
+  const specific = all.find(t => /\b(must be|cannot|is not valid|already exists|out of balance|does not exist)\b/i.test(t));
+  const pageHasError = all.some(t => /the page has an error/i.test(t));
+
+  return {
+    dialogs,
+    message: specific || (dialogs[0] || '').replace(/\s+/g, ' ').trim() || '',
+    pageHasError,
+    surfaces: all,
+  };
 }
 
 // Dismiss a BC error/confirmation dialog. Pointer clicks are unreliable here (the

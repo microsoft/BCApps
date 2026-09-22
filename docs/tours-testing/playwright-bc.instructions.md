@@ -193,7 +193,7 @@ await page.keyboard.press('Home');            // first option (often blank)
 await page.keyboard.press('Enter');
 ```
 
-## 6. Two more card-level traps
+## 6. Card-level traps
 
 - **Deep-linked cards open read-only.** Click `button[title="Make changes on the page"]` before
   attempting any input, or every probe silently does nothing.
@@ -202,6 +202,17 @@ await page.keyboard.press('Enter');
 - **Do not press `Escape` to dismiss a teaching tip**, and do not use
   `getByRole('button', { name: /close/i })` for it. Both close the whole card instead.
 - **Clicking `New` navigates** (9305 → 42). Wait for it: `page.waitForURL(/page=42/)`, with retries.
+- **Never call a blanket `dismissDialog()` right after creating a record.** `dismissDialog` presses
+  `Escape`, and `Escape` on a freshly created card *closes the card*. A probe that did this on a new
+  Purchase Order destroyed the document before adding any lines; every subsequent read returned
+  `There is nothing to show in this view`, which looked like a product fault. Only dismiss a dialog
+  after confirming one is actually open.
+- **Some document cards have no visible `No.` field.** On `Purchase Order` (page 50) the document
+  number appears only in the page caption (`106032 · Progressive Home Furnishings`), so
+  `field(frame, 'No.')` returns the *line's* `No.` or nothing. Parse the heading instead — and note
+  that without the document number you cannot run the SQL oracle at all.
+- **A grid cell's `innerText` is not a reliable readback.** Unfocused cells frequently render empty
+  even when the record holds a value. Confirm every grid result in SQL.
 
 ## 7. Saving and closing
 
@@ -306,7 +317,46 @@ SELECT [Credit Limit (LCY)] FROM [...$Customer$...] WHERE [No_] = '10000'   -- 0
 Snapshot before and after each scenario and diff the counts. Deltas are the evidence; the screen is
 only a hint.
 
-## 10. Practical cautions
+## 10. Reading errors — BC has *four* error surfaces
+
+This is the single most important helper in the harness, and the easiest one to get wrong. BC
+reports a rejected value on any of four surfaces, and a probe that reads only one will report a
+correctly behaving product as silently discarding data:
+
+| # | Surface | Looks like |
+|---|---|---|
+| 1 | Modal dialog | `role="dialog"` |
+| 2 | Page-level error bar | *"The page has an error. Refresh (F5) to undo the change, or correct the error."* |
+| 3 | Inline bubble beside the cell | *"Status must be equal to 'Open' in Purchase Header … Current value is 'Released'."* |
+| 4 | Notification bar under the title | *"Notifications: 2 …"* |
+
+Surfaces 2 and 3 are the normal way a **grid** rejects a value. A tour that only checks dialogs
+sees nothing, reads the row back unchanged, and concludes "accepted then silently reverted".
+
+### ⚠️ Never scan `body.innerText` with a loose regex
+
+The original helper did exactly that:
+
+```js
+const m = body.match(/.*(?:must be|cannot|not valid|is not|already exists).*/i);
+```
+
+`/is not/` matches the substring inside **"There is not&#8203;hing to show in this view"** — a FactBox
+caption present on virtually every document page. So every probe returned that caption as its
+"error message", while the real message sat further down the page, and `.match()` returns only the
+*first* hit. A whole run of probes reported silent data loss on released purchase orders; a
+screenshot showed BC displaying a precise, correct error the entire time.
+
+Read the surfaces explicitly instead, filter the FactBox caption out, prefer a real validation
+sentence over the generic banner, and always return the raw list so you can see what was found:
+
+```js
+const { dialogs, message, pageHasError, surfaces } = await readError(frame);
+```
+
+Validate the helper against a case you *know* must fail before trusting a negative result from it.
+
+## 11. Practical cautions
 
 - Give the first navigation a long timeout (cold start; see the environment instructions).
 - Take a screenshot on failure — cheap, and invaluable when a selector breaks.
