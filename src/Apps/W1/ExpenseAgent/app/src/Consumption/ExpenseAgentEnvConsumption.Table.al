@@ -128,8 +128,9 @@ table 6969 "Expense Agent Env. Consumption"
         key(ExpenseUser; "Expense User No.")
         {
         }
-        key(Source; "Consumption Source Type", "Consumption Source System ID")
+        key(Source; "Consumption Source Type", "Consumption Source System ID", "Consumption Source Operation")
         {
+            Unique = true;
         }
     }
 

@@ -16,6 +16,7 @@ codeunit 6969 "Expense Consumption Handler"
         LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log request: ''%1'' Operation name: %2.', Locked = true;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
+        CompanionTableRecordFoundTelemetryTxt: Label 'Consumption record for Expense Agent already exists. This is expected.', Locked = true;
 
     internal procedure LogV2AIConsumption(
         AgentConversationSessionId: Guid;
@@ -81,7 +82,10 @@ codeunit 6969 "Expense Consumption Handler"
             ExpenseAgentEnvConsumption."Consumption Source System ID" := ConsumptionSourceSystemId;
             ExpenseAgentEnvConsumption."Consumption Source Operation" := ConsumptionSourceOperationName;
             ExpenseAgentEnvConsumption.Insert();
-        end;
+        end
+        else
+            Session.LogMessage('0000VKV', CompanionTableRecordFoundTelemetryTxt,
+                Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
