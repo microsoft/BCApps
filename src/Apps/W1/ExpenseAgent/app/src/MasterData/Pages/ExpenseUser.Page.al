@@ -234,6 +234,7 @@ page 6949 "Expense User"
 
     trigger OnDeleteRecord(): Boolean
     begin
+        IsDeletingExpenseUser := true;
         exit(Rec.ConfirmApproverReassignment());
     end;
 
@@ -241,9 +242,10 @@ page 6949 "Expense User"
     var
         ConfirmManagement: Codeunit "Confirm Management";
     begin
-        if Rec."Employee No." = '' then
-            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
-                exit(false);
+        if not IsDeletingExpenseUser then
+            if Rec."Employee No." = '' then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseWithoutEmployeeNoQst, Rec.FieldCaption("Employee No.")), true) then
+                    exit(false);
     end;
 
     trigger OnOpenPage()
@@ -260,6 +262,7 @@ page 6949 "Expense User"
     var
         NoFieldVisible: Boolean;
         IsCreateEmployeeVisible: Boolean;
+        IsDeletingExpenseUser: Boolean;
         CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()
