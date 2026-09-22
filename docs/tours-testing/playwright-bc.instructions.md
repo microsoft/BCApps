@@ -396,6 +396,10 @@ Notes:
   ```
 
   The symptom of guessing is `Invalid column name`.
+- **Not every table is company-prefixed.** System/setup tables have no company segment:
+  `[Application Area Setup$<guid>]`, not `[CRONUS International Ltd_$Application Area Setup$<guid>]`.
+  Prefixing one yields `Invalid object name`, which is easy to misread as "the feature isn't
+  installed". Discover the name first.
 - **Every app has its own extension GUID.** The Base Application GUID is *not* reusable. The
   Sustainability tables live under `b3780cd9-…`, E-Document under `e1d97edc-…`, Shopify under
   `ec255f57-…`. Guessing produces `Invalid object name`.
@@ -432,6 +436,51 @@ SELECT [Credit Limit (LCY)] FROM [...$Customer$...] WHERE [No_] = '10000'   -- 0
 
 Snapshot before and after each scenario and diff the counts. Deltas are the evidence; the screen is
 only a hint.
+
+### ⚠️ There is no record identity *inside* the app frame — use the browser title
+
+A probe that opens the wrong document, or no document, will happily report results for it. The
+obvious assertions do not work on a BC card:
+
+```
+h1                      -> 0 matches
+[class*="pageCaption"]  -> 0 matches
+[role="heading"]        -> 29 matches, the first of which is the COMPANY name
+```
+
+So an in-frame assertion silently passes on anything. The browser title is authoritative:
+
+```js
+await page.title();   // "Service Order - SO000005 ∙ Deerfield Graphics Company"
+```
+
+`bc.js` exports `assertCard(page, 'SO000005')`, which **throws**. Call it after opening a card and
+before mutating anything — a soft `console.log` warning is not enough, because the run continues
+and the output looks like evidence.
+
+### ⚠️ Answer the confirmation, *then* read the error
+
+BC asks first and validates second. On a released-to-ship service order, changing `Customer No.`
+raises a confirmation, and only after answering **Yes** does it fail:
+
+> *"Release Status must be equal to 'Open' in Service Header … Current value is 'Released to Ship'."*
+
+A probe that stops at the confirmation records `ACCEPTED`; the truth is `REFUSED`. Always
+re-read the error surfaces after dismissing a confirmation.
+
+In the same run, the **field readback disagreed with the error message** — the `Release Status`
+field still rendered `Open` while the error said `Released to Ship`. The error was correct. This
+is why SQL, not the screen, is the oracle.
+
+### ⚠️ An open browser session holds SQL locks
+
+A `SELECT` that ran fine before a tour can hang indefinitely afterwards, because the web client
+session still holds locks on the document tables. It looks like a dead container. Either close the
+browser first, or read dirty:
+
+```sql
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+```
 
 ## 10. Reading errors — BC has *four* error surfaces (and one lookalike)
 

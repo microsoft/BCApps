@@ -714,6 +714,28 @@ records a refusal that never happened.
 > And treat a **0% or 100% guarded** result as a bug in your regex until proven otherwise. Real
 > tables always land somewhere in between.
 
+#### The probe that falsified this section's own prediction
+
+Having found only 6 guarded fields, the obvious prediction was that `Customer No.` — unguarded at
+both levels — could be swapped on a **released-to-ship** service order. It cannot:
+
+| Order | Release Status | Change `Customer No.` | Outcome |
+| --- | --- | --- | --- |
+| SO000008 | Open | confirm *"the existing Service item line and service line will be deleted"* → Yes | customer changed, 2 lines deleted — **exactly as warned** |
+| SO000005 | Released to Ship | same confirmation → Yes | **refused**: *"Release Status must be equal to 'Open' … Current value is 'Released to Ship'."* customer and lines untouched |
+
+The guard is real but **two hops away**, which is §9.6 again: `Customer No.` does not test the
+status itself — it *deletes the lines*, and the line deletion tests it. No per-field scan at any
+number of levels would have found this.
+
+Two lessons worth more than the result:
+
+- **A confirmation that is followed by an error is not a contradiction.** BC asks first and
+  validates second, so `CONFIRMED-THEN-PROCEEDED` must still read the error surface *after*
+  answering Yes. A probe that stops at the confirmation records the opposite of the truth.
+- **The UI readback of the status field said `Open` while the error message said
+  `Released to Ship`.** The error was right. Never take a field readback as the oracle — §5.6.
+
 ## 10. Differential touring across parallel modules
 
 BC contains several near-duplicate subsystems: Sales vs Purchase documents, Quote/Order/Invoice/

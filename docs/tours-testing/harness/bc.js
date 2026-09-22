@@ -214,7 +214,28 @@ async function dismissDialog(page, frame) {
   return true;
 }
 
+// Identity oracle for an open card.
+//
+// There is no usable record identity INSIDE the app frame. On a Service Order card:
+//   h1                     -> 0 matches
+//   [class*="pageCaption"] -> 0 matches
+//   [role="heading"]       -> 29 matches, the first of which is the COMPANY name
+// So an assertion written against the frame silently passes on anything, and a probe that
+// opened the wrong document - or no document - reports results anyway.
+//
+// The browser title is authoritative and cheap:
+//   "Service Order - SO000005 - Deerfield Graphics Company"
+//
+// Always assert this after opening a card and BEFORE mutating anything.
+async function assertCard(page, expected) {
+  const title = await page.title();
+  if (!title.includes(expected)) {
+    throw new Error(`wrong record: expected "${expected}", card title is "${title}"`);
+  }
+  return title;
+}
+
 module.exports = {
   BASE, CREDS, appFrame, signIn, openPage, field, fieldOne, launch,
-  newDocument, linesGrid, lineCell, readError, dismissDialog,
+  newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
 };
