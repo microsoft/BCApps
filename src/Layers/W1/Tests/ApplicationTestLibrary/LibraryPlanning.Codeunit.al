@@ -38,10 +38,9 @@ codeunit 132203 "Library - Planning"
         RequisitionWkshName.Insert(true);
     end;
 
-    [Normal]
+
     procedure CreatePlanningWkshName(var PlanningWkshName: Record "Requisition Wksh. Name"; WorksheetTemplateName: Code[10])
     begin
-        // Create Planning Wksh. Name with a random Name of String length less than 10.
         PlanningWkshName.Init();
         PlanningWkshName.Validate("Worksheet Template Name", WorksheetTemplateName);
         PlanningWkshName.Validate(

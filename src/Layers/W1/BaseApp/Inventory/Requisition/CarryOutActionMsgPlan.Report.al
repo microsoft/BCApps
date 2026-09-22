@@ -341,7 +341,7 @@ report 99001020 "Carry Out Action Msg. - Plan."
         Text013: Label 'Not all Requisition Lines were carried out.\A total of %1 lines were not carried out because of errors encountered.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-        WrongProdCopyDestErr: Label 'Only a nonrecurring worksheet of type Planning can be used to copy a production supply proposal. Worksheet %1/%2 cannot create production orders.', Comment = '%1 = worksheet template name, %2 = worksheet batch name';
+        WrongProdCopyDestErr: Label 'Worksheet %1/%2 cannot be used to copy a production supply proposal. Choose a non-recurring worksheet of type Planning instead.', Comment = '%1 = worksheet template name, %2 = worksheet batch name';
         ProdWkshNotSpecifiedErr: Label 'You must specify a planning worksheet template and batch to copy the production proposal to.';
 
     protected var
