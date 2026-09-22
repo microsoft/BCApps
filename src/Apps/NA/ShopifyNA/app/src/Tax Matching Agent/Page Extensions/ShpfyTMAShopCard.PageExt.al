@@ -64,7 +64,7 @@ pageextension 30470 "Shpfy TMA Shop Card" extends "Shpfy Shop Card"
     }
 
     var
-        PreviewDisclaimerLbl: Label 'Shopify Tax Matching (preview). Learn more';
+        PreviewDisclaimerLbl: Label 'Shopify Tax Matching (preview) uses AI. Learn more';
 
     trigger OnOpenPage()
     var
