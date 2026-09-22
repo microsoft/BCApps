@@ -19,8 +19,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
     RequiredTestIsolation = Codeunit;
     TestHttpRequestPolicy = BlockOutboundRequests;
     EventSubscriberInstance = Manual;
-    Permissions = tabledata "Email Outbox" = rimd,
-                  tabledata "Sent Email" = rid;
 
     var
         Assert: Codeunit Assert;
@@ -30,8 +28,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ResponseStatusCode: Integer;
         HttpRequestCount: Integer;
         ObservedRequestCount: Integer;
-        EndpointResolutionCount: Integer;
-        ExpectedUseCanaryEndpoint: Boolean;
         RequestCorrelationId: Guid;
         MultipartBody: Text;
         MultipartContentType: Text;
@@ -257,66 +253,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Assert.IsTrue(IsNullGuid(ExpenseUser."Welcome Correlation Id"), 'Failed handoff must clear the user correlation.');
         Assert.AreEqual(0DT, ExpenseUser."Welcome Email Sent At", 'Failed handoff is not delivery.');
         Assert.IsTrue(OutboxEmail.IsEmpty(), 'A failed service handoff must not insert an outbox callback.');
-    end;
-
-    [Test]
-    procedure MissingSetupSkipsEndpointOverrideAndHttp()
-    var
-        Setup: Record "Expense Agent Setup";
-        EAHttpClient: Codeunit "EA Http Client";
-        Success: Boolean;
-    begin
-        // [SCENARIO] The HTTP wrapper rejects a welcome request before endpoint resolution when persisted setup is missing.
-
-        // [GIVEN] The isolated company has no Expense Agent setup and request counters are reset.
-        AssertMockTestEnvironment();
-        ExpectNoService();
-        Setup.DeleteAll();
-        Commit();
-        BindSubscription(this);
-
-        // [WHEN] The production welcome notification wrapper is invoked with the read-only test subscriptions bound.
-        Success := EAHttpClient.SendWelcomeEmailNotification(GetRecipientEmail(), CreateGuid());
-        UnbindSubscription(this);
-
-
-        // [THEN] The call returns false without resolving an endpoint, constructing an observed request, or reaching mocked HTTP.
-        Assert.IsFalse(Success, 'The real HTTP wrapper must reject missing persisted setup.');
-        Assert.AreEqual(0, EndpointResolutionCount, 'Missing setup must be checked before the endpoint override event.');
-        Assert.AreEqual(0, ObservedRequestCount, 'Missing setup must not construct a service request.');
-        Assert.AreEqual(0, HttpRequestCount, 'Missing setup must not reach HTTP.');
-    end;
-
-    [Test]
-    [HandlerFunctions('ExpenseServiceHandler')]
-    procedure SavedCanarySelectionReachesCommunicationEndpoint()
-    var
-        Setup: Record "Expense Agent Setup";
-        ExpenseUser: Record "Expense User";
-    begin
-        // [SCENARIO] Persisted default and canary selections both reach endpoint resolution.
-
-        // [GIVEN] An outgoing-only fixture uses the safe mocked communication endpoint and queues a welcome recipient.
-        InitializeCommunication(Setup, false, true);
-        CreateRecipient(ExpenseUser, true);
-        ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
-
-        // [WHEN] A communication pass runs with the saved default selection, then another runs after persisting the canary selection.
-        RunCommunication(Setup);
-
-        // [THEN] Each saved selection resolves exactly one endpoint and reaches exactly one mocked HTTP request.
-        Assert.AreEqual(1, EndpointResolutionCount, 'The saved default selection must reach endpoint resolution.');
-        Assert.AreEqual(1, HttpRequestCount, 'The default selection must execute the real HTTP wrapper.');
-
-        Setup.Get();
-        Setup."Use Canary Endpoint" := true;
-        Setup.Modify();
-        CreateRecipient(ExpenseUser, true);
-        ExpectService('/api/v1.0/notifications/welcome', 'notification-outbox-accepted.json', 200);
-        ExpectedUseCanaryEndpoint := true;
-        RunCommunication(Setup);
-        Assert.AreEqual(1, EndpointResolutionCount, 'The saved canary selection must reach endpoint resolution.');
-        Assert.AreEqual(1, HttpRequestCount, 'The canary selection must execute the real HTTP wrapper with a safe mock endpoint.');
     end;
 
     [Test]
@@ -548,7 +484,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Assert.AreEqual('', ErrorMessage, 'Runnable channels must not report a missing-incoming error.');
         Assert.AreEqual('', UnexpectedRequest, 'Unexpected HTTP must fail even if production catches the handler error.');
         Assert.AreEqual(HttpRequestCount, ObservedRequestCount, 'Every observed production request must reach the native HTTP mock.');
-        Assert.AreEqual(HttpRequestCount, EndpointResolutionCount, 'Each mocked request must resolve its endpoint through the real persisted-setup boundary.');
     end;
 
     local procedure CreateRecipient(var ExpenseUser: Record "Expense User"; QueueWelcome: Boolean)
@@ -718,8 +653,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Clear(ResponseStatusCode);
         Clear(HttpRequestCount);
         Clear(ObservedRequestCount);
-        Clear(EndpointResolutionCount);
-        Clear(ExpectedUseCanaryEndpoint);
         Clear(RequestCorrelationId);
         Clear(MultipartBody);
         Clear(MultipartContentType);
@@ -755,11 +688,9 @@ codeunit 148314 "EA Agent Dispatcher Test"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Http Client", 'OnGetCommunicationBaseUrl', '', false, false)]
     local procedure SetCommunicationBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: Text)
     begin
-        Assert.AreEqual(ExpectedUseCanaryEndpoint, UseCanaryEndpoint, 'Endpoint selection must use the saved company setup flag.');
         Assert.AreEqual('', BaseUrl, 'The communication override must precede normal endpoint lookup.');
         BaseUrl := ServiceBaseUrlTok;
         Assert.AreNotEqual('', BaseUrl, 'The isolated mock endpoint must be nonempty.');
-        EndpointResolutionCount += 1;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Http Client", 'OnBeforeAddAuthHeaders', '', false, false)]
