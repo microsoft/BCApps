@@ -94,7 +94,7 @@ codeunit 8754 "DA Feature Telemetry"
             Dimensions.Add('SyncMode', 'Interactive')
         else
             Dimensions.Add('SyncMode', 'Background');
-        FeatureTelemetry.LogError('', ExternalStorageTok, 'Synchronizing document attachments', ErrorText, ErrorCallStack, Dimensions);
+        FeatureTelemetry.LogError('0000VL5', ExternalStorageTok, 'Synchronizing document attachments', ErrorText, ErrorCallStack, Dimensions);
     end;
 
     internal procedure LogRootFolderConfigured()
