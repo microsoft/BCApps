@@ -178,6 +178,10 @@ codeunit 1639 "Office Line Generation"
     end;
 
     [CommitBehavior(CommitBehavior::Ignore)]
+    /// <summary>
+    /// Inserts suggested line items starting from the current record position and updates the document aggregate once.
+    /// The caller must position TempOfficeSuggestedLineItem with FindSet and initialize AddedCount before calling this procedure.
+    /// </summary>
     internal procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
