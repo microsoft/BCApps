@@ -78,7 +78,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
         // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
         AuditLog.LogAuditMessage(SecurityAuditAutomatedAccessBlockedTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Session.LogMessage('', AutomatedAccessBlockedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+        Session.LogMessage('0000VL4', AutomatedAccessBlockedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         Error(AutomatedAccessBlockedErr);
     end;
 
