@@ -23,12 +23,13 @@ codeunit 6935 "EA Agent Scheduler"
         TelemetryAgentScheduledTaskCancelledLbl: Label 'Agent scheduled task cancelled.', Locked = true;
         TelemetryRecoveryScheduledTaskCancelledLbl: Label 'Recovery scheduled task cancelled.', Locked = true;
         TelemetryAgentScheduledLbl: Label 'Agent scheduled.', Locked = true;
-        HasNoAccessControlErr: Label 'Expense agent setup page specifies that you cannot configure the agent.';
+        HasNoAccessControlErr: Label 'You do not have permission to configure the Expense Agent. Ask an administrator to grant you "%1" access on the %2 page.', Comment = '%1 = Can Configure Agent field caption, %2 = Expense Agent Setup page caption';
 
     internal procedure ScheduleAgent(EASetup: Record "Expense Agent Setup")
     var
         ExpenseAgentStatus: Record "Expense Agent Status";
         ExpenseAgentAccessControl: Record "Expense Agent Access Control";
+        ExpenseAgentSetupPage: Page "Expense Agent Setup";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
         if IsNullGuid(EASetup.SystemId) then begin
@@ -42,9 +43,9 @@ codeunit 6935 "EA Agent Scheduler"
         ExpenseAgentAccessControl.ReadIsolation(IsolationLevel::UpdLock);
 
         if not ExpenseAgentAccessControl.GetByUserSecurityID(UserSecurityID()) then
-            Error(HasNoAccessControlErr);
+            Error(HasNoAccessControlErr, ExpenseAgentAccessControl.FieldCaption("Can Configure Agent"), ExpenseAgentSetupPage.Caption);
         if not ExpenseAgentAccessControl."Can Configure Agent" then
-            Error(HasNoAccessControlErr);
+            Error(HasNoAccessControlErr, ExpenseAgentAccessControl.FieldCaption("Can Configure Agent"), ExpenseAgentSetupPage.Caption);
         if not ExpenseAgentAccessControl."Can Work on Behalf" then begin
             ExpenseAgentAccessControl.Validate("Can Work on Behalf", true);  // automatically disables the other(s)
             ExpenseAgentAccessControl.Modify();
