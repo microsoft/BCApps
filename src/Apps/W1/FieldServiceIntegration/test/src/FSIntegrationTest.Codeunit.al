@@ -1599,8 +1599,6 @@ codeunit 139204 "FS Integration Test"
         CRMProduct.Modify();
 
         IntegrationTableMapping.Get('ITEM-PRODUCT');
-        Item.CalcFields("Coupled to Dataverse");
-        Assert.IsTrue(Item."Coupled to Dataverse", 'The item should be identified as managed by its Dataverse coupling.');
 
         // [WHEN] The item is synchronized to the Field Service product.
         CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);

@@ -367,10 +367,9 @@ codeunit 6610 "FS Int. Table Subscriber"
     internal procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";
-        Item: Record Item;
         CRMProduct: Record "CRM Product";
-        SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
+        ItemIsManaged: Boolean;
     begin
         if not FSConnectionSetup.IsEnabled() then
             exit;
@@ -378,11 +377,10 @@ codeunit 6610 "FS Int. Table Subscriber"
         if not IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then
             exit;
 
-        SourceRecordRef := SourceFieldRef.Record();
-        SourceRecordRef.SetTable(Item);
+        ItemIsManaged := SourceFieldRef.Value();
         DestinationRecordRef := DestinationFieldRef.Record();
         DestinationRecordRef.SetTable(CRMProduct);
-        Result := CRMProduct.ConvertToCustomerAsset <> GetCustomerAssetConversion(Item."Coupled to Dataverse");
+        Result := CRMProduct.ConvertToCustomerAsset <> GetCustomerAssetConversion(ItemIsManaged);
         IsHandled := true;
     end;
 
@@ -399,7 +397,6 @@ codeunit 6610 "FS Int. Table Subscriber"
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
-        Item: Record Item;
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
         NAVItemUomRecordId: RecordId;
@@ -409,6 +406,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         QuantityToTransferToInvoice: Decimal;
         QuantityCurrentlyConsumed: Decimal;
         QuantityCurrentlyInvoiced: Decimal;
+        ItemIsManaged: Boolean;
         NotCoupledCRMUomErr: Label 'The unit is not coupled to a unit of measure.';
     begin
         if not FSConnectionSetup.IsEnabled() then
@@ -422,9 +420,8 @@ codeunit 6610 "FS Int. Table Subscriber"
                 exit;
 
         if IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then begin
-            SourceRecordRef := SourceFieldRef.Record();
-            SourceRecordRef.SetTable(Item);
-            NewValue := GetCustomerAssetConversion(Item."Coupled to Dataverse");
+            ItemIsManaged := SourceFieldRef.Value();
+            NewValue := GetCustomerAssetConversion(ItemIsManaged);
             IsValueFound := true;
             NeedsConversion := false;
             exit;
