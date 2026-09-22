@@ -36,8 +36,15 @@ query 4403 "EXR Top Customer Balance"
             filter(Currency_Code; "Currency Code")
             {
             }
-            filter(CustomerPostingGroup; "Posting Group")
+
+            dataitem(Customer_Ledger_Entry; "Cust. Ledger Entry")
             {
+                DataItemLink = "Entry No." = Detailed_Customer_Ledger_Entry."Cust. Ledger Entry No.";
+                SqlJoinType = InnerJoin;
+
+                filter(CustomerPostingGroup; "Customer Posting Group")
+                {
+                }
             }
         }
     }

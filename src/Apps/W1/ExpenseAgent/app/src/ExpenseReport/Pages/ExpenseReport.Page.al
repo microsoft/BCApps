@@ -115,6 +115,12 @@ page 6910 "Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
+                field("Employee Posting Group"; Rec."Employee Posting Group")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee posting group used when posting expenses for this expense report.';
+                    Importance = Additional;
+                }
                 field("Spend Request No."; Rec."Spend Request No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -712,7 +718,7 @@ page 6910 "Expense Report"
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
+            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
             if not UserSetup."Unlimited Expense Approval" then begin
                 CheckSetDefaultOwnerFilter();
                 ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();

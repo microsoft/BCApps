@@ -312,9 +312,12 @@ codeunit 134761 "Test Custom Reports"
     var
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
         FileManagement: Codeunit "File Management";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         OutputPath: Text;
     begin
         Initialize();
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         OutputPath := GetOutputFolder();
 
         RunStatementReport(CustomerFullMod, CustomLayoutReporting, OutputPath, false, true);
@@ -330,9 +333,12 @@ codeunit 134761 "Test Custom Reports"
     var
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
         FileManagement: Codeunit "File Management";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         OutputPath: Text;
     begin
         Initialize();
+        TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Windows);
+        BindSubscription(TestClientTypeSubscriber);
         OutputPath := GetOutputFolder();
 
         RunStatementReport(CustomerFullMod, CustomLayoutReporting, OutputPath, false, true);
