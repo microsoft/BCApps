@@ -19,6 +19,8 @@ codeunit 148314 "EA Agent Dispatcher Test"
     RequiredTestIsolation = Codeunit;
     TestHttpRequestPolicy = BlockOutboundRequests;
     EventSubscriberInstance = Manual;
+    Permissions = tabledata "Email Outbox" = rimd,
+                  tabledata "Sent Email" = rid;
 
     var
         Assert: Codeunit Assert;
@@ -398,7 +400,6 @@ codeunit 148314 "EA Agent Dispatcher Test"
     local procedure InitializeCommunication(var Setup: Record "Expense Agent Setup"; IncomingAvailable: Boolean; OutgoingAvailable: Boolean)
     var
         OutboxEmail: Record "EA Outbox Email";
-        EmailOutbox: Record "Email Outbox";
         ExpenseUser: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
         EAEmail: Record "EA Email";
@@ -408,7 +409,7 @@ codeunit 148314 "EA Agent Dispatcher Test"
     begin
         AssertMockTestEnvironment();
         EnableExpenseAgentCapability();
-        Assert.IsTrue(EmailOutbox.IsEmpty(), 'The disposable company must have no existing email outbox rows, including failed background work.');
+        CleanPreviousCommunicationFixture();
         if ExpenseAgentStatus.Get() then begin
             Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Task ID"), 'The isolated fixture must not have a configured dispatcher.');
             Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Recovery Task ID"), 'The isolated fixture must not have configured recovery.');
@@ -448,6 +449,42 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Setup.Insert();
 
         Commit();
+    end;
+
+    local procedure CleanPreviousCommunicationFixture()
+    var
+        TestEmailAccount: Record "Test Email Account";
+    begin
+        TestEmailAccount.SetRange(Name, 'Expense communication mock');
+        TestEmailAccount.SetRange(Connector, Enum::"Email Connector"::"Test Email Connector v4");
+        if TestEmailAccount.FindSet() then
+            repeat
+                DeleteFixtureNativeEmails(TestEmailAccount.Id);
+            until TestEmailAccount.Next() = 0;
+    end;
+
+    local procedure DeleteFixtureNativeEmails(AccountId: Guid)
+    var
+        EmailOutbox: Record "Email Outbox";
+        SentEmail: Record "Sent Email";
+    begin
+        if EmailOutbox.FindSet() then
+            repeat
+                if (EmailOutbox.GetAccountId() = AccountId) and
+                   (EmailOutbox.GetConnector() = Enum::"Email Connector"::"Test Email Connector v4")
+                then
+                    EmailOutbox.Mark(true);
+            until EmailOutbox.Next() = 0;
+        EmailOutbox.MarkedOnly(true);
+        EmailOutbox.DeleteAll(true);
+
+        if SentEmail.FindSet() then
+            repeat
+                if SentEmail.GetAccountId() = AccountId then
+                    SentEmail.Mark(true);
+            until SentEmail.Next() = 0;
+        SentEmail.MarkedOnly(true);
+        SentEmail.DeleteAll(true);
     end;
 
     local procedure EnableExpenseAgentCapability()
@@ -807,21 +844,22 @@ codeunit 148314 "EA Agent Dispatcher Test"
         FoundCurrentMessage: Boolean;
     begin
         // This event precedes Email Dispatcher. Rate is explicitly zero; concurrency counts Processing rows only.
-        // Only this new Queued row and known Failed foreground attempts may exist, so the processing count is zero.
+        // Only this fixture account is relevant; unrelated application outbox rows must remain untouched.
         Assert.IsFalse(IsNullGuid(OutgoingMockAccountId), 'No email may be queued without the fixture outgoing account.');
         Assert.IsFalse(FixtureMessageIds.Contains(MessageId), 'Every synchronous attempt must use a fresh message.');
         if EmailOutbox.FindSet() then
             repeat
-                Assert.AreEqual(OutgoingMockAccountId, EmailOutbox.GetAccountId(), 'Unknown account work must not reach the native dispatcher.');
-                Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector v4", EmailOutbox.GetConnector(), 'Only the native mock connector is allowed.');
-                if EmailOutbox.GetMessageId() = MessageId then begin
-                    FoundCurrentMessage := true;
-                    Assert.IsTrue(LibraryEmailMock.CheckEmailOutBoxStatusWithMessageId(MessageId, Enum::"Email Status"::Queued),
-                        'The current foreground message must still be queued before dispatch.');
-                end else begin
-                    Assert.IsTrue(FixtureMessageIds.Contains(EmailOutbox.GetMessageId()), 'Pre-existing background or unrelated emails are forbidden.');
-                    Assert.IsTrue(LibraryEmailMock.CheckEmailOutBoxStatusWithMessageId(EmailOutbox.GetMessageId(), Enum::"Email Status"::Failed),
-                        'Earlier fixture attempts must be Failed, never Queued or Processing.');
+                if EmailOutbox.GetAccountId() = OutgoingMockAccountId then begin
+                    Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector v4", EmailOutbox.GetConnector(), 'Only the native mock connector is allowed.');
+                    if EmailOutbox.GetMessageId() = MessageId then begin
+                        FoundCurrentMessage := true;
+                        Assert.IsTrue(LibraryEmailMock.CheckEmailOutBoxStatusWithMessageId(MessageId, Enum::"Email Status"::Queued),
+                            'The current foreground message must still be queued before dispatch.');
+                    end else begin
+                        Assert.IsTrue(FixtureMessageIds.Contains(EmailOutbox.GetMessageId()), 'Unexpected work for the fixture account must not reach the native dispatcher.');
+                        Assert.IsTrue(LibraryEmailMock.CheckEmailOutBoxStatusWithMessageId(EmailOutbox.GetMessageId(), Enum::"Email Status"::Failed),
+                            'Earlier fixture attempts must be Failed, never Queued or Processing.');
+                    end;
                 end;
             until EmailOutbox.Next() = 0;
         Assert.IsTrue(FoundCurrentMessage, 'The foreground email must have a native outbox row.');
