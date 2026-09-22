@@ -10,6 +10,7 @@ starts from something that already runs, rather than from a blank file.
 | `Invoke-Probe.ps1` | Runs one probe with a SQL snapshot before and after, and prints the delta. |
 | `Find-TourTargets.ps1` | Static scan of an app's `*.Table.al` metadata. Answers *"what is worth probing here?"* before you open a browser — see §9 of the tours instructions. |
 | `Find-TourDrift.ps1` | Differential scan of two parallel tables (Sales vs Purchase vs Transfer). Surfaces the field that one framework guards and another does not — see §10. |
+| `Find-PageDrift.ps1` | Differential scan across several **pages that share one table** — the six sales document types. Use when a table differential is vacuous by construction — see §10.2. |
 | `Find-UnguardedFields.ps1` | Per-field status-guard scan of one table. Lists fields with no `TestStatusOpen()`, and flags the ones with **deliberate** `Status::Released` handling so they are not reported as defects — see §9.7–9.8. |
 | `sab.js` / `psab.js` / `tsab.js` | Worked Saboteur probes for Sales, Purchase and Transfer orders. `tsab.js` carries the list+Enter, FastTab and `getByLabel` recipes as comments. |
 

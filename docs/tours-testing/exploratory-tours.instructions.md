@@ -736,6 +736,25 @@ Two lessons worth more than the result:
 - **The UI readback of the status field said `Open` while the error message said
   `Released to Ship`.** The error was right. Never take a field readback as the oracle — §5.6.
 
+### 9.11 Git history in BCApps cannot tell you *when* a pattern was introduced
+
+`git log -S` is the obvious way to decide whether a divergence is deliberate scoping or an
+incomplete rollout: if four pages got a pattern progressively and two never did, that is drift.
+
+**It does not work in this repo.** BCApps is populated by squashed sync commits from an internal
+repository, so `-S` reports the *import* commit, not the change:
+
+```
+SalesQuote         first introduced: 2026-06-29 748fdaa43f
+SalesOrder         first introduced: 2026-06-29 748fdaa43f
+SalesInvoice       first introduced: 2026-06-29 748fdaa43f
+BlanketSalesOrder  first introduced: 2026-06-29 748fdaa43f   <- all identical, all meaningless
+```
+
+History here answers *"what changed recently?"* (which is what §8 uses it for) but **not**
+*"which came first?"*. When intent depends on chronology, the evidence is not available in this
+repo — say so, and route the question to the owning team rather than guessing.
+
 ## 10. Differential touring across parallel modules
 
 BC contains several near-duplicate subsystems: Sales vs Purchase documents, Quote/Order/Invoice/
@@ -793,3 +812,45 @@ time, from the table. Two consequences for touring:
 - "The released grid let me type into it" is **not** a finding. Expect it.
 - A probe that concludes from `aria-readonly` or from a successful click that the field is editable
   has measured the page, not the product. Commit the value and read the database.
+
+### 10.2 When the table is shared, the *pages* are the differential
+
+§10 compares parallel *tables*. The six sales document types break that assumption: Quote, Order,
+Invoice, Credit Memo, Blanket Order and Return Order all share **one** table (`Sales Header` 36),
+discriminated by a `Document Type` enum. A table differential across them is vacuous by
+construction — the fields are identical because there is only one set of them.
+
+Everything that distinguishes the six therefore lives in the **pages** (41, 42, 43, 44, 507, 6630)
+and in the posting codeunits. So build the matrix from page field declarations instead: for each
+field, record its `Editable`/`Enabled` expression per page, group identical expressions under a
+letter, and print only the rows where the letters disagree.
+
+```
+FIELD                          Q O I C B R      . = absent from that page
+Ship-to Address                L L L . L -      - = present, no Editable/Enabled property
+Ship-to Code                   M M M . M .
+Customer Posting Group         . F F F . F
+```
+
+Read the shapes, not the individual cells:
+
+- **`L L L . L -`** — four agree, one omits the field, one has it unguarded. A 1-vs-5 outlier is
+  the classic drift signature.
+- **`. F F F . F`** — absent exactly where it is meaningless (Quote and Blanket Order never post).
+  That is a semantic boundary, not drift.
+
+**The worked example, and its honest verdict.** The `ShipToOptions`/`BillToOptions` pattern — which
+locks the ship-to address fields unless the user explicitly chooses *Custom Address*, and adds a
+`Ship-to Code` selector for registered alternate addresses — is implemented on Quote, Order,
+Invoice and Blanket Order, and is **entirely absent** from Return Order and Credit Memo (0
+occurrences of either identifier). On a Sales Return Order the ship-to address fields are freely
+editable with no `Ship-to Code` affordance at all.
+
+Is that a deliberate outbound-vs-return boundary, or a rollout that never reached the return
+family? **The evidence needed to decide is chronological, and this repo cannot supply it** (see the
+history caveat in §9.11). The disciplined output is therefore a *question for the owning team*, not
+a filed defect — a 4-vs-2 split along a meaningful business boundary is exactly the case where
+guessing produces a confident wrong answer.
+
+> The general lesson: a differential tells you **where** to look, never **who is wrong**. Promote a
+> divergence to a finding only when you can name the harm or show the inconsistency is user-visible.
