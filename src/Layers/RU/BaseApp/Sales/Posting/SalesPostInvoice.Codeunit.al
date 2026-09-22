@@ -463,7 +463,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         JobSalesLine: Record "Sales Line";
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         PrepmtDiffCustLedgerEntry: Record "Cust. Ledger Entry";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         LineCount: Integer;
     begin
         SalesHeader := DocumentHeaderVar;
@@ -808,7 +808,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         CustLedgEntry.FindLast();
     end;
 
-    local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): Integer
+    local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): BigInteger
     begin
         SalesPostInvoiceEvents.RunOnBeforeRunGenJnlPostLine(GenJnlLine, GenJnlPostLine);
         GenJnlPostLine.SetPreviewMode(PreviewMode);

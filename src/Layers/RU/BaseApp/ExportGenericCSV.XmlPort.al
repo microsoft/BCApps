@@ -117,7 +117,7 @@ xmlport 1230 "Export Generic CSV"
         DataExch: Record "Data Exch.";
         Window: Dialog;
         ErrorText: Text;
-        DataExchEntryNo: Integer;
+        DataExchEntryNo: BigInteger;
         LastLineNo: Integer;
         PrevColumnNo: Integer;
         QuitLoop: Boolean;
@@ -186,7 +186,7 @@ xmlport 1230 "Export Generic CSV"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterInitializeGlobals(DataExchEntryNo: Integer)
+    local procedure OnAfterInitializeGlobals(DataExchEntryNo: BigInteger)
     begin
     end;
 }

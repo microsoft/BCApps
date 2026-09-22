@@ -525,7 +525,7 @@ report 393 "Suggest Vendor Payments"
         OriginalAmtAvailable: Decimal;
         SummarizePerDim: Boolean;
         LastLineNo: Integer;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
         StopPayments: Boolean;
         BankPmtType: Enum "Bank Payment Type";
         BalAccType: Enum "Gen. Journal Account Type";
@@ -1111,7 +1111,7 @@ report 393 "Suggest Vendor Payments"
         TempPayableVendorLedgerEntry.SetRange("Amount (LCY)");
     end;
 
-    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValue: Code[20])
+    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: Integer; EntryNo: BigInteger; DimCode: Code[20]; DimValue: Code[20])
     begin
         DimBuf.Init();
         DimBuf."Table ID" := TableID;
@@ -1157,7 +1157,7 @@ report 393 "Suggest Vendor Payments"
         exit(GenJnlLine.SetPostingDateAsDueDate(DueDate, DueDateOffset));
     end;
 
-    local procedure GetVendorLedgerEntryDueDate(VendorLedgerEntryNo: Integer): Date
+    local procedure GetVendorLedgerEntryDueDate(VendorLedgerEntryNo: BigInteger): Date
     var
         FromVendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
@@ -1194,7 +1194,7 @@ report 393 "Suggest Vendor Payments"
     local procedure SetTempPaymentBufferDims(var DimBuf: Record "Dimension Buffer")
     var
         GLSetup: Record "General Ledger Setup";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         OnBeforeSetTempPaymentBufferDims(VendLedgEntry, SummarizePerDim);
         if SummarizePerDim then begin
@@ -1326,7 +1326,7 @@ report 393 "Suggest Vendor Payments"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterGetVendLedgEntries(var VendorLedgerEntry: Record "Vendor Ledger Entry"; Vendor: Record Vendor; PostingDate: Date; LastDueDateToPayReq: Date; UseVendorPriority: Boolean; UseDueDateAsPostingDate: Boolean; DueDateOffset: DateFormula; Positive: Boolean; Future: Boolean; var PayableVendorLedgerEntry: Record "Payable Vendor Ledger Entry" temporary; var NextEntryNo: Integer; SkipExportedPayments: Boolean)
+    local procedure OnAfterGetVendLedgEntries(var VendorLedgerEntry: Record "Vendor Ledger Entry"; Vendor: Record Vendor; PostingDate: Date; LastDueDateToPayReq: Date; UseVendorPriority: Boolean; UseDueDateAsPostingDate: Boolean; DueDateOffset: DateFormula; Positive: Boolean; Future: Boolean; var PayableVendorLedgerEntry: Record "Payable Vendor Ledger Entry" temporary; var NextEntryNo: BigInteger; SkipImportedPayments: Boolean)
     begin
     end;
 

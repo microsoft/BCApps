@@ -146,7 +146,7 @@ table 365 "Analysis View Entry"
         /// <summary>
         /// Unique entry number for this analysis view entry record.
         /// </summary>
-        field(9; "Entry No."; Integer)
+        field(9; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

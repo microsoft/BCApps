@@ -1115,7 +1115,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertShptEntryRelation(var TransLine: Record "Transfer Line"; WhseShip: Boolean; EntryNo: Integer; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
+    local procedure OnAfterInsertShptEntryRelation(var TransLine: Record "Transfer Line"; WhseShip: Boolean; EntryNo: BigInteger; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
     end;
 

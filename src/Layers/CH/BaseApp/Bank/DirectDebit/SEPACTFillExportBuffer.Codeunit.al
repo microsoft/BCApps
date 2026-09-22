@@ -187,7 +187,7 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
         OnAfterFillExportBuffer(PaymentExportData, BankExportImportSetup);
     end;
 
-    local procedure CreateNewCreditTransferEntry(var PaymentExportData: Record "Payment Export Data"; var CreditTransferEntry: Record "Credit Transfer Entry"; CreditTransferRegister: Record "Credit Transfer Register"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; EntryNo: Integer; LedgerEntryNo: Integer)
+    local procedure CreateNewCreditTransferEntry(var PaymentExportData: Record "Payment Export Data"; var CreditTransferEntry: Record "Credit Transfer Entry"; CreditTransferRegister: Record "Credit Transfer Register"; var TempGenJnlLine: Record "Gen. Journal Line" temporary; EntryNo: BigInteger; LedgerEntryNo: BigInteger)
     begin
         CreditTransferEntry.CreateNew(
             CreditTransferRegister."No.", EntryNo,

@@ -1094,8 +1094,9 @@ report 20 "Calc. and Post VAT Settlement"
         FeatureManagementIT: Codeunit "Feature Management IT";
 #endif
         PrintVATEntries: Boolean;
-        NextVATEntryNo: Integer;
-        LastVATEntryNo: Integer;
+        NextVATEntryNo: BigInteger;
+        LastVATEntryNo: BigInteger;
+        VATDate: Date;
         DocNo: Code[20];
         VATType: Enum "General Posting Type";
         VATAmount: Decimal;
@@ -1610,7 +1611,7 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlLine."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type";
     end;
 
-    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer)
+    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -1629,8 +1630,8 @@ report 20 "Calc. and Post VAT Settlement"
 
     local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean; IsPostingAllowed: Boolean): Integer
     var
-        NextAvailableVATEntryNo: Integer;
-        LastPostedVATEntryNo: Integer;
+        NextAvailableVATEntryNo: BigInteger;
+        LastPostedVATEntryNo: BigInteger;
     begin
         if not IsPostingAllowed then
             exit(0);
@@ -1744,7 +1745,7 @@ report 20 "Calc. and Post VAT Settlement"
     /// <param name="NextVATEntryNo">Next available VAT entry number for new entries</param>
     /// <param name="IsHandled">Set to true to skip standard VAT entry closure processing</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

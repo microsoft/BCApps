@@ -187,7 +187,7 @@ report 1200 "Create Direct Debit Collection"
         OnlyInvoicesWithMandate: Boolean;
         PartnerType: Enum "Partner Type";
 
-    local procedure EntryFullyCollected(EntryNo: Integer): Boolean
+    local procedure EntryFullyCollected(EntryNo: BigInteger): Boolean
     var
         DirectDebitCollectionEntry: Record "Direct Debit Collection Entry";
     begin

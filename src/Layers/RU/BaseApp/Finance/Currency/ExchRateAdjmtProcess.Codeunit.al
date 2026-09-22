@@ -163,8 +163,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         AddCurrCurrencyFactor: Decimal;
         VATEntryNoTotal: Decimal;
         VATEntryNo: Decimal;
-        NewEntryNo: Integer;
-        NewRegLedgEntryNo: Integer;
+        NewEntryNo: BigInteger;
+        NewRegLedgEntryNo: BigInteger;
         LastRegNo: Integer;
         GLSetupRead: Boolean;
         MaxAdjExchRateBufIndex: Integer;
@@ -875,7 +875,18 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         TempDtldCVLedgEntryBuf.Modify();
     end;
 
-    local procedure GetDimSetEntry(EntryNo: Integer; var TempDimSetEntry: Record "Dimension Set Entry" temporary)
+    local procedure PostEmplAdjmt(ExchRateAdjmtBuffer: Record "Exch. Rate Adjmt. Buffer"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary; var TempDimSetEntry: Record "Dimension Set Entry" temporary)
+    begin
+        TempDtldCVLedgEntryBuf."Transaction No." := PostAdjmt(ExchRateAdjmtBuffer, TempDimSetEntry);
+        if TempDtldCVLedgEntryBuf.Insert() then;
+        InsertExchRateAdjmtReg(
+            "Exch. Rate Adjmt. Account Type"::Employee, ExchRateAdjmtBuffer."Posting Group", ExchRateAdjmtBuffer."Currency Code", ExchRateAdjmtBuffer.Index);
+        TempDtldCVLedgEntryBuf.Get(TempDtldCVLedgEntryBuf."Entry No.");
+        TempDtldCVLedgEntryBuf."Exch. Rate Adjmt. Reg. No." := ExchRateAdjmtReg."No.";
+        TempDtldCVLedgEntryBuf.Modify();
+    end;
+
+    local procedure GetDimSetEntry(EntryNo: BigInteger; var TempDimSetEntry: Record "Dimension Set Entry" temporary)
     begin
         TempDimSetEntry.Reset();
         TempDimSetEntry.DeleteAll();
@@ -919,7 +930,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     /// can filter temp entries per posting group. The actual register number is assigned
     /// when the entry is copied to the real table.
     /// </summary>
-    local procedure TagExchRateAdjmtLedgEntry(BufferIndex: Integer)
+    local procedure TagExchRateAdjmtLedgEntry(BufferIndex: BigInteger)
     begin
         if TempExchRateAdjmtLedgEntry.Get(0, NewRegLedgEntryNo) then begin
             TempExchRateAdjmtLedgEntry.Delete();
@@ -1183,8 +1194,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     var
         DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry";
         GLEntry: Record "G/L Entry";
-        LastEntryNo: Integer;
-        LastTransactionNo: Integer;
+        LastEntryNo: BigInteger;
+        LastTransactionNo: BigInteger;
     begin
         GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
 
@@ -1204,8 +1215,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     var
         DtldVendLedgEntry2: Record "Detailed Vendor Ledg. Entry";
         GLEntry: Record "G/L Entry";
-        LastEntryNo: Integer;
-        LastTransactionNo: Integer;
+        LastEntryNo: BigInteger;
+        LastTransactionNo: BigInteger;
     begin
         GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
 
@@ -1225,8 +1236,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     var
         DtldEmplLedgEntry2: Record "Detailed Employee Ledger Entry";
         GLEntry: Record "G/L Entry";
-        LastEntryNo: Integer;
-        LastTransactionNo: Integer;
+        LastEntryNo: BigInteger;
+        LastTransactionNo: BigInteger;
     begin
         GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
 
@@ -1731,7 +1742,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
 
     local procedure GetDimCombID(var DimBuf: Record "Dimension Buffer"): Integer
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
     begin
         DimEntryNo := DimBufMgt.FindDimensions(DimBuf);
         if DimEntryNo = 0 then
@@ -1828,7 +1839,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustCustomerLedgerEntry(Customer: Record Customer; CustLedgerEntry: Record "Cust. Ledger Entry"; PostingDate2: Date; Application: Boolean)
     var
         DimSetEntry: Record "Dimension Set Entry";
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
         OldAdjAmount: Decimal;
         Adjust: Boolean;
         AdjExchRateBufIndex: Integer;
@@ -2027,7 +2038,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustVendorLedgerEntry(Vendor: Record Vendor; VendLedgerEntry: Record "Vendor Ledger Entry"; PostingDate2: Date; Application: Boolean)
     var
         DimSetEntry: Record "Dimension Set Entry";
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
         OldAdjAmount: Decimal;
         Adjust: Boolean;
         AdjExchRateBufIndex: Integer;
@@ -2224,7 +2235,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustEmployeeLedgerEntry(Employee: Record Employee; EmplLedgerEntry: Record "Employee Ledger Entry"; PostingDate2: Date; Application: Boolean)
     var
         DimSetEntry: Record "Dimension Set Entry";
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
         OldAdjAmount: Decimal;
         Adjust: Boolean;
         AdjExchRateBufIndex: Integer;
@@ -2683,7 +2694,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         exit(Currency.GetUnrealizedLossesAccount());
     end;
 
-    local procedure SetUnrealizedGainLossFilterCust(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; EntryNo: Integer)
+    local procedure SetUnrealizedGainLossFilterCust(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; EntryNo: BigInteger)
     begin
         DtldCustLedgEntry.Reset();
         DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
@@ -2692,7 +2703,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         DtldCustLedgEntry.SetRange("Prepmt. Diff. in TA", GLSetup."Cancel Curr. Prepmt. Adjmt." and DtldCustLedgEntry.Prepayment);
     end;
 
-    local procedure SetUnrealizedGainLossFilterVend(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; EntryNo: Integer)
+    local procedure SetUnrealizedGainLossFilterVend(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; EntryNo: BigInteger)
     begin
         DtldVendLedgEntry.Reset();
         DtldVendLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
@@ -2701,7 +2712,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         DtldVendLedgEntry.SetRange("Prepmt. Diff. in TA", GLSetup."Cancel Curr. Prepmt. Adjmt." and DtldVendLedgEntry.Prepayment);
     end;
 
-    local procedure SetUnrealizedGainLossFilterEmpl(var DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry"; EntryNo: Integer)
+    local procedure SetUnrealizedGainLossFilterEmpl(var DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry"; EntryNo: BigInteger)
     begin
         DtldEmplLedgEntry.Reset();
         DtldEmplLedgEntry.SetCurrentKey("Employee Ledger Entry No.", "Entry Type");
