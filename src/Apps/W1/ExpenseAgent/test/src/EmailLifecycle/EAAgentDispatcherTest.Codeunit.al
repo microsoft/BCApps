@@ -8,6 +8,8 @@ using Microsoft.ExpenseAgent;
 using System.AI;
 using System.Email;
 using System.Environment;
+using System.Privacy;
+using System.TestLibraries.AI;
 using System.TestLibraries.Email;
 
 codeunit 148314 "EA Agent Dispatcher Test"
@@ -403,13 +405,9 @@ codeunit 148314 "EA Agent Dispatcher Test"
         ExpenseAgentStatus: Record "Expense Agent Status";
         TempEmailInbox: Record "Email Inbox" temporary;
         TestEmailConnector: Codeunit "Test Email Connector v4";
-        CopilotCapability: Codeunit "Copilot Capability";
-        ExpenseAgentAppId: Guid;
     begin
         AssertMockTestEnvironment();
-        Evaluate(ExpenseAgentAppId, '66efe10c-8033-403b-a86d-77c0887178ba');
-        Assert.IsTrue(CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Expense Agent", ExpenseAgentAppId),
-            'Expense Agent capability and required privacy approvals must already be enabled. These tests never change tenant-wide Copilot settings or approvals.');
+        EnableExpenseAgentCapability();
         Assert.IsTrue(EmailOutbox.IsEmpty(), 'The disposable company must have no existing email outbox rows, including failed background work.');
         if ExpenseAgentStatus.Get() then begin
             Assert.IsTrue(IsNullGuid(ExpenseAgentStatus."Agent Task ID"), 'The isolated fixture must not have a configured dispatcher.');
@@ -450,6 +448,25 @@ codeunit 148314 "EA Agent Dispatcher Test"
         Setup.Insert();
 
         Commit();
+    end;
+
+    local procedure EnableExpenseAgentCapability()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+        CopilotTestLibrary: Codeunit "Copilot Test Library";
+        ExpPrivacyNoticeReg: Codeunit "Exp. Privacy Notice Reg.";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        ExpenseAgentAppId: Guid;
+        AzureOpenAITok: Label 'Azure OpenAI', Locked = true;
+    begin
+        Evaluate(ExpenseAgentAppId, '66efe10c-8033-403b-a86d-77c0887178ba');
+        // Codeunit isolation rolls these shared settings back after the suite, including committed test flows.
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"Expense Agent", ExpenseAgentAppId);
+        PrivacyNotice.SetApprovalState(AzureOpenAITok, "Privacy Notice Approval State"::Agreed);
+        PrivacyNotice.SetApprovalState(ExpPrivacyNoticeReg.GetExpenseAgentPrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        Assert.IsTrue(CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Expense Agent", ExpenseAgentAppId),
+            'The isolated fixture must activate the Expense Agent capability and required privacy approvals.');
     end;
 
     local procedure AssertMockTestEnvironment()
