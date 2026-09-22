@@ -6,10 +6,13 @@
 namespace Microsoft.ExternalStorage.DocumentAttachments;
 
 using Microsoft.Foundation.Attachment;
+using System.Utilities;
 
 /// <summary>
 /// Report for synchronizing document attachments between internal and external storage.
 /// Supports bulk upload, download, and cleanup operations.
+/// Shows all failures interactively and raises the first failure in background sessions.
+/// Logs each failed operation to telemetry in both session types.
 /// </summary>
 report 8752 "DA External Storage Sync"
 {
@@ -28,6 +31,8 @@ report 8752 "DA External Storage Sync"
         {
             trigger OnPreDataItem()
             begin
+                TempErrorMessage.Reset();
+                TempErrorMessage.DeleteAll();
                 SetFilters();
                 TotalCount := Count();
 
@@ -56,14 +61,16 @@ report 8752 "DA External Storage Sync"
                     Dialog.Update(1, ProcessedCount);
 
                 SyncSuccess := false;
+                ClearLastError();
                 case SyncDirection of
                     SyncDirection::"To External Storage":
                         begin
                             SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
                             if SyncSuccess and (Operation = Operation::Move) then begin
+                                ClearLastError();
                                 DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
                                 if not DeleteSuccess then
-                                    FailedCount += 1;
+                                    LogFailure(SourceCleanupFailedErr, 'DeleteInternal');
                             end;
                         end;
                     SyncDirection::"To Internal Storage":
@@ -72,16 +79,20 @@ report 8752 "DA External Storage Sync"
                             if SyncSuccess and (Operation = Operation::Move) then begin
                                 DocumentAttachment.SetRange("Stored Internally");
                                 DocumentAttachment.Find();
+                                ClearLastError();
                                 DeleteSuccess := ExternalStorageImpl.DeleteFromExternalStorage(DocumentAttachment);
                                 if not DeleteSuccess then
-                                    FailedCount += 1;
+                                    LogFailure(SourceCleanupFailedErr, 'DeleteExternal');
                                 DocumentAttachment.SetRange("Stored Internally", false);
                             end;
                         end;
                 end;
 
                 if not SyncSuccess then
-                    FailedCount += 1;
+                    if SyncDirection = SyncDirection::"To External Storage" then
+                        LogFailure(CopyFailedErr, 'Upload')
+                    else
+                        LogFailure(CopyFailedErr, 'Download');
 
                 Commit(); // Commit after each record to avoid lost in communication error with external storage service
 
@@ -98,6 +109,9 @@ report 8752 "DA External Storage Sync"
                         Dialog.Close();
                     Message(ProcessedMsg, ProcessedCount - FailedCount, FailedCount);
                 end;
+
+                if FailedCount > 0 then
+                    TempErrorMessage.ShowErrors();
             end;
         }
     }
@@ -141,6 +155,7 @@ report 8752 "DA External Storage Sync"
     }
 
     var
+        TempErrorMessage: Record "Error Message" temporary;
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Dialog: Dialog;
         FailedCount: Integer;
@@ -149,8 +164,31 @@ report 8752 "DA External Storage Sync"
         TotalCount: Integer;
         ProcessedMsg: Label 'Processed %1 attachments successfully. %2 failed.', Comment = '%1 - Number of Processed Attachments, %2 - Number of Failed Attachments';
         ProcessingMsg: Label 'Processing #1###### attachments...', Comment = '%1 - Total Number of Attachments';
+        AttachmentFailedErr: Label 'Attachment %1: %2', Comment = '%1 = Original attachment filename, %2 = Failure reason';
+        CopyFailedErr: Label 'The attachment could not be copied. Check that external storage is enabled, a file account is assigned, and the source file is available.';
+        SourceCleanupFailedErr: Label 'The attachment was copied, but could not be removed from the source storage.';
         SyncDirection: Option "To External Storage","To Internal Storage";
         Operation: Option Copy,Move;
+
+    local procedure LogFailure(FailureReason: Text; FailureOperation: Text)
+    var
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+        LastErrorText: Text;
+        TelemetryErrorText: Text;
+    begin
+        LastErrorText := GetLastErrorText();
+        TelemetryErrorText := GetLastErrorText(true);
+        if TelemetryErrorText = '' then
+            TelemetryErrorText := FailureReason;
+        DAFeatureTelemetry.LogSyncFailed(DocumentAttachment, FailureOperation, TelemetryErrorText, GetLastErrorCallStack());
+
+        if LastErrorText <> '' then
+            FailureReason := LastErrorText;
+
+        FailedCount += 1;
+        TempErrorMessage.LogMessage(DocumentAttachment, DocumentAttachment.FieldNo("File Name"), TempErrorMessage."Message Type"::Error,
+            StrSubstNo(AttachmentFailedErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension", FailureReason));
+    end;
 
     local procedure SetFilters()
     begin

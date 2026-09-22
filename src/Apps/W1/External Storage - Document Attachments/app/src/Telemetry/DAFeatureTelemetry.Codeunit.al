@@ -85,6 +85,18 @@ codeunit 8754 "DA Feature Telemetry"
         FeatureTelemetry.LogUsage('0000RNW', ExternalStorageTok, 'Auto Sync');
     end;
 
+    internal procedure LogSyncFailed(DocumentAttachment: Record "Document Attachment"; Operation: Text; ErrorText: Text; ErrorCallStack: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        GetFailureTelemetryDimensions(DocumentAttachment, Operation, Dimensions);
+        if GuiAllowed() then
+            Dimensions.Add('SyncMode', 'Interactive')
+        else
+            Dimensions.Add('SyncMode', 'Background');
+        FeatureTelemetry.LogError('', ExternalStorageTok, 'Synchronizing document attachments', ErrorText, ErrorCallStack, Dimensions);
+    end;
+
     internal procedure LogRootFolderConfigured()
     begin
         FeatureTelemetry.LogUsage('0000RNX', ExternalStorageTok, 'Root Folder Configured');
