@@ -241,6 +241,7 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         UpdatePurchInvoiceNo(PurchaseHeader);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", Quantity);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Validate("Allow Invoice Disc.", true);
         PurchaseLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
         PurchaseLine.Modify(true);
     end;

@@ -1490,6 +1490,7 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", Quantity);
         SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Validate("Allow Invoice Disc.", true);
         SalesLine.Validate("Selected Alloc. Account No.", AllocationAccount."No.");
         SalesLine.Modify(true);
     end;
