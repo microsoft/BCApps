@@ -184,39 +184,31 @@ codeunit 1639 "Office Line Generation"
     [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
-        TempLastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary;
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
+        LastItemNo: Text[50];
+        LastQuantity: Integer;
         LastLinePending: Boolean;
-        ErrorText: Text;
     begin
         DisableAggregateTableUpdate.SetDisableAllRecords(true);
         BindSubscription(DisableAggregateTableUpdate);
-        if not TryInsertLineItemsWithAggregateUpdateDisabled(TempOfficeSuggestedLineItem, HeaderRecRef, AddedCount, TempLastOfficeSuggestedLineItem, LastLinePending) then begin
-            ErrorText := GetLastErrorText();
-            if UnbindSubscription(DisableAggregateTableUpdate) then;
-            Error(ErrorText);
-        end;
-        if UnbindSubscription(DisableAggregateTableUpdate) then;
-
-        if LastLinePending then begin
-            InsertLineItem(HeaderRecRef, TempLastOfficeSuggestedLineItem."Item No.", TempLastOfficeSuggestedLineItem.Quantity);
-            AddedCount += 1;
-        end;
-    end;
-
-    [TryFunction]
-    local procedure TryInsertLineItemsWithAggregateUpdateDisabled(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer; var TempLastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var LastLinePending: Boolean)
-    begin
+        LastQuantity := 0;
         repeat
             if TempOfficeSuggestedLineItem.Add then begin
                 if LastLinePending then begin
-                    InsertLineItem(HeaderRecRef, TempLastOfficeSuggestedLineItem."Item No.", TempLastOfficeSuggestedLineItem.Quantity);
+                    InsertLineItem(HeaderRecRef, LastItemNo, LastQuantity);
                     AddedCount += 1;
                 end;
-                TempLastOfficeSuggestedLineItem := TempOfficeSuggestedLineItem;
+                LastItemNo := TempOfficeSuggestedLineItem."Item No.";
+                LastQuantity := TempOfficeSuggestedLineItem.Quantity;
                 LastLinePending := true;
             end;
         until TempOfficeSuggestedLineItem.Next() = 0;
+        if UnbindSubscription(DisableAggregateTableUpdate) then;
+
+        if LastLinePending then begin
+            InsertLineItem(HeaderRecRef, LastItemNo, LastQuantity);
+            AddedCount += 1;
+        end;
     end;
 
     local procedure CalculateMatchStrength(ItemNo: Text[50]; Matches: Integer; SearchText: Text; AlreadyFound: Boolean) Strength: Decimal

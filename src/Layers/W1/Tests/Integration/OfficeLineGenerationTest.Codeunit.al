@@ -5,6 +5,7 @@ using Microsoft.Integration.Graph;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
+using System.TestLibraries.Utilities;
 
 codeunit 139061 "Office Line Generation Test"
 {
