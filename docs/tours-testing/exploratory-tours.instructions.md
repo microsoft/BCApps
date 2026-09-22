@@ -18,7 +18,7 @@ exactly one of them:
 ## Starting a session
 
 ```powershell
-# 1. Container — ~20 min, unattended, no prompts
+# 1. Container — ~20 min, unattended, no prompts. Run from the repo copy.
 .\docs\tours-testing\harness\New-TourContainer.ps1
 
 # 2. Scratch working copy (node_modules is not committed)
@@ -26,14 +26,20 @@ $RUN = "$env:USERPROFILE\.copilot\session-state\<id>\files\harness"
 Copy-Item .\docs\tours-testing\harness\*.js,.\docs\tours-testing\harness\*.ps1 $RUN -Force
 cd $RUN ; npm init -y ; npm i -D playwright ; npx playwright install chromium
 
-# 3. Sign in once by hand — the first sign-in compiles server-side and takes 60 s+
+# 3. Point the harness at this tour's container (printed by step 1)
+$env:BC_CREDS = "$env:USERPROFILE\.bc-tours\BCApps-Tours-credentials.json"
 
-# 4. Pick an area that has data (§3), then a theme (§2)
+# 4. Sign in once by hand — the first sign-in compiles server-side and takes 60 s+
+
+# 5. Pick an area that has data (§3), then a theme (§2)
 .\Find-TourTargets.ps1 -Path ..\..\..\src\Apps\W1\<app>\app
 
-# 5. One probe at a time
+# 6. One probe at a time
 node mytour.js probe-name
 ```
+
+Several tours can run at once against separate containers — pass `-ContainerName` in step 1 and
+give each session its own `BC_CREDS`. See the harness README.
 
 Then write a session sheet (§8). Before filing anything, read §5.
 

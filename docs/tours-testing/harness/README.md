@@ -29,6 +29,42 @@ lost; an edit made in the repo and not copied across is silently not exercised.
 Copy-Item .\docs\tours-testing\harness\*.js,.\docs\tours-testing\harness\*.ps1 $RUN -Force
 ```
 
+`New-TourContainer.ps1` is the exception — run it from the **repo** copy, because it imports the
+checkout's own build scripts to resolve the artifact. It refuses to run if it cannot find them.
+
+## Running several tours in parallel
+
+Multiple BC containers coexist happily: each gets its own hostname and IP on the NAT network,
+nothing publishes host ports, and `Invoke-ScriptInBcContainer -containerName` keeps the SQL oracle
+isolated. The artifact cache is shared, so the second container builds much faster. Budget roughly
+10–15 GB of disk and a few GB of RAM each.
+
+One environment variable configures a session:
+
+```powershell
+# Session A
+.\New-TourContainer.ps1 -ContainerName BCApps-Money
+$env:BC_CREDS = "$env:USERPROFILE\.bc-tours\BCApps-Money-credentials.json"
+
+# Session B, at the same time
+.\New-TourContainer.ps1 -ContainerName BCApps-Undo
+$env:BC_CREDS = "$env:USERPROFILE\.bc-tours\BCApps-Undo-credentials.json"
+```
+
+`BC_CREDS` carries the container name, so `bc.js` derives the web client URL from it and
+`Invoke-Probe.ps1` derives the container to snapshot. All three — browser, credentials and oracle —
+therefore address the same container by construction.
+
+`bc.js` **throws if `BC_CREDS` is unset** rather than defaulting to a container name. That is
+deliberate: a default is silently wrong in the worst possible direction. Two sessions touring the
+same container would mutate each other's documents, and each would read the other's writes as
+product behaviour — which destroys the before/after SQL delta the whole method rests on.
+
+Set `BC_BASE` only to override the URL, e.g. when the container name does not resolve and you need
+its IP.
+
+Each session also needs its **own scratch folder**, since probe files are edited per tour.
+
 ## What `bc.js` gives you
 
 | Helper | Why it exists |

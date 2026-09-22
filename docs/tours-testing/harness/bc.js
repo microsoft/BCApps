@@ -1,10 +1,35 @@
-// Shared helpers for driving BC in the Cancelled Bus session.
+// Shared helpers for driving BC from an exploratory tour.
+//
+// Per-session configuration comes from ONE environment variable:
+//
+//   BC_CREDS   path to the bc-credentials.json written by New-TourContainer.ps1
+//
+// That file carries the container name, so the web client URL is derived from it and
+// two tours running in parallel cannot silently share a container. Set BC_BASE only to
+// override the URL - e.g. when the container name does not resolve and you need its IP.
 const { chromium } = require('playwright');
 const fs = require('fs');
 
-const CREDS = JSON.parse(fs.readFileSync(
-  'C:\\Users\\jonasbl\\.copilot\\session-state\\ca19d914-b190-4409-a2c5-2c23c566afcc\\files\\bc-credentials.json', 'utf8'));
-const BASE = process.env.BC_BASE || 'http://BCApps-Tours/BC/';
+const credsPath = process.env.BC_CREDS;
+if (!credsPath) {
+  throw new Error(
+    'BC_CREDS is not set. It must point at the bc-credentials.json for THIS tour\'s container.\n' +
+    'Without it a parallel session would sign in to another tour\'s container and its SQL\n' +
+    'deltas would measure the other session\'s writes.\n' +
+    '  $env:BC_CREDS = "<path>\\<container>-credentials.json"');
+}
+if (!fs.existsSync(credsPath)) {
+  throw new Error(`BC_CREDS points at a file that does not exist: ${credsPath}`);
+}
+
+const CREDS = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
+if (!CREDS.containerName) {
+  throw new Error(`${credsPath} has no containerName - regenerate it with New-TourContainer.ps1`);
+}
+
+const CONTAINER = CREDS.containerName;
+const BASE = process.env.BC_BASE || `http://${CONTAINER}/BC/`;
+
 
 async function appFrame(page, timeoutMs = 120000) {
   const deadline = Date.now() + timeoutMs;
@@ -236,6 +261,6 @@ async function assertCard(page, expected) {
 }
 
 module.exports = {
-  BASE, CREDS, appFrame, signIn, openPage, field, fieldOne, launch,
+  BASE, CREDS, CONTAINER, appFrame, signIn, openPage, field, fieldOne, launch,
   newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
 };

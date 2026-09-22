@@ -51,17 +51,21 @@ Create-BCContainer -ContainerName $ContainerName -Authentication 'UserPassword' 
 
 A password that only exists inside the script is a dead end — the user needs it to sign in and
 inspect state after an automated run, which is exactly how a finding gets confirmed or dismissed.
-Write it outside the repository and tell the user the path:
+Write it outside the repository, **named after the container**, and tell the user the path:
 
 ```powershell
+$SecretPath = Join-Path $env:USERPROFILE ".bc-tours\$ContainerName-credentials.json"
 @{ containerName = $ContainerName; user = 'admin'; password = $password } |
-    ConvertTo-Json | Set-Content "$sessionArtifactsFolder\bc-credentials.json" -Encoding utf8
+    ConvertTo-Json | Set-Content -Path $SecretPath -Encoding utf8
 ```
 
-- **Never commit a password or hard-code one in a test script.** The file lives in the session
-  artifacts folder and is never staged.
+One file per container is what makes parallel tours safe: the harness takes `BC_CREDS`, and the
+`containerName` inside the file determines which web client it signs in to and which container the
+SQL oracle snapshots. See the harness README.
+
+- **Never commit a password or hard-code one in a test script.**
 - Record it in the session sheet **by reference** (path + container name), never the value.
-- Scripts read it at run time into `$env:BC_USER` / `$env:BC_PASS`.
+- Scripts read it at run time; `bc.js` reads `$env:BC_CREDS` and refuses to start without it.
 - The blast radius is one disposable local container — but it is still a credential.
 
 ## 3. Find the web client URL
@@ -117,6 +121,7 @@ to run AL tests; it is unnecessary for browser-driven exploratory testing and sl
 
 ```powershell
 Remove-BcContainer -containerName <ContainerName>
+Remove-Item (Join-Path $env:USERPROFILE ".bc-tours\<ContainerName>-credentials.json")
 ```
 
 Exploratory testing is destructive — posting cannot be undone. Prefer a disposable container per

@@ -44,16 +44,18 @@ missing elements rather than stale handles.
 
 ## 2. Sign-in
 
-A plain form in the **main** frame. Read credentials from the environment; never hard-code them.
+A plain form in the **main** frame. Credentials come from the file `BC_CREDS` points at — never
+hard-code them, and never default the container (see the harness README on parallel tours).
 
 ```js
-await page.goto(`${BASE}?tenant=default`, { waitUntil: 'domcontentloaded' });
-await page.fill('#UserName', process.env.BC_USER);
-await page.fill('#Password', process.env.BC_PASS);
+const { CREDS, BASE } = require('./bc');
+await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+await page.fill('#UserName', CREDS.user);
+await page.fill('#Password', CREDS.password);
 await page.click('#submitButton');
 ```
 
-Drop `tenant=default` on a single-tenant container. Give the first navigation a long timeout — cold
+Add `?tenant=default` on a multitenant container. Give the first navigation a long timeout — cold
 start is 60 s+.
 
 ## 3. Opening one specific document

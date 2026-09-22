@@ -5,16 +5,41 @@
     so the artifact is still resolved via Get-CurrentBCArtifactUrl and matches the checkout)
     but supplies a generated credential instead of prompting.
 
-    The password is written to the session artifacts folder, never to the repo.
+    The password is written outside the repo, to a file named after the container, so
+    several tours can run in parallel against separate containers without overwriting
+    each other's credentials.
+
+    .EXAMPLE
+    # One tour
+    .\New-TourContainer.ps1
+
+    .EXAMPLE
+    # A second, parallel tour - different container, different credentials file
+    .\New-TourContainer.ps1 -ContainerName BCApps-Money
 #>
 [CmdletBinding()]
 param(
     [string] $ContainerName = 'BCApps-Tours',
-    [string] $BaseFolder = 'C:\Users\jonasbl\.copilot\repos\copilot-worktrees\BCApps\jonas-blunck-scaling-guacamole',
-    [string] $SecretPath = 'C:\Users\jonasbl\.copilot\session-state\ca19d914-b190-4409-a2c5-2c23c566afcc\files\bc-credentials.json'
+
+    # Repo root. Defaults to the checkout this script is running from
+    # (<repo>\docs\tours-testing\harness), so a worktree per session just works.
+    [string] $BaseFolder = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path,
+
+    # Never inside the repo. One file per container.
+    [string] $SecretPath = (Join-Path $env:USERPROFILE ".bc-tours\$ContainerName-credentials.json")
 )
 
 $ErrorActionPreference = 'Stop'
+
+if (-not (Test-Path "$BaseFolder\build\scripts\DevEnv\NewDevEnv.psm1")) {
+    throw "-BaseFolder '$BaseFolder' is not a BCApps checkout. Run this script from the repo copy " +
+          "(<repo>\docs\tours-testing\harness), or pass -BaseFolder explicitly. The scratch " +
+          "working copy cannot resolve the repo root."
+}
+
+if (docker ps -a --filter "name=^/$ContainerName$" --format '{{.Names}}') {
+    throw "Container '$ContainerName' already exists. Remove it, or pass a different -ContainerName for a parallel tour."
+}
 
 Import-Module "$BaseFolder\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$BaseFolder\build\scripts\DevEnv\NewDevEnv.psm1" -DisableNameChecking
@@ -26,6 +51,7 @@ $password = (-join (1..20 | ForEach-Object { $alphabet | Get-Random })) + 'Aa1!'
 $credential = New-Object System.Management.Automation.PSCredential(
     'admin', (ConvertTo-SecureString $password -AsPlainText -Force))
 
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $SecretPath) | Out-Null
 @{ containerName = $ContainerName; user = 'admin'; password = $password } |
     ConvertTo-Json | Set-Content -Path $SecretPath -Encoding utf8
 Write-Host "Credentials written to $SecretPath" -ForegroundColor Yellow
@@ -34,3 +60,8 @@ Create-BCContainer -ContainerName $ContainerName -Authentication 'UserPassword' 
 
 Write-Host "Container build: $(Get-BcContainerNavVersion -containerOrImageName $ContainerName)" -ForegroundColor Green
 docker logs $ContainerName 2>&1 | Select-String 'Web Client'
+
+Write-Host ''
+Write-Host 'Point this tour''s harness at this container:' -ForegroundColor Cyan
+Write-Host "  `$env:BC_CREDS = '$SecretPath'" -ForegroundColor Cyan
+
