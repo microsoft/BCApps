@@ -36,9 +36,9 @@ permissions:
 jobs:
   review:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
-    uses: microsoft/BC-ALAgents/.github/workflows/review.yml@96b0ea7493b7428f6006c3dd91e7fcacbe11b051
+    uses: microsoft/BC-ALAgents/.github/workflows/review.yml@7fad26b703f0450ed9f95a63205128c175001e7f
     with:
       target_repo: ${{ github.repository }}
-      engine_ref: 96b0ea7493b7428f6006c3dd91e7fcacbe11b051
+      engine_ref: 7fad26b703f0450ed9f95a63205128c175001e7f
       copilot_model: gpt-5.6-sol
       copilot_leaf_model: gpt-5.6-luna
