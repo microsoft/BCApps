@@ -27,7 +27,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     var
         IsHandled: Boolean;
     begin
-        BlockAutomatedSessionAccess();
+        RegisterAndCheckVIESCallQuota();
 
         InitVATRegistrationLog(Rec);
         VATRegistrationLog := Rec;
@@ -52,43 +52,139 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         EUVATRegNoValidationServiceTok: Label 'EUVATRegNoValidationServiceTelemetryCategoryTok', Locked = true;
         ValidationSuccessfulMsg: Label 'The VAT reg. no. validation was successful', Locked = true;
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
-        AutomatedAccessBlockedErr: Label 'VAT registration number validation against the EU VIES service is not available from API or background (non-interactive) sessions. Verify VAT registration numbers interactively instead.';
-        AutomatedAccessBlockedMsg: Label 'The VAT reg. no. validation was blocked because it was invoked from an API or background session.', Locked = true;
-        SecurityAuditAutomatedAccessBlockedTxt: Label 'The EU VAT Registration No. validation service (VIES) lookup was blocked because it was invoked from an automated (API) or background session.', Locked = true;
+        DailyQuotaExceededErr: Label 'VAT registration number validation against the EU VIES service has reached the daily limit for this environment. Try again tomorrow, and avoid verifying VAT registration numbers in bulk.';
+        DailyQuotaReachedMsg: Label 'The daily EU VAT reg. no. validation limit was reached for this environment.', Locked = true;
+        SecurityAuditDailyQuotaExceededTxt: Label 'An EU VAT Registration No. validation service (VIES) lookup was blocked because the environment reached its daily lookup limit.', Locked = true;
+        VIESCallQuotaKeyTok: Label 'VATRegNoLookupDailyCallQuota', Locked = true;
         ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         VATRegistrationURL: Text;
+        QuotaTestOverride: Boolean;
+        QuotaTestEnforced: Boolean;
+        QuotaTestMaxDailyCallCount: Integer;
 
-    local procedure BlockAutomatedSessionAccess()
+    local procedure RegisterAndCheckVIESCallQuota()
     var
         EnvironmentInformation: Codeunit "Environment Information";
         AuditLog: Codeunit "Audit Log";
+        WindowDate: Date;
+        CallCount: Integer;
     begin
-        // The unauthenticated EU VIES service blocks the shared outbound IP address of a cloud app service when it
-        // receives high-volume automated validation, which then affects every co-located tenant on that address.
-        // Online (SaaS), reject automated (API/OData/SOAP) and background (non-interactive) sessions so a job queue
-        // or integration cannot repeatedly bulk-validate against VIES and get the shared address deny-listed.
-        // Interactive validation is unaffected. On-prem is not restricted because customers there own their own
-        // outbound address and only affect themselves.
+        // The unauthenticated EU VIES service deny-lists the shared outbound IP address of a cloud app service
+        // when it receives high-volume validation, which then affects every co-located tenant on that address.
+        // Cap the number of VIES lookups per tenant per day so a single tenant cannot flood VIES - from any
+        // session type (interactive, background or API) and from either the Base Application or a per-tenant
+        // extension that reuses this codeunit - and get the shared address deny-listed. Because the counter is
+        // read/written here (Base Application code), it lives in the Base Application's Isolated Storage, so all
+        // callers share one tenant-wide counter that no extension can read or reset. Enforced online (SaaS) only;
+        // on-prem tenants own their own outbound address and only affect themselves.
         if not EnvironmentInformation.IsSaaS() then
             exit;
-        if IsInteractiveClientSession() then
-            exit;
 
-        // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
-        AuditLog.LogAuditMessage(SecurityAuditAutomatedAccessBlockedTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Session.LogMessage('0000VL4', AutomatedAccessBlockedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
-        Error(AutomatedAccessBlockedErr);
+        ReadVIESCallQuota(WindowDate, CallCount);
+
+        // Reset the counter at the start of a new (UTC) day.
+        if WindowDate <> Today() then begin
+            WindowDate := Today();
+            CallCount := 0;
+        end;
+
+        // Block once the daily limit is reached. Blocked calls are not counted (they never reach the service).
+        if CallCount >= GetMaxDailyCallCount() then
+            if IsDailyQuotaEnforced() then begin
+                // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+                AuditLog.LogAuditMessage(SecurityAuditDailyQuotaExceededTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+                Error(DailyQuotaExceededErr);
+            end;
+
+        CallCount += 1;
+
+        // Emit one telemetry signal per environment per day, on the call that reaches the limit.
+        if CallCount = GetMaxDailyCallCount() then
+            Session.LogMessage('', DailyQuotaReachedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+
+        // Persist and commit the count before the outbound request, so it is durable regardless of the outer
+        // transaction outcome and so no database lock is held while waiting for the (potentially slow) response.
+        WriteVIESCallQuota(WindowDate, CallCount);
+        Commit();
     end;
 
-    local procedure IsInteractiveClientSession(): Boolean
+    local procedure ReadVIESCallQuota(var WindowDate: Date; var CallCount: Integer)
     var
-        ClientTypeManagement: Codeunit "Client Type Management";
+        StoredValue: Text;
+        ValueParts: List of [Text];
     begin
-        if not GuiAllowed() then
-            exit(false);
-        exit(not (ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::SOAP, ClientType::OData, ClientType::ODataV4]));
+        WindowDate := 0D;
+        CallCount := 0;
+        if not IsolatedStorage.Get(VIESCallQuotaKeyTok, DataScope::Module, StoredValue) then
+            exit;
+        ValueParts := StoredValue.Split('|');
+        if ValueParts.Count() < 2 then
+            exit;
+        Evaluate(WindowDate, ValueParts.Get(1), 9); // 9 = XML/culture-invariant format
+        Evaluate(CallCount, ValueParts.Get(2));
+    end;
+
+    local procedure WriteVIESCallQuota(WindowDate: Date; CallCount: Integer)
+    begin
+        // Stored as "<yyyy-MM-dd>|<count>" in the Base Application's module-scoped Isolated Storage (tenant-wide,
+        // not accessible to other extensions). Module scope is intentional: the daily cap is per environment,
+        // aggregated across companies, because the shared outbound address is per environment.
+        IsolatedStorage.Set(VIESCallQuotaKeyTok, Format(WindowDate, 0, 9) + '|' + Format(CallCount), DataScope::Module);
+    end;
+
+    local procedure GetMaxDailyCallCount(): Integer
+    begin
+        if QuotaTestOverride then
+            exit(QuotaTestMaxDailyCallCount);
+        // Legitimate use is < ~200 lookups per tenant per day (99th percentile). 2000 leaves generous headroom
+        // while staying roughly 10x below the daily volume at which VIES deny-lists a shared outbound address.
+        exit(2000);
+    end;
+
+    local procedure IsDailyQuotaEnforced(): Boolean
+    begin
+        if QuotaTestOverride then
+            exit(QuotaTestEnforced);
+        // Log-only during initial rollout: telemetry is emitted when the limit is reached, but lookups are not
+        // blocked yet. Set to true to enforce the cap once telemetry confirms no legitimate tenant reaches it.
+        exit(false);
+    end;
+
+    // The following members exist only so the automated tests can exercise the daily-quota decision logic
+    // without calling the external VIES service. They are internal, so the Base Application test libraries can
+    // reach them but per-tenant extensions cannot influence or bypass the quota.
+    internal procedure SetVIESCallQuotaTestState(EnforceQuota: Boolean; MaxDailyCallCount: Integer)
+    begin
+        QuotaTestOverride := true;
+        QuotaTestEnforced := EnforceQuota;
+        QuotaTestMaxDailyCallCount := MaxDailyCallCount;
+    end;
+
+    internal procedure InvokeVIESCallQuotaForTest()
+    begin
+        RegisterAndCheckVIESCallQuota();
+    end;
+
+    internal procedure SeedVIESCallQuotaForTest(WindowDate: Date; CallCount: Integer)
+    begin
+        WriteVIESCallQuota(WindowDate, CallCount);
+    end;
+
+    internal procedure GetVIESCallCountForTest() CallCount: Integer
+    var
+        WindowDate: Date;
+    begin
+        ReadVIESCallQuota(WindowDate, CallCount);
+        if WindowDate <> Today() then
+            exit(0);
+    end;
+
+    internal procedure ClearVIESCallQuotaForTest()
+    begin
+        if IsolatedStorage.Contains(VIESCallQuotaKeyTok, DataScope::Module) then
+            IsolatedStorage.Delete(VIESCallQuotaKeyTok, DataScope::Module);
     end;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)
