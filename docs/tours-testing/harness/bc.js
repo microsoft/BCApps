@@ -35,10 +35,39 @@ async function openPage(page, pageId) {
   return appFrame(page);
 }
 
-// Always scope a field to the real <input>: the list behind the card is still in the DOM
-// and .first() silently resolves to a read-only grid cell.
+// Locate a field's real <input> by its label.
+//
+// USE getByLabel, NOT getByRole('textbox'). BC renders plain text fields as role=textbox but
+// renders LOOKUP and DATE fields (anything with a TableRelation or a date picker) as
+// role=combobox. A helper built on getByRole('textbox') therefore silently fails to find a
+// large fraction of a card's fields - on Transfer Order 5740 it missed Posting Date,
+// Transfer-from Code, Transfer-to Code and In-Transit Code, every one of which reported as
+// "not on the page" when all four were present and visible.
+//
+// getByLabel resolves aria-label AND aria-labelledby, and BC puts the field name in
+// aria-labelledby on most card pages, so it covers both renderings.
+//
+// Scope to `input`: the list page behind the card is still in the DOM and its grid cells are
+// SPANs carrying the same label, so an unscoped locator resolves to a read-only cell.
 function field(frame, name) {
-  return frame.getByRole('textbox', { name }).and(frame.locator('input'));
+  return frame.getByLabel(name, { exact: true }).and(frame.locator('input'));
+}
+
+// Same lookup, but tolerant of the label appearing in both the card and the list behind it.
+// Returns the first VISIBLE, ENABLED input, falling back to the first visible one so that a
+// deliberately read-only field is still reported (rather than looking absent).
+async function fieldOne(frame, name) {
+  const all = field(frame, name);
+  const n = await all.count().catch(() => 0);
+  if (!n) return null;
+  let firstVisible = null;
+  for (let i = 0; i < n; i++) {
+    const el = all.nth(i);
+    if (!(await el.isVisible().catch(() => false))) continue;
+    if (!firstVisible) firstVisible = el;
+    if (await el.isEditable().catch(() => false)) return el;
+  }
+  return firstVisible;
 }
 
 async function launch({ headless = true } = {}) {
@@ -120,6 +149,10 @@ async function lineCell(frame, rowIndex = 1, markerHeader = 'Type') {
 //   3. an inline bubble next to the cell "Status must be equal to 'Open' in ..."
 //   4. notifications                     the collapsible bar under the title
 //
+// A FIFTH surface looks identical in the DOM but means the opposite: a Yes/No CONFIRMATION
+// ("Do you want to change Transfer-from Code?"). It is returned separately as `confirmation`,
+// because counting it as an error makes a working field look rejected.
+//
 // Do NOT fall back to scanning body text with a loose regex. The original version did,
 // and /is not/ matched the substring inside "There is nothing to show in this view"
 // (a FactBox caption), so every probe returned that string as its "error" while the
@@ -149,13 +182,24 @@ async function readError(frame) {
   const all = [...new Set([...alerts, ...marked, ...described])]
     .filter(t => !/there is nothing to show/i.test(t));
 
+  // A Yes/No CONFIRMATION is not a refusal. BC asks "Do you want to change <field>?" when you
+  // edit a key field on a document that already has lines. Treating that prompt as an error
+  // reports a working field as REFUSED - seen on Transfer-from Code during the Transfer tour.
+  const isConfirm = (t) => /\b(do you want to|are you sure)\b/i.test(t)
+    || /\byes\b[\s\S]{0,6}\bno\b/i.test(t);
+
+  const dialogText = (dialogs[0] || '').replace(/\s+/g, ' ').trim();
+  const confirmation = [...all, dialogText].find(t => t && isConfirm(t)) || '';
+
   // Prefer a real validation sentence over the generic "the page has an error" banner.
-  const specific = all.find(t => /\b(must be|cannot|is not valid|already exists|out of balance|does not exist)\b/i.test(t));
+  const specific = all.find(t => !isConfirm(t)
+    && /\b(must be|cannot|is not valid|already exists|out of balance|does not exist)\b/i.test(t));
   const pageHasError = all.some(t => /the page has an error/i.test(t));
 
   return {
     dialogs,
-    message: specific || (dialogs[0] || '').replace(/\s+/g, ' ').trim() || '',
+    message: specific || (isConfirm(dialogText) ? '' : dialogText) || '',
+    confirmation,
     pageHasError,
     surfaces: all,
   };
@@ -171,6 +215,6 @@ async function dismissDialog(page, frame) {
 }
 
 module.exports = {
-  BASE, CREDS, appFrame, signIn, openPage, field, launch,
+  BASE, CREDS, appFrame, signIn, openPage, field, fieldOne, launch,
   newDocument, linesGrid, lineCell, readError, dismissDialog,
 };

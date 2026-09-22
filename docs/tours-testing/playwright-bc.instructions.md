@@ -81,6 +81,33 @@ const url = `${BASE}?tenant=default&page=43&filter=` +
 
 Drop `tenant=default` on a single-tenant container.
 
+### ⚠️ `filter=` is not universal — have a fallback for opening one document
+
+The `filter` parameter works on some pages and is **silently ignored on others**. On Transfer Order
+(page 5740) every variant landed on the Home page or an empty new card, with no error:
+
+```js
+`${BASE}?page=5740&filter=` + encodeURIComponent("'Transfer Header'.'No.' IS '1001'")  // ✗ Home
+`${BASE}?page=5740&bookmark=...`                                                       // ✗ blank card
+```
+
+Worse, the failure is invisible: the browser shows *a* page, so a probe that does not assert which
+record it is on will happily report results for the wrong document — or for an empty one.
+
+The reliable recipe is **list → row → Enter**:
+
+```js
+await page.goto(`${BASE}?page=5742`);            // the LIST page
+const row  = frame.locator('[role="row"]').filter({ hasText: '1001' }).first();
+await row.locator('[role="gridcell"]').first().click();
+await frame.locator('body').press('Enter');      // Enter opens the card; a click only selects
+```
+
+Three things that do not work and cost time: clicking the cell alone (selects, never opens); the
+list's ribbon (Transfer Orders has **no `Edit` action**); and double-click (unreliable in the grid).
+
+> **Always assert the document number on the opened card before probing it.**
+
 ## 4. Locators
 
 Actions are `menuitem`, not `button`:
@@ -96,19 +123,50 @@ Dialogs are `role="dialog"`; their buttons are real buttons:
 frame.getByRole('button', { name: /^Yes$/i })
 ```
 
+### ⚠️ `getByRole('textbox')` misses half the fields — use `getByLabel`
+
+**BC does not render every field as a textbox.** Plain text fields are `role=textbox`, but any
+field with a `TableRelation` (a lookup) or a date picker renders as **`role=combobox`**.
+
+On Transfer Order page 5740, a `getByRole('textbox', …)` helper reported `Posting Date`,
+`Transfer-from Code`, `Transfer-to Code` and `In-Transit Code` as **"not on the page"** — all four
+were present, visible and editable. They are comboboxes:
+
+```js
+frame.getByRole('textbox', { name: 'Posting Date' })   // ✗ 0 matches — it is a combobox
+frame.getByLabel('Posting Date', { exact: true })      // ✓ 1 match
+```
+
+Use `getByLabel`, which resolves **both** `aria-label` and `aria-labelledby` and is indifferent to
+the role. This matters because many BC card pages set `aria-label=""` on the input and put the
+field name in `aria-labelledby` instead, so an attribute selector on `aria-label` finds nothing.
+
+`data-control-name` is *not* a fallback — it does not exist anywhere in the BC client DOM.
+
+The shared helper now does this:
+
+```js
+function field(frame, name) {
+  return frame.getByLabel(name, { exact: true }).and(frame.locator('input'));
+}
+```
+
+> **A "NOT-ON-PAGE" result is a claim about your locator, not about the product.** Confirm with a
+> raw DOM dump before you believe it.
+
 ### ⚠️ Field locators are ambiguous — always scope to the input
 
 When a card is open, **the list behind it is still in the DOM**. So this matches *two* elements:
 
 ```js
-frame.getByRole('textbox', { name: 'Name' })   // ✗ matches a read-only grid SPAN *and* the card INPUT
+frame.getByLabel('Name', { exact: true })   // ✗ matches a read-only grid SPAN *and* the card INPUT
 ```
 
 `.first()` typically resolves to the **read-only grid cell**, which silently accepts no input.
 Always constrain to the actual input element:
 
 ```js
-frame.getByRole('textbox', { name: 'Name' }).and(frame.locator('input'))   // ✓
+frame.getByLabel('Name', { exact: true }).and(frame.locator('input'))   // ✓
 ```
 
 This is not a theoretical concern. In practice it produced a convincing but entirely false bug
@@ -214,6 +272,56 @@ await page.keyboard.press('Enter');
 - **A grid cell's `innerText` is not a reliable readback.** Unfocused cells frequently render empty
   even when the record holds a value. Confirm every grid result in SQL.
 
+### ⚠️ Half the fields are not in the DOM until you expand something
+
+A card shows only a fraction of its fields. Two separate mechanisms hide the rest, and both make a
+field *absent*, not hidden — so a locator returns 0 matches and the probe reports "not on page".
+
+**1. Collapsed FastTabs.** Expand by caption, as buttons:
+
+```js
+for (const cap of ['General','Shipment','Transfer-from','Transfer-to','Foreign Trade']) {
+  const t = frame.getByRole('button', { name: cap, exact: true }).first();
+  if (await t.getAttribute('aria-expanded') === 'false') await t.click();
+}
+```
+
+Do **not** loop over every `[aria-expanded="false"]` on the page. That also matches the navigation
+menus and every column header, and it ran for **8 minutes without finishing**.
+
+**2. `Show more`.** Fields marked `Importance = Additional` in page metadata are omitted entirely
+until the FastTab's `Show more` link is clicked. Click them **one at a time, re-querying each time**:
+
+```js
+for (;;) {
+  const link = frame.getByText('Show more', { exact: true }).first();
+  if (!await link.isVisible().catch(() => false)) break;
+  await link.click();                                  // re-renders; the link becomes "Show less"
+}
+```
+
+A cached `nth()` list goes stale after the first click — the classic symptom is that only the first
+FastTab ever expands.
+
+> Cross-check against the page source: if `Find-UnguardedFields.ps1` lists a field and the browser
+> cannot see it, you have almost certainly not expanded far enough.
+
+### ⚠️ A read-only field is a `<span>`, so it reports as "not on page"
+
+When a guard makes a field non-editable, BC renders it **without an input element**. A helper that
+requires `input` then returns null, and the probe records `NOT-ON-PAGE` when the truth is
+`READ-ONLY` — a materially different result, and the second one is evidence the guard works.
+
+Distinguish them before recording anything:
+
+```js
+const input  = frame.getByLabel(name, { exact: true }).and(frame.locator('input'));
+const anyEl  = frame.getByLabel(name, { exact: true });
+const state  = await input.count()  ? 'editable'
+             : await anyEl.count()  ? 'read-only'
+             :                        'absent';
+```
+
 ## 7. Saving and closing
 
 - BC **auto-saves when a field commits** (Tab or focus change). There is no explicit Save action on
@@ -278,8 +386,16 @@ Notes:
   probe keyed to the wrong caption *silently skips* — so always log skips as loudly as failures.
 - **Some counters are not in the table.** No. Series consumption cannot be read from `Last No. Used`
   on this build; it uses SQL sequences.
-- **`%` in a field name becomes `_` in the SQL column.** `Line Discount %` is `[Line Discount _]`.
-  The symptom is `Invalid column name`.
+- **`%`, `.` and `/` in a field name all become `_` in the SQL column.** `Line Discount %` is
+  `[Line Discount _]`, `No.` is `[No_]`, `External Document No.` is `[External Document No_]`.
+  Because three different characters collapse to the same `_`, you cannot reverse the mapping —
+  discover the real names instead of deriving them:
+
+  ```sql
+  SELECT name FROM sys.columns WHERE object_id = OBJECT_ID('<table>') ORDER BY column_id;
+  ```
+
+  The symptom of guessing is `Invalid column name`.
 - **Every app has its own extension GUID.** The Base Application GUID is *not* reusable. The
   Sustainability tables live under `b3780cd9-…`, E-Document under `e1d97edc-…`, Shopify under
   `ec255f57-…`. Guessing produces `Invalid object name`.
@@ -317,7 +433,7 @@ SELECT [Credit Limit (LCY)] FROM [...$Customer$...] WHERE [No_] = '10000'   -- 0
 Snapshot before and after each scenario and diff the counts. Deltas are the evidence; the screen is
 only a hint.
 
-## 10. Reading errors — BC has *four* error surfaces
+## 10. Reading errors — BC has *four* error surfaces (and one lookalike)
 
 This is the single most important helper in the harness, and the easiest one to get wrong. BC
 reports a rejected value on any of four surfaces, and a probe that reads only one will report a
@@ -332,6 +448,26 @@ correctly behaving product as silently discarding data:
 
 Surfaces 2 and 3 are the normal way a **grid** rejects a value. A tour that only checks dialogs
 sees nothing, reads the row back unchanged, and concludes "accepted then silently reverted".
+
+### ⚠️ A fifth surface means the opposite: a Yes/No *confirmation*
+
+A confirmation is indistinguishable from an error in the DOM — same `role="dialog"`, same alert
+markup — but it means the product is **proceeding**, not refusing:
+
+> *"Do you want to change Transfer-from Code? Yes No"*
+
+BC raises this when a key field is edited on a document that already has lines. The first Transfer
+tour recorded `Transfer-from Code` as REFUSED on an *open* order because of it; the field was
+working exactly as designed and was waiting for an answer.
+
+Classify it separately, and answer it before reading the real outcome:
+
+```js
+const isConfirm = t => /\b(do you want to|are you sure)\b/i.test(t) || /\byes\b[\s\S]{0,6}\bno\b/i.test(t);
+```
+
+`readError()` returns `confirmation` alongside `message` for this reason. **A probe that leaves a
+confirmation unanswered has not tested anything** — the value was never committed.
 
 ### ⚠️ Never scan `body.innerText` with a loose regex
 

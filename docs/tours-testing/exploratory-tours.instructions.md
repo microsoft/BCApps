@@ -589,6 +589,131 @@ Guards also arrive from places no per-field scan looks at:
 > settles it. A predicted gap that the product closes is still a useful result — it tells you the
 > guard is implicit, which is a maintainability risk worth reporting even when behaviour is correct.
 
+### 9.7 Guards live at *two* levels — scan both
+
+This is the single most important correction to the Saboteur method, and it invalidates any
+conclusion drawn from a table scan alone.
+
+A document field can be protected in **two independent places**:
+
+| Level | Where | Looks like | Blocks |
+|---|---|---|---|
+| **Table** | `*.Table.al`, field `OnValidate` | `TestStatusOpen()` → `TestField(Status, Status::Open)` | every writer — UI, API, OData, other pages, AL code |
+| **Page** | `*.Page.al`, field property | `Editable = (Rec.Status = Rec.Status::Open)` | only *that page* |
+
+The Transfer Order tour found these are used very differently across modules:
+
+- **Sales / Purchase** guard `Shipment Method Code`, `Location Code`, `Currency Code` and friends
+  in the **table**.
+- **Transfer** leaves the same fields unguarded in the table and instead writes
+  `Editable = (Rec.Status = Rec.Status::Open)` on **page 5740**, field by field.
+
+Both refuse the edit in the web client, so a UI-only tour sees identical, correct behaviour. But
+the protection is not equivalent: a page-level guard is bypassed by *any other writer* — a second
+page exposing the same field, a web service, an OData PATCH, or an AL extension. Only the table
+guard is universal.
+
+Two practical consequences:
+
+1. **A table scan alone mispredicts the UI.** Five fields flagged "unguarded" on `Transfer Header`
+   were all correctly refused, because page 5740 guards them. Read the page before you probe.
+2. **A UI probe alone misses the risk.** "The UI refused it" does not mean the record is safe.
+   When a field is guarded *only* at the page level, note it as an API-surface hypothesis and
+   test it through a non-UI writer.
+
+> **Rule: before recording either a finding or a non-finding, check both levels.** Table guard
+> present → safe everywhere. Page guard only → safe in this page, unproven elsewhere. Neither →
+> genuinely open, and worth a probe.
+
+### 9.8 Editable on a released document is often *deliberate*
+
+Three findings were withdrawn before this check was automated. The pattern is always the same: a
+field has no `TestStatusOpen()`, the probe shows the edit persisting on a released order, and it
+looks like a missing guard. It is not — the author explicitly handled the released case:
+
+```al
+// Sales Header 100, Purchase Header 67, Transfer Header 33, Service Header 100
+if (xRec."External Document No." <> "External Document No.") and (Status = Status::Released) then
+    WhseSalesRelease.UpdateExternalDocNoForReleasedOrder(Rec);
+```
+
+All four document frameworks implement `UpdateExternalDocNoForReleasedOrder`. The field is meant
+to stay editable after release, and changing it *propagates* to the linked warehouse request.
+
+**Semantics count even without such a branch.** `Vendor Invoice No.` has no released branch and no
+guard, yet must stay editable: its tooltip says it is the number of the document *received from
+the vendor*, and it is required at **posting** time — it cannot be known before release.
+
+`Find-UnguardedFields.ps1` now flags these automatically (the `DELIBERATE RELEASED HANDLING`
+block) and excludes them from the candidate list. Before recording a Saboteur finding:
+
+1. Search the field's declaration for `Status::Released`. Present → intended, stop.
+2. Read the tooltip. If the business meaning requires a post-release value, stop.
+3. Only then probe.
+
+### 9.9 Sequential probes on one record contaminate each other
+
+Probing five fields on the same document in one pass is not five independent experiments. BC
+re-derives fields from each other, so a later probe can silently overwrite an earlier result.
+
+On open transfer order 1001 the probe reported `Shipment Date` as ACCEPTED (`2/1` → `2/20`), but
+SQL afterwards showed `2028-02-01`. The next probe changed `In-Transit Code`, which recalculated
+the shipment date from the transfer route's shipping time and reverted it.
+
+> **Rule: one mutating probe per record, or re-read the oracle after every single step.** If you
+> must batch, use a fresh document per field. A "confirmed" result that was actually overwritten
+> two probes later is worse than no result.
+
+### 9.10 The guard *idiom* is framework-specific — find it before you scan
+
+§9.7 said guards live at two levels. Service Management shows the model needs a third axis: **the
+form the guard takes differs per framework**, and scanning for the wrong idiom returns a clean,
+plausible, completely wrong answer.
+
+A scan of `Service Header` for `TestStatusOpen` reported **0 of 139 fields guarded** — which reads
+as a spectacular defect. It is a 100% false-negative. Service never calls `TestStatusOpen()`; it
+writes the check inline against a *differently named* field:
+
+```al
+TestField("Release Status", "Release Status"::Open);   // not Status::Open
+```
+
+Re-scanned with the right idiom, the true figure is 6 of 139.
+
+The four frameworks each do it differently:
+
+| Framework | Status field | Guard idiom | Mostly enforced at |
+| --- | --- | --- | --- |
+| Sales / Purchase | `Status` | `TestStatusOpen()` helper | table |
+| Transfer | `Status` | `TestStatusOpen()` helper | **page** (`Editable = …`) |
+| Service | `Release Status` **and** `Status` | inline `TestField("Release Status", …::Open)` | table, for 6 shipping fields only |
+
+**Service also guards by a fourth mechanism entirely.** Its high-consequence fields are not gated
+on release at all, but on whether the document already has lines — and the gate is a *confirmation*,
+not a refusal:
+
+```al
+// Customer No.
+if ServItemLineExists() then Confirmed := ConfirmManagement.GetResponseOrDefault(…);
+// Currency Code
+if ServLineExists() and ("Contract No." <> '') then Error(Text058, …);
+```
+
+So `Customer No.` on a released-to-ship service order asks the user a question and proceeds if they
+answer Yes. A probe that classifies that dialog as an error (see the Playwright §10 lookalike)
+records a refusal that never happened.
+
+> **Rule: before scanning a new framework, grep the table for its own guard.** Look for
+> `TestField(<status-ish field>` and count the distinct idioms. Two minutes of grep prevents an
+> entire tour built on an inverted premise. Pass the idiom explicitly:
+>
+> ```powershell
+> .\Find-UnguardedFields.ps1 -Table <t> -Guard 'Release Status"?,\s*"?Release Status"?::Open'
+> ```
+>
+> And treat a **0% or 100% guarded** result as a bug in your regex until proven otherwise. Real
+> tables always land somewhere in between.
+
 ## 10. Differential touring across parallel modules
 
 BC contains several near-duplicate subsystems: Sales vs Purchase documents, Quote/Order/Invoice/

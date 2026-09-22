@@ -9,6 +9,23 @@ starts from something that already runs, rather than from a blank file.
 | `bc.js` | The Playwright helpers. Every sharp edge in `playwright-bc.instructions.md` is already handled here. |
 | `Invoke-Probe.ps1` | Runs one probe with a SQL snapshot before and after, and prints the delta. |
 | `Find-TourTargets.ps1` | Static scan of an app's `*.Table.al` metadata. Answers *"what is worth probing here?"* before you open a browser — see §9 of the tours instructions. |
+| `Find-TourDrift.ps1` | Differential scan of two parallel tables (Sales vs Purchase vs Transfer). Surfaces the field that one framework guards and another does not — see §10. |
+| `Find-UnguardedFields.ps1` | Per-field status-guard scan of one table. Lists fields with no `TestStatusOpen()`, and flags the ones with **deliberate** `Status::Released` handling so they are not reported as defects — see §9.7–9.8. |
+| `sab.js` / `psab.js` / `tsab.js` | Worked Saboteur probes for Sales, Purchase and Transfer orders. `tsab.js` carries the list+Enter, FastTab and `getByLabel` recipes as comments. |
+
+## ⚠️ The harness runs from a working copy, not from the repo
+
+`node_modules` is not committed, so tours are run from a scratch folder (the session-state
+directory) that has Playwright installed. The repo copy is the artefact; the scratch copy is what
+executes.
+
+**Every edit must be copied across before running, in both directions.** A fix made in the scratch
+copy and never copied back is lost; an edit made in the repo and never copied across is silently
+not exercised. Copy the whole folder each time rather than individual files:
+
+```powershell
+Copy-Item .\docs\tours-testing\harness\*.js,.\docs\tours-testing\harness\*.ps1 $RUN -Force
+```
 
 ## Getting a tour running
 
@@ -30,7 +47,8 @@ node mytour.js probe-name
 | `appFrame(page)` | The app UI is in a nested iframe; picks it by `[aria-label]` density. Re-acquire after every navigation. |
 | `signIn(page)` | Handles the ~50 s cold start on first sign-in. |
 | `openPage(page, id, filter)` | Deep links, then clicks *Make changes on the page* — deep-linked cards open read-only. |
-| `field(frame, caption)` | Scopes to the real `input`, not the read-only grid cell behind the card. |
+| `field(frame, caption)` | Resolves by `getByLabel` (so it finds comboboxes, not just textboxes) and scopes to the real `input`, not the read-only grid cell behind the card. |
+| `fieldOne(frame, caption)` | The first *visible and editable* match — use when a caption legitimately appears more than once. |
 | `newDocument(page, listId, cardId)` | Clicks New and waits for the navigation to actually land. |
 | `linesGrid(frame)` | Picks the lines grid out of the **two** grids in the DOM, by marker column header. |
 | `lineCell(frame, column, opts)` | Maps a column header's x-centre onto `gridcell` x-ranges. `{click:false}` reads without entering edit mode. |
