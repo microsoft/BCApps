@@ -1268,6 +1268,201 @@ codeunit 148342 "Expense Activity Log Test"
         VerifyFlaggedCategoryPreview(SubmissionID, ExpectedCategories);
     end;
 
+    [Test]
+    procedure HeaderPolicySummaryAggregatesWithoutWriting()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalExpenseReportHeader: Record "Expense Report Header";
+        FirstExpenseReportLine: Record "Expense Report Line";
+        SecondExpenseReportLine: Record "Expense Report Line";
+        ThirdExpenseReportLine: Record "Expense Report Line";
+        ClearedExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PassingExpensePolicy: Record "Expense Policy";
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+        FlaggedCategoryNames: List of [Text];
+        IsComplete: Boolean;
+    begin
+        // [SCENARIO] The header reads all current pairs and distinct category names without changing an unsubmitted report.
+        Initialize();
+
+        // [GIVEN] H has three flagged lines and one cleared line, each evaluated against two global policies.
+        CreatePolicyHistoryScenario(ExpenseReportHeader, FirstExpenseReportLine, ExpensePolicy);
+        AddHistoryLine(ExpenseReportHeader, SecondExpenseReportLine);
+        AddHistoryLine(ExpenseReportHeader, ThirdExpenseReportLine);
+        AddHistoryLine(ExpenseReportHeader, ClearedExpenseReportLine);
+        SetHistoryCategoryName(FirstExpenseReportLine, 'Meals "and" travel');
+        SetHistoryCategoryName(SecondExpenseReportLine, 'Meals "and" travel');
+        SetHistoryCategoryName(ThirdExpenseReportLine, '');
+        LibraryExpense.CreateExpensePolicy(PassingExpensePolicy, '', 'Passing global policy');
+        AddHistoryEvaluation(FirstExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(FirstExpenseReportLine, PassingExpensePolicy, true);
+        AddHistoryEvaluation(SecondExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(SecondExpenseReportLine, PassingExpensePolicy, true);
+        AddHistoryEvaluation(ThirdExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(ThirdExpenseReportLine, PassingExpensePolicy, true);
+        AddHistoryEvaluation(ClearedExpenseReportLine, ExpensePolicy, true);
+        AddHistoryEvaluation(ClearedExpenseReportLine, PassingExpensePolicy, true);
+        FirstExpenseReportLine.MarkPoliciesEvaluated(FirstExpenseReportLine."Policy Eval Version");
+        SecondExpenseReportLine.MarkPoliciesEvaluated(SecondExpenseReportLine."Policy Eval Version");
+        ThirdExpenseReportLine.MarkPoliciesEvaluated(ThirdExpenseReportLine."Policy Eval Version");
+        ClearedExpenseReportLine.MarkPoliciesEvaluated(ClearedExpenseReportLine."Policy Eval Version");
+        FirstExpenseReportLine.Get(FirstExpenseReportLine."Document No.", FirstExpenseReportLine."Line No.");
+        SecondExpenseReportLine.Get(SecondExpenseReportLine."Document No.", SecondExpenseReportLine."Line No.");
+        ThirdExpenseReportLine.Get(ThirdExpenseReportLine."Document No.", ThirdExpenseReportLine."Line No.");
+        ClearedExpenseReportLine.Get(ClearedExpenseReportLine."Document No.", ClearedExpenseReportLine."Line No.");
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        OriginalExpenseReportHeader := ExpenseReportHeader;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategoryNames.Add('Old category');
+
+        // [WHEN] H is read directly through the rich helper.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] Both overloads agree, count all pairs, and return distinct names in line order with code fallback.
+        Assert.IsTrue(IsComplete, 'Confirmed results must be complete even before submission.');
+        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both header overloads must agree.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::Flagged, 3, 5, 2);
+        Assert.AreEqual('Meals "and" travel', FlaggedCategoryNames.Get(1), 'Shared descriptions must appear only once at their first line position.');
+        Assert.AreEqual(ThirdExpenseReportLine."Expense Category", FlaggedCategoryNames.Get(2), 'A blank description must fall back to the category code.');
+
+        // [THEN] H and every line retain their stored versions and status, and no activity is created.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(OriginalExpenseReportHeader.SystemRowVersion, ExpenseReportHeader.SystemRowVersion, 'Reading the summary must not modify the header.');
+        Assert.AreEqual(OriginalExpenseReportHeader.Status, ExpenseReportHeader.Status, 'Reading the summary must not change report status.');
+        VerifyUnchangedPolicySummaryLine(FirstExpenseReportLine);
+        VerifyUnchangedPolicySummaryLine(SecondExpenseReportLine);
+        VerifyUnchangedPolicySummaryLine(ThirdExpenseReportLine);
+        VerifyUnchangedPolicySummaryLine(ClearedExpenseReportLine);
+        VerifyNoReportActivity(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure HeaderPolicySummaryClearsIncompleteResultsOnEveryRead()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        FreshExpenseReportHeader: Record "Expense Report Header";
+        FirstExpenseReportLine: Record "Expense Report Line";
+        SecondExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+        FlaggedCategoryNames: List of [Text];
+        IsComplete: Boolean;
+    begin
+        // [SCENARIO] A later unconfirmed line discards partial results on repeated and freshly loaded header reads.
+        Initialize();
+
+        // [GIVEN] H has a confirmed flagged L1 followed by an unconfirmed flagged L2 and seeded outputs.
+        CreatePolicyHistoryScenario(ExpenseReportHeader, FirstExpenseReportLine, ExpensePolicy);
+        AddHistoryLine(ExpenseReportHeader, SecondExpenseReportLine);
+        SetHistoryCategoryName(FirstExpenseReportLine, 'First category');
+        SetHistoryCategoryName(SecondExpenseReportLine, 'Second category');
+        AddHistoryEvaluation(FirstExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(SecondExpenseReportLine, ExpensePolicy, false);
+        FirstExpenseReportLine.MarkPoliciesEvaluated(FirstExpenseReportLine."Policy Eval Version");
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategoryNames.Add('Old category');
+
+        // [WHEN] H is read before L2 is confirmed.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] No partial flagged result escapes, and both overloads return false.
+        Assert.IsFalse(IsComplete, 'An unconfirmed later line must prevent report completion.');
+        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both header overloads must agree for an incomplete report.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"Not Evaluated", 0, 0, 0);
+
+        // [WHEN] The same header and outputs are reused.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] Reading again cannot expose L1's accumulated counts or names.
+        Assert.IsFalse(IsComplete, 'Repeated reads must still wait for L2.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"Not Evaluated", 0, 0, 0);
+
+        // [WHEN] A fresh H is read with newly seeded outputs.
+        FreshExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategoryNames.Add('Another old category');
+        IsComplete := FreshExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] Fresh reads also discard all partial and caller-provided outputs without logging.
+        Assert.IsFalse(IsComplete, 'A fresh header must observe the unconfirmed line.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"Not Evaluated", 0, 0, 0);
+        VerifyNoReportActivity(ExpenseReportHeader);
+
+        // [WHEN] L2 is confirmed and the rich helper is called again with reused, seeded outputs.
+        SecondExpenseReportLine.MarkPoliciesEvaluated(SecondExpenseReportLine."Policy Eval Version");
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategoryNames.Add('Obsolete category');
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] The complete summary includes both current names and no stale entries or activity.
+        Assert.IsTrue(IsComplete, 'Confirming the remaining line must complete the report.');
+        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both overloads must agree after final confirmation.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::Flagged, 2, 0, 2);
+        Assert.AreEqual('First category', FlaggedCategoryNames.Get(1), 'The first flagged category must retain line order.');
+        Assert.AreEqual('Second category', FlaggedCategoryNames.Get(2), 'The newly confirmed category must replace stale caller entries.');
+        VerifyNoReportActivity(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure HeaderPolicySummaryWithoutPoliciesOrLinesClearsOutputs()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+        FlaggedCategoryNames: List of [Text];
+        IsComplete: Boolean;
+    begin
+        // [SCENARIO] No applicable policies and zero lines are complete helper results with empty overwritten outputs.
+        Initialize();
+
+        // [GIVEN] H has an unconfirmed L but no policies, and the caller has nonempty outputs.
+        CreatePolicyHistoryScenario(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy);
+        ExpensePolicy.Delete(false);
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategoryNames.Add('Old category');
+
+        // [WHEN] H is read without applicable policies.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] No confirmation is required and both overloads report completion without retaining caller data.
+        Assert.IsTrue(IsComplete, 'A line with no applicable policies must be complete without confirmation.');
+        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both overloads must agree when no policies apply.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"No Policies", 0, 0, 0);
+        VerifyNoReportActivity(ExpenseReportHeader);
+
+        // [GIVEN] H now has zero lines and the outputs contain earlier caller data again.
+        ExpenseReportLine.Delete(false);
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategoryNames.Add('Another old category');
+
+        // [WHEN] The helper reads H with zero lines, independently of submission validation.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames);
+
+        // [THEN] An empty header has the same complete, empty No Policies summary.
+        Assert.IsTrue(IsComplete, 'The helper must return complete for a header with zero lines.');
+        Assert.AreEqual(IsComplete, ExpenseReportHeader.IsPolicyEvaluationComplete(), 'Both overloads must agree when the header has zero lines.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategoryNames, PolicyStatus::"No Policies", 0, 0, 0);
+        VerifyNoReportActivity(ExpenseReportHeader);
+    end;
+
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -1284,6 +1479,34 @@ codeunit 148342 "Expense Activity Log Test"
         LibrarySetupStorage.Save(Database::"Expense Agent Setup");
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
+    end;
+
+    local procedure VerifyHeaderPolicySummary(PolicyStatus: Enum "Expense Policy Status"; FailedCount: Integer; PassedCount: Integer; FlaggedCategoryNames: List of [Text]; ExpectedPolicyStatus: Enum "Expense Policy Status"; ExpectedFailedCount: Integer; ExpectedPassedCount: Integer; ExpectedCategoryCount: Integer)
+    begin
+        Assert.AreEqual(ExpectedPolicyStatus, PolicyStatus, 'The summary must return the complete status or the offending incomplete line status.');
+        Assert.AreEqual(ExpectedFailedCount, FailedCount, 'The failed count must contain only complete current line-policy pairs.');
+        Assert.AreEqual(ExpectedPassedCount, PassedCount, 'The passed count must contain only complete current line-policy pairs.');
+        Assert.AreEqual(ExpectedCategoryCount, FlaggedCategoryNames.Count(), 'The category list must discard caller entries and incomplete partial results.');
+    end;
+
+    local procedure VerifyUnchangedPolicySummaryLine(OriginalExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportLine.Get(OriginalExpenseReportLine."Document No.", OriginalExpenseReportLine."Line No.");
+        Assert.AreEqual(OriginalExpenseReportLine.SystemRowVersion, ExpenseReportLine.SystemRowVersion, 'Reading the summary must not modify the line.');
+        Assert.AreEqual(OriginalExpenseReportLine."Policy Eval Version", ExpenseReportLine."Policy Eval Version", 'Reading the summary must preserve the line policy version.');
+        Assert.AreEqual(OriginalExpenseReportLine."Evaluated Policy Version", ExpenseReportLine."Evaluated Policy Version", 'Reading the summary must preserve the confirmed version.');
+        Assert.AreEqual(OriginalExpenseReportLine.GetPolicyStatus(), ExpenseReportLine.GetPolicyStatus(), 'Reading the summary must preserve line policy status.');
+    end;
+
+    local procedure VerifyNoReportActivity(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        Assert.RecordIsEmpty(ExpenseActivityLogEntry);
     end;
 
     local procedure VerifyNoPolicySnapshot(SubmissionID: Guid)

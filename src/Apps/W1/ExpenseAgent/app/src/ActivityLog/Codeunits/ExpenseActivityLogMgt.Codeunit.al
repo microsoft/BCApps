@@ -135,6 +135,11 @@ codeunit 6926 "Expense Activity Log Mgt."
         ExpenseAgentSetup: Record "Expense Agent Setup";
         SubmissionEntry: Record "Expense Activity Log Entry";
         Snapshot: Record "Expense Activity Log Entry";
+        FlaggedCategoryNames: List of [Text];
+        CategoryName: Text;
+        Categories: JsonArray;
+        CategoriesText: Text;
+        CategoriesTruncated: Boolean;
         SummaryLbl: Label '%1. Failed policy checks: %2. Passed policy checks: %3.', Comment = '%1 = policy status, %2 = failed line-policy pairs, %3 = passed line-policy pairs';
     begin
         // Policy history is opt-in; absent setup also leaves it disabled.
@@ -162,7 +167,9 @@ codeunit 6926 "Expense Activity Log Mgt."
         Snapshot.CopyFilters(SubmissionEntry);
         Snapshot.SetRange("Event Type", Snapshot."Event Type"::PolicyEvaluated);
         Snapshot.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
-        // Preserve the first snapshot in this submission round, including on retries.
+        // Log at most one PolicyEvaluated entry after the latest Submitted/Resubmitted entry.
+        // Repeated line confirmations leave that snapshot unchanged; a resubmission permits a new one.
+        // Example: Submitted 100, PolicyEvaluated 101 => skip; Resubmitted 105 => 101 no longer matches.
         if not Snapshot.IsEmpty() then
             exit;
         Snapshot.Reset();
@@ -171,61 +178,20 @@ codeunit 6926 "Expense Activity Log Mgt."
             Snapshot, ExpenseReportHeader, Enum::"Expense Activity Event Type"::PolicyEvaluated,
             Enum::"Expense Activity Initiator"::Agent, Enum::"Expense Activity Actor Role"::" ", '', 0DT);
         // Wait for complete, current results across all lines; a later confirmation retries.
-        if not AggregatePolicySnapshot(ExpenseReportHeader, Snapshot) then
+        if not ExpenseReportHeader.IsPolicyEvaluationComplete(
+            Snapshot."Policy Status", Snapshot."Failed Policy Count", Snapshot."Passed Policy Count", FlaggedCategoryNames)
+        then
             exit;
 
+        foreach CategoryName in FlaggedCategoryNames do
+            AddBoundedCategory(Categories, CategoryName, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
+        Categories.WriteTo(CategoriesText);
+        Snapshot."Flagged Categories" := CopyStr(CategoriesText, 1, MaxStrLen(Snapshot."Flagged Categories"));
         Snapshot."Occurred At" := CurrentDateTime();
         Snapshot.Comment := CopyStr(
             StrSubstNo(SummaryLbl, Format(Snapshot."Policy Status"), Snapshot."Failed Policy Count", Snapshot."Passed Policy Count"),
             1, MaxStrLen(Snapshot.Comment));
         InsertExpenseReportEntry(Snapshot, ExpenseReportHeader);
-    end;
-
-    local procedure AggregatePolicySnapshot(ExpenseReportHeader: Record "Expense Report Header"; var Snapshot: Record "Expense Activity Log Entry"): Boolean
-    var
-        Line: Record "Expense Report Line";
-        Category: Record "Expense Category";
-        LinePolicyStatus: Enum "Expense Policy Status";
-        LineFailedCount: Integer;
-        LinePassedCount: Integer;
-        CategoryNames: List of [Text];
-        CategoryName: Text[250];
-        Categories: JsonArray;
-        CategoriesText: Text;
-        CategoriesTruncated: Boolean;
-    begin
-        Line.ReadIsolation := IsolationLevel::RepeatableRead;
-        Line.SetLoadFields(SystemId, "Expense Category", "Policy Eval Version", "Evaluated Policy Version", "Policies Evaluated At");
-        Category.SetLoadFields(Description);
-        Line.SetCurrentKey("Document No.", "Line No.");
-        Line.SetRange("Document No.", ExpenseReportHeader."No.");
-        if Line.FindSet() then
-            repeat
-                if not Line.IsPolicyEvaluationComplete(LinePolicyStatus, LineFailedCount, LinePassedCount) then
-                    exit(false);
-                Snapshot."Failed Policy Count" += LineFailedCount;
-                Snapshot."Passed Policy Count" += LinePassedCount;
-                if (LineFailedCount > 0) and (not CategoriesTruncated) and (Line."Expense Category" <> '') then begin
-                    CategoryName := Line."Expense Category";
-                    if Category.Get(Line."Expense Category") then
-                        if Category.Description <> '' then
-                            CategoryName := Category.Description;
-                    if not CategoryNames.Contains(CategoryName) then begin
-                        CategoryNames.Add(CategoryName);
-                        AddBoundedCategory(
-                            Categories, CategoryName, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
-                    end;
-                end;
-            until Line.Next() = 0;
-
-        Categories.WriteTo(CategoriesText);
-        Snapshot."Flagged Categories" := CopyStr(CategoriesText, 1, MaxStrLen(Snapshot."Flagged Categories"));
-        Snapshot."Policy Status" := Snapshot."Policy Status"::"No Policies";
-        if Snapshot."Passed Policy Count" > 0 then
-            Snapshot."Policy Status" := Snapshot."Policy Status"::Cleared;
-        if Snapshot."Failed Policy Count" > 0 then
-            Snapshot."Policy Status" := Snapshot."Policy Status"::Flagged;
-        exit(true);
     end;
 
     local procedure InitializeExpenseReportEntry(

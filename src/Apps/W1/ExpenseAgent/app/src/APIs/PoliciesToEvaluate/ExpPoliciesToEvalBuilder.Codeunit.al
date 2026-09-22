@@ -60,7 +60,7 @@ codeunit 7107 "Exp. Policies To Eval Builder"
     var
         TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary;
     begin
-        GetEvaluationStateCore(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult, TempMatchedEvaluations, false, IsolationLevel::Default);
+        GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult, TempMatchedEvaluations, false, IsolationLevel::Default);
     end;
 
     /// <summary>
@@ -69,10 +69,10 @@ codeunit 7107 "Exp. Policies To Eval Builder"
     /// </summary>
     internal procedure GetEvaluationState(ExpenseReportLine: Record "Expense Report Line"; var HasApplicablePolicies: Boolean; var HasOutstandingPoliciesResult: Boolean; var TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary; ReadIsolation: IsolationLevel)
     begin
-        GetEvaluationStateCore(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult, TempMatchedEvaluations, true, ReadIsolation);
+        GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult, TempMatchedEvaluations, true, ReadIsolation);
     end;
 
-    local procedure GetEvaluationStateCore(ExpenseReportLine: Record "Expense Report Line"; var HasApplicablePolicies: Boolean; var HasOutstandingPoliciesResult: Boolean; var TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary; CollectEvaluations: Boolean; ReadIsolation: IsolationLevel)
+    local procedure GetEvaluationState(ExpenseReportLine: Record "Expense Report Line"; var HasApplicablePolicies: Boolean; var HasOutstandingPoliciesResult: Boolean; var TempMatchedEvaluations: Record "Expense Policy Evaluation" temporary; CollectEvaluations: Boolean; ReadIsolation: IsolationLevel)
     var
         ExpensePolicy: Record "Expense Policy";
         TempExistingEvaluations: Record "Expense Policy Evaluation" temporary;
