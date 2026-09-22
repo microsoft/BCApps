@@ -135,11 +135,13 @@ page 7129 "Travel Request Card"
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies the actual start date and time of the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
                 field("Actual End Date and Time"; Rec."Actual End Date and Time")
                 {
                     Importance = Additional;
                     ToolTip = 'Specifies the actual end date and time of the travel.';
+                    Editable = Rec.Status = Rec.Status::Open;
                 }
             }
             group("Travel Details")
