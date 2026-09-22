@@ -6,6 +6,7 @@ namespace Microsoft.FixedAssets.Journal;
 
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using System.Automation;
 
 table 5620 "FA Journal Batch"
 {
@@ -115,6 +116,8 @@ table 5620 "FA Journal Batch"
 
     trigger OnDelete()
     begin
+        ApprovalsMgmt.PreventDeletingRecordWithOpenApprovalEntry(Rec);
+
         FAJnlLine.SetRange("Journal Template Name", "Journal Template Name");
         FAJnlLine.SetRange("Journal Batch Name", Name);
         FAJnlLine.DeleteAll(true);
@@ -126,8 +129,15 @@ table 5620 "FA Journal Batch"
         FAJnlTemplate.Get("Journal Template Name");
     end;
 
+    trigger OnModify()
+    begin
+        ApprovalsMgmt.PreventModifyRecIfOpenApprovalEntryExistForCurrentUser(Rec);
+    end;
+
     trigger OnRename()
     begin
+        ApprovalsMgmt.OnRenameRecordInApprovalRequest(xRec.RecordId, RecordId);
+
         FAJnlLine.SetRange("Journal Template Name", xRec."Journal Template Name");
         FAJnlLine.SetRange("Journal Batch Name", xRec.Name);
         while FAJnlLine.FindFirst() do
@@ -137,6 +147,7 @@ table 5620 "FA Journal Batch"
     var
         FAJnlTemplate: Record "FA Journal Template";
         FAJnlLine: Record "FA Journal Line";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -153,6 +164,21 @@ table 5620 "FA Journal Batch"
         "Reason Code" := FAJnlTemplate."Reason Code";
         OnAfterSetupNewBatch(Rec);
     end;
+
+    internal procedure SetApprovalStateForBatch(FAJournalBatch: Record "FA Journal Batch"; FAJournalLine: Record "FA Journal Line"; var OpenApprovalEntriesExistForCurrentUser: Boolean; var OpenApprovalEntriesOnJournalBatchExist: Boolean; var CanCancelApprovalForJournalBatch: Boolean; var LocalCanRequestFlowApprovalForBatch: Boolean; var LocalCanCancelFlowApprovalForBatch: Boolean; var LocalApprovalEntriesExistSentByCurrentUser: Boolean; var EnabledFAJournalBatchWorkflowsExist: Boolean)
+    var
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+        WorkflowManagement: Codeunit "Workflow Management";
+    begin
+        OpenApprovalEntriesExistForCurrentUser := OpenApprovalEntriesExistForCurrentUser or ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(FAJournalBatch.RecordId());
+        OpenApprovalEntriesOnJournalBatchExist := ApprovalsMgmt.HasOpenApprovalEntries(FAJournalBatch.RecordId());
+        CanCancelApprovalForJournalBatch := ApprovalsMgmt.CanCancelApprovalForRecord(FAJournalBatch.RecordId());
+        WorkflowWebhookManagement.GetCanRequestAndCanCancel(FAJournalBatch.RecordId(), LocalCanRequestFlowApprovalForBatch, LocalCanCancelFlowApprovalForBatch);
+        LocalApprovalEntriesExistSentByCurrentUser := ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(FAJournalBatch.RecordId());
+        EnabledFAJournalBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(Database::"FA Journal Batch", WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode());
+    end;
+
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetupNewBatch(var FAJournalBatch: Record "FA Journal Batch")
