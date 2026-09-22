@@ -32,7 +32,9 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine, '', false, false)]
     local procedure OnInsertPurchOrderLineOnAfterTransferFromReqLineToPurchLine(var PurchOrderLine: Record "Purchase Line"; RequisitionLine: Record "Requisition Line")
     var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPriceManagement: Codeunit "Subc. Price Management";
+        AutomaticReqLineCost: Decimal;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -43,7 +45,11 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         if (RequisitionLine."Prod. Order No." = '') or (RequisitionLine."Operation No." = '') then
             exit;
 
-        SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine);
+        AutomaticReqLineCost := SubcPriceManagement.GetAutomaticSubcCostForReqLine(RequisitionLine, ProdOrderRoutingLine);
+        if RequisitionLine."Direct Unit Cost" <> AutomaticReqLineCost then
+            exit;
+
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchOrderLine, ProdOrderRoutingLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader, '', false, false)]
