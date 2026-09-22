@@ -15,7 +15,9 @@ page 1052 "Reminder Terms Translation"
     SourceTable = "Reminder Terms Translation";
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 1897 "Reminder Term Communication" instead.';
+#pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
     ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 
     layout
     {

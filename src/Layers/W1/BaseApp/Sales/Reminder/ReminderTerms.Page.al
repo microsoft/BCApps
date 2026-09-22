@@ -17,7 +17,9 @@ page 431 "Reminder Terms"
     UsageCategory = None;
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 837 "Reminder Terms List" instead.';
+#pragma warning disable AS0072 // The tag must match the published 29.0 baseline.
     ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 
     layout
     {
