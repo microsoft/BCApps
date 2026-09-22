@@ -10,6 +10,7 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using System.TestLibraries.Utilities;
 
 codeunit 139790 "E-Doc. Purch. Order Exp. Test"
 {
