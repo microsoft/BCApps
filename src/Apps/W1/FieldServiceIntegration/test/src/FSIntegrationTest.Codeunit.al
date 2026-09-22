@@ -1639,7 +1639,7 @@ codeunit 139204 "FS Integration Test"
     begin
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] Field Service does not handle synchronization comparisons while its integration is disabled.
-        Initialize();
+        ResetFSEnvironment();
 
         // [GIVEN] The fields used to derive customer asset conversion and no Field Service connection setup.
         SourceRecordRef.GetTable(Item);

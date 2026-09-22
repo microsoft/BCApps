@@ -368,6 +368,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     var
         FSConnectionSetup: Record "FS Connection Setup";
         CRMProduct: Record "CRM Product";
+        ExistingCRMProduct: Record "CRM Product";
         DestinationRecordRef: RecordRef;
         ItemIsManaged: Boolean;
     begin
@@ -380,7 +381,9 @@ codeunit 6610 "FS Int. Table Subscriber"
         ItemIsManaged := SourceFieldRef.Value();
         DestinationRecordRef := DestinationFieldRef.Record();
         DestinationRecordRef.SetTable(CRMProduct);
-        Result := CRMProduct.ConvertToCustomerAsset <> GetCustomerAssetConversion(ItemIsManaged);
+        ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
+        ExistingCRMProduct.Get(CRMProduct.ProductId);
+        Result := ExistingCRMProduct.ConvertToCustomerAsset <> GetCustomerAssetConversion(ItemIsManaged);
         IsHandled := true;
     end;
 
