@@ -106,7 +106,8 @@ table 2000040 "CODA Statement"
 
     local procedure GetCurrencyCode(): Code[10]
     begin
-        BankAcc.Get("Bank Account No.");
+        if not BankAcc.Get("Bank Account No.") then
+            exit('');
         exit(BankAcc."Currency Code");
     end;
 }
