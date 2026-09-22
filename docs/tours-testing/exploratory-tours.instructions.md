@@ -755,6 +755,40 @@ History here answers *"what changed recently?"* (which is what §8 uses it for) 
 *"which came first?"*. When intent depends on chronology, the evidence is not available in this
 repo — say so, and route the question to the owning team rather than guessing.
 
+### 9.12 Name-based searching under-reports guards — resolve to the control, not the identifier
+
+This failure recurred **four times** in one session, each time producing a clean, plausible,
+completely wrong answer. It is the single most reliable way to manufacture a false defect.
+
+| Control | Framework | Identifier |
+| --- | --- | --- |
+| Document is open | Sales, Purchase, Transfer | `TestStatusOpen()` |
+| Document is open | Service | inline `TestField("Release Status", …::Open)` |
+| Posting date allowed | Sales, Purchase | `GenJnlCheckLine.IsDateNotAllowed` |
+| Posting date allowed | Service | `GenJnlCheckLine.DateNotAllowed` |
+| Posting date allowed | Inventory / Transfer | `UserSetupManagement.CheckAllowedPostingDate` |
+
+The last row nearly became a **High-severity false report**. Grepping W1 for `IsDateNotAllowed`
+returns Sales and Purchase only. Transfer returns nothing — which reads as "transfer posting
+bypasses the allowed-posting-date window", a period-control bypass. It does not: transfer posting
+goes through the item journal, and `ItemJnlCheckLine.CheckDates` calls a third differently-named
+procedure that enforces the same rule (and adds an `Inventory Period` check the others lack).
+
+The discipline that catches it:
+
+1. **Search for the control, not the name.** Ask "what enforces this rule?" and follow the call
+   path to the *setup field* it reads (`Allow Posting From`/`To`, `Status`, `Release Status`).
+2. **An absence is never evidence on its own.** A zero-match grep means "not under this name here",
+   never "not enforced".
+3. **Follow the posting path.** Document posting delegates to shared engines — `GenJnlPostLine`,
+   `ItemJnlPostLine`. A check missing from the document codeunit is very often in the engine.
+4. **Sanity-check the shape.** A control implemented in 2 of 4 frameworks is far more likely to be
+   a naming difference than a genuine gap in a mature product.
+
+> Before filing any "X is not checked" finding, state where you would expect the check and prove
+> you looked there. If you cannot name the enforcement point for the frameworks that *do* have it,
+> you have not finished the analysis.
+
 ## 10. Differential touring across parallel modules
 
 BC contains several near-duplicate subsystems: Sales vs Purchase documents, Quote/Order/Invoice/
