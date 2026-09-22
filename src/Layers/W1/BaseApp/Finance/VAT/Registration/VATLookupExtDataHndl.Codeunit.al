@@ -7,8 +7,10 @@ namespace Microsoft.Finance.VAT.Registration;
 using Microsoft.CRM.Contact;
 using Microsoft.Sales.Customer;
 using System;
+using System.Environment;
 using System.Integration;
 using System.Reflection;
+using System.Telemetry;
 using System.Utilities;
 using System.Xml;
 
@@ -25,6 +27,8 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     var
         IsHandled: Boolean;
     begin
+        BlockAutomatedSessionAccess();
+
         InitVATRegistrationLog(Rec);
         VATRegistrationLog := Rec;
 
@@ -48,7 +52,41 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         EUVATRegNoValidationServiceTok: Label 'EUVATRegNoValidationServiceTelemetryCategoryTok', Locked = true;
         ValidationSuccessfulMsg: Label 'The VAT reg. no. validation was successful', Locked = true;
         ValidationFailureMsg: Label 'The VAT reg. no. validation failed. Http request failure', Locked = true;
+        AutomatedAccessBlockedErr: Label 'VAT registration number validation against the EU VIES service is not available from API or background (non-interactive) sessions. Verify VAT registration numbers interactively instead.';
+        AutomatedAccessBlockedMsg: Label 'The VAT reg. no. validation was blocked because it was invoked from an API or background session.', Locked = true;
+        SecurityAuditAutomatedAccessBlockedTxt: Label 'The EU VAT Registration No. validation service (VIES) lookup was blocked because it was invoked from an automated (API) or background session.', Locked = true;
         VATRegistrationURL: Text;
+
+    local procedure BlockAutomatedSessionAccess()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        AuditLog: Codeunit "Audit Log";
+    begin
+        // The unauthenticated EU VIES service blocks the shared outbound IP address of a cloud app service when it
+        // receives high-volume automated validation, which then affects every co-located tenant on that address.
+        // Online (SaaS), reject automated (API/OData/SOAP) and background (non-interactive) sessions so a job queue
+        // or integration cannot repeatedly bulk-validate against VIES and get the shared address deny-listed.
+        // Interactive validation is unaffected. On-prem is not restricted because customers there own their own
+        // outbound address and only affect themselves.
+        if not EnvironmentInformation.IsSaaS() then
+            exit;
+        if IsInteractiveClientSession() then
+            exit;
+
+        // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+        AuditLog.LogAuditMessage(SecurityAuditAutomatedAccessBlockedTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        Session.LogMessage('0000VL4', AutomatedAccessBlockedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+        Error(AutomatedAccessBlockedErr);
+    end;
+
+    local procedure IsInteractiveClientSession(): Boolean
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
+    begin
+        if not GuiAllowed() then
+            exit(false);
+        exit(not (ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::SOAP, ClientType::OData, ClientType::ODataV4]));
+    end;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)
     var
