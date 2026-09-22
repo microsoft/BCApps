@@ -82,8 +82,7 @@ codeunit 6969 "Expense Consumption Handler"
             ExpenseAgentEnvConsumption."Consumption Source System ID" := ConsumptionSourceSystemId;
             ExpenseAgentEnvConsumption."Consumption Source Operation" := ConsumptionSourceOperationName;
             ExpenseAgentEnvConsumption.Insert();
-        end
-        else
+        end else
             Session.LogMessage('0000VKV', CompanionTableRecordFoundTelemetryTxt,
                 Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
