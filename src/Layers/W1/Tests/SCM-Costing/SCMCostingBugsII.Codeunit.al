@@ -2924,7 +2924,6 @@ codeunit 137621 "SCM Costing Bugs II"
         AssemblyItem: Record Item;
         ComponentItem: Record Item;
         GeneralLedgerSetup: Record "General Ledger Setup";
-        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
         ItemJournalBatch: Record "Item Journal Batch";
         Location: Record Location;
         ProdItem: Record Item;
