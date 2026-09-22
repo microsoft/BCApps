@@ -130,8 +130,7 @@ codeunit 139061 "Office Line Generation Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Office Line Generation Test");
-        AggregateDocumentNo := '';
-        AggregateUpdateCount := 0;
+        OfficeLineGenerationTest.StartAggregateUpdateCount('');
 
         if IsInitialized then
             exit;

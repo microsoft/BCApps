@@ -184,8 +184,8 @@ codeunit 1639 "Office Line Generation"
     [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
+        TempLastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary;
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
-        LastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary;
         LastLinePending: Boolean;
     begin
         DisableAggregateTableUpdate.SetDisableAllRecords(true);
@@ -193,17 +193,17 @@ codeunit 1639 "Office Line Generation"
         repeat
             if TempOfficeSuggestedLineItem.Add then begin
                 if LastLinePending then begin
-                    InsertLineItem(HeaderRecRef, LastOfficeSuggestedLineItem."Item No.", LastOfficeSuggestedLineItem.Quantity);
+                    InsertLineItem(HeaderRecRef, TempLastOfficeSuggestedLineItem."Item No.", TempLastOfficeSuggestedLineItem.Quantity);
                     AddedCount += 1;
                 end;
-                LastOfficeSuggestedLineItem := TempOfficeSuggestedLineItem;
+                TempLastOfficeSuggestedLineItem := TempOfficeSuggestedLineItem;
                 LastLinePending := true;
             end;
         until TempOfficeSuggestedLineItem.Next() = 0;
         if UnbindSubscription(DisableAggregateTableUpdate) then;
 
         if LastLinePending then begin
-            InsertLineItem(HeaderRecRef, LastOfficeSuggestedLineItem."Item No.", LastOfficeSuggestedLineItem.Quantity);
+            InsertLineItem(HeaderRecRef, TempLastOfficeSuggestedLineItem."Item No.", TempLastOfficeSuggestedLineItem.Quantity);
             AddedCount += 1;
         end;
     end;
