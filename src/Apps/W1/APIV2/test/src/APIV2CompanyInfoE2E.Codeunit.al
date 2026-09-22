@@ -35,6 +35,9 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     procedure TestGetCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
         Response: Text;
         TargetURL: Text;
     begin
@@ -43,6 +46,11 @@ codeunit 139806 "APIV2 - Company Info. E2E"
 
         // [GIVEN] The company information record exists and has values assigned to the fields contained in complex types.
         CompanyInformation.Get();
+        CompanyDescription := CreateMultilineDescription('Company');
+        EnvironmentDescription := CreateMultilineDescription('Environment');
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        CompanyInformation.Modify();
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
 
         // [WHEN] The user calls GET for the given Company Information.
         TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
@@ -50,6 +58,30 @@ codeunit 139806 "APIV2 - Company Info. E2E"
 
         // [THEN] The response text contains the Company Information.
         VerifyCompanyInformationProperties(Response, CompanyInformation);
+    end;
+
+    [Test]
+    procedure TestDescriptionsAreReadOnly()
+    var
+        CompanyInformation: Record "Company Information";
+        RequestBody: Text;
+        Response: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] Company and environment descriptions cannot be modified through the API.
+        Initialize();
+
+        // [GIVEN] A request contains the read-only description properties.
+        CompanyInformation.Get();
+        RequestBody := LibraryGraphMgt.AddPropertytoJSON('', 'companyDescription', CreateMultilineDescription('Modified company'));
+        RequestBody := LibraryGraphMgt.AddPropertytoJSON(RequestBody, 'environmentDescription', CreateMultilineDescription('Modified environment'));
+
+        // [WHEN] The user makes a patch request to the service.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
+        asserterror LibraryGraphMgt.PatchToWebService(TargetURL, RequestBody, Response);
+
+        // [THEN] The request fails because the properties are read-only.
+        Assert.AreNotEqual(0, StrPos(GetLastErrorText(), 'read-only'), 'The string "read-only" should exist in the error message.');
     end;
 
     [Test]
@@ -149,11 +181,14 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         EnterpriseNoFieldRef: FieldRef;
         TaxRegistrationNumber: Text;
         Experience: Text;
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
         Assert.AreNotEqual('', CompanyInformationJSON, EmptyJSONErr);
         GeneralLedgerSetup.Get();
 
         VerifyPropertyInJSON(CompanyInformationJSON, 'displayName', CompanyInformation.Name);
+        VerifyPropertyInJSON(CompanyInformationJSON, 'companyDescription', CompanyInformation.GetCompanyDescription());
+        VerifyPropertyInJSON(CompanyInformationJSON, 'environmentDescription', EnvironmentInformation.GetEnvironmentDescription());
         VerifyPropertyInJSON(CompanyInformationJSON, 'phoneNumber', CompanyInformation."Phone No.");
         VerifyPropertyInJSON(CompanyInformationJSON, 'faxNumber', CompanyInformation."Fax No.");
         VerifyPropertyInJSON(CompanyInformationJSON, 'email', CompanyInformation."E-Mail");
@@ -206,5 +241,14 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     local procedure GetExperienceTierJSON(Experience: Text) ExperinceTierJSON: Text
     begin
         ExperinceTierJSON := LibraryGraphMgt.AddPropertytoJSON('', 'experience', Experience);
+    end;
+
+    local procedure CreateMultilineDescription(DescriptionType: Text): Text
+    var
+        DescriptionBuilder: TextBuilder;
+    begin
+        DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
+        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        exit(DescriptionBuilder.ToText());
     end;
 }

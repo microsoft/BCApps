@@ -59,6 +59,41 @@ codeunit 3702 "Environment Information Impl."
         exit(DefaultSandboxEnvironmentNameTxt);
     end;
 
+    procedure GetEnvironmentDescription(): Text
+    var
+        EnvironmentInformation: Record "Environment Information";
+        DescriptionInStream: InStream;
+        DescriptionBuilder: TextBuilder;
+        DescriptionLine: Text;
+        NewLine: Text;
+    begin
+        GetEnvironmentInformation(EnvironmentInformation);
+        EnvironmentInformation.CalcFields(Description);
+        if not EnvironmentInformation.Description.HasValue() then
+            exit('');
+
+        EnvironmentInformation.Description.CreateInStream(DescriptionInStream, GetTextEncoding());
+        while not DescriptionInStream.EOS() do begin
+            DescriptionInStream.ReadText(DescriptionLine);
+            DescriptionBuilder.AppendLine(DescriptionLine);
+        end;
+
+        NewLine := GetNewLine();
+        exit(DescriptionBuilder.ToText().TrimEnd(NewLine));
+    end;
+
+    procedure SetEnvironmentDescription(Description: Text)
+    var
+        EnvironmentInformation: Record "Environment Information";
+        DescriptionOutStream: OutStream;
+    begin
+        GetEnvironmentInformation(EnvironmentInformation);
+        Clear(EnvironmentInformation.Description);
+        EnvironmentInformation.Description.CreateOutStream(DescriptionOutStream, GetTextEncoding());
+        DescriptionOutStream.WriteText(Description);
+        EnvironmentInformation.Modify();
+    end;
+
     procedure SetTestabilitySandbox(EnableSandboxForTest: Boolean)
     begin
         TestabilitySandbox := EnableSandboxForTest;
@@ -184,6 +219,31 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetEnvironmentApplicationSetting(SettingName));
     end;
 
+    local procedure GetEnvironmentInformation(var EnvironmentInformation: Record "Environment Information")
+    begin
+        if EnvironmentInformation.Get() then
+            exit;
+
+        EnvironmentInformation.Init();
+        if EnvironmentInformation.Insert() then
+            exit;
+
+        EnvironmentInformation.Get();
+    end;
+
+    local procedure GetTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
+    end;
+
+    local procedure GetNewLine(): Text
+    var
+        NewLineBuilder: TextBuilder;
+    begin
+        NewLineBuilder.AppendLine();
+        exit(NewLineBuilder.ToText());
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeGetApplicationIdentifier(var AppId: Text)
     begin
@@ -191,4 +251,3 @@ codeunit 3702 "Environment Information Impl."
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 }
-

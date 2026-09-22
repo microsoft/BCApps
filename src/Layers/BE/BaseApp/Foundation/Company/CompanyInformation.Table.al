@@ -566,6 +566,11 @@ table 79 "Company Information"
                         Error(Text11300, FieldCaption("Branch No."));
             end;
         }
+        field(7612; "Company Description"; Blob)
+        {
+            Caption = 'Company Description';
+            ToolTip = 'Specifies a description of the company.';
+        }
     }
 
     keys
@@ -736,6 +741,49 @@ table 79 "Company Information"
     begin
         Result := FieldCaption("Enterprise No.");
         OnAfterGetRegistrationNumberLbl(Result);
+    end;
+
+    procedure GetCompanyDescription(): Text
+    var
+        DescriptionInStream: InStream;
+        DescriptionBuilder: TextBuilder;
+        DescriptionLine: Text;
+        NewLine: Text;
+    begin
+        CalcFields("Company Description");
+        if not "Company Description".HasValue() then
+            exit('');
+
+        "Company Description".CreateInStream(DescriptionInStream, GetTextEncoding());
+        while not DescriptionInStream.EOS() do begin
+            DescriptionInStream.ReadText(DescriptionLine);
+            DescriptionBuilder.AppendLine(DescriptionLine);
+        end;
+
+        NewLine := GetNewLine();
+        exit(DescriptionBuilder.ToText().TrimEnd(NewLine));
+    end;
+
+    procedure SetCompanyDescription(Description: Text)
+    var
+        DescriptionOutStream: OutStream;
+    begin
+        Clear("Company Description");
+        "Company Description".CreateOutStream(DescriptionOutStream, GetTextEncoding());
+        DescriptionOutStream.WriteText(Description);
+    end;
+
+    local procedure GetTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
+    end;
+
+    local procedure GetNewLine(): Text
+    var
+        NewLineBuilder: TextBuilder;
+    begin
+        NewLineBuilder.AppendLine();
+        exit(NewLineBuilder.ToText());
     end;
 
     procedure GetVATRegistrationNumber() Result: Text
@@ -963,4 +1011,6 @@ table 79 "Company Information"
     local procedure OnBeforeValidateShipToPostCode(var CompanyInformation: Record "Company Information"; var IsHandled: Boolean)
     begin
     end;
+}
+
 }

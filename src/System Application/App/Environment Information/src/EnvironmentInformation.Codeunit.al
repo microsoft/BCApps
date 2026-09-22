@@ -37,6 +37,24 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
+    /// Gets the description of the environment.
+    /// </summary>
+    /// <returns>The description of the environment.</returns>
+    procedure GetEnvironmentDescription(): Text
+    begin
+        exit(EnvironmentInformationImpl.GetEnvironmentDescription());
+    end;
+
+    /// <summary>
+    /// Sets the description of the environment.
+    /// </summary>
+    /// <param name="Description">The description of the environment.</param>
+    procedure SetEnvironmentDescription(Description: Text)
+    begin
+        EnvironmentInformationImpl.SetEnvironmentDescription(Description);
+    end;
+
+    /// <summary>
     /// Checks if environment type of tenant is Sandbox.
     /// </summary>
     /// <returns>True if the environment type is a Sandbox, False otherwise.</returns>

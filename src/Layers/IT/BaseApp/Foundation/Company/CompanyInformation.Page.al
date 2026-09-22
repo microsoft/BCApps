@@ -23,6 +23,7 @@ using Microsoft.Projects.Project.Setup;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Setup;
 using System.Diagnostics;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Integration.PowerBI;
@@ -53,6 +54,43 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
+                }
+                grid(Descriptions)
+                {
+                    Caption = 'Descriptions';
+                    GridLayout = Columns;
+                    group(CompanyDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(CompanyDescription; CompanyDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Company Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies a description that applies to the current company.';
+
+                            trigger OnValidate()
+                            begin
+                                CompanyDescriptionChanged := CompanyDescription <> OriginalCompanyDescription;
+                            end;
+                        }
+                    }
+                    group(EnvironmentDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(EnvironmentDescription; EnvironmentDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Environment Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies a description that applies to all companies in the current environment.';
+
+                            trigger OnValidate()
+                            begin
+                                EnvironmentDescriptionChanged := EnvironmentDescription <> OriginalEnvironmentDescription;
+                            end;
+                        }
+                    }
                 }
                 field(Address; Rec.Address)
                 {
@@ -866,6 +904,7 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        LoadDescriptions();
     end;
 
     trigger OnClosePage()
@@ -873,6 +912,8 @@ page 1 "Company Information"
         AuditLog: Codeunit "Audit Log";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
+        SaveDescriptions();
+
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
 
@@ -916,7 +957,12 @@ page 1 "Company Information"
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
         FormatAddress: Codeunit "Format Address";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EnvironmentInformation: Codeunit "Environment Information";
         Experience: Text;
+        CompanyDescription: Text;
+        OriginalCompanyDescription: Text;
+        EnvironmentDescription: Text;
+        OriginalEnvironmentDescription: Text;
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
@@ -929,6 +975,8 @@ page 1 "Company Information"
         DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
+        CompanyDescriptionChanged: Boolean;
+        EnvironmentDescriptionChanged: Boolean;
 
     protected var
         SystemIndicatorChanged: Boolean;
@@ -958,6 +1006,35 @@ page 1 "Company Information"
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
     end;
 
+    local procedure LoadDescriptions()
+    begin
+        if not CompanyDescriptionChanged then begin
+            CompanyDescription := Rec.GetCompanyDescription();
+            OriginalCompanyDescription := CompanyDescription;
+        end;
+
+        if not EnvironmentDescriptionChanged then begin
+            EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
+            OriginalEnvironmentDescription := EnvironmentDescription;
+        end;
+    end;
+
+    local procedure SaveDescriptions()
+    begin
+        if CompanyDescriptionChanged then begin
+            Rec.SetCompanyDescription(CompanyDescription);
+            Rec.Modify(true);
+            OriginalCompanyDescription := CompanyDescription;
+            CompanyDescriptionChanged := false;
+        end;
+
+        if EnvironmentDescriptionChanged then begin
+            EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+            OriginalEnvironmentDescription := EnvironmentDescription;
+            EnvironmentDescriptionChanged := false;
+        end;
+    end;
+
     local procedure SetShowMandatoryConditions()
     begin
         BankBranchNoOrAccountNoMissing := (Rec."Bank Branch No." = '') or (Rec."Bank Account No." = '');
@@ -972,4 +1049,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-
