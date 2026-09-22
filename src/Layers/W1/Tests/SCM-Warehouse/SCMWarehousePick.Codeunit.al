@@ -3052,6 +3052,96 @@ codeunit 137055 "SCM Warehouse Pick"
             'The raw helper must retain the original registered pick history.');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure ReservedLotCanBePartiallyRepickedAfterWarehouseReclassification()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
+        OriginalSupplyReservationEntry: Record "Reservation Entry";
+        PickBin: Record Bin;
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        OriginalTakeLine: Record "Warehouse Activity Line";
+        OriginalPlaceLine: Record "Warehouse Activity Line";
+    begin
+        // [SCENARIO] The original sales line can re-pick only 4 returned units of its reserved lot while 6 remain in a shipment bin.
+        Initialize();
+
+        // [GIVEN] Order "S" reserves and picks 10 units of LOT001 into bin "B2", then its unposted shipment "W1" is deleted.
+        CreateReservedLotPick(SalesHeader, SalesLine, ReservationEntry, PickBin, WarehouseShipmentHeader, 10);
+        OriginalSupplyReservationEntry.Get(ReservationEntry."Entry No.", true);
+        RegisterWarehouseActivity(SalesHeader."No.", "Warehouse Activity Type"::Pick);
+        VerifyReservedLotPickState(SalesLine, ReservationEntry, PickBin, 0, 10, 10, 0, 10);
+        DeleteUnpostedWarehouseShipment(WarehouseShipmentHeader);
+
+        // [WHEN] A warehouse reclassification returns only 4 units of LOT001 from "B2" to "B1".
+        ReturnReservedLotToPickBin(SalesLine, ReservationEntry."Lot No.", PickBin, 4);
+
+        // [THEN] Bins "B1" and "B2" contain 4 and 6; the original line, reservation pair and supply still reserve 10.
+        VerifyReservedLotPickState(SalesLine, ReservationEntry, PickBin, 4, 6, 10, 0, 10);
+        VerifyOriginalLotReservation(SalesLine, ReservationEntry, OriginalSupplyReservationEntry);
+
+        // [WHEN] Shipment "W2" is created for the original quantity 10 and a pick is requested.
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader."No.");
+        VerifyRepickShipmentLine(SalesLine, WarehouseShipmentHeader, 0);
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] Exactly two pick lines allocate LOT001: Take 4 from "B1" and Place 4 into "B2".
+        VerifyRepickLotLines(SalesLine, ReservationEntry."Lot No.", PickBin, 4);
+
+        // [GIVEN] Both pick line identities are retained and the outstanding pick is committed before the expected error.
+        FindWarehouseActivityLine(
+            OriginalTakeLine, OriginalTakeLine."Activity Type"::Pick, SalesLine."Location Code", SalesHeader."No.",
+            OriginalTakeLine."Action Type"::Take);
+        FindWarehouseActivityLine(
+            OriginalPlaceLine, OriginalPlaceLine."Activity Type"::Pick, SalesLine."Location Code", SalesHeader."No.",
+            OriginalPlaceLine."Action Type"::Place);
+        Commit();
+
+        // [WHEN] Create Pick is invoked again for "W2" while 4 units are outstanding.
+        asserterror LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] The duplicate fails; the same two lines still allocate only 4, with unchanged reservation and supply.
+        Assert.ExpectedError('Nothing to handle.');
+        Assert.ExpectedErrorCode('Dialog');
+        OriginalTakeLine.Get(OriginalTakeLine."Activity Type", OriginalTakeLine."No.", OriginalTakeLine."Line No.");
+        OriginalPlaceLine.Get(OriginalPlaceLine."Activity Type", OriginalPlaceLine."No.", OriginalPlaceLine."Line No.");
+        VerifyRepickLotLines(SalesLine, ReservationEntry."Lot No.", PickBin, 4);
+        VerifyReservedLotPickState(SalesLine, ReservationEntry, PickBin, 4, 6, 10, 4, 10);
+        VerifyOriginalLotReservation(SalesLine, ReservationEntry, OriginalSupplyReservationEntry);
+        VerifyRepickShipmentLine(SalesLine, WarehouseShipmentHeader, 0);
+
+        // [WHEN] LOT001 is validated and saved on both persisted lines, then the pick of 4 is registered.
+        WarehouseActivityLine.SetSourceFilter(
+            Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", -1, true);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.FindSet();
+        repeat
+            WarehouseActivityLine.Validate("Lot No.", ReservationEntry."Lot No.");
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+        RegisterWarehouseActivity(SalesHeader."No.", "Warehouse Activity Type"::Pick);
+
+        // [THEN] No active pick remains; bins contain 0 and 10, the original supply reserves 10, and nothing is shipped.
+        // [THEN] Shipment "W2" has only 4 picked; the 6 from deleted shipment "W1" are not reconciled into it.
+        VerifyRegisteredPartialRepick(SalesLine, ReservationEntry, OriginalSupplyReservationEntry, PickBin, WarehouseShipmentHeader, 4);
+
+        // [GIVEN] The registered fixture is committed before another expected duplicate-pick error.
+        Commit();
+
+        // [WHEN] Create Pick is invoked once more for "W2" after registration.
+        asserterror LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] The duplicate fails without changing bins, reservation, supply or shipment "W2", and no active pick is created.
+        Assert.ExpectedError('Nothing to handle.');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyRegisteredPartialRepick(SalesLine, ReservationEntry, OriginalSupplyReservationEntry, PickBin, WarehouseShipmentHeader, 4);
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -3078,6 +3168,11 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     local procedure CreateReservedLotPick(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ReservationEntry: Record "Reservation Entry"; var PickBin: Record Bin; var WarehouseShipmentHeader: Record "Warehouse Shipment Header")
+    begin
+        CreateReservedLotPick(SalesHeader, SalesLine, ReservationEntry, PickBin, WarehouseShipmentHeader, 1);
+    end;
+
+    local procedure CreateReservedLotPick(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ReservationEntry: Record "Reservation Entry"; var PickBin: Record Bin; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; Quantity: Decimal)
     var
         Location: Record Location;
         WarehouseEmployee: Record "Warehouse Employee";
@@ -3102,8 +3197,8 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryItemTracking.CreateItemWithItemTrackingCode(Item, ItemTrackingCode);
 
         LibraryPurchase.CreatePurchaseDocumentWithItem(
-            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, '', Item."No.", 1, Location.Code, WorkDate());
-        LibraryItemTracking.CreatePurchOrderItemTracking(PurchaseReservationEntry, PurchaseLine, '', 'LOT001', 1);
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order, '', Item."No.", Quantity, Location.Code, WorkDate());
+        LibraryItemTracking.CreatePurchOrderItemTracking(PurchaseReservationEntry, PurchaseLine, '', 'LOT001', Quantity);
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         CreateAndPostWhseReceiptFromPO(PurchaseHeader);
         FindWarehouseActivityLine(
@@ -3113,9 +3208,9 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine.Validate("Bin Code", PickBin.Code);
         WarehouseActivityLine.Modify(true);
         RegisterWarehouseActivity(PurchaseHeader."No.", WarehouseActivityLine."Activity Type"::"Put-away");
-        VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", 'LOT001', 1);
+        VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", 'LOT001', Quantity);
 
-        CreateSalesOrderWithLotTracking(SalesHeader, SalesLine, Item."No.", Location.Code, 1, 'LOT001');
+        CreateSalesOrderWithLotTracking(SalesHeader, SalesLine, Item."No.", Location.Code, Quantity, 'LOT001');
         LibrarySales.AutoReserveSalesLine(SalesLine);
         ReservationEntry.SetSourceFilter(
             Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", true);
@@ -3127,7 +3222,7 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
         FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader."No.");
         LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
-        VerifyRepickLotLines(SalesLine, ReservationEntry."Lot No.", PickBin);
+        VerifyRepickLotLines(SalesLine, ReservationEntry."Lot No.", PickBin, Quantity);
     end;
 
     local procedure DeleteUnpostedWarehouseShipment(var WarehouseShipmentHeader: Record "Warehouse Shipment Header")
@@ -3139,6 +3234,11 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     local procedure ReturnReservedLotToPickBin(SalesLine: Record "Sales Line"; LotNo: Code[50]; PickBin: Record Bin)
+    begin
+        ReturnReservedLotToPickBin(SalesLine, LotNo, PickBin, 1);
+    end;
+
+    local procedure ReturnReservedLotToPickBin(SalesLine: Record "Sales Line"; LotNo: Code[50]; PickBin: Record Bin; Quantity: Decimal)
     var
         Location: Record Location;
         ShipmentBin: Record Bin;
@@ -3151,13 +3251,13 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryWarehouse.CreateWarehouseJournalBatch(ReclassificationBatch, "Warehouse Journal Template Type"::Reclassification, Location.Code);
         LibraryWarehouse.CreateWhseJournalLine(
             WarehouseJournalLine, ReclassificationBatch."Journal Template Name", ReclassificationBatch.Name,
-            Location.Code, ShipmentBin."Zone Code", ShipmentBin.Code, WarehouseJournalLine."Entry Type"::Movement, SalesLine."No.", 1);
+            Location.Code, ShipmentBin."Zone Code", ShipmentBin.Code, WarehouseJournalLine."Entry Type"::Movement, SalesLine."No.", Quantity);
         WarehouseJournalLine.Validate("From Zone Code", ShipmentBin."Zone Code");
         WarehouseJournalLine.Validate("From Bin Code", ShipmentBin.Code);
         WarehouseJournalLine.Validate("To Zone Code", PickBin."Zone Code");
         WarehouseJournalLine.Validate("To Bin Code", PickBin.Code);
         WarehouseJournalLine.Modify(true);
-        LibraryItemTracking.CreateWhseJournalLineItemTracking(WhseItemTrackingLine, WarehouseJournalLine, '', LotNo, 1);
+        LibraryItemTracking.CreateWhseJournalLineItemTracking(WhseItemTrackingLine, WarehouseJournalLine, '', LotNo, Quantity);
         WhseItemTrackingLine.Validate("New Lot No.", LotNo);
         WhseItemTrackingLine.Modify(true);
         LibraryWarehouse.RegisterWhseJournalLine(
@@ -3169,12 +3269,15 @@ codeunit 137055 "SCM Warehouse Pick"
         ReservationEntry: Record "Reservation Entry";
         SupplyReservationEntry: Record "Reservation Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
+        ReservedQty: Decimal;
     begin
+        ReservedQty := Abs(OriginalReservationEntry."Quantity (Base)");
         SalesLine.Find();
-        SalesLine.TestField(Quantity, 1);
+        SalesLine.TestField(Quantity, ReservedQty);
+        SalesLine.TestField("Quantity (Base)", ReservedQty);
         SalesLine.TestField("Quantity Shipped", 0);
         SalesLine.CalcFields("Reserved Qty. (Base)");
-        SalesLine.TestField("Reserved Qty. (Base)", 1);
+        SalesLine.TestField("Reserved Qty. (Base)", ReservedQty);
         ReservationEntry.SetSourceFilter(
             Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", true);
         Assert.RecordCount(ReservationEntry, 1);
@@ -3185,14 +3288,14 @@ codeunit 137055 "SCM Warehouse Pick"
         ReservationEntry.TestField("Item No.", SalesLine."No.");
         ReservationEntry.TestField("Location Code", SalesLine."Location Code");
         ReservationEntry.TestField("Lot No.", 'LOT001');
-        ReservationEntry.TestField("Quantity (Base)", -1);
+        ReservationEntry.TestField("Quantity (Base)", -ReservedQty);
         SupplyReservationEntry.Get(ReservationEntry."Entry No.", true);
         SupplyReservationEntry.TestField("Reservation Status", SupplyReservationEntry."Reservation Status"::Reservation);
         SupplyReservationEntry.TestField("Source Type", Database::"Item Ledger Entry");
         SupplyReservationEntry.TestField("Item No.", SalesLine."No.");
         SupplyReservationEntry.TestField("Location Code", SalesLine."Location Code");
         SupplyReservationEntry.TestField("Lot No.", ReservationEntry."Lot No.");
-        SupplyReservationEntry.TestField("Quantity (Base)", 1);
+        SupplyReservationEntry.TestField("Quantity (Base)", ReservedQty);
 
         // A warehouse bin transfer must not create new item ledger entries or replace the supply of this reservation pair.
         ItemLedgerEntry.SetRange("Item No.", SalesLine."No.");
@@ -3201,10 +3304,22 @@ codeunit 137055 "SCM Warehouse Pick"
         ItemLedgerEntry.FindFirst();
         ItemLedgerEntry.TestField("Entry No.", SupplyReservationEntry."Source Ref. No.");
         ItemLedgerEntry.TestField("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.TestField(Positive, true);
         ItemLedgerEntry.TestField("Lot No.", ReservationEntry."Lot No.");
-        ItemLedgerEntry.TestField("Remaining Quantity", 1);
+        ItemLedgerEntry.TestField(Quantity, ReservedQty);
+        ItemLedgerEntry.TestField("Remaining Quantity", ReservedQty);
         ItemLedgerEntry.CalcFields("Reserved Quantity");
-        ItemLedgerEntry.TestField("Reserved Quantity", 1);
+        ItemLedgerEntry.TestField("Reserved Quantity", ReservedQty);
+    end;
+
+    local procedure VerifyOriginalLotReservation(SalesLine: Record "Sales Line"; OriginalReservationEntry: Record "Reservation Entry"; OriginalSupplyReservationEntry: Record "Reservation Entry")
+    var
+        SupplyReservationEntry: Record "Reservation Entry";
+    begin
+        VerifyOriginalLotReservation(SalesLine, OriginalReservationEntry);
+        SupplyReservationEntry.Get(OriginalReservationEntry."Entry No.", true);
+        SupplyReservationEntry.TestField("Entry No.", OriginalSupplyReservationEntry."Entry No.");
+        SupplyReservationEntry.TestField("Source Ref. No.", OriginalSupplyReservationEntry."Source Ref. No.");
     end;
 
     local procedure VerifyReservedLotPickState(SalesLine: Record "Sales Line"; ReservationEntry: Record "Reservation Entry"; PickBin: Record Bin; PickBinQty: Decimal; ShipmentBinQty: Decimal; RegisteredQty: Decimal; OutstandingQty: Decimal; GlobalPickShipQty: Decimal)
@@ -3241,7 +3356,7 @@ codeunit 137055 "SCM Warehouse Pick"
             'Registered and outstanding picks must be distinguished from current bin contents.');
         TempItemTrackingSetup."Lot No." := ReservationEntry."Lot No.";
         Assert.AreEqual(
-            1, WarehouseAvailabilityMgt.CalcLineReservedQtyOnInvt(
+            Abs(ReservationEntry."Quantity (Base)"), WarehouseAvailabilityMgt.CalcLineReservedQtyOnInvt(
                 Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", 0,
                 false, TempItemTrackingSetup, TempWarehouseActivityLine), 'The raw reservation against inventory must remain intact.');
         TempTrackingSpecification."Lot No." := ReservationEntry."Lot No.";
@@ -3286,6 +3401,11 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     local procedure VerifyRepickLotLines(SalesLine: Record "Sales Line"; LotNo: Code[50]; PickBin: Record Bin)
+    begin
+        VerifyRepickLotLines(SalesLine, LotNo, PickBin, 1);
+    end;
+
+    local procedure VerifyRepickLotLines(SalesLine: Record "Sales Line"; LotNo: Code[50]; PickBin: Record Bin; Quantity: Decimal)
     var
         Location: Record Location;
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -3299,12 +3419,50 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine.FindFirst();
         WarehouseActivityLine.TestField("Bin Code", PickBin.Code);
         WarehouseActivityLine.TestField("Lot No.", LotNo);
-        WarehouseActivityLine.TestField("Qty. (Base)", 1);
+        WarehouseActivityLine.TestField(Quantity, Quantity);
+        WarehouseActivityLine.TestField("Qty. (Base)", Quantity);
+        WarehouseActivityLine.TestField("Qty. Outstanding (Base)", Quantity);
+        WarehouseActivityLine.TestField("Qty. to Handle (Base)", Quantity);
         WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Place);
         WarehouseActivityLine.FindFirst();
         WarehouseActivityLine.TestField("Bin Code", Location."Shipment Bin Code");
         WarehouseActivityLine.TestField("Lot No.", LotNo);
-        WarehouseActivityLine.TestField("Qty. (Base)", 1);
+        WarehouseActivityLine.TestField(Quantity, Quantity);
+        WarehouseActivityLine.TestField("Qty. (Base)", Quantity);
+        WarehouseActivityLine.TestField("Qty. Outstanding (Base)", Quantity);
+        WarehouseActivityLine.TestField("Qty. to Handle (Base)", Quantity);
+    end;
+
+    local procedure VerifyRepickShipmentLine(SalesLine: Record "Sales Line"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; PickedQty: Decimal)
+    var
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+    begin
+        FilterWarehouseShipmentLine(WarehouseShipmentLine, SalesLine."Document No.");
+        WarehouseShipmentLine.SetRange("No.", WarehouseShipmentHeader."No.");
+        WarehouseShipmentLine.SetRange("Source Line No.", SalesLine."Line No.");
+        Assert.RecordCount(WarehouseShipmentLine, 1);
+        WarehouseShipmentLine.FindFirst();
+        WarehouseShipmentLine.TestField(Quantity, SalesLine.Quantity);
+        WarehouseShipmentLine.TestField("Qty. (Base)", SalesLine."Quantity (Base)");
+        WarehouseShipmentLine.TestField("Qty. Picked", PickedQty);
+        WarehouseShipmentLine.TestField("Qty. Picked (Base)", PickedQty);
+        WarehouseShipmentLine.TestField("Qty. Shipped", 0);
+    end;
+
+    local procedure VerifyRegisteredPartialRepick(SalesLine: Record "Sales Line"; ReservationEntry: Record "Reservation Entry"; OriginalSupplyReservationEntry: Record "Reservation Entry"; PickBin: Record Bin; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; PickedQty: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        ReservedQty: Decimal;
+    begin
+        ReservedQty := Abs(ReservationEntry."Quantity (Base)");
+        VerifyReservedLotPickState(SalesLine, ReservationEntry, PickBin, 0, ReservedQty, ReservedQty + PickedQty, 0, ReservedQty);
+        VerifyOriginalLotReservation(SalesLine, ReservationEntry, OriginalSupplyReservationEntry);
+        VerifyNoOwnLinePickAllowance(SalesLine, ReservationEntry."Lot No.");
+        VerifyRepickShipmentLine(SalesLine, WarehouseShipmentHeader, PickedQty);
+        WarehouseActivityLine.SetSourceFilter(
+            Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", -1, true);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        Assert.RecordIsEmpty(WarehouseActivityLine);
     end;
 
     local procedure CreateItemJournalLineWithLocationQtyAndUoM(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; UoM: Code[10])
