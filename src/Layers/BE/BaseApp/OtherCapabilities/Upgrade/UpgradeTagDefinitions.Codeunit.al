@@ -182,6 +182,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetEmployeeLedgerEntryCurrencyFactorUpgradeTag());
         PerCompanyUpgradeTags.Add(GetInitShipToPhoneNoUpgradeTag());
         PerCompanyUpgradeTags.Add(GetMultilineReminderTextUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetReminderCommunicationMigrationTag());
         PerCompanyUpgradeTags.Add(GetCountryVATSchemeDKTag());
         PerCompanyUpgradeTags.Add(GetDefaultConsCalcBasedOnUpgradeTag());
         PerCompanyUpgradeTags.Add(GetUpgradeJobConsumpWhseHandlingForDirectedPutAwayAndPickLocationUpgradeTag());
@@ -1285,6 +1286,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetMultilineReminderTextUpgradeTag(): Code[250]
     begin
         exit('MS-535852-MultilineReminderText-20240531');
+    end;
+
+    internal procedure GetReminderCommunicationMigrationTag(): Code[250]
+    begin
+        exit('MS-648301-ReminderCommunicationMigration-20260922');
     end;
 
     internal procedure GetCountryVATSchemeDKTag(): Code[250]
