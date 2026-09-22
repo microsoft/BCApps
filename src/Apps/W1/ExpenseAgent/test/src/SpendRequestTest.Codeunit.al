@@ -1956,7 +1956,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An expense category and a payment method.
         CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
-        LibraryExpense.CreateExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
         // [GIVEN] Two approved spend requests (header and line) with the user as traveler on both.
         CreateSpendRequestWithTraveler(HeaderSpendRequest, ExpenseUser."No.", HeaderSpendRequest.Status::Approved);
@@ -2150,6 +2150,7 @@ codeunit 148339 "Spend Request Test"
     local procedure Initialize()
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpensePaymentMethod: Record "Expense Payment Method";
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Spend Request Test");
@@ -2158,6 +2159,10 @@ codeunit 148339 "Spend Request Test"
         ExpenseApprovalSetup.DeleteAll();
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
+        // Reimbursement types are unique; reuse only methods created within the current test.
+        ExpensePaymentMethod.SetFilter(
+            "Reimbursement Type", '%1|%2', ExpensePaymentMethod."Reimbursement Type"::"Employee Paid", ExpensePaymentMethod."Reimbursement Type"::"Company Paid");
+        ExpensePaymentMethod.DeleteAll();
         CloseConfirmCount := 0;
         CloseConfirmReply := false;
         SpendReqPreviewShown := false;
@@ -2222,7 +2227,7 @@ codeunit 148339 "Spend Request Test"
     begin
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
-        LibraryExpense.CreateExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, Refundable, '', LibraryRandom.RandIntInRange(100, 1000));
     end;
@@ -2416,7 +2421,7 @@ codeunit 148339 "Spend Request Test"
         CreateEmployeePostingSetup(Employee);
 
         CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
-        LibraryExpense.CreateExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
@@ -2443,7 +2448,7 @@ codeunit 148339 "Spend Request Test"
         CreateEmployeePostingSetup(Employee);
 
         CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
-        LibraryExpense.CreateExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
@@ -2472,7 +2477,7 @@ codeunit 148339 "Spend Request Test"
 
         // A refundable category and a payment method.
         CreateExpenseCategoryWithSubCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ", true);
-        LibraryExpense.CreateExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
 
         // An approved spend request with the user as a traveler.
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
@@ -2495,7 +2500,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine: Record "Expense Report Line";
     begin
         CreateExpenseCategoryWithSubCategory(NonRefundableCategory, NonRefundableCategory."Reimbursement Type"::"Company Paid", NonRefundableCategory."Expense Detail Required"::" ", false);
-        LibraryExpense.CreateExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Company Paid");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Company Paid");
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUserNo, NonRefundableCategory.Code, ExpensePaymentMethod.Code, false, '', LibraryRandom.RandIntInRange(100, 1000));
     end;
 
