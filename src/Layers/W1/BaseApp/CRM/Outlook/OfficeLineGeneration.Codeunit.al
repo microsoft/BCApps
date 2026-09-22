@@ -177,36 +177,33 @@ codeunit 1639 "Office Line Generation"
             AddedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
     end;
 
-    [CommitBehavior(CommitBehavior::Ignore)]
     /// <summary>
     /// Inserts suggested line items starting from the current record position and updates the document aggregate once.
     /// The caller must position TempOfficeSuggestedLineItem with FindSet and initialize AddedCount before calling this procedure.
     /// </summary>
+    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
-        LastItemNo: Text[50];
-        LastQuantity: Integer;
+        LastOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary;
         LastLinePending: Boolean;
     begin
         DisableAggregateTableUpdate.SetDisableAllRecords(true);
         BindSubscription(DisableAggregateTableUpdate);
-        LastQuantity := 0;
         repeat
             if TempOfficeSuggestedLineItem.Add then begin
                 if LastLinePending then begin
-                    InsertLineItem(HeaderRecRef, LastItemNo, LastQuantity);
+                    InsertLineItem(HeaderRecRef, LastOfficeSuggestedLineItem."Item No.", LastOfficeSuggestedLineItem.Quantity);
                     AddedCount += 1;
                 end;
-                LastItemNo := TempOfficeSuggestedLineItem."Item No.";
-                LastQuantity := TempOfficeSuggestedLineItem.Quantity;
+                LastOfficeSuggestedLineItem := TempOfficeSuggestedLineItem;
                 LastLinePending := true;
             end;
         until TempOfficeSuggestedLineItem.Next() = 0;
         if UnbindSubscription(DisableAggregateTableUpdate) then;
 
         if LastLinePending then begin
-            InsertLineItem(HeaderRecRef, LastItemNo, LastQuantity);
+            InsertLineItem(HeaderRecRef, LastOfficeSuggestedLineItem."Item No.", LastOfficeSuggestedLineItem.Quantity);
             AddedCount += 1;
         end;
     end;
