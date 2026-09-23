@@ -1,3 +1,13 @@
+namespace Microsoft.Tests_Fixed_Asset;
+
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Journal;
+using Microsoft.Foundation.NoSeries;
+using System.Automation;
+using System.Security.User;
+using System.TestLibraries.Utilities;
+
 codeunit 134080 "WFW FA Journal Batch"
 {
     EventSubscriberInstance = Manual;
