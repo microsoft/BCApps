@@ -26,6 +26,18 @@ The repo copy is the artefact; the scratch copy is what executes.
 **Copy across before every run, in both directions.** A fix made in scratch and not copied back is
 lost; an edit made in the repo and not copied across is silently not exercised.
 
+### ⚠️ Driving SQL from Node
+
+Two traps, both of which produce errors that read like a wrong table name:
+
+- **`powershell` is not `pwsh`.** BcContainerHelper is a PowerShell 7 module, so Windows
+  PowerShell 5.1 cannot load it.
+- **`pwsh -Command` interpolates `$` inside the query.** BC table names are full of them, so
+  `[CRONUS International Ltd_$Requisition Line$437dbf0e-...]` becomes
+  `CRONUS International Ltd_ Line-84ff-...` and SQL Server answers *"Invalid object name"* — which
+  looks exactly like you got the table name wrong. Write the query to a temp `.ps1` inside a
+  single-quoted here-string and invoke it with `pwsh -File`.
+
 ```powershell
 Copy-Item .\docs\tours-testing\harness\*.js,.\docs\tours-testing\harness\*.ps1 $RUN -Force
 ```
