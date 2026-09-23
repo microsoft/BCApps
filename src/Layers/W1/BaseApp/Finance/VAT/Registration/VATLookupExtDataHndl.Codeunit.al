@@ -102,7 +102,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
         // Emit one telemetry signal per environment per day, on the call that reaches the limit.
         if CallCount = GetMaxDailyCallCount() then
-            Session.LogMessage('', DailyQuotaReachedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+            Session.LogMessage('0000VL7', DailyQuotaReachedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
 
         // Persist and commit the count before the outbound request, so it is durable regardless of the outer
         // transaction outcome and so no database lock is held while waiting for the (potentially slow) response.
