@@ -323,6 +323,18 @@ the failure mode is silence, so a tour that does not already know about this sur
 think to go looking for it. ⚠️ The grid **truncates** the sentence (*"The quantity to invoice does
 not match the …"*); open the Details pane when you need the whole thing.
 
+⚠️ **`errorPage[0]` is not the message.** The grid interleaves its header row and filler rows
+(`"0 0"`) with the real sentence. An early version of this helper returned row 0 blindly and quoted
+an entire column header — *"Type No. Item Reference No. Withholding Tax …"* — as BC's refusal text.
+That is **worse than the silence it replaced**: an empty message gets questioned, a plausible wrong
+one gets quoted in a finding. `readError()` now drops the header and filler rows and prefers a row
+that actually reads like a refusal.
+
+> **Mock from a DOM you have actually looked at.** The unit test for this surface was written from
+> an *assumed* two-column grid whose header began with "Description", so the helper's header filter
+> matched the mock and the test passed green while the live behaviour was broken. A test built on
+> an assumption tests the assumption.
+
 Surfaces 2 and 3 are how a **grid** normally rejects a value. A tour that only checks dialogs sees
 nothing, reads the row back unchanged, and concludes "accepted then silently reverted".
 

@@ -22,6 +22,14 @@ if (!process.env.BC_CREDS) {
 
 const { readError } = require('./bc.js');
 
+// The real Error Messages grid, as observed live - NOT as assumed. The first version of this
+// mock invented a two-column header ("Description Message Type"), the helper skipped rows
+// starting with "Description", and the test passed while the live behaviour was broken: the
+// actual header leads with Type and No., survived as rows[0], and was returned as BC's "error
+// message". Mock from a DOM you have actually looked at.
+const ERROR_HEADERS = ['Type', 'No.', 'Item Reference No.', 'Withholding Tax',
+  'Prod. Post. Group', 'Description', 'Location Code', 'Quantity', 'Over-Receipt Code'];
+
 function mockFrame({ dialogs = [], alerts = [], marked = [], described = [],
                     title = '', gridRows = null }) {
   const listOf = (sel) => {
@@ -29,12 +37,13 @@ function mockFrame({ dialogs = [], alerts = [], marked = [], described = [],
     if (/error|validation/.test(sel)) return marked;
     return [];
   };
-  // Minimal stand-in for the Error Messages list page: one grid with a Description column.
+  // Row 0 is the HEADER row, exactly as BC renders it.
+  const rowTexts = gridRows ? [ERROR_HEADERS.join(' '), ...gridRows] : [];
   const grid = {
     getByRole: (role) => ({
-      allInnerTexts: async () => (role === 'columnheader' ? ['Description', 'Message Type'] : []),
+      allInnerTexts: async () => (role === 'columnheader' ? ERROR_HEADERS : []),
       all: async () => (role === 'row'
-        ? ['Description Message Type', ...(gridRows || [])].map(t => ({ innerText: async () => t }))
+        ? rowTexts.map(t => ({ innerText: async () => t }))
         : []),
     }),
   };
@@ -117,14 +126,25 @@ function check(name, actual, expected) {
   // LIST PAGE. No dialog, no alert, no error class, no aria-describedby - every other surface
   // returns nothing. This produced total silence on the item-tracking posting tour and would
   // have been filed as two false "posts silently" findings.
-  const POST_ERR = 'The quantity to invoice does not match the quantity Purchase Line';
-  r = await readError(mockFrame({ title: 'Error Messages - Microsoft Dynamics 365 Business Central',
-                                 gridRows: [POST_ERR] }));
-  check('H6 Error Messages page is not silence', r.message, POST_ERR);
-  check('H6 rows are exposed separately', r.errorPage.length, 1);
+  //
+  // The row shape below is the one observed live on probe C1: a header row, a filler row, then
+  // the real sentence with a trailing "Error".
+  const POST_ERR = 'Expiration Date must have a value in Tracking Specification: Entry No.=1. ' +
+    'It cannot be zero or empty. Error';
+  const ERR_PAGE = { title: 'Error Messages - Microsoft Dynamics 365 Business Central',
+                     gridRows: ['0 0', POST_ERR] };
 
-  // The header row must not be mistaken for a message.
-  check('H6 header row is not returned', r.errorPage[0], POST_ERR);
+  r = await readError(mockFrame(ERR_PAGE));
+  check('H6 Error Messages page is not silence', r.message, POST_ERR);
+
+  // H11 - the header row must never become the message. Taking errorPage[0] blindly returned a
+  // whole column header as BC's refusal text, which is WORSE than silence: a plausible wrong
+  // string gets quoted in a finding, an empty one gets questioned.
+  check('H11 header row is not returned as the message',
+    /Item Reference No\./.test(r.message), false);
+  check('H11 header row is not kept in errorPage', r.errorPage.includes(ERROR_HEADERS.join(' ')), false);
+  check('H11 filler row is dropped', r.errorPage.includes('0 0'), false);
+  check('H11 the real sentence is the only row left', r.errorPage.length, 1);
 
   // An ordinary page with grids must NOT be scanned for error rows.
   r = await readError(mockFrame({ title: 'Purchase Order - 106043', gridRows: ['some grid row'] }));

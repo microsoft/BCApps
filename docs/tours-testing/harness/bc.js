@@ -257,11 +257,28 @@ async function readErrorPage(page, frame) {
   if (!/error messages/i.test(title)) return null;
   const rows = [];
   for (const g of await frame.getByRole('grid').all().catch(() => [])) {
-    const heads = await g.getByRole('columnheader').allInnerTexts().catch(() => []);
+    const heads = (await g.getByRole('columnheader').allInnerTexts().catch(() => []))
+      .map((h) => h.replace(/\s+/g, ' ').trim()).filter(Boolean);
     if (!heads.some((h) => /description/i.test(h))) continue;
-    for (const r of await g.getByRole('row').all().catch(() => [])) {
-      const t = (await r.innerText().catch(() => '')).replace(/\s+/g, ' ').trim();
-      if (t && !/^description/i.test(t)) rows.push(t);
+    // The header is itself a role=row, and on this page it does NOT start with "Description" -
+    // the Error Messages grid leads with Type, No., Item Reference No. and a dozen others. An
+    // earlier version skipped only rows starting with /^description/, so the header survived as
+    // rows[0] and became the "message". Drop row 0, and drop anything that is just the headers
+    // concatenated, whatever order they happen to be in.
+    const headSet = new Set(heads.map((h) => h.toLowerCase()));
+    const isHeaderish = (t) => {
+      const words = t.toLowerCase().split(' ').filter(Boolean);
+      if (!words.length) return false;
+      const covered = heads.filter((h) => t.toLowerCase().includes(h.toLowerCase())).length;
+      return covered >= Math.max(3, Math.ceil(heads.length * 0.6)) || headSet.has(t.toLowerCase());
+    };
+    const all = await g.getByRole('row').all().catch(() => []);
+    for (let i = 0; i < all.length; i++) {
+      if (i === 0) continue;                       // row 0 is the header row
+      const t = (await all[i].innerText().catch(() => '')).replace(/\s+/g, ' ').trim();
+      if (!t || isHeaderish(t)) continue;
+      if (!/[a-z]/i.test(t)) continue;             // filler cells such as "0 0"
+      rows.push(t);
     }
   }
   return { title, rows };
@@ -319,9 +336,17 @@ async function readError(frame) {
   const firstDialogMessage = dialogMessages.find(t => !isConfirm(t)) || '';
   const pageHasError = all.some(t => /the page has an error/i.test(t));
 
+  // Prefer a row that actually reads like a refusal. The Error Messages grid interleaves filler
+  // and layout rows with the real sentence, so errorPage[0] is NOT reliably the message - taking
+  // it blindly once returned a whole column header as BC's "error text", which is worse than the
+  // silence this surface was added to fix: a plausible wrong string gets quoted in a finding,
+  // whereas an empty one gets questioned.
+  const errorPageMessage = (errorPage?.rows || []).find(t => VALIDATION_RE.test(t))
+    || (errorPage?.rows || [])[0] || '';
+
   return {
     dialogs,
-    message: specific || firstDialogMessage || (errorPage?.rows?.[0] || ''),
+    message: specific || firstDialogMessage || errorPageMessage,
     confirmation,
     pageHasError,
     surfaces: all,
