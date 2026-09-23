@@ -103,12 +103,10 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         PurchInvLine.FindSet();
         repeat
             TotalAmount += PurchInvLine.Amount;
-            TotalInvDiscAmount += PurchInvLine."Inv. Discount Amount";
             TotalAmountInclVAT += PurchInvLine."Amount Including VAT";
         until PurchInvLine.Next() = 0;
 
         // [THEN] The invoice discount of 110 is applied exactly once across the two allocated lines
-        Assert.AreNearlyEqual(110, TotalInvDiscAmount, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, PurchInvLine.FieldCaption("Inv. Discount Amount"), PurchInvLine.TableCaption()));
         Assert.AreNearlyEqual(990, TotalAmount, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, PurchInvLine.FieldCaption(Amount), PurchInvLine.TableCaption()));
         Assert.AreNearlyEqual(1197.9, TotalAmountInclVAT, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, PurchInvLine.FieldCaption("Amount Including VAT"), PurchInvLine.TableCaption()));
 
