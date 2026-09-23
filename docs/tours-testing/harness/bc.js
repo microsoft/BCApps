@@ -57,9 +57,99 @@ async function signIn(page, url = BASE) {
 }
 
 // Open a page by ID. Re-acquires the frame, since navigation staleness is the classic trap.
-async function openPage(page, pageId) {
-  await page.goto(`${BASE}?page=${pageId}`, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  return appFrame(page);
+//
+// `filter` deep-links to one record - but BC silently ignores it on some pages, so ALWAYS
+// assertCard() afterwards rather than assuming you got the record you asked for.
+// `edit` enters edit mode, because a deep-linked card opens READ-ONLY and its fields are then
+// spans: every one of them reports as "not on the page".
+async function openPage(page, pageId, { filter = null, edit = false } = {}) {
+  const url = `${BASE}?page=${pageId}` + (filter ? `&filter=${encodeURIComponent(filter)}` : '');
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 120000 });
+  let frame = await appFrame(page);
+  if (edit) frame = await enterEditMode(page, frame);
+  return frame;
+}
+
+// A deep-linked card opens read-only. Until you leave that state every field is a <span>, so a
+// probe reports "not on page" for fields that are present and perfectly editable - and it is very
+// easy to write that up as "the product hides the field".
+//
+// Two affordances exist depending on version/page: the pencil button, and a plain "Edit" action.
+async function enterEditMode(page, frame) {
+  const candidates = [
+    frame.locator('button[title="Make changes on the page"]'),
+    frame.getByRole('button', { name: /^Edit$/i }),
+    frame.getByRole('menuitem', { name: /^Edit$/i }),
+  ];
+  for (const c of candidates) {
+    if (!(await c.count().catch(() => 0))) continue;
+    await clickSettled(page, frame, c.first()).catch(() => {});
+    await page.waitForTimeout(3500);
+    return appFrame(page);
+  }
+  return frame;
+}
+
+// Expand a FastTab. Its contents are absent from the DOM until you do.
+//
+// A FastTab is a role="button" carrying aria-expanded - NOT a role="tab" (those are the
+// Details / Attachments tabs). A version of this that matched role=tab and then fell back to
+// "any element with this text" clicked something irrelevant and returned TRUE, so "field not on
+// page" looked like a product claim when it was the helper failing to open the section.
+// Verify aria-expanded; never report success from the click alone.
+async function expandTab(page, frame, name) {
+  const btn = frame.getByRole('button', { name: new RegExp(`^${name}$`, 'i') }).first();
+  if (!(await btn.count().catch(() => 0))) return false;
+  const expanded = async () => (await btn.getAttribute('aria-expanded').catch(() => null)) === 'true';
+  if (await expanded()) return true;
+
+  for (let i = 0; i < 3; i++) {
+    await clickSettled(page, frame, btn).catch(() => {});
+    await page.waitForTimeout(1800);
+    if (await expanded()) return true;
+    await btn.focus().catch(() => {});
+    await page.keyboard.press('Enter').catch(() => {});
+    await page.waitForTimeout(1800);
+    if (await expanded()) return true;
+  }
+  return false;
+}
+
+// Write a field, and report WHY if it could not be written.
+//
+// Three states, not two (playwright §6): absent, present-but-not-editable, editable. The middle
+// one matters because BC cards gate fields on other fields - every planning field on the Item
+// Card stays disabled until Reordering Policy is set, so writes silently do nothing and look
+// exactly like a refusal. Returning `why` keeps that distinction out of the findings.
+//
+// ⚠️ Still assert the stored value in SQL. `fill()` does not commit - Tab does - and even a
+// committed-looking field can be reverted server-side.
+async function setField(page, frame, label, value) {
+  const el = await fieldOne(frame, label);
+  if (!el) return { ok: false, why: 'absent' };
+  if (!(await el.isEditable().catch(() => false))) {
+    return { ok: false, why: 'present but not editable - is it gated by another field?' };
+  }
+  await el.click().catch(() => {});
+  await page.keyboard.press('Control+a').catch(() => {});
+  await el.fill(String(value)).catch(async () => {
+    await el.type(String(value), { delay: 30 }).catch(() => {});
+  });
+  await page.keyboard.press('Tab');
+  await page.waitForTimeout(2000);
+  const err = await readError(frame);
+  return { ok: true, uiValue: await el.inputValue().catch(() => ''), error: err.message || '' };
+}
+
+// Sign in and absorb the 60 s+ first-request compile before anything time-sensitive runs.
+// Without this the first deep link can land mid-compile and appFrame throws, which reads as
+// "the page does not exist".
+async function warmUp(page, settlePageId = 31) {
+  const frame = await signIn(page);
+  await page.waitForTimeout(4000);
+  await openPage(page, settlePageId).catch(() => {});
+  await page.waitForTimeout(6000);
+  return frame;
 }
 
 // Locate a field's real <input> by its label.
@@ -732,4 +822,5 @@ module.exports = {
   settleOverlay, clickSettled, answerConfirm,
   topDialog, setOption, getOption, findOptionControl, openAction, dismissTeachingTip,
   readErrorPage, setBoolean, chooseRadio, postDocument,
+  enterEditMode, expandTab, setField, warmUp,
 };

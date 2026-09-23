@@ -84,7 +84,11 @@ Each session also needs its **own scratch folder**, since probe files are edited
 | --- | --- |
 | `appFrame(page)` | The UI is in a nested iframe; picks it by `[aria-label]` density. Re-acquire after every navigation. |
 | `signIn(page)` | Handles the ~60 s cold start. |
-| `openPage(page, id, filter)` | Deep links, then clicks *Make changes on the page* — deep-linked cards open read-only. |
+| `openPage(page, id, {filter, edit})` | Deep links. `filter` is ignored by BC on some pages — always `assertCard()` after. `edit:true` leaves read-only mode, without which every field on a deep-linked card reports as absent. |
+| `enterEditMode(page, frame)` | Leaves read-only mode on its own. Handles both the pencil button and a plain *Edit* action. |
+| `expandTab(page, frame, name)` | Opens a FastTab and **verifies `aria-expanded`**. A FastTab is a `role="button"`, not a `role="tab"`. |
+| `setField(page, frame, label, value)` | Writes a field and reports *why* if it could not: absent vs present-but-not-editable. BC cards gate fields on other fields, so a silent no-op looks like a refusal. |
+| `warmUp(page)` | Signs in and absorbs the 60 s+ first-request compile, so the first deep link does not land mid-compile. |
 | `assertCard(page, no)` | **Throws** if the wrong record is open. There is no record identity inside the frame; this reads the browser title. |
 | `field(frame, caption)` | `getByLabel` (finds comboboxes, not just textboxes), scoped to the real `input` rather than the read-only grid cell behind the card. |
 | `fieldOne(frame, caption)` | First *visible and editable* match, for captions that legitimately repeat. |

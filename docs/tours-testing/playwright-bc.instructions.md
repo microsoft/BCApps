@@ -300,6 +300,20 @@ the second one is evidence the guard works.
 const state = await input.count() ? 'editable' : await anyEl.count() ? 'read-only' : 'absent';
 ```
 
+Three causes of "read-only", and only the first is a product result:
+
+| Cause | What it means |
+|---|---|
+| A guard makes the field non-editable | evidence the guard works |
+| The whole **card** is in read-only mode | you deep-linked and never left it — `enterEditMode()` |
+| The field is **gated by another field** | not a guard, a dependency |
+
+The third is easy to write up as a defect. Every planning field on the Item Card stays disabled
+until `Reordering Policy` is set, so writes silently do nothing and look exactly like a refusal.
+`setField()` reports *absent* and *present-but-not-editable* as different answers for this reason —
+and when a write is a precondition for later probes, **confirm it in SQL before continuing**,
+otherwise every later result is a false negative.
+
 ## 7. Saving, closing, and native dialogs
 
 BC **auto-saves when a field commits** (Tab or focus change); there is no Save action on most cards.
