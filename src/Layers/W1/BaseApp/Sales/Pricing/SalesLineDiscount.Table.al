@@ -109,6 +109,7 @@ table 7004 "Sales Line Discount"
             AutoFormatType = 0;
             Caption = 'Line Discount %';
             ToolTip = 'Specifies the discount percentage to use to calculate the sales line discount.';
+            DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
         }

@@ -16,6 +16,15 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataMgtSubscribers.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    /// <summary>Invokes the deletion-conflict subscriber logic that resolves or fails a coupled-to-deleted-record conflict.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
+    /// <param name="SourceRecordRef">The source record whose coupled record was deleted.</param>
+    /// <param name="DeletionConflictHandled">Returns whether the conflict was resolved.</param>
+    procedure HandleOnDeletionConflictDetected(var IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var DeletionConflictHandled: Boolean)
+    begin
+        MasterDataManagement.HandleOnDeletionConflictDetected(IntegrationTableMapping, SourceRecordRef, DeletionConflictHandled);
+    end;
+
     /// <summary>Renames the destination record before modification when the source primary key has changed.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
     /// <param name="SourceRecordRef">The source record providing the new primary key.</param>
@@ -100,6 +109,17 @@ codeunit 139757 "Library - Master Data Mgt."
     procedure GetIntegrationRecordRefByCoupling(IntegrationTableID: Integer; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling"; var RecRef: RecordRef): Boolean
     begin
         exit(MasterDataManagement.GetIntegrationRecordRef(IntegrationTableID, MasterDataMgtCoupling, RecRef));
+    end;
+
+    /// <summary>Creates a Master Data Mgt. coupling via the table's InsertRecord (used to exercise duplicate-coupling resilience).</summary>
+    /// <param name="IntegrationSystemId">The source record SystemId.</param>
+    /// <param name="LocalSystemId">The local record SystemId.</param>
+    /// <param name="TableId">The coupled local table ID.</param>
+    procedure InsertCoupling(IntegrationSystemId: Guid; LocalSystemId: Guid; TableId: Integer)
+    var
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+    begin
+        MasterDataMgtCoupling.InsertRecord(IntegrationSystemId, LocalSystemId, TableId);
     end;
 
     /// <summary>Gets the integration record reference identified by a coupling ID.</summary>
