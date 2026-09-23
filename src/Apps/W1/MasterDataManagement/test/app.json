@@ -38,8 +38,22 @@
     }
   ],
   "screenshots": [],
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "target": "Cloud",
+  "idRanges": [
+    {
+      "from": 139758,
+      "to": 139758
+    },
+    {
+      "from": 139770,
+      "to": 139770
+    },
+    {
+      "from": 139931,
+      "to": 139933
+    }
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,
