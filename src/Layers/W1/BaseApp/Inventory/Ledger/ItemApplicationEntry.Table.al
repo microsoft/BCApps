@@ -228,7 +228,6 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
-#pragma warning disable AS0024
 #if not CLEAN28
     [Obsolete('Replaced with namesake procedure with "Item Application Entries Outb." as parameter.', '28.0')]
     procedure AppliedOutbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
