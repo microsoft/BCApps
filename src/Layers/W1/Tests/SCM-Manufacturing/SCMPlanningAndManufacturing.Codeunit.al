@@ -81,11 +81,6 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ErrorsWhenPlanningMsg: Label 'Not all items were planned.';
         OnlyOneRecordErr: Label 'Only one record is expected.';
         BinCodesNotEqualErr: Label 'Bin Codes are not equal.';
-        ImpactMissingProdOrderErr: Label 'Impact list does not contain Prod. Order %1 line %2.', Comment = '%1 = Prod. Order No., %2 = Line No.';
-        ImpactUnexpectedProdOrderErr: Label 'Impact list unexpectedly contains Prod. Order %1 line %2.', Comment = '%1 = Prod. Order No., %2 = Line No.';
-        ImpactMissingTransferLineErr: Label 'Impact list does not contain Transfer Order %1 line %2.', Comment = '%1 = Transfer Order No., %2 = Line No.';
-        ImpactUnexpectedSalesLineErr: Label 'Impact list unexpectedly contains Sales Order %1 line %2.', Comment = '%1 = Sales Order No., %2 = Line No.';
-        CannotFindImpactedDocumentsErr: Label 'Cannot find impacted documents. Please make sure the document line you are simulating on has reservations and try again.';
         ExpectedCheckProdOrderStatusWarningErr: Label 'Expected Check Prod. Order Status warning to be displayed once.';
         CheckProdOrderStatusWarningCount: Integer;
 
