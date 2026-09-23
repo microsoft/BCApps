@@ -34,6 +34,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
         WrongLogEntryOnPageErr: Label 'Unexpected entry in VAT Registration Log page.';
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DailyVIESCallQuotaBlocksWhenLimitReached()
     var
         VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
@@ -68,6 +69,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DailyVIESCallQuotaResetsOnNewDay()
     var
         VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
@@ -101,6 +103,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure DailyVIESCallQuotaSkippedOnPrem()
     var
         VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
