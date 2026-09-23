@@ -208,9 +208,19 @@ keyboard route.
 | Post | `F9` |
 | Post and print | `Shift+F9` |
 | New line / record | `Ctrl+N` |
+| **Item Tracking Lines** | **`Ctrl+Alt+I`** |
 | Close page | `Escape` |
 
 Not everything has one: `Ctrl+F9` on `<body>` did **not** release a document — use the action.
+
+⚠️ **Item Tracking Lines is `Ctrl+Alt+I`, not `Ctrl+Shift+I`** (declared in
+`PurchaseOrderSubform.Page.al`), and the keyboard is the *only* route: the fallback you would reach
+for — clicking the `Line` menu — dies in a 30 s timeout because the sticky line toolbar intercepts
+the pointer. The documented trap sits squarely on the obvious alternative.
+
+⚠️ **The post-choice radio (Receive / Invoice / Receive and Invoice) is not selectable by click.**
+Every attempt lands on *Receive and Invoice*, which quietly rules out any probe needing a
+receive-only document — an Undo Receipt crime spree, for instance. Needs a keyboard route.
 
 Dialog buttons resist pointer clicks the same way. **`Escape` is the only reliable dismissal**, and
 when dialogs stack, `.first()` resolves to a covered one — dismiss repeatedly rather than targeting
@@ -289,7 +299,7 @@ BC registers `beforeunload` during long operations such as posting, and an unhan
 page.on('dialog', d => d.accept());
 ```
 
-## 8. Reading errors — BC has *four* error surfaces, and two lookalikes
+## 8. Reading errors — BC has *five* error surfaces, and two lookalikes
 
 The most important helper in the harness and the easiest to get wrong. A probe that reads only one
 surface reports a correctly behaving product as silently discarding data.
@@ -300,6 +310,18 @@ surface reports a correctly behaving product as silently discarding data.
 | 2 | Page-level error bar | *"The page has an error. Refresh (F5) to undo the change…"* |
 | 3 | Inline bubble beside the cell | *"Status must be equal to 'Open' in Purchase Header…"* |
 | 4 | Notification bar under the title | *"Notifications: 2 …"* |
+| 5 | **A whole page** — BC navigates to an *Error Messages* list | no dialog, no alert, no error class, **nothing** |
+
+Surface 5 is the nastiest and is how **posting** fails. There is no dialog to read: the window
+navigates to an Error Messages list page, so surfaces 1–4 all return nothing and a helper that
+checks only those reports **total silence** while BC is displaying a precise, correct refusal
+naming the exact document line. On the item-tracking posting tour this would have been filed as two
+false *"posts silently"* findings; only a screenshot and a SQL assertion caught it.
+
+`readError()` checks it automatically and returns the rows as `errorPage`. That is deliberate —
+the failure mode is silence, so a tour that does not already know about this surface would never
+think to go looking for it. ⚠️ The grid **truncates** the sentence (*"The quantity to invoice does
+not match the …"*); open the Details pane when you need the whole thing.
 
 Surfaces 2 and 3 are how a **grid** normally rejects a value. A tour that only checks dialogs sees
 nothing, reads the row back unchanged, and concludes "accepted then silently reverted".
@@ -488,6 +510,17 @@ tenant database.
 Useful tables: `Customer`, `Sales Header` (`Document Type` 2 = Invoice), `Sales Invoice Header`,
 `Cust_ Ledger Entry`, `G_L Entry`. Duplicate-post detector: group `Sales Invoice Header` by
 `Pre-Assigned No_` `HAVING COUNT(*) > 1`.
+
+### ⚠️ Check whether your "oracle" table is a buffer
+
+`Tracking Specification` reads **0 rows before and after a successful tracked posting**, because on
+the purchase-receipt path it is a *transient buffer*, not a record. An earlier tour took its
+permanent zero as evidence that the posting path had never been reached, and carried that wrong
+conclusion into its follow-up charters.
+
+The durable post-posting oracle for item tracking is **`Item Entry Relation`** plus the serial/lot
+fields on **`Item Ledger Entry`** — those did move, exactly in step with the posts. Before trusting
+a zero, confirm the table is where the data is *supposed* to end up.
 
 ### Verify your cleanup, not just your probes
 

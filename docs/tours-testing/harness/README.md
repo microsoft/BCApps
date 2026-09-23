@@ -79,7 +79,8 @@ Each session also needs its **own scratch folder**, since probe files are edited
 | `newDocument(page, listId, cardId)` | Clicks New and waits for the navigation to land. |
 | `linesGrid(frame)` | Picks the lines grid out of the **two** grids in the DOM, by marker column header. |
 | `lineCell(frame, column, opts)` | Maps a column header's x-centre onto `gridcell` x-ranges. `{click:false}` reads without entering edit mode. |
-| `readError(frame)` | Collects text from all four error surfaces, and returns `confirmation` separately — a Yes/No dialog means BC is *proceeding*, not refusing. Scans **every** stacked dialog, discards pages that are themselves rendered as dialogs (returning them under `chrome`), and matches BC's many phrasings of a refusal, not just *"must be"*. |
+| `readError(frame)` | Collects text from all five error surfaces, and returns `confirmation` separately — a Yes/No dialog means BC is *proceeding*, not refusing. Scans **every** stacked dialog, discards pages that are themselves rendered as dialogs (returning them under `chrome`), matches BC's many phrasings of a refusal rather than just *"must be"*, and detects the *Error Messages* **page** a posting failure navigates to (`errorPage`). |
+| `readErrorPage(page, frame)` | The Error Messages list page on its own. `readError()` already calls it; use directly only when you want the rows without the rest. |
 | `dismissDialog(frame)` | `Escape`, repeatedly. Dialog buttons resist pointer clicks and dialogs stack. |
 | `answerConfirm(page, frame, 'Yes')` | Answers a confirmation by focus + `Enter`. A pointer click on *Yes* can neither answer nor error. **Then assert in SQL that the record changed** — the answer is not evidence. |
 | `setOption(page, frame, label, value)` | Sets a request-page dropdown and **throws unless it committed**. Handles the native `<select>` BC uses for enums, and reads back the caption rather than the index. |

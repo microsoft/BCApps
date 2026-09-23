@@ -240,6 +240,33 @@ const HELP_RE = /\b(show help|take a tour|learn more|read more about|what's new|
 const isChrome = (t) =>
   !VALIDATION_RE.test(t) && !isConfirm(t) && (t.length >= CHROME_MIN_LEN || HELP_RE.test(t));
 
+// A SIXTH surface, and the nastiest: BC does not always use a dialog at all.
+//
+// A POSTING failure navigates the whole window to an "Error Messages" LIST PAGE. It is not
+// role=dialog, not role=alert, carries no error/validation class and no aria-describedby - so
+// every surface above returns nothing and readError() reports total silence while BC is
+// displaying a precise, correct refusal naming the exact document line. Found on the
+// item-tracking posting tour, where it would have produced two false "posts silently" findings
+// had the probe not also taken a screenshot and asserted in SQL.
+//
+// ⚠️ The grid TRUNCATES the message ("The quantity to invoice does not match the ..."). Treat
+// these rows as evidence that a refusal happened and roughly why; open the Details pane if you
+// need the full sentence.
+async function readErrorPage(page, frame) {
+  const title = await page.title().catch(() => '');
+  if (!/error messages/i.test(title)) return null;
+  const rows = [];
+  for (const g of await frame.getByRole('grid').all().catch(() => [])) {
+    const heads = await g.getByRole('columnheader').allInnerTexts().catch(() => []);
+    if (!heads.some((h) => /description/i.test(h))) continue;
+    for (const r of await g.getByRole('row').all().catch(() => [])) {
+      const t = (await r.innerText().catch(() => '')).replace(/\s+/g, ' ').trim();
+      if (t && !/^description/i.test(t)) rows.push(t);
+    }
+  }
+  return { title, rows };
+}
+
 async function readError(frame) {
   const texts = async (sel) => (await frame.locator(sel).allInnerTexts().catch(() => []))
     .map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -276,6 +303,15 @@ async function readError(frame) {
   // reports a working field as REFUSED - seen on Transfer-from Code during the Transfer tour.
   const confirmation = [...dialogMessages, ...all].find(t => t && isConfirm(t)) || '';
 
+  // Surface 6: BC navigated away to an Error Messages list page instead of raising a dialog.
+  // Checked HERE rather than left to the caller on purpose - the failure mode is silence, and a
+  // tour that does not already know about this surface will never think to go looking for it.
+  let errorPage = null;
+  try {
+    const p = typeof frame.page === 'function' ? frame.page() : null;
+    if (p) errorPage = await readErrorPage(p, frame);
+  } catch { /* mocked frame, or no page - fall through */ }
+
   // Prefer a real validation sentence over the generic "the page has an error" banner, and
   // prefer it over page chrome. Dialogs first: a modal outranks an inline bubble.
   const specific = [...dialogMessages, ...all]
@@ -285,10 +321,13 @@ async function readError(frame) {
 
   return {
     dialogs,
-    message: specific || firstDialogMessage || '',
+    message: specific || firstDialogMessage || (errorPage?.rows?.[0] || ''),
     confirmation,
     pageHasError,
     surfaces: all,
+    // Rows from the Error Messages page, when BC navigated instead of raising a dialog.
+    // Truncated by the grid - open the Details pane for the full sentence.
+    errorPage: errorPage?.rows || [],
     // Everything that was discarded as page chrome. Present so a probe that gets an
     // unexpected empty `message` can see what was filtered rather than guess.
     chrome: dialogChrome,
@@ -532,4 +571,5 @@ module.exports = {
   newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
   settleOverlay, clickSettled, answerConfirm,
   topDialog, setOption, getOption, findOptionControl, openAction, dismissTeachingTip,
+  readErrorPage,
 };

@@ -22,14 +22,28 @@ if (!process.env.BC_CREDS) {
 
 const { readError } = require('./bc.js');
 
-function mockFrame({ dialogs = [], alerts = [], marked = [], described = [] }) {
+function mockFrame({ dialogs = [], alerts = [], marked = [], described = [],
+                    title = '', gridRows = null }) {
   const listOf = (sel) => {
     if (/alert/.test(sel)) return alerts;
     if (/error|validation/.test(sel)) return marked;
     return [];
   };
+  // Minimal stand-in for the Error Messages list page: one grid with a Description column.
+  const grid = {
+    getByRole: (role) => ({
+      allInnerTexts: async () => (role === 'columnheader' ? ['Description', 'Message Type'] : []),
+      all: async () => (role === 'row'
+        ? ['Description Message Type', ...(gridRows || [])].map(t => ({ innerText: async () => t }))
+        : []),
+    }),
+  };
   return {
-    getByRole: (role) => ({ allInnerTexts: async () => (role === 'dialog' ? dialogs : []) }),
+    page: () => ({ title: async () => title }),
+    getByRole: (role) => ({
+      allInnerTexts: async () => (role === 'dialog' ? dialogs : []),
+      all: async () => (role === 'grid' && gridRows ? [grid] : []),
+    }),
     locator: (sel) => ({ allInnerTexts: async () => listOf(sel) }),
     evaluate: async () => described,
   };
@@ -99,8 +113,25 @@ function check(name, actual, expected) {
   }));
   check('topmost stacked dialog wins', r.message, 'Serial No. 1 already exists.');
 
-  // --- regressions that must keep holding ---------------------------------
+  // H6 - a POSTING failure does not raise a dialog at all: BC navigates to an Error Messages
+  // LIST PAGE. No dialog, no alert, no error class, no aria-describedby - every other surface
+  // returns nothing. This produced total silence on the item-tracking posting tour and would
+  // have been filed as two false "posts silently" findings.
+  const POST_ERR = 'The quantity to invoice does not match the quantity Purchase Line';
+  r = await readError(mockFrame({ title: 'Error Messages - Microsoft Dynamics 365 Business Central',
+                                 gridRows: [POST_ERR] }));
+  check('H6 Error Messages page is not silence', r.message, POST_ERR);
+  check('H6 rows are exposed separately', r.errorPage.length, 1);
 
+  // The header row must not be mistaken for a message.
+  check('H6 header row is not returned', r.errorPage[0], POST_ERR);
+
+  // An ordinary page with grids must NOT be scanned for error rows.
+  r = await readError(mockFrame({ title: 'Purchase Order - 106043', gridRows: ['some grid row'] }));
+  check('H6 ordinary page is not treated as an error page', r.message, '');
+  check('H6 ordinary page yields no errorPage rows', r.errorPage.length, 0);
+
+  // --- regressions that must keep holding ---------------------------------
   r = await readError(mockFrame({ marked: ['There is nothing to show in this view'] }));
   check('FactBox caption is still filtered', r.message, '');
 
