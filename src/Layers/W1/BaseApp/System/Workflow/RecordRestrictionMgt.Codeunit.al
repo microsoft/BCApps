@@ -243,13 +243,13 @@ codeunit 1550 "Record Restriction Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnAfterInsertEvent', '', false, false)]
-    procedure RestrictFAJournalLineAfterInsert(var Rec: Record "FA Journal Line"; RunTrigger: Boolean)
+    local procedure RestrictFAJournalLineAfterInsert(var Rec: Record "FA Journal Line"; RunTrigger: Boolean)
     begin
         RestrictFAJournalBatch(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnAfterModifyEvent', '', false, false)]
-    procedure RestrictFAJournalLineAfterModify(var Rec: Record "FA Journal Line"; var xRec: Record "FA Journal Line"; RunTrigger: Boolean)
+    local procedure RestrictFAJournalLineAfterModify(var Rec: Record "FA Journal Line"; var xRec: Record "FA Journal Line"; RunTrigger: Boolean)
     begin
         if Format(Rec) = Format(xRec) then
             exit;
@@ -595,7 +595,7 @@ codeunit 1550 "Record Restriction Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnCheckFAJournalLinePostRestrictions', '', false, false)]
-    procedure FAJournalBatchCheckFAJournalLinePostRestrictions(var Sender: Record "FA Journal Line")
+    local procedure FAJournalBatchCheckFAJournalLinePostRestrictions(var Sender: Record "FA Journal Line")
     var
         FAJournalBatch: Record "FA Journal Batch";
     begin
@@ -706,7 +706,7 @@ codeunit 1550 "Record Restriction Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Batch", 'OnBeforeDeleteEvent', '', false, false)]
-    procedure RemoveFAJournalBatchRestrictionsBeforeDelete(var Rec: Record "FA Journal Batch"; RunTrigger: Boolean)
+    local procedure RemoveFAJournalBatchRestrictionsBeforeDelete(var Rec: Record "FA Journal Batch"; RunTrigger: Boolean)
     begin
         AllowRecordUsage(Rec);
     end;
@@ -742,7 +742,7 @@ codeunit 1550 "Record Restriction Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Line", 'OnAfterRenameEvent', '', false, false)]
-    procedure UpdateFAJournalLineRestrictionsAfterRename(var Rec: Record "FA Journal Line"; var xRec: Record "FA Journal Line"; RunTrigger: Boolean)
+    local procedure UpdateFAJournalLineRestrictionsAfterRename(var Rec: Record "FA Journal Line"; var xRec: Record "FA Journal Line"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;
@@ -798,7 +798,7 @@ codeunit 1550 "Record Restriction Mgt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Batch", 'OnAfterRenameEvent', '', false, false)]
-    procedure UpdateFAJournalBatchRestrictionsAfterRename(var Rec: Record "FA Journal Batch"; var xRec: Record "FA Journal Batch"; RunTrigger: Boolean)
+    local procedure UpdateFAJournalBatchRestrictionsAfterRename(var Rec: Record "FA Journal Batch"; var xRec: Record "FA Journal Batch"; RunTrigger: Boolean)
     begin
         UpdateRestriction(Rec, xRec);
     end;

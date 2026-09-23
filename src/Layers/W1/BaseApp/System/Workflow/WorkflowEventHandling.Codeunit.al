@@ -918,13 +918,13 @@ codeunit 1520 "Workflow Event Handling"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnSendFAJournalBatchForApproval', '', false, false)]
-    procedure RunWorkflowOnSendFAJournalBatchForApproval(var FAJournalBatch: Record "FA Journal Batch")
+    local procedure RunWorkflowOnSendFAJournalBatchForApproval(var FAJournalBatch: Record "FA Journal Batch")
     begin
         WorkflowManagement.HandleEvent(RunWorkflowOnSendFAJournalBatchForApprovalCode(), FAJournalBatch);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnCancelFAJournalBatchApprovalRequest', '', false, false)]
-    procedure RunWorkflowOnCancelFAJournalBatchApprovalRequest(var FAJournalBatch: Record "FA Journal Batch")
+    local procedure RunWorkflowOnCancelFAJournalBatchApprovalRequest(var FAJournalBatch: Record "FA Journal Batch")
     begin
         WorkflowManagement.HandleEvent(RunWorkflowOnCancelFAJournalBatchApprovalRequestCode(), FAJournalBatch);
     end;
