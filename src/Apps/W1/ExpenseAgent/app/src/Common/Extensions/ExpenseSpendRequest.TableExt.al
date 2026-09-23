@@ -23,7 +23,6 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                UpdateRequestedForName();
                 UpdateRequestedForTraveler(xRec."Requested For");
             end;
         }
@@ -111,13 +110,9 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         field(6910; "Requested For Name"; Text[100])
         {
             Caption = 'Requested For Name';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Requested For")));
             ToolTip = 'Specifies the name of the expense user for whom the spend request is being created.';
-            DataClassification = CustomerContent;
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-            end;
         }
         field(6911; "Actual Start Date and Time"; DateTime)
         {
@@ -223,15 +218,5 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         end;
 
         Rec.Validate("International Travel", Rec."Origin Country/Region Code" <> Rec."Dest. Country/Region Code");
-    end;
-
-    local procedure UpdateRequestedForName()
-    var
-        ExpenseUser: Record "Expense User";
-    begin
-        if (Rec."Requested For" <> '') and ExpenseUser.Get(Rec."Requested For") then
-            Rec."Requested For Name" := ExpenseUser.Name
-        else
-            Rec."Requested For Name" := '';
     end;
 }

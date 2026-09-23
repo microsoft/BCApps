@@ -603,6 +603,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Modify(true);
 
         // [THEN] The denormalized requester name is populated.
+        SpendRequest.CalcFields("Requested For Name");
         Assert.AreEqual(ExpenseUser.Name, SpendRequest."Requested For Name", RequestedForNameMirrorsMsg);
 
         // [WHEN] The requester is removed.
@@ -610,6 +611,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Modify(true);
 
         // [THEN] The denormalized requester name is cleared.
+        SpendRequest.CalcFields("Requested For Name");
         Assert.AreEqual('', SpendRequest."Requested For Name", RequestedForNameClearedMsg);
     end;
 
@@ -652,7 +654,6 @@ codeunit 148339 "Spend Request Test"
 
         // [THEN] The requester fields and purpose are editable.
         Assert.IsTrue(TravelRequestCard."Requested For".Editable(), RequesterFieldsEditableMsg);
-        Assert.IsTrue(TravelRequestCard."Requested For Name".Editable(), RequesterFieldsEditableMsg);
         Assert.IsTrue(TravelRequestCard.Purpose.Editable(), RequesterFieldsEditableMsg);
         TravelRequestCard.Close();
 
