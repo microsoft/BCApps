@@ -83,7 +83,8 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
         // Charge the per-environment daily VIES quota on the standard request path only - after the blank-number
         // check and only when the lookup was not handled by a subscriber - so handled or invalid lookups that never
-        // contact VIES do not consume quota. Run as a dedicated codeunit so the counter commit is its own unit of work.
+        // contact VIES do not consume quota. The dedicated codeunit commits the counter before the request; that
+        // commit also commits the ambient transaction, the same boundary this codeunit already commits at below.
         VATLookupQuotaMgt.Run();
 
         PrepareSOAPRequestBody(TempBlobBody);

@@ -8,12 +8,14 @@ using System.Environment;
 using System.Telemetry;
 
 /// <summary>
-/// Enforces the per-environment daily EU VIES lookup quota. Invoked as a dedicated codeunit run so the
-/// counter read-modify-write and its commit form their own unit of work, keeping the increment durable
-/// without committing the caller's transaction state as part of the quota logic.
+/// Enforces the per-environment daily EU VIES lookup quota, run as a dedicated codeunit on the standard
+/// VIES request path. It increments and commits the daily counter before the outbound request so the count
+/// stays durable. That commit also commits the caller's ambient transaction - the same boundary at which
+/// codeunit 248 already commits around the outbound call - so it is not an isolated transaction.
 /// </summary>
 codeunit 247 "VAT Lookup Quota Mgt."
 {
+    Access = Internal;
     Permissions = TableData "VAT Reg. No. Lookup Quota" = rimd;
 
     trigger OnRun()
@@ -67,9 +69,10 @@ codeunit 247 "VAT Lookup Quota Mgt."
             Session.LogMessage('0000VL7', DailyQuotaReachedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         end;
 
-        // Persist and commit the count in this dedicated run's unit of work before the outbound request: the
-        // increment stays durable even if the subsequent VIES call or the caller transaction later fails, and the
-        // row lock is released before the potentially slow VIES call.
+        // Persist and commit the count before the outbound request so the increment stays durable even if the
+        // subsequent VIES call fails, and the row lock is released before the potentially slow VIES call. This
+        // commit also commits the caller's ambient transaction - the same boundary codeunit 248 commits at around
+        // the outbound call - so it is not isolated from caller state.
         VATRegNoLookupQuota.Modify();
         Commit();
     end;
