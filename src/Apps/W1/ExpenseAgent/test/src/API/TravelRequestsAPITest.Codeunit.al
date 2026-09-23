@@ -1012,11 +1012,13 @@ codeunit 148347 "Travel Requests API Test"
         TravelRequest: Record "Spend Request";
         Response: JsonObject;
         ResponseId: JsonToken;
+        ResponseSystemId: Guid;
     begin
         AssertAPIDates(ResponseText, StartDate, EndDate);
         Response.ReadFrom(ResponseText);
         Assert.IsTrue(Response.Get('id', ResponseId), 'The travel request response must contain its persisted identity.');
-        Assert.AreEqual(RequestSystemId, ResponseId.AsValue().AsGuid(), 'The API must preserve the supplied travel request identity.');
+        Evaluate(ResponseSystemId, ResponseId.AsValue().AsText());
+        Assert.AreEqual(RequestSystemId, ResponseSystemId, 'The API must preserve the supplied travel request identity.');
         SelectLatestVersion();
         TravelRequest.GetBySystemId(RequestSystemId);
         Assert.AreEqual(StartDate, TravelRequest."Expected Start Date", 'The API start date must be persisted.');
