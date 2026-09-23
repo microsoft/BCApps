@@ -29,8 +29,8 @@ codeunit 10778 "Verifactu Export"
                   tabledata "Sales Cr.Memo Header" = rm,
                   tabledata "Sales Cr.Memo Line" = rm,
                   tabledata "Service Invoice Header" = rm,
-                  tabledata "Service Invoice Line" = rm;
-                  tabledata "No Taxable Entry" = r,
+                  tabledata "Service Invoice Line" = rm,
+                  tabledata "No Taxable Entry" = r;
 
     var
         CompanyInformation: Record "Company Information";
