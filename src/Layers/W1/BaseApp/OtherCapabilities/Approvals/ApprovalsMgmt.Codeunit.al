@@ -1918,7 +1918,7 @@ codeunit 1535 "Approvals Mgmt."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"FA Journal Batch", 'OnAfterDeleteEvent', '', false, false)]
-    procedure DeleteApprovalEntriesAfterDeleteFAJournalBatch(var Rec: Record "FA Journal Batch"; RunTrigger: Boolean)
+    local procedure DeleteApprovalEntriesAfterDeleteFAJournalBatch(var Rec: Record "FA Journal Batch"; RunTrigger: Boolean)
     var
         FAJnlTemplate: Record "FA Journal Template";
     begin

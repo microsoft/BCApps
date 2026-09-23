@@ -885,7 +885,7 @@ page 5629 "Fixed Asset Journal"
     var
         FAJournalBatch: Record "FA Journal Batch";
     begin
-        if not FAJournalBatch.Get(Rec.GetRangeMax("Journal Batch Name"), CurrentJnlBatchName) then
+        if not FAJournalBatch.Get(Rec.GetRangeMax("Journal Template Name"), CurrentJnlBatchName) then
             exit;
 
         ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(FAJournalBatch.RecordId());
