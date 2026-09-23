@@ -286,10 +286,20 @@ codeunit 139632 "Shpfy Create Item Variant Test"
         ShopifyProduct: Record "Shpfy Product";
     begin
         ShopifyProduct.Init();
-        ShopifyProduct.Id := Any.IntegerInRange(10000, 99999);
+        ShopifyProduct.Id := GetUnusedShopifyProductId();
         ShopifyProduct."Shop Code" := Shop."Code";
         ShopifyProduct."Item SystemId" := SystemId;
         ShopifyProduct.Insert(true);
         exit(ShopifyProduct."Id");
+    end;
+
+    local procedure GetUnusedShopifyProductId() ProductId: BigInteger
+    var
+        ShopifyProduct: Record "Shpfy Product";
+    begin
+        // Products from earlier tests in this codeunit are not rolled back, so skip Ids that are already taken.
+        repeat
+            ProductId := Any.IntegerInRange(10000, 99999);
+        until not ShopifyProduct.Get(ProductId);
     end;
 }
