@@ -25,6 +25,7 @@ codeunit 20352 "Connectivity App Definitions"
         RegisterContiniaBanking('DE', 'DE', '009dc3e3-3080-4e48-92fc-1bc7a0ef4caa');
         RegisterContiniaBanking('DK', 'DK', '62235b56-656d-4e85-989b-fd47130bf4e5');
         RegisterContiniaBanking('FI', 'FI', 'fb89b25e-b8be-4d31-b509-a29de965f12b');
+        // The GB Business Central localization uses UK in the Continia AppSource offer id and product name.
         RegisterContiniaBanking('GB', 'UK', '4b595a5f-4e4f-49fb-9d25-b052a309f9c5');
         RegisterContiniaBanking('NL', 'NL', 'f2303be5-5ecd-44db-b4e8-b1be22af4a53');
         RegisterContiniaBanking('NO', 'NO', 'e7b8a6d4-3c4e-4f8b-9a6e-8d3b8a6d4f8b');
@@ -114,7 +115,20 @@ codeunit 20352 "Connectivity App Definitions"
         AppApprovedFor := AppLocalizationCode;
         AppWorksOn := AppLocalizationCode;
 
+        AddContiniaBankingDescriptionTranslations(AppLocalizationCode, AppId);
         RegisterApp(AppId, AppName, AppPublisher, AppDescription, AppProviderSupportURL, AppSourceURL, AppApprovedFor, AppWorksOn, "Connectivity Apps Category"::Banking);
+    end;
+
+    local procedure AddContiniaBankingDescriptionTranslations(AppLocalizationCode: Text[2]; AppId: Text[250])
+    begin
+        case AppLocalizationCode of
+            'DK':
+                AddDescriptionTranslation(AppId, 'Tilslut din netbank til Business Central. Med Continia Banking kan du betale leverandører, matche kundebetalinger og afstemme kontoudtog direkte fra Business Central - fuldt integreret og sikkert uden at skulle logge ind på din netbank. Start en gratis prøveperiode ved at downloade appen, eller besøg Continias websted for mere information.', 1030);
+            'NL':
+                AddDescriptionTranslation(AppId, 'Verbind uw online bank met Business Central. Met Continia Banking kunt u leveranciers betalen, betalingen van klanten matchen en afschriften direct vanuit Business Central reconciliëren - volledig geïntegreerd en veilig, zonder dat u hoeft in te loggen bij uw online bank. Begin uw gratis proefperiode door de app te downloaden, of bezoek de Continia-website voor meer informatie.', 1043);
+            'NO':
+                AddDescriptionTranslation(AppId, 'Nettbanken din kan kobles til Business Central. Med Continia Banking kan du betale leverandører, matche kundebetalinger og avstemme kontoutskrifter direkte fra Business Central - fullt integrert og sikkert uten å måtte logge på nettbanken din. Last ned appen og start en gratis prøveversjon, eller besøk Continia-nettstedet for mer informasjon.', 1044);
+        end;
     end;
 
     local procedure RegisterIQBanking()
