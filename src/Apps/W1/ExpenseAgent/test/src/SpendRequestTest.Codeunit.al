@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
+using System.Security.AccessControl;
 
 codeunit 148339 "Spend Request Test"
 {
@@ -51,6 +52,13 @@ codeunit 148339 "Spend Request Test"
         CategoryClearedMsg: Label 'The expense category should be cleared when the line is not a Category line.';
         MixedTypesMsg: Label 'Category and Lump Sum lines should coexist on the same travel request.';
         CategoryLineOnlyErr: Label 'You can select an %1 only when %2 is %3.', Locked = true;
+        ApproverUserIdRecordedMsg: Label 'The approving user should be recorded on the travel request.';
+        ApproverUserNameRecordedMsg: Label 'The approving user name should be recorded on the travel request.';
+        ApproverDateTimeRecordedMsg: Label 'The approval date and time should be recorded on the travel request.';
+        RequestedForNameMirrorsMsg: Label 'The requested-for name should mirror the expense user name.';
+        RequestedForNameClearedMsg: Label 'The requested-for name should be cleared when the requester is removed.';
+        RequesterFieldsEditableMsg: Label 'The requester fields and purpose should be editable while the travel request is open.';
+        RequesterFieldsReadOnlyMsg: Label 'The requester fields and purpose should be read-only once the travel request leaves the open status.';
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -345,6 +353,29 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure ReleaseSpendReqRecordsApproverInfoWhenAgentDisabled()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 650348] Auto-approving a travel request records approver audit fields.
+        Initialize();
+
+        // [GIVEN] A releasable spend request with every prerequisite satisfied.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The spend request is Released.
+        ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] Approver user id, user name, and timestamp are recorded.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+        Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", ApproverDateTimeRecordedMsg);
+    end;
+
+    [Test]
     procedure ReleaseSpendReqStaysReleasedWhenAgentEnabled()
     var
         SpendRequest: Record "Spend Request";
@@ -551,6 +582,93 @@ codeunit 148339 "Spend Request Test"
         Assert.RecordCount(Traveler, 0);
         Traveler.SetRange("Expense User No.", SecondExpenseUser."No.");
         Assert.RecordCount(Traveler, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure RequestedForNameMirrorsExpenseUserName()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 650348] "Requested For Name" mirrors the requester and is cleared when the requester is removed.
+        Initialize();
+
+        // [GIVEN] An expense user and an open travel request.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+
+        // [WHEN] The expense user is set as requester.
+        SpendRequest.Validate("Requested For", ExpenseUser."No.");
+        SpendRequest.Modify(true);
+
+        // [THEN] The denormalized requester name is populated.
+        SpendRequest.CalcFields("Requested For Name");
+        Assert.AreEqual(ExpenseUser.Name, SpendRequest."Requested For Name", RequestedForNameMirrorsMsg);
+
+        // [WHEN] The requester is removed.
+        SpendRequest.Validate("Requested For", '');
+        SpendRequest.Modify(true);
+
+        // [THEN] The denormalized requester name is cleared.
+        SpendRequest.CalcFields("Requested For Name");
+        Assert.AreEqual('', SpendRequest."Requested For Name", RequestedForNameClearedMsg);
+    end;
+
+    [Test]
+    procedure PurposeCannotBeEditedWhenRequestNotOpen()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 650348] The purpose cannot be changed once the travel request leaves the Open status.
+        Initialize();
+
+        // [GIVEN] An approved (non-open) travel request.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+
+        // [WHEN] The purpose is changed.
+        asserterror SpendRequest.Validate(Purpose, 'Updated purpose after approval');
+
+        // [THEN] It fails because the request must be open to be edited.
+        Assert.ExpectedError(StatusNotOpenErr);
+    end;
+
+    [Test]
+    procedure TravelRequestIdentityFieldsEditableOnlyWhenOpen()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestCard: TestPage "Travel Request Card";
+    begin
+        // [SCENARIO 650348] The requester and purpose fields on the travel request card are editable only while the request is Open.
+        Initialize();
+
+        // [GIVEN] An open travel request.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The card is opened while the request is Open.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The requester fields and purpose are editable.
+        Assert.IsTrue(TravelRequestCard."Requested For".Editable(), RequesterFieldsEditableMsg);
+        Assert.IsTrue(TravelRequestCard.Purpose.Editable(), RequesterFieldsEditableMsg);
+        TravelRequestCard.Close();
+
+        // [GIVEN] The request is approved and therefore no longer open.
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+
+        // [WHEN] The card is reopened.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The requester fields and purpose are read-only.
+        Assert.IsFalse(TravelRequestCard."Requested For".Editable(), RequesterFieldsReadOnlyMsg);
+        Assert.IsFalse(TravelRequestCard."Requested For Name".Editable(), RequesterFieldsReadOnlyMsg);
+        Assert.IsFalse(TravelRequestCard.Purpose.Editable(), RequesterFieldsReadOnlyMsg);
+        TravelRequestCard.Close();
     end;
 
     [Test]
@@ -1094,6 +1212,16 @@ codeunit 148339 "Spend Request Test"
     begin
         Traveler.SetRange("Spend Request No.", SpendRequestNo);
         Traveler.DeleteAll();
+    end;
+
+    local procedure GetExpectedApproverName(): Code[50]
+    var
+        User: Record User;
+    begin
+        if User.ReadPermission() then
+            if User.Get(UserSecurityId()) then
+                exit(CopyStr(User."User Name", 1, 50));
+        exit(CopyStr(UserId(), 1, 50));
     end;
 
     [PageHandler]
