@@ -110,13 +110,14 @@ codeunit 30471 "Shpfy TMA Matcher"
         if TaxLinesArray.Count() = 0 then
             exit(false);
 
+        ResetMatchState(OrderHeader);
+
         if EnforceProcessingLimit then begin
             if not TMAProcessingLimit.TryAcquire(OrderHeader, MaxOrders, PeriodMinutes, ProcessedOrders) then
                 exit(false);
             LogMatchStarted(OrderHeader, MaxOrders, PeriodMinutes, ProcessedOrders);
         end;
 
-        ResetMatchState(OrderHeader);
         FeatureTelemetry.LogUptake('0000UML', TMARegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
 
         // Gather all Tax Jurisdictions
@@ -149,7 +150,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         exit(MatchApplied);
     end;
 
-    local procedure ResetMatchState(var OrderHeader: Record "Shpfy Order Header")
+    internal procedure ResetMatchState(var OrderHeader: Record "Shpfy Order Header")
     begin
         if not (OrderHeader."Tax Match Applied" or OrderHeader."Tax Match Reviewed" or OrderHeader."Tax Rate Conflict" or OrderHeader."Tax Match Incomplete" or OrderHeader."Tax Match Low Confidence") then
             exit;

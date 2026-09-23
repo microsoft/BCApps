@@ -685,6 +685,35 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsFalse(TMAProcessingLimit.TryParseConfiguration('{"maxOrders":25,"periodMinutes":0}', MaxOrders, PeriodMinutes), 'A non-positive period should be rejected.');
     end;
 
+    [Test]
+    procedure BlockedRematchClearsStaleMatchState()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+        TMAProcessingLimit: Codeunit "Shpfy TMA Processing Limit";
+        ProcessedOrders: Integer;
+    begin
+        Cleanup();
+        OrderHeader := CreateProcessingLimitOrder();
+        OrderHeader."Tax Match Applied" := true;
+        OrderHeader."Tax Match Reviewed" := true;
+        OrderHeader."Tax Rate Conflict" := true;
+        OrderHeader."Tax Match Incomplete" := true;
+        OrderHeader."Tax Match Low Confidence" := true;
+        OrderHeader.Modify();
+
+        TMAMatcher.ResetMatchState(OrderHeader);
+        LibraryAssert.IsFalse(
+            TMAProcessingLimit.TryAcquireAt(OrderHeader, CreateDateTime(20260922D, 120000T), 0, 60, ProcessedOrders),
+            'The rematch should be blocked by the processing limit.');
+
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Applied", 'A blocked rematch must clear the stale applied state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Reviewed", 'A blocked rematch must clear the stale reviewed state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Rate Conflict", 'A blocked rematch must clear the stale rate-conflict state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Incomplete", 'A blocked rematch must clear the stale incomplete state.');
+        LibraryAssert.IsFalse(OrderHeader."Tax Match Low Confidence", 'A blocked rematch must clear the stale confidence state.');
+    end;
+
     local procedure BuildOrderAndShop(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Applied: Boolean; Reviewed: Boolean; ReviewRequired: Boolean; RateConflict: Boolean)
     begin
         // In-memory records are enough — IsSalesDocumentCreationHeld only reads these fields.
