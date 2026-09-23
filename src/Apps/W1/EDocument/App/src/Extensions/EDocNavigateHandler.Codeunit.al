@@ -11,7 +11,7 @@ using Microsoft.Foundation.Navigate;
 /// discover them alongside ledger, journal, and posted-document rows for the same document number
 /// and posting date. Uses only the standard OnAfterNavigateFindRecords surface — no new data.
 /// </summary>
-codeunit 6410 "E-Doc. Navigate Handler"
+codeunit 6247 "E-Doc. Navigate Handler"
 {
     Access = Internal;
 
