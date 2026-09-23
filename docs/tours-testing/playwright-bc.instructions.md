@@ -412,6 +412,39 @@ check caught. Use `answerConfirm()`, which focuses the button and presses `Enter
 > **After answering a confirmation, assert in SQL that the underlying record actually changed.**
 > "I clicked Yes and saw no error" proves nothing about what BC did.
 
+### ⚠️ Generalise it: after *any* DOM readback, assert in SQL
+
+The confirmation rule above is a special case of a bigger one, and the general form has now caught
+three separate false results:
+
+| What the DOM said | What was actually true |
+|---|---|
+| `aria-checked="true"` on *Accept Action Message* | 0 accepted rows in SQL — BC had not committed yet |
+| dialog text empty after closing a page | the real question was sitting in `dialogs[1]` |
+| `"0"` in a request-page dropdown | that is the option **index**, not a refusal |
+
+In each case a tour risked reporting *"I couldn't read it"* as *"the product refused it"* — turning
+a claim about the instrument into something that sounds like a finding. **Controls apply to reads,
+not only to writes** (§5.3).
+
+### ⚠️ Boolean cells: three traps, and the DOM lies about all of them
+
+Setting a checkbox in a lines grid — *Accept Action Message* on the planning worksheet is the
+canonical case — fails in a way that looks exactly like success:
+
+1. The clickable control is the `div[role="checkbox"]`. The `input[type=checkbox]` inside it is
+   `aria-hidden` with `tabindex="-1"` and ignores clicks — and a row-scoped locator like
+   `row.locator('input[type=checkbox]')` resolves to the **row-selection** checkbox, a different
+   control entirely, which reports success while the field never changes.
+2. Clicking the cell and pressing `Space` does nothing at all.
+3. `aria-checked` flips to `"true"` **immediately**, but BC commits when focus leaves the **row**,
+   not the cell — `Tab` alone is not enough. Read the DOM right after the click and it says the
+   value changed; close the browser there and the database never hears about it.
+
+`setBoolean()` clicks the right control, leaves the row to force the commit, and **polls the
+database** until it agrees. Its `verify` callback is **required**: a single early read is
+indistinguishable from a write that never happened.
+
 ### ⚠️ Request pages are where a tour gets silently defeated
 
 A batch/report request page (*Calculate Regenerative Plan*, *Carry Out Action Message*) is the
@@ -501,6 +534,10 @@ tenant database.
   ahead of the order you just created (`1015`). Order by `[$systemCreatedAt] DESC`.
 - **`Invoke-Sqlcmd` flattens multiple result sets.** Piping two differently-shaped `SELECT`s into
   `Format-Table` silently prints only the first. One `SELECT` per call, or `UNION ALL`.
+- **A `CAST`/`CONVERT` projection can return zero rows and no error.** A query over
+  `Production Order` that projected with `CONVERT` returned nothing, while the same query with
+  plain column names returned 9 rows. A silently empty oracle reads as *"the table is empty"* —
+  which is a finding-shaped lie. Project plain columns and format in PowerShell.
 - **Some counters are not in the table** — No. Series consumption is not in `Last No. Used`; it uses
   SQL sequences.
 - **`LINENO` is a reserved T-SQL keyword.** `SELECT [Line No_] AS LineNo` fails with *"Incorrect

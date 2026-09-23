@@ -545,6 +545,74 @@ async function dismissTeachingTip(page, frame) {
   return true;
 }
 
+// Set a BOOLEAN cell in a lines grid, and PROVE it committed against the database.
+//
+// Three traps stack here, and together they produce confident false evidence:
+//
+//   1. The clickable control is the `div[role="checkbox"]`. The `input[type=checkbox]` inside it
+//      is `aria-hidden` with `tabindex="-1"` and ignores clicks, and a row-level locator like
+//      `row.locator('input[type=checkbox]')` resolves to the ROW-SELECTION checkbox instead -
+//      a different control that reports success while the field never changes.
+//   2. Clicking the cell and pressing Space does nothing at all.
+//   3. Worst: `aria-checked` flips to "true" IMMEDIATELY, but BC commits a field on focus EXIT.
+//      Read the DOM straight after the click and it says the value changed; close the browser
+//      there and the database never hears about it. A planning tour hit exactly this - DOM said
+//      checked, SQL said 0 accepted - and lost a charter to it.
+//
+// So `verify` is REQUIRED, not optional. It must query the database and return the boolean that
+// is actually stored. This is the generalised form of the confirmation rule: after ANY DOM
+// readback, assert in SQL. The DOM is a claim; the database is the oracle.
+async function setBoolean(page, frame, { row = 1, column, value = true,
+                                         markerHeader = 'Type', verify } = {}) {
+  if (typeof verify !== 'function') {
+    throw new Error(
+      `setBoolean('${column}') requires a verify() callback that reads the value back from SQL. ` +
+      `aria-checked flips before BC commits, so a DOM readback here is not evidence - it is ` +
+      `exactly how a tour convinces itself a flag was set when the database says otherwise.`);
+  }
+
+  const cellFor = await lineCell(frame, row, markerHeader);
+  const cell = await cellFor(column, { click: false });
+  const box = cell.locator('[role="checkbox"]').first();
+  if (!(await box.count().catch(() => 0))) {
+    throw new Error(`cell '${column}' on row ${row} has no [role="checkbox"] - is it a boolean?`);
+  }
+
+  const domState = async () => (await box.getAttribute('aria-checked').catch(() => null)) === 'true';
+
+  if ((await domState()) !== value) {
+    await clickSettled(page, frame, box);
+    await page.waitForTimeout(600);
+    // BC commits when focus leaves the ROW, not merely the cell - Tab alone moves within the
+    // row and is NOT enough. ArrowDown/Up moves to the neighbouring row, which is what flushes
+    // the record. Measured: with Tab only, SQL still read the old value.
+    await page.keyboard.press('Tab');
+    await page.waitForTimeout(500);
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(1200);
+    await page.keyboard.press('ArrowUp');
+    await page.waitForTimeout(1200);
+  }
+
+  // The commit is asynchronous, so poll the DATABASE rather than sampling it once - a single
+  // early read is indistinguishable from a write that never happened.
+  const deadline = Date.now() + 12000;
+  let verified = await verify();
+  while (verified !== value && Date.now() < deadline) {
+    await page.waitForTimeout(1000);
+    verified = await verify();
+  }
+
+  const dom = await domState();
+  if (verified !== value) {
+    throw new Error(
+      `setBoolean('${column}', row ${row}) did not commit: DOM reads ${dom}, database reads ` +
+      `${verified}. Do NOT continue - this is the failure mode where the UI agrees with you ` +
+      `and the record does not.`);
+  }
+  return { dom, verified };
+}
+
 // Identity oracle for an open card.
 //
 // There is no usable record identity INSIDE the app frame. On a Service Order card:
@@ -571,5 +639,5 @@ module.exports = {
   newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
   settleOverlay, clickSettled, answerConfirm,
   topDialog, setOption, getOption, findOptionControl, openAction, dismissTeachingTip,
-  readErrorPage,
+  readErrorPage, setBoolean,
 };
