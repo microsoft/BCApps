@@ -7,6 +7,7 @@ Working code from the tours run so far, so a new tour starts from something that
 | `New-TourContainer.ps1` | Creates the container non-interactively — generates a random password, persists `bc-credentials.json`. Never prompts. |
 | `bc.js` | Playwright helpers. Every trap in `playwright-bc.instructions.md` is already handled here. |
 | `Invoke-Probe.ps1` | Runs one probe with a SQL snapshot before and after, and prints the delta. |
+| `readError.test.js` | Regression test for `readError()`. Mocks the frame, so it needs no container: `node readError.test.js`. |
 | `Find-TourTargets.ps1` | Static scan of an app's `*.Table.al`. *"What is worth probing here?"* before opening a browser. |
 | `Find-UnguardedFields.ps1` | Per-field status-guard scan of one document table. Flags deliberate `Status::Released` handling so it is not reported as a defect. |
 | `Find-TourDrift.ps1` | Differential across two parallel tables (Sales vs Purchase vs Transfer). |
@@ -78,8 +79,18 @@ Each session also needs its **own scratch folder**, since probe files are edited
 | `newDocument(page, listId, cardId)` | Clicks New and waits for the navigation to land. |
 | `linesGrid(frame)` | Picks the lines grid out of the **two** grids in the DOM, by marker column header. |
 | `lineCell(frame, column, opts)` | Maps a column header's x-centre onto `gridcell` x-ranges. `{click:false}` reads without entering edit mode. |
-| `readError(frame)` | Collects text from all four error surfaces, and returns `confirmation` separately — a Yes/No dialog means BC is *proceeding*, not refusing. |
+| `readError(frame)` | Collects text from all four error surfaces, and returns `confirmation` separately — a Yes/No dialog means BC is *proceeding*, not refusing. Scans **every** stacked dialog, discards pages that are themselves rendered as dialogs (returning them under `chrome`), and matches BC's many phrasings of a refusal, not just *"must be"*. |
 | `dismissDialog(frame)` | `Escape`, repeatedly. Dialog buttons resist pointer clicks and dialogs stack. |
+| `answerConfirm(page, frame, 'Yes')` | Answers a confirmation by focus + `Enter`. A pointer click on *Yes* can neither answer nor error. **Then assert in SQL that the record changed** — the answer is not evidence. |
+| `settleOverlay(page, frame)` | Waits out `.spa-dialog.appear-fadeout`, which outlives its dialog and intercepts clicks for ~30 s. |
+| `clickSettled(page, frame, locator)` | `settleOverlay` + click, with retries. Use for grid clicks after any dialog round-trip. |
+
+`readError()` has a regression test that needs no container — every case in it is a false result the
+helper once produced on a real tour. Run it after touching the helper:
+
+```powershell
+node docs\tours-testing\harness\readError.test.js
+```
 
 ## Writing a probe
 

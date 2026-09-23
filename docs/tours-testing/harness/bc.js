@@ -7,7 +7,9 @@
 // That file carries the container name, so the web client URL is derived from it and
 // two tours running in parallel cannot silently share a container. Set BC_BASE only to
 // override the URL - e.g. when the container name does not resolve and you need its IP.
-const { chromium } = require('playwright');
+// `playwright` is required lazily inside launch(), not at import time. The pure helpers
+// (readError, field, lineCell...) need no browser, so readError.test.js can exercise them
+// against a mocked frame from a checkout with no node_modules.
 const fs = require('fs');
 
 const credsPath = process.env.BC_CREDS;
@@ -96,6 +98,7 @@ async function fieldOne(frame, name) {
 }
 
 async function launch({ headless = true } = {}) {
+  const { chromium } = require('playwright');
   const browser = await chromium.launch({ headless });
   const context = await browser.newContext({ viewport: { width: 1400, height: 900 } });
   const page = await context.newPage();
@@ -183,6 +186,46 @@ async function lineCell(frame, rowIndex = 1, markerHeader = 'Type') {
 // (a FactBox caption), so every probe returned that string as its "error" while the
 // real message sat further down the page. That single bug made a correctly behaving
 // product look like it was silently discarding edits on a released document.
+//
+// THREE further traps, each of which manufactured a false result on page 6510
+// (Item Tracking Lines) during the item-tracking tour:
+//
+//   * DIALOGS STACK. This helper used to read `dialogs[0]` only. On 6510 `dialogs[0]` is the
+//     Item Tracking Lines PAGE - it is itself rendered as role=dialog - so the real question
+//     ("The corrections cannot be saved as excess quantity has been defined. Close the form
+//     anyway?") sat in `dialogs[1]` and was never returned. The probe logged an empty error and
+//     looked exactly like silent data loss. The Playwright guide already warns that dialogs
+//     stack when DISMISSING; the same is true when READING. Scan them all, newest last.
+//
+//   * A PAGE RENDERED AS A DIALOG IS NOT A MESSAGE. Because 6510 is a dialog, the old fallback
+//     returned the entire page caption - 600 characters of chrome - as `message`, so every
+//     clean step reported an "error". Never treat the containing page's own text as an error.
+//
+//   * `must be` IS NOT THE ONLY SHAPE OF A REAL MESSAGE. The genuine BC message
+//     "...accounts for more than the quantity you have entered. You must adjust the existing
+//     item tracking..." contains "must adjust", which the old regex missed, so it surfaced only
+//     in `surfaces[]`. A probe reading `message` alone would have called a guarded case UNGUARDED.
+
+// A real validation sentence. Deliberately broader than "must be": BC phrases refusals many
+// ways, and every shape missing from this list becomes a false "no error" somewhere.
+const VALIDATION_RE = /\b(must|cannot|can ?not|can't|may not|is not valid|not allowed|already exists?|out of balance|does not exist|do not exist|exceeds?|insufficient|is required|too (?:long|large|small|many|high|low))\b/i;
+
+const CONFIRM_RE = /\b(do you want to|are you sure)\b/i;
+const YESNO_RE = /\byes\b[\s\S]{0,6}\bno\b/i;
+const isConfirm = (t) => CONFIRM_RE.test(t) || YESNO_RE.test(t);
+
+// A page that happens to be rendered as role=dialog (Item Tracking Lines, Enter Quantity to
+// Create, most "worksheet" sub-pages), or a teaching tip. Neither is a message.
+//
+// Two signals, because neither alone is enough. Length caught Item Tracking Lines but NOT the
+// "About items ... Show Help Take a tour" teaching tip on the Items list, which is ~390
+// characters and was returned as an error by a live smoke test against a clean page. A real BC
+// message is a sentence; page help is prose with navigation in it.
+const CHROME_MIN_LEN = 240;
+const HELP_RE = /\b(show help|take a tour|learn more|read more about|what's new|about (?:this|the) page)\b/i;
+const isChrome = (t) =>
+  !VALIDATION_RE.test(t) && !isConfirm(t) && (t.length >= CHROME_MIN_LEN || HELP_RE.test(t));
+
 async function readError(frame) {
   const texts = async (sel) => (await frame.locator(sel).allInnerTexts().catch(() => []))
     .map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
@@ -207,26 +250,34 @@ async function readError(frame) {
   const all = [...new Set([...alerts, ...marked, ...described])]
     .filter(t => !/there is nothing to show/i.test(t));
 
+  // Every dialog, normalised, in DOM order - the LAST is the one stacked on top.
+  const dialogTexts = dialogs.map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const dialogChrome = dialogTexts.filter(isChrome);
+  // Candidate dialogs are the ones that actually say something. Reversed so the topmost
+  // (most recently stacked) dialog wins - that is the one the user is looking at.
+  const dialogMessages = dialogTexts.filter(t => !isChrome(t)).reverse();
+
   // A Yes/No CONFIRMATION is not a refusal. BC asks "Do you want to change <field>?" when you
   // edit a key field on a document that already has lines. Treating that prompt as an error
   // reports a working field as REFUSED - seen on Transfer-from Code during the Transfer tour.
-  const isConfirm = (t) => /\b(do you want to|are you sure)\b/i.test(t)
-    || /\byes\b[\s\S]{0,6}\bno\b/i.test(t);
+  const confirmation = [...dialogMessages, ...all].find(t => t && isConfirm(t)) || '';
 
-  const dialogText = (dialogs[0] || '').replace(/\s+/g, ' ').trim();
-  const confirmation = [...all, dialogText].find(t => t && isConfirm(t)) || '';
-
-  // Prefer a real validation sentence over the generic "the page has an error" banner.
-  const specific = all.find(t => !isConfirm(t)
-    && /\b(must be|cannot|is not valid|already exists|out of balance|does not exist)\b/i.test(t));
+  // Prefer a real validation sentence over the generic "the page has an error" banner, and
+  // prefer it over page chrome. Dialogs first: a modal outranks an inline bubble.
+  const specific = [...dialogMessages, ...all]
+    .find(t => !isConfirm(t) && VALIDATION_RE.test(t));
+  const firstDialogMessage = dialogMessages.find(t => !isConfirm(t)) || '';
   const pageHasError = all.some(t => /the page has an error/i.test(t));
 
   return {
     dialogs,
-    message: specific || (isConfirm(dialogText) ? '' : dialogText) || '',
+    message: specific || firstDialogMessage || '',
     confirmation,
     pageHasError,
     surfaces: all,
+    // Everything that was discarded as page chrome. Present so a probe that gets an
+    // unexpected empty `message` can see what was filtered rather than guess.
+    chrome: dialogChrome,
   };
 }
 
@@ -236,6 +287,57 @@ async function dismissDialog(page, frame) {
   if (!(await frame.getByRole('dialog').count().catch(() => 0))) return false;
   await page.keyboard.press('Escape');
   await page.waitForTimeout(1500);
+  await settleOverlay(page, frame);
+  return true;
+}
+
+// Wait for a dismissed dialog's fade overlay to actually leave the DOM.
+//
+// BC keeps `.spa-dialog.appear-fadeout` alive after the dialog has visually gone, and it
+// still intercepts pointer events. The next grid click then fails with Playwright's
+// "intercepts pointer events" timeout after a full 30 s - which reads like a hung page
+// but is pure harness noise. Seen on every round-trip through Item Tracking Lines (6510).
+async function settleOverlay(page, frame, timeoutMs = 8000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const n = await frame.locator('.spa-dialog.appear-fadeout, .spa-dialog-overlay')
+      .count().catch(() => 0);
+    if (!n) return true;
+    await page.waitForTimeout(250);
+  }
+  return false;
+}
+
+// Click something that a fading overlay may be sitting on top of.
+async function clickSettled(page, frame, locator, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
+    await settleOverlay(page, frame);
+    try { await locator.click({ timeout: 5000 }); return true; }
+    catch (e) { if (i === attempts) throw e; await page.waitForTimeout(1000); }
+  }
+  return false;
+}
+
+// Answer a Yes/No confirmation.
+//
+// A pointer click on *Yes* is NOT reliable: during the item-tracking tour one neither answered
+// nor errored - the delete simply did not happen, the dialog closed, and the surviving rows
+// read as orphaned records. Only the SQL check caught it, and it cost a withdrawn finding.
+// Focusing the button and pressing Enter is the route that works.
+//
+// ⚠️ THE ANSWER IS NOT EVIDENCE. After answering, assert in SQL that the underlying record
+// actually changed. "I clicked Yes and no error appeared" proves nothing about what BC did.
+async function answerConfirm(page, frame, answer = 'Yes') {
+  const btn = frame.getByRole('button', { name: answer, exact: true }).last();
+  if (!(await btn.count().catch(() => 0))) return false;
+  await btn.focus().catch(() => {});
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(1500);
+  if (await frame.getByRole('button', { name: answer, exact: true }).count().catch(() => 0)) {
+    await clickSettled(page, frame, btn).catch(() => {});
+    await page.waitForTimeout(1500);
+  }
+  await settleOverlay(page, frame);
   return true;
 }
 
@@ -263,4 +365,5 @@ async function assertCard(page, expected) {
 module.exports = {
   BASE, CREDS, CONTAINER, appFrame, signIn, openPage, field, fieldOne, launch,
   newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
+  settleOverlay, clickSettled, answerConfirm,
 };

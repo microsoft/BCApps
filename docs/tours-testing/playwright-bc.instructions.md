@@ -338,6 +338,57 @@ while a screenshot showed BC displaying a precise, correct error throughout.
 Read the surfaces explicitly, filter the FactBox caption, prefer a real validation sentence over the
 generic banner, and return the raw list so you can see what was found. **Validate the helper against
 a case you know must fail before trusting any negative result from it.**
+`harness/readError.test.js` is that check — it mocks the frame, needs no container, and every case
+in it is a false result this helper produced on a real tour:
+
+```powershell
+node docs\tours-testing\harness\readError.test.js
+```
+
+### ⚠️ Dialogs stack when you *read* them, not just when you dismiss them
+
+The trap below cost a withdrawn finding on the item-tracking tour, and it is the same stacking
+problem this guide already documents for dismissal.
+
+Some BC **pages are themselves rendered as `role="dialog"`** — Item Tracking Lines (6510), Enter
+Quantity to Create, most worksheet sub-pages. So on those pages:
+
+| | `dialogs[0]` | `dialogs[1]` |
+|---|---|---|
+| What it is | the Item Tracking Lines **page** | the actual question |
+| Text | 600 characters of column headers | *"…excess quantity has been defined. Close the form anyway?"* |
+
+A helper that reads `dialogs[0]` returns page chrome on a clean step and **returns nothing when
+there is a real question** — which reads exactly like silent data loss. Scan every dialog, and
+prefer the **last** one: dialogs stack, so the newest is the one the user is looking at.
+
+Two corollaries:
+
+- **Never treat the containing page's own text as an error.** A real BC message is a sentence, not
+  a screenful; `readError()` discards long dialog text carrying no validation or question sentence,
+  and returns it under `chrome` so an unexpected empty `message` is still debuggable.
+- **`must be` is not the only shape of a refusal.** The genuine message *"…accounts for more than
+  the quantity you have entered. You must adjust the existing item tracking…"* says **"must
+  adjust"**. An allow-list of phrasings missed it, and a probe reading `message` alone would have
+  recorded a guarded case as unguarded. Mind word boundaries too: `\balready exist\b` does **not**
+  match *"exists"*.
+
+### ⚠️ The fade overlay outlives the dialog
+
+BC leaves `.spa-dialog.appear-fadeout` in the DOM after a dialog closes, and it still intercepts
+pointer events. The next grid click then fails with Playwright's *"intercepts pointer events"*
+timeout after a full 30 s — which looks like a hung page and is not. Use `settleOverlay()` /
+`clickSettled()`, which wait for it to leave.
+
+### ⚠️ Clicking *Yes* is not reliable — and answering is not evidence
+
+A pointer click on a confirmation's *Yes* button can **neither answer nor error**: the dialog
+closes, nothing happens, and the records you expected to be deleted read back as orphans. On the
+item-tracking tour this manufactured an "orphaned reservation entries" finding that only the SQL
+check caught. Use `answerConfirm()`, which focuses the button and presses `Enter`.
+
+> **After answering a confirmation, assert in SQL that the underlying record actually changed.**
+> "I clicked Yes and saw no error" proves nothing about what BC did.
 
 ## 9. SQL as the oracle
 
@@ -393,6 +444,9 @@ tenant database.
   `Format-Table` silently prints only the first. One `SELECT` per call, or `UNION ALL`.
 - **Some counters are not in the table** — No. Series consumption is not in `Last No. Used`; it uses
   SQL sequences.
+- **`LINENO` is a reserved T-SQL keyword.** `SELECT [Line No_] AS LineNo` fails with *"Incorrect
+  syntax near the keyword 'LineNo'"*, which reads exactly like a mangled table or column name and
+  sends you hunting a PowerShell `$`-escaping problem that was never there. Alias it `LnNo`.
 
 Useful tables: `Customer`, `Sales Header` (`Document Type` 2 = Invoice), `Sales Invoice Header`,
 `Cust_ Ledger Entry`, `G_L Entry`. Duplicate-post detector: group `Sales Invoice Header` by
