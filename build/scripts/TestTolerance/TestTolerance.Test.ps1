@@ -320,10 +320,7 @@ Describe "TestTolerance" {
         }
 
         It "returns false (hard failure) when a failed run recorded no per-test failures" {
-            # Test-ShouldTolerateFailures is only called after the run already failed. A results file
-            # with no failed testcases then means a hard failure (e.g. a runtime compilation failure
-            # during test selection or a truncated run) that produced no per-test results - it must
-            # not be tolerated, otherwise a run where tests never executed would go green.
+            # Called only after a failure; no failed testcases means a hard failure that must not be tolerated.
             $unstablePath = New-TempFile -Name 'unstable-nofail.json' -Content '{"tests":[{"extensionId":"ext1","codeunitId":300,"codeunitName":"A","testMethod":"T1"}]}'
             $xmlPath = New-TempFile -Name 'results-nofail.xml' -Content @'
 <?xml version="1.0"?>
@@ -333,9 +330,7 @@ Describe "TestTolerance" {
         }
 
         It "returns false (hard failure) when the results file has no testcases at all" {
-            # A test codeunit that fails runtime AL-to-C# compilation during SelectTestMethodsByExtension
-            # crashes the run before any testcase is emitted, leaving an empty results file. This is the
-            # exact shape that previously turned a failed run green ("Nothing to tolerate" -> $true).
+            # A selection-time compile failure crashes the run before any testcase is emitted.
             $unstablePath = New-TempFile -Name 'unstable-empty-results.json' -Content '{"tests":[{"extensionId":"ext1","codeunitId":300,"codeunitName":"A","testMethod":"T1"}]}'
             $xmlPath = New-TempFile -Name 'results-empty.xml' -Content @'
 <?xml version="1.0"?>

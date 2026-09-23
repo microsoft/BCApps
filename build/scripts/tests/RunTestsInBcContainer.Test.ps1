@@ -1,9 +1,7 @@
 Describe "Test-AllSelectedTestsExecuted" {
     BeforeAll {
-        # RunTestsInBcContainer.ps1 is a script with a top-level body that runs a full test pipeline
-        # on load, so it cannot be dot-sourced here. Extract just the function under test from its
-        # AST and define it (and a Get-BaseFolder stub it depends on) in the global scope so the It
-        # blocks can call it. Both are removed in AfterAll.
+        # RunTestsInBcContainer.ps1 runs a full pipeline on load, so extract just the function under
+        # test (and its Get-BaseFolder dependency) from the AST into global scope; removed in AfterAll.
         $scriptPath = Join-Path $PSScriptRoot '..\RunTestsInBcContainer.ps1'
         $ast = [System.Management.Automation.Language.Parser]::ParseFile($scriptPath, [ref]$null, [ref]$null)
         $fn = $ast.FindAll({ param($n)
@@ -40,8 +38,7 @@ codeunit 90001 "Alpha"
 }
 '@
 
-        # Beta declares one live test plus a block-commented and a line-commented [Test]; neither
-        # commented method is compiled, so neither counts as declared.
+        # Beta declares one live test plus block- and line-commented [Test] methods that must not count.
         Set-Content -Encoding utf8 -Path (Join-Path $testFolder 'Beta.Codeunit.al') -Value @'
 codeunit 90002 "Beta"
 {

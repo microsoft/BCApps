@@ -125,21 +125,14 @@ function Invoke-TestsWithReruns {
 .SYNOPSIS
     Fails the run when a [Test] method declared in an executed test codeunit never produced a result.
 .DESCRIPTION
-    A test object can fail runtime AL-to-C# code generation while the runner loads it (or be
-    truncated mid-run) so that some of its [Test] methods are silently dropped: the codeunit still
-    reports success, the JUnit result lists only the methods that ran, and no error or skip is
-    emitted for the rest. Reruns and test tolerance cannot see this because there is no failed
-    result to act on, so the build goes green while tests silently never ran.
+    A test object can fail runtime AL-to-C# code generation (or be truncated mid-run) so that some
+    of its [Test] methods are silently dropped while the codeunit still reports success and no
+    failed result is written - reruns and test tolerance cannot see this. This reconciles the
+    declared [Test] methods (read from the AL source) against those in the run's JUnit results.
 
-    This reconciles the declared [Test] methods (design-time truth, read from the AL source) against
-    the methods that actually appear in the run's JUnit results.
-
-    Rule: for every test codeunit that produced AT LEAST ONE result (proof it was selected and ran),
-    every declared [Test] method that is not in the disabled-tests list must appear in the results.
-    A codeunit that produced zero results is ignored - it was legitimately filtered out by
-    test-type / codeunit-range selection - which keeps the check free of partitioning false
-    positives. TestType is a codeunit-level property in AL, so a codeunit that ran is type
-    homogeneous and all of its non-disabled [Test] methods are expected to run.
+    Rule: for every codeunit that produced at least one result, every declared, non-disabled [Test]
+    method must appear in the results. A codeunit with zero results is ignored (legitimately
+    filtered out by test-type / codeunit-range selection).
 .OUTPUTS
     [bool] $true when every declared, non-disabled test in an executed codeunit ran; $false otherwise.
 #>
@@ -161,9 +154,7 @@ function Test-AllSelectedTestsExecuted {
         return $true
     }
 
-    # ACTUAL: executed [Test] methods per codeunit id, unioned across suites (reruns / tenants).
-    # Use XPath / GetAttribute (not dynamic member access) so missing nodes/attributes never throw
-    # under Set-StrictMode.
+    # Executed [Test] methods per codeunit id. GetAttribute (not member access) is StrictMode-safe.
     $executed = @{}
     foreach ($suite in $doc.SelectNodes('//testsuite')) {
         $suiteName = $suite.GetAttribute('name') # suite name is "<id> <name>"
@@ -173,9 +164,7 @@ function Test-AllSelectedTestsExecuted {
         foreach ($tc in $suite.SelectNodes('testcase')) {
             $tcName = $tc.GetAttribute('name')
             if ([string]::IsNullOrWhiteSpace($tcName)) { continue }
-            # A tolerated failure is re-labelled "<method> (tolerated)" in the results. An AL method
-            # name never contains a space, so strip a trailing " (...)" annotation before matching so
-            # a test that actually ran is not mistaken for one that never ran.
+            # A tolerated failure is re-labelled "<method> (tolerated)"; strip the annotation to match.
             if ($tcName -match '^(?<m>\S+)\s+\(.+\)\s*$') { $tcName = $Matches['m'] }
             [void]$executed[$cuId].Add($tcName)
         }
@@ -185,7 +174,7 @@ function Test-AllSelectedTestsExecuted {
         return $true
     }
 
-    # DISABLED: methods intentionally excluded from the run, keyed "<id>|<method>".
+    # Disabled methods, keyed "<id>|<method>".
     $disabled = [System.Collections.Generic.HashSet[string]]::new()
     foreach ($d in @($parameters["disabledTests"])) {
         if ($null -eq $d) { continue }
@@ -195,11 +184,8 @@ function Test-AllSelectedTestsExecuted {
         }
     }
 
-    # DECLARED: [Test] methods per codeunit id, parsed from the AL test source. Test codeunits live
-    # under 'test' folders, so scope the scan there to keep it fast. A codeunit whose source is not
-    # found is skipped (conservative - no false positive). Only codeunits that ran are reconciled,
-    # so pre-filter to files that declare one of them and skip the expensive parse for the rest -
-    # in production the executed set is a single app's codeunits, so most files are skipped.
+    # Declared [Test] methods per codeunit, parsed from AL source under 'test' folders. Only
+    # codeunits that ran are reconciled, so pre-filter files to those declaring one of them.
     $declared = @{}
     $baseFolder = Get-BaseFolder
     $executedIdPattern = 'codeunit\s+(?:' + (($executed.Keys | ForEach-Object { [regex]::Escape("$_") }) -join '|') + ')\b'
@@ -208,9 +194,8 @@ function Test-AllSelectedTestsExecuted {
     foreach ($alFile in $alFiles) {
         $raw = Get-Content -Path $alFile.FullName -Raw -ErrorAction SilentlyContinue
         if ($null -eq $raw) { continue }
-        if ($raw -notmatch $executedIdPattern) { continue } # no executed codeunit declared here
-        # Strip block and line comments first: a [Test] method that is commented out (a common way
-        # to park a broken test, often with a bug reference) must not be counted as declared.
+        if ($raw -notmatch $executedIdPattern) { continue }
+        # Strip comments so a commented-out [Test] is not counted as declared.
         $raw = [regex]::Replace($raw, '(?s)/\*.*?\*/', "`n")
         $lines = ($raw -split "`r?`n") | ForEach-Object { $_ -replace '//.*$', '' }
         $cuId = $null
@@ -230,7 +215,7 @@ function Test-AllSelectedTestsExecuted {
         }
     }
 
-    # RECONCILE: only codeunits that actually ran; every declared, non-disabled method must appear.
+    # Reconcile: every declared, non-disabled method of an executed codeunit must have run.
     $violations = @()
     foreach ($cuId in $executed.Keys) {
         if (-not $declared.ContainsKey($cuId)) { continue }
@@ -323,11 +308,8 @@ if (-not $result -and $testResultFileName -and $isPullRequest) {
     }
 }
 
-# A [Test] method can be silently dropped at runtime (e.g. a failing AL-to-C# code generation while
-# the runner loads a test codeunit, or a mid-run truncation) so that its codeunit still reports
-# success and no failed result is written - reruns and test tolerance above cannot catch it. Reconcile
-# the declared tests against the executed results and fail unconditionally on any silent drop, even
-# when $result was tolerated. This is a hard defect, so it is checked last.
+# Catch [Test] methods silently dropped at runtime (which reruns and tolerance cannot see) by
+# reconciling declared vs executed tests. Checked last, even when $result was tolerated.
 if (-not (Test-AllSelectedTestsExecuted -parameters $parameters)) {
     return $false
 }
