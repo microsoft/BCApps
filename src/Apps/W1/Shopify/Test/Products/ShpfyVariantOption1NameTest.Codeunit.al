@@ -10,7 +10,7 @@ using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Codeunit Shpfy Variant Option1Name Test (ID 139649).
+/// Codeunit Shpfy Variant Option1Name Test (ID 139558).
 /// Tests for issue #7724: a new BC variant exported to a Shopify-origin product must reuse the
 /// option name that product already has in Shopify instead of the hardcoded default.
 ///
@@ -18,7 +18,7 @@ using System.TestLibraries.Utilities;
 /// path does: CreateProductVariant clears a temporary Shpfy Variant and only gets a Product Id
 /// later, inside AddProductVariant. The product to resolve against is therefore passed in.
 /// </summary>
-codeunit 139649 "Shpfy Variant Option1Name Test"
+codeunit 139558 "Shpfy Variant Option1Name Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
