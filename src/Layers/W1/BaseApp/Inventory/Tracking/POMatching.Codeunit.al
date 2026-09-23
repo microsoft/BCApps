@@ -89,42 +89,43 @@ codeunit 5831 "PO Matching"
             OrderLine.GetBySystemId(OrderLineSystemId);
             Missing := POMatchingGroup.AllocatedInInvoiceOrderEdge() - POMatchingGroup.SumAllocatedInOrderReceiptEdges();
 
-            if (Missing > 0) and InvoiceableReceipts.Load(OrderLine) then begin
-                TempIntendedEdge.Reset();
-                TempIntendedEdge.DeleteAll();
-                repeat
-                    PurchRcptLine := InvoiceableReceipts.GetReceiptLine();
-                    Available := InvoiceableReceipts.ReceiptNotInvoiced(POMatchingGroup);
-                    if ReceiptHasItemTracking(PurchRcptLine) then begin
-                        // An item-tracked receipt can only be taken whole; skip it if it doesn't fit.
-                        if (Available > 0) and (Available <= Missing) then
-                            Take := Available
-                        else
-                            Take := 0;
-                    end else
-                        Take := MinDecimal(Missing, Available);
-
-                    if Take > 0 then begin
-                        NewQty := POMatchingGroup.GetReceiptEdgeQuantity(InvoiceLineSystemId, OrderLineSystemId, PurchRcptLine.SystemId) + Take;
-                        TempIntendedEdge."Document Line SystemId" := InvoiceLineSystemId;
-                        TempIntendedEdge."Matched Order Line SystemId" := OrderLineSystemId;
-                        TempIntendedEdge."Matched Rcpt./Shpt. Line SysId" := PurchRcptLine.SystemId;
-                        TempIntendedEdge."Qty. to Invoice" := NewQty;
-                        TempIntendedEdge.Insert();
-                        Missing -= Take;
-                    end;
-                until (Missing <= 0) or (not InvoiceableReceipts.NextReceipt());
-
-                if TempIntendedEdge.FindSet() then
+            if Missing > 0 then
+                if InvoiceableReceipts.Load(OrderLine) then begin
+                    TempIntendedEdge.Reset();
+                    TempIntendedEdge.DeleteAll();
                     repeat
-                        POMatchingGroup.AddMatch(
-                            InvoiceOrderReceiptEdge(
-                                TempIntendedEdge."Document Line SystemId",
-                                TempIntendedEdge."Matched Order Line SystemId",
-                                TempIntendedEdge."Matched Rcpt./Shpt. Line SysId",
-                                TempIntendedEdge."Qty. to Invoice"));
-                    until TempIntendedEdge.Next() = 0;
-            end;
+                        PurchRcptLine := InvoiceableReceipts.GetReceiptLine();
+                        Available := InvoiceableReceipts.ReceiptNotInvoiced(POMatchingGroup);
+                        if ReceiptHasItemTracking(PurchRcptLine) then begin
+                            // An item-tracked receipt can only be taken whole; skip it if it doesn't fit.
+                            if (Available > 0) and (Available <= Missing) then
+                                Take := Available
+                            else
+                                Take := 0;
+                        end else
+                            Take := MinDecimal(Missing, Available);
+
+                        if Take > 0 then begin
+                            NewQty := POMatchingGroup.GetReceiptEdgeQuantity(InvoiceLineSystemId, OrderLineSystemId, PurchRcptLine.SystemId) + Take;
+                            TempIntendedEdge."Document Line SystemId" := InvoiceLineSystemId;
+                            TempIntendedEdge."Matched Order Line SystemId" := OrderLineSystemId;
+                            TempIntendedEdge."Matched Rcpt./Shpt. Line SysId" := PurchRcptLine.SystemId;
+                            TempIntendedEdge."Qty. to Invoice" := NewQty;
+                            TempIntendedEdge.Insert();
+                            Missing -= Take;
+                        end;
+                    until (Missing <= 0) or (not InvoiceableReceipts.NextReceipt());
+
+                    if TempIntendedEdge.FindSet() then
+                        repeat
+                            POMatchingGroup.AddMatch(
+                                InvoiceOrderReceiptEdge(
+                                    TempIntendedEdge."Document Line SystemId",
+                                    TempIntendedEdge."Matched Order Line SystemId",
+                                    TempIntendedEdge."Matched Rcpt./Shpt. Line SysId",
+                                    TempIntendedEdge."Qty. to Invoice"));
+                        until TempIntendedEdge.Next() = 0;
+                end;
         until not POMatchingGroup.NextInvoiceOrderEdge();
     end;
 
