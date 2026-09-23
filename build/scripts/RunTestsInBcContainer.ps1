@@ -242,7 +242,7 @@ function Test-AllSelectedTestsExecuted {
                 CodeunitId = $cuId
                 Declared   = $declared[$cuId].Count
                 Executed   = $executed[$cuId].Count
-                Missing    = ($missing | Sort-Object)
+                Missing    = @($missing | Sort-Object)
             }
         }
     }
