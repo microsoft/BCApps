@@ -92,9 +92,15 @@ flowchart TD
 
 ### Message handling
 
-The V2.0 import pipeline treats lifecycle messages as related records, not as BC source documents. `ReadIntoDraft()` asks the selected document format for a response message type after the draft reader has populated `"Process Draft Impl."`. For PEPPOL sales orders, Core builds an outgoing `"PEPPOL Order Response"` message and stores it in `"E-Document Message"`. If an inbound PEPPOL `OrderResponse` arrives, the PEPPOL reader finds the matching outgoing E-Document by order reference, stores the incoming message on that E-Document, deletes the temporary inbound carrier, and stops the import pipeline.
+Lifecycle messages are payloads related to an existing E-Document, not BC source documents of their own. Their payload is stored in `"E-Doc. Data Storage"` and the `"E-Document Message"` record tracks the parent E-Document, message type, direction, response type, service, status, external identifiers, and retry information.
 
-*Updated: 2026-07-29 -- added message handling for PEPPOL order responses.*
+The V2.0 import pipeline can create messages while reading a document. `ReadIntoDraft()` asks the selected document format for a response message type after the draft reader has populated `"Process Draft Impl."`. For PEPPOL sales orders, Core builds an outgoing `"PEPPOL Order Response"` message. If an inbound PEPPOL `OrderResponse` arrives through the document import pipeline, the PEPPOL reader finds the matching outgoing E-Document by order reference, stores the incoming message on that E-Document, deletes the temporary inbound carrier, and stops the import pipeline.
+
+Connectors can also use `EDocumentMessageAPI.Codeunit.al` directly. An outgoing message is created with status `Created` and can be sent immediately or queued in the background. `IMessageSender.SendMessage()` must set the message context to `Sent` or `"Pending Response"`. Pending responses are polled after a five-minute delay through `IMessageResponseHandler.GetResponse()` until the connector reports `Sent`. Each communication attempt writes an integration log; scheduling or connector failures set the message to `Error` or `"Response Error"` and retain the last error and retry count for an explicit retry.
+
+For incoming connector messages, the connector first registers the external document ID returned when the parent E-Document was sent. `CreateIncomingMessage()` then resolves that external document ID, stores the payload against the parent E-Document, and records the message as `Received`. The pair `(Service, External Message ID)` provides idempotency: receiving the same external message again returns the existing message instead of inserting a duplicate.
+
+*Updated: 2026-09-23 -- expanded lifecycle message transport, response, and incoming-message behavior.*
 
 ### Reversibility
 
@@ -103,6 +109,43 @@ Each step can be undone via `UndoProcessingStep()`. Undoing "Finish draft" calls
 ### Automatic vs. manual processing
 
 The `"Automatic Import Processing"` field on the service controls whether received documents are automatically processed through the full pipeline or stop at the `Unprocessed` state for manual review. The `GetDefaultImportParameters()` method on the service table produces the appropriate parameters.
+
+## Payment-related flows
+
+Payment occurrences and remittance advice E-Documents solve different problems. A payment occurrence notifies dependent apps that a customer payment was applied to or unapplied from an outgoing sales invoice. A remittance advice is a normal outgoing E-Document that tells a vendor which documents a vendor payment settles.
+
+### Customer payment occurrences
+
+`E-Doc. Payment Occurrence Mgt.` subscribes to customer detailed ledger entry creation during general journal posting. When a payment is applied to an invoice, it resolves the posted sales invoice and finds every outgoing Sales Invoice E-Document linked to it. For each match it inserts an immutable `"E-Doc. Payment Occurrence"` of type `Applied`, containing the amount, currency, posting date, detailed ledger entry, and source entry SystemId.
+
+Unapplying the payment creates a separate `Reversed` occurrence for every matching applied occurrence. The reversal carries the opposite amount and links back through `"Original Occurrence Entry No."`; the original occurrence is not modified or deleted. The unique `(E-Document Entry No., Source Occurrence ID, Type)` key prevents the same ledger event from being captured twice.
+
+```mermaid
+flowchart TD
+    A[Customer payment is posted] --> B{Applied to a sales invoice?}
+    B -->|No| C[No payment occurrence]
+    B -->|Yes| D[Find outgoing Sales Invoice E-Documents]
+    D --> E[Insert Applied occurrence]
+    E --> F[Background dispatcher publishes occurrence]
+    F -->|Subscriber succeeds| G[Status: Processed]
+    F -->|Subscriber fails| H[Status: Error]
+    H -->|Five-minute retry delay| F
+    I[Payment is unapplied] --> J[Find original Applied occurrences]
+    J --> K[Insert linked Reversed occurrences]
+    K --> F
+```
+
+A recurrent dispatcher installed with the app picks up `Pending`, retryable `Error`, and stale `Processing` occurrences. Processing raises `OnAfterCreatePaymentOccurrence`, which localization and format apps subscribe to when they need to report the payment event externally. Successful publication sets the occurrence to `Processed`. A failure stores the error, increments `"Retry Count"`, and schedules another attempt after five minutes. Core records and publishes the occurrence but does not itself build or transmit a payment message.
+
+### Vendor remittance advice
+
+Remittance advice starts from either unposted vendor payment journal lines or posted Vendor Ledger Entry payments. The **Remittance Advice - Journal** and **Remittance Advice - Entries** reports expose a **Create E-Documents** option. Journal lines are grouped by journal template, batch, vendor account, and document number; the lowest-numbered vendor line is used as the stable anchor for the group's E-Document.
+
+Before export, Core verifies that the source is a vendor payment and that at least one document is applied. It also requires the vendor's selected Document Sending Profile to use `"Extended E-Document Service Flow"`. `E-Doc. Remit. Advice Export` then calls the normal `EDocExport.CreateEDocument()` path with document type `"Remittance Advice"`. The configured format creates the payload, and the normal workflow and service integration handle sending. If no service in the workflow supports Remittance Advice, no E-Document is created.
+
+After a journal payment group is exported, every line in the group is marked `"Remit. Advice E-Doc. Created"` to prevent accidental duplicates. The Payment Journal can open the related E-Document or void it before it reaches `Sent`, `Approved`, or `"Pending Response"`. Voiding cancels its service statuses and clears the group flags so the advice can be recreated; after sending, users must use the E-Document cancellation action instead. Both journal and posted-payment report paths ask for confirmation before re-exporting an existing advice.
+
+*Updated: 2026-09-23 -- documented customer payment occurrences and vendor remittance advice.*
 
 ## Clearance model
 
