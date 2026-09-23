@@ -103,10 +103,11 @@ codeunit 20352 "Connectivity App Definitions"
         AppPublisher: Text[250];
         AppDescription: Text[2048];
         AppProviderSupportURL: Text[250];
-        AppSourceURL: Text[250];
+        AppSourceURL: Text[2048];
         AppWorksOn: Text;
         AppApprovedFor: Text;
     begin
+        // AppLocalizationCode is the Business Central localization; AppProductCode is the Continia AppSource offer suffix.
         AppName := 'Continia Banking (' + AppProductCode + ')';
         AppPublisher := 'Continia Software';
         AppDescription := 'Connect your online bank to Business Central. With Continia Banking, you can pay vendors, match customer payments, and reconcile statements directly from Business Central - fully integrated and secure without having to log into your online bank. Start a free trial by downloading the app, or visit the Continia website for more information.';

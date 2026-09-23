@@ -79,7 +79,8 @@ codeunit 139529 "Connectivity App Defn. Tests"
     begin
         Evaluate(AppId, AppIdText);
         TempConnectivityApp.SetRange("App Id", AppId);
-        Assert.IsTrue(TempConnectivityApp.FindFirst(), StrSubstNo('Continia Banking app %1 should be registered.', LocalizationCode));
+        if not TempConnectivityApp.FindFirst() then
+            Assert.Fail(StrSubstNo('Continia Banking app %1 should be registered.', LocalizationCode));
         Assert.AreEqual('Continia Banking (' + ProductCode + ')', TempConnectivityApp.Name, 'Unexpected Continia Banking app name.');
         Assert.AreEqual('Continia Software', TempConnectivityApp.Publisher, 'Unexpected Continia Banking publisher.');
         Assert.AreEqual('https://www.continia.com/solutions/banking/', TempConnectivityApp."Provider Support URL", 'Unexpected Continia Banking support URL.');
