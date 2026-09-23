@@ -1311,7 +1311,6 @@ codeunit 134830 "Alloc. Account Sales E2E Tests"
         PostedDocumentNo: Code[20];
         CustomerNo: Code[20];
         TotalAmount: Decimal;
-        TotalInvDiscAmount: Decimal;
         TotalAmountInclVAT: Decimal;
     begin
         // [SCENARIO 650386] The posted sales invoice and the resulting ledger entries must stay financially consistent.

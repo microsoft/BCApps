@@ -76,7 +76,6 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         PostedDocumentNo: Code[20];
         VendorNo: Code[20];
         TotalAmount: Decimal;
-        TotalInvDiscAmount: Decimal;
         TotalAmountInclVAT: Decimal;
     begin
         // [SCENARIO 650386] The posted purchase invoice and the resulting ledger entries must stay financially consistent.
