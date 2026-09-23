@@ -73,8 +73,7 @@ and finding nothing there is not a result.
 
 State the assumption in the charter, so the session is not tempted back to it:
 
-> *Out of scope (assumed developer-tested): a Lot-for-Lot item with a clean demand signal
-> producing a sensible planning line.*
+> *Out of scope (assumed developer-tested): the standard, well-configured flow through this area.*
 
 Aim instead at the awkward middle: partial states, conflicting parameters, interrupted runs,
 values at the edge of what setup permits, and the boundaries between this area and its neighbours.
@@ -155,9 +154,9 @@ prefer a charter that crosses a seam over one that stays inside a folder.
 
 Gates 2 and 4 are the ones that bite.
 
-**Gate 3 is about the build, not the repo.** `Inventory/Planning` ranked high on churn, but ~899 of
-its 912 changed lines were a new `WhatIfPlanning` subfeature whose table **does not exist in the
-artifact** — the churn was untourable. Static churn analysis cannot see this. Confirm the objects
+**Gate 3 is about the build, not the repo.** An area can rank high on churn while most of those
+lines belong to a new subfeature whose objects **do not exist in the artifact** you are touring —
+the churn is then untourable. Static analysis of the repo cannot see this. Confirm the objects
 exist in *this build* before planning probes.
 
 **Churn without surface.** `MasterDataManagement` ranked third on a 14-day churn scan (~4,700
@@ -298,10 +297,10 @@ were regressions in harness fixes shipped hours earlier. So:
 
 ### 5.5 Name the record, don't count it
 
-A count delta cannot tell correct behaviour from a defect. `Production Order 10→9` looks identical
-whether the run rightly declined to plan or destroyed supply; an empty worksheet occurred **both
-ways in one session**. Resolving that took two extra sittings purely because the first snapshot
-stored counts.
+A count delta cannot tell correct behaviour from a defect: *"one fewer supply record than before"*
+looks identical whether the run rightly declined to create one or destroyed an existing one. An
+empty result occurred **both ways in one session**, and resolving which was which took two extra
+sittings purely because the first snapshot stored counts.
 
 Snapshot **identities** — primary key, status, key dates. The bar for filing is three things:
 
@@ -315,11 +314,13 @@ Wrong-oracle mistakes are as common as wrong-probe ones, and louder:
 
 | Assumed | Actually |
 | --- | --- |
-| `Tracking Specification` records tracking | transient buffer — 0 rows after successful posts |
-| `Reordering Policy = 2` is *Fixed Reorder Qty.* | it is `1` |
-| `COUNT(*)` answers "did supply survive?" | it cannot |
+| The table named after the concept holds the record | it is a **transient buffer**, empty before and after a successful operation |
+| An option field's stored value maps to the caption you expect | the ordinal was off by one |
+| `COUNT(*)` answers *"did this record survive?"* | it cannot |
 
 Confirm a table, column or enum means what you think **from the data**, before it decides a verdict.
+Anchor tables that have been checked in a container are listed in
+[`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) §5.
 
 ### 5.7 Empty is the most dangerous result
 
@@ -332,9 +333,9 @@ input signal existed first.
 Residue-dependent findings are worth little. Re-run the steps on a fresh container and record
 *"reproduced on `<container>`, build `<x>`"*.
 
-This also forces the repro steps to be **executable blind**, which is where they usually fail —
-mine omitted two preconditions that stop the steps dead (the card opens read-only; planning fields
-stay disabled until the reordering policy is set). List preconditions explicitly.
+This also forces the repro steps to be **executable blind**, which is where they usually fail. List
+preconditions explicitly — the state the UI must be in, and any field that must be set before the
+next one can be. Steps that assume the author's screen are not steps.
 
 **Ask before filing anything.**
 
@@ -343,7 +344,7 @@ stay disabled until the reordering policy is set). List preconditions explicitly
 BC pages and tables are generated from metadata, so much of the behaviour you are about to test is
 *declared*, not written.
 
-**Spend your first 15 minutes here.** One session predicted *both* of its findings from field
+**Spend your first 15 minutes here.** A session has predicted *both* of its findings from field
 bounds and a normalisation routine **before the container had finished building** — the browser
 work only confirmed them. Cheapest hypothesis generator available, and still only a hypothesis
 (§6.3).
@@ -521,26 +522,29 @@ on chronology, say the evidence is unavailable and route the question to the own
 
 ### 6.7 Asymmetry inside one procedure is the strongest signal there is
 
-Every confirmed finding this repo's tours have produced was the same shape: **one procedure
-treating neighbouring things differently, with nothing in the domain to justify it.**
+The findings these tours have produced all share one shape: **a single routine treating
+neighbouring things differently, with nothing in the domain to justify the difference.**
 
-| Finding | The asymmetry |
+Patterns worth looking for when reading a procedure:
+
+| Pattern | The question to ask |
 | --- | --- |
-| Negative reorder quantity crashes planning | `AdjustInvalidValues` clamps four negative planning fields and **not the fifth** |
-| Orders exceed their declared maximum | `Order Multiple` rounds **up** *after* the maximum cap, and the cap is never re-checked |
-| Planned supply deleted outside the window | the delete is **undated** while the recreate is `ToDate`-bounded — and a date-bounded filter sits eleven lines below it |
+| A routine normalises or bounds a **set of sibling inputs** | is one of the siblings missing from it? |
+| Two constraints applied **in sequence** | can the second invalidate the first, and does anything re-check? |
+| A **delete-then-recreate** (or clear-then-rebuild) pair | is each half bounded by the same scope filter? |
+| A guard, filter or conversion applied on **one path but not the adjacent one** | what distinguishes the paths? |
 
-In each case date-bounding, or clamping, was demonstrably *in mind* at that point in the code.
-That is what separates an oversight from a decision.
+The signal is strongest when the missing treatment is demonstrably *in mind* nearby — the same
+bound applied a few lines away, or to the fields either side. That is what separates an oversight
+from a decision, and it converts "this looks odd" into a ruling question the owning team can answer.
 
-**This is not the same as the weak signal in §5.2.** Asymmetry between neighbouring *fields* in
-metadata is usually correct — `Line Discount %` is range-checked and `Unit Price` is not, because
-one has a mathematical range and the other carries meaning in its sign. Asymmetry between
-neighbouring *code paths in one procedure* is where the defects were.
+**This is not the weak signal in §5.2.** Asymmetry between neighbouring *fields* in metadata is
+usually correct, because two fields can legitimately need different rules. Asymmetry between
+neighbouring *code paths inside one procedure* is where the defects were.
 
-**Duplicated code multiplies it.** A comment reading *"Copy of AdjustReorderQty in COD 99000854"*
-meant one arithmetic bug shipped in two engines, kept in step only by luck. Grep for `Copy of`,
-`Duplicate of` and similar: each is a place where a fix may have landed once.
+**Duplicated code multiplies whatever you find.** A comment of the form *"Copy of <procedure> in
+<object>"* means any defect exists in both copies, kept in step only by luck. Grep for `Copy of`,
+`Duplicate of` and similar: each marks a place where a fix may have landed once.
 
 ## 7. Differential touring across parallel modules
 
