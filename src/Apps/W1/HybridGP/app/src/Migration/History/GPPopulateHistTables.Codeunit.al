@@ -628,6 +628,7 @@ codeunit 40900 "GP Populate Hist. Tables"
         HistReceivablesApply: Record "Hist. Receivables Apply";
     begin
         GPRM20201.SetLoadFields(DEX_ROW_ID, ActualApplyToAmount, ActualDiscAvailTaken, ActualDiscTakenAmount, ActualWriteOffAmount, APFRDCDT, APFRDCNM, APFRDCTY, APFRMAPLYAMT, APFRMDENRATE, APFRMDISCAVAIL, APFRMDISCTAKEN, APFRMEXRATE, APFRMWROFAMT, ApplyFromGLPostDate, ApplyToGLPostDate, APPTOAMT, APTODCDT, APTODCNM, APTODCTY, APTODENRATE, APTOEXRATE, APYFRMRNDAMT, APYTORNDAMT, APYTORNDDISC, CPRCSTNM, CURNCYID, CUSTNMBR, DATE1, DISAVTKN, DISTKNAM, FROMCURR, GLPOSTDT, GSTDSAMT, OAPYFRMRNDAMT, OAPYTORNDAMT, OAPYTORNDDISC, ORAPTOAM, ORDATKN, ORDISTKN, ORWROFAM, PPSAMDED, RLGANLOS, Settled_Gain_CreditCurrT, Settled_Gain_DebitCurrTr, Settled_Gain_DebitDiscAv, Settled_Loss_CreditCurrT, Settled_Loss_DebitCurrTr, Settled_Loss_DebitDiscAv, TRXSORCE, WROFAMNT);
+        GPRM20201.SetCurrentKey(CUSTNMBR, APTODCTY, APTODCNM);
         GPRM20201.SetRange(CUSTNMBR, CustomerNo);
         GPRM20201.SetRange(APTODCTY, GPDocumentTypeId);
         GPRM20201.SetRange(APTODCNM, DocumentNo);
@@ -706,6 +707,7 @@ codeunit 40900 "GP Populate Hist. Tables"
         HistReceivablesApply: Record "Hist. Receivables Apply";
     begin
         GPRM30201.SetLoadFields(DEX_ROW_ID, ActualApplyToAmount, ActualDiscAvailTaken, ActualDiscTakenAmount, ActualWriteOffAmount, APFRDCDT, APFRDCNM, APFRDCTY, APFRMAPLYAMT, APFRMDENRATE, APFRMDISCAVAIL, APFRMDISCTAKEN, APFRMEXRATE, APFRMWROFAMT, ApplyFromGLPostDate, ApplyToGLPostDate, APPTOAMT, APTODCDT, APTODCNM, APTODCTY, APTODENRATE, APTOEXRATE, APYFRMRNDAMT, APYTORNDAMT, APYTORNDDISC, CPRCSTNM, CURNCYID, CUSTNMBR, DATE1, DISAVTKN, DISTKNAM, FROMCURR, GLPOSTDT, GSTDSAMT, OAPYFRMRNDAMT, OAPYTORNDAMT, OAPYTORNDDISC, ORAPTOAM, ORDATKN, ORDISTKN, ORWROFAM, PPSAMDED, RLGANLOS, Settled_Gain_CreditCurrT, Settled_Gain_DebitCurrTr, Settled_Gain_DebitDiscAv, Settled_Loss_CreditCurrT, Settled_Loss_DebitCurrTr, Settled_Loss_DebitDiscAv, TRXSORCE, WROFAMNT);
+        GPRM30201.SetCurrentKey(CUSTNMBR, APTODCTY, APTODCNM);
         GPRM30201.SetRange(CUSTNMBR, CustomerNo);
         GPRM30201.SetRange(APTODCTY, GPDocumentTypeId);
         GPRM30201.SetRange(APTODCNM, DocumentNo);
@@ -1181,6 +1183,7 @@ codeunit 40900 "GP Populate Hist. Tables"
         HistInvtTrxSerialLot: Record "Hist. Invt. Trx. SerialLot";
     begin
         GPIVSerialLotNumberHist.SetLoadFields(IVDOCTYP, DOCNUMBR, LNSEQNBR, SERLTNUM, SERLTQTY, FROMBIN, TOBIN, MFGDATE, EXPNDATE, TRXSORCE);
+        GPIVSerialLotNumberHist.SetCurrentKey(IVDOCTYP, DOCNUMBR, LNSEQNBR);
         GPIVSerialLotNumberHist.SetRange(IVDOCTYP, GPIVTrxAmountsHist.DOCTYPE);
         GPIVSerialLotNumberHist.SetRange(DOCNUMBR, GPIVTrxAmountsHist.DOCNUMBR);
         GPIVSerialLotNumberHist.SetRange(LNSEQNBR, GPIVTrxAmountsHist.LNSEQNBR);
