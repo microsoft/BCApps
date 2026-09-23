@@ -23,6 +23,7 @@ table 3703 "Environment Information"
         field(2; Description; Blob)
         {
             Caption = 'Description';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the environment''s nature and intended purpose. The description can provide context for AI-powered experiences.';
         }
     }

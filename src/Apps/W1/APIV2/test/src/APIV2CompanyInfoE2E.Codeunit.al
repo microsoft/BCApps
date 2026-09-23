@@ -71,6 +71,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         EnvironmentDescription := CreateMultilineDescription('Environment');
         CompanyInformation.SetCompanyDescription(CompanyDescription);
         EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+        Commit();
 
         // [WHEN] The user calls GET for the given Company Information.
         TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
