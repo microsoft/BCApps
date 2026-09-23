@@ -6,7 +6,7 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Purchases.Document;
 
-interface "PEPPOL Purchase Delivery Period Info Provider"
+interface "PEPPOL PO Delivery Period"
 {
     /// <summary>
     /// Gets the requested delivery period from the purchase header.

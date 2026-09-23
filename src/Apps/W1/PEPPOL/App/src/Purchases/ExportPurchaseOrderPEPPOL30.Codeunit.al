@@ -234,7 +234,7 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
     local procedure AddDelivery(PurchaseHeader: Record "Purchase Header")
     var
         PEPPOLDeliveryInfo: Interface "PEPPOL Purchase Delivery Info Provider";
-        PEPPOLDeliveryPeriodInfo: Interface "PEPPOL Purchase Delivery Period Info Provider";
+        PEPPOLDeliveryPeriodInfo: Interface "PEPPOL PO Delivery Period";
         DeliveryNode: XmlNode;
         DeliveryLocationNode: XmlNode;
         RequestedDeliveryPeriodNode: XmlNode;
@@ -336,7 +336,7 @@ codeunit 37202 "Export Purchase Order PEPPOL30"
     local procedure AddOrderLineToXML(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
     var
         PEPPOLLineInfo: Interface "PEPPOL Purchase Line Info Provider";
-        PEPPOLLineDeliveryPeriodInfo: Interface "PEPPOL Purchase Line Delivery Period Info Provider";
+        PEPPOLLineDeliveryPeriodInfo: Interface "PEPPOL PO Line Delivery Period";
         OrderLineNode: XmlNode;
         LineItemNode: XmlNode;
         ItemNode: XmlNode;
