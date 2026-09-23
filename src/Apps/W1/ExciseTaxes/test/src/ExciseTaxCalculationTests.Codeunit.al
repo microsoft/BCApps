@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExciseTaxes;
 
 using Microsoft.ExciseTaxes;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -36,6 +37,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryERM: Codeunit "Library - ERM";
         IsInitialized: Boolean;
         TotalTaxAmtMismatchTransLogPurchaseLbl: Label 'Total tax amount mismatch in transaction log for purchase';
         UnexpectedJournalLineCntLbl: Label 'Unexpected number of excise journal lines';
@@ -1278,6 +1280,8 @@ codeunit 148351 "Excise Tax Calculation Tests"
     var
         ItemJnlLine: Record "Item Journal Line";
     begin
+        EnsureGeneralPostingSetupForItem(ItemNo);
+
         if EntryType = EntryType::Consumption then begin
             PostConsumptionEntryForExcise(ItemNo, Abs(Quantity), LocationCode);
             exit;
@@ -1331,6 +1335,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryInventory.CreateItem(ParentItem);
         LibraryManufacturing.AddProdBOMItem(ParentItem, ComponentItem."No.", 1);
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ParentItem, LocationCode, '', Quantity, WorkDate());
+        EnsureGeneralPostingSetupForItem(ParentItem."No.");
 
         // Consumption posting requires stock for component item at the consumption location.
         PostItemLedgerEntryForExcise(ItemNo, Enum::"Item Ledger Entry Type"::"Positive Adjmt.", Quantity, LocationCode);
@@ -1355,6 +1360,31 @@ codeunit 148351 "Excise Tax Calculation Tests"
     local procedure GetRateDescription(): Text[100]
     begin
         exit(CopyStr(LibraryRandom.RandText(10), 1, 100));
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(ItemNo: Code[20])
+    var
+        Item: Record Item;
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        Item.Get(ItemNo);
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     [RequestPageHandler]
