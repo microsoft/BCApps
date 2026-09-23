@@ -20,7 +20,8 @@ using System.Xml;
 /// </summary>
 codeunit 248 "VAT Lookup Ext. Data Hndl"
 {
-    Permissions = TableData "VAT Registration Log" = rimd;
+    Permissions = TableData "VAT Registration Log" = rimd,
+                  TableData "VAT Reg. No. Lookup Quota" = rimd;
     TableNo = "VAT Registration Log";
 
     trigger OnRun()
@@ -55,83 +56,76 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         DailyQuotaExceededErr: Label 'VAT registration number validation against the EU VIES service has reached the daily limit for this environment. Try again tomorrow, and avoid verifying VAT registration numbers in bulk.';
         DailyQuotaReachedMsg: Label 'The daily EU VAT reg. no. validation limit was reached for this environment.', Locked = true;
         SecurityAuditDailyQuotaExceededTxt: Label 'An EU VAT Registration No. validation service (VIES) lookup was blocked because the environment reached its daily lookup limit.', Locked = true;
-        VIESCallQuotaKeyTok: Label 'VATRegNoLookupDailyCallQuota', Locked = true;
         ResponseTooLargeErr: Label 'The response from the EU VAT Registration No. validation service (VIES) exceeded the maximum allowed size and was rejected.';
         ResponseTooLargeMsg: Label 'The VAT reg. no. validation failed. The response exceeded the maximum allowed size.', Locked = true;
         SecurityAuditResponseTooLargeTxt: Label 'The EU VAT Registration No. validation service (VIES) returned a response that exceeded the maximum allowed size.', Locked = true;
         VATRegistrationURL: Text;
         QuotaTestOverride: Boolean;
-        QuotaTestEnforced: Boolean;
         QuotaTestMaxDailyCallCount: Integer;
 
     local procedure RegisterAndCheckVIESCallQuota()
     var
+        VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota";
         EnvironmentInformation: Codeunit "Environment Information";
         AuditLog: Codeunit "Audit Log";
-        WindowDate: Date;
-        CallCount: Integer;
     begin
         // The unauthenticated EU VIES service deny-lists the shared outbound IP address of a cloud app service
         // when it receives high-volume validation, which then affects every co-located tenant on that address.
-        // Cap the number of VIES lookups per tenant per day so a single tenant cannot flood VIES - from any
+        // Cap the number of VIES lookups per environment per day so a single tenant cannot flood VIES - from any
         // session type (interactive, background or API) and from either the Base Application or a per-tenant
-        // extension that reuses this codeunit - and get the shared address deny-listed. Because the counter is
-        // read/written here (Base Application code), it lives in the Base Application's Isolated Storage, so all
-        // callers share one tenant-wide counter that no extension can read or reset. Enforced online (SaaS) only;
-        // on-prem tenants own their own outbound address and only affect themselves.
+        // extension that reuses this codeunit - and get the shared address deny-listed. The count is kept in a
+        // single tenant-wide row (DataPerCompany = false) that is locked for the brief read-modify-write, so
+        // concurrent sessions increment it atomically without lost updates. Enforced online (SaaS) only; on-prem
+        // tenants own their own outbound address and only affect themselves.
         if not EnvironmentInformation.IsSaaS() then
             exit;
 
-        ReadVIESCallQuota(WindowDate, CallCount);
+        GetVIESCallQuotaUnderLock(VATRegNoLookupQuota);
 
         // Reset the counter at the start of a new (UTC) day.
-        if WindowDate <> Today() then begin
-            WindowDate := Today();
-            CallCount := 0;
+        if VATRegNoLookupQuota."Window Date" <> Today() then begin
+            VATRegNoLookupQuota."Window Date" := Today();
+            VATRegNoLookupQuota."Daily Call Count" := 0;
         end;
 
         // Block once the daily limit is reached. Blocked calls are not counted (they never reach the service).
-        if CallCount >= GetMaxDailyCallCount() then
-            if IsDailyQuotaEnforced() then begin
-                // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
-                AuditLog.LogAuditMessage(SecurityAuditDailyQuotaExceededTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-                Error(DailyQuotaExceededErr);
-            end;
+        if VATRegNoLookupQuota."Daily Call Count" >= GetMaxDailyCallCount() then
+            Error(DailyQuotaExceededErr);
 
-        CallCount += 1;
+        VATRegNoLookupQuota."Daily Call Count" += 1;
 
-        // Emit one telemetry signal per environment per day, on the call that reaches the limit.
-        if CallCount = GetMaxDailyCallCount() then
+        // On the call that reaches the limit, record it once - after this, lookups are blocked for the rest of the day.
+        if VATRegNoLookupQuota."Daily Call Count" = GetMaxDailyCallCount() then begin
+            // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
+            AuditLog.LogAuditMessage(SecurityAuditDailyQuotaExceededTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
             Session.LogMessage('0000VL7', DailyQuotaReachedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+        end;
 
-        // Persist and commit the count before the outbound request, so it is durable regardless of the outer
-        // transaction outcome and so no database lock is held while waiting for the (potentially slow) response.
-        WriteVIESCallQuota(WindowDate, CallCount);
+        // Persist and commit the count before the outbound request: the increment stays durable regardless of the
+        // (isolated) caller transaction outcome, and the row lock is released before the potentially slow VIES call.
+        VATRegNoLookupQuota.Modify();
         Commit();
     end;
 
-    local procedure ReadVIESCallQuota(var WindowDate: Date; var CallCount: Integer)
-    var
-        StoredValue: Text;
-        ValueParts: List of [Text];
+    local procedure GetVIESCallQuotaUnderLock(var VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota")
     begin
-        WindowDate := 0D;
-        CallCount := 0;
-        if not IsolatedStorage.Get(VIESCallQuotaKeyTok, DataScope::Module, StoredValue) then
+        VATRegNoLookupQuota.LockTable();
+        if VATRegNoLookupQuota.Get() then
             exit;
-        ValueParts := StoredValue.Split('|');
-        if ValueParts.Count() < 2 then
-            exit;
-        Evaluate(WindowDate, ValueParts.Get(1), 9); // 9 = XML/culture-invariant format
-        Evaluate(CallCount, ValueParts.Get(2));
+        // Create the single row on first use. Do not rely on install/upgrade triggers - they are not guaranteed
+        // to have run for every tenant. A concurrent creator makes the insert fail; the row is then read below.
+        if not TryInsertVIESCallQuotaRow() then;
+        VATRegNoLookupQuota.Get();
     end;
 
-    local procedure WriteVIESCallQuota(WindowDate: Date; CallCount: Integer)
+    [TryFunction]
+    local procedure TryInsertVIESCallQuotaRow()
+    var
+        VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota";
     begin
-        // Stored as "<yyyy-MM-dd>|<count>" in the Base Application's module-scoped Isolated Storage (tenant-wide,
-        // not accessible to other extensions). Module scope is intentional: the daily cap is per environment,
-        // aggregated across companies, because the shared outbound address is per environment.
-        IsolatedStorage.Set(VIESCallQuotaKeyTok, Format(WindowDate, 0, 9) + '|' + Format(CallCount), DataScope::Module);
+        VATRegNoLookupQuota.Init();
+        VATRegNoLookupQuota."Primary Key" := '';
+        VATRegNoLookupQuota.Insert();
     end;
 
     local procedure GetMaxDailyCallCount(): Integer
@@ -143,22 +137,12 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         exit(2000);
     end;
 
-    local procedure IsDailyQuotaEnforced(): Boolean
-    begin
-        if QuotaTestOverride then
-            exit(QuotaTestEnforced);
-        // Log-only during initial rollout: telemetry is emitted when the limit is reached, but lookups are not
-        // blocked yet. Set to true to enforce the cap once telemetry confirms no legitimate tenant reaches it.
-        exit(false);
-    end;
-
     // The following members exist only so the automated tests can exercise the daily-quota decision logic
     // without calling the external VIES service. They are internal, so the Base Application test libraries can
     // reach them but per-tenant extensions cannot influence or bypass the quota.
-    internal procedure SetVIESCallQuotaTestState(EnforceQuota: Boolean; MaxDailyCallCount: Integer)
+    internal procedure SetVIESCallQuotaLimitForTest(MaxDailyCallCount: Integer)
     begin
         QuotaTestOverride := true;
-        QuotaTestEnforced := EnforceQuota;
         QuotaTestMaxDailyCallCount := MaxDailyCallCount;
     end;
 
@@ -168,23 +152,36 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     end;
 
     internal procedure SeedVIESCallQuotaForTest(WindowDate: Date; CallCount: Integer)
+    var
+        VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota";
     begin
-        WriteVIESCallQuota(WindowDate, CallCount);
+        if not VATRegNoLookupQuota.Get() then begin
+            VATRegNoLookupQuota.Init();
+            VATRegNoLookupQuota."Primary Key" := '';
+            VATRegNoLookupQuota.Insert();
+        end;
+        VATRegNoLookupQuota."Window Date" := WindowDate;
+        VATRegNoLookupQuota."Daily Call Count" := CallCount;
+        VATRegNoLookupQuota.Modify();
     end;
 
-    internal procedure GetVIESCallCountForTest() CallCount: Integer
+    internal procedure GetVIESCallCountForTest(): Integer
     var
-        WindowDate: Date;
+        VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota";
     begin
-        ReadVIESCallQuota(WindowDate, CallCount);
-        if WindowDate <> Today() then
+        if not VATRegNoLookupQuota.Get() then
             exit(0);
+        if VATRegNoLookupQuota."Window Date" <> Today() then
+            exit(0);
+        exit(VATRegNoLookupQuota."Daily Call Count");
     end;
 
     internal procedure ClearVIESCallQuotaForTest()
+    var
+        VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota";
     begin
-        if IsolatedStorage.Contains(VIESCallQuotaKeyTok, DataScope::Module) then
-            IsolatedStorage.Delete(VIESCallQuotaKeyTok, DataScope::Module);
+        if VATRegNoLookupQuota.Get() then
+            VATRegNoLookupQuota.Delete();
     end;
 
     local procedure LookupVatRegistrationFromWebService(ShowErrors: Boolean)

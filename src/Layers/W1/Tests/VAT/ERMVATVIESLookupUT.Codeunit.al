@@ -47,7 +47,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
         // [GIVEN] An online (SaaS) environment where the daily VIES lookup quota is enforced at 3 lookups/day
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
-        VATLookupExtDataHndl.SetVIESCallQuotaTestState(true, 3);
+        VATLookupExtDataHndl.SetVIESCallQuotaLimitForTest(3);
 
         // [WHEN] The daily limit of lookups is registered
         for Index := 1 to 3 do
@@ -68,33 +68,6 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
     end;
 
     [Test]
-    procedure DailyVIESCallQuotaLogOnlyDoesNotBlock()
-    var
-        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
-        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
-        Index: Integer;
-    begin
-        // [FEATURE] [VIES] [Throttling]
-        // [SCENARIO] In log-only mode the daily quota keeps counting but never blocks a lookup.
-        Initialize();
-
-        // [GIVEN] An online (SaaS) environment with the quota in log-only mode and a limit of 2 lookups/day
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
-        VATLookupExtDataHndl.SetVIESCallQuotaTestState(false, 2);
-
-        // [WHEN] More lookups than the limit are registered
-        for Index := 1 to 5 do
-            VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
-
-        // [THEN] None are blocked and all are counted
-        Assert.AreEqual(5, VATLookupExtDataHndl.GetVIESCallCountForTest(), 'Log-only mode should keep counting without blocking.');
-
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
-        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
-    end;
-
-    [Test]
     procedure DailyVIESCallQuotaResetsOnNewDay()
     var
         VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
@@ -108,7 +81,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
 
         // [GIVEN] An online (SaaS) environment with the quota enforced at 3 lookups/day
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
-        VATLookupExtDataHndl.SetVIESCallQuotaTestState(true, 3);
+        VATLookupExtDataHndl.SetVIESCallQuotaLimitForTest(3);
         // [GIVEN] Yesterday already reached the daily limit
         VATLookupExtDataHndl.SeedVIESCallQuotaForTest(Today() - 1, 3);
 
@@ -140,7 +113,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
         // [GIVEN] An on-premises environment with an (irrelevant) enforced limit of 1 lookup/day
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
-        VATLookupExtDataHndl.SetVIESCallQuotaTestState(true, 1);
+        VATLookupExtDataHndl.SetVIESCallQuotaLimitForTest(1);
 
         // [WHEN] Several lookups are registered
         VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
