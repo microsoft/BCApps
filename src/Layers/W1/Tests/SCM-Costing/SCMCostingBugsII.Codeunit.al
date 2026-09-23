@@ -2924,6 +2924,7 @@ codeunit 137621 "SCM Costing Bugs II"
         AssemblyItem: Record Item;
         ComponentItem: Record Item;
         GeneralLedgerSetup: Record "General Ledger Setup";
+        InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)";
         ItemJournalBatch: Record "Item Journal Batch";
         Location: Record Location;
         ProdItem: Record Item;
@@ -2940,6 +2941,9 @@ codeunit 137621 "SCM Costing Bugs II"
         // [SCENARIO 647273] Re-adjusting an assembly order preserves standard cost precision when unit-amount and amount rounding precisions differ.
         Initialize();
         Quantity := 1000;
+
+        // [GIVEN] Automatic cost adjustment is disabled.
+        LibraryInventory.SetAutomaticCostAdjmtNever();
 
         // [GIVEN] Unit-amount rounding precision is 0.00001.
         GeneralLedgerSetup.Get();
@@ -2977,6 +2981,15 @@ codeunit 137621 "SCM Costing Bugs II"
             ComponentItem, Location."Code", '', '', Quantity, WorkDate(), ComponentItem."Standard Cost");
         LibraryAssembly.CreateAssemblyHeader(AssemblyHeader, WorkDate(), AssemblyItem."No.", Location.Code, Quantity, '');
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [GIVEN] The assembly order is marked for another cost-adjustment pass.
+        InventoryAdjmtEntryOrder.Get(InventoryAdjmtEntryOrder."Order Type"::Assembly, AssemblyHeader."No.", 0);
+        InventoryAdjmtEntryOrder."Cost is Adjusted" := false;
+        InventoryAdjmtEntryOrder.Modify();
+
+        // [WHEN] Adjust Cost is run again.
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
 
         // [THEN] Total variance remains 18.81; no additional variance is introduced by rounding the unit cost to 14.44.
         ExpectedVariance :=
