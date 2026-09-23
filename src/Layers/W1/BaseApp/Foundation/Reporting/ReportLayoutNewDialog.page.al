@@ -95,7 +95,7 @@ page 9662 "Report Layout New Dialog"
             {
                 Caption = 'Word Options';
                 ShowCaption = true;
-                Visible = FormatOptions = FormatOptions::Word;
+                Visible = (FormatOptions = FormatOptions::Word) and DocumentReportExperienceEnabled;
                 field(BodySubtype; BodySubtype)
                 {
                     ApplicationArea = Basic, Suite;
