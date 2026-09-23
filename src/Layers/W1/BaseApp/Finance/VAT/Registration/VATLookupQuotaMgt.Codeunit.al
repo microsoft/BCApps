@@ -24,7 +24,7 @@ codeunit 247 "VAT Lookup Quota Mgt."
     var
         DailyQuotaExceededErr: Label 'VAT registration number validation against the EU VIES service has reached the daily limit for this environment. Try again tomorrow, and avoid verifying VAT registration numbers in bulk.';
         DailyQuotaReachedMsg: Label 'The daily EU VAT reg. no. validation limit was reached for this environment.', Locked = true;
-        SecurityAuditDailyQuotaExceededTxt: Label 'An EU VAT Registration No. validation service (VIES) lookup was blocked because the environment reached its daily lookup limit.', Locked = true;
+        SecurityAuditDailyQuotaExceededTxt: Label 'The EU VAT Registration No. validation service (VIES) daily lookup limit was reached for this environment; further lookups are blocked for the rest of the day.', Locked = true;
         EUVATRegNoValidationServiceTok: Label 'EUVATRegNoValidationServiceTelemetryCategoryTok', Locked = true;
         QuotaTestOverride: Boolean;
         QuotaTestMaxDailyCallCount: Integer;
