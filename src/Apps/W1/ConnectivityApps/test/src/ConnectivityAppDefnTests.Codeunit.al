@@ -9,6 +9,7 @@ codeunit 139529 "Connectivity App Defn. Tests"
     TestPermissions = Disabled;
 
     var
+        Assert: Codeunit Assert;
         ConnectivityAppDefinitions: Codeunit "Connectivity App Definitions";
 
     [Test]
@@ -17,7 +18,6 @@ codeunit 139529 "Connectivity App Defn. Tests"
         TempConnectivityApp: Record "Connectivity App" temporary;
         TempApprovedForConnectivityAppCountryOrRegion: Record "Conn. App Country/Region" temporary;
         TempWorksOnConnectivityAppLocalization: Record "Conn. App Country/Region" temporary;
-        Assert: Codeunit Assert;
     begin
         Initialize();
 
@@ -75,7 +75,6 @@ codeunit 139529 "Connectivity App Defn. Tests"
     local procedure VerifyContiniaBankingDefinition(var TempConnectivityApp: Record "Connectivity App" temporary; var TempApprovedForConnectivityAppCountryOrRegion: Record "Conn. App Country/Region" temporary; var TempWorksOnConnectivityAppLocalization: Record "Conn. App Country/Region" temporary; AppIdText: Text[250]; LocalizationCode: Text[2]; ProductCode: Text[2]; ExpectedAppSourceURL: Text[2048]; CountryRegion: Enum "Conn. Apps Country/Region"; AppLocalization: Enum "Connectivity Apps Localization")
     var
         AppId: Guid;
-        Assert: Codeunit Assert;
     begin
         Evaluate(AppId, AppIdText);
         TempConnectivityApp.SetRange("App Id", AppId);
