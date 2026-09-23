@@ -22,6 +22,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT AL Test Suite Mgt" = X,
         codeunit "AIT Install" = X,
         codeunit "AIT Log Entry" = X,
+        codeunit "AIT SEVAL Token" = X,
         codeunit "AIT Test Data" = X,
         codeunit "AIT Test Suite Mgt." = X,
         codeunit "AIT Test Run Iteration" = X,
