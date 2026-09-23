@@ -174,9 +174,9 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     local procedure VerifyCompanyInformationProperties(CompanyInformationJSON: Text; var CompanyInformation: Record "Company Information")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        EnvironmentInformation: Codeunit "Environment Information";
         CompanyInformationRecordRef: RecordRef;
         EnterpriseNoFieldRef: FieldRef;
-        EnvironmentInformation: Codeunit "Environment Information";
         TaxRegistrationNumber: Text;
         Experience: Text;
     begin
