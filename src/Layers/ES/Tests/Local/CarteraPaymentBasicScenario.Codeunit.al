@@ -1783,6 +1783,39 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         Assert.AreEqual(NumberOfBills, CarteraDoc.Count(), 'All selected bills should be added to the Payment Order');
     end;
 
+    [Test]
+    [HandlerFunctions('CurrenciesPageHandler,BankAccountListPageHandler,CarteraDocumentsActionModalPageHandler,ConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure PaymentOrderPostedInForeignCurrencyPopulatesSourceCurrencyOnGLEntries()
+    var
+        Currency: Record Currency;
+        GLEntry: Record "G/L Entry";
+        PaymentOrder: Record "Payment Order";
+        Vendor: Record Vendor;
+        InvoiceNo: Code[20];
+        SettleAmount: Decimal;
+    begin
+        // [FEATURE] [Payment Order] [Currency]
+        // [SCENARIO 650508] Payment orders posted in foreign currency should populate Source Currency Code and Amount on G/L entries.
+        Initialize();
+
+        // [GIVEN] A vendor bill and payment order both use USD as the source currency.
+        Currency.Get('USD');
+        PrepareVendorRelatedRecords(Vendor, Currency.Code);
+        CreateAndPostInvoiceWOutVAT(Vendor, SettleAmount, InvoiceNo, WorkDate(), Currency.Code);
+        CreateAndPostPaymentOrder(PaymentOrder, Currency.Code, WorkDate() + 1, InvoiceNo);
+
+        // [WHEN] The G/L entries created by the posted payment order are reviewed.
+        GLEntry.SetRange("Document No.", PaymentOrder."No.");
+        GLEntry.FindSet();
+        repeat
+            if GLEntry.Amount <> 0 then begin
+                Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
+                Assert.AreNotEqual(0, GLEntry."Source Currency Amount", 'Source Currency Amount must be populated on posted payment-order G/L entries.');
+            end;
+        until GLEntry.Next() = 0;
+    end;
+
     local procedure Initialize()
     begin
         LibraryReportDataset.Reset();
