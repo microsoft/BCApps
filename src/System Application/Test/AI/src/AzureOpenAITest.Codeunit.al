@@ -38,7 +38,7 @@ codeunit 132684 "Azure OpenAI Test"
         LibraryAssert.AreEqual('gpt-56-ceres-preview', AOAIDeployments.GetGPT56CeresPreview(), 'The GPT-5.6 Ceres preview deployment name should be returned.');
     end;
 
-#if not CLEAN30
+#if not CLEAN29
 #pragma warning disable AL0432
     [Test]
     procedure TestGPT55ChatDeploymentNames()
@@ -885,7 +885,7 @@ codeunit 132684 "Azure OpenAI Test"
         // [THEN] Supported preview deployments do not raise an error.
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT41MiniPreview());
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT56CeresPreview());
-#if not CLEAN30
+#if not CLEAN29
 #pragma warning disable AL0432
         AzureOpenAITestLibrary.CheckAOAIChatMessagesCompatibilityWithModel(AOAIChatMessages, AOAIDeployments.GetGPT55ChatPreview());
 #pragma warning restore AL0432

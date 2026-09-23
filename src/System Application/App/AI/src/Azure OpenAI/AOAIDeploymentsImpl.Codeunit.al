@@ -26,7 +26,7 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT41MiniPreviewLbl: Label 'gpt-41-mini-preview', Locked = true;
         GPT53ChatLatestLbl: Label 'gpt-53-chat-latest', Locked = true;
         GPT53ChatPreviewLbl: Label 'gpt-53-chat-preview', Locked = true;
-#if not CLEAN30
+#if not CLEAN29
         GPT55ChatLatestLbl: Label 'gpt-55-chat-latest', Locked = true;
         GPT55ChatPreviewLbl: Label 'gpt-55-chat-preview', Locked = true;
 #endif
@@ -87,7 +87,7 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT53ChatPreviewLbl));
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     procedure GetGPT55ChatLatest(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT55ChatLatestLbl));
@@ -111,7 +111,7 @@ codeunit 7769 "AOAI Deployments Impl"
 
     procedure IsFileContentSupported(DeploymentName: Text): Boolean
     begin
-#if not CLEAN30
+#if not CLEAN29
         if DeploymentName = GPT55ChatPreviewLbl then
             exit(true);
 #endif
@@ -131,7 +131,7 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
         DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
 #endif
-#if not CLEAN30
+#if not CLEAN29
         DeprecatedDeployments.Add(GPT55ChatLatestLbl, DMY2Date(11, 9, 2026));
         DeprecatedDeployments.Add(GPT55ChatPreviewLbl, DMY2Date(11, 9, 2026));
 #endif
