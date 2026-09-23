@@ -19,13 +19,10 @@ codeunit 134080 "WFW FA Journal Batch"
         LibraryWorkflow: Codeunit "Library - Workflow";
         LibraryRandom: Codeunit "Library - Random";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
-        LibraryInventory: Codeunit "Library - Inventory";
         WorkflowSetup: Codeunit "Workflow Setup";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         MockOnFindTaskSchedulerAllowed: Codeunit MockOnFindTaskSchedulerAllowed;
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
         IsInitialized: Boolean;
         BogusUserIdTxt: Label 'CONTOSO';
         DynamicRequestPageParametersFAJournalBatchTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="FA Journal Line">VERSION(1) SORTING(Field1,Field51,Field2)</DataItem></DataItems></ReportParameters>', Locked = true;
@@ -34,7 +31,6 @@ codeunit 134080 "WFW FA Journal Batch"
         UnexpectedNoOfWorkflowStepInstancesErr: Label 'Unexpected number of workflow step instances found.';
         UnexpectedNoOfApprovalEntriesErr: Label 'Unexpected number of approval entries found.';
         ApprovalCommentWasNotDeletedErr: Label 'The approval comment for this approval entry was not deleted.';
-        PreventInsertRecordWithOpenApprovalEntryForCurrUserMsg: Label 'You can''t insert a record for active batch approval request. To insert a record, you can Reject approval and document requested changes in approval comment lines.';
         PreventDeleteRecordWithOpenApprovalEntryForCurrUserMsg: Label 'You can''t delete a record that has open approval entries. To delete a record, you can Reject approval and document requested changes in approval comment lines.';
         PreventModifyRecordWithOpenApprovalEntryMsg: Label 'You can''t modify a record pending approval. Add a comment or reject the approval to modify the record.';
         ImposedRestrictionLbl: Label 'Imposed restriction';
@@ -52,10 +48,6 @@ codeunit 134080 "WFW FA Journal Batch"
         BatchWorkflowStatusFactboxMustNotBeVisibleLbl: Label 'Batch workflow Status factbox must not be visible';
         BatchWorkflowStatusFactboxMustBeVisibleLbl: Label 'Batch workflow Status factbox must be visible';
         ImposedRestrictionMustBeShownLbl: Label 'Imposed restriction must be shown.';
-        ApprovalCommentActionMustBeVisibleLbl: Label 'Approval Comment action must be visible.';
-        ApprovalCommentActionMustNotBeVisibleLbl: Label 'Approval Comment action must not be visible.';
-        PageContainsWrongNumberOfCommentsLbl: Label 'The %1 page contains the wrong number of comments. Comments must be equal to %2', Comment = '%1 = Page Name, %2 = No. of Comments';
-        TestCommentLbl: Label 'Test Comment';
 
     [Test]
     procedure TestEnsureNecessaryTableRelationsAreSetup()
