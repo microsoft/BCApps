@@ -2544,7 +2544,7 @@ codeunit 1535 "Approvals Mgmt."
     begin
         GetFAJournalBatch(FAJournalBatch, FAJournalLine);
 
-        ApprovalEntry.SetRange("Table ID", Database::"Item Journal Batch");
+        ApprovalEntry.SetRange("Table ID", Database::"FA Journal Batch");
         ApprovalEntry.SetRange("Record ID to Approve", FAJournalBatch.RecordId());
         ApprovalEntry.SetRange("Related to Change", false);
         Page.Run(Page::"Approval Entries", ApprovalEntry);
