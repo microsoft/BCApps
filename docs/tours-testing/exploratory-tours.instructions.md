@@ -11,7 +11,7 @@ exactly one of them:
 
 | Document | Owns |
 | --- | --- |
-| [`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) | What the application covers, area → repo mapping, the seams, demo-data reality, which tours suit which area |
+| [`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) | Where the code is, what the application covers, area → repo mapping, the seams, demo-data reality, which tours suit which area |
 | [`bc-test-environment.instructions.md`](./bc-test-environment.instructions.md) | Container lifecycle: create unattended, URL, credentials, cold start, teardown |
 | [`playwright-bc.instructions.md`](./playwright-bc.instructions.md) | Driving the client and querying the database |
 | [`harness/`](./harness/README.md) | Runnable code — helpers, scanners, worked probes |
@@ -320,7 +320,7 @@ Wrong-oracle mistakes are as common as wrong-probe ones, and louder:
 
 Confirm a table, column or enum means what you think **from the data**, before it decides a verdict.
 Anchor tables that have been checked in a container are listed in
-[`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) §5.
+[`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) §6.
 
 ### 5.7 Empty is the most dangerous result
 

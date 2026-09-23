@@ -26,7 +26,34 @@ What they are **not** is a statement of what the code does. Never file a finding
 differs from the docs without checking source and configuration first; and never assume a
 documented feature is installed or populated in your container (§3 gates 3 and 4).
 
-## 1. The areas
+## 1. Where the code is
+
+Everything lives under `src/`. The two that matter for touring:
+
+| Path | Holds |
+| --- | --- |
+| `src/Layers/W1/BaseApp/` | The worldwide Base Application — where most of the areas below live |
+| `src/Layers/W1/Tests/` | Its tests. Useful for seeing what the feature team already covered (§1) |
+| `src/Layers/<CC>/` | Country layers — `DE`, `NA`, `IT`, `ES`, `GB`, … Parallel implementations, so the home of differential touring (§7) |
+| `src/Apps/W1/` | Newer bolt-on apps shipped alongside the Base Application |
+| `src/System Application/` | Platform-level services, not business logic |
+| `src/Business Foundation/` | Shared business primitives |
+
+Files are named `<Name>.<Type>.al` — `Page`, `Table`, `Codeunit`, `Report`, `Enum`, `Query`,
+`PageExt`. So the type is greppable: `**/*.Codeunit.al` searches only code, `**/*.Page.al` only UI.
+
+**Getting from what you saw to the source:**
+
+| You have | Find it by |
+| --- | --- |
+| A page caption | grep the caption in `**/*.Page.al` — or read `SourceTable` from the page to get the table |
+| An error message | grep a distinctive fragment; messages are `Label` constants in the object that raises them |
+| A field that misbehaved | find it in the `Table`, then grep the field name across `**/*.Codeunit.al` for the logic that reads it |
+| A table name from SQL | strip the company prefix and GUID suffix — `CRONUS International Ltd_$Requisition Line$<guid>` is table `Requisition Line` |
+
+§6.7 of the tours guide is the reading technique once you are in the file.
+
+## 2. The areas
 
 Docs area → repo folder under `src/Layers/W1/BaseApp/` (`.al` file counts, for a sense of mass).
 
@@ -57,7 +84,7 @@ Planning and Workflow are documented as areas but live inside others:
 Outside BaseApp, `src/Apps/W1/*` holds the newer bolt-on apps — Sustainability, ExpenseAgent,
 EDocument, Shopify, Subscription Billing, Subcontracting, ExciseTaxes.
 
-## 2. Where the defects actually live — the seams
+## 3. Where the defects actually live — the seams
 
 The docs describe areas; the product is a set of **processes that cross them**. Every confirmed
 finding these tours produced sat on a crossing, not inside a box.
@@ -74,7 +101,7 @@ finding these tours produced sat on a crossing, not inside a box.
 
 **Prefer a charter that crosses a seam over one that stays inside a folder.**
 
-## 3. Demo-data reality (measured, not assumed)
+## 4. Demo-data reality (measured, not assumed)
 
 CRONUS covers the classic Base Application and little else. Re-run the census (§3 gate 4) — these
 were true on build 30.0.54812.0-W1:
@@ -91,7 +118,7 @@ were true on build 30.0.54812.0-W1:
 - `Requisition Line`, `Planning Component` start empty, so count-based oracles are safe there —
   but see §5.5, count oracles are weak anyway.
 
-## 4. Choosing tours by area
+## 5. Choosing tours by area
 
 | Area shape | Tours that fit |
 | --- | --- |
@@ -108,7 +135,7 @@ Two cautions learned the hard way:
   fit for anything driven by a request page (planning, batch posting) — the run commits regardless.
 - **High churn in codeunits means write integration tests, not run a tour** (§3).
 
-## 5. Anchor tables
+## 6. Anchor tables
 
 Names must be discovered, never constructed (playwright §9). These were verified in a container
 this session and are safe starting points:
@@ -125,3 +152,4 @@ this session and are safe starting points:
 
 For anything else, discover it — and confirm it means what you think before it decides a verdict
 (§5.6).
+
