@@ -70,13 +70,13 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         AuditLog: Codeunit "Audit Log";
     begin
         // The unauthenticated EU VIES service deny-lists the shared outbound IP address of a cloud app service
-        // when it receives high-volume validation, which then affects every co-located tenant on that address.
-        // Cap the number of VIES lookups per environment per day so a single tenant cannot flood VIES - from any
-        // session type (interactive, background or API) and from either the Base Application or a per-tenant
+        // when it receives high-volume validation, which then affects every co-located environment on that address.
+        // Cap the number of VIES lookups per environment per day so a single environment cannot flood VIES - from
+        // any session type (interactive, background or API) and from either the Base Application or a per-tenant
         // extension that reuses this codeunit - and get the shared address deny-listed. The count is kept in a
-        // single tenant-wide row (DataPerCompany = false) that is locked for the brief read-modify-write, so
-        // concurrent sessions increment it atomically without lost updates. Enforced online (SaaS) only; on-prem
-        // tenants own their own outbound address and only affect themselves.
+        // single row shared by all companies in the database (DataPerCompany = false) that is locked for the brief
+        // read-modify-write, so concurrent sessions increment it atomically without lost updates. Enforced online
+        // (SaaS) only; on-prem environments own their own outbound address and only affect themselves.
         if not EnvironmentInformation.IsSaaS() then
             exit;
 
@@ -113,16 +113,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
         if VATRegNoLookupQuota.Get() then
             exit;
         // Create the single row on first use. Do not rely on install/upgrade triggers - they are not guaranteed
-        // to have run for every tenant. A concurrent creator makes the insert fail; the row is then read below.
-        if not TryInsertVIESCallQuotaRow() then;
-        VATRegNoLookupQuota.Get();
-    end;
-
-    [TryFunction]
-    local procedure TryInsertVIESCallQuotaRow()
-    var
-        VATRegNoLookupQuota: Record "VAT Reg. No. Lookup Quota";
-    begin
+        // to have run for every environment.
         VATRegNoLookupQuota.Init();
         VATRegNoLookupQuota."Primary Key" := '';
         VATRegNoLookupQuota.Insert();
@@ -132,7 +123,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     begin
         if QuotaTestOverride then
             exit(QuotaTestMaxDailyCallCount);
-        // Legitimate use is < ~200 lookups per tenant per day (99th percentile). 2000 leaves generous headroom
+        // Legitimate use is < ~200 lookups per environment per day (99th percentile). 2000 leaves generous headroom
         // while staying roughly 10x below the daily volume at which VIES deny-lists a shared outbound address.
         exit(2000);
     end;

@@ -5,10 +5,11 @@
 namespace Microsoft.Finance.VAT.Registration;
 
 /// <summary>
-/// Tenant-wide counter that tracks the number of EU VIES VAT registration number lookups performed per day.
-/// Used to cap the daily lookup volume per environment so a single tenant cannot flood the shared, unauthenticated
-/// VIES service and get the shared outbound IP address deny-listed. Holds a single row that is locked for the brief
-/// read-modify-write, so concurrent sessions increment it atomically.
+/// Per-environment counter that tracks the number of EU VIES VAT registration number lookups performed per day.
+/// Used to cap the daily lookup volume per environment (all companies in the database share one counter) so a
+/// single environment cannot flood the shared, unauthenticated VIES service and get the shared outbound IP address
+/// deny-listed. Holds a single row that is locked for the brief read-modify-write, so concurrent sessions
+/// increment it atomically.
 /// </summary>
 table 243 "VAT Reg. No. Lookup Quota"
 {
