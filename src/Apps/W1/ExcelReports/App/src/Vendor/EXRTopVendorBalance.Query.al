@@ -37,8 +37,15 @@ query 4401 "EXR Top Vendor Balance"
             filter(Currency_Code; "Currency Code")
             {
             }
-            filter(VendorPostingGroup; "Posting Group")
+
+            dataitem(Vendor_Ledger_Entry; "Vendor Ledger Entry")
             {
+                DataItemLink = "Entry No." = Detailed_Vendor_Ledger_Entry."Vendor Ledger Entry No.";
+                SqlJoinType = InnerJoin;
+
+                filter(VendorPostingGroup; "Vendor Posting Group")
+                {
+                }
             }
         }
     }

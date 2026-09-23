@@ -8,6 +8,7 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
+using Microsoft.Warehouse.Activity;
 
 codeunit 30262 "Shpfy Document Link Mgt."
 {
@@ -63,11 +64,9 @@ codeunit 30262 "Shpfy Document Link Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', true, false)]
-    local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
+    local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; CommitIsSuppressed: Boolean; InvtPickPutaway: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
     var
-        SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesShipments: List of [Code[20]];
+        AutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
     begin
         if SalesHeader.IsTemporary() then
             exit;
@@ -75,6 +74,44 @@ codeunit 30262 "Shpfy Document Link Mgt."
         if PreviewMode then
             exit;
 
+        CreateDocLinksToBCDocs(SalesHeader, SalesShptHdrNo, SalesInvHdrNo, RetRcpHdrNo, SalesCrMemoHdrNo);
+
+        if CommitIsSuppressed or InvtPickPutaway then
+            exit;
+
+        // CreateDocLinksToBCDocs can open a write transaction after Sales-Post's final commit.
+        // Flush those links before invoking the isolated Codeunit.Run posting operations.
+        Commit();
+        AutoPostTransactions.AutoPostTransactions(SalesInvHdrNo, SalesCrMemoHdrNo);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnAfterPostWhseActivityCompleted', '', false, false)]
+    local procedure OnAfterPostWhseActivityCompleted(WhseActivHeader: Record "Warehouse Activity Header"; var SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; IsPreview: Boolean)
+    var
+        AutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
+    begin
+        if not (WhseActivHeader.Type in [WhseActivHeader.Type::"Invt. Pick", WhseActivHeader.Type::"Invt. Put-away"]) then
+            exit;
+        if SuppressCommit or IsPreview or (SalesHeader."Last Posting No." = '') then
+            exit;
+
+        Commit();
+        case SalesHeader."Document Type" of
+            SalesHeader."Document Type"::Order,
+            SalesHeader."Document Type"::Invoice:
+                AutoPostTransactions.AutoPostTransactions(SalesHeader."Last Posting No.", '');
+            SalesHeader."Document Type"::"Return Order",
+            SalesHeader."Document Type"::"Credit Memo":
+                AutoPostTransactions.AutoPostTransactions('', SalesHeader."Last Posting No.");
+        end;
+    end;
+
+    local procedure CreateDocLinksToBCDocs(var SalesHeader: Record "Sales Header"; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesShipments: List of [Code[20]];
+    begin
         DocLinkToBCDoc.SetRange("Document Type", ShpfyBCDocumentTypeConvert.Convert(SalesHeader."Document Type"));
         DocLinkToBCDoc.SetRange("Document No.", SalesHeader."No.");
         DocLinkToBCDoc.SetCurrentKey("Document Type", "Document No.");
