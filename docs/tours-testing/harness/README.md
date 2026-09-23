@@ -82,6 +82,11 @@ Each session also needs its **own scratch folder**, since probe files are edited
 | `readError(frame)` | Collects text from all four error surfaces, and returns `confirmation` separately — a Yes/No dialog means BC is *proceeding*, not refusing. Scans **every** stacked dialog, discards pages that are themselves rendered as dialogs (returning them under `chrome`), and matches BC's many phrasings of a refusal, not just *"must be"*. |
 | `dismissDialog(frame)` | `Escape`, repeatedly. Dialog buttons resist pointer clicks and dialogs stack. |
 | `answerConfirm(page, frame, 'Yes')` | Answers a confirmation by focus + `Enter`. A pointer click on *Yes* can neither answer nor error. **Then assert in SQL that the record changed** — the answer is not evidence. |
+| `setOption(page, frame, label, value)` | Sets a request-page dropdown and **throws unless it committed**. Handles the native `<select>` BC uses for enums, and reads back the caption rather than the index. |
+| `getOption(frame, label)` | Reads an option field's caption. Never read `.value` yourself — on a `<select>` it is the index. |
+| `openAction(page, frame, name, group)` | Clicks a ribbon action, opening its collapsed group first. A 0-count action is a locator claim, not proof of absence. |
+| `dismissTeachingTip(page, frame)` | Closes the *"About <page>"* tip via its own **Got it**. `Escape` would close the page behind it. |
+| `topDialog(frame)` | The dialog on top, for scoping input. Request-page captions collide with the grid behind them. |
 | `settleOverlay(page, frame)` | Waits out `.spa-dialog.appear-fadeout`, which outlives its dialog and intercepts clicks for ~30 s. |
 | `clickSettled(page, frame, locator)` | `settleOverlay` + click, with retries. Use for grid clicks after any dialog round-trip. |
 

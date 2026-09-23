@@ -83,8 +83,14 @@ function field(frame, name) {
 // Same lookup, but tolerant of the label appearing in both the card and the list behind it.
 // Returns the first VISIBLE, ENABLED input, falling back to the first visible one so that a
 // deliberately read-only field is still reported (rather than looking absent).
-async function fieldOne(frame, name) {
-  const all = field(frame, name);
+//
+// `root` scopes the search. Pass the result of topDialog() when driving a REQUEST PAGE: its
+// captions collide with the worksheet grid underneath, so `Starting Date`, `No.` and
+// `Description` each resolve to two inputs and an unscoped locator silently drives the GRID
+// instead of the dialog.
+async function fieldOne(frame, name, { root = null } = {}) {
+  const all = root ? root.getByLabel(name, { exact: true }).and(root.locator('input'))
+                   : field(frame, name);
   const n = await all.count().catch(() => 0);
   if (!n) return null;
   let firstVisible = null;
@@ -95,6 +101,14 @@ async function fieldOne(frame, name) {
     if (await el.isEditable().catch(() => false)) return el;
   }
   return firstVisible;
+}
+
+// The dialog currently on top, or the frame if there is none. Dialogs stack (see readError),
+// and for INPUT the newest is the one the user is typing into.
+async function topDialog(frame) {
+  const d = frame.getByRole('dialog');
+  const n = await d.count().catch(() => 0);
+  return n ? d.nth(n - 1) : frame;
 }
 
 async function launch({ headless = true } = {}) {
@@ -341,6 +355,157 @@ async function answerConfirm(page, frame, answer = 'Yes') {
   return true;
 }
 
+// --- Request pages ----------------------------------------------------------
+// A report/batch request page (Calculate Regenerative Plan, Carry Out Action Message) is
+// rendered as role="dialog" and is where a tour is most likely to be silently defeated.
+
+// Set an OPTION (dropdown) field and PROVE it committed.
+//
+// This is the helper whose absence ended a Charter mid-session. `Carry Out Action Message`
+// defaults its four Create-* options to "Last used options and filters", so a run that inherits
+// blank completes with no error and CREATES NOTHING. The probe and its control were both
+// silent, which is the §5.3 signature of a broken instrument rather than a product defect.
+//
+// TWO TRAPS, both of which made the field look undriveable:
+//
+//   1. BC renders an ENUM option on a request page as a native `<select>`, not as the
+//      combobox-style `<input>` used everywhere else. `getByLabel(...).and(locator('input'))`
+//      therefore finds nothing and the field reports as absent. Playwright's selectOption()
+//      drives a real <select> reliably - no typing, no clicking the list open.
+//
+//   2. A `<select>`'s `.value` is the option INDEX, not its caption. Reading it back gives
+//      "0" / "1", so a probe that sets "Firm Planned" and reads "0" concludes the write was
+//      refused when it may well have succeeded. Always read `selectedOptions[0].text`.
+//
+// The caption is also not what the AL source suggests: the field labelled `Create Production
+// Order` in code is labelled just **"Production Order"** in the DOM, so matching is fuzzy on
+// purpose.
+//
+// ⚠️ THROWS if the value did not commit. That is the point: a dropdown that silently refuses
+// to change turns every downstream probe into a false negative.
+async function findOptionControl(frame, label) {
+  return frame.evaluate((wanted) => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const want = norm(wanted);
+    const labelOf = (el) => {
+      const byId = (el.getAttribute('aria-labelledby') || '').split(/\s+/).filter(Boolean)
+        .map((id) => document.getElementById(id)?.innerText || '').join(' ');
+      return norm(el.getAttribute('aria-label') || byId);
+    };
+    const match = (t) => !!t && (t === want || t.includes(want) || want.includes(t));
+    const scan = (sel, kind) => {
+      const els = [...document.querySelectorAll(sel)];
+      for (let i = 0; i < els.length; i++) {
+        const t = labelOf(els[i]);
+        if (match(t)) {
+          return {
+            kind, index: i, label: t,
+            options: kind === 'select' ? [...els[i].options].map((o) => o.text) : [],
+          };
+        }
+      }
+      return null;
+    };
+    return scan('select', 'select') || scan('input[role="combobox"]', 'input');
+  }, label);
+}
+
+async function setOption(page, frame, label, value) {
+  const ctl = await findOptionControl(frame, label);
+  if (!ctl) throw new Error(`option field '${label}' not found on the request page`);
+
+  if (ctl.kind === 'select') {
+    const sel = frame.locator('select').nth(ctl.index);
+    const readText = () => frame.evaluate(
+      (i) => { const s = document.querySelectorAll('select')[i];
+               return s && s.selectedOptions[0] ? s.selectedOptions[0].text.trim() : ''; },
+      ctl.index);
+
+    if ((await readText()) === value) return value;
+    await sel.selectOption({ label: value }).catch(async () => {
+      // Fall back to the keyboard when the caption does not match exactly.
+      await sel.focus();
+      for (let i = 0; i < 40 && (await readText()) !== value; i++) {
+        await page.keyboard.press('ArrowDown');
+        await page.waitForTimeout(100);
+      }
+    });
+    await page.waitForTimeout(800);
+
+    const got = await readText();
+    if (got === value) return got;
+    throw new Error(
+      `could not set option '${label}' to '${value}' - it reads '${got}'. ` +
+      `Available: ${JSON.stringify(ctl.options)}. Do NOT continue: a request page whose ` +
+      `options did not commit produces a silent no-op, and every probe after this point ` +
+      `would be a false negative.`);
+  }
+
+  // Combobox-style option field: type the caption and commit.
+  const input = frame.locator('input[role="combobox"]').nth(ctl.index);
+  const read = async () => (await input.inputValue().catch(() => '')).trim();
+  for (const key of ['Enter', 'Tab']) {
+    await input.click().catch(() => {});
+    await page.keyboard.press('Control+a').catch(() => {});
+    await input.type(value, { delay: 30 }).catch(() => {});
+    await page.keyboard.press(key).catch(() => {});
+    await page.waitForTimeout(800);
+    if ((await read()) === value) return value;
+  }
+  throw new Error(
+    `could not set option '${label}' to '${value}' - it reads '${await read()}'. ` +
+    `Do NOT continue: every probe after this point would be a false negative.`);
+}
+
+// Read an option field's CAPTION (never its index - see the trap above).
+async function getOption(frame, label) {
+  const ctl = await findOptionControl(frame, label);
+  if (!ctl) return null;
+  if (ctl.kind === 'select') {
+    return frame.evaluate(
+      (i) => { const s = document.querySelectorAll('select')[i];
+               return s && s.selectedOptions[0] ? s.selectedOptions[0].text.trim() : ''; },
+      ctl.index);
+  }
+  return (await frame.locator('input[role="combobox"]').nth(ctl.index)
+    .inputValue().catch(() => '')).trim();
+}
+
+// Click a ribbon action, opening its GROUP first if necessary.
+//
+// Ribbon groups collapse their contents out of the DOM entirely: `Calculate Regenerative Plan`
+// and `Carry Out Action Message` do not exist until the `Prepare` group is clicked. A zero
+// count is therefore a claim about the locator, never proof the action is absent (§6.3).
+async function openAction(page, frame, name, group = null) {
+  const find = () => frame.getByRole('menuitem', { name, exact: false });
+  if (!(await find().count().catch(() => 0)) && group) {
+    await frame.getByRole('menuitem', { name: group, exact: false }).first()
+      .click().catch(() => {});
+    await page.waitForTimeout(1200);
+  }
+  if (!(await find().count().catch(() => 0))) {
+    throw new Error(
+      `action '${name}' not found${group ? ` (tried opening group '${group}')` : ''} - ` +
+      `ribbon groups hide their actions, so try passing the group name before concluding ` +
+      `the action does not exist`);
+  }
+  await clickSettled(page, frame, find().first());
+  await page.waitForTimeout(2000);
+  return appFrame(page);
+}
+
+// Dismiss the "About <page>" teaching tip that greets a first visit.
+//
+// ⚠️ It must be closed with its own "Got it" button. Escape would close the PAGE behind it
+// (playwright-bc §6), which looks like the page failing to open.
+async function dismissTeachingTip(page, frame) {
+  const btn = frame.getByRole('button', { name: /got it/i }).last();
+  if (!(await btn.count().catch(() => 0))) return false;
+  await clickSettled(page, frame, btn).catch(() => {});
+  await page.waitForTimeout(800);
+  return true;
+}
+
 // Identity oracle for an open card.
 //
 // There is no usable record identity INSIDE the app frame. On a Service Order card:
@@ -366,4 +531,5 @@ module.exports = {
   BASE, CREDS, CONTAINER, appFrame, signIn, openPage, field, fieldOne, launch,
   newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
   settleOverlay, clickSettled, answerConfirm,
+  topDialog, setOption, getOption, findOptionControl, openAction, dismissTeachingTip,
 };

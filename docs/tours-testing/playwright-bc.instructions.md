@@ -390,6 +390,43 @@ check caught. Use `answerConfirm()`, which focuses the button and presses `Enter
 > **After answering a confirmation, assert in SQL that the underlying record actually changed.**
 > "I clicked Yes and saw no error" proves nothing about what BC did.
 
+### ⚠️ Request pages are where a tour gets silently defeated
+
+A batch/report request page (*Calculate Regenerative Plan*, *Carry Out Action Message*) is the
+highest-risk surface in the harness, because getting it wrong produces **total silence** rather
+than an error — and silence is indistinguishable from "the product did nothing".
+
+This cost a charter. `Carry Out Action Message` defaults its four Create-\* options to *"Last used
+options and filters"*, so a session that inherits a purchase-only run arrives with
+`Production Order` blank. Carry-out then completes with **no error and creates nothing**. Both the
+probe *and its control* were silent — the §5.3 signature of a broken instrument, not a finding.
+
+Three traps, all of which make an option field look undriveable:
+
+| Trap | What you see | Reality |
+|---|---|---|
+| BC renders enums as a native `<select>`, not the combobox `<input>` used elsewhere | `getByLabel(...).and(locator('input'))` finds nothing; the field reports as **absent** | Use `selectOption()` — no typing, no opening the list |
+| A `<select>`'s `.value` is the option **index** | You set *Firm Planned*, read back `"0"`, and conclude the write was refused | Read `selectedOptions[0].text` |
+| The DOM caption is not the AL caption | `Create Production Order` matches nothing | It is labelled just **"Production Order"** |
+
+`setOption()` handles all three and **throws unless the value actually committed** — deliberately,
+because a request page whose options did not commit turns every later probe into a false negative.
+`getOption()` reads the caption.
+
+Two more request-page traps:
+
+- **Ribbon groups hide their actions.** *Calculate Regenerative Plan* and *Carry Out Action
+  Message* are absent from the DOM until the **Prepare** group is clicked. A zero count is a claim
+  about the locator, never proof the action is absent (§6.3). Use `openAction(page, frame, name,
+  group)`.
+- **Request-page captions collide with the grid behind them.** `Starting Date`, `No.` and
+  `Description` each resolve to two inputs; an unscoped locator drives the **worksheet grid**
+  instead of the dialog. Scope with `topDialog(frame)`.
+
+And one page-level trap: a first visit raises an **"About …" teaching tip** that must be closed
+with its own **Got it** button — `Escape` would close the page behind it (§6). Use
+`dismissTeachingTip()`.
+
 ## 9. SQL as the oracle
 
 The BC API v2.0 on port 7048 **rejects the container password** for basic auth — it needs a web
