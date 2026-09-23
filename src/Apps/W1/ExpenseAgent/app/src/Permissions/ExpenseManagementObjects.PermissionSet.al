@@ -168,6 +168,7 @@ permissionset 6904 "Expense Management - Objects"
         page "Travel Request Card" = X,
         page "Travel Request Subform" = X,
         page "Travel Request List" = X,
+        codeunit "Travel Request Approval" = X,
         codeunit "Expense Attachment Mgt." = X,
         codeunit "Expense Auto Population" = X,
         codeunit "Expense Event Subscriber" = X,
