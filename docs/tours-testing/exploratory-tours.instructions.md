@@ -66,6 +66,21 @@ One sentence, with a time-box:
 A charter is a mission, not a script. 60–90 minutes is a normal session. Stop when the box is
 empty, not when you run out of ideas — leftover ideas become the next charter.
 
+**Assume the sunshine path is already tested.** The engineers who built the feature wrote tests for
+it, and the build gates on them. A charter that spends its box confirming that a well-configured
+item plans correctly, or that a clean order posts, is buying information the team already has —
+and finding nothing there is not a result.
+
+State the assumption in the charter, so the session is not tempted back to it:
+
+> *Out of scope (assumed developer-tested): a Lot-for-Lot item with a clean demand signal
+> producing a sensible planning line.*
+
+Aim instead at the awkward middle: partial states, conflicting parameters, interrupted runs,
+values at the edge of what setup permits, and the boundaries between this area and its neighbours.
+That is the ground unit tests do not cover, because nobody writes a unit test for a combination
+they did not think of.
+
 **A charter may take more than one sitting.** One finding here needed three: sittings 1 and 2 had
 only a count delta, and forcing a verdict inside either box would have produced a false finding or
 lost a real one. A candidate carried forward *with the exact snapshot it needs* is a success, not
@@ -504,6 +519,29 @@ pattern all report the same date and SHA.
 History answers *"what changed recently?"* (§3) but never *"which came first?"*. When intent depends
 on chronology, say the evidence is unavailable and route the question to the owning team.
 
+### 6.7 Asymmetry inside one procedure is the strongest signal there is
+
+Every confirmed finding this repo's tours have produced was the same shape: **one procedure
+treating neighbouring things differently, with nothing in the domain to justify it.**
+
+| Finding | The asymmetry |
+| --- | --- |
+| Negative reorder quantity crashes planning | `AdjustInvalidValues` clamps four negative planning fields and **not the fifth** |
+| Orders exceed their declared maximum | `Order Multiple` rounds **up** *after* the maximum cap, and the cap is never re-checked |
+| Planned supply deleted outside the window | the delete is **undated** while the recreate is `ToDate`-bounded — and a date-bounded filter sits eleven lines below it |
+
+In each case date-bounding, or clamping, was demonstrably *in mind* at that point in the code.
+That is what separates an oversight from a decision.
+
+**This is not the same as the weak signal in §5.2.** Asymmetry between neighbouring *fields* in
+metadata is usually correct — `Line Discount %` is range-checked and `Unit Price` is not, because
+one has a mathematical range and the other carries meaning in its sign. Asymmetry between
+neighbouring *code paths in one procedure* is where the defects were.
+
+**Duplicated code multiplies it.** A comment reading *"Copy of AdjustReorderQty in COD 99000854"*
+meant one arithmetic bug shipped in two engines, kept in step only by luck. Grep for `Copy of`,
+`Duplicate of` and similar: each is a place where a fix may have landed once.
+
 ## 7. Differential touring across parallel modules
 
 BC contains near-duplicate subsystems — Sales vs Purchase, Quote/Order/Invoice/Credit Memo, Item vs
@@ -573,6 +611,7 @@ One file per session, in `docs/tours/`.
 
 ## Charter
 Explore <area> with <technique> to discover <information>.
+Out of scope (assumed developer-tested): <the sunshine path for this area>.
 
 ## Environment
 | | |
@@ -635,6 +674,8 @@ blocked a setup change. **Sometimes the residue is the test case.**
 - **Concluding from a scan** — §6.3. A scan generates hypotheses, never verdicts.
 - **Touring a shared dev container** — exploratory testing is destructive.
 - **Treating a tour list as a checklist** — the catalog generates ideas; it is not a coverage target.
+- **Re-testing the sunshine path** — §1. The feature team already tested it and the build gates on
+  it; finding nothing there is not a result.
 - **Picking an area from churn alone** — §3.
 - **Filing without a clean-container reproduction** — §5.8. And ask first.
 - **Reporting "I couldn't read it" as "the product refused it"** — §5.6. A claim about the
