@@ -144,12 +144,16 @@ async function setField(page, frame, label, value) {
 // Sign in and absorb the 60 s+ first-request compile before anything time-sensitive runs.
 // Without this the first deep link can land mid-compile and appFrame throws, which reads as
 // "the page does not exist".
+//
+// ⚠️ Re-acquire the frame at the end. The frame from signIn() is DETACHED by the settle
+// navigation, and every locator on it then throws "Frame was detached" - which reads exactly
+// like a broken container rather than a stale handle. Navigation staleness again (see openPage).
 async function warmUp(page, settlePageId = 31) {
-  const frame = await signIn(page);
+  await signIn(page);
   await page.waitForTimeout(4000);
   await openPage(page, settlePageId).catch(() => {});
   await page.waitForTimeout(6000);
-  return frame;
+  return appFrame(page);
 }
 
 // Locate a field's real <input> by its label.
