@@ -1948,6 +1948,12 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         PurchaseHeader.CalcFields("Amount Including VAT");
         PurchaseInvoice.DocAmount.SetValue(PurchaseHeader."Amount Including VAT" + (Quantity * DirectUnitCost));
     end;
+    
+    local procedure UpdatePurchInvoiceNo(var PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+    end;
 
     local procedure CreatePurchaseLineWithGLAccount(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header")
     var
