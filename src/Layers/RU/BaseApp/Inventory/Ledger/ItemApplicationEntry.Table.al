@@ -241,9 +241,10 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
+#pragma warning disable AS0024
 #if not CLEAN28
     [Obsolete('Replaced with namesake procedure with "Item Application Entries Outb." as parameter.', '28.0')]
-    procedure AppliedOutbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
+    procedure AppliedOutbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Inbound_Item_Entry_No, InbndItemLedgEntryNo);
         ItemApplicationEntries.SetFilter(Item_Ledger_Entry_No, '<>%1', InbndItemLedgEntryNo);
@@ -318,7 +319,7 @@ table 339 "Item Application Entry"
 
 #if not CLEAN28
     [Obsolete('Replaced with namesake procedure with "Item Application Entries Inb." as parameter.', '28.0')]
-    procedure AppliedInbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; OutbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean): Boolean
+    procedure AppliedInbndEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; OutbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Outbound_Item_Entry_No, OutbndItemLedgEntryNo);
         ItemApplicationEntries.SetFilter(Item_Ledger_Entry_No, '<>%1', OutbndItemLedgEntryNo);
@@ -342,6 +343,7 @@ table 339 "Item Application Entry"
         ItemApplicationEntriesInb.Open();
         exit(ItemApplicationEntriesInb.Read());
     end;
+#pragma warning restore AS0024
 
     procedure AppliedFromEntryExists(InbndItemLedgEntryNo: BigInteger): Boolean
     begin

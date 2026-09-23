@@ -664,6 +664,7 @@ table 1293 "Payment Application Proposal"
         OnAfterCreateFromBankStmtMacthingBuffer(Rec, TempBankStmtMatchingBuffer, BankAccReconciliationLine, BankAccount);
     end;
 
+#pragma warning disable AS0024
     procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: BigInteger)
     begin
         UpdateDefaultCalculatedFields(BankAccount, AppliesToEntryNo, false);
@@ -679,6 +680,7 @@ table 1293 "Payment Application Proposal"
         if AppliesToEntryNo > 0 then
             UpdateTypeOption(AppliesToEntryNo);
     end;
+#pragma warning restore AS0024
 
     local procedure UpdateSortingOrder()
     var

@@ -1011,6 +1011,7 @@ table 32 "Item Ledger Entry"
         OnAfterVerifyOnInventory(Rec, ErrorMessageText);
     end;
 
+#pragma warning disable AS0024
     procedure CalculateRemInventoryValue(ItemLedgEntryNo: BigInteger; ItemLedgEntryQty: Decimal; RemQty: Decimal; IncludeExpectedCost: Boolean; PostingDate: Date): Decimal
     begin
         exit(
@@ -1056,6 +1057,7 @@ table 32 "Item Ledger Entry"
                 until ValueEntry.Next() = 0;
         end;
     end;
+#pragma warning restore AS0024
 
     local procedure FilterCostEntryTypeExceptRevaluationAndRounding(var ValueEntry: Record "Value Entry")
     begin

@@ -272,6 +272,7 @@ table 133 "Incoming Document Attachment"
           PurchaseHeader."No.");
     end;
 
+#pragma warning disable AS0024
     procedure NewAttachmentFromDocument(EntryNo: BigInteger; TableID: Integer; DocumentType: Option; DocumentNo: Code[20])
     begin
         ApplyFiltersForDocument(EntryNo, TableID, DocumentType, DocumentNo);
@@ -299,6 +300,7 @@ table 133 "Incoming Document Attachment"
         if GuiAllowed() then
             SendNotifActionCompleted();
     end;
+#pragma warning restore AS0024
 
     local procedure ApplyFiltersForDocument(EntryNo: BigInteger; TableID: Integer; DocumentType: Option; DocumentNo: Code[20])
     begin
