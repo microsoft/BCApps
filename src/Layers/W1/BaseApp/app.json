@@ -27,6 +27,11 @@
   ],
   "internalsVisibleTo": [
     {
+      "id": "0f0955b8-92e2-4ce2-a580-3c4583dde9ae",
+      "name": "Tests-VAT",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "6992416f-3f39-4d3c-8242-3fff61350bea",
       "name": "Business Central Cloud Migration - Previous Release",
       "publisher": "Microsoft"
