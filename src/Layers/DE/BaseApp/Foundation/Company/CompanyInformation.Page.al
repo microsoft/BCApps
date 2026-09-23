@@ -68,6 +68,10 @@ page 1 "Company Information"
                             MultiLine = true;
                             ToolTip = 'Specifies the company''s nature and intended purpose. The description applies to the current company and can provide context for AI-powered experiences.';
 
+                            trigger OnValidate()
+                            begin
+                                Rec.SetCompanyDescription(CompanyDescription);
+                            end;
                         }
                     }
                     group(EnvironmentDescriptionGroup)
@@ -80,6 +84,10 @@ page 1 "Company Information"
                             MultiLine = true;
                             ToolTip = 'Specifies the environment''s nature and intended purpose. The description can provide context for AI-powered experiences.';
 
+                            trigger OnValidate()
+                            begin
+                                EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+                            end;
                         }
                     }
                 }
@@ -867,8 +875,6 @@ page 1 "Company Information"
         AuditLog: Codeunit "Audit Log";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
-        SaveDescriptions();
-
         if ApplicationAreaMgmtFacade.SaveExperienceTierCurrentCompany(Experience) then
             RestartSession();
 
@@ -961,12 +967,6 @@ page 1 "Company Information"
     begin
         CompanyDescription := Rec.GetCompanyDescription();
         EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
-    end;
-
-    local procedure SaveDescriptions()
-    begin
-        Rec.SetCompanyDescription(CompanyDescription);
-        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
     end;
 
     local procedure SetShowMandatoryConditions()

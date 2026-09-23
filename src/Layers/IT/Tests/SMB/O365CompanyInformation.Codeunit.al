@@ -199,6 +199,34 @@ codeunit 138041 "O365 Company Information"
         Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description was not saved.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ClosingCompanyInformationPageDoesNotOverwriteDescriptions()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyInformationPage: TestPage "Company Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+    begin
+        // [SCENARIO] Closing the Company Information page does not overwrite descriptions changed after the page was opened.
+        CompanyDescription := CreateMultilineDescription('Updated company');
+        EnvironmentDescription := CreateMultilineDescription('Updated environment');
+
+        // [GIVEN] The Company Information page is open with the current descriptions.
+        CompanyInformationPage.OpenEdit();
+
+        // [WHEN] The descriptions are changed without editing their fields on the open page.
+        CompanyInformation.Get();
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+        CompanyInformationPage.Close();
+
+        // [THEN] Closing the page preserves the updated descriptions.
+        CompanyInformation.Get();
+        Assert.AreEqual(CompanyDescription, CompanyInformation.GetCompanyDescription(), 'The company description was overwritten.');
+        Assert.AreEqual(EnvironmentDescription, EnvironmentInformation.GetEnvironmentDescription(), 'The environment description was overwritten.');
+    end;
     local procedure CreateMultilineDescription(DescriptionType: Text): Text
     var
         DescriptionBuilder: TextBuilder;
