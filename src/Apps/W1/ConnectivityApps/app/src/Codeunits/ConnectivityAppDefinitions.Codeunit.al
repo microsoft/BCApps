@@ -436,7 +436,7 @@ codeunit 20352 "Connectivity App Definitions"
         LoadBankingAppsData();
     end;
 
-    local procedure RegisterApp(AppIdText: Text[250]; AppName: Text[1024]; AppPublisher: Text[250]; AppDescription: Text[2048]; AppProviderSupportURL: Text[250]; AppSourceUrl: Text[250]; AppApprovedForCountriesOrRegions: Text; AppWorksOnCountriesOrRegions: Text; AppCategory: Enum "Connectivity Apps Category")
+    local procedure RegisterApp(AppIdText: Text[250]; AppName: Text[1024]; AppPublisher: Text[250]; AppDescription: Text[2048]; AppProviderSupportURL: Text[250]; AppSourceUrl: Text[2048]; AppApprovedForCountriesOrRegions: Text; AppWorksOnCountriesOrRegions: Text; AppCategory: Enum "Connectivity Apps Category")
     var
         AppId: Guid;
         CountryOrRegionList, LocalizationList : List of [Text];
