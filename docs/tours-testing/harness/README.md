@@ -92,6 +92,8 @@ Each session also needs its **own scratch folder**, since probe files are edited
 | `linesGrid(frame)` | Picks the lines grid out of the **two** grids in the DOM, by marker column header. |
 | `lineCell(frame, column, opts)` | Maps a column header's x-centre onto `gridcell` x-ranges. `{click:false}` reads without entering edit mode. |
 | `setBoolean(page, frame, {row, column, value, verify})` | Ticks a boolean cell and **polls SQL until the database agrees**. `verify` is required — `aria-checked` flips before BC commits, so a DOM readback is not evidence. |
+| `chooseRadio(page, frame, caption)` | Picks a radio option by its `<li>` caption. The inputs carry no accessible name, so `getByRole('radio', {name})` finds nothing. |
+| `postDocument(page, frame, choice)` | `F9`, choose *Receive* / *Invoice* / *Receive and Invoice* explicitly, then drive **OK** — `Enter` does not submit that dialog. Assert what posted in SQL, not the radio. |
 | `readError(frame)` | Collects text from all five error surfaces, and returns `confirmation` separately — a Yes/No dialog means BC is *proceeding*, not refusing. Scans **every** stacked dialog, discards pages that are themselves rendered as dialogs (returning them under `chrome`), matches BC's many phrasings of a refusal rather than just *"must be"*, and detects the *Error Messages* **page** a posting failure navigates to (`errorPage`). |
 | `readErrorPage(page, frame)` | The Error Messages list page on its own. `readError()` already calls it; use directly only when you want the rows without the rest. |
 | `dismissDialog(frame)` | `Escape`, repeatedly. Dialog buttons resist pointer clicks and dialogs stack. |

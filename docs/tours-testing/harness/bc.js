@@ -226,7 +226,11 @@ const VALIDATION_RE = /\b(must|cannot|can ?not|can't|may not|is not valid|not al
 
 const CONFIRM_RE = /\b(do you want to|are you sure)\b/i;
 const YESNO_RE = /\byes\b[\s\S]{0,6}\bno\b/i;
-const isConfirm = (t) => CONFIRM_RE.test(t) || YESNO_RE.test(t);
+// An OK/Cancel chooser is a PROMPT, not a refusal - the post dialog
+// ("Receive Invoice Receive and Invoice OK Cancel") is the common one. Classifying it as an
+// error makes a document that is merely waiting for an answer look rejected.
+const OKCANCEL_RE = /\bok\b[\s\S]{0,4}\bcancel\b/i;
+const isConfirm = (t) => CONFIRM_RE.test(t) || YESNO_RE.test(t) || OKCANCEL_RE.test(t);
 
 // A page that happens to be rendered as role=dialog (Item Tracking Lines, Enter Quantity to
 // Create, most "worksheet" sub-pages), or a teaching tip. Neither is a message.
@@ -638,6 +642,69 @@ async function setBoolean(page, frame, { row = 1, column, value = true,
   return { dom, verified };
 }
 
+// Choose an option in a radio-button control - most importantly the POST dialog
+// (Receive / Invoice / Receive and Invoice).
+//
+// BC renders these as bare `input[type=radio]` inside `<li>` elements in a
+// `ul.radiobuttoncontrol-edit`. The inputs carry NO aria-label, NO aria-labelledby and no role,
+// so `getByLabel` and `getByRole('radio', {name})` both find nothing - the caption lives only in
+// the surrounding `<li>` text. Clicking around the control lands on whatever is already selected,
+// and the default is "Receive and Invoice", so a tour that cannot drive this silently posts a
+// full receipt+invoice every time. That quietly rules out any probe needing a receive-only
+// document - an Undo Receipt charter, for instance.
+//
+// `check({force: true})` on the right index is what works; the index comes from the <li> text.
+// Exact caption match is tried first on purpose: "Receive" is a prefix of "Receive and Invoice".
+async function chooseRadio(page, frame, label) {
+  const found = await frame.evaluate((want) => {
+    const norm = (s) => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const w = norm(want);
+    const rs = [...document.querySelectorAll('input[type=radio]')];
+    const caps = rs.map((r) => norm(r.closest('li')?.innerText));
+    let i = caps.indexOf(w);
+    if (i < 0) i = caps.findIndex((c) => c && c.includes(w));
+    return { index: i, captions: caps };
+  }, label);
+
+  if (found.index < 0) {
+    throw new Error(
+      `radio option '${label}' not found. Available: ${JSON.stringify(found.captions)}`);
+  }
+
+  const radio = frame.locator('input[type=radio]').nth(found.index);
+  await radio.check({ force: true });
+  await page.waitForTimeout(800);
+  if (!(await radio.isChecked().catch(() => false))) {
+    throw new Error(`radio option '${label}' did not take - it still reads unchecked`);
+  }
+  return found.captions[found.index];
+}
+
+// Post the open document, choosing explicitly rather than accepting the default.
+//
+// ⚠️ The selection is client state, so `isChecked()` proves only that the dialog agrees with
+// you. What was actually posted is a question for SQL: a Receive-only post writes a
+// Purch. Rcpt. Header and NO Purch. Inv. Header. Assert that, not the radio.
+async function postDocument(page, frame, choice = 'Receive and Invoice') {
+  await page.keyboard.press('F9');
+  await page.waitForTimeout(4000);
+  const chosen = await chooseRadio(page, frame, choice);
+
+  // Enter does NOT submit this dialog - measured: the radio takes, Enter does nothing, and the
+  // dialog is still sitting there while SQL shows no document posted. Drive OK explicitly.
+  const ok = frame.getByRole('button', { name: /^OK$/i }).last();
+  if (await ok.count().catch(() => 0)) {
+    await ok.focus().catch(() => {});
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(2000);
+    if (await ok.count().catch(() => 0)) await clickSettled(page, frame, ok).catch(() => {});
+  } else {
+    await page.keyboard.press('Enter');
+  }
+  await page.waitForTimeout(9000);
+  return chosen;
+}
+
 // Identity oracle for an open card.
 //
 // There is no usable record identity INSIDE the app frame. On a Service Order card:
@@ -664,5 +731,5 @@ module.exports = {
   newDocument, linesGrid, lineCell, readError, dismissDialog, assertCard,
   settleOverlay, clickSettled, answerConfirm,
   topDialog, setOption, getOption, findOptionControl, openAction, dismissTeachingTip,
-  readErrorPage, setBoolean,
+  readErrorPage, setBoolean, chooseRadio, postDocument,
 };

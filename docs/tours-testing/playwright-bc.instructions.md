@@ -218,9 +218,23 @@ Not everything has one: `Ctrl+F9` on `<body>` did **not** release a document —
 for — clicking the `Line` menu — dies in a 30 s timeout because the sticky line toolbar intercepts
 the pointer. The documented trap sits squarely on the obvious alternative.
 
-⚠️ **The post-choice radio (Receive / Invoice / Receive and Invoice) is not selectable by click.**
-Every attempt lands on *Receive and Invoice*, which quietly rules out any probe needing a
-receive-only document — an Undo Receipt crime spree, for instance. Needs a keyboard route.
+⚠️ **The post-choice radio (Receive / Invoice / Receive and Invoice) has no accessible name.** BC
+renders it as bare `input[type=radio]` elements inside `<li>`s in a `ul.radiobuttoncontrol-edit` —
+no `aria-label`, no `aria-labelledby`, no `role`, so `getByRole('radio', {name})` and `getByLabel`
+both find nothing. The caption lives only in the surrounding `<li>` text. Clicking around the
+control lands on whatever is already selected, and the default is **Receive and Invoice**, so a
+tour that cannot drive it silently posts a full receipt+invoice every time — quietly ruling out any
+probe that needs a receive-only document, such as an Undo Receipt charter.
+
+`chooseRadio()` maps the caption via the `<li>` and uses `check({force: true})`. Exact match is
+tried first, because *Receive* is a prefix of *Receive and Invoice*.
+
+⚠️ **`Enter` does not submit the post dialog.** Measured: the radio takes, `Enter` does nothing,
+and the dialog is still open while SQL shows nothing posted — which looks exactly like a silent
+posting failure. `postDocument()` drives **OK** explicitly.
+
+> The radio is client state. **What actually posted is a question for SQL**: a Receive-only post
+> writes a `Purch. Rcpt. Header` and **no** `Purch. Inv. Header`. Assert that, not the radio.
 
 Dialog buttons resist pointer clicks the same way. **`Escape` is the only reliable dismissal**, and
 when dialogs stack, `.first()` resolves to a covered one — dismiss repeatedly rather than targeting

@@ -166,6 +166,13 @@ function check(name, actual, expected) {
   r = await readError(mockFrame({ marked: ['The page has an error. Refresh (F5) to undo the change.'] }));
   check('generic banner sets pageHasError', r.pageHasError, true);
 
+  // An OK/Cancel chooser is a PROMPT, not a refusal. The post dialog is the common one, and
+  // treating it as an error makes a document that is merely waiting for an answer look rejected.
+  const POST_DIALOG = 'Receive Invoice Receive and Invoice OK Cancel';
+  r = await readError(mockFrame({ dialogs: [POST_DIALOG] }));
+  check('OK/Cancel chooser is not an error', r.message, '');
+  check('OK/Cancel chooser is classified as a confirmation', r.confirmation, POST_DIALOG);
+
   console.log(failed ? `\n${failed} FAILED` : '\nall passed');
   process.exit(failed ? 1 : 0);
 })();
