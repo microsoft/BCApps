@@ -15,6 +15,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;
 
@@ -121,8 +122,7 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
 
         if Customer.Get(ReminderHeader."Customer No.")
         then
-            if (Customer.GLN + Customer."VAT Registration No.") = '' then
-                Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
+            this.CheckCustomerPartyIdentification(Customer."No.");
 
         ReminderHeader.TestField("Your Reference");
         ReminderHeader.TestField("Due Date");
@@ -168,8 +168,7 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
 
         if Customer.Get(FinChargeMemoHeader."Customer No.")
         then
-            if (Customer.GLN + Customer."VAT Registration No.") = '' then
-                Error(this.MissingCustGLNOrVATRegNoErr, Customer."No.");
+            this.CheckCustomerPartyIdentification(Customer."No.");
 
         FinChargeMemoHeader.TestField("Your Reference");
         FinChargeMemoHeader.TestField("Due Date");
@@ -243,6 +242,23 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
     begin
         this.PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
         this.PEPPOLMgt.CheckCompanyPartyIdentification(SupplierEndpointID);
+    end;
+
+    local procedure CheckCustomerPartyIdentification(CustomerNo: Code[20])
+    var
+        SalesHeader: Record "Sales Header";
+        CustomerEndpointID: Text;
+        CustomerSchemeID: Text;
+        CustomerPartyIdentificationID: Text;
+        CustomerPartyIDSchemeID: Text;
+        CustomerName: Text;
+    begin
+        Clear(SalesHeader);
+        SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
+        this.PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(
+          SalesHeader, CustomerEndpointID, CustomerSchemeID,
+          CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName);
+        this.PEPPOLMgt.CheckCustomerPartyIdentification(CustomerEndpointID, SalesHeader."Bill-to Customer No.");
     end;
 
     local procedure CheckCompanyPartyIdentificationForPurchase()
@@ -326,6 +342,5 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
         PEPPOLMgt: Codeunit "PEPPOL30";
         WrongLengthErr: Label 'should be %1 characters long', Comment = '%1 - number of characters';
         MissingDescriptionErr: Label 'Description field is empty. This field must be filled if you want to send the posted document as an electronic document.';
-        MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 - Customer No.';
         MissingVendGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Vendor %1.', Comment = '%1 - Vendor No.';
 }

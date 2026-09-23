@@ -13,6 +13,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Reminder;
 using System.Utilities;
 
 codeunit 139791 "E-Doc. Party Endpoint ID Test"
@@ -196,7 +197,6 @@ codeunit 139791 "E-Doc. Party Endpoint ID Test"
     [Test]
     procedure SalesDocValidationFailsWhenCustomerIdentifiesByGLNOnlyAndGLNIsNotUsed()
     var
-        CompanyInformation: Record "Company Information";
         SalesHeader: Record "Sales Header";
         PEPPOL30SalesValidation: Codeunit "PEPPOL30 Sales Validation";
     begin
@@ -222,11 +222,38 @@ codeunit 139791 "E-Doc. Party Endpoint ID Test"
 
         // [THEN] The validation fails and the message names the customer and the setting
         Assert.ExpectedErrorCode('Dialog');
-        Assert.ExpectedError(
-            StrSubstNo(
-                MissingCustomerPartyIdErr,
-                SalesHeader.FieldCaption("VAT Registration No."), Customer."No.",
-                Customer.FieldCaption(GLN), CompanyInformation.FieldCaption("Use GLN in Electronic Document")));
+        Assert.ExpectedError(GetExpectedCustomerErrorText(Customer."No."));
+    end;
+
+    [Test]
+    procedure ReminderValidationFailsWhenCustomerIdentifiesByGLNOnlyAndGLNIsNotUsed()
+    var
+        ReminderHeader: Record "Reminder Header";
+        SourceDocumentHeader: RecordRef;
+        EDocumentInterface: Interface "E-Document";
+    begin
+        // [FEATURE] [E-Document] [Reminder] [PEPPOL] [AI test 1.0]
+        // [SCENARIO 648781] Reminder validation fails when the customer only has a GLN and "Use GLN in Electronic Documents" is disabled.
+        Initialize();
+
+        // [GIVEN] Company Information that can produce an endpoint identifier
+        SetCompanyPartyIdentification('', 'GB123456789', false);
+
+        // [GIVEN] A customer that has a GLN but does not use it in electronic documents and has no VAT Registration No.
+        SetCustomerPartyIdentification(TestGLN(), '', false);
+
+        // [GIVEN] A reminder for that customer
+        LibraryEDoc.SetupReminderNoSeries();
+        LibraryEDoc.CreateReminderWithLine(Customer, ReminderHeader);
+        SourceDocumentHeader.GetTable(ReminderHeader);
+        EDocumentInterface := Enum::"E-Document Format"::"PEPPOL BIS 3.0";
+
+        // [WHEN] The reminder is validated against PEPPOL
+        asserterror EDocumentInterface.Check(SourceDocumentHeader, EDocumentService, Enum::"E-Document Processing Phase"::Post);
+
+        // [THEN] The validation fails and the message names the customer and the setting
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError(GetExpectedCustomerErrorText(Customer."No."));
     end;
 
     local procedure Initialize()
@@ -272,6 +299,15 @@ codeunit 139791 "E-Doc. Party Endpoint ID Test"
         EnsureCountryRegionISOCode(CompanyInformation."Country/Region Code");
     end;
 
+    local procedure SetCustomerPartyIdentification(NewGLN: Code[13]; NewVATRegistrationNo: Text[20]; UseGLNInElectronicDocument: Boolean)
+    begin
+        Customer.Get(Customer."No.");
+        Customer."VAT Registration No." := NewVATRegistrationNo;
+        Customer.Validate(GLN, NewGLN);
+        Customer.Validate("Use GLN in Electronic Document", UseGLNInElectronicDocument);
+        Customer.Modify(true);
+    end;
+
     local procedure EnsureCountryRegionISOCode(CountryRegionCode: Code[10])
     var
         CountryRegion: Record "Country/Region";
@@ -294,6 +330,15 @@ codeunit 139791 "E-Doc. Party Endpoint ID Test"
                 MissingCompanyPartyIdErr,
                 CompanyInformation.FieldCaption("VAT Registration No."), CompanyInformation.TableCaption(),
                 CompanyInformation.FieldCaption(GLN), CompanyInformation.FieldCaption("Use GLN in Electronic Document")));
+    end;
+
+    local procedure GetExpectedCustomerErrorText(CustomerNo: Code[20]): Text
+    begin
+        exit(
+            StrSubstNo(
+                MissingCustomerPartyIdErr,
+                Customer.FieldCaption("VAT Registration No."), CustomerNo,
+                Customer.FieldCaption(GLN), Customer.FieldCaption("Use GLN in Electronic Document")));
     end;
 
     local procedure GetBuyerEndpointID(var TempBlob: Codeunit "Temp Blob"; var EndpointID: Text; var SchemeID: Text)
