@@ -212,6 +212,9 @@ table 6923 "Expense User"
         key(WelcomeCorrelationKey; "Welcome Correlation Id")
         {
         }
+        key(EmployeeNo; "Employee No.")
+        {
+        }
     }
 
     var

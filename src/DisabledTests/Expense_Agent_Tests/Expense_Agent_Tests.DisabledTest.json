@@ -2,7 +2,87 @@
   {
     "codeunitId": 148315,
     "codeunitName": "Expense Users API Test",
+    "method": "EmployeesAPICanFilterExpenseUsers"
+  },
+  {
+    "codeunitId": 148315,
+    "codeunitName": "Expense Users API Test",
     "method": "UnlinkedExpenseUserIsHiddenFromAPI"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIMapsEmployeeNumberToExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIRejectsEmployeeWithoutExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "CreateExpenseReportActionRecreatesDeletedReport"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproveTravelRequestActionCreatesExpenseReport"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIPreservesAndUpdatesDates"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAreScopedByEmployeeNumber"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ExpenseReportAPIExposesLinkedTravelRequest"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPIExposesTypeAndCategory"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproverViewReturnsOnlyAssignedTravelRequests"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIAllowsOwnerOnInsertAndUnchangedPatch"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIRejectsLifecycleFieldChanges"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIAllowsUnchangedOwner"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "LegacySpendRequestsAPIRejectsTravelRequestOwnerChange"
   },
   {
     "codeunitId": 148318,
@@ -23,6 +103,11 @@
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "ActivityLogCapabilityEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "TravelRequestCapabilityEnabledViaAPI"
   },
   {
     "codeunitId": 148343,
