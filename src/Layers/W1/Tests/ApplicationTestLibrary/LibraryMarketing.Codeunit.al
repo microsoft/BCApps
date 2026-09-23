@@ -547,7 +547,7 @@ codeunit 131900 "Library - Marketing"
     end;
 
 #if not CLEAN30
-    [Obsolete('Creates a layout in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
+    [Obsolete('Creates a layout in the Custom Report Layout table, which is replaced by the system tables     Tenant Report Layout and Report Layout Selection.', '30.0')]
     procedure CreateEmailMergeCustomLayoutNo(): Code[20]
     var
 #pragma warning disable AL0432, AS0105
@@ -597,7 +597,7 @@ codeunit 131900 "Library - Marketing"
     end;
 
 #if not CLEAN30
-    [Obsolete('Reads the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection. Use FindEmailMergeCustomLayoutName instead.', '29.0')]
+    [Obsolete('Reads the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection. Use FindEmailMergeCustomLayoutName instead.', '30.0')]
     procedure FindEmailMergeCustomLayoutNo(): Code[20]
     var
 #pragma warning disable AL0432, AS0105

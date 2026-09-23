@@ -164,7 +164,7 @@ codeunit 9651 "Document Report Mgt."
 
 #if not CLEAN30
     [Scope('OnPrem')]
-    [Obsolete('Upgrades layouts stored in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
+    [Obsolete('Upgrades layouts stored in the Custom Report Layout table, which is replaced by the system tables     Tenant Report Layout and Report Layout Selection.', '30.0')]
     procedure ApplyUpgradeToReports(var ReportUpgradeCollection: DotNet ReportUpgradeCollection; testOnly: Boolean): Boolean
     var
 #pragma warning disable AL0432
