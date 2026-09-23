@@ -115,6 +115,12 @@ page 6910 "Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
+                field("Employee Posting Group"; Rec."Employee Posting Group")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee posting group used when posting expenses for this expense report.';
+                    Importance = Additional;
+                }
                 field("Spend Request No."; Rec."Spend Request No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -138,16 +144,37 @@ page 6910 "Expense Report"
                 }
                 group("Approver Comment")
                 {
-                    Caption = 'Approver Comment';
-                    Visible = Rec.Status = Rec.Status::Rejected;
+                    Caption = 'Approval Comments';
+
                     field(ApproverComment; ApproverComment)
                     {
                         ApplicationArea = Basic, Suite;
-                        Importance = Additional;
-                        MultiLine = true;
-                        ShowCaption = false;
+                        Caption = 'Approver Comment';
+                        DrillDown = true;
                         Editable = false;
-                        ToolTip = 'Specifies the approver comment for the expense report.';
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the approver. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ApproverComment <> '' then
+                                Message(ApproverComment);
+                        end;
+                    }
+                    field(SubmitterComment; SubmitterComment)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Submitter Comment';
+                        DrillDown = true;
+                        Editable = false;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the submitter. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if SubmitterComment <> '' then
+                                Message(SubmitterComment);
+                        end;
                     }
                 }
             }
@@ -691,7 +718,7 @@ page 6910 "Expense Report"
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
+            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
             if not UserSetup."Unlimited Expense Approval" then begin
                 CheckSetDefaultOwnerFilter();
                 ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
@@ -722,6 +749,7 @@ page 6910 "Expense Report"
     begin
         SetControlVisibility();
         ApproverComment := Rec.GetApproverComment();
+        SubmitterComment := Rec.GetSubmitterComment();
     end;
 
     var
@@ -733,6 +761,7 @@ page 6910 "Expense Report"
         DocNoVisible: Boolean;
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
+        SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
 

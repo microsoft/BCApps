@@ -81,4 +81,20 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Mileage Rate Setup', Locked = true;
     }
+
+    /// <summary>
+    /// Submitter comments can be supplied during submission, and comments can be exchanged during rejection and resubmission.
+    /// </summary>
+    value(7; ApprovalConversation)
+    {
+        Caption = 'Approval Conversation', Locked = true;
+    }
+
+    /// <summary>
+    /// Travel requests are available in the expense app.
+    /// </summary>
+    value(8; TravelRequest)
+    {
+        Caption = 'Travel Request', Locked = true;
+    }
 }
