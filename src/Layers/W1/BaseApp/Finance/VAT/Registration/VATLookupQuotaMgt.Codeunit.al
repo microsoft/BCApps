@@ -25,7 +25,7 @@ codeunit 247 "VAT Lookup Quota Mgt."
 
     var
         DailyQuotaExceededErr: Label 'VAT registration number validation against the EU VIES service has reached the daily limit for this environment. Try again tomorrow, and avoid verifying VAT registration numbers in bulk.';
-        DailyQuotaReachedMsg: Label 'The daily EU VAT reg. no. validation limit was reached for this environment.', Locked = true;
+        DailyQuotaReachedTxt: Label 'The daily EU VAT reg. no. validation limit was reached for this environment.', Locked = true;
         SecurityAuditDailyQuotaExceededTxt: Label 'The EU VAT Registration No. validation service (VIES) daily lookup limit was reached for this environment; further lookups are blocked for the rest of the day.', Locked = true;
         EUVATRegNoValidationServiceTok: Label 'EUVATRegNoValidationServiceTelemetryCategoryTok', Locked = true;
         QuotaTestOverride: Boolean;
@@ -66,7 +66,7 @@ codeunit 247 "VAT Lookup Quota Mgt."
         if VATRegNoLookupQuota."Daily Call Count" = GetMaxDailyCallCount() then begin
             // 4, 0 = AuditMessageOperation / AuditMessageOperationResult (standard security-audit codes; also routes the entry to Purview).
             AuditLog.LogAuditMessage(SecurityAuditDailyQuotaExceededTxt, SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-            Session.LogMessage('0000VL7', DailyQuotaReachedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
+            Session.LogMessage('0000VL7', DailyQuotaReachedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EUVATRegNoValidationServiceTok);
         end;
 
         // Persist and commit the count before the outbound request so the increment stays durable even if the

@@ -1120,11 +1120,18 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
     var
         VATRegistrationLog: Record "VAT Registration Log";
         VATRegistrationLogDetails: Record "VAT Registration Log Details";
+        VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         ClearTemplates();
         VATRegistrationLog.DeleteAll();
         VATRegistrationLogDetails.DeleteAll();
         LibraryVariableStorage.Clear();
+        // Reset the per-environment VIES quota state at the start of every test so that an AutoCommit quota
+        // test which fails mid-way cannot leak committed state (the quota row or the SaaS testability flag)
+        // into later tests when run under a non-isolated test runner.
+        VATLookupQuotaMgt.ClearVIESCallQuotaForTest();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     local procedure ClearTemplates()
