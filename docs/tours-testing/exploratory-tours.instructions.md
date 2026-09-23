@@ -6,11 +6,12 @@ description: "Exploratory testing with tours: charters, the tour catalogs, how t
 
 Stand up a local BC container, drive the web client with Playwright, use SQL as the oracle.
 
-**This is the entry point.** Three companion documents own the mechanics, and each fact lives in
+**This is the entry point.** Four companion documents own the mechanics, and each fact lives in
 exactly one of them:
 
 | Document | Owns |
 | --- | --- |
+| [`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) | What the application covers, area → repo mapping, the seams, demo-data reality, which tours suit which area |
 | [`bc-test-environment.instructions.md`](./bc-test-environment.instructions.md) | Container lifecycle: create unattended, URL, credentials, cold start, teardown |
 | [`playwright-bc.instructions.md`](./playwright-bc.instructions.md) | Driving the client and querying the database |
 | [`harness/`](./harness/README.md) | Runnable code — helpers, scanners, worked probes |
@@ -132,6 +133,10 @@ The ones used most here:
 | 2. Surface | Does it have a *page* surface? | `Find-TourTargets.ps1` field count |
 | 3. Installed | Is the app in *this* container? | `Get-BcContainerAppInfo -tenantSpecificProperties` |
 | 4. **Data** | Is there anything to tour *with*? | `SELECT COUNT(*)` on its master tables |
+
+What the area actually *does*, and which seams it sits on, is in
+[`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) — read it before picking, and
+prefer a charter that crosses a seam over one that stays inside a folder.
 
 Gates 2 and 4 are the ones that bite.
 
