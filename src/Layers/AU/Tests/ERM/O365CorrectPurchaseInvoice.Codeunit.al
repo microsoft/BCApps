@@ -32,6 +32,7 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         CorrectPostedInvoiceFromSingleOrderQst: Label 'The invoice was posted from an order. The invoice will be cancelled, and the order will open so that you can make the correction.\ \Do you want to continue?';
         CorrectPostedInvoiceFromDeletedOrderQst: Label 'The invoice was posted from an order. The order has been deleted, and the invoice will be cancelled. You can create a new invoice or order by using the Copy Document action.\ \Do you want to continue?';
         CorrectPostedInvoiceFromMultipleOrderQst: Label 'The invoice was posted from multiple orders. It will now be cancelled, and you can make a correction manually in the original orders.\ \Do you want to continue?';
+        CorrectiveCreditMemoQtyIncreaseErr: Label 'must not be greater than %1 because a corrective credit memo can only reverse the original posted invoice, not add quantity.', Comment = '%1 - the quantity copied from the posted purchase invoice';
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
@@ -1745,6 +1746,145 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CorrectiveCreditMemoQtyIncreaseBlockedForServiceItem()
+    var
+        Item: Record Item;
+    begin
+        // [FEATURE] [Corrective Credit Memo]
+        // [SCENARIO 636861] Increasing the quantity of a corrective credit memo line for a Service item is blocked.
+        VerifyCorrectiveCreditMemoQtyIncreaseIsBlocked(Item.Type::Service);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CorrectiveCreditMemoQtyIncreaseBlockedForNonInventoryItem()
+    var
+        Item: Record Item;
+    begin
+        // [FEATURE] [Corrective Credit Memo]
+        // [SCENARIO 636861] Increasing the quantity of a corrective credit memo line for a Non-Inventory item is blocked.
+        VerifyCorrectiveCreditMemoQtyIncreaseIsBlocked(Item.Type::"Non-Inventory");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CorrectiveCreditMemoQtyDecreaseAllowedForServiceItem()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeaderCorrection: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        OriginalQty: Decimal;
+    begin
+        // [FEATURE] [Corrective Credit Memo]
+        // [SCENARIO 636861] A partial reversal (decreasing the quantity) on a corrective credit memo line is still allowed.
+        Initialize();
+
+        // [GIVEN] A posted purchase invoice for a Service item
+        OriginalQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateAndPostPurchaseInvForNewItemAndVendor(Item, Item.Type::Service, Vendor, LibraryRandom.RandDecInRange(10, 100, 2), OriginalQty, PurchInvHeader);
+
+        // [GIVEN] A corrective credit memo created from the posted invoice
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
+        GetCorrectiveCreditMemoItemLine(PurchaseLine, PurchaseHeaderCorrection."No.");
+
+        // [WHEN] Decreasing the quantity of the credit memo line below the copied quantity
+        PurchaseLine.Validate(Quantity, PurchaseLine.Quantity - 1);
+
+        // [THEN] The decrease is accepted
+        PurchaseLine.TestField(Quantity, OriginalQty - 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ManualCreditMemoQtyIncreaseAllowed()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OriginalQty: Decimal;
+    begin
+        // [FEATURE] [Corrective Credit Memo]
+        // [SCENARIO 636861] A manually created credit memo (not copied from a posted invoice) is not affected by the corrective quantity check.
+        Initialize();
+
+        // [GIVEN] A manually created purchase credit memo with an item line
+        OriginalQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateItemWithCost(Item, Item.Type::Service, LibraryRandom.RandDecInRange(10, 100, 2));
+        LibrarySmallBusiness.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", OriginalQty);
+
+        // [WHEN] Increasing the quantity of the line
+        PurchaseLine.Validate(Quantity, PurchaseLine.Quantity + 1);
+
+        // [THEN] The increase is accepted
+        PurchaseLine.TestField(Quantity, OriginalQty + 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure CorrectiveCreditMemoQtyIncreaseBlockedForOrderBasedServiceItem()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeaderCorrection: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        OrderQty: Decimal;
+        PartialQty: Decimal;
+        OriginalQty: Decimal;
+    begin
+        // [FEATURE] [Corrective Credit Memo] [Purchase Order]
+        // [SCENARIO 645182] A corrective credit memo created from an order-based invoice cannot be increased, so the purchase order Received/Invoiced quantities cannot be driven negative.
+        Initialize();
+
+        // [GIVEN] A purchase order for a Service item, partially received and invoiced
+        PartialQty := LibraryRandom.RandIntInRange(2, 5);
+        OrderQty := PartialQty + LibraryRandom.RandIntInRange(1, 5);
+        CreateItemWithCost(Item, Item.Type::Service, LibraryRandom.RandDecInRange(10, 100, 2));
+        LibrarySmallBusiness.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", OrderQty);
+        PurchaseLineOrder.Validate("Qty. to Receive", PartialQty);
+        PurchaseLineOrder.Validate("Qty. to Invoice", PartialQty);
+        PurchaseLineOrder.Modify(true);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, true));
+
+        // [GIVEN] The order line shows the partially received and invoiced quantity
+        PurchaseLineOrder.Find();
+        PurchaseLineOrder.TestField("Quantity Received", PartialQty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", PartialQty);
+
+        // [GIVEN] A corrective credit memo created from the posted order-based invoice
+        LibraryVariableStorage.Enqueue(true); // Confirm to create the corrective credit memo from the order-based invoice
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
+        GetCorrectiveCreditMemoItemLine(PurchaseLine, PurchaseHeaderCorrection."No.");
+        OriginalQty := PurchaseLine.Quantity;
+
+        // [WHEN] Increasing the quantity of the credit memo line beyond the copied quantity
+        asserterror PurchaseLine.Validate(Quantity, OriginalQty + 1);
+
+        // [THEN] A blocking error is raised before the credit memo can be posted
+        Assert.ExpectedError(StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, OriginalQty));
+
+        // [THEN] The purchase order line quantities are unchanged and cannot go negative
+        PurchaseLineOrder.Find();
+        PurchaseLineOrder.TestField("Quantity Received", PartialQty);
+        PurchaseLineOrder.TestField("Quantity Invoiced", PartialQty);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -1932,6 +2072,41 @@ codeunit 138025 "O365 Correct Purchase Invoice"
         CreateItemWithCost(Item, Type, UnitCost);
         LibrarySmallBusiness.CreateVendor(Vendor);
         BuyItem(Vendor, Item, Qty, PurchInvHeader);
+    end;
+
+    local procedure VerifyCorrectiveCreditMemoQtyIncreaseIsBlocked(Type: Enum "Item Type")
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeaderCorrection: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        OriginalQty: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] A posted purchase invoice for an item with quantity 1
+        CreateAndPostPurchaseInvForNewItemAndVendor(Item, Type, Vendor, LibraryRandom.RandDecInRange(10, 100, 2), 1, PurchInvHeader);
+
+        // [GIVEN] A corrective credit memo created from the posted invoice
+        CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PurchInvHeader, PurchaseHeaderCorrection);
+        GetCorrectiveCreditMemoItemLine(PurchaseLine, PurchaseHeaderCorrection."No.");
+        OriginalQty := PurchaseLine.Quantity;
+
+        // [WHEN] Increasing the quantity of the credit memo line beyond the copied quantity
+        asserterror PurchaseLine.Validate(Quantity, OriginalQty + 1);
+
+        // [THEN] A blocking error is raised
+        Assert.ExpectedError(StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, OriginalQty));
+    end;
+
+    local procedure GetCorrectiveCreditMemoItemLine(var PurchaseLine: Record "Purchase Line"; CreditMemoNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::"Credit Memo");
+        PurchaseLine.SetRange("Document No.", CreditMemoNo);
+        PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+        PurchaseLine.FindLast();
     end;
 
     local procedure CreateAndPostPurchaseInvForNewItemVariantAndVendor(var ItemVariant: Record "Item Variant"; var Vendor: Record Vendor; UnitCost: Decimal; Qty: Decimal; var PurchInvHeader: Record "Purch. Inv. Header")

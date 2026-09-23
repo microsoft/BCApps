@@ -2491,6 +2491,36 @@ codeunit 136103 "Service Items"
         ServiceItem.TestField("Item No.", NewItemNo);
     end;
 
+    [Test]
+    procedure ShipToCountryRegionCodePopulatedWhenShipToCodeBlank()
+    var
+        Customer: Record Customer;
+        ServiceItemCard: TestPage "Service Item Card";
+    begin
+        // [FEATURE] [Service] [Service Item] [AI test 0.4]
+        // [SCENARIO 638473] Ship-to Country/Region Code defaults from the customer when Ship-to Code is blank on a Service Item.
+        Initialize();
+
+        // [GIVEN] Customer "C" with a Country/Region Code and no default Ship-to Address
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Country/Region Code", LibraryERM.CreateCountryRegion());
+        Customer.Modify(true);
+
+        // [WHEN] A new Service Item is created for customer "C" without specifying a Ship-to Code
+        ServiceItemCard.OpenNew();
+        ServiceItemCard."Customer No.".SetValue(Customer."No.");
+
+        // [THEN] Ship-to Code is blank
+        Assert.AreEqual('', ServiceItemCard."Ship-to Code".Value, 'Ship-to Code should be blank');
+
+        // [THEN] Ship-to Country/Region Code is populated from the sell-to customer's Country/Region Code
+        Assert.AreEqual(
+          Customer."Country/Region Code", ServiceItemCard."Ship-to Country/Region Code".Value,
+          'Ship-to Country/Region Code should default from the customer when Ship-to Code is blank');
+
+        ServiceItemCard.Close();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Service Items");

@@ -5,7 +5,6 @@
 
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
-using Microsoft.DataMigration;
 using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
@@ -112,11 +111,7 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
 
     local procedure TransferData()
     var
-        BC14GLEntry: Record "BC14 G/L Entry";
-        BC14OldGLEntry: Record "BC14 Old G/L Entry";
         BC14CompanyInfo: Record BC14CompanyMigrationInfo;
-        BC14HistoricalTransfer: Codeunit "BC14 Historical Transfer";
-        HybridCloudManagement: Codeunit "Hybrid Cloud Management";
         EntryDataTransfer: DataTransfer;
         CutoffDate: Date;
         LastArchivedEntryNo: Integer;
@@ -135,16 +130,13 @@ codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
         if LastArchivedEntryNo > 0 then
             Session.LogMessage('0000TX7', StrSubstNo(TransferResumedLbl, LastArchivedEntryNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
 
-        if HybridCloudManagement.IsIntelligentCloudEnabled() then begin
-            EntryDataTransfer.SetTables(Database::"BC14 G/L Entry", Database::"BC14 Old G/L Entry");
-            BC14HistoricalTransfer.AddMatchingFieldMappings(EntryDataTransfer, Database::"BC14 G/L Entry", Database::"BC14 Old G/L Entry");
-            EntryDataTransfer.AddConstantValue(CurrentDateTime(), BC14OldGLEntry.FieldNo("Migrated On"));
-            EntryDataTransfer.AddSourceFilter(BC14GLEntry.FieldNo("Posting Date"), '<%1', CutoffDate);
-            if LastArchivedEntryNo > 0 then
-                EntryDataTransfer.AddSourceFilter(BC14GLEntry.FieldNo("Entry No."), '>%1', LastArchivedEntryNo);
-            EntryDataTransfer.CopyRows();
-        end else
-            TransferDataInBatches(CutoffDate, LastArchivedEntryNo);
+        // DataTransfer.CopyRows() is only permitted inside platform upgrade/install codeunits. This
+        // migration always runs as a background task/session (never an upgrade codeunit), so calling
+        // CopyRows() here would always throw "DataTransfer is only usable during upgrade or install"
+        // and leave the historical errors unresolved on rerun. Always use the per-record batched
+        // copy; the OnConfigureEntryDataTransfer override above still lets an upgrade-context caller
+        // opt into DataTransfer.
+        TransferDataInBatches(CutoffDate, LastArchivedEntryNo);
     end;
 
     local procedure TransferDataInBatches(CutoffDate: Date; LastArchivedEntryNo: Integer)

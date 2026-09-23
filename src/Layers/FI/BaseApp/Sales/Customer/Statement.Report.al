@@ -239,7 +239,7 @@ report 116 Statement
                         }
                         dataitem("Detailed Cust. Ledg. Entry"; "Detailed Cust. Ledg. Entry")
                         {
-                            DataItemTableView = sorting("Customer No.", "Posting Date", "Entry Type", "Currency Code");
+                            DataItemTableView = sorting("Customer No.", "Posting Date", "Entry Type", "Currency Code") where("Excluded from calculation" = const(false));
                             column(PostDate_DtldCustLedgEntries; Format("Posting Date"))
                             {
                             }
@@ -865,9 +865,6 @@ report 116 Statement
     end;
 
     var
-        Text001Lbl: Label 'Entries %1', Comment = '%1 is the currency code';
-        Text002Lbl: Label 'Overdue Entries %1', Comment = '%1 is the currency code';
-        Text003Txt: Label 'Statement ';
         GLSetup: Record "General Ledger Setup";
         SalesSetup: Record "Sales & Receivables Setup";
         Cust2: Record Customer;
@@ -877,6 +874,8 @@ report 116 Statement
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
         SegManagement: Codeunit SegManagement;
+        PeriodLength: DateFormula;
+        PeriodLength2: DateFormula;
         PrintedCustomersList: List of [Code[20]];
         PrintAllHavingEntry: Boolean;
         PrintAllHavingBal: Boolean;
@@ -896,23 +895,36 @@ report 116 Statement
         CustBalance: Decimal;
         RemainingAmount: Decimal;
         CurrencyCode3: Code[10];
+        DateChoice: Option "Due Date","Posting Date";
+        AgingDate: array[5] of Date;
+        AgingBandEndingDate: Date;
+        AgingBandCurrencyCode: Code[20];
+        IncludeAgingBand: Boolean;
+        LogInteractionEnable: Boolean;
+        isInitialized: Boolean;
+        IsFirstLoop: Boolean;
+        IsFirstPrintLine: Boolean;
+        IsNewCustCurrencyGroup: Boolean;
+        SupportedOutputMethod: Option Print,Preview,PDF,Email,Excel,XML;
+        ChosenOutputMethod: Integer;
+        PrintIfEmailIsMissing: Boolean;
+        ShowPrintIfEmailIsMissing: Boolean;
+        FirstCustomerPrinted: Boolean;
+
+        CompanyInfoBusinessIdentityCodeLbl: Label 'Business Identity Code';
+        CompanyInfoRegisteredHomeCityLbl: Label 'Registered Home City';
+        Text001Lbl: Label 'Entries %1', Comment = '%1 is the currency code';
+        Text002Lbl: Label 'Overdue Entries %1', Comment = '%1 is the currency code';
+        Text003Txt: Label 'Statement ';
         Text005Txt: Label 'Multicurrency Application';
         Text006Txt: Label 'Payment Discount';
         Text007Txt: Label 'Rounding';
-        PeriodLength: DateFormula;
-        PeriodLength2: DateFormula;
-        DateChoice: Option "Due Date","Posting Date";
-        AgingDate: array[5] of Date;
         Text008Err: Label 'You must specify the Aging Band Period Length.';
-        AgingBandEndingDate: Date;
         Text010Err: Label 'You must specify Aging Band Ending Date.';
         Text011Lbl: Label 'Aged Summary by %1 (%2 by %3)', Comment = '%1 is ending date, %2 is period length, %3 is Due Date or Posting Date';
-        IncludeAgingBand: Boolean;
         Text012Err: Label 'Period Length is out of range.';
-        AgingBandCurrencyCode: Code[20];
         Text013Txt: Label 'Due Date,Posting Date';
         Text014Txt: Label 'Application Writeoffs';
-        LogInteractionEnable: Boolean;
         Text036Txt: Label '-%1', Comment = 'Negating the period length: %1 is the period length';
         StatementCaptionLbl: Label 'Statement';
         PhoneNo_CompanyInfoCaptionLbl: Label 'Phone No.';
@@ -928,7 +940,6 @@ report 116 Statement
         DueDate_CustLedgEntry2CaptionLbl: Label 'Due Date';
         CustBalanceCaptionLbl: Label 'Running Total';
         beforeCaptionLbl: Label '..before';
-        isInitialized: Boolean;
         CompanyInfoHomepageCaptionLbl: Label 'Home Page';
         CompanyInfoEmailCaptionLbl: Label 'Email';
         DocDateCaptionLbl: Label 'Document Date';
@@ -936,17 +947,7 @@ report 116 Statement
         BlankStartDateErr: Label 'Start Date must have a value.';
         BlankEndDateErr: Label 'End Date must have a value.';
         StartDateLaterTheEndDateErr: Label 'Start date must be earlier than End date.';
-        IsFirstLoop: Boolean;
         CurrReportPageNoCaptionLbl: Label 'Page';
-        IsFirstPrintLine: Boolean;
-        IsNewCustCurrencyGroup: Boolean;
-        SupportedOutputMethod: Option Print,Preview,PDF,Email,Excel,XML;
-        ChosenOutputMethod: Integer;
-        PrintIfEmailIsMissing: Boolean;
-        ShowPrintIfEmailIsMissing: Boolean;
-        FirstCustomerPrinted: Boolean;
-        CompanyInfoBusinessIdentityCodeLbl: Label 'Business Identity Code';
-        CompanyInfoRegisteredHomeCityLbl: Label 'Registered Home City';
 
     protected var
         CompanyInfo: Record "Company Information";

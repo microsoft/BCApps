@@ -107,6 +107,13 @@ table 30145 "Shpfy Refund Line"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(14; "Is Exchange Item"; Boolean)
+        {
+            Caption = 'Is Exchange Item';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies that this refund line was synthesized from a Return.exchangeLineItems entry rather than from a real Shopify refund line. Exchange-item refund lines carry a negative quantity so that the sales credit memo total matches the Shopify refund total without an extra balancing G/L line.';
+        }
         field(101; "Item No."; Code[20])
         {
             Caption = 'Item No.';

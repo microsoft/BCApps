@@ -1790,11 +1790,6 @@
     "method": "TestNextStep"
   },
   {
-    "codeunitId": 135153,
-    "codeunitName": "Data Classs Demo Data Tests",
-    "method": "TestDataSensitivities"
-  },
-  {
     "codeunitId": 135302,
     "codeunitName": "Corr. Credit Memo Notifcation",
     "method": "CreditMemoOnPartiallyCreditedSalesInvoiceCardCreate"

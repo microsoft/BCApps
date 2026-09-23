@@ -69,7 +69,9 @@ codeunit 130231 "Test Proxy Notification Mgt."
             RemoveIgnoringNotifications();
             IsSuccess := not HasNotificationContextEntries();
             if not IsSuccess then
+                #pragma warning disable AA0161, AS0058, PTE0007 // Accepted: this normal-subtype test helper intentionally executes assertions for reusable test infrastructure. Tracked by AB#640773.
                 asserterror Error(NotificationErr, GetFirstRecordIDText());
+                #pragma warning restore AA0161, AS0058, PTE0007
         end;
     end;
 

@@ -44,6 +44,7 @@ codeunit 426 "Payment Tolerance Management"
         SuppressCommit: Boolean;
         SuppressWarning: Boolean;
         IncludeWHT: Boolean;
+        UpdatingGenJnlLineAmount: Boolean;
 
     /// <summary>
     /// Validates payment tolerance for customer ledger entries and shows tolerance warning if needed.
@@ -215,6 +216,9 @@ codeunit 426 "Payment Tolerance Management"
     var
         TempGenJnlLine: Record "Gen. Journal Line" temporary;
     begin
+        if UpdatingGenJnlLineAmount then
+            exit(true);
+
         TempGenJnlLine := NewGenJnlLine;
 
         if TempGenJnlLine."Check Printed" then
@@ -273,6 +277,7 @@ codeunit 426 "Payment Tolerance Management"
     local procedure PurchPmtTolGenJnl(var GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         NewVendLedgEntry: Record "Vendor Ledger Entry";
+        GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         GenJnlLineApplID: Code[50];
     begin
         if IsVendBlockPmtToleranceInGenJnlLine(GenJnlLine) then
@@ -286,13 +291,15 @@ codeunit 426 "Payment Tolerance Management"
         NewVendLedgEntry."Currency Code" := GenJnlLine."Currency Code";
         if GenJnlLine."Applies-to Doc. No." <> '' then
             NewVendLedgEntry."Applies-to Doc. No." := GenJnlLine."Applies-to Doc. No.";
-        DelVendPmtTolAcc(NewVendLedgEntry, GenJnlLineApplID);
+        if not GenJnlPostPreview.IsActive() then
+            DelVendPmtTolAcc(NewVendLedgEntry, GenJnlLineApplID);
         UpdateWHTTolerance(NewVendLedgEntry.Amount, NewVendLedgEntry."Remaining Amount",
           GenJnlLine."Document No.", GenJnlLine."Line No.");
         NewVendLedgEntry.Amount += GenJnlLine.Amount;
         NewVendLedgEntry."Remaining Amount" += GenJnlLine.Amount;
         NewVendLedgEntry."Document Type" := GenJnlLine."Document Type";
         NewVendLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+        GenJnlLineGlobal := GenJnlLine;
         exit(
           PmtTolVendLedgEntry(
             NewVendLedgEntry, GenJnlLine."Account No.", GenJnlLine."Posting Date",
@@ -2411,7 +2418,15 @@ codeunit 426 "Payment Tolerance Management"
                                 NewVendLedgEntry."Currency Code", NewVendLedgEntry."Posting Date");
                         AppliedAmount := AppliedAmount + AppliedVendLedgEntry."Remaining Pmt. Disc. Possible";
                         AmountToApply := AmountToApply + AppliedVendLedgEntry."Remaining Pmt. Disc. Possible";
-                    end
+                    end else
+                        if (AppliedVendLedgEntry."Remaining Pmt. Disc. Possible" - AppliedVendLedgEntry."Remaining Amount") <> NewVendLedgEntry.Amount then
+                            if NewVendLedgEntry.Amount > (AppliedVendLedgEntry."Remaining Pmt. Disc. Possible" - AppliedVendLedgEntry."Remaining Amount") then begin
+                                NewVendLedgEntry.Amount += AppliedVendLedgEntry."Remaining Pmt. Disc. Possible";
+                                UpdateGenJournalLineAmount(NewVendLedgEntry.Amount);
+                                AdjustRemainingAmount(NewVendLedgEntry, AppliedVendLedgEntry."Remaining Amount");
+                                if not SuppressCommit then
+                                    Commit();
+                            end;
                 end else begin
                     DelVendPmtTolAcc(NewVendLedgEntry, GenJnlLineApplID);
                     exit(false);
@@ -2572,8 +2587,10 @@ codeunit 426 "Payment Tolerance Management"
                     GenJnlLine.Amount,
                     GenJnlLine."Currency Factor"));
 
+        UpdatingGenJnlLineAmount := true;
         GenJnlLine.Validate("Amount");
         GenJnlLine.Modify(true);
+        UpdatingGenJnlLineAmount := false;
     end;
 
     local procedure AdjustRemainingAmount(var CustLedgEntry: Record "Cust. Ledger Entry"; AppliedRemainingAmount: Decimal)
@@ -2586,6 +2603,19 @@ codeunit 426 "Payment Tolerance Management"
 
             if (CustLedgEntry."Remaining Amount" < 0) and (AppliedRemainingAmount > 0) then
                 CustLedgEntry."Remaining Amount" := 0;
+        end;
+    end;
+
+    local procedure AdjustRemainingAmount(var VendLedgEntry: Record "Vendor Ledger Entry"; AppliedRemainingAmount: Decimal)
+    begin
+        if VendLedgEntry."Remaining Amount" <> 0 then begin
+            VendLedgEntry."Remaining Amount" += AppliedRemainingAmount;
+
+            if (VendLedgEntry."Remaining Amount" > 0) and (AppliedRemainingAmount < 0) then
+                VendLedgEntry."Remaining Amount" := 0;
+
+            if (VendLedgEntry."Remaining Amount" < 0) and (AppliedRemainingAmount > 0) then
+                VendLedgEntry."Remaining Amount" := 0;
         end;
     end;
 

@@ -1351,7 +1351,7 @@ page 43 "Sales Invoice"
                 }
                 action(CFDIRelationDocuments)
                 {
-                    ApplicationArea = BasicMX, Suite;
+                    ApplicationArea = Suite, BasicMX;
                     Caption = 'CFDI Relation Documents';
                     Image = Allocations;
                     RunObject = Page "CFDI Relation Documents";

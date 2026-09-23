@@ -1048,6 +1048,9 @@ table 5050 Contact
         key(Key16; "E-Mail")
         {
         }
+        key(Key17; "E-Mail 2")
+        {
+        }
     }
 
     fieldgroups

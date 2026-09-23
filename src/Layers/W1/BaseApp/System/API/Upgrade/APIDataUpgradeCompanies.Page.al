@@ -8,7 +8,7 @@ page 9998 "API Data Upgrade Companies"
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'API upgrade overview';
+    Caption = 'API Upgrade Overview';
     SourceTable = Company;
     ModifyAllowed = false;
     InsertAllowed = false;

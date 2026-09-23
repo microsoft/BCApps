@@ -75,6 +75,7 @@ permissionset 5729 "D365 CUSTOMER, EDIT"
                   tabledata "Finance Charge Text" = R,
                   tabledata "G/L Entry - VAT Entry Link" = rm,
                   tabledata "G/L Entry" = rm,
+                  tabledata "G/L Transaction" = rm,
                   tabledata "Interaction Log Entry" = Rm,
                   tabledata "Item Analysis View Budg. Entry" = r,
                   tabledata "Item Analysis View Entry" = rid,

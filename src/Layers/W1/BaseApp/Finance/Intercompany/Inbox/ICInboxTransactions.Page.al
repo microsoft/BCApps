@@ -78,7 +78,7 @@ page 615 "IC Inbox Transactions"
                 {
                     ApplicationArea = Intercompany;
                     Caption = 'Show Line Action';
-                    OptionCaption = 'All,No Action,Accept,Return to IC Partner';
+                    OptionCaption = 'All,No Action,Accept,Return to IC Partner,Cancel';
                     ToolTip = 'Specifies how you want to filter the lines shown in the window. You can choose to see all lines, or only lines with a specific option in the Line Action field.';
 
                     trigger OnValidate()
@@ -455,7 +455,7 @@ page 615 "IC Inbox Transactions"
         RunReport: Boolean;
         PurchaseInvoicePreviouslySentAsOrderMsg: Label 'A purchase order for this invoice has already been received from intercompany partner %1. Receiving it again can lead to duplicate information. Do you want to receive it?', Comment = '%1 - Intercompany Partner Code';
     begin
-        if ApplicationAreaMgmtFacade.IsFoundationEnabled() then
+        if ApplicationAreaMgmtFacade.IsBasicOnlyEnabled() then
             RunReport := false
         else
             RunReport := true;

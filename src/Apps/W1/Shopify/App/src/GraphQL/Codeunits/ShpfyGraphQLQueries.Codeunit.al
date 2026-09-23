@@ -40,12 +40,10 @@ codeunit 30154 "Shpfy GraphQL Queries"
         QueryName: Text;
         SepPos: Integer;
         JsonStart: Integer;
-        EnumIndex: Integer;
         ResourcePathLbl: Label 'graphql/%1/%2.graphql', Locked = true;
         CostPrefixTok: Label '# cost: ', Locked = true;
     begin
-        EnumIndex := GraphQLType.Ordinals().IndexOf(GraphQLType.AsInteger());
-        EnumName := GraphQLType.Names().Get(EnumIndex);
+        EnumName := GetGraphQLTypeName(GraphQLType);
         SepPos := EnumName.IndexOf('_');
         AreaName := EnumName.Substring(1, SepPos - 1);
         QueryName := EnumName.Substring(SepPos + 1);
@@ -57,5 +55,13 @@ codeunit 30154 "Shpfy GraphQL Queries"
         Evaluate(ExpectedCost, CostText);
 
         GraphQL := ResourceText.Substring(JsonStart);
+    end;
+
+    internal procedure GetGraphQLTypeName(GraphQLType: Enum "Shpfy GraphQL Type"): Text
+    var
+        EnumIndex: Integer;
+    begin
+        EnumIndex := GraphQLType.Ordinals().IndexOf(GraphQLType.AsInteger());
+        exit(GraphQLType.Names().Get(EnumIndex));
     end;
 }

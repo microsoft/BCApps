@@ -920,12 +920,18 @@ report 412 "Purchase Prepmt. Doc. - Test"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PrepaymentDocumentType; DocumentType)
+                    field(PrepaymentDocumentType; RequestDocumentType)
                     {
                         ApplicationArea = Prepayments;
                         Caption = 'Prepayment Document Type';
                         OptionCaption = 'Invoice,Credit Memo';
-                        ToolTip = 'Specifies the type of prepayment document: invoice or credit memo.';
+                        ToolTip = 'Specifies whether to test a prepayment invoice or credit memo.';
+                        Visible = not StatisticDocumentType;
+
+                        trigger OnValidate()
+                        begin
+                            DocumentType := RequestDocumentType;
+                        end;
                     }
                     field(ShowDimensions; ShowDim)
                     {
@@ -958,6 +964,8 @@ report 412 "Purchase Prepmt. Doc. - Test"
 
     trigger OnPreReport()
     begin
+        if not StatisticDocumentType then
+            DocumentType := RequestDocumentType;
         PurchHeaderFilter := "Purchase Header".GetFilters();
 
         if DocumentType = DocumentType::Invoice then
@@ -984,6 +992,8 @@ report 412 "Purchase Prepmt. Doc. - Test"
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         DimMgt: Codeunit DimensionManagement;
         DocumentType: Option Invoice,"Credit Memo",Statistic;
+        RequestDocumentType: Option Invoice,"Credit Memo";
+        StatisticDocumentType: Boolean;
         VATAmount: Decimal;
         VATBaseAmount: Decimal;
         ErrorCounter: Integer;
@@ -1124,6 +1134,15 @@ report 412 "Purchase Prepmt. Doc. - Test"
     procedure InitializeRequest(NewDocumentType: Option; NewShowDim: Boolean)
     begin
         DocumentType := NewDocumentType;
+        case NewDocumentType of
+            DocumentType::Invoice, DocumentType::"Credit Memo":
+                begin
+                    RequestDocumentType := NewDocumentType;
+                    StatisticDocumentType := false;
+                end;
+            DocumentType::Statistic:
+                StatisticDocumentType := true;
+        end;
         ShowDim := NewShowDim;
     end;
 

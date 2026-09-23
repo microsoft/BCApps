@@ -337,6 +337,8 @@ codeunit 7307 "Whse.-Activity-Register"
             WhseJnlLine.Quantity := WhseActivLine."Qty. to Handle (Base)";
             WhseJnlLine."Unit of Measure Code" := WMSMgt.GetBaseUOM(WhseActivLine."Item No.");
             WhseJnlLine."Qty. per Unit of Measure" := 1;
+            WMSMgt.CalcCubageAndWeight(
+              WhseActivLine."Item No.", WhseJnlLine."Unit of Measure Code", Abs(WhseJnlLine.Quantity), WhseJnlLine.Cubage, WhseJnlLine.Weight);
         end;
         WhseJnlLine."Qty. (Base)" := WhseActivLine."Qty. to Handle (Base)";
         WhseJnlLine."Qty. (Absolute)" := WhseJnlLine.Quantity;
@@ -1184,6 +1186,10 @@ codeunit 7307 "Whse.-Activity-Register"
                     Database::Job:
                         TempTrackingSpecification.SetSource(
                               Database::"Job Planning Line", 2, WhseActivLine2."Source No.", WhseActivLine2."Source Line No.", '', 0);
+                    Database::"Job Planning Line":
+                        // New format: Use the actual Source Subtype (Status)
+                        TempTrackingSpecification.SetSource(
+                              WhseActivLine2."Source Type", WhseActivLine2."Source Subtype", WhseActivLine2."Source No.", WhseActivLine2."Source Line No.", '', 0);
                     else
                         TempTrackingSpecification.SetSource(
                           WhseActivLine2."Source Type", WhseActivLine2."Source Subtype", WhseActivLine2."Source No.",
@@ -1632,9 +1638,9 @@ codeunit 7307 "Whse.-Activity-Register"
         OnCalcQtyPickedNotShippedOnAfterReservEntrySetFilters(ReservEntry, WhseActivLine);
         if ReservEntry.Find('-') then
             repeat
-                if WhseActivLine."Source Type" = Database::Job then begin
+                if WhseActivLine."Source Type" in [Database::Job, Database::"Job Planning Line"] then begin
                     if not ((ReservEntry."Source Type" = Database::"Job Planning Line") and
-                                                    (ReservEntry."Source Subtype" = 2) and
+                                                    (ReservEntry."Source Subtype" = "Job Planning Line Status"::Order.AsInteger()) and
                                                     (ReservEntry."Source ID" = WhseActivLine."Source No.") and
                                                     ((ReservEntry."Source Ref. No." = WhseActivLine."Source Line No.") or
                                                      (ReservEntry."Source Ref. No." = WhseActivLine."Source Subline No."))) and
@@ -1810,6 +1816,8 @@ codeunit 7307 "Whse.-Activity-Register"
                 if Location."Bin Mandatory" then
                     CheckBinRelatedFields(GlobalWhseActivLine);
 
+                CheckItemTrackingRequiredForPutAway(GlobalWhseActivLine);
+
                 OnAfterCheckWhseActivLine(GlobalWhseActivLine);
 
                 if ((GlobalWhseActivLine."Activity Type" = GlobalWhseActivLine."Activity Type"::Pick) or
@@ -1849,6 +1857,33 @@ codeunit 7307 "Whse.-Activity-Register"
 
         Cust.Get(GlobalWhseActivLine."Destination No.");
         Cust.CheckBlockedCustOnDocs(Cust, GlobalWhseActivHeader."Source Document", false, false);
+    end;
+
+    local procedure CheckItemTrackingRequiredForPutAway(WhseActivLine: Record "Warehouse Activity Line")
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeCheckItemTrackingRequiredForPutAway(WhseActivLine, IsHandled);
+        if IsHandled then
+            exit;
+
+        if WhseActivLine."Activity Type" <> WhseActivLine."Activity Type"::"Put-away" then
+            exit;
+        if WhseActivLine."Serial No." = '' then
+            exit;
+
+        ItemLedgerEntry.SetCurrentKey("Item No.", "Variant Code", "Location Code", "Serial No.");
+        ItemLedgerEntry.SetRange("Item No.", WhseActivLine."Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", WhseActivLine."Variant Code");
+        ItemLedgerEntry.SetRange("Location Code", WhseActivLine."Location Code");
+        ItemLedgerEntry.SetRange("Serial No.", WhseActivLine."Serial No.");
+        ItemLedgerEntry.SetRange(Open, true);
+        ItemLedgerEntry.SetLoadFields("Lot No.");
+        if ItemLedgerEntry.FindLast() then
+            if ItemLedgerEntry."Lot No." <> '' then
+                WhseActivLine.TestField("Lot No.", ItemLedgerEntry."Lot No.");
     end;
 
     local procedure CheckBinRelatedFields(WhseActivLine: Record "Warehouse Activity Line")
@@ -2440,6 +2475,11 @@ codeunit 7307 "Whse.-Activity-Register"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBinRelatedFields(WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckItemTrackingRequiredForPutAway(WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     begin
     end;
 

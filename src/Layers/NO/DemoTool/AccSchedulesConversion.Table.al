@@ -1,4 +1,6 @@
+#pragma warning disable AS0103, PTE0004 // Accepted: this internal table is intentionally accessed only by its owning infrastructure and is not exposed through user permission sets. Tracked by AB#640773.
 table 160801 "Acc. Schedules Conversion"
+#pragma warning restore AS0103, PTE0004
 {
     Caption = 'Acc. Schedules Conversion';
     DataClassification = CustomerContent;
@@ -15,7 +17,9 @@ table 160801 "Acc. Schedules Conversion"
             Caption = 'Line No.';
             TableRelation = "Acc. Schedule Line"."Line No." where("Schedule Name" = field("Schedule Name"));
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(3; "Totaling (Old)"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("Acc. Schedule Line".Totaling where("Schedule Name" = field("Schedule Name"),
                                                                       "Line No." = field("Line No.")));
@@ -35,7 +39,9 @@ table 160801 "Acc. Schedules Conversion"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(6; Description; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("Acc. Schedule Line".Description where("Schedule Name" = field("Schedule Name"),
                                                                          "Line No." = field("Line No.")));

@@ -28,12 +28,13 @@ using System.Utilities;
 codeunit 31395 "Dimension Auto.Update Mgt. CZA"
 {
     Permissions = TableData "Dimension Value" = rim,
-                  TableData "Default Dimension" = r;
+                  TableData "Default Dimension" = r,
+                  TableData "Auto. Create Default Dim. CZA" = r;
     SingleInstance = true;
 
     var
         TempChangeLogSetupTable: Record "Change Log Setup (Table)" temporary;
-        TempDefaultDimension: Record "Default Dimension" temporary;
+        TempAutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA" temporary;
         TempAutoCreateDimAllObjWithCaption: Record AllObjWithCaption temporary;
         DimChangeSetupRead: Boolean;
         RunEmployeeOnAfterInsertEvent: Boolean;
@@ -204,7 +205,7 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
 
     local procedure RenameLinkedDimensionValues(var RecRef: RecordRef; var xRecRef: RecordRef; OldNo: Text; NewNo: Text)
     var
-        DefaultDimension: Record "Default Dimension";
+        AutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA";
         CardDefaultDimension: Record "Default Dimension";
         DimensionValue: Record "Dimension Value";
         TempCandidateDimensionValue: Record "Dimension Value" temporary;
@@ -224,18 +225,16 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
         if not xRecRef.Get(xRecRef.RecordId) then
             exit;
 
-        DefaultDimension.SetRange("Table ID", RecRef.Number);
-        DefaultDimension.SetRange("No.", '');
-        DefaultDimension.SetRange("Automatic Create CZA", true);
-        if DefaultDimension.FindSet() then
+        AutoCreateDefaultDim.SetRange("Table ID", RecRef.Number);
+        if AutoCreateDefaultDim.FindSet() then
             repeat
-                if CardDefaultDimension.Get(RecRef.Number, NewNo, DefaultDimension."Dimension Code") then
+                if CardDefaultDimension.Get(RecRef.Number, NewNo, AutoCreateDefaultDim."Dimension Code") then
                     if CardDefaultDimension."Dimension Value Code" = OldNo then
-                        if DimensionValue.Get(DefaultDimension."Dimension Code", OldNo) then begin
+                        if DimensionValue.Get(AutoCreateDefaultDim."Dimension Code", OldNo) then begin
                             TempCandidateDimensionValue := DimensionValue;
                             if TempCandidateDimensionValue.Insert() then;
                         end;
-            until DefaultDimension.Next() = 0;
+            until AutoCreateDefaultDim.Next() = 0;
 
         if TempCandidateDimensionValue.FindSet() then
             repeat
@@ -262,7 +261,7 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
 
     local procedure RenameLinkedMasterRecords(DimensionCode: Code[20]; OldNo: Text; NewNo: Text)
     var
-        DefaultDimension: Record "Default Dimension";
+        AutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA";
         AllObjWithCaption: Record AllObjWithCaption;
         TempCandidate: Record AllObjWithCaption temporary;
         ConfirmManagement: Codeunit "Confirm Management";
@@ -283,30 +282,28 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
             exit;
         end;
 
-        DefaultDimension.SetRange("Dimension Code", DimensionCode);
-        DefaultDimension.SetRange("No.", '');
-        DefaultDimension.SetRange("Automatic Create CZA", true);
-        if DefaultDimension.FindSet() then
+        AutoCreateDefaultDim.SetRange("Dimension Code", DimensionCode);
+        if AutoCreateDefaultDim.FindSet() then
             repeat
                 Clear(RecRef);
-                RecRef.Open(DefaultDimension."Table ID");
+                RecRef.Open(AutoCreateDefaultDim."Table ID");
                 PKFieldRef := RecRef.KeyIndex(1).FieldIndex(1);
                 PKFieldRef.SetRange(OldNo);
                 if RecRef.FindFirst() then begin
-                    if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, DefaultDimension."Table ID") then
+                    if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, AutoCreateDefaultDim."Table ID") then
                         TableCaption := AllObjWithCaption."Object Caption"
                     else
                         TableCaption := RecRef.Caption();
-                    if not TempCandidate.Get(TempCandidate."Object Type"::Table, DefaultDimension."Table ID") then begin
+                    if not TempCandidate.Get(TempCandidate."Object Type"::Table, AutoCreateDefaultDim."Table ID") then begin
                         TempCandidate.Init();
                         TempCandidate."Object Type" := TempCandidate."Object Type"::Table;
-                        TempCandidate."Object ID" := DefaultDimension."Table ID";
+                        TempCandidate."Object ID" := AutoCreateDefaultDim."Table ID";
                         TempCandidate."Object Caption" := CopyStr(TableCaption, 1, MaxStrLen(TempCandidate."Object Caption"));
                         TempCandidate.Insert();
                     end;
                 end;
                 RecRef.Close();
-            until DefaultDimension.Next() = 0;
+            until AutoCreateDefaultDim.Next() = 0;
 
         if TempCandidate.FindSet() then
             repeat
@@ -338,38 +335,36 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
         OldTempValueText: Text;
         IsUpdate: Boolean;
     begin
-        TempDefaultDimension.Reset();
-        TempDefaultDimension.SetRange("Table ID", DimValRecordRef.Number);
-        TempDefaultDimension.SetRange("Automatic Create CZA", true);
-        TempDefaultDimension.SetRange("No.", '');
-        TempDefaultDimension.SetFilter("Dim. Description Field ID CZA", '<>%1', 0);
-        TempDefaultDimension.SetFilter("Dim. Description Update CZA", '<>%1', TempDefaultDimension."Dim. Description Update CZA"::" ");
-        if TempDefaultDimension.FindSet(false) then
+        TempAutoCreateDefaultDim.Reset();
+        TempAutoCreateDefaultDim.SetRange("Table ID", DimValRecordRef.Number);
+        TempAutoCreateDefaultDim.SetFilter("Dim. Description Field ID", '<>%1', 0);
+        TempAutoCreateDefaultDim.SetFilter("Dim. Description Update", '<>%1', TempAutoCreateDefaultDim."Dim. Description Update"::" ");
+        if TempAutoCreateDefaultDim.FindSet(false) then
             repeat
                 IsUpdate := false;
-                DescrFieldRef := DimValRecordRef.Field(TempDefaultDimension."Dim. Description Field ID CZA");
+                DescrFieldRef := DimValRecordRef.Field(TempAutoCreateDefaultDim."Dim. Description Field ID");
                 PrimaryKeyRef := DimValRecordRef.KeyIndex(1);
                 PrimaryKeyFieldRef := PrimaryKeyRef.FieldIndex(1);
-                if DimensionValue.Get(TempDefaultDimension."Dimension Code", Format(PrimaryKeyFieldRef.Value)) then begin
-                    if RecField.Get(TempDefaultDimension."Table ID", TempDefaultDimension."Dim. Description Field ID CZA") then
+                if DimensionValue.Get(TempAutoCreateDefaultDim."Dimension Code", Format(PrimaryKeyFieldRef.Value)) then begin
+                    if RecField.Get(TempAutoCreateDefaultDim."Table ID", TempAutoCreateDefaultDim."Dim. Description Field ID") then
                         if RecField.Class = RecField.Class::FlowField then
                             DescrFieldRef.CalcField();
                     TempValueText := Format(DescrFieldRef.Value);
-                    if TempDefaultDimension."Dim. Description Format CZA" <> '' then
-                        TempValueText := StrSubstNo(TempDefaultDimension."Dim. Description Format CZA", TempValueText);
+                    if TempAutoCreateDefaultDim."Dim. Description Format" <> '' then
+                        TempValueText := StrSubstNo(TempAutoCreateDefaultDim."Dim. Description Format", TempValueText);
                     if TempValueText <> '' then
                         TempValueText := CopyStr(TempValueText, 1, MaxStrLen(DimensionValue.Name));
-                    if TempDefaultDimension."Dim. Description Update CZA" = TempDefaultDimension."Dim. Description Update CZA"::Create then
+                    if TempAutoCreateDefaultDim."Dim. Description Update" = TempAutoCreateDefaultDim."Dim. Description Update"::Create then
                         if (DimensionValue.Name = '') or IsInsert then
                             IsUpdate := true
                         else begin
-                            OldDescrFieldRef := XDimValRecordRef.Field(TempDefaultDimension."Dim. Description Field ID CZA");
-                            if RecField.Get(TempDefaultDimension."Table ID", TempDefaultDimension."Dim. Description Field ID CZA") then
+                            OldDescrFieldRef := XDimValRecordRef.Field(TempAutoCreateDefaultDim."Dim. Description Field ID");
+                            if RecField.Get(TempAutoCreateDefaultDim."Table ID", TempAutoCreateDefaultDim."Dim. Description Field ID") then
                                 if RecField.Class = RecField.Class::FlowField then
                                     OldDescrFieldRef.CalcField();
                             OldTempValueText := Format(OldDescrFieldRef.Value);
-                            if TempDefaultDimension."Dim. Description Format CZA" <> '' then
-                                OldTempValueText := StrSubstNo(TempDefaultDimension."Dim. Description Format CZA", OldTempValueText);
+                            if TempAutoCreateDefaultDim."Dim. Description Format" <> '' then
+                                OldTempValueText := StrSubstNo(TempAutoCreateDefaultDim."Dim. Description Format", OldTempValueText);
                             if OldTempValueText <> '' then
                                 OldTempValueText := CopyStr(OldTempValueText, 1, MaxStrLen(DimensionValue.Name));
                             IsUpdate := DimensionValue.Name = OldTempValueText;
@@ -381,7 +376,7 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
                         DimensionValue.Modify();
                     end;
                 end;
-            until TempDefaultDimension.Next() = 0;
+            until TempAutoCreateDefaultDim.Next() = 0;
     end;
 
     local procedure CheckChangeSetupRead()
@@ -399,30 +394,28 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
     local procedure ReadSetup()
     var
         AllObjWithCaption: Record AllObjWithCaption;
-        DefaultDimension: Record "Default Dimension";
+        AutoCreateDefaultDim: Record "Auto. Create Default Dim. CZA";
         DimensionManagement: Codeunit DimensionManagement;
     begin
-        DefaultDimension.SetRange("Automatic Create CZA", true);
-        DefaultDimension.SetRange("No.", '');
-        DefaultDimension.SetFilter("Dim. Description Field ID CZA", '<>%1', 0);
-        DefaultDimension.SetFilter("Dim. Description Update CZA", '<>%1', DefaultDimension."Dim. Description Update CZA"::" ");
-        if DefaultDimension.FindSet(false) then
+        AutoCreateDefaultDim.SetFilter("Dim. Description Field ID", '<>%1', 0);
+        AutoCreateDefaultDim.SetFilter("Dim. Description Update", '<>%1', AutoCreateDefaultDim."Dim. Description Update"::" ");
+        if AutoCreateDefaultDim.FindSet(false) then
             repeat
-                if not TempChangeLogSetupTable.Get(DefaultDimension."Table ID") then begin
-                    TempChangeLogSetupTable."Table No." := DefaultDimension."Table ID";
+                if not TempChangeLogSetupTable.Get(AutoCreateDefaultDim."Table ID") then begin
+                    TempChangeLogSetupTable."Table No." := AutoCreateDefaultDim."Table ID";
                     TempChangeLogSetupTable.Insert();
                 end;
-                TempDefaultDimension := DefaultDimension;
-                TempDefaultDimension.Insert();
-            until DefaultDimension.Next() = 0;
+                TempAutoCreateDefaultDim := AutoCreateDefaultDim;
+                TempAutoCreateDefaultDim.Insert();
+            until AutoCreateDefaultDim.Next() = 0;
 
-        DefaultDimension.SetRange("Dim. Description Field ID CZA");
-        DefaultDimension.SetRange("Dim. Description Update CZA");
-        if DefaultDimension.FindSet(false) then
+        AutoCreateDefaultDim.SetRange("Dim. Description Field ID");
+        AutoCreateDefaultDim.SetRange("Dim. Description Update");
+        if AutoCreateDefaultDim.FindSet(false) then
             repeat
-                if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, DefaultDimension."Table ID") then
-                    DimensionManagement.DefaultDimInsertTempObject(TempAutoCreateDimAllObjWithCaption, DefaultDimension."Table ID");
-            until DefaultDimension.Next() = 0;
+                if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, AutoCreateDefaultDim."Table ID") then
+                    DimensionManagement.DefaultDimInsertTempObject(TempAutoCreateDimAllObjWithCaption, AutoCreateDefaultDim."Table ID");
+            until AutoCreateDefaultDim.Next() = 0;
     end;
 
     internal procedure ForceSetDimChangeSetupRead()
@@ -434,8 +427,8 @@ codeunit 31395 "Dimension Auto.Update Mgt. CZA"
     begin
         TempChangeLogSetupTable.Reset();
         TempChangeLogSetupTable.DeleteAll(false);
-        TempDefaultDimension.Reset();
-        TempDefaultDimension.DeleteAll(false);
+        TempAutoCreateDefaultDim.Reset();
+        TempAutoCreateDefaultDim.DeleteAll(false);
         TempAutoCreateDimAllObjWithCaption.Reset();
         TempAutoCreateDimAllObjWithCaption.DeleteAll(false);
         DimChangeSetupRead := false;

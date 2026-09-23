@@ -17,6 +17,7 @@ report 114 "Salesperson - Sales Statistics"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson - Sales Statistics';
+    ToolTip = 'View amounts for sales, profit, invoice discount, and payment discount, as well as profit percentage, for each salesperson for a selected period. The report also shows the adjusted profit and adjusted profit percentage, which reflect any changes to the original costs of the items in the sales.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
@@ -152,6 +153,7 @@ report 114 "Salesperson - Sales Statistics"
     {
         layout(RDLCLayout)
         {
+            Caption = 'Salesperson Sales Statistics RDLC';
             Type = RDLC;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';

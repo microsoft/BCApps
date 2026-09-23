@@ -260,6 +260,32 @@ codeunit 8900 "Email Impl"
         Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
     end;
 
+    procedure FindRetrievedEmail(EmailAccountId: Guid; ExternalMessageId: Text; var EmailInbox: Record "Email Inbox"): Boolean
+    var
+        ExistingEmailInbox: Record "Email Inbox";
+    begin
+        if IsNullGuid(EmailAccountId) or (ExternalMessageId = '') then
+            exit(false);
+
+        ExistingEmailInbox.ReadIsolation(IsolationLevel::ReadCommitted);
+        ExistingEmailInbox.SetRange("Account Id", EmailAccountId);
+        ExistingEmailInbox.SetRange("External Message Id", CopyStr(ExternalMessageId, 1, MaxStrLen(ExistingEmailInbox."External Message Id")));
+        if not ExistingEmailInbox.FindFirst() then
+            exit(false);
+
+        if EmailInbox.IsTemporary() then begin
+            if not EmailInbox.Get(ExistingEmailInbox.Id) then begin
+                EmailInbox := ExistingEmailInbox;
+                EmailInbox.Insert();
+            end;
+        end else
+            if not EmailInbox.Get(ExistingEmailInbox.Id) then
+                exit(false);
+
+        EmailInbox.Mark(true);
+        exit(true);
+    end;
+
     procedure GetMailFolders(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailFolders: Record "Email Folders" temporary)
     var
         EmailConnectorv4: Interface "Email Connector v4";
@@ -745,8 +771,11 @@ codeunit 8900 "Email Impl"
     procedure FilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record")
     var
         AllObj: Record AllObj;
+        Email: Codeunit Email;
         SourceRecordRef: RecordRef;
     begin
+        Email.OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord);
+
         repeat
             if AllObj.Get(AllObj."Object Type"::Table, EmailRelatedRecord."Table Id") then begin
                 SourceRecordRef.Open(EmailRelatedRecord."Table Id");

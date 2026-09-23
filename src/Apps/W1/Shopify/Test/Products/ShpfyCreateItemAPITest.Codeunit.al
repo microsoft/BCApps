@@ -6,6 +6,8 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Intrastat;
+using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
 
 codeunit 139552 "Shpfy Create Item API Test"
@@ -154,6 +156,62 @@ codeunit 139552 "Shpfy Create Item API Test"
 
         // [THEN] On the "Shpfy Product" record, the field "Error Message" must be filled.
         LibraryAssert.IsTrue(Product."Error Message".contains(AutoCreateUnknownItemsDisabledErr), '"Error Message" must contain error text');
+    end;
+
+    [Test]
+    [HandlerFunctions('GetProductsHttpHandler')]
+    procedure UnitTestImportProductSyncsHSCodeAndCountryOfOrigin()
+    var
+        Product: Record "Shpfy Product";
+        Item: Record Item;
+        ShopifyVariant: Record "Shpfy Variant";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        CreateItem: Codeunit "Shpfy Create Item";
+    begin
+        Initialize();
+
+        // [SCENARIO 642046] Importing a product from Shopify imports the HS code (Tariff No.) and Country/Region of Origin onto the Shopify variant and the created item, matching a BC Tariff Number even though Shopify returns the code without separators.
+
+        // [GIVEN] A shop with "Sync HS Code and Country" enabled.
+        Shop."Auto Create Unknown Items" := true;
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify(false);
+
+        // [GIVEN] A BC Tariff Number stored with a separator, matching the digits Shopify returns ("610443").
+        CreateTariffNumber('6104.43');
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        RegExpectedOutboundHttpRequestsForGetProducts();
+
+        // [GIVEN] A Shopify variant record of a standard shopify product. (The variant record always exists, even if the products don't have any variants.)
+        ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+        ProductId := ShopifyVariant."Product Id";
+        VariantId := ShopifyVariant."Id";
+
+        // [WHEN] Invoke ShpfyCreateItem.CreateItemFromShopifyProduct to import the product details and create the item.
+        Product.Get(ShopifyVariant."Product Id");
+        CreateItem.CreateItemFromShopifyProduct(Product);
+
+        // [THEN] The Shopify variant mirrors the separator-less HS code and the Country/Region of Origin Code from Shopify.
+        ShopifyVariant.Get(VariantId);
+        LibraryAssert.AreEqual('610443', ShopifyVariant."Tariff No.", 'Variant "Tariff No." must mirror the separator-less HS code from Shopify.');
+        LibraryAssert.AreEqual('US', ShopifyVariant."Country/Region of Origin Code", 'Variant "Country/Region of Origin Code" must be imported from Shopify.');
+
+        // [THEN] The created item is matched to the BC Tariff Number stored with a separator.
+        Product.Get(ShopifyVariant."Product Id");
+        LibraryAssert.IsTrue(Item.GetBySystemId(Product."Item SystemId"), 'Get Item');
+        LibraryAssert.AreEqual('6104.43', Item."Tariff No.", 'Item "Tariff No." must match the BC Tariff Number.');
+    end;
+
+    local procedure CreateTariffNumber(No: Code[20])
+    var
+        TariffNumber: Record "Tariff Number";
+    begin
+        if not TariffNumber.Get(No) then begin
+            TariffNumber.Init();
+            TariffNumber."No." := No;
+            TariffNumber.Insert();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Product Events", OnBeforeCreateItem, '', true, false)]

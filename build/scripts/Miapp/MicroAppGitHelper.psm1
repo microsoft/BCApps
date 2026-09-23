@@ -434,28 +434,81 @@ function Get-GitCurrentBranch {
     git rev-parse --abbrev-ref HEAD
 }
 
-function Initialize-MiappRepoBranchName {
+$script:MiappBaseBranch = $null
+
+function Test-MiappRemoteBranchExists {
+    <#
+    .SYNOPSIS
+    Returns $true when 'refs/remotes/origin/<Branch>' resolves in the current
+    repository.
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Branch
+    )
+
+    $null = (git rev-parse --verify --quiet "refs/remotes/origin/$Branch" 2>$null)
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Get-MiappBaseBranch {
+    <#
+    .SYNOPSIS
+    Returns the base branch Miapp integrates from.
+
+    .DESCRIPTION
+    Resolution order:
+
+    1. An explicitly requested base branch in $env:RepoBranchName - but only when
+    'origin/<branch>' actually exists in the current repository. Callers such as
+    the VerifyMiappSync action set this to the pull request target branch
+    ($env:GITHUB_BASE_REF), so a PR that targets a release branch (e.g.
+    'releases/29.x') is diffed against that branch. Without this, the base falls
+    through to the default branch and the changelist becomes the entire
+    divergence between the release branch and the default branch - thousands of
+    files - even for PRs that change nothing Miapp-relevant.
+
+    2. Otherwise 'origin/HEAD' of the current repository, via
+    'git symbolic-ref --short refs/remotes/origin/HEAD' with 'git remote show
+    origin' as a fallback. This makes Miapp target that repository's own default
+    branch even when it runs inside a submodule whose default branch differs from
+    the outer repo, avoiding a non-existent ref like 'origin/master'.
+
+    Requiring the requested branch to exist in step 1 preserves the submodule
+    behaviour: an ambient 'RepoBranchName=master' that does not exist in this
+    repository is ignored, and resolution falls back to 'origin/HEAD'.
+
+    The resolved value is cached for the lifetime of the module.
+    #>
     [CmdletBinding()]
     [OutputType([string])]
     param()
 
-    if ($env:RepoBranchName) {
-        return $env:RepoBranchName
+    if ($script:MiappBaseBranch) {
+        return $script:MiappBaseBranch
+    }
+
+    if ($env:RepoBranchName -and (Test-MiappRemoteBranchExists $env:RepoBranchName)) {
+        $script:MiappBaseBranch = $env:RepoBranchName
+        return $script:MiappBaseBranch
     }
 
     [string] $originHeadRef = (git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null)
     if ($originHeadRef -imatch '^origin/(.+)$') {
-        $env:RepoBranchName = $Matches[1]
+        $script:MiappBaseBranch = $Matches[1]
     }
 
-    if (-not $env:RepoBranchName) {
+    if (-not $script:MiappBaseBranch) {
         [string] $originHeadBranch = (git remote show origin 2>$null | Select-String 'HEAD branch:' | Select-Object -First 1)
         if ($originHeadBranch -imatch 'HEAD branch:\s*(.+)$') {
-            $env:RepoBranchName = $Matches[1].Trim()
+            $script:MiappBaseBranch = $Matches[1].Trim()
         }
     }
 
-    $env:RepoBranchName
+    $script:MiappBaseBranch
 }
 
 function Get-GitLastCommitSHA1 {
@@ -517,9 +570,9 @@ function GetGitCommittedFiles {
     [OutputType([string[]])]
     param()
 
-    # Returns files committed locally since origin/RepoBranchName
-    if (-not (Initialize-MiappRepoBranchName)) { return }
-    git diff --name-only "origin/$env:RepoBranchName...HEAD" | ? { $_ }
+    # Returns files committed locally since the base branch (origin/HEAD)
+    if (-not (Get-MiappBaseBranch)) { return }
+    git diff --name-only "origin/$(Get-MiappBaseBranch)...HEAD" | ? { $_ }
 }
 
 
@@ -724,7 +777,7 @@ Export-ModuleMember Get-GitCanonicalPath
 Export-ModuleMember Get-GitChangedFiles
 Export-ModuleMember Get-GitCurrentBranch
 Export-ModuleMember Get-GitCurrentRemoteBranch
-Export-ModuleMember Initialize-MiappRepoBranchName
+Export-ModuleMember Get-MiappBaseBranch
 Export-ModuleMember Get-GitFileStatus
 Export-ModuleMember Get-GitLastCommitSHA1
 Export-ModuleMember Get-GitMergeToolConfig

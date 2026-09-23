@@ -220,6 +220,13 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
             InvtAdjmtEntryOrder.CalcIndirectCostFromCostShares();
             InvtAdjmtEntryOrder.CalcUnitCost();
         end;
+
+        if InvtAdjmtEntryOrder."Order Type" = InvtAdjmtEntryOrder."Order Type"::Assembly then begin
+            InvtAdjmtEntryOrder.CalcOvhdCost(OutputQty);
+            InvtAdjmtEntryOrder.RoundCosts(1);
+            InvtAdjmtEntryOrder.CalcIndirectCostFromCostShares();
+            InvtAdjmtEntryOrder.CalcUnitCost();
+        end;
     end;
 
     local procedure CalcActualOutputCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: Integer)

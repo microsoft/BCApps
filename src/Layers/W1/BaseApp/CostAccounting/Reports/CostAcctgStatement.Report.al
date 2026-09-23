@@ -13,6 +13,7 @@ report 1126 "Cost Acctg. Statement"
     RDLCLayout = './CostAccounting/Reports/CostAcctgStatement.rdlc';
     ApplicationArea = CostAccounting;
     Caption = 'Cost Acctg. Statement';
+    ToolTip = 'View the credit and debit balances per cost type, together with the chart of cost types.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

@@ -38,11 +38,18 @@ page 471 "VAT Product Posting Groups"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Print on Invoice"; Rec."Print on Invoice")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if you want to include the Description on sales invoices and credit memos.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'The Print VAT Information on Invoices functionality is discontinued and this setting is no longer used.';
                 }
+#pragma warning restore AL0432
+#endif
             }
         }
         area(factboxes)

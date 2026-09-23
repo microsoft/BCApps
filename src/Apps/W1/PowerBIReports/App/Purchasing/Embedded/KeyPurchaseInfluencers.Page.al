@@ -11,8 +11,8 @@ page 37117 "Key Purchase Influencers"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Key Purchase Influencers';
-    AboutTitle = 'About Key Purchase Influencers';
+    Caption = 'Key Purchase Influencers (Power BI)';
+    AboutTitle = 'About Key Purchase Influencers (Power BI)';
     AboutText = 'The Key Purchase Influencers report identifies the key factors driving purchase performance, highlighting the most impactful variables and trends based on the purchase data like items, vendors, purchasers, dimensions and other dimensional data. ';
 
     layout

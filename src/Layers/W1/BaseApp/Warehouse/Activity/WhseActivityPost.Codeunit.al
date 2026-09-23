@@ -265,28 +265,31 @@ codeunit 7324 "Whse.-Activity-Post"
         if not (Location."Require Pick" and Location."Require Receive") then
             exit;
 
-        Item.SetLoadFields("Order Tracking Policy", "Assembly BOM", "Assembly Policy");
-        Item.SetAutoCalcFields("Assembly BOM");
-        Item.Get(WarehouseActivityLine."Item No.");
-        if (Item."Order Tracking Policy" = Item."Order Tracking Policy"::None) then
-            exit;
-        if (Item."Assembly BOM") and (Item."Assembly Policy" = Item."Assembly Policy"::"Assemble-to-Order") then
-            exit;
-
         WarehouseActivityLine2.CopyFilters(WarehouseActivityLine);
         WarehouseActivityLine2.SetFilter("Activity Type", '%1|%2', WarehouseActivityLine2."Activity Type"::"Invt. Pick", WarehouseActivityLine2."Activity Type"::"Invt. Put-away");
+        WarehouseActivityLine2.SetRange("Assemble to Order", false);
+        Item.SetLoadFields("Order Tracking Policy");
         if WarehouseActivityLine2.FindSet() then
             repeat
-                if CheckItemTracking(WarehouseActivityLine2) then begin
-                    CreateWhseJnlLine(TempWhseJnlLine, WarehouseActivityLine2);
-                    if TempWhseJnlLine."Entry Type" = TempWhseJnlLine."Entry Type"::"Negative Adjmt." then
-                        WMSMgt.CheckWhseJnlLine(TempWhseJnlLine, 4, TempWhseJnlLine."Qty. (Base)", false); // 4 = Whse. Journal
-                end;
+                Item.Get(WarehouseActivityLine2."Item No.");
+                if Item."Order Tracking Policy" <> Item."Order Tracking Policy"::None then
+                    if CheckItemTracking(WarehouseActivityLine2) then begin
+                        CreateWhseJnlLine(TempWhseJnlLine, WarehouseActivityLine2);
+                        if TempWhseJnlLine."Entry Type" = TempWhseJnlLine."Entry Type"::"Negative Adjmt." then
+                            WMSMgt.CheckWhseJnlLine(TempWhseJnlLine, 4, TempWhseJnlLine."Qty. (Base)", false); // 4 = Whse. Journal
+                    end;
             until WarehouseActivityLine2.Next() = 0;
     end;
 
     local procedure CheckWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location)
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckWarehouseActivityLine(WarehouseActivityLine, WarehouseActivityHeader, Location, IsHandled);
+        if IsHandled then
+            exit;
+
         WarehouseActivityLine.TestField("Item No.");
         if Location."Bin Mandatory" then begin
             WarehouseActivityLine.TestField("Unit of Measure Code");
@@ -1118,6 +1121,7 @@ codeunit 7324 "Whse.-Activity-Post"
     var
         PostedInvtPutAwayLine: Record "Posted Invt. Put-away Line";
         PostedInvtPickLine: Record "Posted Invt. Pick Line";
+        IsHandled: Boolean;
     begin
         if WhseActivHeader.Type = WhseActivHeader.Type::"Invt. Put-away" then begin
             PostedInvtPutAwayLine.Init();
@@ -1130,7 +1134,10 @@ codeunit 7324 "Whse.-Activity-Post"
             PostedInvtPickLine.Init();
             PostedInvtPickLine.TransferFields(WhseActivLine);
             PostedInvtPickLine."No." := PostedInvtPickHeader."No.";
-            PostedInvtPickLine.Validate(Quantity, WhseActivLine."Qty. to Handle");
+            IsHandled := false;
+            OnBeforePostedInvtPickLineValidateQuantity(PostedInvtPickLine, WhseActivLine, IsHandled);
+            if not IsHandled then
+                PostedInvtPickLine.Validate(Quantity, WhseActivLine."Qty. to Handle");
             OnBeforePostedInvtPickLineInsert(PostedInvtPickLine, WhseActivLine);
             PostedInvtPickLine.Insert();
         end;
@@ -1264,6 +1271,15 @@ codeunit 7324 "Whse.-Activity-Post"
                                 TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)",
                                 TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", true, InvoiceSourceDoc);
                         end;
+                    Database::"Job Planning Line":
+                        // New format: Warehouse activity line already uses Job Planning Line source type
+                        TrackingSpecification.CheckItemTrackingQuantity(
+                            TempWarehouseActivityLineForItemTrackingChecking."Source Type",
+                            TempWarehouseActivityLineForItemTrackingChecking."Source Subtype",
+                            TempWarehouseActivityLineForItemTrackingChecking."Source No.",
+                            TempWarehouseActivityLineForItemTrackingChecking."Source Line No.",
+                            TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)",
+                            TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", true, InvoiceSourceDoc);
                     else
                         TrackingSpecification.CheckItemTrackingQuantity(TempWarehouseActivityLineForItemTrackingChecking."Source Type", TempWarehouseActivityLineForItemTrackingChecking."Source Subtype", TempWarehouseActivityLineForItemTrackingChecking."Source No.", TempWarehouseActivityLineForItemTrackingChecking."Source Line No.", TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", true, InvoiceSourceDoc);
                 end;
@@ -1498,6 +1514,11 @@ codeunit 7324 "Whse.-Activity-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterInitSourceDocument(var WhseActivityHeader: Record "Warehouse Activity Header")
     begin
     end;
@@ -1552,6 +1573,11 @@ codeunit 7324 "Whse.-Activity-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostWhseActivityLine(WhseActivHeader: Record "Warehouse Activity Header"; var WhseActivLine: Record "Warehouse Activity Line"; PostedSourceNo: Code[20]; PostedSourceType: Integer; PostedSourceSubType: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostedInvtPickLineValidateQuantity(var PostedInvtPickLine: Record "Posted Invt. Pick Line"; WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     begin
     end;
 

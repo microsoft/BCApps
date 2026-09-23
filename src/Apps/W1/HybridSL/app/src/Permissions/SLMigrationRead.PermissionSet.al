@@ -65,6 +65,8 @@ permissionset 47006 "SL Migration - Read"
                   tabledata "SL PJEquip Buffer" = R,
                   tabledata "SL PJPent Buffer" = R,
                   tabledata "SL PJProj Buffer" = R,
+                  tabledata "SL PJTran" = R,
+                  tabledata "SL PJTranEx" = R,
                   tabledata "SL Post Migration Data Log" = R,
                   tabledata "SL POAddress" = R,
                   tabledata "SL POReceipt" = R,
@@ -109,12 +111,12 @@ permissionset 47006 "SL Migration - Read"
                   tabledata "SL PJEquip" = R,
                   tabledata "SL PJPent" = R,
                   tabledata "SL PJProj" = R,
-                  tabledata "SL PurchOrd" = R,
-                  tabledata "SL PurOrdDet" = R,
                   tabledata "SL SOHeader" = R,
                   tabledata "SL SOLine" = R,
                   tabledata "SL SOType" = R,
 #pragma warning restore AL0432
 #endif
+                  tabledata "SL PurchOrd" = R,
+                  tabledata "SL PurOrdDet" = R,
                   tabledata SLGLAcctBalByPeriod = R;
 }

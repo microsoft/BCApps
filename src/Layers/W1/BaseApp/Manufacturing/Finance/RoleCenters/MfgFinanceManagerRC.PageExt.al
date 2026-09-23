@@ -37,7 +37,6 @@ pageextension 99000780 "Mfg. Finance Manager RC" extends "Finance Manager Role C
                 ApplicationArea = Manufacturing;
                 Caption = 'Production Order - WIP';
                 RunObject = report "Inventory Valuation - WIP";
-                Tooltip = 'Run the Production Order - WIP report.';
             }
         }
     }

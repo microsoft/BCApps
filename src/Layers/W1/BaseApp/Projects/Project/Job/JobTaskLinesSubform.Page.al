@@ -292,6 +292,21 @@ page 1001 "Job Task Lines Subform"
                             JobPlanningLines.Run();
                         end;
                     }
+                    action("Assigned Resources")
+                    {
+                        ApplicationArea = Jobs;
+                        Caption = 'Assigned Resources';
+                        Image = Users;
+                        ToolTip = 'View or edit the additional resources that are explicitly assigned to this project task. Project-level assignments are managed from the project and are not shown on the project tasks.';
+
+                        trigger OnAction()
+                        var
+                            JobAssignedResourcesPage: Page "Job Assigned Resources";
+                        begin
+                            if JobAssignedResourcesPage.SetJobTaskContext(Rec) then
+                                JobAssignedResourcesPage.Run();
+                        end;
+                    }
                     action(JobTaskStatistics)
                     {
                         ApplicationArea = Jobs;

@@ -148,7 +148,8 @@ table 21 "Cust. Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Entry No."),
-                                                                         "Posting Date" = field("Date Filter")));
+                                                                         "Posting Date" = field("Date Filter"),
+                                                                         "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amount';
             Editable = false;
             FieldClass = FlowField;
@@ -177,7 +178,8 @@ table 21 "Cust. Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
-                                                                                 "Posting Date" = field("Date Filter")));
+                                                                                 "Posting Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
             FieldClass = FlowField;

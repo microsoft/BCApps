@@ -5,9 +5,12 @@
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;
@@ -163,6 +166,66 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
             Error(this.MissingDescriptionErr);
     end;
 
+    /// <summary>
+    /// Validates if a remittance advice built from an unposted vendor payment journal line meets PEPPOL requirements.
+    /// </summary>
+    /// <param name="GenJournalLine">Record "Gen. Journal Line" that anchors the remittance advice (the payment journal line).</param>
+    /// <remarks>
+    /// Checks company and vendor identification (Name/Country and VAT Registration No. or GLN endpoint).
+    /// Structural checks (at least one applied document) are performed upstream by
+    /// Codeunit "E-Doc. Remittance Advice Mgt." (CheckJournalPayment).
+    /// </remarks>
+    procedure CheckRemittanceAdvice(GenJournalLine: Record "Gen. Journal Line")
+    var
+        Vendor: Record Vendor;
+    begin
+        this.CheckCompanyInfoForRemittanceAdvice();
+        Vendor.Get(GenJournalLine."Account No.");
+        this.CheckVendorForRemittanceAdvice(Vendor);
+    end;
+
+    /// <summary>
+    /// Validates if a remittance advice built from a posted payment Vendor Ledger Entry meets PEPPOL requirements.
+    /// </summary>
+    /// <param name="VendorLedgerEntry">Record "Vendor Ledger Entry" that anchors the remittance advice (the posted payment entry).</param>
+    /// <remarks>
+    /// Checks company and vendor identification (Name/Country and VAT Registration No. or GLN endpoint).
+    /// Structural checks (at least one applied document) are performed upstream by
+    /// Codeunit "E-Doc. Remittance Advice Mgt." (CheckPostedPayment).
+    /// </remarks>
+    procedure CheckRemittanceAdvice(VendorLedgerEntry: Record "Vendor Ledger Entry")
+    var
+        Vendor: Record Vendor;
+    begin
+        this.CheckCompanyInfoForRemittanceAdvice();
+        Vendor.Get(VendorLedgerEntry."Vendor No.");
+        this.CheckVendorForRemittanceAdvice(Vendor);
+    end;
+
+    local procedure CheckCompanyInfoForRemittanceAdvice()
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        CompanyInfo.Get();
+
+        CompanyInfo.TestField(Name);
+        CompanyInfo.TestField("Country/Region Code");
+        this.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
+
+        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
+            Error(this.MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+    end;
+
+    local procedure CheckVendorForRemittanceAdvice(Vendor: Record Vendor)
+    begin
+        Vendor.TestField(Name);
+        Vendor.TestField("Country/Region Code");
+        this.CheckCountryRegionCode(Vendor."Country/Region Code");
+
+        if Vendor.GLN + Vendor."VAT Registration No." = '' then
+            Error(this.MissingVendGLNOrVATRegNoErr, Vendor."No.");
+    end;
+
     local procedure CheckCurrencyCode(CurrencyCode: Code[10])
     var
         GLSetup: Record "General Ledger Setup";
@@ -212,4 +275,5 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
         MissingDescriptionErr: Label 'Description field is empty. This field must be filled if you want to send the posted document as an electronic document.';
         MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 - Customer No.';
         MissingCompInfGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. in %1.', Comment = '%1 - Company Information';
+        MissingVendGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Vendor %1.', Comment = '%1 - Vendor No.';
 }

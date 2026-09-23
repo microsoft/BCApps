@@ -367,7 +367,6 @@ page 9325 "Firm Planned Prod. Orders"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Production Order Statistics";
-                ToolTip = 'View statistical information about the production order''s direct material and capacity costs and overhead as well as its capacity need in the time unit of measure.';
             }
         }
         area(Promoted)

@@ -754,75 +754,36 @@ table 'Subscription Billing KPIs'
 
 	measure 'Ranged Dimensions' = ```
 			
-			VAR _FilterTable = VALUES('Dimension Sets'[dimensionSetID])
-			VAR IndexedDimSetID =
+			VAR NormalizedIDs =
+			    SELECTCOLUMNS(
+			        VALUES('Dimension Sets'[dimensionSetID]),
+			        "DimensionSetID", IF(ISBLANK('Dimension Sets'[dimensionSetID]), 0, 'Dimension Sets'[dimensionSetID])
+			    )
+			VAR DistinctIDs = DISTINCT(NormalizedIDs)
+			VAR MaxID = MAXX(DistinctIDs, [DimensionSetID])
+			VAR RangeStarts =
+			    FILTER(
+			        DistinctIDs,
+			        VAR CurrentID = [DimensionSetID]
+			        RETURN COUNTROWS(FILTER(DistinctIDs, [DimensionSetID] = CurrentID - 1)) = 0
+			    )
+			VAR RangeEnds =
 			    ADDCOLUMNS(
-			        _FilterTable,
-			        "@Index", RANKX(
-			            SUMMARIZECOLUMNS(
-			                'Dimension Sets'[dimensionSetID], _FilterTable
-			            ),
-			            'Dimension Sets'[dimensionSetID],
-			            ,
-			            ASC,
-			            DENSE
-			        )
+			        RangeStarts,
+			        "@RangeEnd",
+			            VAR CurrentStart = [DimensionSetID]
+			            VAR NextStart = MINX(FILTER(RangeStarts, [DimensionSetID] > CurrentStart), [DimensionSetID])
+			            RETURN IF(ISBLANK(NextStart), MaxID, MAXX(FILTER(DistinctIDs, [DimensionSetID] < NextStart), [DimensionSetID]))
 			    )
-			 
-			VAR PreviousIndexedDimSetID =
+			VAR Ranges =
 			    ADDCOLUMNS(
-			        IndexedDimSetID,
-			        "@Previous Date",
-			            VAR PrevIndex = [@Index] - 1
-			            RETURN SELECTCOLUMNS(
-			                FILTER(IndexedDimSetID, [@Index] = PrevIndex),
-			                [dimensionSetID])
+			        RangeEnds,
+			        "@Range",
+			            IF([DimensionSetID] = [@RangeEnd], [DimensionSetID] & "", [DimensionSetID] & ".." & [@RangeEnd])
 			    )
-			 
-			VAR CalculateBreakPoint =
-			    ADDCOLUMNS(
-			        PreviousIndexedDimSetID,
-			        "@Break Point",
-			        IF( NOT 'Dimension Sets'[dimensionSetID] - [@Previous Date] = 1, TRUE(), FALSE()
-			        )
-			    )
-			 
-			VAR BreakPointTable = FILTER(CalculateBreakPoint, [@Break Point] = TRUE())
-			 
-			VAR MaxDimension = CALCULATE(MAX('Dimension Sets'[dimensionSetID]),_FilterTable)
-			 
-			var NextIndex =
-			    ADDCOLUMNS(
-			        BreakPointTable,
-			        "@NextIndex",
-			        SELECTCOLUMNS(
-			            OFFSET( +1, BreakPointTable ),
-			            [@Index]
-			        ) - 1
-			    )
-			 
-			VAR NextDimension =
-			    ADDCOLUMNS(
-			        NextIndex,
-			        "@NextDimension",
-			            VAR PrevIndex = [@Index] - 1
-			            RETURN SELECTCOLUMNS(
-			                FILTER(IndexedDimSetID, [@Index] = [@NextIndex]),
-			                'Dimension Sets'[dimensionSetID])
-			    )
-			 
-			VAR Ranged =
-			ADDCOLUMNS(
-			    NextDimension,
-			    "@Range",
-			    IF( ISBLANK([@NextDimension]),
-			    'Dimension Sets'[dimensionSetID] & ".." & MaxDimension ,
-			    'Dimension Sets'[dimensionSetID] & ".." & [@NextDimension]
-			    )
-			)
 			
 			Return
-			    IF(COUNTROWS(NextDimension) = 1, MaxDimension, CONCATENATEX(Ranged, [@Range], "|"))
+			    CONCATENATEX(Ranges, [@Range], "|", [DimensionSetID], ASC)
 			```
 		isHidden
 		displayFolder: Back Links
@@ -832,77 +793,238 @@ table 'Subscription Billing KPIs'
 
 	measure 'Customer Deferrals Back Link' = ```
 			
-			VAR CustomerContractDeferralDocumentNos = 
-			        CONCATENATEX(VALUES('Customer Contract Deferrals'[Document No.]), 'Customer Contract Deferrals'[Document No.], "|")
-			VAR CustomerContractDeferralSubscriptionNos = 
-			        CONCATENATEX(VALUES('Customer Contract Deferrals'[Contract No.]), 'Customer Contract Deferrals'[Contract No.], "|")
-			VAR CustomerContractDeferralReleasedStatus = 
-			        CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			VAR PageLink = [Base Link] & "&page=8079"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR NormalizedDimensionSetIDs =
+			    SELECTCOLUMNS(
+			        VALUES('Dimension Sets'[dimensionSetID]),
+			        "DimensionSetID", IF(ISBLANK('Dimension Sets'[dimensionSetID]), 0, 'Dimension Sets'[dimensionSetID])
+			    )
+			VAR DistinctDimensionSetIDs = DISTINCT ( NormalizedDimensionSetIDs )
+			VAR MaximumDimensionSetIDDigits = LEN ( MAXX ( DistinctDimensionSetIDs, [DimensionSetID] ) & "" )
+			VAR DimensionRangeStarts =
+			    FILTER (
+			        DistinctDimensionSetIDs,
+			        VAR CurrentDimensionSetID = [DimensionSetID]
+			        RETURN COUNTROWS ( FILTER ( DistinctDimensionSetIDs, [DimensionSetID] = CurrentDimensionSetID - 1 ) ) = 0
+			    )
+			// Conservative estimate: bound each run by (2 * widest selected dimension set ID + separator/range marker)
+			VAR ProjectedRangedDimensionsLength = COUNTROWS ( DimensionRangeStarts ) * ( 2 * MaximumDimensionSetIDDigits + 3 )
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Cust. Sub. Contract Deferral'.'Subscription Contract No.' IS ''" )
+			    + SUMX ( VALUES ( 'Customer Contract Deferrals'[Contract No.] ), LEN ( 'Customer Contract Deferrals'[Contract No.] ) + 1 )
+			    + LEN ( " AND 'Cust. Sub. Contract Deferral'.'Document No.' IS ''" )
+			    + SUMX ( VALUES ( 'Customer Contract Deferrals'[Document No.] ), LEN ( 'Customer Contract Deferrals'[Document No.] ) + 1 )
+			    + LEN ( " AND 'Cust. Sub. Contract Deferral'.'Posting Date' IS " ) + ProjectedRangedLength
+			    + LEN ( " AND 'Cust. Sub. Contract Deferral'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			    + LEN ( " AND 'Cust. Sub. Contract Deferral'.'Released' IS ''" )
+			    + SUMX ( VALUES ( 'Is Released'[Is Released Value] ), LEN ( 'Is Released'[Is Released Value] ) + 1 )
 			RETURN
-			    [Base Link] 
-			            & "&page=8079&filter='Cust. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & CustomerContractDeferralSubscriptionNos & "'"
-			            & " AND 'Cust. Sub. Contract Deferral'.'Document No.' IS '" & CustomerContractDeferralDocumentNos & "'"
-			            & " AND 'Cust. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
-			            & " AND 'Cust. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
-			            & " AND 'Cust. Sub. Contract Deferral'.'Released' IS '" & CustomerContractDeferralReleasedStatus & "'"
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        VAR CustomerContractDeferralDocumentNos =
+			                CONCATENATEX(VALUES('Customer Contract Deferrals'[Document No.]), 'Customer Contract Deferrals'[Document No.], "|")
+			        VAR CustomerContractDeferralSubscriptionNos =
+			                CONCATENATEX(VALUES('Customer Contract Deferrals'[Contract No.]), 'Customer Contract Deferrals'[Contract No.], "|")
+			        VAR CustomerContractDeferralReleasedStatus =
+			                CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			        RETURN
+			            PageLink
+			                & "&filter='Cust. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & CustomerContractDeferralSubscriptionNos & "'"
+			                & " AND 'Cust. Sub. Contract Deferral'.'Document No.' IS '" & CustomerContractDeferralDocumentNos & "'"
+			                & " AND 'Cust. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
+			                & " AND 'Cust. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			                & " AND 'Cust. Sub. Contract Deferral'.'Released' IS '" & CustomerContractDeferralReleasedStatus & "'",
+			        PageLink
+			    )
 			```
 		displayFolder: Back Links
 		lineageTag: b0e9cd9b-c824-482b-93b8-946fe797d20c
 
 	measure 'Vendor Deferrals Back Link' = ```
 			
-			VAR VendorContractDeferralDocumentNos = 
-			        CONCATENATEX(VALUES('Vendor Contract Deferrals'[Document No.]), 'Vendor Contract Deferrals'[Document No.], "|")
-			VAR VendorContractDeferralSubscriptionNos = 
-			        CONCATENATEX(VALUES('Vendor Contract Deferrals'[Contract No.]), 'Vendor Contract Deferrals'[Contract No.], "|")
-			VAR VendorContractDeferralReleasedStatus = 
-			        CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
-			
+			VAR PageLink = [Base Link] & "&page=8081"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR NormalizedDimensionSetIDs =
+			    SELECTCOLUMNS(
+			        VALUES('Dimension Sets'[dimensionSetID]),
+			        "DimensionSetID", IF(ISBLANK('Dimension Sets'[dimensionSetID]), 0, 'Dimension Sets'[dimensionSetID])
+			    )
+			VAR DistinctDimensionSetIDs = DISTINCT ( NormalizedDimensionSetIDs )
+			VAR MaximumDimensionSetIDDigits = LEN ( MAXX ( DistinctDimensionSetIDs, [DimensionSetID] ) & "" )
+			VAR DimensionRangeStarts =
+			    FILTER (
+			        DistinctDimensionSetIDs,
+			        VAR CurrentDimensionSetID = [DimensionSetID]
+			        RETURN COUNTROWS ( FILTER ( DistinctDimensionSetIDs, [DimensionSetID] = CurrentDimensionSetID - 1 ) ) = 0
+			    )
+			// Conservative estimate: bound each run by (2 * widest selected dimension set ID + separator/range marker)
+			VAR ProjectedRangedDimensionsLength = COUNTROWS ( DimensionRangeStarts ) * ( 2 * MaximumDimensionSetIDDigits + 3 )
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Vend. Sub. Contract Deferral'.'Subscription Contract No.' IS ''" )
+			    + SUMX ( VALUES ( 'Vendor Contract Deferrals'[Contract No.] ), LEN ( 'Vendor Contract Deferrals'[Contract No.] ) + 1 )
+			    + LEN ( " AND 'Vend. Sub. Contract Deferral'.'Document No.' IS ''" )
+			    + SUMX ( VALUES ( 'Vendor Contract Deferrals'[Document No.] ), LEN ( 'Vendor Contract Deferrals'[Document No.] ) + 1 )
+			    + LEN ( " AND 'Vend. Sub. Contract Deferral'.'Posting Date' IS " ) + ProjectedRangedLength
+			    + LEN ( " AND 'Vend. Sub. Contract Deferral'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			    + LEN ( " AND 'Vend. Sub. Contract Deferral'.'Released' IS ''" )
+			    + SUMX ( VALUES ( 'Is Released'[Is Released Value] ), LEN ( 'Is Released'[Is Released Value] ) + 1 )
 			RETURN
-			    [Base Link] 
-			            & "&page=8081&filter='Vend. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & VendorContractDeferralSubscriptionNos & "'"
-			            & " AND 'Vend. Sub. Contract Deferral'.'Document No.' IS '" & VendorContractDeferralDocumentNos & "'"
-			            & " AND 'Vend. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
-			            & " AND 'Vend. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
-			            & " AND 'Vend. Sub. Contract Deferral'.'Released' IS '" & VendorContractDeferralReleasedStatus & "'"
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        VAR VendorContractDeferralDocumentNos =
+			                CONCATENATEX(VALUES('Vendor Contract Deferrals'[Document No.]), 'Vendor Contract Deferrals'[Document No.], "|")
+			        VAR VendorContractDeferralSubscriptionNos =
+			                CONCATENATEX(VALUES('Vendor Contract Deferrals'[Contract No.]), 'Vendor Contract Deferrals'[Contract No.], "|")
+			        VAR VendorContractDeferralReleasedStatus =
+			                CONCATENATEX(VALUES('Is Released'[Is Released Value]), 'Is Released'[Is Released Value], "|")
+			        RETURN
+			            PageLink
+			                & "&filter='Vend. Sub. Contract Deferral'.'Subscription Contract No.' IS '" & VendorContractDeferralSubscriptionNos & "'"
+			                & " AND 'Vend. Sub. Contract Deferral'.'Document No.' IS '" & VendorContractDeferralDocumentNos & "'"
+			                & " AND 'Vend. Sub. Contract Deferral'.'Posting Date' IS " & [Ranged]
+			                & " AND 'Vend. Sub. Contract Deferral'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			                & " AND 'Vend. Sub. Contract Deferral'.'Released' IS '" & VendorContractDeferralReleasedStatus & "'",
+			        PageLink
+			    )
 			```
 		displayFolder: Back Links
 		lineageTag: fb40ded3-6eb4-4595-a359-ef320241ce65
 
 	measure 'Customer Contract Line Back Link' = ```
 			
-			VAR ContractLineCustContNos = 
-			        CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract No.]), 'Customer Contract Line'[Customer Contract No.], "|")
-			VAR ContractLineCustContLineNos = 
-			        CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract Line No.]), 'Customer Contract Line'[Customer Contract Line No.], "|")
-			
+			VAR PageLink = [Base Link] & "&page=8090"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR NormalizedDimensionSetIDs =
+			    SELECTCOLUMNS(
+			        VALUES('Dimension Sets'[dimensionSetID]),
+			        "DimensionSetID", IF(ISBLANK('Dimension Sets'[dimensionSetID]), 0, 'Dimension Sets'[dimensionSetID])
+			    )
+			VAR DistinctDimensionSetIDs = DISTINCT ( NormalizedDimensionSetIDs )
+			VAR MaximumDimensionSetIDDigits = LEN ( MAXX ( DistinctDimensionSetIDs, [DimensionSetID] ) & "" )
+			VAR DimensionRangeStarts =
+			    FILTER (
+			        DistinctDimensionSetIDs,
+			        VAR CurrentDimensionSetID = [DimensionSetID]
+			        RETURN COUNTROWS ( FILTER ( DistinctDimensionSetIDs, [DimensionSetID] = CurrentDimensionSetID - 1 ) ) = 0
+			    )
+			// Conservative estimate: bound each run by (2 * widest selected dimension set ID + separator/range marker)
+			VAR ProjectedRangedDimensionsLength = COUNTROWS ( DimensionRangeStarts ) * ( 2 * MaximumDimensionSetIDDigits + 3 )
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Sub. Contr. Analysis Entry'.'Partner' IS 'Customer'" )
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS ''" )
+			    + SUMX ( VALUES ( 'Customer Contract Line'[Customer Contract No.] ), LEN ( 'Customer Contract Line'[Customer Contract No.] ) + 1 )
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS ''" )
+			    + SUMX ( VALUES ( 'Customer Contract Line'[Customer Contract Line No.] ), LEN ( 'Customer Contract Line'[Customer Contract Line No.] ) + 1 )
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			    [Base Link] 
-			            & "&page=8090&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Customer" & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineCustContNos & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineCustContLineNos & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'"
-			
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        VAR ContractLineCustContNos =
+			                CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract No.]), 'Customer Contract Line'[Customer Contract No.], "|")
+			        VAR ContractLineCustContLineNos =
+			                CONCATENATEX(VALUES('Customer Contract Line'[Customer Contract Line No.]), 'Customer Contract Line'[Customer Contract Line No.], "|")
+			        RETURN
+			            PageLink
+			                & "&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Customer" & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineCustContNos & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineCustContLineNos & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'",
+			        PageLink
+			    )
 			```
 		displayFolder: Back Links
 		lineageTag: fe25274f-9ebf-477c-97a4-790b677123a4
 
 	measure 'Vendor Contract Line Back Link' = ```
 			
-			VAR ContractLineVendContNos = 
-			        CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract No.]), 'Vendor Contract Line'[Vendor Contract No.], "|")
-			VAR ContractLineVendContLineNos = 
-			        CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract Line No.]), 'Vendor Contract Line'[Vendor Contract Line No.], "|")
-			    
+			VAR PageLink = [Base Link] & "&page=8090"
+			VAR SelectedDates = VALUES ( 'Date'[Date] )
+			VAR DateRangeStarts =
+			    FILTER (
+			        SelectedDates,
+			        VAR CurrentDate = 'Date'[Date]
+			        RETURN COUNTROWS ( FILTER ( SelectedDates, 'Date'[Date] = CurrentDate - 1 ) ) = 0
+			    )
+			// Conservative estimate: 23 chars ("yyyy-mm-dd..yyyy-mm-dd" + separator) per consecutive date run
+			VAR ProjectedRangedLength = COUNTROWS ( DateRangeStarts ) * 23
+			VAR NormalizedDimensionSetIDs =
+			    SELECTCOLUMNS(
+			        VALUES('Dimension Sets'[dimensionSetID]),
+			        "DimensionSetID", IF(ISBLANK('Dimension Sets'[dimensionSetID]), 0, 'Dimension Sets'[dimensionSetID])
+			    )
+			VAR DistinctDimensionSetIDs = DISTINCT ( NormalizedDimensionSetIDs )
+			VAR MaximumDimensionSetIDDigits = LEN ( MAXX ( DistinctDimensionSetIDs, [DimensionSetID] ) & "" )
+			VAR DimensionRangeStarts =
+			    FILTER (
+			        DistinctDimensionSetIDs,
+			        VAR CurrentDimensionSetID = [DimensionSetID]
+			        RETURN COUNTROWS ( FILTER ( DistinctDimensionSetIDs, [DimensionSetID] = CurrentDimensionSetID - 1 ) ) = 0
+			    )
+			// Conservative estimate: bound each run by (2 * widest selected dimension set ID + separator/range marker)
+			VAR ProjectedRangedDimensionsLength = COUNTROWS ( DimensionRangeStarts ) * ( 2 * MaximumDimensionSetIDDigits + 3 )
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Sub. Contr. Analysis Entry'.'Partner' IS 'Vendor'" )
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS ''" )
+			    + SUMX ( VALUES ( 'Vendor Contract Line'[Vendor Contract No.] ), LEN ( 'Vendor Contract Line'[Vendor Contract No.] ) + 1 )
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS ''" )
+			    + SUMX ( VALUES ( 'Vendor Contract Line'[Vendor Contract Line No.] ), LEN ( 'Vendor Contract Line'[Vendor Contract Line No.] ) + 1 )
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS ''" ) + ProjectedRangedDimensionsLength
+			    + LEN ( " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS ''" ) + ProjectedRangedLength
 			RETURN
-			    [Base Link] 
-			            & "&page=8090&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Vendor" & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineVendContNos & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineVendContLineNos & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
-			            & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'"
-			
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        VAR ContractLineVendContNos =
+			                CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract No.]), 'Vendor Contract Line'[Vendor Contract No.], "|")
+			        VAR ContractLineVendContLineNos =
+			                CONCATENATEX(VALUES('Vendor Contract Line'[Vendor Contract Line No.]), 'Vendor Contract Line'[Vendor Contract Line No.], "|")
+			        RETURN
+			            PageLink
+			                & "&filter='Sub. Contr. Analysis Entry'.'Partner' IS '" & "Vendor" & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract No.' IS '" & ContractLineVendContNos & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Subscription Contract Line No.' IS '" & ContractLineVendContLineNos & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Dimension Set ID' IS '" & [Ranged Dimensions] & "'"
+			                & " AND 'Sub. Contr. Analysis Entry'.'Analysis Date' IS '" & [Ranged] & "'",
+			        PageLink
+			    )
 			```
 		displayFolder: Back Links
 		lineageTag: 39f6703a-1ae0-4b23-b3e6-88e885731623

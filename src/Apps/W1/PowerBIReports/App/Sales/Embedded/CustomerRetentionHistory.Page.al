@@ -11,8 +11,8 @@ page 37114 "Customer Retention History"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Retention History';
-    AboutTitle = 'About Customer Retention History';
+    Caption = 'Customer Retention History (Power BI)';
+    AboutTitle = 'About Customer Retention History (Power BI)';
     AboutText = 'The Customer Retention History page provides historical insights into customer retention metrics, allowing analysis of trends over time.';
 
     layout

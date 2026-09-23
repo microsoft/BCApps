@@ -13,6 +13,7 @@ report 1012 "Jobs per Customer"
     AdditionalSearchTerms = 'Jobs per Customer';
     ApplicationArea = Jobs;
     Caption = 'Projects per Customer';
+    ToolTip = 'View a list of all projects, grouped by customer where you can compare the scheduled price, the percentage of completion, the invoiced price, and the percentage of invoiced amounts for each bill-to customer.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

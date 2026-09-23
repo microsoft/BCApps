@@ -97,7 +97,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             Caption = 'Table No.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
                                                                 "Object ID" = field("Table ID Filter"));
-            ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+            ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
 
             trigger OnValidate()
             begin
@@ -123,7 +123,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             Caption = 'Table';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+            ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
         }
         field(18; "Table ID Filter"; Integer)
         {
@@ -277,21 +277,47 @@ table 20404 "Qlty. Inspection Gen. Rule"
         RuleCurrentlyDisabledLbl: Label 'The generation rule Sort Order %1, Template Code %2 is currently disabled. It will need to have an activation trigger of "Automatic Only" or "Manual or Automatic" before it will be triggered by "%3"', Comment = '%1=generation rule sort order,%2=generation rule template code,%3=auto trigger';
         ChooseTemplateFirstErr: Label 'Please choose the template first.';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
+        TableMissingErr: Label 'You must choose a Table for this generation rule before saving.', Comment = 'Error shown when a generation rule record is inserted or modified without a Source Table No.';
 
     trigger OnInsert()
     begin
+        CheckSourceTableNoIsSet();
         UpdateSortOrder();
         SetEntryNo();
         SetIntentAndDefaultTriggerValuesFromSetup();
     end;
 
     trigger OnModify()
+    var
+        PersistedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
+        if Rec."Source Table No." = 0 then
+            if Rec.IsTemporary() then begin
+                if xRec."Source Table No." <> 0 then
+                    CheckSourceTableNoIsSet();
+            end else begin
+                PersistedQltyInspectionGenRule.SetLoadFields("Source Table No.");
+                if PersistedQltyInspectionGenRule.Get(Rec."Entry No.") then
+                    if PersistedQltyInspectionGenRule."Source Table No." <> 0 then
+                        CheckSourceTableNoIsSet();
+            end;
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
     end;
 
+    /// <summary>
+    /// Raises an error when the generation rule has no source table.
+    /// </summary>
+    local procedure CheckSourceTableNoIsSet()
+    begin
+        if Rec."Source Table No." = 0 then
+            Error(TableMissingErr);
+    end;
+
+    /// <summary>
+    /// Assigns the next entry number when the generation rule has no entry number.
+    /// </summary>
     internal procedure SetEntryNo()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -304,38 +330,49 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
-    internal procedure UpdateSortOrder()
+    /// <summary>
+    /// Assigns a sort order after the current highest value when the sort order is zero or one.
+    /// </summary>
+    procedure UpdateSortOrder()
     var
-        FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        ExistingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
-        if (Rec."Sort Order" = 0) or (Rec."Sort Order" = 1) then begin
-            FindHighestQltyInspectionGenRule.SetCurrentKey("Sort Order");
-            FindHighestQltyInspectionGenRule.Ascending(false);
-            if FindHighestQltyInspectionGenRule.FindFirst() then;
-            Rec."Sort Order" := FindHighestQltyInspectionGenRule."Sort Order" + 10;
-        end;
+        if not (Rec."Sort Order" in [0, 1]) then
+            exit;
+
+        ExistingQltyInspectionGenRule.SetCurrentKey("Sort Order");
+        ExistingQltyInspectionGenRule.SetLoadFields("Sort Order");
+        if ExistingQltyInspectionGenRule.FindLast() then
+            Rec."Sort Order" := ExistingQltyInspectionGenRule."Sort Order" + 10
+        else
+            Rec."Sort Order" := 10;
     end;
 
+    /// <summary>
+    /// Looks up a source table from configured tables and validates the selected table number.
+    /// </summary>
     internal procedure HandleOnAssistEditSourceTable()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
         Filter: Text;
+        NewSourceTableNo: Integer;
     begin
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
-        if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
-            Rec.Insert();
         Filter := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
-        QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
+        NewSourceTableNo := Rec."Source Table No.";
+        QltyFilterHelpers.RunModalLookupTable(NewSourceTableNo, Filter);
+        if NewSourceTableNo = Rec."Source Table No." then
+            exit;
+        Rec.Validate("Source Table No.", NewSourceTableNo);
         Rec.CalcFields("Table Caption");
-        Rec.Validate("Source Table No.");
     end;
 
     /// <summary>
     /// Provides the ability to assist edit a condition filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the filter builder completes and the condition filter is accepted.</returns>
     procedure AssistEditConditionTableFilter() Result: Boolean
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -355,7 +392,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Provides the ability to assist edit an item filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the filter builder completes and the item filter is accepted.</returns>
     procedure AssistEditConditionItemFilter() Result: Boolean
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -385,8 +422,8 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Gets the template code from either the selected record, or the filter.
     /// </summary>
-    /// <param name="OnlyFilters"></param>
-    /// <returns></returns>
+    /// <param name="OnlyFilters">Specifies whether the current record value is ignored and only filter groups are inspected.</param>
+    /// <returns>The template code from the record or the first filter group that contains one.</returns>
     procedure GetTemplateCodeFromRecordOrFilter(OnlyFilters: Boolean) TemplateCode: Code[20]
     var
         FilterGroupIterator: Integer;
@@ -407,51 +444,51 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Sets the default automatic inspection creation triggers for generation rules based on the values set in Quality Management Setup
     /// </summary>
-    internal procedure SetIntentAndDefaultTriggerValuesFromSetup()
+    procedure SetIntentAndDefaultTriggerValuesFromSetup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
-        InferredIntent: Enum "Qlty. Gen. Rule Intent";
-        Certainty: Enum "Qlty. Certainty";
+        InferredQltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent";
+        InferredQltyCertainty: Enum "Qlty. Certainty";
     begin
-        if not TryInferGenerationRuleIntent(InferredIntent, Certainty) then
+        if not TryInferGenerationRuleIntent(InferredQltyGenRuleIntent, InferredQltyCertainty) then
             exit;
 
-        if (InferredIntent = InferredIntent::Unknown) or (InferredIntent = Rec.Intent) then
+        if InferredQltyGenRuleIntent in [InferredQltyGenRuleIntent::Unknown, Rec.Intent] then
+            exit;
+
+        if InferredQltyCertainty <> InferredQltyCertainty::Yes then
             exit;
 
         if not QltyManagementSetup.Get() then
             exit;
-        if Certainty = Certainty::Yes then begin
-            Rec.Intent := InferredIntent;
-            SetDefaultTriggerValuesToNoTrigger();
-            if Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"] then begin
-                Rec."Assembly Trigger" := Rec."Assembly Trigger"::NoTrigger;
-                Rec."Production Order Trigger" := Rec."Production Order Trigger"::NoTrigger;
-                Rec."Purchase Order Trigger" := Rec."Purchase Order Trigger"::NoTrigger;
-                Rec."Sales Return Trigger" := Rec."Sales Return Trigger"::NoTrigger;
-                Rec."Transfer Order Trigger" := Rec."Transfer Order Trigger"::NoTrigger;
-                Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
-                Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
-                case InferredIntent of
-                    InferredIntent::Assembly:
-                        Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
-                    InferredIntent::Production:
-                        Rec."Production Order Trigger" := QltyManagementSetup."Production Order Trigger";
-                    InferredIntent::Purchase:
-                        Rec."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger";
-                    InferredIntent::"Sales Return":
-                        Rec."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger";
-                    InferredIntent::Transfer:
-                        Rec."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger";
-                    InferredIntent::"Warehouse Movement":
-                        Rec."Warehouse Movement Trigger" := QltyManagementSetup."Warehouse Trigger";
-                    InferredIntent::"Warehouse Receipt":
-                        Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
-                end;
-            end;
+
+        Rec.Intent := InferredQltyGenRuleIntent;
+        SetDefaultTriggerValuesToNoTrigger();
+
+        if not (Rec."Activation Trigger" in [Rec."Activation Trigger"::"Manual or Automatic", Rec."Activation Trigger"::"Automatic only"]) then
+            exit;
+
+        case InferredQltyGenRuleIntent of
+            InferredQltyGenRuleIntent::Assembly:
+                Rec."Assembly Trigger" := QltyManagementSetup."Assembly Trigger";
+            InferredQltyGenRuleIntent::Production:
+                Rec."Production Order Trigger" := QltyManagementSetup."Production Order Trigger";
+            InferredQltyGenRuleIntent::Purchase:
+                Rec."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger";
+            InferredQltyGenRuleIntent::"Sales Return":
+                Rec."Sales Return Trigger" := QltyManagementSetup."Sales Return Trigger";
+            InferredQltyGenRuleIntent::Transfer:
+                Rec."Transfer Order Trigger" := QltyManagementSetup."Transfer Order Trigger";
+            InferredQltyGenRuleIntent::"Warehouse Movement":
+                Rec."Warehouse Movement Trigger" := QltyManagementSetup."Warehouse Trigger";
+            InferredQltyGenRuleIntent::"Warehouse Receipt":
+                Rec."Warehouse Receipt Trigger" := QltyManagementSetup."Warehouse Receipt Trigger";
         end;
     end;
 
+    /// <summary>
+    /// Offers to enable automatic activation when a manual-only rule still has automatic trigger settings.
+    /// </summary>
     local procedure ConfirmUpdateManualTriggerStatus()
     begin
         if (Rec."Activation Trigger" = Rec."Activation Trigger"::"Manual only") and GuiAllowed() then
@@ -464,6 +501,9 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     Rec."Activation Trigger" := Rec."Activation Trigger"::"Manual or Automatic";
     end;
 
+    /// <summary>
+    /// Clears every automatic document trigger on the generation rule.
+    /// </summary>
     local procedure SetDefaultTriggerValuesToNoTrigger()
     begin
         Rec."Warehouse Receipt Trigger" := Rec."Warehouse Receipt Trigger"::NoTrigger;
@@ -475,6 +515,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
         Rec."Warehouse Movement Trigger" := Rec."Warehouse Movement Trigger"::NoTrigger;
     end;
 
+    /// <summary>
+    /// Attempts to infer the generation rule intent and certainty without propagating inference errors.
+    /// </summary>
+    /// <param name="QltyGenRuleIntent">The inferred generation rule intent.</param>
+    /// <param name="QltyCertainty">The certainty assigned to the inferred intent.</param>
     [TryFunction]
     internal procedure TryInferGenerationRuleIntent(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"; var QltyCertainty: Enum "Qlty. Certainty")
     begin
@@ -581,7 +626,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// Purpose is to help determine if the line is intended to be used for production based
     /// on the table number and filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the source table or condition filter identifies a production scenario.</returns>
     local procedure GetIsProductionIntent(): Boolean
     var
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -614,6 +659,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Checks whether a warehouse journal line condition filter identifies a receipt scenario.
+    /// </summary>
+    /// <returns>True if the condition filter selects a warehouse receipt document or reference type.</returns>
     local procedure InferIsWarehouseReceiveIntentFromCondition(): Boolean
     var
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
@@ -627,6 +676,10 @@ table 20404 "Qlty. Inspection Gen. Rule"
                     exit(true);
     end;
 
+    /// <summary>
+    /// Checks whether a warehouse journal line condition filter identifies a movement scenario.
+    /// </summary>
+    /// <returns>True if the condition filter selects an internal put-away or movement entry.</returns>
     local procedure InferIsWarehouseMoveIntentFromCondition(): Boolean
     var
         TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary;
@@ -640,6 +693,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
         end;
     end;
 
+    /// <summary>
+    /// Infers purchase, sales return, or transfer intent from an item journal line document type filter.
+    /// </summary>
+    /// <param name="QltyGenRuleIntent">The intent inferred from the condition filter.</param>
+    /// <returns>True if the condition filter identifies a supported document type.</returns>
     local procedure InferItemJournalIntentFromConditionFilter(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         TempItemJournalLine: Record "Item Journal Line" temporary;
@@ -672,6 +730,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
             end;
     end;
 
+    /// <summary>
+    /// Infers purchase, sales return, transfer, or assembly intent from an item ledger entry type filter.
+    /// </summary>
+    /// <param name="QltyGenRuleIntent">The intent inferred from the condition filter.</param>
+    /// <returns>True if the condition filter identifies a supported entry type.</returns>
     local procedure InferItemLedgerIntentFromConditionFilter(var QltyGenRuleIntent: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
@@ -704,6 +767,11 @@ table 20404 "Qlty. Inspection Gen. Rule"
             end;
     end;
 
+    /// <summary>
+    /// Checks whether setup enables exactly one automatic trigger and it matches the specified intent.
+    /// </summary>
+    /// <param name="IntentToCheck">The intent whose setup trigger must be the only enabled automatic trigger.</param>
+    /// <returns>True if exactly one automatic setup trigger is enabled and belongs to the specified intent.</returns>
     local procedure GetIsOnlyAutoTriggerInSetup(IntentToCheck: Enum "Qlty. Gen. Rule Intent"): Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";

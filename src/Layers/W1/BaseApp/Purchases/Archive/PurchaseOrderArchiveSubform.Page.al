@@ -414,6 +414,11 @@ page 5168 "Purchase Order Archive Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
         }
     }

@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.TaxBase;
 
 using Microsoft;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -279,6 +280,34 @@ codeunit 18544 "Tax Base Subscribers"
     begin
         if PurchLine.GetSkipTaxCalculation() then
             IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Deferral Utilities", 'OnBeforeCheckDeferralConditionForGenJournal', '', false, false)]
+    local procedure OnBeforeCheckDeferralConditionForGenJournal(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        // Allow Deferral Code with Sales/Purchases source code for IN Tax Engine posting lines and India vouchers.
+        IsHandled :=
+            GenJournalLine."System-Created Entry" or
+            IsIndiaVoucherJournalLine(GenJournalLine);
+    end;
+
+    local procedure IsIndiaVoucherJournalLine(GenJournalLine: Record "Gen. Journal Line"): Boolean
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+    begin
+        if GenJournalLine."Journal Template Name" = '' then
+            exit(false);
+
+        if not GenJournalTemplate.Get(GenJournalLine."Journal Template Name") then
+            exit(false);
+
+        exit(GenJournalTemplate.Type in [
+            GenJournalTemplate.Type::"Cash Receipt Voucher",
+            GenJournalTemplate.Type::"Cash Payment Voucher",
+            GenJournalTemplate.Type::"Bank Receipt Voucher",
+            GenJournalTemplate.Type::"Bank Payment Voucher",
+            GenJournalTemplate.Type::"Contra Voucher",
+            GenJournalTemplate.Type::"Journal Voucher"]);
     end;
 
     local procedure CallTaxEngineForPurchaseLines(var PurchaseHeader: Record "Purchase Header")

@@ -101,6 +101,7 @@ codeunit 4001 "Hybrid Cloud Management"
         SettingForUserPermissionsMsg: Label 'Setting for Keeping user permissions was set to: %1.', Comment = '%1 - true or false';
         CustomMigrationSettingMsg: Label 'Setting for Custom Migration Enabled was set to: %1.', Comment = '%1 - true or false';
         OnPremDevelopmentSettingMsg: Label 'Setting for Enable OnPrem Development was set to: %1.', Comment = '%1 - true or false';
+        ExistingCompaniesInsertedMsg: Label 'Inserted %1 existing companies into the Hybrid Company table. They will now be available for selection in the cloud migration wizard.', Comment = '%1 - number of companies inserted';
         DoNotManageCompaniesManuallyLbl: Label 'We strongly recommend that you don''t manage companies, such as renaming and deleting, while cloud migration is running.';
         LearnMoreMsg: Label 'Learn more';
         DontShowAgainMsg: Label 'Don''t show again';
@@ -1338,6 +1339,26 @@ codeunit 4001 "Hybrid Cloud Management"
         IntelligentCloudSetup.Modify();
         OnPremMigrationHandler.Activate();
         Message(OnPremDevelopmentSettingMsg, IntelligentCloudSetup."Enable OnPrem Development");
+    end;
+
+    internal procedure InsertExistingCompaniesToHybridCompanyTable()
+    var
+        Company: Record Company;
+        HybridCompany: Record "Hybrid Company";
+        InsertedCount: Integer;
+    begin
+        if Company.FindSet() then
+            repeat
+                if not HybridCompany.Get(Company.Name) then begin
+                    HybridCompany.Init();
+                    HybridCompany.Name := Company.Name;
+                    HybridCompany."Display Name" := Company."Display Name";
+                    HybridCompany.Insert();
+                    InsertedCount += 1;
+                end;
+            until Company.Next() = 0;
+
+        Message(ExistingCompaniesInsertedMsg, InsertedCount);
     end;
 
     local procedure GetIntelligentCloudSetupSafe(var IntelligentCloudSetup: Record "Intelligent Cloud Setup")

@@ -5,6 +5,8 @@
 
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 permissionset 6787 "WHT - Edit"
 {
     Caption = 'Withholding Tax - Edit';
@@ -16,5 +18,6 @@ permissionset 6787 "WHT - Edit"
     Permissions =
         tabledata "Temp Withholding Tax Entry" = IMD,
         tabledata "Withholding Tax Cert. Buffer" = IMD,
-        tabledata "Withholding Tax Entry" = IMD;
+        tabledata "Withholding Tax Entry" = IMD,
+        tabledata "WHT Threshold Accumulator" = IMD;
 }
