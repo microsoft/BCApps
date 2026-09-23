@@ -65,6 +65,11 @@ One sentence, with a time-box:
 A charter is a mission, not a script. 60–90 minutes is a normal session. Stop when the box is
 empty, not when you run out of ideas — leftover ideas become the next charter.
 
+**A charter may take more than one sitting.** One finding here needed three: sittings 1 and 2 had
+only a count delta, and forcing a verdict inside either box would have produced a false finding or
+lost a real one. A candidate carried forward *with the exact snapshot it needs* is a success, not
+an overrun.
+
 `<area>` and `<technique>` are chosen separately and have separate failure modes. See §2 for
 themes, §3 for areas.
 
@@ -129,6 +134,11 @@ The ones used most here:
 | 4. **Data** | Is there anything to tour *with*? | `SELECT COUNT(*)` on its master tables |
 
 Gates 2 and 4 are the ones that bite.
+
+**Gate 3 is about the build, not the repo.** `Inventory/Planning` ranked high on churn, but ~899 of
+its 912 changed lines were a new `WhatIfPlanning` subfeature whose table **does not exist in the
+artifact** — the churn was untourable. Static churn analysis cannot see this. Confirm the objects
+exist in *this build* before planning probes.
 
 **Churn without surface.** `MasterDataManagement` ranked third on a 14-day churn scan (~4,700
 lines) and defines **37 fields** in total — the churn is all in synchronisation codeunits. High
@@ -196,7 +206,7 @@ disagreement is itself the finding — record both references and let the owning
 
 ## 5. Not filing false findings
 
-This is the discipline the whole method rests on. Four rules, each of which has caught a real
+This is the discipline the whole method rests on. Eight rules, each of which has caught a real
 mistake in this repo's own sessions.
 
 ### 5.1 Assert against the database, not the screen
@@ -255,10 +265,70 @@ reach a team.
 
 Mark anything unconfirmed as unconfirmed.
 
+**The instrument is part of the system under test.** Across three areas these tours produced 6
+harness defects and 9 false candidates, and **zero** of those candidates were product bugs. Two
+were regressions in harness fixes shipped hours earlier. So:
+
+- Expect instrument defects as the normal output of a first tour in a new area; budget for them.
+- Report harness misbehaviour as a first-class deliverable, not an aside.
+- **A tour that fixes the instrument has earned its time even with zero findings.** The
+  highest-value session of the three filed nothing.
+- A high **withdrawal rate is healthy** — five candidates were retired on evidence here. Findings
+  are not the score.
+
+### 5.5 Name the record, don't count it
+
+A count delta cannot tell correct behaviour from a defect. `Production Order 10→9` looks identical
+whether the run rightly declined to plan or destroyed supply; an empty worksheet occurred **both
+ways in one session**. Resolving that took two extra sittings purely because the first snapshot
+stored counts.
+
+Snapshot **identities** — primary key, status, key dates. The bar for filing is three things:
+
+1. the **named record** that changed,
+2. a **control** proving the alternative outcome was available,
+3. a **config/source check** (§5.2).
+
+### 5.6 Validate the oracle before you trust it
+
+Wrong-oracle mistakes are as common as wrong-probe ones, and louder:
+
+| Assumed | Actually |
+| --- | --- |
+| `Tracking Specification` records tracking | transient buffer — 0 rows after successful posts |
+| `Reordering Policy = 2` is *Fixed Reorder Qty.* | it is `1` |
+| `COUNT(*)` answers "did supply survive?" | it cannot |
+
+Confirm a table, column or enum means what you think **from the data**, before it decides a verdict.
+
+### 5.7 Empty is the most dangerous result
+
+Zero lines, zero rows, empty error message — every one of these occurred both legitimately and as a
+defect symptom in the same sessions. **Never report an absence without a control**, and prove the
+input signal existed first.
+
+### 5.8 Reproduce on a clean container before filing
+
+Residue-dependent findings are worth little. Re-run the steps on a fresh container and record
+*"reproduced on `<container>`, build `<x>`"*.
+
+This also forces the repro steps to be **executable blind**, which is where they usually fail —
+mine omitted two preconditions that stop the steps dead (the card opens read-only; planning fields
+stay disabled until the reordering policy is set). List preconditions explicitly.
+
+**Ask before filing anything.**
+
 ## 6. Metadata is the specification — read it before you probe
 
 BC pages and tables are generated from metadata, so much of the behaviour you are about to test is
-*declared*, not written. The platform enforces some properties for free, everywhere, identically:
+*declared*, not written.
+
+**Spend your first 15 minutes here.** One session predicted *both* of its findings from field
+bounds and a normalisation routine **before the container had finished building** — the browser
+work only confirmed them. Cheapest hypothesis generator available, and still only a hypothesis
+(§6.3).
+
+The platform enforces some properties for free, everywhere, identically:
 
 - A field **with** `MinValue`/`MaxValue`/`NotBlank`/`TableRelation` is guarded generically. Testing
   it tells you about the *platform*. **Do not spend tour time there.**
@@ -514,7 +584,9 @@ Explore <area> with <technique> to discover <information>.
 | # | Probe | Target | Expected | Observed | SQL delta |
 
 ## Findings
-F1 — <one line>. Evidence. Why it matters. Confirmed / unconfirmed.
+F1 — <one line>. Evidence: the **named record** that changed, the control, the config/source check.
+Confirmed / unconfirmed. Reproduced on clean container <name>, build <x>. Preconditions for the
+repro steps.
 
 ## Issues
 Problems with the *harness or session* — kept strictly separate from findings.
@@ -545,6 +617,9 @@ is an absolute count. Start fresh when:
 
 Recreating is ~20 minutes. Deciding deliberately is the point.
 
+Residue is not purely a cost: a tour found a genuine guard *because* its own leftover document
+blocked a setup change. **Sometimes the residue is the test case.**
+
 ## 10. Anti-patterns
 
 - **Touring without a charter** — that is just clicking around.
@@ -556,6 +631,9 @@ Recreating is ~20 minutes. Deciding deliberately is the point.
 - **Touring a shared dev container** — exploratory testing is destructive.
 - **Treating a tour list as a checklist** — the catalog generates ideas; it is not a coverage target.
 - **Picking an area from churn alone** — §3.
+- **Filing without a clean-container reproduction** — §5.8. And ask first.
+- **Reporting "I couldn't read it" as "the product refused it"** — §5.6. A claim about the
+  instrument, dressed as a finding.
 - **Probing the same question in a new place** — three consecutive tours asking "is this field
   guarded when released?" found nothing, because that is the oldest, most metadata-driven, most
   tested code in the product. Vary the *question*, not just the area.
