@@ -36,7 +36,7 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
     [Test]
     procedure DailyVIESCallQuotaBlocksWhenLimitReached()
     var
-        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Index: Integer;
     begin
@@ -46,31 +46,31 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
 
         // [GIVEN] An online (SaaS) environment where the daily VIES lookup quota is enforced at 3 lookups/day
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
-        VATLookupExtDataHndl.SetVIESCallQuotaLimitForTest(3);
+        VATLookupQuotaMgt.ClearVIESCallQuotaForTest();
+        VATLookupQuotaMgt.SetVIESCallQuotaLimitForTest(3);
 
         // [WHEN] The daily limit of lookups is registered
         for Index := 1 to 3 do
-            VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
+            VATLookupQuotaMgt.InvokeVIESCallQuotaForTest();
 
         // [THEN] The counter is at the limit
-        Assert.AreEqual(3, VATLookupExtDataHndl.GetVIESCallCountForTest(), 'The lookup counter should be at the daily limit.');
+        Assert.AreEqual(3, VATLookupQuotaMgt.GetVIESCallCountForTest(), 'The lookup counter should be at the daily limit.');
 
         // [WHEN] One more lookup is attempted [THEN] it is blocked
-        asserterror VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
+        asserterror VATLookupQuotaMgt.InvokeVIESCallQuotaForTest();
         Assert.ExpectedError('reached the daily limit');
 
         // [THEN] Blocked lookups are not counted (they never reach the service)
-        Assert.AreEqual(3, VATLookupExtDataHndl.GetVIESCallCountForTest(), 'Blocked lookups should not increment the counter.');
+        Assert.AreEqual(3, VATLookupQuotaMgt.GetVIESCallCountForTest(), 'Blocked lookups should not increment the counter.');
 
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
+        VATLookupQuotaMgt.ClearVIESCallQuotaForTest();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
     procedure DailyVIESCallQuotaResetsOnNewDay()
     var
-        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         Index: Integer;
     begin
@@ -81,29 +81,29 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
 
         // [GIVEN] An online (SaaS) environment with the quota enforced at 3 lookups/day
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
-        VATLookupExtDataHndl.SetVIESCallQuotaLimitForTest(3);
+        VATLookupQuotaMgt.SetVIESCallQuotaLimitForTest(3);
         // [GIVEN] Yesterday already reached the daily limit
-        VATLookupExtDataHndl.SeedVIESCallQuotaForTest(Today() - 1, 3);
+        VATLookupQuotaMgt.SeedVIESCallQuotaForTest(Today() - 1, 3);
 
         // [WHEN] The customer makes lookups today up to the daily limit
         for Index := 1 to 3 do
-            VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
+            VATLookupQuotaMgt.InvokeVIESCallQuotaForTest();
 
         // [THEN] None are blocked and today's lookups are counted from zero (yesterday's count was discarded)
-        Assert.AreEqual(3, VATLookupExtDataHndl.GetVIESCallCountForTest(), 'The counter should reset and count today''s lookups from zero.');
+        Assert.AreEqual(3, VATLookupQuotaMgt.GetVIESCallCountForTest(), 'The counter should reset and count today''s lookups from zero.');
 
         // [THEN] The daily limit still applies for the rest of the same day
-        asserterror VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
+        asserterror VATLookupQuotaMgt.InvokeVIESCallQuotaForTest();
         Assert.ExpectedError('reached the daily limit');
 
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
+        VATLookupQuotaMgt.ClearVIESCallQuotaForTest();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
 
     [Test]
     procedure DailyVIESCallQuotaSkippedOnPrem()
     var
-        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         // [FEATURE] [VIES] [Throttling]
@@ -112,17 +112,17 @@ codeunit 134193 "ERM VAT VIES Lookup UT"
 
         // [GIVEN] An on-premises environment with an (irrelevant) enforced limit of 1 lookup/day
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
-        VATLookupExtDataHndl.SetVIESCallQuotaLimitForTest(1);
+        VATLookupQuotaMgt.ClearVIESCallQuotaForTest();
+        VATLookupQuotaMgt.SetVIESCallQuotaLimitForTest(1);
 
         // [WHEN] Several lookups are registered
-        VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
-        VATLookupExtDataHndl.InvokeVIESCallQuotaForTest();
+        VATLookupQuotaMgt.InvokeVIESCallQuotaForTest();
+        VATLookupQuotaMgt.InvokeVIESCallQuotaForTest();
 
         // [THEN] Nothing is counted or blocked because the quota does not apply on-premises
-        Assert.AreEqual(0, VATLookupExtDataHndl.GetVIESCallCountForTest(), 'The quota must not apply on-premises.');
+        Assert.AreEqual(0, VATLookupQuotaMgt.GetVIESCallCountForTest(), 'The quota must not apply on-premises.');
 
-        VATLookupExtDataHndl.ClearVIESCallQuotaForTest();
+        VATLookupQuotaMgt.ClearVIESCallQuotaForTest();
     end;
 
     [Test]
