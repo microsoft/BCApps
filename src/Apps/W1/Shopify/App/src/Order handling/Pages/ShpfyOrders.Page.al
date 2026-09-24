@@ -470,6 +470,8 @@ page 30115 "Shpfy Orders"
     var
         ShopifyOrderHeader: Record "Shpfy Order Header";
     begin
+        if Rec.GetFilter("Shop Code") <> '' then
+            ShopifyOrderHeader.SetFilter("Shop Code", Rec.GetFilter("Shop Code"));
         HasShopifyOrders := not ShopifyOrderHeader.IsEmpty();
     end;
 
