@@ -1,6 +1,10 @@
 codeunit 130622 "Library - Graph Journal Lines"
 {
 
+    trigger OnRun()
+    begin
+    end;
+
     var
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
@@ -317,3 +321,4 @@ codeunit 130622 "Library - Graph Journal Lines"
         Assert.AreEqual(NewDate, GenJournalLine."Posting Date", 'Journal Line ' + PostingDateNameTxt + ' should be changed');
     end;
 }
+

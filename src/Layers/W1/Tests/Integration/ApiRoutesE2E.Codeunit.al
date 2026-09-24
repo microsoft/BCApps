@@ -13,12 +13,6 @@ codeunit 135548 "API Routes E2E"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         ApiRoutesTxt: Label 'apiRoutes', Locked = true;
 
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     [Test]
     [Scope('OnPrem')]
     procedure TestGetApiRoutesMany()
@@ -27,8 +21,6 @@ codeunit 135548 "API Routes E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] GET returns many routes in the payload
-        Initialize();
-
         // [GIVEN] apiRoutes URI without filters
         TargetURL := LibraryGraphMgt.CreateTargetURL('', PAGE::"API Routes", ApiRoutesTxt);
 
@@ -47,8 +39,6 @@ codeunit 135548 "API Routes E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] GET returns a single route in the payload
-        Initialize();
-
         // [GIVEN] apiRoutes URI for a single route
         TargetURL := LibraryGraphMgt.CreateTargetURL('''beta''', PAGE::"API Routes", ApiRoutesTxt);
 
@@ -67,8 +57,6 @@ codeunit 135548 "API Routes E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] POST is not allowed for apiRoutes
-        Initialize();
-
         // [GIVEN] apiRoutes URI for a single route
         TargetURL := LibraryGraphMgt.CreateTargetURL('', PAGE::"API Routes", ApiRoutesTxt);
 
@@ -87,8 +75,6 @@ codeunit 135548 "API Routes E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] PATCH is not allowed for apiRoutes
-        Initialize();
-
         // [GIVEN] apiRoutes URI for a single route
         TargetURL := LibraryGraphMgt.CreateTargetURL('''beta''', PAGE::"API Routes", ApiRoutesTxt);
 
@@ -107,8 +93,6 @@ codeunit 135548 "API Routes E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] DELETE is not allowed for apiRoutes
-        Initialize();
-
         // [GIVEN] apiRoutes URI for a single route
         TargetURL := LibraryGraphMgt.CreateTargetURL('''beta''', PAGE::"API Routes", ApiRoutesTxt);
 
@@ -119,3 +103,4 @@ codeunit 135548 "API Routes E2E"
         Assert.ExpectedError('400 (BadRequest)');
     end;
 }
+

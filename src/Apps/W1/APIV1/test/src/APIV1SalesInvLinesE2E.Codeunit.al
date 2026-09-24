@@ -3,7 +3,6 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -34,12 +33,8 @@ codeunit 139734 "APIV1 - Sales Inv. Lines E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibrarySales.SetStockoutWarning(FALSE);
 

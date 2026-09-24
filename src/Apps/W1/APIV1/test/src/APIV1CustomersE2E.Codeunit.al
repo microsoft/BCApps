@@ -34,12 +34,8 @@ codeunit 139702 "APIV1 - Customers E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         IF IsInitialized THEN
             EXIT;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := TRUE;
         COMMIT();

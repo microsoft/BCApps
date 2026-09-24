@@ -16,8 +16,6 @@ codeunit 139859 "APIV2 - Accounting Periods E2E"
         TargetURL: Text;
         i: Integer;
     begin
-        Initialize();
-
         // [SCENARIO] Use a GET method to retrieve all accounting periods
         // [GIVEN] Accounting Periods
         for i := 1 to 10 do
@@ -76,11 +74,4 @@ codeunit 139859 "APIV2 - Accounting Periods E2E"
         AccountingPeriod.Insert(true);
     end;
 
-
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
 }

@@ -62,13 +62,8 @@ codeunit 139816 "APIV2 - Income Statement E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryApplicationArea.EnableFoundationSetup();
         IsInitialized := true;
@@ -85,6 +80,7 @@ codeunit 139816 "APIV2 - Income Statement E2E"
         IncomeStatementJSON := LibraryGraphMgt.AddPropertytoJSON(IncomeStatementJSON, 'display', AccScheduleLineEntity.Description);
     end;
 }
+
 
 
 

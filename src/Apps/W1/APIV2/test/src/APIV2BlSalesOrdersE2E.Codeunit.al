@@ -24,8 +24,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        Initialize();
-
         // [SCENARIO] Create a blanket sales order and use GET to retrieve it
         // [GIVEN] A blanket sales order
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Blanket Order", '');
@@ -46,8 +44,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        Initialize();
-
         // [SCENARIO] Create a blanket sales order and GET it by SystemId
         // [GIVEN] A blanket sales order
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Blanket Order", '');
@@ -70,8 +66,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a blanket sales order with $expand=dimensionSetLines
         // [GIVEN] A blanket sales order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Blanket Order");
@@ -98,8 +92,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a blanket sales order with $expand=attachments
         // [GIVEN] A blanket sales order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Blanket Order");
@@ -126,8 +118,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a blanket sales order with $expand=documentAttachments
         // [GIVEN] A blanket sales order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Blanket Order");
@@ -154,8 +144,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a blanket sales order with $expand=pdfDocument
         // [GIVEN] A blanket sales order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Blanket Order");
@@ -182,8 +170,6 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a blanket sales order with $expand=blanketSalesOrderLines
         // [GIVEN] A blanket sales order
         SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::"Blanket Order");
@@ -207,11 +193,5 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
-    end;
-
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

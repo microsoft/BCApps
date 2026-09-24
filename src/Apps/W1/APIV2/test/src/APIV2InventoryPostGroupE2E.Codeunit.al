@@ -1,8 +1,11 @@
 codeunit 139857 "APIV2 - InventoryPostGroup E2E"
 {
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
+    trigger OnRun()
+    begin
+    end;
+
     var
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
@@ -18,8 +21,6 @@ codeunit 139857 "APIV2 - InventoryPostGroup E2E"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [SCENARIO] Create an Inventory Posting Group and use a GET to retrieve it
         // [GIVEN] An Inventory Posting Group
         LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
@@ -39,11 +40,4 @@ codeunit 139857 "APIV2 - InventoryPostGroup E2E"
             'Could not find created Inventory Posting Group on the response');
     end;
 
-
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
 }

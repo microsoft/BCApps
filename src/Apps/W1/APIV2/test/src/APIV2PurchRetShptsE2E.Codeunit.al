@@ -24,8 +24,6 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        Initialize();
-
         // [SCENARIO] Post a purchase return order and use GET to retrieve the resulting return shipment
         // [GIVEN] A posted purchase return shipment
         EnsurePurchaseReturnShipment(ReturnShipmentHeader);
@@ -46,8 +44,6 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase return shipment with $expand=attachments
         // [GIVEN] A posted purchase return shipment
         EnsurePurchaseReturnShipment(ReturnShipmentHeader);
@@ -70,8 +66,6 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase return shipment with $expand=documentAttachments
         // [GIVEN] A posted purchase return shipment
         EnsurePurchaseReturnShipment(ReturnShipmentHeader);
@@ -94,8 +88,6 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase return shipment with $expand=pdfDocument
         // [GIVEN] A posted purchase return shipment
         EnsurePurchaseReturnShipment(ReturnShipmentHeader);
@@ -128,11 +120,5 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
-    end;
-
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

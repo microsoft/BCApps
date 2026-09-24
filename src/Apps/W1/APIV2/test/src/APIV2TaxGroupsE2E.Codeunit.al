@@ -23,13 +23,8 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := true;
         Commit();
@@ -274,6 +269,7 @@ codeunit 139808 "APIV2 - Tax Groups E2E"
         exit(LowerCase(LibraryGraphMgt.StripBrackets(Value)));
     end;
 }
+
 
 
 

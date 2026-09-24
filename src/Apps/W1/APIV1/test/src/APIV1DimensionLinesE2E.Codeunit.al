@@ -28,9 +28,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
 
     procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 
     [Test]
@@ -47,7 +44,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] Create a dimension line in a customer payment through a POST method and check if it was created
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a journal
@@ -92,7 +88,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         ResponseText: Text;
     begin
         // [SCENARIO] Creating a dimension line through a POST method without specifying a parent Id fails
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a dimension with a value
@@ -124,7 +119,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Try to create a dimension line with an already existing code
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a journal
@@ -177,7 +171,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create dimension lines in a journal line and use a GET method to retrieve them
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a journal
@@ -234,7 +227,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create dimension lines in a journal line and use a GET method to retrieve them
-        Initialize();
         // [GIVEN] a customer payment in the General Journal Table
         LibraryGraphJournalLines.Initialize();
 
@@ -284,7 +276,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Using a GET request to retrieve dimension lines without a filter fails
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         AccountNo := LibraryGraphJournalLines.CreateAccount();
@@ -305,7 +296,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Using a GET request to retrieve dimension lines with a random entity fails
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a Target URL without filters
@@ -333,7 +323,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create a dimension line, use a PATCH method to change it and then verify the changes
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a journal
@@ -397,7 +386,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Try to change the code of an existing dimension line
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a journal
@@ -456,7 +444,6 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         TargetURL: Text;
     begin
         // [SCENARIO] Create a dimension line, use a DELETE method to remove it and then verify the deletion
-        Initialize();
         LibraryGraphJournalLines.Initialize();
 
         // [GIVEN] a journal
@@ -586,6 +573,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
         EXIT(not DimensionSetEntry.IsEmpty());
     end;
 }
+
 
 
 

@@ -38,9 +38,7 @@ codeunit 135519 "IRS 1099 Code Entity E2E Test"
         if IsInitialized then
             exit;
 
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-
         IsInitialized := true;
     end;
 }
+

@@ -1,7 +1,6 @@
 codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 {
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -160,8 +159,7 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(EntryJSON, 'id', EntryId), 'The apply vendor entry should have an id');
 
         // [WHEN] we PATCH the entry to apply it
-        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
-            TargetURL, '(' + LibraryGraphMgt.StripBrackets(EntryId) + ')');
+        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(EntryId) + ')';
         LibraryGraphMgt.PatchToWebService(TargetURL, '{"applied": true}', ResponseText);
 
         // [THEN] the vendor payment is now applied
@@ -171,15 +169,10 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Apply Vendor Ent. E2E");
 
-        if not isInitialized then begin
-            LibraryGraphMgt.SetAuthenticationProvider(
-                Enum::"API Test Authentication"::"Microsoft Test Environment");
+        if not isInitialized then
             isInitialized := true;
-        end;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"APIV2 - Apply Vendor Ent. E2E");
     end;

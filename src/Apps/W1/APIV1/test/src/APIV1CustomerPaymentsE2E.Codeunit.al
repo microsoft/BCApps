@@ -1,7 +1,6 @@
 codeunit 139743 "APIV1 - Customer Payments E2E"
 {
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -770,14 +769,10 @@ codeunit 139743 "APIV1 - Customer Payments E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV1 - Customer Payments E2E");
 
-        if not isInitialized then begin
-            LibraryGraphMgt.SetAuthenticationProvider(
-                Enum::"API Test Authentication"::"Microsoft Test Environment");
+        if not isInitialized then
             isInitialized := true;
-        end;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"APIV1 - Customer Payments E2E");
     end;

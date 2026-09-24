@@ -19,6 +19,7 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseActivityLogEntries', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
@@ -47,7 +48,6 @@ codeunit 148343 "Expense Activity Log API Test"
         Initialize();
         CreateTestExpenseUser(ExpenseUser);
         CreateTestExpenseReport(ExpenseReportHeader, ExpenseUser."No.");
-        CreateTestExpenseReportLine(ExpenseReportHeader, ExpenseUser."No.");
         EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,
             Enum::"Expense Activity Event Type"::Submitted,
@@ -119,9 +119,9 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Reports API",
             ExpenseReportsServiceNameTok,
             ServiceNameTok);
-        EntryURL := LibraryGraphMgt.AppendPathToTargetURL(
-            CollectionURL,
-            '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')');
+        EntryURL :=
+            CollectionURL + '(' +
+            LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')';
 
         // [WHEN] A POST is attempted.
         // [THEN] The API rejects it with Method Not Allowed.
@@ -172,8 +172,7 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Reports API",
             ExpenseReportsServiceNameTok,
             ServiceNameTok);
-        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
-            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')');
+        TargetURL += '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseActivityLogEntry.SystemId)) + ')';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -280,8 +279,7 @@ codeunit 148343 "Expense Activity Log API Test"
         Assert.ExpectedError('The historyActorRole filter must be specified as Submitter or Approver.');
 
         // [WHEN] Submitter history is requested through the first Expense User.
-        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
-            TargetURL, '$filter=historyActorRole eq ''Submitter''');
+        TargetURL += '?$filter=historyActorRole eq ''Submitter''';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -351,8 +349,7 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
-            TargetURL, '$filter=historyActorRole eq ''Approver''');
+        TargetURL += '?$filter=historyActorRole eq ''Approver''';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         ResponseText := LowerCase(ResponseText);
 
@@ -579,8 +576,7 @@ codeunit 148343 "Expense Activity Log API Test"
             Page::"Expense Users API",
             ExpenseUsersServiceNameTok,
             ServiceNameTok);
-        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
-            TargetURL, '$filter=historyActorRole eq ''' + HistoryRole + '''');
+        TargetURL += '?$filter=historyActorRole eq ''' + HistoryRole + '''';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         Assert.AreNotEqual(
             0,
@@ -598,18 +594,14 @@ codeunit 148343 "Expense Activity Log API Test"
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
         CleanupTestData();
         if IsInitialized then
             exit;
 
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-
+        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
-        LibraryERMCountryData.UpdateGeneralLedgerSetup();
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
             ExpenseAgentSetup.Insert();
@@ -631,32 +623,6 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportHeader.Description :=
             CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader.Description));
         ExpenseReportHeader.Modify();
-    end;
-
-    local procedure CreateTestExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20])
-    var
-        ExpenseCategory: Record "Expense Category";
-        ExpensePaymentMethod: Record "Expense Payment Method";
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        LibraryExpense.CreateExpenseCategory(
-            ExpenseCategory,
-            ExpenseCategory."Reimbursement Type"::"Employee Paid",
-            ExpenseCategory."Expense Detail Required"::" ");
-        ExpenseCategory.Description :=
-            CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(ExpenseCategory.Description));
-        ExpenseCategory.Modify();
-        LibraryExpense.FindExpensePaymentMethod(
-            ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
-        LibraryExpense.CreateExpenseReportLine(
-            ExpenseReportLine,
-            ExpenseReportHeader,
-            ExpenseUserNo,
-            ExpenseCategory.Code,
-            ExpensePaymentMethod.Code,
-            true,
-            '',
-            100);
     end;
 
     local procedure CreateTestExpenseUser(var ExpenseUser: Record "Expense User")

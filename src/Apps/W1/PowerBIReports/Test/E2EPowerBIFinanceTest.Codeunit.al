@@ -49,12 +49,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         PowerBIAPIEndpoints: Enum "PowerBI API Endpoints";
         ResponseEmptyErr: Label 'Response should not be empty.';
 
-    local procedure Initialize()
-    begin
-        LibGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     [Test]
     procedure TestGetVendorLedgerEntry()
     var
@@ -67,8 +61,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] A purchase invoice is posted with vendor ledger entry and detailed vendor ledger entry
         LibPurch.CreatePurchaseInvoice(PurchHeader);
         PurchInvHeader.Get(LibPurch.PostPurchaseDocument(PurchHeader, true, true));
@@ -158,8 +150,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] A sales invoice is posted with customer ledger entry and detailed customer ledger entry
         LibSales.CreateSalesInvoice(SalesHeader);
         SalesInvHeader.Get(LibSales.PostSalesDocument(SalesHeader, true, true));
@@ -245,8 +235,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] A G/L account is created
         LibERM.CreateGLAccount(GLAccount);
         Commit();
@@ -285,8 +273,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] A G/L account category is created
         LibERM.CreateGLAccountCategory(GLAccountCategory);
         Commit();
@@ -322,8 +308,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] A G/L budget is created
         LibERM.CreateGLBudgetName(GLBudgetName);
 
@@ -359,8 +343,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] G/L budget entries are created
         LibERM.CreateGLBudgetName(GLBudgetName);
         LibERM.CreateGLBudgetEntry(GLBudgetEntry, WorkDate(), LibERM.CreateGLAccountNo(), GLBudgetName.Name);
@@ -411,8 +393,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] General journal lines for income statement account is posted, with one line outside the date range
         PowerBICoreTest.AssignAdminPermissionSet();
         if not PBISetup.Get() then begin
@@ -462,8 +442,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] General journal lines for account is posted
         CreateGeneralJournalBatch(GenJournalBatch, GLAccount);
         GLAccount."Income/Balance" := GLAccount."Income/Balance"::"Balance Sheet";
@@ -500,8 +478,6 @@ codeunit 139876 "E2E PowerBI Finance Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] G/L Account and Entry outside of the query filter are created
         GLAccount.Init();
         GLAccount."No." := LibUtility.GenerateRandomCode20(GLAccount.FieldNo("No."), Database::"G/L Account");

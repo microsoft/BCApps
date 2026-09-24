@@ -51,12 +51,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         PowerBIAPIEndpoints: Enum "PowerBI API Endpoints";
         ResponseEmptyErr: Label 'Response should not be empty.';
 
-    local procedure Initialize()
-    begin
-        LibGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-    end;
-
     [Test]
     procedure TestInventoryAdjmtEntries()
     var
@@ -68,7 +62,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         Response: Text;
         Index: Integer;
     begin
-        Initialize();
 
         // [GIVEN] Inventory Adjmt. entries are created
 
@@ -138,8 +131,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         Response: Text;
         Index: Integer;
     begin
-        Initialize();
-
         // [GIVEN] Calendar entries are created
         LibManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
         CalendarEntry.SetRange("No.", WorkCenter."No.");
@@ -187,8 +178,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Machine centers are created
         LibManufacturing.CreateWorkCenter(WorkCenter);
         LibManufacturing.CreateMachineCenter(MachineCenter, WorkCenter."No.", 1);
@@ -231,8 +220,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Work centers are created
         LibManufacturing.CreateWorkCenterGroup(WorkCenterGroup);
         LibManufacturing.CreateWorkCenter(WorkCenter);
@@ -281,8 +268,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Production order lines are created
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -357,8 +342,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Production order components are created
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -433,8 +416,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Production order routing lines are created
         LibInv.CreateItem(Item);
         CreateRoutingForItem(Item);
@@ -515,8 +496,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Item is created with production BOM and routing
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -590,8 +569,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Item ledger entries exist outside of the query filter
         PermissionsMock.Assign('SUPER');
         if ItemLedgerEntry.FindLast() then;
@@ -635,8 +612,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Item is created with routing
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -727,8 +702,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         Response: Text;
         Index: Integer;
     begin
-        Initialize();
-
         // [GIVEN] Item is created with routing
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -866,8 +839,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] "Show Capacity In" is set in Manufacturing Setup
         LibManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, Enum::"Capacity Unit of Measure"::Minutes);
         ManufacturingSetup.Get();
@@ -906,8 +877,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Production orders are created
         LibManufacturing.CreateItemManufacturing(
             Item,
@@ -968,8 +937,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Routing links are created
         LibManufacturing.CreateRoutingLink(RoutingLink);
 
@@ -1007,8 +974,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Routing headers are created
         LibManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Parallel);
         LibManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
@@ -1049,8 +1014,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Work center groups are created
         LibManufacturing.CreateWorkCenterGroup(WorkCenterGroup);
         LibManufacturing.CreateWorkCenterGroup(WorkCenterGroup);
@@ -1096,8 +1059,6 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
         TargetURL: Text;
         Response: Text;
     begin
-        Initialize();
-
         // [GIVEN] Manufacturing value entries are created
         LibManufacturing.CreateItemManufacturing(
             Item,

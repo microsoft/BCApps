@@ -3,7 +3,6 @@ codeunit 139835 "APIV2 - Sales Order Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -31,13 +30,8 @@ codeunit 139835 "APIV2 - Sales Order Lines E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-
         if IsInitialized then
             exit;
-
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibrarySales.SetStockoutWarning(false);
 
@@ -1394,6 +1388,9 @@ codeunit 139835 "APIV2 - Sales Order Lines E2E"
         exit(TargetURL);
     end;
 }
+
+
+
 
 
 

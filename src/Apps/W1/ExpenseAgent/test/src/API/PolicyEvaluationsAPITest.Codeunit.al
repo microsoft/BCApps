@@ -18,12 +18,12 @@ codeunit 148344 "Policy Evaluations API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expensePolicyEvaluations', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
         SubjectVersionRequiredErr: Label 'Subject Version is required.';
         PolicyVersionRequiredErr: Label 'Policy Version is required.';
-        ExpenseReportLineSubjectTypeTok: Label 'Expense_x0020_Report_x0020_Line', Locked = true;
 
     [Test]
     procedure PolicyEvaluationAPIInsertsFlagWithRequiredVersions()
@@ -80,7 +80,7 @@ codeunit 148344 "Policy Evaluations API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
-        Assert.ExpectedError(SubjectVersionRequiredErr);
+        Assert.AreNotEqual(0, StrPos(ResponseText, SubjectVersionRequiredErr), 'The response must identify the missing subject version.');
         CompleteTest();
     end;
 
@@ -106,7 +106,7 @@ codeunit 148344 "Policy Evaluations API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
-        Assert.ExpectedError(PolicyVersionRequiredErr);
+        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyVersionRequiredErr), 'The response must identify the missing policy version.');
         CompleteTest();
     end;
 
@@ -120,9 +120,7 @@ codeunit 148344 "Policy Evaluations API Test"
         if IsInitialized then
             exit;
 
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-
+        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Policy Evaluations API Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
@@ -176,7 +174,7 @@ codeunit 148344 "Policy Evaluations API Test"
         IncludePolicyVersion: Boolean)
     begin
         RequestBody.Add('subjectSystemId', ExpenseReportLine.SystemId);
-        RequestBody.Add('subjectType', ExpenseReportLineSubjectTypeTok);
+        RequestBody.Add('subjectType', 'expenseReportLine');
         if IncludeSubjectVersion then
             RequestBody.Add('subjectVersion', ExpenseReportLine."Policy Eval Version");
         RequestBody.Add('policySystemId', ExpensePolicy.SystemId);

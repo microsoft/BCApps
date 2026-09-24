@@ -37,8 +37,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the customer
         // [THEN] The default dimension has been added to the customer
@@ -52,8 +50,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the vendor
         // [THEN] The default dimension has been added to the vendor
@@ -67,8 +63,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Item
         // [THEN] The default dimension has been added to the Item
@@ -95,8 +89,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the customer
         // [THEN] The default dimension has been added to the customer
@@ -110,8 +102,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Vendor
         // [THEN] The default dimension has been added to the Vendor
@@ -125,8 +115,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Item
         // [THEN] The default dimension has been added to the Item
@@ -153,8 +141,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] a user issues a http request to create a default dimension without dimension id
         // [THEN] You get an error
@@ -168,8 +154,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] a user issues a http request to create a default dimension without dimension id
         // [THEN] You get an error
@@ -183,8 +167,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] a user issues a http request to create a default dimension without dimension id
         // [THEN] You get an error
@@ -211,8 +193,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the customer, with mismatching dimesnion and dimension value
         // [THEN] You get an error
@@ -226,8 +206,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Vendor, with mismatching dimesnion and dimension value
         // [THEN] You get an error
@@ -241,8 +219,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension on the Item, with mismatching dimesnion and dimension value
         // [THEN] You get an error
@@ -269,8 +245,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the customer
         // [THEN] You get an error
@@ -284,8 +258,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the Vendor
         // [THEN] You get an error
@@ -299,8 +271,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension on the Item
         // [THEN] You get an error
@@ -327,8 +297,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the customer
         // [THEN] You get an error
@@ -342,8 +310,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the Vendor
         // [THEN] You get an error
@@ -357,8 +323,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item, a dimension and a dimension value
         // [WHEN] The user posts a http request to create a default dimension with a blocked dimension value on the Item
         // [THEN] You get an error
@@ -385,8 +349,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to delete the default dimension on the customer
         // [THEN] The default dimension has been deleted from the customer's default dimensions
@@ -400,8 +362,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to delete a default dimension on the Vendor
         // [THEN] The default dimension has been deleted from the vendor's default dimensions
@@ -415,8 +375,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to delete a default dimension on the Item
         // [THEN] The default dimension has been deleted from the item's default dimensions
@@ -443,8 +401,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to get the default dimension on the customer
         // [THEN] The response contains the default dimension that has been added to the customer
@@ -458,8 +414,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to get a default dimension on the Vendor
         // [THEN] The response contains the default dimension that has been added to the Vendor
@@ -473,8 +427,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to get a default dimension on the Item
         // [THEN] The response contains the default dimension that has been added to the Item
@@ -501,8 +453,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension on the customer
         // [THEN] The default dimension has been updated for the customer
@@ -516,8 +466,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension on the Vendor
         // [THEN] The default dimension has been updated for the vendor
@@ -531,8 +479,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension on the Item
         // [THEN] The default dimension has been updated for the item
@@ -559,8 +505,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the customer
         // [THEN] You get an error
@@ -574,8 +518,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a Vendor with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension with a blocked dimension value on the Vendor
         // [THEN] You get an error
@@ -589,8 +531,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a Item with a default dimension
         // [WHEN] The user posts a http request to patch a default dimension with a blocked dimension value on the Item
         // [THEN] You get an error
@@ -617,8 +557,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Customer: Record "Customer";
     begin
         // [FEATURE] [Customer]
-        Initialize();
-
         // [GIVEN] a customer with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the customer
         // [THEN] You get an error
@@ -632,8 +570,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Vendor: Record "Vendor";
     begin
         // [FEATURE] [Vendor]
-        Initialize();
-
         // [GIVEN] a vendor with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the vendor
         // [THEN] You get an error
@@ -647,8 +583,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         Item: Record "Item";
     begin
         // [FEATURE] [Item]
-        Initialize();
-
         // [GIVEN] a item with a default dimension
         // [WHEN] The user posts a http request to patch the default dimension with a blocked dimension value on the item
         // [THEN] You get an error
@@ -667,13 +601,6 @@ codeunit 139732 "APIV1 - Default Dimensions E2E"
         // [THEN] You get an error
         LibraryHumanResource.CreateEmployee(Employee);
         TestPatchDefaultDimensionFailsWhenChangingDimensionCode(DATABASE::Employee, Employee."No.", Employee.SystemId);
-    end;
-
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 
     local procedure TestCreateDefaultDimensionWithDimensionCode(TableNo: Integer; ParentNo: Code[20]; ParentId: Guid)

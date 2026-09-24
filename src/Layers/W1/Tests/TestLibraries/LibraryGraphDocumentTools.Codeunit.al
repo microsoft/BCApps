@@ -1,6 +1,10 @@
 codeunit 130619 "Library - Graph Document Tools"
 {
 
+    trigger OnRun()
+    begin
+    end;
+
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
         LibrarySales: Codeunit "Library - Sales";
@@ -891,3 +895,4 @@ codeunit 130619 "Library - Graph Document Tools"
         Assert.AreEqual(ExpectedDiscountAmount, ActualInvoiceDiscountAmount, 'Invoice discount amount was not set');
     end;
 }
+

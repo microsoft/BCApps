@@ -1,7 +1,6 @@
 codeunit 139744 "APIV1 - PDF Document E2E"
 {
     Subtype = Test;
-    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -25,9 +24,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     var
         CompanyInformation: Record "Company Information";
     begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        WorkDate := Today;
 
         CompanyInformation.Get();
         if CompanyInformation."Giro No." = '' then
@@ -282,3 +279,4 @@ codeunit 139744 "APIV1 - PDF Document E2E"
         Commit();
     end;
 }
+

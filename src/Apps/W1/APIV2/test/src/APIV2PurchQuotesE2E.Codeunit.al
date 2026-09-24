@@ -24,8 +24,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        Initialize();
-
         // [SCENARIO] Create a purchase quote and use GET to retrieve it
         // [GIVEN] A purchase quote
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Quote, '');
@@ -46,8 +44,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
-        Initialize();
-
         // [SCENARIO] Create a purchase quote and GET it by SystemId
         // [GIVEN] A purchase quote
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Quote, '');
@@ -70,8 +66,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase quote with $expand=dimensionSetLines
         // [GIVEN] A purchase quote
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
@@ -98,8 +92,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase quote with $expand=attachments
         // [GIVEN] A purchase quote
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
@@ -126,8 +118,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase quote with $expand=documentAttachments
         // [GIVEN] A purchase quote
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
@@ -154,8 +144,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase quote with $expand=pdfDocument
         // [GIVEN] A purchase quote
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
@@ -182,8 +170,6 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
-        Initialize();
-
         // [SCENARIO] GET a purchase quote with $expand=purchaseQuoteLines
         // [GIVEN] A purchase quote
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Quote);
@@ -207,11 +193,5 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
-    end;
-
-    local procedure Initialize()
-    begin
-        LibraryGraphMgt.SetAuthenticationProvider(
-            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }
