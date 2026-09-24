@@ -64,6 +64,14 @@ page 5610 "Depreciation Book Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Calc."; Rec."Derogatory Calc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derogatory Book Code"; Rec."Derogatory Book Code")
+                {
+                    ApplicationArea = FixedAssets;
+                }
                 field("Allow Correction of Disposal"; Rec."Allow Correction of Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -162,6 +170,11 @@ page 5610 "Depreciation Book Card"
                     {
                         ApplicationArea = FixedAssets;
                         Caption = 'G/L Integration - Bonus Depreciation';
+                    }
+                    field("Integration G/L - Derogatory"; Rec."Integration G/L - Derogatory")
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'Derogatory';
                     }
                 }
             }

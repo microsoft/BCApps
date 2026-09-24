@@ -60,6 +60,22 @@ page 5613 "FA Posting Groups"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Derogatory Acc."; Rec."Derogatory Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derogatory Account (Decrease)"; Rec."Derogatory Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derogatory Expense Acc."; Rec."Derogatory Expense Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                }
+                field("Derog. Bal. Account (Decrease)"; Rec."Derog. Bal. Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                }
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -364,6 +380,16 @@ page 5613 "FA Posting Groups"
                         RunPageLink = Code = field(Code),
                                       "Allocation Type" = const(Loss);
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
+                    }
+                    action(FA_Derogatory_Allocations)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'De&rogatory';
+                        Image = Delegate;
+                        RunObject = Page "FA Allocations";
+                        RunPageLink = Code = field(Code),
+                                      "Allocation Type" = const(Derogatory);
+                        ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
                     }
                 }
             }

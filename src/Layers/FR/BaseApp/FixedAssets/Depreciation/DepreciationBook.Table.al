@@ -367,6 +367,71 @@ table 5611 "Depreciation Book"
                     Message(BonusDepreciationOnboardingMsg)
             end;
         }
+        field(5865; "Derogatory Calc."; Code[10])
+        {
+            Caption = 'Derogatory Calculation';
+            TableRelation = "Depreciation Book";
+            ToolTip = 'Specifies if this book is used as a tax depreciation book to calculate derogatory depreciation.';
+
+            trigger OnValidate()
+            var
+                DeprBook: Record "Depreciation Book";
+                FADeprBook: Record "FA Depreciation Book";
+            begin
+                if "Derogatory Calc." <> xRec."Derogatory Calc." then begin
+                    if "Derogatory Calc." = Code then
+                        Error(DeprBookCannotBeSetUpAsDerogatoryErr, "Derogatory Calc.", Code);
+
+                    if xRec."Derogatory Calc." <> '' then begin
+                        FADeprBook.SetLoadFields("FA No.", "Depreciation Book Code");
+                        FADeprBook.SetRange("Depreciation Book Code", xRec."Derogatory Calc.");
+                        if FADeprBook.FindSet() then
+                            repeat
+                                FADeprBook.CalcFields("Derogatory Amount");
+                                FADeprBook.TestField("Derogatory Amount", 0);
+                            until FADeprBook.Next() = 0;
+                    end;
+
+                    if "Derogatory Calc." <> '' then begin
+                        DeprBook.SetRange("Derogatory Calc.", "Derogatory Calc.");
+                        DeprBook.SetFilter(Code, '<>%1', Code);
+                        if DeprBook.FindFirst() then
+                            Error(DeprBookAlreadyHasDerogatoryDeprBookErr, "Derogatory Calc.", DeprBook.Code);
+
+                        DeprBook.Get("Derogatory Calc.");
+                        if DeprBook."Derogatory Calc." <> '' then
+                            Error(DeprBookIsDerogatoryErr, "Derogatory Calc.");
+
+                        if Code <> '' then begin
+                            DeprBook.Reset();
+                            DeprBook.SetRange("Derogatory Calc.", Code);
+                            if not DeprBook.IsEmpty() then
+                                Error(AccountingDeprBookCannotBeDerogatoryErr, Code);
+                        end;
+                    end;
+                end;
+
+                CheckIntegrationFields();
+            end;
+        }
+        field(5866; "Derogatory Book Code"; Code[10])
+        {
+            CalcFormula = lookup("Depreciation Book".Code where("Derogatory Calc." = field(Code)));
+            Caption = 'Used with Derogatory Book';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the code of the tax depreciation book that this accounting book has been associated with in a derogatory setup.';
+        }
+        field(5867; "Integration G/L - Derogatory"; Boolean)
+        {
+            Caption = 'G/L Integration - Derogatory';
+            ToolTip = 'Specifies if you want derogatory entries that are posted to this depreciation book to be posted both to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
+        }
         field(10500; "Use Accounting Period"; Boolean)
         {
             Caption = 'Use Accounting Period';
@@ -384,10 +449,19 @@ table 5611 "Depreciation Book"
                 end;
             end;
         }
+#if not CLEANSCHEMA33
         field(10800; "Derogatory Calculation"; Code[10])
         {
             Caption = 'Derogatory Calculation';
             TableRelation = "Depreciation Book";
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
             var
@@ -406,42 +480,65 @@ table 5611 "Depreciation Book"
                         DeprBook.SetRange("Derogatory Calculation", "Derogatory Calculation");
                         if DeprBook.Find('-') then
                             if DeprBook.Code <> Code then
-                                Error(Text10802, "Derogatory Calculation", DeprBook.Code);
+                                Error(DeprBookAlreadyHasDerogatoryDeprBookErr, "Derogatory Calculation", DeprBook.Code);
                         DeprBook.SetRange("Derogatory Calculation");
                         DeprBook.SetRange(Code, "Derogatory Calculation");
                         if DeprBook.Find('-') then
                             if (DeprBook."Derogatory Calculation" <> '') then
-                                Error(Text10804, "Derogatory Calculation");
+                                Error(DeprBookIsDerogatoryErr, "Derogatory Calculation");
                     end;
                     if ("Derogatory Calculation" <> xRec."Derogatory Calculation") then
                         if "Used with Derogatory Book" <> '' then
-                            Error(Text10800, Code);
+                            Error(AccountingDeprBookCannotBeDerogatoryErr, Code);
 
                 end;
 
-
                 if "Derogatory Calculation" = Code then
-                    Error(Text10801, "Derogatory Calculation", Code);
+                    Error(DeprBookCannotBeSetUpAsDerogatoryErr, "Derogatory Calculation", Code);
 
                 CheckIntegrationFields();
             end;
+#endif
         }
+#endif
+#if not CLEANSCHEMA33
         field(10801; "Used with Derogatory Book"; Code[10])
         {
             CalcFormula = lookup("Depreciation Book".Code where("Derogatory Calculation" = field(Code)));
             Caption = 'Used with Derogatory Book';
             Editable = false;
             FieldClass = FlowField;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
+#if not CLEANSCHEMA33
         field(10802; "G/L Integration - Derogatory"; Boolean)
         {
             Caption = 'G/L Integration - Derogatory';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
             begin
                 CheckIntegrationFields();
             end;
+#endif
         }
+#endif
     }
 
     keys
@@ -517,13 +614,16 @@ table 5611 "Depreciation Book"
     var
         FASetup: Record "FA Setup";
         FAJnlSetup: Record "FA Journal Setup";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         GLIntegration: array[13] of Boolean;
-        MustBeStraightLineTxt: Label 'You cannot set %1 to %2 because some Fixed Assets associated with this book\exists where Depreciation Method is other than Straight-Line.',Comment ='%1="Use Accounting Period" Field Caption %2="Use Accounting Period" Field Value';
-        Text10800: Label 'The depreciation book %1 is an accounting book and cannot be set up as a derogatory depreciation book.';
-        Text10801: Label 'The depreciation book %1 cannot be set up as derogatory for depreciation book %2.';
-        Text10802: Label 'The depreciation book %1 is already set up in combination with derogatory depreciation book %2.';
-        Text10803: Label 'Derogatory depreciation books cannot be integrated with the general ledger. Please make sure that none of the fields on the Integration tab are checked.';
-        Text10804: Label 'The depreciation book %1 is a derogatory depreciation book.';
+        MustBeStraightLineTxt: Label 'You cannot set %1 to %2 because some Fixed Assets associated with this book\exists where Depreciation Method is other than Straight-Line.', Comment = '%1="Use Accounting Period" Field Caption %2="Use Accounting Period" Field Value';
+        AccountingDeprBookCannotBeDerogatoryErr: Label 'The depreciation book %1 is an accounting book and cannot be set up as a derogatory depreciation book.', Comment = '%1 = depreciation book code';
+        DeprBookCannotBeSetUpAsDerogatoryErr: Label 'The depreciation book %1 cannot be set up as derogatory for depreciation book %2.', Comment = '%1 = derogatory depreciation book code, %2 = depreciation book code';
+        DeprBookAlreadyHasDerogatoryDeprBookErr: Label 'The depreciation book %1 is already set up in combination with derogatory depreciation book %2.', Comment = '%1 = depreciation book code, %2 = derogatory depreciation book code';
+        DerogatoryDeprBookCannotBeIntegratedWithGLErr: Label 'Derogatory depreciation books cannot be integrated with the general ledger. Please make sure that none of the fields on the Integration tab are checked.';
+        DeprBookIsDerogatoryErr: Label 'The depreciation book %1 is a derogatory depreciation book.', Comment = '%1 = depreciation book code';
         BonusDepreciationOnboardingMsg: Label 'This change will take effect only for the fixed asset depreciation books that are newly created with this depreciation book.';
 
 #pragma warning disable AA0074
@@ -547,7 +647,14 @@ table 5611 "Depreciation Book"
         GLIntegration[7] := "G/L Integration - Disposal";
         GLIntegration[8] := "G/L Integration - Maintenance";
         GLIntegration[9] := false; // Salvage Value
-        GLIntegration[13] := "G/L Integration - Derogatory";
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then
+            GLIntegration[13] := "Integration G/L - Derogatory"
+        else
+            GLIntegration[13] := "G/L Integration - Derogatory";
+#else
+        GLIntegration[13] := "Integration G/L - Derogatory";
+#endif
     end;
 
     [Scope('OnPrem')]
@@ -555,18 +662,43 @@ table 5611 "Depreciation Book"
     var
         i: Integer;
     begin
-        if "Derogatory Calculation" <> '' then begin
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            if "Derogatory Calc." <> '' then begin
+                IndexGLIntegration(GLIntegration);
+                for i := 1 to ArrayLen(GLIntegration) do
+                    if GLIntegration[i] then
+                        Error(DerogatoryDeprBookCannotBeIntegratedWithGLErr);
+            end
+        end
+        else
+            if "Derogatory Calculation" <> '' then begin
+                IndexGLIntegration(GLIntegration);
+                for i := 1 to ArrayLen(GLIntegration) do
+                    if GLIntegration[i] then
+                        Error(DerogatoryDeprBookCannotBeIntegratedWithGLErr);
+            end
+#else
+        if "Derogatory Calc." <> '' then begin
             IndexGLIntegration(GLIntegration);
-            for i := 1 to 13 do
+            for i := 1 to ArrayLen(GLIntegration) do
                 if GLIntegration[i] then
-                    Error(Text10803);
-        end;
+                    Error(DerogatoryDeprBookCannotBeIntegratedWithGLErr);
+        end
+#endif
     end;
 
     [Scope('OnPrem')]
     procedure IsDerogatoryBook(): Boolean
     begin
-        exit("Derogatory Calculation" <> '');
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then
+            exit("Derogatory Calc." <> '')
+        else
+            exit("Derogatory Calculation" <> '');
+#else
+        exit("Derogatory Calc." <> '');
+#endif
     end;
 
     local procedure GetCurrencyCode(): Code[10]
@@ -574,4 +706,3 @@ table 5611 "Depreciation Book"
         exit('');
     end;
 }
-

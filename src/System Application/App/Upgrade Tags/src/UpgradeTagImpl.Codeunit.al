@@ -25,6 +25,18 @@ codeunit 9996 "Upgrade Tag Impl."
         exit(HasUpgradeTag(Tag, CopyStr(CompanyName(), 1, MaxStrLen(ConstUpgradeTags.Company))));
     end;
 
+    procedure GetUpgradeTagTimestamp(Tag: Code[250]; var TagTimestamp: DateTime): Boolean
+    var
+        UpgradeTags: Record "Upgrade Tags";
+    begin
+        Clear(TagTimestamp);
+        if not UpgradeTags.Get(Tag, CopyStr(CompanyName(), 1, MaxStrLen(UpgradeTags.Company))) then
+            exit(false);
+
+        TagTimestamp := UpgradeTags."Tag Timestamp";
+        exit(true);
+    end;
+
     procedure HasDatabaseUpgradeTag(Tag: Code[250]): Boolean
     begin
         exit(HasUpgradeTag(Tag, ''));

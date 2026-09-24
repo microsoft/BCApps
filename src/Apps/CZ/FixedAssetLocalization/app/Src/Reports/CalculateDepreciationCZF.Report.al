@@ -25,6 +25,38 @@ report 31240 "Calculate Depreciation CZF"
         dataitem("Fixed Asset"; "Fixed Asset")
         {
             RequestFilterFields = "No.", "FA Class Code", "FA Subclass Code", "Budgeted Asset";
+            dataitem(CalcDerogDepr; "Fixed Asset")
+            {
+                DataItemLink = "No." = field("No.");
+                DataItemTableView = sorting("No.");
+
+                trigger OnAfterGetRecord()
+                begin
+                    if not HasDerogatorySetup then
+                        CurrReport.Skip();
+
+                    CalculateDepreciation.Calculate(
+                        DeprAmount, Custom1Amount, NumberOfDays, Custom1NumberOfDays,
+                        "No.", DepreciationBook2.Code, DeprUntilDate, EntryAmounts, 0D, DaysInPeriod);
+
+                    if DeprAmount2 <> 0 then
+                        if not DepreciationBook."Integration G/L - Derogatory" or "Budgeted Asset" then begin
+                            TempFAJournalLine."FA No." := "No.";
+                            TempFAJournalLine."FA Posting Type" := TempFAJournalLine."FA Posting Type"::Derogatory;
+                            TempFAJournalLine.Amount := CalcDerogDeprAmount(DeprAmount, DeprAmount2);
+                            TempFAJournalLine."No. of Depreciation Days" := NumberOfDays;
+                            TempFAJournalLine."Line No." += 1;
+                            TempFAJournalLine.Insert();
+                        end else begin
+                            TempGenJournalLine."Account No." := "No.";
+                            TempGenJournalLine."FA Posting Type" := TempGenJournalLine."FA Posting Type"::Derogatory;
+                            TempGenJournalLine.Amount := CalcDerogDeprAmount(DeprAmount, DeprAmount2);
+                            TempGenJournalLine."No. of Depreciation Days" := NumberOfDays;
+                            TempGenJournalLine."Line No." += 1;
+                            TempGenJournalLine.Insert();
+                        end;
+                end;
+            }
 
             trigger OnAfterGetRecord()
             var
@@ -33,6 +65,9 @@ report 31240 "Calculate Depreciation CZF"
                 if Inactive or Blocked then
                     CurrReport.Skip();
 
+                FADeprBook.SetLoadFields(
+                    "Depreciation Starting Date", "Straight-Line %", "Fixed Depr. Amount", "Declining-Balance %",
+                    "Depreciation Ending Date", "Tax Deprec. Group Code CZF", "Depreciation Method", "Deprec. Interrupted up to CZF");
                 if not FADeprBook.Get("No.", DeprBookCode) then
                     CurrReport.Skip();
                 if FADeprBook."Depreciation Starting Date" = 0D then
@@ -43,6 +78,13 @@ report 31240 "Calculate Depreciation CZF"
                    (FADeprBook."Depreciation Method" = FADeprBook."Depreciation Method"::"Straight-Line")
                 then
                     CurrReport.Skip();
+
+                HasDerogatorySetup := false;
+                FADerogatoryDepreciationBook.SetLoadFields("FA No.", "Depreciation Book Code");
+                FADerogatoryDepreciationBook.SetRange("FA No.", "No.");
+                FADerogatoryDepreciationBook.SetRange("Depreciation Book Code", DepreciationBook2.Code);
+                if FADerogatoryDepreciationBook.FindFirst() then
+                    HasDerogatorySetup := true;
 
                 DepreciationInterrupted := FADeprBook."Deprec. Interrupted up to CZF" >= DeprUntilDate;
 
@@ -100,6 +142,9 @@ report 31240 "Calculate Depreciation CZF"
                         TempGenJournalLine."Line No." += 1;
                         TempGenJournalLine.Insert();
                     end;
+
+                if HasDerogatorySetup then
+                    DeprAmount2 := DeprAmount;
             end;
 
             trigger OnPostDataItem()
@@ -339,7 +384,14 @@ report 31240 "Calculate Depreciation CZF"
 
     trigger OnPreReport()
     begin
+        Clear(DepreciationBook2);
         DepreciationBook.Get(DeprBookCode);
+
+        if DepreciationBook."Derogatory Calc." <> '' then
+            Error(DerogatoryBookErr, DepreciationBook.Code);
+        DepreciationBook2.SetRange("Derogatory Calc.", DeprBookCode);
+        if DepreciationBook2.FindFirst() then;
+
         if DeprUntilDate = 0D then
             Error(MustSpecifyErr, FAJournalLine.FieldCaption("FA Posting Date"));
         if PostingDate = 0D then
@@ -370,6 +422,8 @@ report 31240 "Calculate Depreciation CZF"
         DepreciationBook: Record "Depreciation Book";
         FAJournalSetup: Record "FA Journal Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        DepreciationBook2: Record "Depreciation Book";
+        FADerogatoryDepreciationBook: Record "FA Depreciation Book";
         CalculateDepreciation: Codeunit "Calculate Depreciation";
         FAInsertGLAccount: Codeunit "FA Insert G/L Account";
         SuppUpdtSourceHandlerCZF: Codeunit "Supp. Updt. Source Handler CZF";
@@ -394,6 +448,8 @@ report 31240 "Calculate Depreciation CZF"
         GenJnlNextLineNo: Integer;
         EntryAmounts: array[4] of Decimal;
         LineNo: Integer;
+        DeprAmount2: Decimal;
+        HasDerogatorySetup: Boolean;
         DepreciationInterrupted: Boolean;
         CompletionStatsMsg: Label 'The depreciation has been calculated.\\No journal lines were created.';
         FAJnlLineCreatedCount: Integer;
@@ -408,6 +464,7 @@ report 31240 "Calculate Depreciation CZF"
         Text004Txt: Label 'Not depreciating fixed asset  #2##########\', Comment = '%1 = Fixed Asset No.';
         Text005Txt: Label 'Inserting journal lines       #3##########', Comment = '%1 = Line No.';
         UseForceNoOfDaysErr: Label 'Use Force No. of Days must be activated.';
+        DerogatoryBookErr: Label 'Depreciation cannot be posted on depreciation book %1 because it is set up as derogatory.', Comment = '%1 = Depreciation Book Code';
 
     procedure InitializeRequest(DeprBookCodeFrom: Code[10]; DeprUntilDateFrom: Date; UseForceNoOfDaysFrom: Boolean; DaysInPeriodFrom: Integer; PostingDateFrom: Date; DocumentNoFrom: Code[20]; PostingDescriptionFrom: Text[100]; BalAccountFrom: Boolean)
     begin
@@ -419,6 +476,11 @@ report 31240 "Calculate Depreciation CZF"
         DocumentNo := DocumentNoFrom;
         PostingDescription := PostingDescriptionFrom;
         BalAccount := BalAccountFrom;
+    end;
+
+    procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
+    begin
+        exit(Amount1 - Amount2);
     end;
 
     local procedure BuildDescription(FANo: Code[20]; PeriodDate: Date): Text[100]

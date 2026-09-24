@@ -53,6 +53,7 @@ table 5647 "FA Matrix Posting Type"
             InsertRec(9, FADepreciationBook.FieldCaption("Gain/Loss"));
             InsertRec(10, FADepreciationBook.FieldCaption("Depreciable Basis"));
             InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
+            InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
         end else
             repeat
                 if "Entry No." = 1 then
@@ -109,6 +110,11 @@ table 5647 "FA Matrix Posting Type"
                     if "FA Posting Type Name" <> FADepreciationBook.FieldCaption("Salvage Value") then begin
                         Delete();
                         InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
+                    end;
+                if "Entry No." = 12 then
+                    if "FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount") then begin
+                        Delete();
+                        InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
                     end;
             until Next() = 0;
         OnAfterCreateTypes(Rec);

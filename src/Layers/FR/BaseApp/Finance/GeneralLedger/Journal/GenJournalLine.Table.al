@@ -3904,11 +3904,22 @@ table 81 "Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';
@@ -4078,6 +4089,9 @@ table 81 "Gen. Journal Line"
     end;
 
     var
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
 #pragma warning disable AA0074
         Text000: Label '%1 or %2 must be a G/L Account or Bank Account.', Comment = '%1=Account Type,%2=Balance Account Type';
 #pragma warning disable AA0470
@@ -4160,8 +4174,10 @@ table 81 "Gen. Journal Line"
         GLSetupRead: Boolean;
         CustBankAcc: Record "Customer Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
+#if not CLEAN30
         DerogDeprBook: Record "Depreciation Book";
         DerogFADeprBook: Record "FA Depreciation Book";
+#endif
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
@@ -6012,6 +6028,12 @@ table 81 "Gen. Journal Line"
     [Scope('OnPrem')]
     procedure GetDerogatorySetup()
     begin
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then
+            exit;
+
+        // Retained legacy heuristic for companies still using the pre-move "Derogatory Calculation" setup field;
+        // once the feature is enabled (or after CLEAN30), eligibility is resolved centrally at posting time instead.
         "Derogatory Line" := false;
         if ("Account Type" = "Account Type"::"Fixed Asset") and
            ("Account No." <> '') and
@@ -6022,6 +6044,7 @@ table 81 "Gen. Journal Line"
                 if DerogFADeprBook.Get("Account No.", DerogDeprBook.Code) then
                     "Derogatory Line" := true;
         end;
+#endif
     end;
 
     procedure GetCustLedgerEntry()

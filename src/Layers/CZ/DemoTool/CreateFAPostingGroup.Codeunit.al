@@ -38,6 +38,10 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Maintenance Expense Account", CA.Convert("Maintenance Expense Account"));
         "FA Posting Group".Validate("Depreciation Expense Acc.", CA.Convert("Depreciation Expense Acc."));
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
+        "FA Posting Group".Validate("Derogatory Acc.", "FA Posting Group"."Accum. Depreciation Account");
+        "FA Posting Group".Validate("Derogatory Account (Decrease)", "FA Posting Group"."Accum. Depreciation Account");
+        "FA Posting Group".Validate("Derogatory Expense Acc.", "FA Posting Group"."Depreciation Expense Acc.");
+        "FA Posting Group".Validate("Derog. Bal. Account (Decrease)", "FA Posting Group"."Acquisition Cost Bal. Acc.");
         // NAVCZ
         "FA Posting Group".Validate("Acq. Cost Bal. Acc. Disp. CZF", CA.Convert("Accum. Depreciation Account"));
         "FA Posting Group".Validate("Write-Down Account", CA.Convert("Acquisition Cost Account"));

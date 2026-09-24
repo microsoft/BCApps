@@ -131,6 +131,9 @@ codeunit 13405 "Create FI GL Accounts"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '2280');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '6895');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '9150');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.AssetsName(), '0900');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.FixedAssetsName(), '0910');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.CurrentAssetsName(), '1600');

@@ -349,7 +349,11 @@ table 5612 "FA Depreciation Book"
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "Part of Book Value" = const(true),
                                                               "FA Posting Date" = field("FA Posting Date Filter"),
+#if not CLEAN30
                                                               "Exclude Derogatory" = const(false)));
+#else
+                                                              "Derogatory Excluded" = const(false)));
+#endif
             Caption = 'Book Value';
             ToolTip = 'Specifies the book value for the fixed asset.';
             Editable = false;
@@ -882,6 +886,27 @@ table 5612 "FA Depreciation Book"
                     FieldError("Default FA Depreciation Book", OnlyOneDefaultDeprBookErr);
             end;
         }
+        field(5865; "Derogatory Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
+            CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
+                                                              "Depreciation Book Code" = field("Depreciation Book Code"),
+                                                              "FA Posting Category" = const(" "),
+                                                              "FA Posting Type" = const(Derogatory),
+                                                              "FA Posting Date" = field("FA Posting Date Filter"),
+                                                              "Derogatory Excluded" = const(false)));
+            Caption = 'Derogatory';
+            Editable = false;
+            FieldClass = FlowField;
+            ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
+        }
+        field(5866; "Last Derogatory"; Date)
+        {
+            Caption = 'Last Derogatory Date';
+            ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
+        }
+#if not CLEANSCHEMA33
         field(10800; Derogatory; Decimal)
         {
             AutoFormatType = 1;
@@ -895,11 +920,32 @@ table 5612 "FA Depreciation Book"
             Caption = 'Derogatory';
             Editable = false;
             FieldClass = FlowField;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
+#if not CLEANSCHEMA33
         field(10801; "Last Derogatory Date"; Date)
         {
             Caption = 'Last Derogatory Date';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
     }
 
     keys
@@ -1343,12 +1389,23 @@ table 5612 "FA Depreciation Book"
     end;
 
     procedure SetBookValueFiltersOnFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")
+#if not CLEAN30
+    var
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
     begin
         FALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date");
         FALedgerEntry.SetRange("FA No.", "FA No.");
         FALedgerEntry.SetRange("Depreciation Book Code", "Depreciation Book Code");
         FALedgerEntry.SetRange("Part of Book Value", true);
-        FALedgerEntry.SetRange("Exclude Derogatory", false);
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then
+            FALedgerEntry.SetRange("Derogatory Excluded", false)
+        else
+            FALedgerEntry.SetRange("Exclude Derogatory", false);
+#else
+        FALedgerEntry.SetRange("Derogatory Excluded", false);
+#endif
         OnAfterSetBookValueFiltersOnFALedgerEntry(FALedgerEntry);
     end;
 
