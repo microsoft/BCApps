@@ -3,10 +3,6 @@ codeunit 139857 "APIV2 - InventoryPostGroup E2E"
     Subtype = Test;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
-    trigger OnRun()
-    begin
-    end;
-
     var
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
