@@ -39,16 +39,42 @@ Import-Module BcContainerHelper -DisableNameChecking -WarningAction SilentlyCont
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 $Query
 '@
-Invoke-ScriptInBcContainer -containerName '$ContainerName' -scriptblock {
+`$rows = Invoke-ScriptInBcContainer -containerName '$ContainerName' -scriptblock {
     param(`$qq, `$db)
     Invoke-Sqlcmd -ServerInstance 'localhost\SQLEXPRESS' -Database `$db -Query `$qq -TrustServerCertificate -MaxCharLength 8000 |
         Select-Object * -ExcludeProperty ItemArray, RowError, RowState, Table, HasErrors
 } -argumentList `$q, '$Database'
+
+# ⚠️ Emit JSON between markers, NOT objects.
+#
+# This script body runs in a SEPARATE pwsh process, so anything written to its stdout reaches
+# the caller as FORMATTED TEXT, never as objects. A caller doing `\`$row.SomeColumn` then gets
+# \`$null on every line and blames the table name - a confident, well-formed wrong answer of
+# exactly the kind this harness keeps producing. Serialising explicitly and rehydrating in the
+# parent is what makes the return value real objects.
+Write-Output '<<<BCSQL-JSON>>>'
+Write-Output (@(`$rows) | ConvertTo-Json -Depth 6 -Compress)
+Write-Output '<<<END-BCSQL-JSON>>>'
 "@
 
 Set-Content -Path $tmp -Value $script -Encoding utf8
 try {
-    pwsh -NoProfile -File $tmp
+    $raw = pwsh -NoProfile -File $tmp 2>&1
 } finally {
     Remove-Item $tmp -ErrorAction SilentlyContinue
 }
+
+$text  = ($raw | Out-String)
+$start = $text.IndexOf('<<<BCSQL-JSON>>>')
+$end   = $text.IndexOf('<<<END-BCSQL-JSON>>>')
+if ($start -lt 0 -or $end -lt 0) {
+    # No marker means the query never ran - surface the container's own output rather than
+    # returning an empty set, which would read as "the table is empty".
+    throw "Invoke-BcSql: query did not complete. Output was:`n$text"
+}
+
+$json = $text.Substring($start + 16, $end - $start - 16).Trim()
+if (-not $json -or $json -eq 'null') { return @() }
+
+$result = $json | ConvertFrom-Json
+return @($result)

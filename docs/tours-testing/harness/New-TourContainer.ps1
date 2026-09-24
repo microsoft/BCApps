@@ -26,7 +26,23 @@ param(
     [string] $BaseFolder = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path,
 
     # Never inside the repo. One file per container.
-    [string] $SecretPath = (Join-Path $env:USERPROFILE ".bc-tours\$ContainerName-credentials.json")
+    [string] $SecretPath = (Join-Path $env:USERPROFILE ".bc-tours\$ContainerName-credentials.json"),
+
+    # ⚠️ Build selection. The repo's AL-Go `artifact` setting pins a MINIMUM version, and
+    # Create-BCContainer uses it unconditionally - so a checkout can resolve to a build that is
+    # weeks behind the newest daily. That is fatal for a "tour a recent fix" charter: the fix
+    # you came to test may simply not be in the artifact, and the tour then measures the old
+    # behaviour and reports it as a side effect.
+    #
+    # Measured on 2026-09-24: the repo pin resolved to 30.0.54812.0 while the latest W1 insider
+    # was 30.0.55076.0 - 264 builds apart.
+    #
+    # Default is therefore LATEST. Pass -UseRepoPinnedArtifact to get the old behaviour (for
+    # example when reproducing something against the exact build the repo targets).
+    [switch] $UseRepoPinnedArtifact,
+
+    # Explicit override, wins over both of the above.
+    [string] $ArtifactUrl
 )
 
 $ErrorActionPreference = 'Stop'
@@ -56,7 +72,39 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $SecretPath) | Out
     ConvertTo-Json | Set-Content -Path $SecretPath -Encoding utf8
 Write-Host "Credentials written to $SecretPath" -ForegroundColor Yellow
 
-Create-BCContainer -ContainerName $ContainerName -Authentication 'UserPassword' -Credential $credential
+# --- Choose the build -------------------------------------------------------------------
+# Resolve and PRINT the artifact before building, so the session sheet can record exactly
+# which build was toured. A tour that cannot name its build cannot support any finding.
+$repoPinned = Get-CurrentBCArtifactUrl
+if (-not $ArtifactUrl) {
+    if ($UseRepoPinnedArtifact) {
+        $ArtifactUrl = $repoPinned
+    } else {
+        $ArtifactUrl = Get-BCArtifactUrl -storageAccount bcinsider -type sandbox -country W1 `
+                                         -select Latest -accept_insiderEula
+    }
+}
+
+$pinnedVersion = ($repoPinned  -split '/')[-2]
+$chosenVersion = ($ArtifactUrl -split '/')[-2]
+Write-Host "Repo-pinned artifact : $repoPinned" -ForegroundColor DarkGray
+Write-Host "Using artifact       : $ArtifactUrl" -ForegroundColor Cyan
+if ($chosenVersion -ne $pinnedVersion) {
+    Write-Host "  (repo pin is $pinnedVersion, this container is $chosenVersion)" -ForegroundColor Yellow
+}
+
+# Create-BCContainer calls Get-CurrentBCArtifactUrl unconditionally, so it cannot be pointed at
+# a different build. Mirror its body here instead. Setup-ContainerForDevelopment is deliberately
+# NOT called: it moves installed apps into the dev scope for AL development, and a tour drives
+# the web client rather than compiling against the container.
+$memoryLimit = Get-ConfigValue -Key "memoryLimit" -ConfigType AL-Go
+if (-not $memoryLimit) { $memoryLimit = "16G" }
+$bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
+
+New-BcContainer -artifactUrl $ArtifactUrl -accept_eula -accept_insiderEula `
+    -containerName $ContainerName -auth 'UserPassword' -Credential $credential `
+    -includeAL -memoryLimit $memoryLimit `
+    -additionalParameters @("--volume ""$($BaseFolder):c:\sources""")
 
 # ⚠️ A half-built container passes every obvious readiness check.
 #
