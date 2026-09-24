@@ -526,8 +526,33 @@ codeunit 3307 "Payables Agent Setup"
 
 
     /// <summary>
+    /// Asks the user to consent to activating the agent.
+    /// </summary>
+    /// <returns>True when the agent is already enabled, when there is no UI to ask, or when the user consents.</returns>
+    internal procedure ConfirmAgentActivation(): Boolean
+    var
+        Agent: Record Agent;
+        PATrialGuide: Page "PA Trial Guide";
+    begin
+        if not GuiAllowed() then
+            exit(true);
+
+        if GetAgent(Agent, false) then
+            if Agent.State = Agent.State::Enabled then
+                exit(true);
+
+        PATrialGuide.RunModal();
+        if PATrialGuide.ActivationConfirmed() then
+            exit(true);
+
+        Session.LogMessage('0000VMK', ActivationDeclinedTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FeatureName());
+        exit(false);
+    end;
+
+    /// <summary>
     /// Ensures the agent is activated. If the agent does not exist, it is activated silently
     /// with trial mode initialized if eligible. Email monitoring is not enabled.
+    /// Callers must call ConfirmAgentActivation first.
     /// </summary>
     internal procedure EnsureAgentActivated(var AlreadyActivated: Boolean)
     var
@@ -829,6 +854,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentProfileTok: Label 'Payables Agent', Locked = true;
         PayablesAgentPermissionSetTok: Label 'Payables Ag. - Run', Locked = true;
         TrialModeInitializedTok: Label 'Trial mode initialized for Payables Agent', Locked = true;
+        ActivationDeclinedTok: Label 'User declined to activate the Payables Agent', Locked = true;
         PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
         PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
         SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;

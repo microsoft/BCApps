@@ -564,6 +564,8 @@ page 3304 "Payables Agent Setup"
         FileName: Text;
         InStream: InStream;
     begin
+        if not PayablesAgentSetup.ConfirmAgentActivation() then
+            exit;
         if not UploadIntoStream(SelectFileLbl, '', PdfFileFilterLbl, FileName, InStream) then
             exit;
         SelectedFileName := CopyStr(FileName, 1, MaxStrLen(SelectedFileName));

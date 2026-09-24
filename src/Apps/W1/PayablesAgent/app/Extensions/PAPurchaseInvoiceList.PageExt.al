@@ -23,8 +23,8 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
                 Visible = IsAgentActionVisible;
                 trigger OnAction()
                 begin
-                    UploadInvoiceWithAgent();
-                    ShowTaskPaneForLatestAgentTask();
+                    if UploadInvoiceWithAgent() then
+                        ShowTaskPaneForLatestAgentTask();
                 end;
             }
         }
@@ -39,8 +39,8 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
                 Visible = IsAgentActionVisible;
                 trigger OnAction()
                 begin
-                    UploadInvoiceWithAgent();
-                    ShowTaskPaneForLatestAgentTask();
+                    if UploadInvoiceWithAgent() then
+                        ShowTaskPaneForLatestAgentTask();
                 end;
             }
         }
@@ -60,31 +60,25 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
         IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
     end;
 
-    local procedure UploadInvoiceWithAgent()
+    local procedure UploadInvoiceWithAgent(): Boolean
     var
         PayablesAgent: Codeunit "Payables Agent";
-        PATrialGuide: Page "PA Trial Guide";
         FileName: Text;
         InStream: InStream;
         AlreadyActivated: Boolean;
-        AgentExistInEnvironment: Boolean;
     begin
         IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
         if not IsAgentActionVisible then
-            exit;
+            exit(false);
+        if not PayablesAgentSetup.ConfirmAgentActivation() then
+            exit(false);
         if not UploadIntoStream(SelectFileLbl, '', PdfFileFilterLbl, FileName, InStream) then
-            exit;
+            exit(false);
 
-        AgentExistInEnvironment := PayablesAgent.PayablesAgentExistsAcrossAllCompanies();
         PayablesAgentSetup.EnsureAgentActivated(AlreadyActivated);
         PayablesAgentSetup.ImportInvoiceFile(FileName, InStream);
         Session.LogMessage('0000SEJ', NewWithAgentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
-
-        if AgentExistInEnvironment then
-            exit;
-
-        Commit();
-        PATrialGuide.RunModal();
+        exit(true);
     end;
 
     local procedure ShowTaskPaneForLatestAgentTask()
