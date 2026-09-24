@@ -3975,9 +3975,17 @@ codeunit 104000 "Upgrade - BaseApp"
                 end;
 
         Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::"Before Amount");
+        Currency.SetLoadFields("Currency Symbol Position");
         if Currency.FindSet(true) then
             repeat
                 Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"After Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::Default);
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"Before Amount";
                 Currency.Modify();
             until Currency.Next() = 0;
 
