@@ -645,7 +645,15 @@ async function readError(frame) {
     surfaces: all,
     // Rows from the Error Messages page, when BC navigated instead of raising a dialog.
     // Truncated by the grid - open the Details pane for the full sentence.
+    //
+    // ⚠️ THIS IS AN ARRAY, AND AN EMPTY ARRAY IS TRUTHY. `if (err.message || err.errorPage)`
+    // therefore fires on a perfectly healthy page and reports a phantom error whose text is
+    // "[]" - a confident, well-formed, wrong answer, and one tour spent probes on it. Test
+    // `err.errorPage.length`, or use `hasError` below, which is already a boolean.
     errorPage: errorPage?.rows || [],
+    // Convenience boolean, so the common `if (anything went wrong)` check cannot be written
+    // wrongly. True when BC refused on ANY surface.
+    hasError: Boolean(specific || firstDialogMessage || errorPageMessage || pageHasError),
     // Everything that was discarded as page chrome. Present so a probe that gets an
     // unexpected empty `message` can see what was filtered rather than guess.
     chrome: dialogChrome,
