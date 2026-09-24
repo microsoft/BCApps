@@ -1,5 +1,30 @@
 [
   {
+    "codeunitId": 148315,
+    "codeunitName": "Expense Users API Test",
+    "method": "EmployeesAPICanFilterExpenseUsers"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIMapsEmployeeNumberToExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelersAPIRejectsEmployeeWithoutExpenseUser"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "CreateExpenseReportActionRecreatesDeletedReport"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproveTravelRequestActionCreatesExpenseReport"
+  },
+  {
     "codeunitId": 148347,
     "codeunitName": "Travel Requests API Test",
     "method": "TravelRequestsAPINormalizesCurrency"
@@ -123,6 +148,42 @@
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
     "method": "DefaultApproverFilterQuotesWildcardUserNo"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportRejectsPostedHeader"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportRejectsPostedLine"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "CreateExpenseReportAllowsOtherPostedTraveler"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ReapproveTravelRequestWithPostedHeader"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "ReapproveTravelRequestWithPostedLine"
+  },
+  {
+    "bugId": 650277,
+    "codeunitId": 148339,
+    "codeunitName": "Spend Request Test",
+    "method": "AutoReapproveTravelRequestWithPostedHistory"
   },
   {
     "codeunitId": 148339,
