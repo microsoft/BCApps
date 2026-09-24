@@ -28,12 +28,9 @@ codeunit 148145 "Export E-Reporting Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [E-Reporting FR E-document]
     end;
 
     var
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -706,6 +703,50 @@ codeunit 148145 "Export E-Reporting Tests"
     end;
 
     [Test]
+    procedure ApprovedPeppolFRStatusSetsClearanceDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] Approved Peppol BIS 3.0 FR status sets Clearance Date
+        Initialize();
+
+        // [GIVEN] E-Document "ED" linked to a Peppol BIS 3.0 FR service with Approved status
+        CreateEDocumentService('PEPPOLFR-APPR', "E-Document Format"::"Peppol BIS 3.0 FR");
+        CreateEDocumentWithService(EDocument, 'PEPPOLFR-APPR');
+        CreateEDocumentServiceStatus(EDocument."Entry No", 'PEPPOLFR-APPR', "E-Document Service Status"::Approved);
+
+        // [WHEN] E-Document "ED" is modified
+        EDocument.Modify(true);
+
+        // [THEN] Clearance Date is set
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'Clearance Date should be non-zero after Approved Peppol BIS 3.0 FR status');
+    end;
+
+    [Test]
+    procedure ApprovedFacturXFRStatusSetsClearanceDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] Approved Factur-X FR status sets Clearance Date
+        Initialize();
+
+        // [GIVEN] E-Document "ED" linked to a Factur-X FR service with Approved status
+        CreateEDocumentService('FACTURXFR-APPR', "E-Document Format"::"Factur-X FR");
+        CreateEDocumentWithService(EDocument, 'FACTURXFR-APPR');
+        CreateEDocumentServiceStatus(EDocument."Entry No", 'FACTURXFR-APPR', "E-Document Service Status"::Approved);
+
+        // [WHEN] E-Document "ED" is modified
+        EDocument.Modify(true);
+
+        // [THEN] Clearance Date is set
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreNotEqual(0DT, EDocument."Clearance Date", 'Clearance Date should be non-zero after Approved Factur-X FR status');
+    end;
+
+    [Test]
     procedure ClearedStatusSetsClearanceDate()
     var
         EDocument: Record "E-Document";
@@ -854,9 +895,10 @@ codeunit 148145 "Export E-Reporting Tests"
     var
         Customer: Record Customer;
     begin
-        LibrarySales.CreateCustomer(Customer);
+        Customer.Init();
+        Customer."No." := LibraryUtility.GenerateGUID();
         Customer."FR E-Reporting Trans. Type" := TransType;
-        Customer.Modify();
+        Customer.Insert();
         exit(Customer."No.");
     end;
 
@@ -864,9 +906,10 @@ codeunit 148145 "Export E-Reporting Tests"
     var
         Vendor: Record Vendor;
     begin
-        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Init();
+        Vendor."No." := LibraryUtility.GenerateGUID();
         Vendor."FR E-Reporting Trans. Type" := TransType;
-        Vendor.Modify();
+        Vendor.Insert();
         exit(Vendor."No.");
     end;
 

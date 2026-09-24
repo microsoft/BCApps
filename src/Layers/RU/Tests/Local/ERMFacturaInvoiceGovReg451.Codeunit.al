@@ -171,8 +171,10 @@ codeunit 144514 "ERM FacturaInvoiceGovReg451"
 
     local procedure VerifyPrepFacturaLineValues(DocNo: Text)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         FileName := LibraryReportValidation.GetFileName();
         LibraryRUReports.VerifyFactura_DocNo(FileName, DocNo);
         LibraryRUReports.VerifyFactura_Unit(FileName, DashTxt, 0);
@@ -183,6 +185,7 @@ codeunit 144514 "ERM FacturaInvoiceGovReg451"
         LibraryRUReports.VerifyFactura_CountryCode(FileName, DashTxt, 0);
         LibraryRUReports.VerifyFactura_CountryName(FileName, DashTxt, 0);
         LibraryRUReports.VerifyFactura_GTD(FileName, DashTxt, 0);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyAddressNotDash(ShipToAddress1: Text[50]; ShipToAddress2: Text[50])
@@ -211,10 +214,12 @@ codeunit 144514 "ERM FacturaInvoiceGovReg451"
 
     local procedure FacturaInvoiceExcelExport(DocumentNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesHeader: Record "Sales Header";
         OrderFacturaInvoice: Report "Order Factura-Invoice (A)";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(DocumentNo);
         FileName := LibraryReportValidation.GetFileName();
         SalesHeader.SetRange("No.", DocumentNo);
@@ -223,14 +228,17 @@ codeunit 144514 "ERM FacturaInvoiceGovReg451"
         OrderFacturaInvoice.SetFileNameSilent(FileName);
         OrderFacturaInvoice.UseRequestPage(false);
         OrderFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PostedFacturaInvoiceExcelExport(DocumentNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         SalesInvHeader: Record "Sales Invoice Header";
         PostedFacturaInvoice: Report "Posted Factura-Invoice (A)";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(DocumentNo);
         FileName := LibraryReportValidation.GetFileName();
         SalesInvHeader.SetRange("No.", DocumentNo);
@@ -238,6 +246,7 @@ codeunit 144514 "ERM FacturaInvoiceGovReg451"
         PostedFacturaInvoice.SetFileNameSilent(FileName);
         PostedFacturaInvoice.UseRequestPage(false);
         PostedFacturaInvoice.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure ResourceGLMixedOrderFacturaDashPrint(SalesLine1Type: Enum "Sales Line Type"; ResourceFANo: Code[20])

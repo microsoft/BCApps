@@ -96,6 +96,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         NotMatchingStateErr: Label 'The state parameter value does not match.';
         StoreMismatchLbl: Label 'The store URL returned from Shopify differs from the URL you entered. You can find your store''s internal URL in Shopify Admin under Domains settings. Do you want to update the store URL to match?';
     begin
+        if not IsValidHostName(InstallToStore) then
+            Error(InvalidShopUrlErr);
+
         OAuth2.GetDefaultRedirectURL(RedirectUrl);
         State := Random(999);
         Url := StrSubstNo(InstallURLTxt, InstallToStore, GetScope(), RedirectUrl, State, GrandOptionsTxt);
@@ -104,6 +107,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
         Commit();
         ShopifyAuthentication.RunModal();
         Store := ShopifyAuthentication.Store();
+        if not IsValidHostName(Store) then
+            Error(InvalidShopUrlErr);
 
         if Store <> InstallToStore then
             if Confirm(StoreMismatchLbl) then
@@ -158,6 +163,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         AccessTokenURLTxt: Label 'https://%1/admin/oauth/access_token', Comment = '%1 = Store', Locked = true;
         HttpRequestBlockedErrorInfo: ErrorInfo;
     begin
+        if not IsValidHostName(Store) then
+            Error(InvalidShopUrlErr);
+
         RequestBody.WriteWithSecretsTo(Credentials, SecretBody);
 
         Url := StrSubstNo(AccessTokenURLTxt, Store);
@@ -202,9 +210,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
     [NonDebuggable]
     local procedure SaveTokenResponse(var RegisteredStoreNew: Record "Shpfy Registered Store New"; ResponseBody: Text)
     var
-        JsonHelper: Codeunit "Shpfy Json Helper";
         JObject: JsonObject;
         JToken: JsonToken;
+        JValue: JsonValue;
         AccessToken: SecretText;
         RefreshToken: SecretText;
         AccessTokenText: Text;
@@ -215,23 +223,39 @@ codeunit 30199 "Shpfy Authentication Mgt."
     begin
         if not JObject.ReadFrom(ResponseBody) then
             exit;
-        JToken := JObject.AsToken();
 
-        AccessTokenText := JsonHelper.GetValueAsText(JToken, 'access_token');
+        if JObject.Get('access_token', JToken) and JToken.IsValue then begin
+            JValue := JToken.AsValue();
+            if not (JValue.IsNull or JValue.IsUndefined) then
+                AccessTokenText := JValue.AsText();
+        end;
         if AccessTokenText = '' then
             exit;
+        AccessToken := AccessTokenText;
 
-        ActualScope := JsonHelper.GetValueAsText(JToken, 'scope');
+        if JObject.Get('scope', JToken) and JToken.IsValue then begin
+            JValue := JToken.AsValue();
+            if not (JValue.IsNull or JValue.IsUndefined) then
+                ActualScope := JValue.AsText();
+        end;
         if ActualScope <> '' then
             RegisteredStoreNew."Actual Scope" := CopyStr(ActualScope, 1, MaxStrLen(RegisteredStoreNew."Actual Scope"));
 
-        ExpiresInSeconds := JsonHelper.GetValueAsBigInteger(JToken, 'expires_in');
+        if JObject.Get('expires_in', JToken) and JToken.IsValue then begin
+            JValue := JToken.AsValue();
+            if not (JValue.IsNull or JValue.IsUndefined) then
+                ExpiresInSeconds := JValue.AsBigInteger();
+        end;
         if ExpiresInSeconds > 0 then
             RegisteredStoreNew."Token Expires At" := AddSeconds(CurrentDateTime(), ExpiresInSeconds)
         else
             RegisteredStoreNew."Token Expires At" := 0DT;
 
-        RefreshExpiresInSeconds := JsonHelper.GetValueAsBigInteger(JToken, 'refresh_token_expires_in');
+        if JObject.Get('refresh_token_expires_in', JToken) and JToken.IsValue then begin
+            JValue := JToken.AsValue();
+            if not (JValue.IsNull or JValue.IsUndefined) then
+                RefreshExpiresInSeconds := JValue.AsBigInteger();
+        end;
         if RefreshExpiresInSeconds > 0 then
             RegisteredStoreNew."Refresh Token Expires At" := AddSeconds(CurrentDateTime(), RefreshExpiresInSeconds)
         else
@@ -239,10 +263,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         RegisteredStoreNew.Modify();
 
-        AccessToken := AccessTokenText;
         RegisteredStoreNew.SetAccessToken(AccessToken);
 
-        RefreshTokenText := JsonHelper.GetValueAsText(JToken, 'refresh_token');
+        if JObject.Get('refresh_token', JToken) and JToken.IsValue then begin
+            JValue := JToken.AsValue();
+            if not (JValue.IsNull or JValue.IsUndefined) then
+                RefreshTokenText := JValue.AsText();
+        end;
         if RefreshTokenText <> '' then begin
             RefreshToken := RefreshTokenText;
             RegisteredStoreNew.SetRefreshToken(RefreshToken);
@@ -474,12 +501,18 @@ codeunit 30199 "Shpfy Authentication Mgt."
     [NonDebuggable]
     local procedure ResponseHasAccessToken(ResponseBody: Text): Boolean
     var
-        JsonHelper: Codeunit "Shpfy Json Helper";
         JObject: JsonObject;
+        JToken: JsonToken;
+        JValue: JsonValue;
     begin
         if not JObject.ReadFrom(ResponseBody) then
             exit(false);
-        exit(JsonHelper.GetValueAsText(JObject.AsToken(), 'access_token') <> '');
+        if not JObject.Get('access_token', JToken) or not JToken.IsValue then
+            exit(false);
+        JValue := JToken.AsValue();
+        if JValue.IsNull or JValue.IsUndefined then
+            exit(false);
+        exit(JValue.AsText() <> '');
     end;
 
     [NonDebuggable]

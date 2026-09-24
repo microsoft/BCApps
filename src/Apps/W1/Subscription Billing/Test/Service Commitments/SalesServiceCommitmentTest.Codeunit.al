@@ -231,6 +231,69 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    procedure CheckCreateServiceObjectOnDropShipment()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        RequisitionLine: Record "Requisition Line";
+        Vendor: Record Vendor;
+        ExpectedQuantity: Decimal;
+    begin
+        // [SCENARIO] The Subscription created for a drop shipped non-serialized Subscription Item carries the posted quantity, not zero.
+        Initialize();
+
+        // [GIVEN] A released drop shipment sales order for a non-serialized Subscription Item
+        CreateAndReleaseSalesDocumentForDropShipment();
+        ExpectedQuantity := SalesLine.Quantity;
+
+        CreateVendorForDropShipmentItem(Vendor);
+
+        // [WHEN] The linked purchase order is created from the sales order and received
+        RunGetSalesOrders(RequisitionLine, SalesHeader);
+        ReqWkshCarryOutActionMessage(RequisitionLine);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.FindLast();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] A single Subscription is created with the posted quantity (Qty. to Ship on the sales line is 0 for a drop shipment)
+        ServiceObject.Reset();
+        ServiceObject.FilterOnItemNo(Item."No.");
+        Assert.RecordCount(ServiceObject, 1);
+        ServiceObject.FindFirst();
+        ServiceObject.TestField(Quantity, ExpectedQuantity);
+    end;
+
+    [Test]
+    procedure CheckSalesOrderLineClosedAfterDropShipment()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        FetchSalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] After a drop shipment receipt the Subscription Item sales line is treated as fully invoiced, so the sales order can be completed.
+        Initialize();
+
+        // [GIVEN] A released drop shipment sales order for a non-serialized Subscription Item
+        CreateAndReleaseSalesDocumentForDropShipment();
+
+        CreateVendorForDropShipmentItem(Vendor);
+
+        // [WHEN] The linked purchase order is created from the sales order and received
+        RunGetSalesOrders(RequisitionLine, SalesHeader);
+        ReqWkshCarryOutActionMessage(RequisitionLine);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.FindLast();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] The sales line is fully shipped and marked as fully invoiced, with nothing left shipped not invoiced.
+        // This is what lets the order be completed: Qty. Shipped Not Invoiced = 0 makes Sales Line CheckNotInvoicedQty pass on delete.
+        FetchSalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        FetchSalesLine.TestField("Quantity Shipped", SalesLine.Quantity);
+        FetchSalesLine.TestField("Quantity Invoiced", FetchSalesLine."Quantity Shipped");
+        FetchSalesLine.TestField("Qty. Shipped Not Invoiced", 0);
+    end;
+
+    [Test]
     procedure CheckDeleteSalesServiceCommitmentWhenTypeOrNoChangedForSalesLine()
     var
         Item2: Record Item;
@@ -2190,6 +2253,34 @@ codeunit 139915 "Sales Service Commitment Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
     end;
 
+    local procedure CreateAndReleaseSalesDocumentForDropShipment()
+    var
+        Purchasing: Record Purchasing;
+        VATPostingSetup: Record "VAT Posting Setup";
+        Quantity: Decimal;
+    begin
+        LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code, true);
+
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, Customer."No.");
+        Quantity := LibraryRandom.RandInt(10);
+        NoOfServiceObjects := Quantity;
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", Quantity);
+
+        SalesLine.Validate("Purchasing Code", Purchasing.Code);
+        SalesLine.Modify(true);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
     local procedure CreateAndReleaseSalesDocumentWithSerialNoForDropShipment()
     var
         Purchasing: Record Purchasing;
@@ -2290,6 +2381,16 @@ codeunit 139915 "Sales Service Commitment Test"
         Item."Subscription Option" := Enum::"Item Service Commitment Type"::"Sales with Service Commitment";
         Item.Modify(false);
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code, true);
+    end;
+
+    local procedure CreateVendorForDropShipmentItem(var Vendor: Record Vendor)
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        Item."Vendor No." := Vendor."No.";
+        Item.Modify(false);
     end;
 
     local procedure FilterSalesServiceCommForLineDisc(ExpectedCalculationBaseAmount: Decimal)

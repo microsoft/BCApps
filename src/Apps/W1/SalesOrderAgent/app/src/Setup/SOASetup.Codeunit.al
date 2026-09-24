@@ -115,18 +115,149 @@ codeunit 4400 "SOA Setup"
 
     internal procedure AllowCreateNewSOAgent(): Boolean
     var
-        SOASetup: Record "SOA Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
-        CurrentOwnerUserSecurityID: Guid;
     begin
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             // Limit agent creation to agent admins.
             exit(false);
 
-        CurrentOwnerUserSecurityID := UserSecurityId();
-        SOASetup.SetRange("Owner User Security ID", CurrentOwnerUserSecurityID);
+        exit(ActiveSOAgentCount(UserSecurityId()) < MaxSOAInstances());
+    end;
 
-        exit(SOASetup.Count() < MaxSOAInstances());
+    /// <summary>
+    /// Counts the Sales Order Agent instances owned by a user that still occupy a slot.
+    /// Archived agents are excluded because they can never be reactivated.
+    /// </summary>
+    internal procedure ActiveSOAgentCount(OwnerUserSecurityID: Guid): Integer
+    var
+        SOASetup: Record "SOA Setup";
+    begin
+        SOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
+        exit(CountNonArchivedSetups(SOASetup));
+    end;
+
+    /// <summary>
+    /// Tells whether the company has at least one Sales Order Agent that is not archived. Kept to two
+    /// bounded queries because callers include paths that run for ordinary users.
+    /// </summary>
+    internal procedure ActiveSOAgentSetupExists(): Boolean
+    var
+        SOASetup: Record "SOA Setup";
+        AgentRec: Record Agent;
+    begin
+        if SOASetup.IsEmpty() then
+            exit(false);
+
+        // A setup record without a readable agent is treated as active, matching IsAgentArchived.
+        if not AgentRec.ReadPermission() then
+            exit(true);
+
+        // Filtered exists check only, for the reason given in IsAgentArchived. Any substate other than
+        // archived is a live agent, so a substate added later does not silently hide the agent.
+        AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
+        AgentRec.SetFilter(Substate, '<>%1', AgentRec.Substate::Archived);
+        exit(not AgentRec.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Counts the records in an already filtered set of setup records whose agent is not archived.
+    /// </summary>
+    internal procedure CountNonArchivedSetups(var SOASetup: Record "SOA Setup") NonArchivedCount: Integer
+    begin
+        if not SOASetup.FindSet() then
+            exit(0);
+
+        repeat
+            if not IsAgentArchived(SOASetup."User Security ID") then
+                NonArchivedCount += 1;
+        until SOASetup.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Finds the first record in an already filtered set of setup records whose agent is not archived.
+    /// </summary>
+    internal procedure FindFirstNonArchivedSetup(var SOASetup: Record "SOA Setup"): Boolean
+    begin
+        if not SOASetup.FindSet() then
+            exit(false);
+
+        repeat
+            if not IsAgentArchived(SOASetup."User Security ID") then
+                exit(true);
+        until SOASetup.Next() = 0;
+
+        exit(false);
+    end;
+
+    internal procedure IsAgentArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        // A setup record can outlive its agent and not every session can read the Agent table.
+        // Counting and advisory callers treat both cases as not archived so they are never blocked.
+        if not AgentRec.ReadPermission() then
+            exit(false);
+
+        // Agent is a virtual table. Every read of it, including this filtered existence check, is served
+        // by building agent records, and building a record calls back into the agent metadata provider of
+        // this app. Nothing that the platform can invoke while it builds a record may call this, or the
+        // callback re-enters itself until the stack overflows. Filtering keeps the work small, it does
+        // not make the read safe from that context.
+        AgentRec.SetRange("User Security ID", AgentUserSecurityID);
+        AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
+        AgentRec.SetRange(Substate, AgentRec.Substate::Archived);
+        exit(not AgentRec.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Tells whether the agent behind a setup record is currently live, meaning it exists, is enabled and
+    /// is not archived. Sessions that cannot read the Agent table get true, so callers never act on a
+    /// state they were unable to determine.
+    /// </summary>
+    internal procedure IsAgentActive(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        if not AgentRec.ReadPermission() then
+            exit(true);
+
+        // Filtered exists check only, for the reason given in IsAgentArchived. Any substate other than
+        // archived is a live agent, so a substate added later does not silently make agents look inactive.
+        AgentRec.SetRange("User Security ID", AgentUserSecurityID);
+        AgentRec.SetRange("Agent Metadata Provider", Enum::"Agent Metadata Provider"::"SO Agent");
+        AgentRec.SetRange(State, AgentRec.State::Enabled);
+        AgentRec.SetFilter(Substate, '<>%1', AgentRec.Substate::Archived);
+        exit(not AgentRec.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Archived state for callers that block an operation. Unlike IsAgentArchived this fails closed:
+    /// an agent whose state cannot be read is treated as archived, so the guard cannot be bypassed
+    /// by running without access to the Agent table.
+    /// </summary>
+    internal procedure MustTreatAgentAsArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentRec: Record Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        if not AgentRec.ReadPermission() then
+            exit(true);
+
+        exit(IsAgentArchived(AgentUserSecurityID));
+    end;
+
+    internal procedure CheckAgentNotArchived(AgentUserSecurityID: Guid)
+    begin
+        if MustTreatAgentAsArchived(AgentUserSecurityID) then
+            Error(AgentArchivedErr);
     end;
 
     internal procedure MaxSOAInstances(): Integer
@@ -158,6 +289,8 @@ codeunit 4400 "SOA Setup"
             TempSOASetup."User Security ID" := AgentSetupBuffer."User Security ID";
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             AgentSetupBuffer."User Security ID" := TempSOASetup."User Security ID";
+
+        CheckAgentNotArchived(TempSOASetup."User Security ID");
 
         EnsureAgentIdentityDefaults(TempSOASetup);
 
@@ -359,6 +492,8 @@ codeunit 4400 "SOA Setup"
         SOAPromptBuilder: Codeunit "SOA Prompt Builder";
         InstructionsSecret: SecretText;
     begin
+        CheckAgentNotArchived(TempSOASetup."User Security ID");
+
         SOAPromptBuilder.PrepareInstructions(InstructionsSecret, TempSOASetup);
         Agent.SetInstructions(TempSOASetup."User Security ID", InstructionsSecret);
         TempSOASetup."Instructions Last Sync At" := CurrentDateTime();
@@ -502,13 +637,13 @@ codeunit 4400 "SOA Setup"
 
         OtherSOASetup.SetRange("Agent Name", SOASetup."Agent Name");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
+        if FindFirstNonArchivedSetup(OtherSOASetup) then
             Error(AgentNameConflictErr);
 
         OtherSOASetup.Reset();
         OtherSOASetup.SetRange("Agent Initials", SOASetup."Agent Initials");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
+        if FindFirstNonArchivedSetup(OtherSOASetup) then
             Error(AgentInitialsConflictErr);
     end;
 
@@ -525,13 +660,13 @@ codeunit 4400 "SOA Setup"
 
         if SOASetup."Email Folder Id" = '' then begin
             OtherSOASetup.SetRange("Email Folder Id", '');
-            if OtherSOASetup.FindFirst() then
+            if FindFirstNonArchivedSetup(OtherSOASetup) then
                 Error(MailboxAlreadyUsedWithoutFolderErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
             exit;
         end;
 
         OtherSOASetup.SetRange("Email Folder Id", SOASetup."Email Folder Id");
-        if OtherSOASetup.FindFirst() then
+        if FindFirstNonArchivedSetup(OtherSOASetup) then
             Error(MailboxAndFolderAlreadyUsedErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
     end;
 
@@ -766,7 +901,7 @@ codeunit 4400 "SOA Setup"
             if not UserNameExists(CandidateUserName) then
                 exit(CandidateUserName);
             Index += 1;
-        until Index > MaxSOAInstances() + 10;
+        until Index > MaxAgentIdentitySuffix();
 
         // Best-effort fallback to avoid blocking setup on exhausted default candidates.
         Token := DelChr(Format(CreateGuid()), '=', '{}-');
@@ -786,6 +921,9 @@ codeunit 4400 "SOA Setup"
     var
         SOASetup: Record "SOA Setup";
     begin
+        // Archived agents keep their place in the series, so the next suggested identity continues after
+        // them instead of reusing a name that was already handed out. Validation still allows an admin to
+        // type an archived agent's name, so the identity can be reused deliberately.
         SOASetup.SetRange("Agent Name", AgentName);
         exit(not SOASetup.IsEmpty());
     end;
@@ -802,6 +940,7 @@ codeunit 4400 "SOA Setup"
     var
         SOASetup: Record "SOA Setup";
     begin
+        // Archived agents keep their place in the series. See AgentNameExists.
         SOASetup.SetRange("Agent Initials", AgentInitials);
         exit(not SOASetup.IsEmpty());
     end;
@@ -1017,6 +1156,18 @@ codeunit 4400 "SOA Setup"
         exit(false);
     end;
 
+    internal procedure IsImageAttachmentContentType(FileMIMEType: Text): Boolean
+    begin
+        // The platform derives the content type from the file extension and maps image extensions to
+        // non-standard 'application/<extension>' values, so both those and the standard image types are recognized.
+        if LowerCase(FileMIMEType) in
+            ['image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+             'application/jpeg', 'application/jpg', 'application/png', 'application/gif'] then
+            exit(true);
+
+        exit(false);
+    end;
+
     [TryFunction]
     internal procedure DocumentExceedsPageCountThreshold(DocInStream: Instream; var Exceeds: Boolean)
     var
@@ -1061,6 +1212,7 @@ codeunit 4400 "SOA Setup"
         SalesOrderAgentInitialLbl: Label 'SO', MaxLength = 4;
         SOASummaryLbl: Label 'Monitors incoming emails for sales inquiries, matches senders to customers, checks inventory, and creates quotes. When processing replies, the agent converts accepted quotes into orders.';
         DelegateAdminErr: Label 'Delegated admin and helpdesk users are not allowed to update the agent.';
+        AgentArchivedErr: Label 'This Sales Order Agent is archived and is read-only.';
         SOAInterventionSuggestionCodeLbl: Label 'SOA-UPDATE-%1', Locked = true, Comment = '%1 = Sales Document Type';
         SOAInterventionSuggestionSummaryLbl: Label 'I have updated the %1', Comment = '%1 = Sales Document Type', MaxLength = 100;
         SOAInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to a sales %1 as part of reviewing it before sending it to a customer.', Comment = '%1 = Sales Document Type', Locked = true, MaxLength = 1024;
