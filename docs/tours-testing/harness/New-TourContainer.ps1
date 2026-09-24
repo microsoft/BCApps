@@ -97,7 +97,18 @@ if ($chosenVersion -ne $pinnedVersion) {
 # a different build. Mirror its body here instead. Setup-ContainerForDevelopment is deliberately
 # NOT called: it moves installed apps into the dev scope for AL development, and a tour drives
 # the web client rather than compiling against the container.
-$memoryLimit = Get-ConfigValue -Key "memoryLimit" -ConfigType AL-Go
+#
+# ⚠️ Push-Location is load-bearing. Get-ConfigValue -ConfigType AL-Go resolves the settings file
+# relative to the CURRENT DIRECTORY, not to -BaseFolder, so running this script from anywhere
+# but the repo root throws "Cannot bind argument to parameter 'Path' because it is null." In the
+# dev-env path that throw lands AFTER the container is built, which silently skips the
+# [dbo].[User] readiness gate below - the one check this script exists to guarantee.
+Push-Location $BaseFolder
+try {
+    $memoryLimit = Get-ConfigValue -Key "memoryLimit" -ConfigType AL-Go
+} finally {
+    Pop-Location
+}
 if (-not $memoryLimit) { $memoryLimit = "16G" }
 $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
 

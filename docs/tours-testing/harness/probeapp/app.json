@@ -1,0 +1,20 @@
+{
+  "id": "6f0b1c9a-6d2e-4b3a-9a11-7c2f5e0d4a10",
+  "name": "Tour Unix Timestamp Probe",
+  "publisher": "Tours",
+  "version": "1.0.0.0",
+  "brief": "Exploratory-tour probe for TypeHelper.EvaluateUnixTimestamp vs Codeunit Unix Timestamp",
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "runtime": "16.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50149
+    }
+  ],
+  "features": [
+    "NoImplicitWith"
+  ]
+}

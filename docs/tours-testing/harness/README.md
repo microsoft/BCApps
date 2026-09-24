@@ -15,6 +15,43 @@ Working code from the tours run so far, so a new tour starts from something that
 | `Find-TourDrift.ps1` | Differential across two parallel tables (Sales vs Purchase vs Transfer). |
 | `Find-PageDrift.ps1` | Differential across pages that share one table — the six sales document types. |
 | `sab.js` / `psab.js` / `tsab.js` / `svc.js` | Worked Saboteur probes for Sales, Purchase, Transfer and Service orders. |
+| `probeapp/` | A working AL probe extension (table + codeunit + page). The pattern for **driving a pure function** — see below. |
+
+## Driving a pure function
+
+Not every charter is a document flow. When the thing under test is a *function* — a conversion, a
+formatter, a rounding routine — building an AL extension and calling it beats driving the browser by
+a wide margin: one tour took ~250 measurements across 6 time zones and 24 constructed inputs in
+about the time a single posting probe takes, and every result landed in a table, so SQL was the
+oracle for all of them.
+
+`probeapp/` is a working skeleton. The pattern:
+
+1. A **table** for results. Store every DateTime as `Format(dt, 0, 9)` **text**, so no SQL or driver
+   conversion can sit between the measurement and the verdict.
+2. A **codeunit** wrapping each call in a `[TryFunction]`, recording the value *or*
+   `GetLastErrorText()`. An input that errors is a result, not a gap.
+3. Record the **inputs the runtime actually saw** in every row — session time zone, user offset,
+   whether the offset lookup even succeeded. This is the "assert the independent variable" rule, and
+   it is what caught a cached-setup trap that had silently run seven passes in the wrong time zone.
+4. Re-implement the **old** code by hand beside the new one as a self-control. If the hand-written
+   copy and the shipped procedure disagree, the instrument is wrong, not the product.
+5. Check explicitly for **silent defaults**: `if Dt = 0DT then Note := '...returned 0DT and raised
+   NO error'`. A blank cell alone is indistinguishable from a probe that never ran (§5.7) — this is
+   what turned one anomaly into a finding.
+6. A one-action **page**, so the same codeunit can be driven from a web client when a web-service
+   session is not representative of a user.
+
+Build with `Compile-AppInBcContainer` + `Publish-BcContainerApp -sync -install`. The project folder
+**must be under a path shared with the container** — `C:\ProgramData\BcContainerHelper\Extensions\<container>\`
+works; a session-state folder does not.
+
+⚠️ **`Invoke-NAVCodeunit` does not work in a tours container.** It authenticates with Windows
+credentials and tour containers run `UserPassword`, so the service tier answers *"The server has
+rejected the client credentials."* Register the codeunit with `New-NAVWebService` and POST SOAP with
+basic auth instead — which also runs the code as a **named user**, mattering whenever behaviour
+depends on user personalization.
+
 
 ## ⚠️ The repo pins an artifact that can predate your own commits
 

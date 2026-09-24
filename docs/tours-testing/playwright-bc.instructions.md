@@ -687,9 +687,61 @@ Measured ordinals, confirmed against demo rows on build 30.0.54812.0-W1:
 | `Gen. Journal Line."Account Type"` | **4** = Fixed Asset (not 3 — 3 is Bank Account) |
 | `FA Ledger Entry."FA Posting Type"` | 0 = Acquisition Cost, 1 = Depreciation, 6 = Proceeds on Disposal, 8 = Gain/Loss |
 | `Production Order."Status"` | 1 = Planned, 2 = Firm Planned, 3 = Released, 4 = Finished |
+| `VAT Posting Setup."VAT Calculation Type"` | 0 = Normal, **1 = Reverse Charge**, 2 = Full VAT, 3 = Sales Tax |
 
-Two separate tours were bitten by an off-by-one ordinal. **Never assume the caption order is the
+Three separate tours were bitten by an off-by-one ordinal. **Never assume the caption order is the
 stored order** — `SELECT DISTINCT <col>, COUNT(*)` against known demo rows first.
+
+### ⚠️ SQL is the oracle, not the actuator
+
+SQL is the right way to *read* BC state and the wrong way to *write* it. Some tables are **cached
+by the service tier**, so a direct `UPDATE` is visible to SQL and invisible to AL — and the
+divergence is silent in both directions.
+
+This cost a tour seven probes. `[dbo].[User Personalization].[Time Zone]` was set with SQL before
+each pass, SQL confirmed the new value, and **all seven passes ran in the previous time zone**. The
+results were internally consistent, correctly shaped and entirely worthless — the failure looks
+exactly like a product that ignores the setting.
+
+Two rules, in order of importance:
+
+> **Assert the independent variable, not just the dependent one.** Have the probe record the value
+> *it observed* for every input it depends on, next to the result, in the same row. The trap was
+> caught in one query because each row carried the time zone the AL session actually saw, and all
+> seven said `UTC`.
+
+> **Change setup through the product** — a page, an API, or AL — then re-read it through the
+> product to confirm it took.
+
+The generalisation is the first rule. A tour that snapshots only outputs cannot tell *"the product
+ignored my input"* from *"my input never arrived"*, and those are the same two causes as §5.3.
+
+### The session's time zone is not the user's time zone
+
+Three different things decide what a DateTime means in AL, and a tour that conflates them will
+report a timezone bug that does not exist — or miss one that does.
+
+| | Where it comes from | Measured on 30.0.55076.0 |
+| --- | --- | --- |
+| `TypeHelper.GetUserTimezoneOffset` | reads `User Personalization."Time Zone"` directly | follows the user in **every** session type, and is DST-aware for today's date |
+| the **session** time zone — what `CreateDateTime` and a default `Format(dt)` use | the user's personalization for a **web client** session; `ServicesDefaultTimeZone` for SOAP / OData / background sessions | container ships `ServicesDefaultTimeZone = UTC` |
+| an AL `DateTime` value itself | always a **UTC instant** | `Format(dt, 0, 9)` renders it with `Z` |
+
+With the user's Time Zone set to *Central Europe Standard Time*, a **SOAP** session rendered
+`Format(CurrentDateTime)` as `01:43 PM` against `13:43Z` — UTC, ignoring the user — while
+`GetUserTimezoneOffset` in that same session correctly returned `+02:00`. A **web client** session,
+same user and same server config, rendered `04:06 PM` against `14:06Z`.
+
+- **A web-service probe is not a proxy for a user** when time zones are in play. To model a user in
+  zone *Z* without a browser, set `ServicesDefaultTimeZone` to *Z* **and restart the service tier**.
+- **Confirm the session zone you think you have** by recording `Format(CurrentDateTime)` beside
+  `Format(CurrentDateTime, 0, 9)` in the same row. If they agree, the session is UTC.
+- **The DST gap and the autumn fold are not constructible** through an API that takes or returns an
+  AL `DateTime`. A UTC instant is never ambiguous and never non-existent; the gap exists only where
+  something parses a local wall-clock time. Before charting *"a timestamp inside the spring-forward
+  gap"*, check whether the API under test can represent a local time at all — usually it cannot,
+  and the honest output is **unreachable (§5.8)**, not "no bug found".
+
 
 ### ⚠️ Some fields have no physical column at all
 

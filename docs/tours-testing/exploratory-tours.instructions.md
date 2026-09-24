@@ -159,6 +159,36 @@ lines belong to a new subfeature whose objects **do not exist in the artifact** 
 the churn is then untourable. Static analysis of the repo cannot see this. Confirm the objects
 exist in *this build* before planning probes.
 
+**Gate 0 — for any charter that names a commit, prove the change is in the build.** The repo's
+AL-Go `artifact` setting **pins** a version, and `Get-CurrentBCArtifactUrl` returns it faithfully,
+so *"the container matches your checkout"* is **false in the one direction that matters here**: the
+pin can predate commits that are ancestors of the same checkout. One tour measured a build
+containing neither its fix nor the pre-fix state the diff showed, and would have attributed a third,
+older behaviour to the commit. Use `harness/Test-FixInArtifact.ps1`, which answers this from the
+artifact cache **before** a container is built.
+
+**Validate an artifact by diffing it against the commit, not by grepping it.** Extract the file and
+run `git diff --no-index` against both `<fix>` and `<fix>^`. *"Identical to the parent"* is a
+positive result; a grep that finds nothing is only ever a negative one (§6.3 rule 2).
+
+**ABSENT is not automatically the end of the charter.** When the artifact does not contain the
+commit, ask one more question before declaring the area untourable: **does the new behaviour already
+ship somewhere else in the same build?**
+
+A fix that *delegates* — a hand-rolled routine replaced by a call to a System Application codeunit —
+puts **both sides of the change in one build**. The old body is still in the Base Application and
+the new implementation is already in the System Application, so both can be called from a single
+session and diffed directly. That is a **better** experiment than a post-fix build: pre and post are
+measured by the same instrument, in the same process, on the same clock, so any difference is the
+change and nothing else — and it needs no rebuild.
+
+That is how the Unix-timestamp charter ran: the newest artifact carried a `TypeHelper.Codeunit.al`
+byte-identical to the fix's *parent*, and the charter still completed, because
+`Codeunit "Unix Timestamp"` in that same artifact matched the checkout. **Check the shape of the
+diff before you rebuild — if the fix deletes a body and calls something that already exists, you
+probably have both halves already.**
+
+
 **Churn without surface.** `MasterDataManagement` ranked third on a 14-day churn scan (~4,700
 lines) and defines **37 fields** in total — the churn is all in synchronisation codeunits. High
 churn in codeunits means *write integration tests*, not *run a tour*.
@@ -369,6 +399,17 @@ rg -n '"<Field Caption>"' --glob '**/*.Page*.al'
 
 Then read the binding: `Visible = false` is a **blocker**, `Importance = Additional` is not — the
 latter only means the field sits behind *Show more*, a normal affordance.
+
+**There is a third outcome, and it is the honest answer for most "hardest input" charters:
+unreachable by construction.** The input class cannot be expressed through the API at all, so the
+hypothesis is **unmeasurable, not cleared**. Four of one charter's suggested hardest inputs — the
+DST spring-forward gap, the autumn fold, non-hour offsets, historically changed offsets — turned out
+not to be sensitive inputs for the function under test at all: an AL `DateTime` is a UTC instant, so
+an ambiguous or non-existent local time cannot be handed to it.
+
+> Report these as unreachable and say why. *"I probed the DST gap and found nothing"* implies the
+> gap was tested. It was not — it was not representable.
+
 
 **Personalisation is not a workaround, and do not spend a session proving it again.** Two tours
 independently failed to reach hidden fields, by two different routes:
