@@ -559,7 +559,6 @@ codeunit 1550 "Record Restriction Mgt."
 
 #if not CLEAN30
     [Obsolete('Replaced by ItemJournalLineCheckItemPostRestrictions, which now also checks the Item Journal Batch usage restrictions.', '30.0')]
-    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnCheckItemJournalLinePostRestrictions', '', false, false)]
     procedure ItemJournalBatchCheckItemJournalLinePostRestrictions(var Sender: Record "Item Journal Line")
     var
         ItemJournalBatch: Record "Item Journal Batch";
