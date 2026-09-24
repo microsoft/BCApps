@@ -709,6 +709,51 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.RecordIsEmpty(UsageDataBilling);
     end;
 
+    [Test]
+    procedure IsUsageDataBillingFoundReturnsLineWithUsageBasedPricingAboveUnitCostSurcharge()
+    var
+        SubscriptionLine2: Record "Subscription Line";
+        UsageDataBillingExtendedValue: Record "Usage Data Billing";
+        UsageDataBillingNoneValue: Record "Usage Data Billing";
+        FilteredUsageDataBilling: Record "Usage Data Billing";
+        BillingFromDate: Date;
+        BillingToDate: Date;
+    begin
+        // [SCENARIO] SetUsageDataBillingFilters uses an open-ended (>=) filter on "Usage Base Pricing", so a Usage Data Billing line carrying a value above the shipped "Unit Cost Surcharge" (added through a test-only enum extension) is still returned by IsUsageDataBillingFound
+
+        // [GIVEN] A Subscription Line
+        Initialize();
+        ContractTestLibrary.InitContractsApp();
+        UsageBasedBTestLibrary.MockServiceCommitmentLine(SubscriptionLine2);
+        BillingFromDate := WorkDate();
+        BillingToDate := WorkDate();
+
+        // [GIVEN] A Usage Data Billing line for that Subscription Line, Document Type None, within the billing period, with a "Usage Base Pricing" value above "Unit Cost Surcharge" (ordinal 100 from the test enum extension)
+        UsageBasedBTestLibrary.MockUsageDataBillingForServiceCommitmentLine(UsageDataBillingExtendedValue, SubscriptionLine2.Partner, SubscriptionLine2."Subscription Header No.", SubscriptionLine2."Entry No.");
+        UsageDataBillingExtendedValue."Document Type" := UsageDataBillingExtendedValue."Document Type"::None;
+        UsageDataBillingExtendedValue."Charge Start Date" := BillingFromDate;
+        UsageDataBillingExtendedValue."Charge End Date" := BillingToDate;
+        UsageDataBillingExtendedValue."Usage Base Pricing" := Enum::"Usage Based Pricing"::"Test Above Unit Cost Surcharge";
+        UsageDataBillingExtendedValue.Modify(false);
+
+        // [GIVEN] A second Usage Data Billing line for the same Subscription Line but with "Usage Base Pricing" = None (below the filter boundary)
+        UsageBasedBTestLibrary.MockUsageDataBillingForServiceCommitmentLine(UsageDataBillingNoneValue, SubscriptionLine2.Partner, SubscriptionLine2."Subscription Header No.", SubscriptionLine2."Entry No.");
+        UsageDataBillingNoneValue."Document Type" := UsageDataBillingNoneValue."Document Type"::None;
+        UsageDataBillingNoneValue."Charge Start Date" := BillingFromDate;
+        UsageDataBillingNoneValue."Charge End Date" := BillingToDate;
+        UsageDataBillingNoneValue."Usage Base Pricing" := Enum::"Usage Based Pricing"::None;
+        UsageDataBillingNoneValue.Modify(false);
+
+        // [WHEN] Checking whether the Subscription Line finds Usage Data Billing to invoice
+        // [THEN] The line carrying the extended value is found (open-ended >= filter)
+        Assert.IsTrue(SubscriptionLine2.IsUsageDataBillingFound(FilteredUsageDataBilling, BillingFromDate, BillingToDate), 'Usage Data Billing with a "Usage Base Pricing" value above "Unit Cost Surcharge" should be found by the open-ended filter.');
+
+        // [THEN] Exactly the extended-value line is returned, the "None"-valued line is filtered out
+        Assert.RecordCount(FilteredUsageDataBilling, 1);
+        FilteredUsageDataBilling.FindFirst();
+        FilteredUsageDataBilling.TestField("Usage Base Pricing", Enum::"Usage Based Pricing"::"Test Above Unit Cost Surcharge");
+    end;
+
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
     [Test]
     procedure PostingCreditMemoWithoutAppliesToDocNoDoesNotDuplicateUsageDataBilling()
