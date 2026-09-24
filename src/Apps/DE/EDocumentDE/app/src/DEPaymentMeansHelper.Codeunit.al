@@ -34,32 +34,6 @@ codeunit 11039 "DE Payment Means Helper"
     end;
 
     /// <summary>
-    /// Returns the IBAN of the bill-to customer's preferred bank account.
-    /// Fires OnGetCustomerPayeeIBAN to allow connector override.
-    /// Falls back to FindFirst on customer bank accounts if no preferred account is set.
-    /// </summary>
-    procedure GetCustomerIBAN(CustomerNo: Code[20]): Text[50]
-    var
-        Customer: Record Customer;
-        CustomerBankAccount: Record "Customer Bank Account";
-        Handled: Boolean;
-        IBAN: Text[50];
-    begin
-        OnGetCustomerPayeeIBAN(CustomerNo, IBAN, Handled);
-        if Handled then
-            exit(IBAN);
-        if Customer.Get(CustomerNo) then begin
-            if Customer."Preferred Bank Account Code" <> '' then
-                if CustomerBankAccount.Get(CustomerNo, Customer."Preferred Bank Account Code") then
-                    exit(CustomerBankAccount.IBAN);
-            CustomerBankAccount.SetRange("Customer No.", CustomerNo);
-            if CustomerBankAccount.FindFirst() then
-                exit(CustomerBankAccount.IBAN);
-        end;
-        exit('');
-    end;
-
-    /// <summary>
     /// Returns the SEPA Creditor Identifier from the company bank account.
     /// Used for SEPA Direct Debit payment means (49/59) in the SellerTradeParty/AccountingSupplierParty.
     /// </summary>
@@ -111,9 +85,6 @@ codeunit 11039 "DE Payment Means Helper"
                 begin
                     if SourceDocumentHeader.Number() in [Database::"Sales Cr.Memo Header", Database::"Service Cr.Memo Header"] then
                         Error(SEPADDOnCrMemoErr, PaymentMeansCode);
-                    // Service documents do not carry Direct Debit Mandate ID — skip mandate check
-                    if SourceDocumentHeader.Number() in [Database::"Service Header", Database::"Service Invoice Header", Database::"Service Cr.Memo Header"] then
-                        exit;
                     DirectDebitMandateIDFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Direct Debit Mandate ID"));
                     DirectDebitMandateID := DirectDebitMandateIDFieldRef.Value();
                     if DirectDebitMandateID = '' then
@@ -137,15 +108,5 @@ codeunit 11039 "DE Payment Means Helper"
             Error(BankAccountNotFoundErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
         if CustomerBankAccount.IBAN = '' then
             Error(IBANMissingErr, SEPADirectDebitMandate."Customer Bank Account Code", DirectDebitMandateID);
-    end;
-
-    /// <summary>
-    /// Fires when the customer payee IBAN is needed (e.g. credit memo PayeeFinancialAccount).
-    /// Subscribe to return a specific IBAN for the given customer instead of looking up bank accounts.
-    /// Set Handled := true to use the returned IBAN.
-    /// </summary>
-    [IntegrationEvent(false, false)]
-    procedure OnGetCustomerPayeeIBAN(CustomerNo: Code[20]; var IBAN: Text[50]; var Handled: Boolean)
-    begin
     end;
 }
