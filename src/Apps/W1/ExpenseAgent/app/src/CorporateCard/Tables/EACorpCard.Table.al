@@ -20,49 +20,58 @@ table 7211 "EA Corp Card"
         field(1; "Card Id"; Code[50])
         {
             Caption = 'Card Id';
+            DataClassification = AccountData;
             ToolTip = 'Specifies the unique identifier for the card.';
         }
         field(2; "Provider Code"; Code[20])
         {
             Caption = 'Provider Code';
+            DataClassification = SystemMetadata;
             TableRelation = "EA Corp Card Provider".Code;
             ToolTip = 'Specifies the provider code for the card.';
         }
         field(3; "External Card Ref"; Code[50])
         {
             Caption = 'External Card Reference';
+            DataClassification = AccountData;
             ToolTip = 'Specifies the external reference for the card.';
         }
         field(4; "Masked Card No."; Text[30])
         {
             Caption = 'Masked Card No.';
+            DataClassification = AccountData;
             ToolTip = 'Specifies the masked card number.';
         }
         field(5; "Expense User No."; Code[20])
         {
             Caption = 'Expense User No.';
+            DataClassification = EndUserPseudonymousIdentifiers;
             TableRelation = "Expense User"."No.";
             ToolTip = 'Specifies the expense user number associated with the card.';
         }
         field(6; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            DataClassification = AccountData;
             TableRelation = Currency.Code;
             ToolTip = 'Specifies the currency code for the card.';
         }
         field(7; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the card is blocked.';
         }
         field(8; "Valid From"; Date)
         {
             Caption = 'Valid From';
+            DataClassification = AccountData;
             ToolTip = 'Specifies the date from which the card is valid.';
         }
         field(9; "Valid To"; Date)
         {
             Caption = 'Valid To';
+            DataClassification = AccountData;
             ToolTip = 'Specifies the date until which the card is valid.';
         }
     }

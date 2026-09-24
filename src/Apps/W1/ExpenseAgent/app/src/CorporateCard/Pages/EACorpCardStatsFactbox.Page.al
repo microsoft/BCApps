@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using System.Threading;
-
 page 7232 "EA Corp Card Stats Factbox"
 {
     ApplicationArea = Basic, Suite;
@@ -22,19 +20,19 @@ page 7232 "EA Corp Card Stats Factbox"
                 ShowCaption = true;
                 Enabled = false;
 
-                field(TotalBatches; GetTotalBatches())
+                field(TotalBatches; TotalBatches)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Batches';
                     ToolTip = 'Specifies the total number of import batches in the last 30 days.';
                 }
-                field(TotalTransactions; GetTotalTransactions())
+                field(TotalTransactions; TotalTransactions)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Transactions';
                     ToolTip = 'Specifies the total number of transactions imported in the last 30 days.';
                 }
-                field(MatchSuccessRate; GetMatchSuccessRate())
+                field(MatchSuccessRate; MatchSuccessRate)
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 0;
@@ -42,7 +40,7 @@ page 7232 "EA Corp Card Stats Factbox"
                     ToolTip = 'Specifies the percentage of transactions successfully matched to expenses.';
                     DecimalPlaces = 1;
                 }
-                field(ExceptionRate; GetExceptionRate())
+                field(ExceptionRate; ExceptionRate)
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 0;
@@ -50,7 +48,7 @@ page 7232 "EA Corp Card Stats Factbox"
                     ToolTip = 'Specifies the percentage of transactions with exceptions.';
                     DecimalPlaces = 1;
                 }
-                field(DuplicateRate; GetDuplicateRate())
+                field(DuplicateRate; DuplicateRate)
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatType = 0;
@@ -66,19 +64,19 @@ page 7232 "EA Corp Card Stats Factbox"
                 ShowCaption = true;
                 Enabled = false;
 
-                field(UnmatchedCount; GetUnmatchedTransactionCount())
+                field(UnmatchedCount; UnmatchedCount)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Unmatched Transactions';
                     ToolTip = 'Specifies the number of transactions awaiting manual matching.';
                 }
-                field(DraftCount; GetDraftExpenseCount())
+                field(DraftCount; DraftCount)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Draft Expenses';
                     ToolTip = 'Specifies the number of auto-created draft expenses awaiting submission.';
                 }
-                field(ExceptionCount; GetPendingExceptionCount())
+                field(ExceptionCount; ExceptionCount)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Unresolved Exceptions';
@@ -92,19 +90,19 @@ page 7232 "EA Corp Card Stats Factbox"
                 ShowCaption = true;
                 Enabled = false;
 
-                field(EnabledProviders; GetEnabledProviderCount())
+                field(EnabledProviders; EnabledProviders)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Enabled Providers';
                     ToolTip = 'Specifies the number of enabled providers ready for import.';
                 }
-                field(ScheduledImports; GetScheduledImportCount())
+                field(ScheduledImports; ScheduledImports)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Scheduled Imports';
                     ToolTip = 'Specifies the number of providers with scheduled imports.';
                 }
-                field(TotalActiveCards; GetActiveCardCount())
+                field(TotalActiveCards; TotalActiveCards)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Active Cards';
@@ -114,129 +112,43 @@ page 7232 "EA Corp Card Stats Factbox"
         }
     }
 
-    local procedure GetTotalBatches(): Integer
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-        DateFilter: DateTime;
+    trigger OnOpenPage()
     begin
-        DateFilter := CreateDateTime(Today() - 30, 0T);
-        CorpCardBatch.SetFilter("Started DT", '>=%1', DateFilter);
-        exit(CorpCardBatch.Count());
+        CurrPage.EnqueueBackgroundTask(StatisticsTaskId, Codeunit::"EA Corp Card Stats Calculator", StatisticsTaskParameters, 60000, PageBackgroundTaskErrorLevel::Warning);
     end;
 
-    local procedure GetTotalTransactions(): Integer
+    trigger OnPageBackgroundTaskCompleted(TaskId: Integer; Results: Dictionary of [Text, Text])
     var
-        CorpCardBatch: Record "EA Corp Card Batch";
-        DateFilter: DateTime;
+        CorpCardStatsCalculator: Codeunit "EA Corp Card Stats Calculator";
     begin
-        DateFilter := CreateDateTime(Today() - 30, 0T);
-        CorpCardBatch.SetFilter("Started DT", '>=%1', DateFilter);
-        CorpCardBatch.CalcSums(Imported);
-        exit(CorpCardBatch.Imported);
+        if TaskId <> StatisticsTaskId then
+            exit;
+
+        Evaluate(TotalBatches, Results.Get(CorpCardStatsCalculator.GetTotalBatchesKey()));
+        Evaluate(TotalTransactions, Results.Get(CorpCardStatsCalculator.GetTotalTransactionsKey()));
+        Evaluate(MatchSuccessRate, Results.Get(CorpCardStatsCalculator.GetMatchSuccessRateKey()));
+        Evaluate(ExceptionRate, Results.Get(CorpCardStatsCalculator.GetExceptionRateKey()));
+        Evaluate(DuplicateRate, Results.Get(CorpCardStatsCalculator.GetDuplicateRateKey()));
+        Evaluate(UnmatchedCount, Results.Get(CorpCardStatsCalculator.GetUnmatchedCountKey()));
+        Evaluate(DraftCount, Results.Get(CorpCardStatsCalculator.GetDraftCountKey()));
+        Evaluate(ExceptionCount, Results.Get(CorpCardStatsCalculator.GetExceptionCountKey()));
+        Evaluate(EnabledProviders, Results.Get(CorpCardStatsCalculator.GetEnabledProvidersKey()));
+        Evaluate(ScheduledImports, Results.Get(CorpCardStatsCalculator.GetScheduledImportsKey()));
+        Evaluate(TotalActiveCards, Results.Get(CorpCardStatsCalculator.GetTotalActiveCardsKey()));
     end;
 
-    local procedure GetMatchSuccessRate(): Decimal
     var
-        CorpCardTrans: Record "EA Corp Card Trans";
-        TotalCount: Integer;
-        MatchedCount: Integer;
-    begin
-        CorpCardTrans.SetFilter("Trans Date", '>=%1', Today() - 30);
-        TotalCount := CorpCardTrans.Count();
-        if TotalCount = 0 then
-            exit(0);
-
-        CorpCardTrans.SetFilter(Status, '%1|%2', CorpCardTrans.Status::Matched, CorpCardTrans.Status::DraftCreated);
-        MatchedCount := CorpCardTrans.Count();
-
-        exit((MatchedCount / TotalCount) * 100);
-    end;
-
-    local procedure GetExceptionRate(): Decimal
-    var
-        CorpCardTrans: Record "EA Corp Card Trans";
-        TotalCount: Integer;
-        ExcepCount: Integer;
-    begin
-        CorpCardTrans.SetFilter("Trans Date", '>=%1', Today() - 30);
-        TotalCount := CorpCardTrans.Count();
-        if TotalCount = 0 then
-            exit(0);
-
-        CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Exception);
-        ExcepCount := CorpCardTrans.Count();
-
-        exit((ExcepCount / TotalCount) * 100);
-    end;
-
-    local procedure GetDuplicateRate(): Decimal
-    var
-        CorpCardBatch: Record "EA Corp Card Batch";
-        TotalCount: Integer;
-        DuplicateCount: Integer;
-        DateFilter: DateTime;
-    begin
-        DateFilter := CreateDateTime(Today() - 30, 0T);
-        CorpCardBatch.SetFilter("Started DT", '>=%1', DateFilter);
-        CorpCardBatch.CalcSums(Imported, Duplicates);
-        TotalCount := CorpCardBatch.Imported;
-
-        if TotalCount = 0 then
-            exit(0);
-
-        DuplicateCount := CorpCardBatch.Duplicates;
-        exit((DuplicateCount / TotalCount) * 100);
-    end;
-
-    local procedure GetUnmatchedTransactionCount(): Integer
-    var
-        CorpCardTrans: Record "EA Corp Card Trans";
-    begin
-        CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Imported);
-        exit(CorpCardTrans.Count());
-    end;
-
-    local procedure GetDraftExpenseCount(): Integer
-    var
-        CorpCardTrans: Record "EA Corp Card Trans";
-    begin
-        CorpCardTrans.SetRange(Status, CorpCardTrans.Status::DraftCreated);
-        exit(CorpCardTrans.Count());
-    end;
-
-    local procedure GetPendingExceptionCount(): Integer
-    var
-        CorpCardException: Record "EA Corp Card Exception";
-    begin
-        CorpCardException.SetRange(Resolved, false);
-        exit(CorpCardException.Count());
-    end;
-
-    local procedure GetEnabledProviderCount(): Integer
-    var
-        CorpCardProvider: Record "EA Corp Card Provider";
-    begin
-        CorpCardProvider.SetRange(Enabled, true);
-        exit(CorpCardProvider.Count());
-    end;
-
-    local procedure GetScheduledImportCount(): Integer
-    var
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"EA Corp Card JQ Runner");
-        JobQueueEntry.SetRange("Recurring Job", true);
-        exit(JobQueueEntry.Count());
-    end;
-
-    local procedure GetActiveCardCount(): Integer
-    var
-        CorpCard: Record "EA Corp Card";
-    begin
-        CorpCard.SetRange(Blocked, false);
-        CorpCard.SetFilter("Valid From", '%1|..%2', 0D, Today());
-        CorpCard.SetFilter("Valid To", '%1|%2..', 0D, Today());
-        exit(CorpCard.Count());
-    end;
+        StatisticsTaskParameters: Dictionary of [Text, Text];
+        DuplicateRate: Decimal;
+        ExceptionRate: Decimal;
+        MatchSuccessRate: Decimal;
+        DraftCount: Integer;
+        EnabledProviders: Integer;
+        ExceptionCount: Integer;
+        ScheduledImports: Integer;
+        TotalActiveCards: Integer;
+        TotalBatches: Integer;
+        TotalTransactions: Integer;
+        UnmatchedCount: Integer;
+        StatisticsTaskId: Integer;
 }

@@ -46,6 +46,7 @@ codeunit 148354 EACorpCardSetupTests
         CorpCardProvider.CalcFields("Source Payload");
         Assert.IsTrue(CorpCardProvider."Source Payload".HasValue(), 'CSV provider must have sample source payload.');
         Assert.AreEqual(CorpCardCsvSampleFileNameTok, CorpCardProvider."Source File Name", 'CSV provider must point to the default sample file name.');
+        Assert.IsTrue(CorpCardProvider."Source Payload Record Count" > 0, 'CSV provider must persist its sample payload record count.');
     end;
 
     local procedure Initialize()

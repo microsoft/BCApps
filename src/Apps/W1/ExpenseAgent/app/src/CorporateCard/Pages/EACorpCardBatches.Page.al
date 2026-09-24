@@ -12,6 +12,7 @@ page 7220 "EA Corp Card Batches"
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card Batch";
+    SourceTableView = sorting("Batch No.") order(descending);
 
     layout
     {
@@ -29,10 +30,15 @@ page 7220 "EA Corp Card Batches"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the provider for this batch.';
                 }
-                field("Data Exch Entry No."; Rec."Data Exch Entry No.")
+                field("Source File Name"; Rec."Source File Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the data exchange entry used for this batch.';
+                    ToolTip = 'Specifies the name of the source file that was imported.';
+                }
+                field("Source Payload Hash"; Rec."Source Payload Hash")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the SHA-256 hash of the source payload that was imported.';
                 }
                 field("Started DT"; Rec."Started DT")
                 {
@@ -84,7 +90,7 @@ page 7220 "EA Corp Card Batches"
         {
             action(RunMatching)
             {
-                Caption = 'Run Matching';
+                Caption = 'Run matching';
                 ApplicationArea = Basic, Suite;
                 Image = Calculate;
                 ToolTip = 'Runs post-import matching and draft creation for imported transactions in the selected batch.';
@@ -92,14 +98,17 @@ page 7220 "EA Corp Card Batches"
                 trigger OnAction()
                 var
                     PostImportOrch: Codeunit "EA Corp Card Post Import Orch";
+                    ExpenseWriterImpl: Codeunit "EA Corp Card Expense Writer";
+                    ExpenseWriter: Interface "EA Corp Card Expense Writer";
                 begin
-                    PostImportOrch.ProcessBatchPostImport(Rec."Batch No.");
+                    ExpenseWriter := ExpenseWriterImpl;
+                    PostImportOrch.ProcessBatchPostImport(Rec."Batch No.", ExpenseWriter);
                     CurrPage.Update(false);
                 end;
             }
             action(ShowTransactions)
             {
-                Caption = 'Show Transactions';
+                Caption = 'Show transactions';
                 ApplicationArea = Basic, Suite;
                 Image = List;
                 ToolTip = 'Opens corporate card transactions for the selected batch.';
@@ -115,7 +124,7 @@ page 7220 "EA Corp Card Batches"
             }
             action(ShowExceptions)
             {
-                Caption = 'Show Exceptions';
+                Caption = 'Show exceptions';
                 ApplicationArea = Basic, Suite;
                 Image = ErrorLog;
                 ToolTip = 'Opens corporate card exceptions for the selected batch.';

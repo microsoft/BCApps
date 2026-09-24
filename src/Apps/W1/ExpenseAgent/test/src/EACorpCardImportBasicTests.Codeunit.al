@@ -41,15 +41,19 @@ codeunit 148356 EACorpCardImportBasicTests
     procedure CsvImportSecondRunCountsDuplicates()
     var
         FirstBatch: Record "EA Corp Card Batch";
-        CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
+        SecondBatch: Record "EA Corp Card Batch";
+        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
     begin
         Initialize();
 
         CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCsvProviderCodeTok, FirstBatch);
         Assert.IsTrue(FirstBatch.Imported > 0, 'First CSV import must import transactions before duplicate rerun is tested.');
 
-        asserterror CorpCardFeedMgt.RunImport(CorpCardCsvProviderCodeTok);
-        Assert.ExpectedError(NoParsedLinesErr);
+        CreateCorpCardSetup.CreateDefaults();
+        CorpCardTestLib.RunImportAndGetLastBatch(CorpCardCsvProviderCodeTok, SecondBatch);
+
+        Assert.IsTrue(SecondBatch.Duplicates > 0, 'Second CSV import must count the previously imported transactions as duplicates.');
+        Assert.AreEqual(0, SecondBatch.Imported, 'Second CSV import must not import duplicate transactions.');
     end;
 
     [Test]
@@ -113,11 +117,34 @@ codeunit 148356 EACorpCardImportBasicTests
         Assert.AreEqual(UsdCurrencyCodeTok, CorpCardTrans."Currency Code", 'An imported foreign currency code must be preserved.');
     end;
 
-    local procedure InitializeValidTransaction(var CorpCardTrans: Record "EA Corp Card Trans")
+    [Test]
+    procedure ImportValidationRejectsBlockedCard()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt";
     begin
+        Initialize();
+
+        InitializeValidTransaction(CorpCardTrans);
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCard.Blocked := true;
+        CorpCard.Modify(true);
+
+        asserterror CorpCardValidateMgt.ValidateTrans(CorpCardTrans);
+        Assert.ExpectedTestFieldError(CorpCard.FieldCaption(Blocked), Format(false));
+    end;
+
+    local procedure InitializeValidTransaction(var CorpCardTrans: Record "EA Corp Card Trans")
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.SetRange("Provider Code", CorpCardCsvProviderCodeTok);
+        CorpCard.FindFirst();
+
         CorpCardTrans.Init();
         CorpCardTrans."Provider Code" := CorpCardCsvProviderCodeTok;
-        CorpCardTrans."Card Id" := 'CARD-001';
+        CorpCardTrans."Card Id" := CorpCard."Card Id";
         CorpCardTrans."Provider Trans Id" := 'TRANS-001';
         CorpCardTrans."Trans Date" := WorkDate();
     end;
@@ -152,5 +179,4 @@ codeunit 148356 EACorpCardImportBasicTests
         Camt054MccTok: Label '4511', Locked = true;
         EuroCurrencyCodeTok: Label 'EUR', Locked = true;
         UsdCurrencyCodeTok: Label 'USD', Locked = true;
-        NoParsedLinesErr: Label 'No transaction lines were parsed from file', Locked = true;
 }

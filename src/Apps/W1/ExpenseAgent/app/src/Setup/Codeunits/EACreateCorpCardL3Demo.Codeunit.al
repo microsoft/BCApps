@@ -218,7 +218,9 @@ codeunit 7234 "EA Create Corp Card L3 Demo"
         Clear(CorpCardProvider."Source Payload");
         CorpCardProvider."Source Payload".CreateOutStream(ProviderOutStr, TextEncoding::UTF8);
         ProviderOutStr.WriteText(GetLevel3SamplePayload());
+        Clear(ProviderOutStr);
         CorpCardProvider."Source File Name" := Level3SourceFileNameTok;
+        CorpCardProvider.UpdateSourcePayloadRecordCount();
         CorpCardProvider.Modify(true);
     end;
 

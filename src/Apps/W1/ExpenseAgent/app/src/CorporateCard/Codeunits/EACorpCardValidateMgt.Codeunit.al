@@ -24,6 +24,8 @@ codeunit 7225 "EA Corp Card Validate Mgt"
     end;
 
     internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ValidationReason: Text[250]): Boolean
+    var
+        CorpCard: Record "EA Corp Card";
     begin
         NormalizeCurrencyCode(CorpCardTrans."Currency Code");
 
@@ -35,6 +37,8 @@ codeunit 7225 "EA Corp Card Validate Mgt"
             ValidationReason := MissingCardIdErr;
             exit(false);
         end;
+        CorpCard.Get(CorpCardTrans."Card Id");
+        CorpCard.TestField(Blocked, false);
         if CorpCardTrans."Provider Trans Id" = '' then begin
             ValidationReason := MissingProviderTransIdErr;
             exit(false);

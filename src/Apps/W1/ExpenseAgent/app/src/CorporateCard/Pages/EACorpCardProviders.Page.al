@@ -48,12 +48,9 @@ page 7224 "EA Corp Card Providers"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the source file name associated with the payload content.';
                 }
-                field("Source Payload Records"; GetSourcePayloadRecordCount())
+                field("Source Payload Records"; Rec."Source Payload Record Count")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Source Payload Records';
-                    Editable = false;
-                    ToolTip = 'Specifies the number of transaction records detected in the uploaded source payload.';
                 }
                 field("Detected Source Format"; GetDetectedSourceFormat())
                 {
@@ -82,7 +79,7 @@ page 7224 "EA Corp Card Providers"
         {
             action(UploadSourcePayload)
             {
-                Caption = 'Upload Source Payload';
+                Caption = 'Upload source payload';
                 ApplicationArea = Basic, Suite;
                 Image = Import;
                 ToolTip = 'Uploads a source file payload to the selected provider for test imports.';
@@ -94,7 +91,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(ClearSourcePayload)
             {
-                Caption = 'Clear Source Payload';
+                Caption = 'Clear source payload';
                 ApplicationArea = Basic, Suite;
                 Image = Delete;
                 ToolTip = 'Clears the stored source payload and file name for the selected provider.';
@@ -106,7 +103,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(TestImport)
             {
-                Caption = 'Test Import';
+                Caption = 'Test import';
                 ApplicationArea = Basic, Suite;
                 Image = TestFile;
                 ToolTip = 'Runs import immediately for the selected provider.';
@@ -118,7 +115,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(OpenLatestBatch)
             {
-                Caption = 'Open Latest Batch';
+                Caption = 'Open latest batch';
                 ApplicationArea = Basic, Suite;
                 Image = Navigate;
                 ToolTip = 'Opens the latest import batch for the selected provider.';
@@ -130,7 +127,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(ScheduleImport)
             {
-                Caption = 'Schedule Import';
+                Caption = 'Schedule import';
                 ApplicationArea = Basic, Suite;
                 Image = Calendar;
                 ToolTip = 'Schedules recurring imports for the selected provider.';
@@ -142,7 +139,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(UnscheduleImport)
             {
-                Caption = 'Unschedule Import';
+                Caption = 'Unschedule import';
                 ApplicationArea = Basic, Suite;
                 Image = Delete;
                 ToolTip = 'Removes the scheduled import job for the selected provider.';
@@ -154,7 +151,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(ViewSchedule)
             {
-                Caption = 'View Schedule';
+                Caption = 'View schedule';
                 ApplicationArea = Basic, Suite;
                 Image = List;
                 ToolTip = 'Views the scheduled import job for the selected provider.';
@@ -166,7 +163,7 @@ page 7224 "EA Corp Card Providers"
             }
             action(InitializeDataExchange)
             {
-                Caption = 'Initialize Data Exchange';
+                Caption = 'Initialize data exchange';
                 ApplicationArea = Basic, Suite;
                 Image = Setup;
                 ToolTip = 'Creates or repairs Data Exchange definition and mappings for the selected provider.';
@@ -184,6 +181,9 @@ page 7224 "EA Corp Card Providers"
         SourcePayloadClearedMsg: Label 'Source payload was cleared for provider %1.', Comment = '%1 = Provider code';
         SourcePayloadSavedMsg: Label 'Source payload was uploaded for provider %1.', Comment = '%1 = Provider code';
         ImportTriggeredMsg: Label 'Import was triggered for provider %1.', Comment = '%1 = Provider code';
+        ProviderScheduledMsg: Label 'Provider %1 scheduled for daily import.', Comment = '%1 = Provider code';
+        UnscheduleProviderQst: Label 'Are you sure you want to unschedule imports for provider %1?', Comment = '%1 = Provider code';
+        ScheduleManagementMsg: Label 'Import scheduling is managed via the Schedule Import and Unschedule Import actions.';
         DataExchangeInitializedMsg: Label 'Data Exchange setup is ready for provider %1 (Definition: %2, Mapping: %3).', Comment = '%1 = Provider code, %2 = Data Exch Def Code, %3 = Data Exch Map Code';
         ReplacePayloadQst: Label 'Provider %1 already has source payload. Do you want to replace it?', Comment = '%1 = Provider code';
         NoBatchFoundErr: Label 'No import batch exists yet for provider %1.', Comment = '%1 = Provider code';
@@ -212,7 +212,9 @@ page 7224 "EA Corp Card Providers"
         Clear(Rec."Source Payload");
         Rec."Source Payload".CreateOutStream(OutStr);
         CopyStream(OutStr, InStr);
+        Clear(OutStr);
         Rec."Source File Name" := CopyStr(FileName, 1, MaxStrLen(Rec."Source File Name"));
+        Rec.UpdateSourcePayloadRecordCount();
         Rec.Modify(true);
 
         CurrPage.Update(false);
@@ -223,6 +225,7 @@ page 7224 "EA Corp Card Providers"
     begin
         Clear(Rec."Source Payload");
         Rec."Source File Name" := '';
+        Rec."Source Payload Record Count" := 0;
         Rec.Modify(true);
 
         CurrPage.Update(false);
@@ -254,20 +257,20 @@ page 7224 "EA Corp Card Providers"
         JQMgt: Codeunit "EA Corp Card JQ Mgt";
     begin
         JQMgt.ScheduleProviderImport(Rec.Code, 1440, 080000T, Today());
-        Message('Provider %1 scheduled for daily import.', Rec.Code);
+        Message(ProviderScheduledMsg, Rec.Code);
     end;
 
     local procedure UnscheduleProviderImport()
     var
         JQMgt: Codeunit "EA Corp Card JQ Mgt";
     begin
-        if Confirm('Are you sure you want to unschedule imports for provider %1?', false, Rec.Code) then
+        if Confirm(UnscheduleProviderQst, false, Rec.Code) then
             JQMgt.UnscheduleProviderImport(Rec.Code);
     end;
 
     local procedure ViewProviderSchedule()
     begin
-        Message('Import scheduling is managed via the Schedule Import and Unschedule Import actions.');
+        Message(ScheduleManagementMsg);
     end;
 
     local procedure InitializeDataExchangeForProvider()
@@ -298,128 +301,6 @@ page 7224 "EA Corp Card Providers"
             exit(NotSetLbl);
 
         exit(UnknownLbl);
-    end;
-
-    local procedure GetSourcePayloadRecordCount(): Integer
-    var
-        ProviderRefreshed: Record "EA Corp Card Provider";
-        PayloadInStr: InStream;
-        PayloadTxt: Text;
-        SourceFileNameLower: Text;
-        DataExchDefCodeUpper: Text;
-    begin
-        if not ProviderRefreshed.Get(Rec.Code) then
-            exit(0);
-
-        ProviderRefreshed.CalcFields("Source Payload");
-        if not ProviderRefreshed."Source Payload".HasValue then
-            exit(0);
-
-        ProviderRefreshed."Source Payload".CreateInStream(PayloadInStr, TextEncoding::UTF8);
-        PayloadTxt := ReadStreamAsText(PayloadInStr);
-        if PayloadTxt = '' then
-            exit(0);
-
-        SourceFileNameLower := LowerCase(ProviderRefreshed."Source File Name");
-        DataExchDefCodeUpper := UpperCase(ProviderRefreshed."Data Exch Def Code");
-
-        if (StrPos(SourceFileNameLower, '.csv') > 0) or (StrPos(DataExchDefCodeUpper, 'CSV') > 0) then
-            exit(GetCsvRecordCount(PayloadTxt));
-
-        if (StrPos(SourceFileNameLower, 'camt054') > 0) or (StrPos(SourceFileNameLower, 'camt.054') > 0) or (StrPos(DataExchDefCodeUpper, 'CAMT054') > 0) then
-            exit(CountOccurrences(PayloadTxt, '<TxDtls>'));
-
-        if (StrPos(SourceFileNameLower, 'camt') > 0) or (StrPos(DataExchDefCodeUpper, 'CAMT') > 0) then
-            exit(CountOccurrences(PayloadTxt, '<Ntry>'));
-
-        if (StrPos(SourceFileNameLower, '.xml') > 0) or (StrPos(DataExchDefCodeUpper, 'XML') > 0) or (StrPos(DataExchDefCodeUpper, 'ISO') > 0) then
-            exit(CountOccurrences(PayloadTxt, '<Transaction>'));
-
-        exit(CountOccurrences(PayloadTxt, '<Transaction>'));
-    end;
-
-    local procedure ReadStreamAsText(var PayloadInStr: InStream): Text
-    var
-        LineTxt: Text;
-        NewLineChar: Char;
-        ResultTxt: Text;
-    begin
-        NewLineChar := 10;
-        while not PayloadInStr.EOS do begin
-            PayloadInStr.ReadText(LineTxt);
-            if ResultTxt <> '' then
-                ResultTxt += Format(NewLineChar);
-            ResultTxt += LineTxt;
-        end;
-
-        exit(ResultTxt);
-    end;
-
-    local procedure GetCsvRecordCount(PayloadTxt: Text): Integer
-    var
-        Count: Integer;
-        Remaining: Text;
-        LineTxt: Text;
-        NewLinePos: Integer;
-        HeaderHandled: Boolean;
-        CRChar: Char;
-    begin
-        Remaining := PayloadTxt;
-        CRChar := 13;
-        while Remaining <> '' do begin
-            NewLinePos := StrPos(Remaining, Format(10));
-            if NewLinePos = 0 then begin
-                LineTxt := Remaining;
-                Remaining := '';
-            end else begin
-                LineTxt := CopyStr(Remaining, 1, NewLinePos - 1);
-                Remaining := CopyStr(Remaining, NewLinePos + 1);
-            end;
-
-            LineTxt := LineTxt.Replace(Format(CRChar), '').Trim();
-            if LineTxt = '' then
-                continue;
-
-            if not HeaderHandled then begin
-                HeaderHandled := true;
-                if IsCsvHeaderLine(LineTxt) then
-                    continue;
-            end;
-
-            Count += 1;
-        end;
-
-        exit(Count);
-    end;
-
-    local procedure IsCsvHeaderLine(LineTxt: Text): Boolean
-    var
-        LowerLineTxt: Text;
-    begin
-        LowerLineTxt := LowerCase(LineTxt);
-        exit((StrPos(LowerLineTxt, 'providertransid') > 0) and (StrPos(LowerLineTxt, 'cardid') > 0));
-    end;
-
-    local procedure CountOccurrences(SourceTxt: Text; Token: Text): Integer
-    var
-        Count: Integer;
-        Position: Integer;
-        SearchFrom: Integer;
-    begin
-        if (SourceTxt = '') or (Token = '') then
-            exit(0);
-
-        SearchFrom := 1;
-        repeat
-            Position := StrPos(CopyStr(SourceTxt, SearchFrom), Token);
-            if Position = 0 then
-                break;
-
-            Count += 1;
-            SearchFrom := SearchFrom + Position + StrLen(Token) - 1;
-        until SearchFrom > StrLen(SourceTxt);
-
-        exit(Count);
     end;
 
 }

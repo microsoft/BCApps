@@ -29,6 +29,7 @@ codeunit 7211 "EA Corp Card Match Mgt"
 
         if not CorpCard.Get(CorpCardTrans."Card Id") then
             exit(false);
+        CorpCard.TestField(Blocked, false);
 
         ExpenseUserNo := CorpCard."Expense User No.";
         if ExpenseUserNo = '' then

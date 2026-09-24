@@ -23,10 +23,10 @@ codeunit 7214 "EA Corp Card Audit Subscribers"
         MatchingCompletedMsg: Label 'Corp Card matching completed. Matched: %1, Unmatched: %2.', Locked = true;
         DraftCreatedMsg: Label 'Corp Card draft created. Transaction: %1, Expense No.: %2.', Locked = true;
         JobQueueScheduledMsg: Label 'Corp Card import job queue scheduled for provider %1 with frequency %2.', Locked = true;
-        ReportCreatedMsg: Label 'Expense report %1 created from corp card expenses for employee %2.', Locked = true;
-        ReportSubmittedMsg: Label 'Expense report %1 submitted for approval by user %2.', Locked = true;
-        ReportApprovedMsg: Label 'Expense report %1 approved for posting by user %2.', Locked = true;
-        ReportRejectedMsg: Label 'Expense report %1 rejected by user %2 with reason: %3.', Locked = true;
+        ReportCreatedMsg: Label 'Expense report created from corp card expenses.', Locked = true;
+        ReportSubmittedMsg: Label 'Expense report submitted for approval.', Locked = true;
+        ReportApprovedMsg: Label 'Expense report approved for posting.', Locked = true;
+        ReportRejectedMsg: Label 'Expense report rejected.', Locked = true;
 
     internal procedure LogImportStarted(ProviderCode: Code[20]; BatchNo: Integer)
     begin
@@ -58,24 +58,24 @@ codeunit 7214 "EA Corp Card Audit Subscribers"
         Session.LogMessage('0000UCX', StrSubstNo(JobQueueScheduledMsg, ProviderCode, Frequency), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
-    internal procedure LogReportCreatedFromCorpCard(ReportNo: Code[20]; EmployeeNo: Code[20])
+    internal procedure LogReportCreatedFromCorpCard()
     begin
-        Session.LogMessage('0000UCY', StrSubstNo(ReportCreatedMsg, ReportNo, EmployeeNo), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UCY', ReportCreatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
-    internal procedure LogReportSubmittedForApproval(ReportNo: Code[20]; UserId: Code[50])
+    internal procedure LogReportSubmittedForApproval()
     begin
-        Session.LogMessage('0000UCZ', StrSubstNo(ReportSubmittedMsg, ReportNo, UserId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UCZ', ReportSubmittedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
-    internal procedure LogReportApprovedForPosting(ReportNo: Code[20]; UserId: Code[50])
+    internal procedure LogReportApprovedForPosting()
     begin
-        Session.LogMessage('0000UD0', StrSubstNo(ReportApprovedMsg, ReportNo, UserId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UD0', ReportApprovedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
-    internal procedure LogReportRejected(ReportNo: Code[20]; UserId: Code[50]; Reason: Text)
+    internal procedure LogReportRejected()
     begin
-        Session.LogMessage('0000UD1', StrSubstNo(ReportRejectedMsg, ReportNo, UserId, CopyStr(Reason, 1, 250)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
+        Session.LogMessage('0000UD1', ReportRejectedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategory());
     end;
 
     internal procedure TelemetryCategory(): Text

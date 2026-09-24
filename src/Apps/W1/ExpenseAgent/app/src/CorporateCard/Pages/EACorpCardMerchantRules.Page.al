@@ -38,7 +38,7 @@ page 7227 "EA Corp Card Merchant Rules"
                 field(Pattern; Rec.Pattern)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the regex pattern to match merchant names.';
+                    ToolTip = 'Specifies the text to find in merchant names. Matching is not case-sensitive, and asterisks (*) can be used around the text.';
                 }
                 field("Normalized Name"; Rec."Normalized Name")
                 {
@@ -60,7 +60,7 @@ page 7227 "EA Corp Card Merchant Rules"
         {
             action(MovePriority)
             {
-                Caption = 'Change Priority';
+                Caption = 'Change priority';
                 ApplicationArea = Basic, Suite;
                 Image = MoveUp;
                 ToolTip = 'Change the priority order for rule evaluation.';

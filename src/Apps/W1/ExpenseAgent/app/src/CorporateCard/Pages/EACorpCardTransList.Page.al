@@ -12,6 +12,7 @@ page 7223 "EA Corp Card Trans List"
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card Trans";
+    SourceTableView = sorting("Entry No.") order(descending);
 
     layout
     {
@@ -84,7 +85,7 @@ page 7223 "EA Corp Card Trans List"
         {
             action(OpenMatchedExpense)
             {
-                Caption = 'Open Matched Expense';
+                Caption = 'Open matched expense';
                 ApplicationArea = Basic, Suite;
                 Image = Navigate;
                 Enabled = Rec."Expense No." <> '';
@@ -103,7 +104,7 @@ page 7223 "EA Corp Card Trans List"
             }
             action(OpenLevel3Details)
             {
-                Caption = 'Show Level 3 Details';
+                Caption = 'Show Level 3 details';
                 ApplicationArea = Basic, Suite;
                 Image = ViewDetails;
                 ToolTip = 'Shows imported Level 3 tax detail lines for the selected transaction.';

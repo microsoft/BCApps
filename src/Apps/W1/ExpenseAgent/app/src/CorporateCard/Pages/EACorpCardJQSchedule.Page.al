@@ -30,7 +30,7 @@ page 7229 "EA Corp Card JQ Schedule"
             action(RefreshSchedule)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Refresh Schedule';
+                Caption = 'Refresh schedule';
                 Image = Refresh;
                 ToolTip = 'Refresh Job Queue status from system.';
 

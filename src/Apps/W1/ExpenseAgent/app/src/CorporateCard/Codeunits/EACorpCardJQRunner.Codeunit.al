@@ -12,12 +12,15 @@ codeunit 7223 "EA Corp Card JQ Runner"
 {
     Access = Internal;
 
+    trigger OnRun()
+    begin
+        RunImport();
+    end;
+
     procedure RunImport()
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
-        ErrorMsg: Text;
     begin
-        ErrorMsg := '';
         CorpCardFeedMgt.RunAllEnabledProviders();
     end;
 }

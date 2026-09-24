@@ -27,6 +27,7 @@ codeunit 7217 "EA Corp Card MCC Mgt"
 
         if not MCCMap.Get(MCC) then
             exit(false);
+        MCCMap.TestField(Blocked, false);
 
         ExpenseCategory := MCCMap."Expense Category";
         exit(MCCMap.Active);
@@ -79,8 +80,10 @@ codeunit 7217 "EA Corp Card MCC Mgt"
     var
         MCCMap: Record "EA Corp Card MCC Map";
     begin
-        if MCCMap.Get(MCC) then
+        if MCCMap.Get(MCC) then begin
+            MCCMap.TestField(Blocked, false);
             exit(MCCMap."Expense Category");
+        end;
         exit('');
     end;
 

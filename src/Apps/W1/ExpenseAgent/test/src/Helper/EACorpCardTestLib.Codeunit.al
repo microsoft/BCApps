@@ -113,7 +113,9 @@ codeunit 148357 EACorpCardTestLib
         Clear(CorpCardProvider."Source Payload");
         CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStream, TextEncoding::UTF8);
         PayloadOutStream.WriteText(SourcePayload);
+        Clear(PayloadOutStream);
         CorpCardProvider."Source File Name" := SourceFileName;
+        CorpCardProvider.UpdateSourcePayloadRecordCount();
         CorpCardProvider.Modify(true);
     end;
 

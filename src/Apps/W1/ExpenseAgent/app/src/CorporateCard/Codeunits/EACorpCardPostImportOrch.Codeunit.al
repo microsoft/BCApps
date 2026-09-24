@@ -12,14 +12,13 @@ codeunit 7213 "EA Corp Card Post Import Orch"
 {
     Access = Internal;
 
-    internal procedure ProcessBatchPostImport(BatchNo: Integer)
+    internal procedure ProcessBatchPostImport(BatchNo: Integer; ExpenseWriter: Interface "EA Corp Card Expense Writer")
     var
         CorpCardBatch: Record "EA Corp Card Batch";
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseAgentSetup: Record "Expense Agent Setup";
         MerchantNorm: Codeunit "EA Corp Card Merchant Norm";
         EnhancedMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
-        ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
         MatchedExpenseNo: Code[20];
         DraftExpenseNo: Code[20];

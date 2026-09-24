@@ -62,6 +62,174 @@ codeunit 148355 EACorpCardL3VATTests
     end;
 
     [Test]
+    procedure BlockedCardCannotMatchTransaction()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardMatchMgt: Codeunit "EA Corp Card Match Mgt";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+
+        EACorpCardTestLib.RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
+        EACorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardL3ProviderCodeTok, ProviderTransIdOneTok, CorpCardTrans);
+        BlockCard(CorpCardTrans."Card Id");
+
+        asserterror CorpCardMatchMgt.MatchTransaction(CorpCardTrans, ExpenseNo);
+        Assert.ExpectedTestFieldError(CorpCard.FieldCaption(Blocked), Format(false));
+    end;
+
+    [Test]
+    procedure BlockedCardCannotUseEnhancedMatching()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardEnhMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+
+        EACorpCardTestLib.RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
+        EACorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardL3ProviderCodeTok, ProviderTransIdOneTok, CorpCardTrans);
+        BlockCard(CorpCardTrans."Card Id");
+
+        asserterror CorpCardEnhMatchMgt.EnhancedMatchTransaction(CorpCardTrans, ExpenseNo);
+        Assert.ExpectedTestFieldError(CorpCard.FieldCaption(Blocked), Format(false));
+    end;
+
+    [Test]
+    procedure BlockedCardCannotCreateDraft()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardExpWriter: Codeunit "EA Corp Card Expense Writer";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+
+        EACorpCardTestLib.RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
+        EACorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardL3ProviderCodeTok, ProviderTransIdOneTok, CorpCardTrans);
+        BlockCard(CorpCardTrans."Card Id");
+
+        asserterror CorpCardExpWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
+        Assert.ExpectedTestFieldError(CorpCard.FieldCaption(Blocked), Format(false));
+    end;
+
+    [Test]
+    procedure BlockedMCCMappingCannotCategorizeDraft()
+    var
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardMCCMap: Record "EA Corp Card MCC Map";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardExpWriter: Codeunit "EA Corp Card Expense Writer";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+
+        EACorpCardTestLib.RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
+        EACorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardL3ProviderCodeTok, ProviderTransIdOneTok, CorpCardTrans);
+        CorpCardMCCMap.Get(CorpCardTrans.MCC);
+        CorpCardMCCMap.Blocked := true;
+        CorpCardMCCMap.Modify(true);
+
+        asserterror CorpCardExpWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
+        Assert.ExpectedTestFieldError(CorpCardMCCMap.FieldCaption(Blocked), Format(false));
+    end;
+
+    [Test]
+    procedure EnhancedMatchingSupportsZeroAmountTolerance()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CorpCardEnhMatchMgt: Codeunit "EA Corp Card Enh. Match Mgt";
+        ExpenseNo: Code[20];
+    begin
+        Initialize();
+
+        EACorpCardTestLib.RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
+        EACorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardL3ProviderCodeTok, ProviderTransIdOneTok, CorpCardTrans);
+        CorpCard.Get(CorpCardTrans."Card Id");
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Corp Card Amount Tolerance" := 0;
+        ExpenseAgentSetup.Modify(true);
+
+        Expense.Init();
+        Expense."Expense User No." := CorpCard."Expense User No.";
+        Expense.Status := Expense.Status::Open;
+        Expense."Expense Date" := CorpCardTrans."Trans Date";
+        Expense.Amount := CorpCardTrans.Amount;
+        Expense."Currency Code" := CorpCardTrans."Currency Code";
+        Expense.Insert(true);
+
+        Assert.IsTrue(CorpCardEnhMatchMgt.EnhancedMatchTransaction(CorpCardTrans, ExpenseNo), 'An exact amount must match when the amount tolerance is zero.');
+        Assert.AreEqual(Expense."No.", ExpenseNo, 'Enhanced matching must return the exact matching expense.');
+        Assert.AreEqual(100, CorpCardTrans."Match Score", 'An exact amount and date must receive a perfect match score.');
+    end;
+
+    [Test]
+    procedure MerchantRuleCategoryDoesNotClearMCC()
+    var
+        CorpCardMerchantRule: Record "EA Corp Card Merchant Rule";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardMerchantNorm: Codeunit "EA Corp Card Merchant Norm";
+    begin
+        Initialize();
+
+        CorpCardMerchantRule.Pattern := '*MCC preservation merchant*';
+        CorpCardMerchantRule."Normalized Name" := 'Normalized Merchant';
+        CorpCardMerchantRule."Expense Category" := 'MEALS';
+        CorpCardMerchantRule.Priority := 0;
+        CorpCardMerchantRule.Active := true;
+        CorpCardMerchantRule.Insert(true);
+
+        CorpCardTrans."Merchant Raw" := 'MCC Preservation Merchant';
+        CorpCardTrans.MCC := '5812';
+        CorpCardMerchantNorm.NormalizeTransaction(CorpCardTrans);
+
+        Assert.AreEqual('Normalized Merchant', CorpCardTrans."Merchant Norm", 'The matching rule must normalize the merchant name.');
+        Assert.AreEqual('5812', CorpCardTrans.MCC, 'A merchant rule category must not discard the transaction MCC.');
+    end;
+
+    [Test]
+    procedure CorpCardReportExcludesManualExpenses()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardExpense: Record Expense;
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ManualExpense: Record Expense;
+        CorpCardExpWriter: Codeunit "EA Corp Card Expense Writer";
+        CorpCardReportMgt: Codeunit "EA Corp Card Report Mgt";
+        CorpCardExpenseNo: Code[20];
+        ReportNo: Code[20];
+    begin
+        Initialize();
+
+        EACorpCardTestLib.RunImportAndGetLastBatch(CorpCardL3ProviderCodeTok, CorpCardBatch);
+        EACorpCardTestLib.FindTransInBatchByProviderTransId(CorpCardBatch."Batch No.", CorpCardL3ProviderCodeTok, ProviderTransIdOneTok, CorpCardTrans);
+        CorpCardExpWriter.CreateDraftFromTrans(CorpCardTrans, CorpCardExpenseNo);
+        CorpCard.Get(CorpCardTrans."Card Id");
+
+        ManualExpense.Init();
+        ManualExpense."Expense User No." := CorpCard."Expense User No.";
+        ManualExpense.Status := ManualExpense.Status::Open;
+        ManualExpense.Insert(true);
+
+        ReportNo := CorpCardReportMgt.CreateReportFromCorpCardExpenses(CorpCard."Expense User No.");
+
+        CorpCardExpense.Get(CorpCardExpenseNo);
+        ManualExpense.Get(ManualExpense."No.");
+        Assert.AreEqual(ReportNo, CorpCardExpense."Expense Report No.", 'The corporate card expense must be assigned to the new report.');
+        Assert.AreEqual('', ManualExpense."Expense Report No.", 'A manual expense must not be assigned to a corporate card report.');
+    end;
+
+    [Test]
     procedure Level3ImportWithoutTaxLinesErrors()
     var
         CorpCardFeedMgt: Codeunit "EA Corp Card Feed Mgt";
@@ -87,6 +255,15 @@ codeunit 148355 EACorpCardL3VATTests
         Assert.AreEqual(0, CorpCardBatch.Imported, 'Invalid strict L3 row should not be imported.');
         Assert.AreEqual(1, CorpCardBatch.Exceptions, 'Invalid strict L3 row should produce one exception.');
         Assert.AreEqual(1, CorpCardBatch.Rejected, 'Invalid strict L3 row should be counted as rejected.');
+    end;
+
+    local procedure BlockCard(CardId: Code[50])
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.Get(CardId);
+        CorpCard.Blocked := true;
+        CorpCard.Modify(true);
     end;
 
     local procedure GetL3PayloadWithoutDetails(): Text

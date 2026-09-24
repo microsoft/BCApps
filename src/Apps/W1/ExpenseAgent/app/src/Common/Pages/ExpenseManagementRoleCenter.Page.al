@@ -222,7 +222,7 @@ page 6933 "Expense Management Role Center"
                         Caption = 'Merchant Normalization Rules';
                         ApplicationArea = Basic, Suite;
                         RunObject = Page "EA Corp Card Merchant Rules";
-                        ToolTip = 'Setup regex patterns for merchant name normalization.';
+                        ToolTip = 'Set up text patterns for merchant name normalization. Matching is not case-sensitive, and asterisks (*) can be used around the text.';
                     }
                     action("MCC Code Mappings")
                     {

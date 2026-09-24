@@ -41,7 +41,7 @@ codeunit 7218 "EA Corp Card Approval Mgt"
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
         ExpenseReportHeader.Modify();
 
-        AuditSubscribers.LogReportSubmittedForApproval(ReportNo, UserSecurityId());
+        AuditSubscribers.LogReportSubmittedForApproval();
     end;
 
     /// <summary>
@@ -64,7 +64,7 @@ codeunit 7218 "EA Corp Card Approval Mgt"
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
         ExpenseReportHeader.Modify();
 
-        AuditSubscribers.LogReportApprovedForPosting(ReportNo, UserSecurityId());
+        AuditSubscribers.LogReportApprovedForPosting();
     end;
 
     /// <summary>
@@ -84,7 +84,7 @@ codeunit 7218 "EA Corp Card Approval Mgt"
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::Open;
         ExpenseReportHeader.Modify();
 
-        AuditSubscribers.LogReportRejected(ReportNo, UserSecurityId(), RejectionReason);
+        AuditSubscribers.LogReportRejected();
     end;
 
     /// <summary>

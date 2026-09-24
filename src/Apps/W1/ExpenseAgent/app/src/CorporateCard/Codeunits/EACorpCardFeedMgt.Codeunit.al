@@ -22,14 +22,22 @@ codeunit 7220 "EA Corp Card Feed Mgt"
     internal procedure RunAllEnabledProviders()
     var
         CorpCardProvider: Record "EA Corp Card Provider";
-        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
     begin
         CorpCardProvider.SetRange(Enabled, true);
         if not CorpCardProvider.FindSet() then
             exit;
 
         repeat
-            CorpCardImportOrch.RunProvider(CorpCardProvider);
+            if not TryRunProvider(CorpCardProvider) then
+                ClearLastError();
         until CorpCardProvider.Next() = 0;
+    end;
+
+    [TryFunction]
+    local procedure TryRunProvider(CorpCardProvider: Record "EA Corp Card Provider")
+    var
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
+    begin
+        CorpCardImportOrch.RunProvider(CorpCardProvider);
     end;
 }

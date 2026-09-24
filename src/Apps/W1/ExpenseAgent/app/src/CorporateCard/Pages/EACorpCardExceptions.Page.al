@@ -11,6 +11,7 @@ page 7222 "EA Corp Card Exceptions"
     PageType = List;
     UsageCategory = Lists;
     SourceTable = "EA Corp Card Exception";
+    SourceTableView = sorting("Entry No.") order(descending);
 
     layout
     {
@@ -51,11 +52,13 @@ page 7222 "EA Corp Card Exceptions"
                 field("Resolved By"; Rec."Resolved By")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     ToolTip = 'Specifies who resolved the exception.';
                 }
                 field("Resolved DT"; Rec."Resolved DT")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = false;
                     ToolTip = 'Specifies when the exception was resolved.';
                 }
             }

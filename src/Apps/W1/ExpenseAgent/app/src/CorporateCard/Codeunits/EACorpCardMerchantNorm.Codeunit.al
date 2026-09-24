@@ -15,22 +15,19 @@ codeunit 7210 "EA Corp Card Merchant Norm"
     internal procedure NormalizeTransaction(var CorpCardTrans: Record "EA Corp Card Trans")
     var
         NormalizedName: Text[100];
-        MatchedCategory: Code[20];
     begin
         if CorpCardTrans."Merchant Raw" = '' then
             exit;
 
-        if not FindMatchingRule(CorpCardTrans."Merchant Raw", NormalizedName, MatchedCategory) then begin
+        if not FindMatchingRule(CorpCardTrans."Merchant Raw", NormalizedName) then begin
             CorpCardTrans."Merchant Norm" := CopyStr(CorpCardTrans."Merchant Raw", 1, MaxStrLen(CorpCardTrans."Merchant Norm"));
             exit;
         end;
 
         CorpCardTrans."Merchant Norm" := NormalizedName;
-        if MatchedCategory <> '' then
-            CorpCardTrans.MCC := '';
     end;
 
-    local procedure FindMatchingRule(MerchantRaw: Text[100]; var NormalizedName: Text[100]; var MatchedCategory: Code[20]): Boolean
+    local procedure FindMatchingRule(MerchantRaw: Text[100]; var NormalizedName: Text[100]): Boolean
     var
         MerchantRule: Record "EA Corp Card Merchant Rule";
     begin
@@ -43,7 +40,6 @@ codeunit 7210 "EA Corp Card Merchant Norm"
         repeat
             if PatternMatches(MerchantRaw, MerchantRule.Pattern) then begin
                 NormalizedName := MerchantRule."Normalized Name";
-                MatchedCategory := MerchantRule."Expense Category";
                 exit(true);
             end;
         until MerchantRule.Next() = 0;

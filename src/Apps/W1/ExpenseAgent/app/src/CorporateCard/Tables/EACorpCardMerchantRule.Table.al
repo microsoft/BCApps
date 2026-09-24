@@ -17,33 +17,39 @@ table 7215 "EA Corp Card Merchant Rule"
         {
             Caption = 'Rule Id';
             AutoIncrement = true;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies the unique identifier for the corporate card merchant rule.';
         }
         field(2; Pattern; Text[100])
         {
             Caption = 'Pattern';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the pattern to match against the merchant name for the corporate card transaction.';
         }
         field(3; "Normalized Name"; Text[100])
         {
             Caption = 'Normalized Name';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the normalized name for the corporate card merchant rule.';
         }
         field(4; "Expense Category"; Code[20])
         {
             Caption = 'Expense Category';
+            DataClassification = SystemMetadata;
             TableRelation = "Expense Category".Code;
             ToolTip = 'Specifies the expense category for the corporate card merchant rule.';
         }
         field(5; Priority; Integer)
         {
             Caption = 'Priority';
+            DataClassification = SystemMetadata;
             MinValue = 0;
             ToolTip = 'Specifies the priority of the corporate card merchant rule. Lower numbers indicate higher priority.';
         }
         field(6; Active; Boolean)
         {
             Caption = 'Active';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the corporate card merchant rule is active.';
         }
     }

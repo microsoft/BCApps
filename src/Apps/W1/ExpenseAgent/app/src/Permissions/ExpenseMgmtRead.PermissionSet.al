@@ -10,7 +10,8 @@ permissionset 6907 "Expense Mgmt. Read"
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "Expense Management - Objects";
+    IncludedPermissionSets = "Expense Management - Objects",
+                             EACorpCardRead;
 
     Permissions =
         tabledata "Expense Vendor" = R,

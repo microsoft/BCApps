@@ -269,7 +269,9 @@ codeunit 7232 "EA Create Corp Card Setup"
         Clear(CorpCardProvider."Source Payload");
         CorpCardProvider."Source Payload".CreateOutStream(PayloadOutStr, TextEncoding::UTF8);
         PayloadOutStr.WriteText(SamplePayload);
+        Clear(PayloadOutStr);
         CorpCardProvider."Source File Name" := CopyStr(SampleFileName, 1, MaxStrLen(CorpCardProvider."Source File Name"));
+        CorpCardProvider.UpdateSourcePayloadRecordCount();
         CorpCardProvider.Modify(true);
     end;
 

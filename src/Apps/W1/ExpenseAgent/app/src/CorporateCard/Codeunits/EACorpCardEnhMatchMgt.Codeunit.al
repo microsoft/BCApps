@@ -66,6 +66,7 @@ codeunit 7216 "EA Corp Card Enh. Match Mgt"
     begin
         if not CorpCard.Get(CorpCardTrans."Card Id") then
             exit(false);
+        CorpCard.TestField(Blocked, false);
 
         if not ExpenseAgentSetup.Get() then
             exit(false);
@@ -84,7 +85,9 @@ codeunit 7216 "EA Corp Card Enh. Match Mgt"
             AmountDiff := Abs(CorpCardTrans.Amount - Expense.Amount);
 
             // Calculate score: Perfect match = 100, decreased by date/amount variance
-            MatchScore := 100 - (DateDiff * 5) - ((AmountDiff / MaxAmountDiff) * 10);
+            MatchScore := 100 - (DateDiff * 5);
+            if MaxAmountDiff > 0 then
+                MatchScore -= (AmountDiff / MaxAmountDiff) * 10;
             if MatchScore < 50 then
                 MatchScore := 50;
 
@@ -109,7 +112,9 @@ codeunit 7216 "EA Corp Card Enh. Match Mgt"
     begin
         if not CorpCard.Get(CorpCardTrans."Card Id") then
             exit(false);
+        CorpCard.TestField(Blocked, false);
 
+        Expense.SetLoadFields("No.", "Merchant Name");
         Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Status", Expense."Status"::Open);
 
@@ -145,6 +150,7 @@ codeunit 7216 "EA Corp Card Enh. Match Mgt"
     begin
         if not CorpCard.Get(CorpCardTrans."Card Id") then
             exit(false);
+        CorpCard.TestField(Blocked, false);
 
         Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Status", Expense."Status"::Open);

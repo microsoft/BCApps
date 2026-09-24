@@ -711,11 +711,13 @@ table 6930 "Expense Agent Setup"
         field(123; "Corp Card Create Mode"; Enum "EA Corp Card Create Mode")
         {
             Caption = 'Corp Card Create Mode';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies how expense entries are created from imported corporate card transactions.';
         }
         field(124; "Corp Card Date Match Window"; Integer)
         {
             Caption = 'Corp Card Date Match Window (Days)';
+            DataClassification = SystemMetadata;
             MinValue = 0;
             ToolTip = 'Specifies the date tolerance, in days, used to match corporate card transactions to expenses.';
         }
@@ -723,17 +725,20 @@ table 6930 "Expense Agent Setup"
         {
             AutoFormatType = 0;
             Caption = 'Corp Card Amount Tolerance';
+            DataClassification = SystemMetadata;
             MinValue = 0;
             ToolTip = 'Specifies the amount tolerance used to match corporate card transactions to expenses.';
         }
         field(126; "Corp Card Auto Create Draft"; Boolean)
         {
             Caption = 'Corp Card Auto Create Draft';
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether draft expenses are automatically created when imported corporate card transactions are not matched.';
         }
         field(127; "Corp Card Default Provider"; Code[20])
         {
             Caption = 'Corp Card Default Provider';
+            DataClassification = SystemMetadata;
             TableRelation = "EA Corp Card Provider".Code;
             ToolTip = 'Specifies the default provider used for corporate card imports.';
         }

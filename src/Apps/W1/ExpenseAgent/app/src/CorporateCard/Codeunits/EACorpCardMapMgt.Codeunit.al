@@ -47,8 +47,8 @@ codeunit 7227 "EA Corp Card Map Mgt"
             Error(MandatoryFieldMapMissingErr, FieldCaption, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnProvideSourceContent', '', false, false)]
-    local procedure OnProvideSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnBeforeInjectSourceContent', '', false, false)]
+    local procedure OnBeforeInjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
     var
         ProviderRefreshed: Record "EA Corp Card Provider";
         SourceInStr: InStream;

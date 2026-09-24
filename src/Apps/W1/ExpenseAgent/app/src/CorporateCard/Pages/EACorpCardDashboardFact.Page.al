@@ -10,6 +10,8 @@ page 7231 "EA Corp Card Dashboard Fact"
     Caption = 'Recent Import Batches';
     PageType = ListPart;
     SourceTable = "EA Corp Card Batch";
+    SourceTableTemporary = true;
+    SourceTableView = sorting("Batch No.") order(descending);
 
     layout
     {
@@ -69,10 +71,17 @@ page 7231 "EA Corp Card Dashboard Fact"
     }
 
     trigger OnOpenPage()
+    var
+        CorpCardBatch: Record "EA Corp Card Batch";
+        BatchCount: Integer;
     begin
-        Rec.SetCurrentKey("Batch No.");
-        Rec.Ascending := false;
-        if Rec.FindLast() then
-            Rec.SetRange("Batch No.", Rec."Batch No." - 50, Rec."Batch No.");
+        CorpCardBatch.SetCurrentKey("Batch No.");
+        CorpCardBatch.Ascending := false;
+        if CorpCardBatch.Find('-') then
+            repeat
+                Rec := CorpCardBatch;
+                Rec.Insert();
+                BatchCount += 1;
+            until (CorpCardBatch.Next() = 0) or (BatchCount = 50);
     end;
 }

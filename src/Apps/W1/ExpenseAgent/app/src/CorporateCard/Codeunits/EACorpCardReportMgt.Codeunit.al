@@ -14,7 +14,7 @@ codeunit 7219 "EA Corp Card Report Mgt"
     Access = Internal;
 
     var
-        NoExpensesForEmployeeErr: Label 'No open expenses found for employee %1 to add to the report.', Comment = '%1 = Employee No.';
+        NoExpensesForEmployeeErr: Label 'No open corporate card expenses found for employee %1 to add to the report.', Comment = '%1 = Employee No.';
         ExpenseNotReadyErr: Label 'Expense %1 is not ready for reporting (status: %2). Status must be Open or Released.', Comment = '%1 = Expense No., %2 = Status';
 
     /// <summary>
@@ -35,6 +35,7 @@ codeunit 7219 "EA Corp Card Report Mgt"
         Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetFilter(Status, '%1|%2', Expense.Status::Open, Expense.Status::Released);
         Expense.SetFilter("Expense Report No.", ''); // Not yet added to a report
+        Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
 
         if Expense.IsEmpty() then
             Error(NoExpensesForEmployeeErr, ExpenseUserNo);
@@ -49,16 +50,9 @@ codeunit 7219 "EA Corp Card Report Mgt"
 
         ReportNo := ExpenseReportHeader."No.";
 
-        // Add all matching expenses to the report
-        if Expense.FindSet() then
-            repeat
-                if Expense.Status in [Expense.Status::Open, Expense.Status::Released] then begin
-                    Expense."Expense Report No." := ReportNo;
-                    Expense.Modify();
-                end;
-            until Expense.Next() = 0;
+        Expense.ModifyAll("Expense Report No.", ReportNo);
 
-        AuditSubscribers.LogReportCreatedFromCorpCard(ReportNo, ExpenseUserNo);
+        AuditSubscribers.LogReportCreatedFromCorpCard();
     end;
 
     /// <summary>

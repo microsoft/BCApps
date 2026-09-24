@@ -19,13 +19,13 @@ permissionset 7211 EACorpCardEdit
         codeunit "EA Create Corp Card Setup" = X,
         codeunit "EA Create Corp Card L3 Demo" = X,
         codeunit "EA Corp Card DE Noop" = X,
-        tabledata "EA Corp Card Provider" = M,
-        tabledata "EA Corp Card" = M,
-        tabledata "EA Corp Card Trans" = M,
-        tabledata "EA Corp Card Trans Detail" = M,
-        tabledata "EA Corp Card Batch" = M,
-        tabledata "EA Corp Card Exception" = M,
-        tabledata "EA Corp Card MCC Map" = M,
-        tabledata "EA Corp Card Merchant Rule" = M,
-        tabledata "Expense Agent Setup" = M;
+        tabledata "EA Corp Card Provider" = IM,
+        tabledata "EA Corp Card" = IM,
+        tabledata "EA Corp Card Trans" = IM,
+        tabledata "EA Corp Card Trans Detail" = IM,
+        tabledata "EA Corp Card Batch" = IM,
+        tabledata "EA Corp Card Exception" = IM,
+        tabledata "EA Corp Card MCC Map" = IM,
+        tabledata "EA Corp Card Merchant Rule" = IM,
+        tabledata "Expense Agent Setup" = IM;
 }
