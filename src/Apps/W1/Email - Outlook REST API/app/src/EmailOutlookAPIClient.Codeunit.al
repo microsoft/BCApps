@@ -49,8 +49,8 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         UpdateDraftUriTxt: Label '/v1.0/users/%1/messages/%2', Locked = true;
         CreateDraftReplyAllUriTxt: Label '/v1.0/users/%1/messages/%2/createReplyAll', Locked = true;
         SendDraftUriTxt: Label '/v1.0/users/%1/messages/%2/send', Locked = true;
-        SendMailUriTxt: Label '/v1.0/users/%1/sendMail', Locked = true;
-        CreateDraftUriTxt: Label '/v1.0/users/%1/messages', Locked = true;
+        SendMailUriTxt: Label '/v1.0/users/%1/sendMail', Comment = '%1 - Email address', Locked = true;
+        CreateDraftUriTxt: Label '/v1.0/users/%1/messages', Comment = '%1 - Email address', Locked = true;
         UploadAttachmentUriTxt: Label '/v1.0/users/%1/messages/%2/attachments/createUploadSession', Locked = true;
         UploadAttachmentMeUriTxt: Label '/v1.0/me/messages/%1/attachments/createUploadSession', Locked = true;
         PostAttachmentUriTxt: Label '/v1.0/users/%1/messages/%2/attachments', Locked = true;
