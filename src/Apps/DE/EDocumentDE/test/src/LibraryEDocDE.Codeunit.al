@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Reflection;
 
 codeunit 13925 "Library - E-Doc DE"
@@ -11,7 +15,38 @@ codeunit 13925 "Library - E-Doc DE"
     Access = Internal;
 
     var
+        LibraryERM: Codeunit "Library - ERM";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryUtility: Codeunit "Library - Utility";
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
+
+    procedure CreateDirectDebitPaymentMethod(): Code[10]
+    var
+        PaymentMethod: Record "Payment Method";
+    begin
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("PEPPOL Payment Means Code", '59');
+        PaymentMethod.Modify(true);
+        exit(PaymentMethod.Code);
+    end;
+
+    procedure CreateCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Method Code", PaymentMethodCode);
+        Customer.Modify(true);
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        CustomerBankAccount.Modify(true);
+        LibrarySales.CreateCustomerMandate(SEPADirectDebitMandate, Customer."No.", CustomerBankAccount.Code, WorkDate(), CalcDate('<1Y>', WorkDate()));
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
 
     procedure CreateValidRoutingNo(): Text[50]
     var
