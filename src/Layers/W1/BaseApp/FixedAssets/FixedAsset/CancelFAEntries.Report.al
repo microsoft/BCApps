@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Ledger;
 
+using Microsoft.FixedAssets.Depreciation;
+
 report 5686 "Cancel FA Entries"
 {
     Caption = 'Cancel FA Entries';
@@ -50,6 +52,16 @@ report 5686 "Cancel FA Entries"
 
     trigger OnPreReport()
     begin
+        DerogDeprBook.SetRange(Code, FALedgEntry."Depreciation Book Code");
+        if DerogDeprBook.FindFirst() then
+            if DerogDeprBook."Derogatory Calc." <> '' then begin
+                DerogFALedgEntry.Copy(FALedgEntry);
+                DerogFALedgEntry.SetLoadFields("Entry No.");
+                DerogFALedgEntry.SetFilter("FA Posting Type", '<>%1', DerogFALedgEntry."FA Posting Type"::"Salvage Value");
+                if DerogFALedgEntry.FindFirst() then
+                    Error(CannotCancelDerogatoryFAEntriesErr);
+            end;
+
         if UseNewPosting then
             if NewPostingDate = 0D then
                 Error(Text000);
@@ -65,9 +77,12 @@ report 5686 "Cancel FA Entries"
 
     var
         FALedgEntry: Record "FA Ledger Entry";
+        DerogDeprBook: Record "Depreciation Book";
+        DerogFALedgEntry: Record "FA Ledger Entry";
         CancelFALedgEntries: Codeunit "Cancel FA Ledger Entries";
         UseNewPosting: Boolean;
         NewPostingDate: Date;
+        CannotCancelDerogatoryFAEntriesErr: Label 'You cannot cancel FA entries that were posted to a derogatory depreciation book. Instead you must\cancel the FA entries posted to the depreciation book integrated with G/L.';
 
 #pragma warning disable AA0074
         Text000: Label 'You must specify New Posting Date.';
@@ -80,4 +95,3 @@ report 5686 "Cancel FA Entries"
         FALedgEntry.Copy(FALedgEntry2);
     end;
 }
-

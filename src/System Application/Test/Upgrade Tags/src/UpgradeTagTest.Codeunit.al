@@ -368,6 +368,51 @@ codeunit 135092 "Upgrade Tag Test"
         Assert.IsFalse(UpgradeTags.Get(NewUpgradeTag3, CompanyName()), 'Second upgrade tag was not restored');
     end;
 
+    [Test]
+    procedure TestGetUpgradeTagTimestampReturnsFalseWhenNotSet()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        Any: Codeunit Any;
+        Assert: Codeunit "Library Assert";
+        NonExistingUpgradeTag: Code[250];
+        TagTimestamp: DateTime;
+    begin
+        // [Scenario] GetUpgradeTagTimestamp returns false when the upgrade tag is not set
+        PermissionsMock.Set('Upgrade Tags View');
+
+        // [Given] An upgrade tag that does not exist
+        NonExistingUpgradeTag := CopyStr(Any.AlphanumericText(MaxStrLen(NonExistingUpgradeTag)), 1, MaxStrLen(NonExistingUpgradeTag));
+
+        // [When] GetUpgradeTagTimestamp is called
+        // [Then] The timestamp is not found
+        Assert.IsFalse(UpgradeTag.GetUpgradeTagTimestamp(NonExistingUpgradeTag, TagTimestamp), 'The timestamp must not be found');
+        Assert.AreEqual(0DT, TagTimestamp, 'The timestamp must be empty');
+    end;
+
+    [Test]
+    procedure TestGetUpgradeTagTimestampReturnsTimestampWhenSet()
+    var
+        UpgradeTags: Record "Upgrade Tags";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        Any: Codeunit Any;
+        Assert: Codeunit "Library Assert";
+        NewUpgradeTag: Code[250];
+        TagTimestamp: DateTime;
+    begin
+        // [Scenario] GetUpgradeTagTimestamp returns the timestamp of an existing upgrade tag
+        PermissionsMock.Set('Upgrade Tags View');
+
+        // [Given] An upgrade tag is set for the current company
+        NewUpgradeTag := CopyStr(Any.AlphanumericText(MaxStrLen(NewUpgradeTag)), 1, MaxStrLen(NewUpgradeTag));
+        UpgradeTag.SetUpgradeTag(NewUpgradeTag);
+        UpgradeTags.Get(NewUpgradeTag, CopyStr(CompanyName(), 1, MaxStrLen(UpgradeTags.Company)));
+
+        // [When] GetUpgradeTagTimestamp is called
+        // [Then] The stored timestamp is returned
+        Assert.IsTrue(UpgradeTag.GetUpgradeTagTimestamp(NewUpgradeTag, TagTimestamp), 'The timestamp must be found');
+        Assert.AreEqual(UpgradeTags."Tag Timestamp", TagTimestamp, 'The stored timestamp must be returned');
+    end;
+
     local procedure AddUpgradeTagToBuffer(var TempUpgradeTag: Record "Upgrade Tags" temporary; UpgradeTag: Code[250]; TagCompanyName: Text)
     var
         UpgradeTags: Record "Upgrade Tags";

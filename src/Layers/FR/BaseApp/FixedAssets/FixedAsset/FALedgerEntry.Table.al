@@ -503,15 +503,42 @@ table 5601 "FA Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
-        field(6210; "Non-Ded. VAT FA Cost"; Boolean)
-        {
-            Caption = 'Non-Deductible VAT FA Cost';
-        }
-        field(10800; "Exclude Derogatory"; Boolean)
+        field(5865; "Derogatory Excluded"; Boolean)
         {
             Caption = 'Exclude Derogatory';
             Editable = false;
         }
+        field(5866; "Derogatory Source Entry No."; Integer)
+        {
+            Caption = 'Derogatory Source Entry No.';
+            Editable = false;
+            TableRelation = "FA Ledger Entry"."Entry No.";
+        }
+        field(5867; "Legacy Derogatory Ambiguous"; Boolean)
+        {
+            Caption = 'Legacy Derogatory Ambiguous';
+            Editable = false;
+        }
+        field(6210; "Non-Ded. VAT FA Cost"; Boolean)
+        {
+            Caption = 'Non-Deductible VAT FA Cost';
+        }
+#if not CLEANSCHEMA33
+        field(10800; "Exclude Derogatory"; Boolean)
+        {
+            Caption = 'Exclude Derogatory';
+            Editable = false;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
+        }
+#endif
     }
 
     keys
@@ -529,18 +556,32 @@ table 5601 "FA Ledger Entry"
         {
             SumIndexFields = Amount, "Debit Amount", "Credit Amount";
         }
+#if not CLEAN30
         key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date", "Exclude Derogatory")
         {
             SumIndexFields = Amount;
         }
+#else
+        key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date", "Derogatory Excluded")
+        {
+            SumIndexFields = Amount;
+        }
+#endif
         key(Key5; "FA No.", "Depreciation Book Code", "Part of Depreciable Basis", "FA Posting Date")
         {
             SumIndexFields = Amount;
         }
+#if not CLEAN30
         key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Exclude Derogatory")
         {
             SumIndexFields = Amount;
         }
+#else
+        key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Derogatory Excluded")
+        {
+            SumIndexFields = Amount;
+        }
+#endif
         key(Key7; "Canceled from FA No.", "Depreciation Book Code", "FA Posting Date")
         {
         }
@@ -557,6 +598,9 @@ table 5601 "FA Ledger Entry"
         {
         }
         key(Key12; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Document No.")
+        {
+        }
+        key(Key13; "Derogatory Source Entry No.", "Depreciation Book Code")
         {
         }
     }
@@ -736,4 +780,3 @@ table 5601 "FA Ledger Entry"
     begin
     end;
 }
-

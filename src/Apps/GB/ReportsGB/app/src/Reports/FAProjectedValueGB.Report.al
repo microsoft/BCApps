@@ -1063,7 +1063,7 @@ report 10605 "FA - Projected Value GB"
     local procedure CalculateGainLoss()
     var
         CalculateDisposal: Codeunit "Calculate Disposal";
-        EntryAmountsValues: array[14] of Decimal;
+        EntryAmountsValues: array[15] of Decimal;
     begin
         CalculateDisposal.CalcGainLoss("Fixed Asset"."No.", DeprBookCode, EntryAmountsValues);
         AssetAmounts[3] := FADeprBook."Projected Proceeds on Disposal";

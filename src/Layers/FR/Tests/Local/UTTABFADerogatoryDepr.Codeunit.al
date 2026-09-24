@@ -1,9 +1,13 @@
+#if not CLEAN30
 codeunit 144025 "UT TAB FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -17,7 +21,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcDerogatoryDeprBookExistsError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -43,7 +46,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcSameDerogatoryDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -62,7 +64,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcDerogatoryDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -87,7 +88,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcDerogatoryAccountingDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -112,7 +112,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcAcqCostDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -125,7 +124,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcGLIntegrationDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -138,7 +136,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcWriteDownDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -151,7 +148,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcAppreciationDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -164,7 +160,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcCustom1DeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -177,7 +172,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcCustom2DeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -190,7 +184,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcDisposalDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -203,7 +196,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcMaintenanceDeprBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -216,7 +208,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateGLIntegrationDerogatoryCalDepreBookError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -227,31 +218,8 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
         OnValidateDerogatoryCalculationDepreciationBook(DepreciationBook.FieldNo("G/L Integration - Derogatory"));
     end;
 
-    local procedure OnValidateDerogatoryCalculationDepreciationBook(FieldNo: Integer)
-    var
-        DepreciationBook: Record "Depreciation Book";
-        DepreciationBook2: Record "Depreciation Book";
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-    begin
-        // Setup: Create multiple Depreciation Books and Validate multiple fields related to GL Integration.
-        CreateDepreciationBook(DepreciationBook);
-        DepreciationBook2.Code := LibraryUTUtility.GetNewCode10();
-        RecRef.GetTable(DepreciationBook2);
-        FieldRef := RecRef.Field(FieldNo);
-        FieldRef.Validate(true);
-        RecRef.SetTable(DepreciationBook2);
-
-        // Exercise.
-        asserterror DepreciationBook2.Validate("Derogatory Calculation", DepreciationBook.Code);
-
-        // Verify: Verify expected error code, actual error: Derogatory depreciation books cannot be integrated with the general ledger. Please make sure that none of the fields on the Integration tab are checked.
-        Assert.ExpectedErrorCode(DialogErr);
-    end;
-
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure OnValidateDerogatoryCalcDeprecBookZeroDerogatoryError()
     var
         DepreciationBook: Record "Depreciation Book";
@@ -279,7 +247,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure CreateTypesFADateType()
     var
         FADateType: Record "FA Date Type";
@@ -299,7 +266,6 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure CreateTypesFAMatrixPostingType()
     var
         FAMatrixPostingType: Record "FA Matrix Posting Type";
@@ -322,6 +288,13 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
         DepreciationBook.Insert();
     end;
 
+    local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; DepreciationBookCode: Code[10])
+    begin
+        FADepreciationBook."FA No." := LibraryUTUtility.GetNewCode();
+        FADepreciationBook."Depreciation Book Code" := DepreciationBookCode;
+        FADepreciationBook.Insert();
+    end;
+
     local procedure CreateFALegerEntry(FADepreciationBook: Record "FA Depreciation Book")
     var
         FALedgerEntry: Record "FA Ledger Entry";
@@ -338,11 +311,32 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
         FALedgerEntry.Insert();
     end;
 
-    local procedure CreateFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; DepreciationBookCode: Code[10])
+    local procedure OnValidateDerogatoryCalculationDepreciationBook(FieldNo: Integer)
+    var
+        DepreciationBook: Record "Depreciation Book";
+        DepreciationBook2: Record "Depreciation Book";
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
     begin
-        FADepreciationBook."FA No." := LibraryUTUtility.GetNewCode();
-        FADepreciationBook."Depreciation Book Code" := DepreciationBookCode;
-        FADepreciationBook.Insert();
+        // Setup: Create multiple Depreciation Books and Validate multiple fields related to GL Integration.
+        CreateDepreciationBook(DepreciationBook);
+        DepreciationBook2.Code := LibraryUTUtility.GetNewCode10();
+        RecRef.GetTable(DepreciationBook2);
+        FieldRef := RecRef.Field(FieldNo);
+        FieldRef.Validate(true);
+        RecRef.SetTable(DepreciationBook2);
+
+        // Exercise.
+        asserterror DepreciationBook2.Validate("Derogatory Calculation", DepreciationBook.Code);
+
+        // Verify: Verify expected error code, actual error: Derogatory depreciation books cannot be integrated with the general ledger. Please make sure that none of the fields on the Integration tab are checked.
+        Assert.ExpectedErrorCode(DialogErr);
+    end;
+
+    local procedure UpdateDerogatoryCalculationDepreciationBook(var DepreciationBook: Record "Depreciation Book"; DerogatoryCalculation: Code[10])
+    begin
+        DepreciationBook."Derogatory Calculation" := DerogatoryCalculation;
+        DepreciationBook.Modify();
     end;
 
     local procedure UpdateGLIntegrationDepreciationBook(DepreciationBook: Record "Depreciation Book")
@@ -358,11 +352,5 @@ codeunit 144025 "UT TAB FA Derogatory Depr."
         DepreciationBook."G/L Integration - Derogatory" := true;
         DepreciationBook.Modify();
     end;
-
-    local procedure UpdateDerogatoryCalculationDepreciationBook(var DepreciationBook: Record "Depreciation Book"; DerogatoryCalculation: Code[10])
-    begin
-        DepreciationBook."Derogatory Calculation" := DerogatoryCalculation;
-        DepreciationBook.Modify();
-    end;
 }
-
+#endif

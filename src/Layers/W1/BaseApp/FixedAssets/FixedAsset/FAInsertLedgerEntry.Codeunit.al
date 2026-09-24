@@ -73,9 +73,19 @@ codeunit 5600 "FA Insert Ledger Entry"
         DepreciationAlreadyAppliedErr: Label 'Depreciation ledger entries have already been posted for fixed asset %1 in depreciation book %2. You must first reverse them in order to post bonus depreciation.', Comment = '%1 - fixed asset code; %2 - depreciation book code';
         FASetupBonusDepreciationErr: Label 'Fixed Asset Setup is not correctly configured for bonus depreciation. You must make sure that bonus depreciation percentage and effective date are set up correctly.';
         BonusDepreciationExceedsAllowedValueErr: Label 'The amount of bonus depreciation must not exceed the allowed value calculated based on acquisition cost and bonus depreciation percentage set up in Fixed Asset Setup.';
+        MissingDerogatoryCounterpartErr: Label 'The derogatory counterpart for source entry %1 in depreciation book %2 is missing.', Comment = '%1 - source entry number, %2 - depreciation book code';
+        MultipleDerogatoryCounterpartsErr: Label 'More than one derogatory counterpart references source entry %1.', Comment = '%1 - source entry number';
 
     procedure InsertFA(var FALedgEntry3: Record "FA Ledger Entry")
     var
+        InsertedFALedgerEntry: Record "FA Ledger Entry";
+    begin
+        InsertFA(FALedgEntry3, InsertedFALedgerEntry);
+    end;
+
+    procedure InsertFA(var FALedgEntry3: Record "FA Ledger Entry"; var InsertedFALedgerEntry: Record "FA Ledger Entry")
+    var
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         IsHandled: Boolean;
     begin
@@ -115,6 +125,8 @@ codeunit 5600 "FA Insert Ledger Entry"
            (LastEntryNo > 0)
         then
             CheckFADocNo(FALedgEntry);
+        FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);
+        DerogatoryPostingMgt.ValidateDerogatoryLink(FALedgEntry);
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -153,15 +165,27 @@ codeunit 5600 "FA Insert Ledger Entry"
         OnInsertFAOnBeforeFACheckConsistency(FALedgEntry, FALedgEntry3);
 
         if FALedgEntry3."FA Posting Category" = FALedgEntry3."FA Posting Category"::" " then
-            if FALedgEntry3."FA Posting Type".AsInteger() <= FALedgEntry3."FA Posting Type"::"Salvage Value".AsInteger() then
+            if (FALedgEntry3."FA Posting Type".AsInteger() <= FALedgEntry3."FA Posting Type"::"Salvage Value".AsInteger()) or
+               (FALedgEntry3."FA Posting Type" = FALedgEntry3."FA Posting Type"::Derogatory)
+            then
                 CODEUNIT.Run(CODEUNIT::"FA Check Consistency", FALedgEntry);
 
         OnBeforeInsertRegister(FALedgEntry, FALedgEntry2, NextEntryNo);
 
         InsertRegister("FA Register Called From"::"Fixed Asset", NextEntryNo);
+        InsertedFALedgerEntry.Get(NextEntryNo);
     end;
 
     procedure InsertMaintenance(var MaintenanceLedgEntry2: Record "Maintenance Ledger Entry")
+    var
+        InsertedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+    begin
+        InsertMaintenance(MaintenanceLedgEntry2, InsertedMaintenanceLedgerEntry);
+    end;
+
+    procedure InsertMaintenance(var MaintenanceLedgEntry2: Record "Maintenance Ledger Entry"; var InsertedMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    var
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
     begin
         if NextMaintenanceEntryNo = 0 then begin
             MaintenanceLedgEntry.LockTable();
@@ -191,9 +215,11 @@ codeunit 5600 "FA Insert Ledger Entry"
         end;
         if MaintenanceLedgEntry."G/L Entry No." > 0 then
             FAInsertGLAcc.InsertMaintenanceAccNo(MaintenanceLedgEntry);
+        DerogatoryPostingMgt.ValidateDerogatoryLink(MaintenanceLedgEntry);
         MaintenanceLedgEntry.Insert(true);
         SetMaintenanceLastDate(MaintenanceLedgEntry);
         InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
+        InsertedMaintenanceLedgerEntry.Get(NextMaintenanceEntryNo);
     end;
 
     procedure SetMaintenanceLastDate(MaintenanceLedgEntry: Record "Maintenance Ledger Entry")
@@ -239,6 +265,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             end;
             case FALedgerEntry."FA Posting Type" of
                 "FA Ledger Entry FA Posting Type"::"Acquisition Cost",
+                "FA Ledger Entry FA Posting Type"::Derogatory,
                 "FA Ledger Entry FA Posting Type"::Depreciation,
                 "FA Ledger Entry FA Posting Type"::"Bonus Depreciation":
                     FALedgerEntry."Part of Book Value" := true;
@@ -449,16 +476,42 @@ codeunit 5600 "FA Insert Ledger Entry"
 
     procedure InsertReverseEntry(NewGLEntryNo: Integer; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: Integer; var NewFAEntryNo: Integer; TransactionNo: Integer)
     var
+        OriginalFALedgerEntry: Record "FA Ledger Entry";
+        OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        DerogatorySourceEntryNo: Integer;
+    begin
+        case FAEntryType of
+            FAEntryType::"Fixed Asset":
+                begin
+                    OriginalFALedgerEntry.SetLoadFields("Derogatory Source Entry No.");
+                    OriginalFALedgerEntry.Get(FAEntryNo);
+                    DerogatorySourceEntryNo := OriginalFALedgerEntry."Derogatory Source Entry No.";
+                end;
+            FAEntryType::Maintenance:
+                begin
+                    OriginalMaintenanceLedgerEntry.Get(FAEntryNo);
+                    DerogatorySourceEntryNo := OriginalMaintenanceLedgerEntry."Derogatory Source Entry No.";
+                end;
+        end;
+        InsertReverseEntryWithLink(
+            NewGLEntryNo, FAEntryType, FAEntryNo, NewFAEntryNo, TransactionNo, DerogatorySourceEntryNo, true);
+    end;
+
+    local procedure InsertReverseEntryWithLink(NewGLEntryNo: Integer; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: Integer; var NewFAEntryNo: Integer; TransactionNo: Integer; DerogatorySourceEntryNo: Integer; ReverseAutomaticSalvage: Boolean)
+    var
         SourceCodeSetup: Record "Source Code Setup";
         FALedgEntry3: Record "FA Ledger Entry";
+        OriginalFALedgerEntry: Record "FA Ledger Entry";
         MaintenanceLedgEntry3: Record "Maintenance Ledger Entry";
         DimMgt: Codeunit DimensionManagement;
         TableID: array[10] of Integer;
         AccNo: array[10] of Code[20];
         IsHandled, SkipInsertOfMaintenanceLedgerEntry : Boolean;
     begin
+        SourceCodeSetup.Get();
         if FAEntryType = FAEntryType::"Fixed Asset" then begin
             FALedgEntry3.Get(FAEntryNo);
+            OriginalFALedgerEntry := FALedgEntry3;
             FALedgEntry3.TestField("Reversed by Entry No.", 0);
             IsHandled := false;
             OnInsertReverseEntryOnBeforeCheckIfDisposalIsAllowed(FALedgEntry3, IsHandled);
@@ -471,6 +524,10 @@ codeunit 5600 "FA Insert Ledger Entry"
                       FALedgEntry3."FA Posting Type",
                       FALedgEntry.TableCaption(), FALedgEntry3."Entry No.");
             end;
+            if ReverseAutomaticSalvage then begin
+                ReverseAutomaticSalvageEntries(FAEntryType, OriginalFALedgerEntry, TransactionNo);
+                FALedgEntry3.Get(FAEntryNo);
+            end;
             if FALedgEntry3."FA Posting Type" <> FALedgEntry3."FA Posting Type"::"Salvage Value" then begin
                 if not DimMgt.CheckDimIDComb(FALedgEntry3."Dimension Set ID") then
                     Error(Text006, FALedgEntry3.TableCaption(), FALedgEntry3."Entry No.", DimMgt.GetDimCombErr());
@@ -481,51 +538,58 @@ codeunit 5600 "FA Insert Ledger Entry"
                 OnInsertReverseEntryOnNonSalvageValueFAPostingTypeOnBeforeCheckDimValuePosting(TableID, AccNo, FALedgEntry3);
                 if not DimMgt.CheckDimValuePosting(TableID, AccNo, FALedgEntry3."Dimension Set ID") then
                     Error(DimMgt.GetDimValuePostingErr());
-                if NextEntryNo = 0 then begin
-                    FALedgEntry.LockTable();
-                    NextEntryNo := FALedgEntry.GetLastEntryNo();
-                    SourceCodeSetup.Get();
-                    InitRegister("FA Register Called From"::"Fixed Asset", 1, SourceCodeSetup.Reversal, '');
-                    RegisterInserted := true;
-                end;
-                NextEntryNo := NextEntryNo + 1;
-                NewFAEntryNo := NextEntryNo;
+            end;
+            if NextEntryNo = 0 then begin
+                FALedgEntry.LockTable();
+                NextEntryNo := FALedgEntry.GetLastEntryNo();
+                InitRegister("FA Register Called From"::"Fixed Asset", 1, SourceCodeSetup.Reversal, '');
+                RegisterInserted := true;
+            end;
+            NextEntryNo := NextEntryNo + 1;
+            NewFAEntryNo := NextEntryNo;
 
+            if FALedgEntry3."FA Posting Type" <> FALedgEntry3."FA Posting Type"::"Salvage Value" then begin
                 IsHandled := false;
                 OnInsertReverseEntryOnBeforeInsertTempFALedgEntry(FALedgEntry3, IsHandled);
                 if not IsHandled then begin
-                    TempFALedgEntry := FALedgEntry3;
-                    TempFALedgEntry.Insert();
+                    DeprBook.Get(FALedgEntry3."Depreciation Book Code");
+                    if DeprBook."Derogatory Calc." = '' then begin
+                        TempFALedgEntry := FALedgEntry3;
+                        TempFALedgEntry.Insert();
+                    end;
                 end;
-                SetFAReversalMark(FALedgEntry3, NextEntryNo);
-                FALedgEntry3."Entry No." := NextEntryNo;
-                FALedgEntry3."G/L Entry No." := NewGLEntryNo;
-                FALedgEntry3.Amount := -FALedgEntry3.Amount;
-                FALedgEntry3."Debit Amount" := -FALedgEntry3."Debit Amount";
-                FALedgEntry3."Credit Amount" := -FALedgEntry3."Credit Amount";
-                FALedgEntry3.Quantity := 0;
-                FALedgEntry3."User ID" := CopyStr(UserId(), 1, MaxStrLen(FALedgEntry3."User ID"));
-                FALedgEntry3."Source Code" := SourceCodeSetup.Reversal;
-                FALedgEntry3."Transaction No." := TransactionNo;
-                FALedgEntry3."VAT Amount" := -FALedgEntry3."VAT Amount";
-                FALedgEntry3."Amount (LCY)" := -FALedgEntry3."Amount (LCY)";
-                FALedgEntry3.Correction := not FALedgEntry3.Correction;
-                FALedgEntry3."No. Series" := '';
-                FALedgEntry3."Journal Batch Name" := '';
-                FALedgEntry3."FA No./Budgeted FA No." := '';
-                OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
-                FALedgEntry3.Insert(true);
+            end;
+            SetFAReversalMark(FALedgEntry3, NextEntryNo);
+            FALedgEntry3."Entry No." := NextEntryNo;
+            FALedgEntry3."G/L Entry No." := NewGLEntryNo;
+            FALedgEntry3.Amount := -FALedgEntry3.Amount;
+            FALedgEntry3."Debit Amount" := -FALedgEntry3."Debit Amount";
+            FALedgEntry3."Credit Amount" := -FALedgEntry3."Credit Amount";
+            FALedgEntry3.Quantity := 0;
+            FALedgEntry3."User ID" := CopyStr(UserId(), 1, MaxStrLen(FALedgEntry3."User ID"));
+            FALedgEntry3."Source Code" := SourceCodeSetup.Reversal;
+            FALedgEntry3."Transaction No." := TransactionNo;
+            FALedgEntry3."VAT Amount" := -FALedgEntry3."VAT Amount";
+            FALedgEntry3."Amount (LCY)" := -FALedgEntry3."Amount (LCY)";
+            FALedgEntry3.Correction := not FALedgEntry3.Correction;
+            FALedgEntry3."No. Series" := '';
+            FALedgEntry3."Journal Batch Name" := '';
+            FALedgEntry3."FA No./Budgeted FA No." := '';
+            FALedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
+            OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
+            FALedgEntry3.Insert(true);
+            if FALedgEntry3."FA Posting Type" <> FALedgEntry3."FA Posting Type"::"Salvage Value" then begin
                 OnInsertReverseEntryOnBeforeFACheckConsistency(FALedgEntry3);
                 CODEUNIT.Run(CODEUNIT::"FA Check Consistency", FALedgEntry3);
-                OnInsertReverseEntryOnBeforeInsertRegister(FALedgEntry3);
-                InsertRegister("FA Register Called From"::"Fixed Asset", NextEntryNo);
             end;
+            OnInsertReverseEntryOnBeforeInsertRegister(FALedgEntry3);
+            InsertRegister("FA Register Called From"::"Fixed Asset", NextEntryNo);
+            InsertFARevEntryForDerog(FAEntryType, FALedgEntry3);
         end;
         if FAEntryType = FAEntryType::Maintenance then begin
             if NextMaintenanceEntryNo = 0 then begin
                 MaintenanceLedgEntry.LockTable();
                 NextMaintenanceEntryNo := MaintenanceLedgEntry.GetLastEntryNo();
-                SourceCodeSetup.Get();
                 InitRegister("FA Register Called From"::Maintenance, 1, SourceCodeSetup.Reversal, '');
                 RegisterInserted := true;
             end;
@@ -543,6 +607,8 @@ codeunit 5600 "FA Insert Ledger Entry"
                 Error(DimMgt.GetDimValuePostingErr());
 
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntryBuffer(MaintenanceLedgEntry3, SkipInsertOfMaintenanceLedgerEntry);
+            DeprBook.Get(MaintenanceLedgEntry3."Depreciation Book Code");
+            SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calc." <> '');
             if not SkipInsertOfMaintenanceLedgerEntry then begin
                 TempMaintenanceLedgEntry := MaintenanceLedgEntry3;
                 TempMaintenanceLedgEntry.Insert()
@@ -563,9 +629,11 @@ codeunit 5600 "FA Insert Ledger Entry"
             MaintenanceLedgEntry3."No. Series" := '';
             MaintenanceLedgEntry3."Journal Batch Name" := '';
             MaintenanceLedgEntry3."FA No./Budgeted FA No." := '';
+            MaintenanceLedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntry(MaintenanceLedgEntry3);
             MaintenanceLedgEntry3.Insert();
             InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
+            InsertMaintRevEntryForDerog(FAEntryType, MaintenanceLedgEntry3);
         end;
     end;
 
@@ -670,6 +738,184 @@ codeunit 5600 "FA Insert Ledger Entry"
         LastEntryNo := 0;
         if FindLastEntry then
             LastEntryNo := FALedgEntry.GetLastEntryNo();
+    end;
+
+    local procedure ReverseAutomaticSalvageEntries(FAEntryType: Option " ","Fixed Asset",Maintenance; OriginalFALedgerEntry: Record "FA Ledger Entry"; TransactionNo: Integer)
+    var
+        AutomaticSalvageFALedgerEntry: Record "FA Ledger Entry";
+        OriginalAcquisitionFALedgerEntry: Record "FA Ledger Entry";
+        OriginalSalvageFALedgerEntry: Record "FA Ledger Entry";
+        NewAutomaticSalvageEntryNo: Integer;
+    begin
+        AutomaticSalvageFALedgerEntry.SetLoadFields(
+            "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Automatic Entry", "Transaction No.",
+            "Document Type", "Document No.", "Posting Date", "FA Posting Date", "Derogatory Source Entry No.");
+        OriginalAcquisitionFALedgerEntry.SetLoadFields(
+            "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Automatic Entry", "Transaction No.",
+            "Document Type", "Document No.", "Posting Date", "FA Posting Date", "Derogatory Source Entry No.");
+        OriginalSalvageFALedgerEntry.SetLoadFields(
+            "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Automatic Entry", "Transaction No.",
+            "Document Type", "Document No.", "Posting Date", "FA Posting Date", "Derogatory Source Entry No.");
+        if OriginalFALedgerEntry."FA Posting Type" <> OriginalFALedgerEntry."FA Posting Type"::"Acquisition Cost" then
+            exit;
+
+        if OriginalFALedgerEntry."Reversed Entry No." = 0 then begin
+            if not AutomaticSalvageFALedgerEntry.Get(OriginalFALedgerEntry."Entry No." + 1) then
+                exit;
+            if not IsAutomaticSalvageCompanion(AutomaticSalvageFALedgerEntry, OriginalFALedgerEntry) then
+                exit;
+        end else begin
+            OriginalAcquisitionFALedgerEntry.Get(OriginalFALedgerEntry."Reversed Entry No.");
+            if not OriginalSalvageFALedgerEntry.Get(OriginalAcquisitionFALedgerEntry."Entry No." + 1) then
+                exit;
+            if not IsAutomaticSalvageCompanion(OriginalSalvageFALedgerEntry, OriginalAcquisitionFALedgerEntry) then
+                exit;
+            AutomaticSalvageFALedgerEntry.SetRange("Reversed Entry No.", OriginalSalvageFALedgerEntry."Entry No.");
+            if not AutomaticSalvageFALedgerEntry.FindFirst() then
+                exit;
+        end;
+
+        InsertReverseEntryWithLink(
+            0, FAEntryType, AutomaticSalvageFALedgerEntry."Entry No.", NewAutomaticSalvageEntryNo, TransactionNo,
+            AutomaticSalvageFALedgerEntry."Derogatory Source Entry No.", false);
+    end;
+
+    local procedure IsAutomaticSalvageCompanion(AutomaticSalvageFALedgerEntry: Record "FA Ledger Entry"; AcquisitionFALedgerEntry: Record "FA Ledger Entry"): Boolean
+    begin
+        exit(
+            (AutomaticSalvageFALedgerEntry."FA No." = AcquisitionFALedgerEntry."FA No.") and
+            (AutomaticSalvageFALedgerEntry."Depreciation Book Code" = AcquisitionFALedgerEntry."Depreciation Book Code") and
+            (AutomaticSalvageFALedgerEntry."FA Posting Category" = AcquisitionFALedgerEntry."FA Posting Category") and
+            (AutomaticSalvageFALedgerEntry."FA Posting Type" = AutomaticSalvageFALedgerEntry."FA Posting Type"::"Salvage Value") and
+            AutomaticSalvageFALedgerEntry."Automatic Entry" and
+            (AutomaticSalvageFALedgerEntry."Transaction No." = AcquisitionFALedgerEntry."Transaction No.") and
+            (AutomaticSalvageFALedgerEntry."Document Type" = AcquisitionFALedgerEntry."Document Type") and
+            (AutomaticSalvageFALedgerEntry."Document No." = AcquisitionFALedgerEntry."Document No.") and
+            (AutomaticSalvageFALedgerEntry."Posting Date" = AcquisitionFALedgerEntry."Posting Date") and
+            (AutomaticSalvageFALedgerEntry."FA Posting Date" = AcquisitionFALedgerEntry."FA Posting Date") and
+            ((AutomaticSalvageFALedgerEntry."Derogatory Source Entry No." = 0) =
+             (AcquisitionFALedgerEntry."Derogatory Source Entry No." = 0)));
+    end;
+
+    procedure InsertFARevEntryForDerog(FAEntryType: Option " ","Fixed Asset",Maintenance; ReversingFALedgerEntry: Record "FA Ledger Entry")
+    var
+        FALedgEntryForDerog: Record "FA Ledger Entry";
+        OriginalFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        DerogatoryDepreciationBookCode: Code[10];
+        NewDerogatoryEntryNo: Integer;
+    begin
+        if ReversingFALedgerEntry."Derogatory Source Entry No." <> 0 then
+            exit;
+
+        FALedgEntryForDerog.SetLoadFields("Depreciation Book Code", "FA No.", "Reversed by Entry No.");
+        FALedgEntryForDerog.SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code");
+        FALedgEntryForDerog.SetRange("Derogatory Source Entry No.", ReversingFALedgerEntry."Reversed Entry No.");
+        OriginalFALedgerEntry.SetLoadFields("Reversed Entry No.");
+        OriginalFALedgerEntry.Get(ReversingFALedgerEntry."Reversed Entry No.");
+        if OriginalFALedgerEntry."Reversed Entry No." = 0 then
+            FALedgEntryForDerog.SetRange("Reversed Entry No.", 0);
+        if not FALedgEntryForDerog.FindFirst() then begin
+            if ReversingFALedgerEntry."Legacy Derogatory Ambiguous" then begin
+                FindLegacyFADerogatoryEntry(FALedgEntryForDerog, ReversingFALedgerEntry);
+                if FALedgEntryForDerog.IsEmpty() then
+                    exit;
+                DerogatoryDepreciationBookCode := FALedgEntryForDerog."Depreciation Book Code";
+            end else begin
+                if not DerogatoryPostingMgt.IsEligible(
+                     ReversingFALedgerEntry."FA No.", ReversingFALedgerEntry."Depreciation Book Code",
+                     Enum::"Derogatory Posting Role"::Source, DerogatoryDepreciationBookCode)
+                then
+                    exit;
+                Error(MissingDerogatoryCounterpartErr, ReversingFALedgerEntry."Reversed Entry No.", DerogatoryDepreciationBookCode);
+            end;
+        end else begin
+            if FALedgEntryForDerog.Next() <> 0 then
+                Error(MultipleDerogatoryCounterpartsErr, ReversingFALedgerEntry."Reversed Entry No.");
+            DerogatoryDepreciationBookCode := FALedgEntryForDerog."Depreciation Book Code";
+        end;
+
+        FALedgEntryForDerog.TestField("Depreciation Book Code", DerogatoryDepreciationBookCode);
+        FALedgEntryForDerog.TestField("FA No.", ReversingFALedgerEntry."FA No.");
+        FALedgEntryForDerog.TestField("Reversed by Entry No.", 0);
+        InsertReverseEntryWithLink(
+            0, FAEntryType, FALedgEntryForDerog."Entry No.", NewDerogatoryEntryNo, 0,
+            ReversingFALedgerEntry."Entry No.", false);
+    end;
+
+    procedure InsertMaintRevEntryForDerog(FAEntryType: Option; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    var
+        MaintLedgEntryForDerog: Record "Maintenance Ledger Entry";
+        OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        DerogatoryDepreciationBookCode: Code[10];
+        NewDerogatoryEntryNo: Integer;
+    begin
+        if ReversingMaintenanceLedgerEntry."Derogatory Source Entry No." <> 0 then
+            exit;
+
+        MaintLedgEntryForDerog.SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code");
+        MaintLedgEntryForDerog.SetRange("Derogatory Source Entry No.", ReversingMaintenanceLedgerEntry."Reversed Entry No.");
+        OriginalMaintenanceLedgerEntry.Get(ReversingMaintenanceLedgerEntry."Reversed Entry No.");
+        if OriginalMaintenanceLedgerEntry."Reversed Entry No." = 0 then
+            MaintLedgEntryForDerog.SetRange("Reversed Entry No.", 0);
+        if not MaintLedgEntryForDerog.FindFirst() then begin
+            if ReversingMaintenanceLedgerEntry."Legacy Derogatory Ambiguous" then begin
+                FindLegacyMaintenanceDerogatoryEntry(MaintLedgEntryForDerog, ReversingMaintenanceLedgerEntry);
+                if MaintLedgEntryForDerog.IsEmpty() then
+                    exit;
+                DerogatoryDepreciationBookCode := MaintLedgEntryForDerog."Depreciation Book Code";
+            end else begin
+                if not DerogatoryPostingMgt.IsEligible(
+                     ReversingMaintenanceLedgerEntry."FA No.", ReversingMaintenanceLedgerEntry."Depreciation Book Code",
+                     Enum::"Derogatory Posting Role"::Source, DerogatoryDepreciationBookCode)
+                then
+                    exit;
+                Error(MissingDerogatoryCounterpartErr, ReversingMaintenanceLedgerEntry."Reversed Entry No.", DerogatoryDepreciationBookCode);
+            end;
+        end else begin
+            if MaintLedgEntryForDerog.Next() <> 0 then
+                Error(MultipleDerogatoryCounterpartsErr, ReversingMaintenanceLedgerEntry."Reversed Entry No.");
+            DerogatoryDepreciationBookCode := MaintLedgEntryForDerog."Depreciation Book Code";
+        end;
+
+        MaintLedgEntryForDerog.TestField("Depreciation Book Code", DerogatoryDepreciationBookCode);
+        MaintLedgEntryForDerog.TestField("FA No.", ReversingMaintenanceLedgerEntry."FA No.");
+        MaintLedgEntryForDerog.TestField("Reversed by Entry No.", 0);
+        InsertReverseEntryWithLink(
+            0, FAEntryType, MaintLedgEntryForDerog."Entry No.", NewDerogatoryEntryNo, 0,
+            ReversingMaintenanceLedgerEntry."Entry No.", false);
+    end;
+
+    local procedure FindLegacyFADerogatoryEntry(var DerogatoryFALedgerEntry: Record "FA Ledger Entry"; ReversingFALedgerEntry: Record "FA Ledger Entry")
+    begin
+        DerogatoryFALedgerEntry.Reset();
+        DerogatoryFALedgerEntry.SetLoadFields("Depreciation Book Code", "FA No.", "Reversed by Entry No.");
+        DerogatoryFALedgerEntry.SetFilter("Depreciation Book Code", '<>%1', ReversingFALedgerEntry."Depreciation Book Code");
+        DerogatoryFALedgerEntry.SetRange("FA No.", ReversingFALedgerEntry."FA No.");
+        DerogatoryFALedgerEntry.SetRange("FA Posting Type", ReversingFALedgerEntry."FA Posting Type");
+        DerogatoryFALedgerEntry.SetRange(Amount, -ReversingFALedgerEntry.Amount);
+        DerogatoryFALedgerEntry.SetRange("Document Type", ReversingFALedgerEntry."Document Type");
+        DerogatoryFALedgerEntry.SetRange("Document No.", ReversingFALedgerEntry."Document No.");
+        DerogatoryFALedgerEntry.FindFirst();
+    end;
+
+    local procedure FindLegacyMaintenanceDerogatoryEntry(var DerogatoryMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    begin
+        DerogatoryMaintenanceLedgerEntry.Reset();
+        DerogatoryMaintenanceLedgerEntry.SetFilter("Depreciation Book Code", '<>%1', ReversingMaintenanceLedgerEntry."Depreciation Book Code");
+        DerogatoryMaintenanceLedgerEntry.SetRange("FA No.", ReversingMaintenanceLedgerEntry."FA No.");
+        DerogatoryMaintenanceLedgerEntry.SetRange("Document Type", ReversingMaintenanceLedgerEntry."Document Type");
+        DerogatoryMaintenanceLedgerEntry.SetRange("Document No.", ReversingMaintenanceLedgerEntry."Document No.");
+        DerogatoryMaintenanceLedgerEntry.FindFirst();
+    end;
+
+    local procedure CalcExcludeDerogatory(FALedgerEntry: Record "FA Ledger Entry"): Boolean
+    var
+        DepreciationBook: Record "Depreciation Book";
+    begin
+        DepreciationBook.Get(FALedgerEntry."Depreciation Book Code");
+        exit((FALedgerEntry."FA Posting Type" = FALedgerEntry."FA Posting Type"::Derogatory) and not DepreciationBook.IsDerogatoryBook());
     end;
 
     procedure SetGLRegisterNo(NewGLRegisterNo: Integer)

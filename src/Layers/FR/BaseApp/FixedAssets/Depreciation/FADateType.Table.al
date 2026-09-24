@@ -53,7 +53,14 @@ table 5645 "FA Date Type"
     procedure CreateTypes()
     var
         FADepreciationBook: Record "FA Depreciation Book";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        IsAcceleratedDeprFeatureEnabled: Boolean;
+#endif
     begin
+#if not CLEAN30
+        IsAcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+#endif
         LockTable();
         if not Find('-') then begin
             "FA Entry" := true;
@@ -71,8 +78,18 @@ table 5645 "FA Date Type"
             "FA Entry" := false;
             "G/L Entry" := true;
             InsertRec(10, FADepreciationBook.FieldNo("G/L Acquisition Date"), FADepreciationBook.FieldCaption("G/L Acquisition Date"));
+#if not CLEAN30
+            if IsAcceleratedDeprFeatureEnabled then begin
+                "FA Entry" := true;
+                InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
+            end else begin
+                "FA Entry" := true;
+                InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory Date"), FADepreciationBook.FieldCaption("Last Derogatory Date"));
+            end;
+#else
             "FA Entry" := true;
-            InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory Date"), FADepreciationBook.FieldCaption("Last Derogatory Date"));
+            InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
+#endif
         end else begin
             SetCurrentKey("Entry No.");
             Find('-');
@@ -147,13 +164,33 @@ table 5645 "FA Date Type"
                         Delete();
                         InsertRec(10, FADepreciationBook.FieldNo("G/L Acquisition Date"), FADepreciationBook.FieldCaption("G/L Acquisition Date"));
                     end;
+#if not CLEAN30
+                if IsAcceleratedDeprFeatureEnabled then begin
+                    if "Entry No." = 11 then
+                        if ("FA Date Type No." <> FADepreciationBook.FieldNo("Last Derogatory")) or
+                           ("FA Date Type Name" <> FADepreciationBook.FieldCaption("Last Derogatory"))
+                        then begin
+                            Delete();
+                            InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
+                        end
+                end
+                else
+                    if "Entry No." = 11 then
+                        if ("FA Date Type No." <> FADepreciationBook.FieldNo("Last Derogatory Date")) or
+                           ("FA Date Type Name" <> FADepreciationBook.FieldCaption("Last Derogatory Date"))
+                        then begin
+                            Delete();
+                            InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory Date"), FADepreciationBook.FieldCaption("Last Derogatory Date"));
+                        end;
+#else
                 if "Entry No." = 11 then
-                    if ("FA Date Type No." <> FADepreciationBook.FieldNo("Last Derogatory Date")) or
-                       ("FA Date Type Name" <> FADepreciationBook.FieldCaption("Last Derogatory Date"))
+                    if ("FA Date Type No." <> FADepreciationBook.FieldNo("Last Derogatory")) or
+                       ("FA Date Type Name" <> FADepreciationBook.FieldCaption("Last Derogatory"))
                     then begin
                         Delete();
-                        InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory Date"), FADepreciationBook.FieldCaption("Last Derogatory Date"));
+                        InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
                     end;
+#endif
             until Next() = 0;
         end;
 

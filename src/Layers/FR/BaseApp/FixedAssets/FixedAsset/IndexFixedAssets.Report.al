@@ -217,10 +217,25 @@ report 5690 "Index Fixed Assets"
 
     trigger OnPreReport()
     begin
+#if not CLEAN30
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            DerogDeprBook.SetRange(Code, DeprBookCode);
+            if DerogDeprBook.FindFirst() then
+                if DerogDeprBook."Derogatory Calc." <> '' then
+                    Error(CannotIndexDerogatoryFixedAssetsErr);
+        end
+        else begin
+            DerogDeprBook.SetRange(Code, DeprBookCode);
+            if DerogDeprBook.FindFirst() then
+                if DerogDeprBook."Derogatory Calculation" <> '' then
+                    Error(CannotIndexDerogatoryFixedAssetsErr);
+        end;
+#else
         DerogDeprBook.SetRange(Code, DeprBookCode);
-        if DerogDeprBook.Find('-') then
-            if DerogDeprBook."Derogatory Calculation" <> '' then
-                Error(Text10800);
+        if DerogDeprBook.FindFirst() then
+            if DerogDeprBook."Derogatory Calc." <> '' then
+                Error(CannotIndexDerogatoryFixedAssetsErr);
+#endif
         if FAPostingDate = 0D then
             Error(Text000, FAJnlLine.FieldCaption("FA Posting Date"));
         if FAPostingDate <> NormalDate(FAPostingDate) then
@@ -268,7 +283,11 @@ report 5690 "Index Fixed Assets"
         FALedgEntry: Record "FA Ledger Entry";
         MaintenanceLedgEntry: Record "Maintenance Ledger Entry";
         FAJnlSetup: Record "FA Journal Setup";
+        DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         Window: Dialog;
         IndexChoices: array[13] of Boolean;
         IndexAmount: Decimal;
@@ -285,8 +304,7 @@ report 5690 "Index Fixed Assets"
         FAJnlNextLineNo: Integer;
         GenJnlNextLineNo: Integer;
         i: Integer;
-        DerogDeprBook: Record "Depreciation Book";
-        Text10800: Label 'You cannot index fixed assets in a derogatory depreciation book. Instead you must\index them in the depreciation book integrated with G/L.';
+        CannotIndexDerogatoryFixedAssetsErr: Label 'You cannot index fixed assets in a derogatory depreciation book. Instead you must\index them in the depreciation book integrated with G/L.';
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -423,4 +441,3 @@ report 5690 "Index Fixed Assets"
     begin
     end;
 }
-
