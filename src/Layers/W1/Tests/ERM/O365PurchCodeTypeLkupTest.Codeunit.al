@@ -118,9 +118,9 @@ codeunit 134653 "O365 Purch Code Type Lkup Test"
         StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(Format(StandardPurchaseLine.Type::Item));
 
         // [WHEN] Setting the saas type on the standard Purchase Line to co
-        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.SetValue(CopyStr(StandardPurchaseLine.FormatType(), 1, 2));
+        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.SetValue(CopyStr(StandardPurchaseLine.FormatTypeAsText(), 1, 2));
         // [THEN] The SaaS type is set to Comment
-        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(StandardPurchaseLine.FormatType());
+        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(StandardPurchaseLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -143,12 +143,12 @@ codeunit 134653 "O365 Purch Code Type Lkup Test"
         // [WHEN] Setting the saas type on the standard Purchase Line to ' '
         StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.SetValue(' ');
         // [THEN] The SaaS type is set to Blank
-        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(StandardPurchaseLine.FormatType());
+        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(StandardPurchaseLine.FormatTypeAsText());
 
         // [WHEN] Setting the saas type on the standard Purchase Line to ''
         StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.SetValue('');
         // [THEN] The SaaS type is set to Blank
-        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(StandardPurchaseLine.FormatType());
+        StandardPurchaseCodeCard.StdPurchaseLines.FilteredTypeField.AssertEquals(StandardPurchaseLine.FormatTypeAsText());
     end;
 
     [Test]

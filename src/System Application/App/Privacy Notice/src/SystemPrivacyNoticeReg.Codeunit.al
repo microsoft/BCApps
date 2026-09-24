@@ -20,6 +20,7 @@ codeunit 1566 "System Privacy Notice Reg."
         PowerAutomateIdTxt: Label 'Power Automate', Locked = true; // Product names are not translated and it's important this entry exists.
         PowerAutomateLabelTxt: Label 'Microsoft Power Automate', Locked = true; // Product names are not translated and it's important this entry exists.
         MicrosoftLearnTxt: Label 'Microsoft Learn', Locked = true; // Product names are not translated and it's important this entry exists.
+        MicrosoftCopilotTxt: Label 'Microsoft Copilot', Locked = true; // Product names are not translated and it's important this entry exists.
         BingTxt: Label 'Bing', Locked = true; // Product names are not translated and it's important this entry exists.
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
@@ -37,6 +38,9 @@ codeunit 1566 "System Privacy Notice Reg."
         if not TempPrivacyNotice.Insert() then;
         TempPrivacyNotice.ID := BingTxt;
         TempPrivacyNotice."Integration Service Name" := BingTxt;
+        if not TempPrivacyNotice.Insert() then;
+        TempPrivacyNotice.ID := MicrosoftCopilotTxt;
+        TempPrivacyNotice."Integration Service Name" := MicrosoftCopilotTxt;
         if not TempPrivacyNotice.Insert() then;
     end;
 
@@ -85,11 +89,28 @@ codeunit 1566 "System Privacy Notice Reg."
         exit(BingTxt);
     end;
 
+    /// <summary>
+    /// Gets the Microsoft Copilot privacy notice identifier.
+    /// </summary>
+    /// <returns>The privacy notice id for Microsoft Copilot.</returns>
+    procedure GetMicrosoftCopilotID(): Code[50]
+    begin
+        exit(MicrosoftCopilotTxt);
+    end;
+
     [TryFunction]
     internal procedure TryGetMicrosoftLearnInGeoSupport(var HasInGeoSupport: Boolean)
     var
         ALMicrosoftLearnFunctions: DotNet ALMicrosoftLearnFunctions;
     begin
         HasInGeoSupport := ALMicrosoftLearnFunctions.HasInGeoSupport()
+    end;
+
+    [TryFunction]
+    internal procedure TryGetMicrosoftCopilotDefaultApproval(var ShouldApproveByDefault: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        ShouldApproveByDefault := not ALCopilotFunctions.IsWithinEUDB();
     end;
 }

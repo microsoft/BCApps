@@ -37,12 +37,15 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         PageManagement: Codeunit "Page Management";
         IsHandled: Boolean;
+        ConfirmQuestion: Text;
     begin
         IsHandled := false;
         OnCancelInvoiceOnBeforeTestCorrectInvoiceIsAllowed(SalesInvoiceHeader, IsHandled);
         if not IsHandled then
             CorrectPostedSalesInvoice.TestCorrectInvoiceIsAllowed(SalesInvoiceHeader, true);
-        if Confirm(GetCancelPostedInvoiceQst(SalesInvoiceHeader)) then
+        ConfirmQuestion := GetCancelPostedInvoiceQst(SalesInvoiceHeader);
+        OnCancelInvoiceOnBeforeConfirm(SalesInvoiceHeader, ConfirmQuestion);
+        if Confirm(ConfirmQuestion) then
             if CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader) then
                 if Confirm(OpenPostedCreditMemoQst) then begin
                     CancelledDocument.FindSalesCancelledInvoice(SalesInvoiceHeader."No.");
@@ -62,6 +65,11 @@ codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
         if SalesInvoiceHeader."Order No." <> '' then
             exit(CancelPostedInvoiceFromOrderQst);
         exit(CancelPostedInvoiceQst);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCancelInvoiceOnBeforeConfirm(var SalesInvoiceHeader: Record "Sales Invoice Header"; var ConfirmQuestion: Text)
+    begin
     end;
 
     [IntegrationEvent(false, false)]

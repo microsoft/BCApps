@@ -471,6 +471,7 @@ codeunit 370 "Bank Acc. Reconciliation Post"
     local procedure PostPaymentApplications(BankAccReconLine: Record "Bank Acc. Reconciliation Line"; var AppliedAmount: Decimal)
     var
         BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         AppliedPmtEntry: Record "Applied Payment Entry";
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -602,7 +603,8 @@ codeunit 370 "Bank Acc. Reconciliation Post"
                (GenJnlLine."Currency Code" = BankAcc."Currency Code")
             then begin
                 GenJnlLine.Validate("Currency Code", BankAcc."Currency Code");
-                GenJnlLine.Amount := -PaymentLineAmount;
+                Currency.Initialize(GenJnlLine."Currency Code");
+                GenJnlLine.Amount := Round(-PaymentLineAmount, Currency."Amount Rounding Precision");
                 if GenJnlLine."Currency Code" <> '' then
                     GenJnlLine."Amount (LCY)" := Round(
                         CurrExchRate.ExchangeAmtFCYToLCY(

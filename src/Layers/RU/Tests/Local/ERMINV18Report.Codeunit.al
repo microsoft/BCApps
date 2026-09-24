@@ -103,15 +103,18 @@ codeunit 144710 "ERM INV-18 Report"
 
     local procedure RunINV18Report()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAJournalLine: Record "FA Journal Line";
         INV18Rep: Report "FA Comparative Sheet INV-18";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         FilterFAJournalLineWithEmptyBatch(FAJournalLine);
         INV18Rep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         INV18Rep.SetTableView(FAJournalLine);
         INV18Rep.UseRequestPage(false);
         INV18Rep.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure FilterFAJournalLineWithEmptyBatch(var FAJournalLine: Record "FA Journal Line")

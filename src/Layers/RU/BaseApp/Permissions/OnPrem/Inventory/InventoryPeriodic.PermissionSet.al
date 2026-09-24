@@ -51,6 +51,7 @@ permissionset 4936 "Inventory - Periodic"
                   tabledata "G/L Account" = R,
                   tabledata "G/L Entry" = Ri,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Rim,
                   tabledata "Gen. Business Posting Group" = R,
                   tabledata "Gen. Product Posting Group" = R,
                   tabledata "General Ledger Setup" = R,

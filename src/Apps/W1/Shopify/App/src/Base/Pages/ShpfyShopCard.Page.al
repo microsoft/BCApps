@@ -845,6 +845,32 @@ page 30101 "Shpfy Shop Card"
                 ToolTip = 'View a list of Shopify Staff Members for the shop.';
                 Visible = Rec."Advanced Shopify Plan";
             }
+            action(PaymentTransactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Payment Transactions';
+                Image = Transactions;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = page "Shpfy Payment Transactions";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View the Shopify payment transactions for this shop.';
+            }
+            action(Payouts)
+            {
+                ApplicationArea = All;
+                Caption = 'Payouts';
+                Image = PaymentHistory;
+                Promoted = true;
+                PromotedCategory = Category4;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                RunObject = page "Shpfy Payouts";
+                RunPageLink = "Shop Code" = field(Code);
+                ToolTip = 'View the Shopify payouts for this shop.';
+            }
         }
         area(Processing)
         {
@@ -1225,6 +1251,8 @@ page 30101 "Shpfy Shop Card"
         ApiVersion: Text;
         ApiVersionExpiryDate: Date;
         ScopeChangeConfirmLbl: Label 'The access scope of shop %1 for the Shopify connector has changed. Do you want to request a new access token?', Comment = '%1 - Shop Code';
+        RefreshTokenExpiredNotificationLbl: Label 'The connection to Shopify shop %1 has expired. Reconnect the shop to continue synchronizing.', Comment = '%1 - Shop Code';
+        ReconnectActionLbl: Label 'Reconnect';
         ConnectionSuccessfulMsg: Label 'Connection successful.';
         ConnectionAndWebhooksSuccessfulMsg: Label 'Connection successful and auto synchronize orders is configured correctly.';
         OrderCreatedWebhookNotConfiguredMsg: Label 'Connection successful, but auto synchronize orders is misconfigured. Reactivate Auto Sync Orders setting.';
@@ -1235,6 +1263,7 @@ page 30101 "Shpfy Shop Card"
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         ShopReview: Codeunit "Shpfy Shop Review";
+        RefreshTokenExpiredNotification: Notification;
         ApiVersionExpiryDateTime: DateTime;
     begin
         FeatureTelemetry.LogUptake('0000HUU', 'Shopify', Enum::"Feature Uptake Status"::Discovered);
@@ -1257,6 +1286,13 @@ page 30101 "Shpfy Shop Card"
             Rec.UpdateFulfillmentService();
 #endif
             ShopReview.MaybeShowReviewReminder(Rec.GetStoreName());
+
+            if AuthenticationMgt.IsRefreshTokenExpired(Rec.GetStoreName()) then begin
+                RefreshTokenExpiredNotification.Message(StrSubstNo(RefreshTokenExpiredNotificationLbl, Rec.Code));
+                RefreshTokenExpiredNotification.SetData('ShopCode', Rec.Code);
+                RefreshTokenExpiredNotification.AddAction(ReconnectActionLbl, Codeunit::"Shpfy Authentication Mgt.", 'ReconnectFromNotification');
+                RefreshTokenExpiredNotification.Send();
+            end;
         end;
     end;
 

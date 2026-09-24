@@ -8,6 +8,7 @@ report 1105 "Resource Statistics"
 {
     ApplicationArea = Jobs;
     Caption = 'Resource Statistics';
+    ToolTip = 'View detailed, historical information for the resource.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

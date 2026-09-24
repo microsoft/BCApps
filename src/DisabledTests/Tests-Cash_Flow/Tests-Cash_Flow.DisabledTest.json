@@ -420,6 +420,16 @@
     "method": "TestMatrix9_2"
   },
   {
+    "codeunitId": 134557,
+    "codeunitName": "ERM Cash Flow UnitTests",
+    "method": "TestConsiderCFPaymentTermsCheckboxOnCFCardIsNotVisibleAndNotEditable"
+  },
+  {
+    "codeunitId": 134557,
+    "codeunitName": "ERM Cash Flow UnitTests",
+    "method": "TestConsiderCFPaymentTermsCheckboxOnCFListIsNotVisibleAndNotEditable"
+  },
+  {
     "codeunitId": 134558,
     "codeunitName": "ERM Cash Flow Pages",
     "method": "CashFlowJournalScenario"

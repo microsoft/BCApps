@@ -12,6 +12,7 @@ report 409 "Purchase Reservation Avail."
 {
     ApplicationArea = Reservation;
     Caption = 'Purchase Reservation Avail.';
+    ToolTip = 'Print, view, or save a list of the availability of items for shipment on purchase documents, for example credit memos.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

@@ -339,9 +339,9 @@ table 1513 "Notification Schedule"
         DummyNotificationSetup: Record "Notification Setup";
     begin
         if not DummySentNotificationEntry.WritePermission() then
-            Error(NoPermissionsErr, WritePermissionTok, DummySentNotificationEntry.TableName());
+            Error(NoPermissionsErr, WritePermissionTok, DummySentNotificationEntry.TableCaption());
         if not DummyNotificationSetup.ReadPermission() then
-            Error(NoPermissionsErr, ReadPermissionTok, DummyNotificationSetup.TableName());
+            Error(NoPermissionsErr, ReadPermissionTok, DummyNotificationSetup.TableCaption());
     end;
 
     procedure ScheduleNotification(NotificationEntry: Record "Notification Entry")

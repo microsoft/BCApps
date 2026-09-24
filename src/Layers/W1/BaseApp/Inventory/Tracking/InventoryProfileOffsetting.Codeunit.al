@@ -96,6 +96,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
         NextStateTxt: Label 'StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop';
         NextState: Option StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop;
         LotAccumulationPeriodStartDate: Date;
+        SimulationMode: Boolean;
         PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
 
@@ -137,6 +138,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
         CommitTracking();
 
         OnAfterCalculatePlanFromWorksheet(Item);
+    end;
+
+    internal procedure SetSimulationMode(NewSimulationMode: Boolean)
+    begin
+        SimulationMode := NewSimulationMode;
     end;
 
     local procedure InitVariables(var InventoryProfile: Record "Inventory Profile"; Item: Record Item; TemplateName: Code[10]; WorksheetName: Code[10]; MRPPlanning: Boolean)
@@ -2609,28 +2615,32 @@ codeunit 99000854 "Inventory Profile Offsetting"
             then begin
                 AdjustTransferDates(ReqLine);
                 if ReqLine."Action Message" = ReqLine."Action Message"::New then begin
-                    CurrentSupplyInvtProfile.Copy(SupplyInvtProfile);
+                    IsHandled := false;
+                    OnMaintainPlanningLineOnBeforeCreateDemandInvtProfileForTransfer(ReqLine, SupplyInvtProfile, TempTrkgReservEntry, LineNo, IsHandled);
+                    if not IsHandled then begin
+                        CurrentSupplyInvtProfile.Copy(SupplyInvtProfile);
 
-                    SupplyInvtProfile.Reset();
-                    SupplyInvtProfile.SetSourceFilter(
-                      Database::"Requisition Line", 1, ReqLine."Worksheet Template Name", ReqLine."Line No.", ReqLine."Journal Batch Name", 0);
-                    SupplyInvtProfile.SetTrackingFilter(CurrentSupplyInvtProfile);
-                    if not SupplyInvtProfile.FindFirst() then begin
-                        SupplyInvtProfile.Init();
-                        SupplyInvtProfile."Line No." := GetNextLineNo();
-                        SupplyInvtProfile."Item No." := ReqLine."No.";
-                        SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
-                        SupplyInvtProfile.CopyTrackingFromInvtProfile(CurrentSupplyInvtProfile);
-                        if SupplyInvtProfile.IsSupply then
-                            SupplyInvtProfile.ChangeSign();
-                        OnMaintainPlanningLineOnBeforeSupplyInvtProfileInsert(SupplyInvtProfile, CurrentSupplyInvtProfile);
-                        SupplyInvtProfile.Insert();
-                    end else begin
-                        SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
-                        SupplyInvtProfile.Modify();
+                        SupplyInvtProfile.Reset();
+                        SupplyInvtProfile.SetSourceFilter(
+                          Database::"Requisition Line", 1, ReqLine."Worksheet Template Name", ReqLine."Line No.", ReqLine."Journal Batch Name", 0);
+                        SupplyInvtProfile.SetTrackingFilter(CurrentSupplyInvtProfile);
+                        if not SupplyInvtProfile.FindFirst() then begin
+                            SupplyInvtProfile.Init();
+                            SupplyInvtProfile."Line No." := GetNextLineNo();
+                            SupplyInvtProfile."Item No." := ReqLine."No.";
+                            SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
+                            SupplyInvtProfile.CopyTrackingFromInvtProfile(CurrentSupplyInvtProfile);
+                            if SupplyInvtProfile.IsSupply then
+                                SupplyInvtProfile.ChangeSign();
+                            OnMaintainPlanningLineOnBeforeSupplyInvtProfileInsert(SupplyInvtProfile, CurrentSupplyInvtProfile);
+                            SupplyInvtProfile.Insert();
+                        end else begin
+                            SupplyInvtProfile.TransferFromOutboundTransfPlan(ReqLine, TempItemTrkgEntry);
+                            SupplyInvtProfile.Modify();
+                        end;
+
+                        SupplyInvtProfile.Copy(CurrentSupplyInvtProfile);
                     end;
-
-                    SupplyInvtProfile.Copy(CurrentSupplyInvtProfile);
                 end else
                     SynchronizeTransferProfiles(SupplyInvtProfile, ReqLine);
             end;
@@ -2858,8 +2868,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
             UpdateReqLineQuantity(SupplyInventoryProfile);
             UpdateReqLineOriginalQuantity(SupplyInventoryProfile);
             ReqLine."Net Quantity (Base)" :=
-              (ReqLine."Remaining Quantity" - ReqLine."Original Quantity") *
-              ReqLine."Qty. per Unit of Measure";
+              ReqLine."Remaining Qty. (Base)" - ReqLine."Original Quantity" * ReqLine."Qty. per Unit of Measure";
             OnAdjustPlanLineAfterValidateQuantity(ReqLine, SupplyInventoryProfile);
         end;
         UpdateOriginalDueDate(SupplyInventoryProfile);
@@ -2901,6 +2910,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     local procedure UpdateReqLineQuantity(var SupplyInventoryProfile: Record "Inventory Profile")
     var
+        QtyRoundingPrecisionBase: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2911,6 +2921,17 @@ codeunit 99000854 "Inventory Profile Offsetting"
         ReqLine.Validate(
             Quantity,
             Round(SupplyInventoryProfile."Remaining Quantity (Base)" / SupplyInventoryProfile."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
+
+        QtyRoundingPrecisionBase := ReqLine."Qty. Rounding Precision (Base)";
+        if QtyRoundingPrecisionBase = 0 then
+            QtyRoundingPrecisionBase := UOMMgt.QtyRndPrecision();
+        if Abs(ReqLine."Quantity (Base)" - SupplyInventoryProfile."Remaining Quantity (Base)") <=
+            (SupplyInventoryProfile."Qty. per Unit of Measure" * UOMMgt.QtyRndPrecision() + QtyRoundingPrecisionBase) / 2
+        then
+            if ReqLine."Quantity (Base)" <> SupplyInventoryProfile."Remaining Quantity (Base)" then begin
+                ReqLine."Remaining Qty. (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
+                ReqLine."Quantity (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
+            end;
     end;
 
     local procedure UpdateReqLineOriginalQuantity(var SupplyInventoryProfile: Record "Inventory Profile")
@@ -4167,9 +4188,12 @@ codeunit 99000854 "Inventory Profile Offsetting"
         AcceptActionMsg: Boolean;
         IsHandled: Boolean;
     begin
-        ReqWkshTempl.Get(CurrTemplateName);
-        if ReqWkshTempl.Type <> ReqWkshTempl.Type::Planning then
-            exit;
+        if not SimulationMode then begin
+            ReqWkshTempl.Get(CurrTemplateName);
+            if ReqWkshTempl.Type <> ReqWkshTempl.Type::Planning then
+                exit;
+        end;
+
         ReqLine.SetCurrentKey("Worksheet Template Name", "Journal Batch Name", Type, "No.");
         ReqLine.SetRange("Worksheet Template Name", CurrTemplateName);
         ReqLine.SetRange("Journal Batch Name", CurrWorksheetName);
@@ -5426,6 +5450,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     [IntegrationEvent(false, false)]
     local procedure OnMaintainPlanningLineOnAfterLineCreated(var SupplyInvtProfile: Record "Inventory Profile"; var RequisitionLine: Record "Requisition Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMaintainPlanningLineOnBeforeCreateDemandInvtProfileForTransfer(var RequisitionLine: Record "Requisition Line"; var SupplyInventoryProfile: Record "Inventory Profile"; var TempTrackingReservationEntry: Record "Reservation Entry" temporary; var InventoryProfileLineNo: Integer; var IsHandled: Boolean)
     begin
     end;
 

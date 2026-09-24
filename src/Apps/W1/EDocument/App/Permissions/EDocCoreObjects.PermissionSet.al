@@ -18,6 +18,8 @@ using Microsoft.EServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.eServices.EDocument.Service.Participant;
 
@@ -53,6 +55,9 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
+        table "E-Document Message" = X,
+        table "E-Doc. Payment Occurrence" = X,
+        table "E-Doc. External Reference" = X,
 #if not CLEAN28
 #pragma warning disable AL0432
         table "EDoc Historical Matching Setup" = X,
@@ -100,6 +105,12 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. PO Copilot Matching" = X,
 #endif
         codeunit "E-Doc. Attachment Processor" = X,
+        codeunit "E-Doc. Hist. Line Data Loader" = X,
+        codeunit "E-Doc. Message Context" = X,
+        codeunit "E-Doc. Message Mgt." = X,
+        codeunit "E-Doc. Msg. Transport Default" = X,
+        codeunit "E-Doc. Payment Occ. Dispatcher" = X,
+        codeunit "E-Doc. Payment Occ. Runner" = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
         page "E-Doc. Changes Preview" = X,
@@ -130,6 +141,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "Service Participants" = X,
         page "E-Doc. Create Purch Order Line" = X,
         page "E-Doc. Purchase Draft Subform" = X,
+        page "E-Doc. Historical Lines List" = X,
         page "E-Doc. Read. Purch. Lines" = X,
         page "E-Doc. Readable Purchase Doc." = X,
         page "E-Document Purchase Draft" = X,
@@ -139,6 +151,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "Inbound E-Documents" = X,
         page "Outbound E-Doc. Factbox" = X,
         page "Outbound E-Documents" = X,
+        page "E-Document Messages FactBox" = X,
         codeunit ActionContext = X,
         codeunit "Consent Manager Default Impl." = X,
         codeunit "Download Document" = X,
@@ -164,10 +177,13 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. Sales Providers" = X,
         codeunit "E-Doc. Create Sales Order" = X,
         codeunit "E-Doc. Sales Doc. Helper" = X,
+        codeunit "E-Doc. Item Charge Mapping" = X,
         codeunit "Receive Documents" = X,
         codeunit ReceiveContext = X,
         codeunit "Send Runner" = X,
         codeunit SendContext = X,
         codeunit "Sent Document Approval" = X,
-        codeunit "Sent Document Cancellation" = X;
+        codeunit "Sent Document Cancellation" = X,
+        codeunit "E-Doc. Remittance Advice Mgt." = X,
+        codeunit "E-Doc. Remit. Advice Export" = X;
 }

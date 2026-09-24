@@ -29,6 +29,21 @@ page 6784 "Wthldg. Tax Bus. Post. Group"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a description for the Withholding tax business posting group.';
                 }
+                field("Party Applicability"; Rec."Party Applicability")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies which party types this business posting group applies to, such as Vendor, Employee, or both.';
+                }
+                field("Jurisdiction Code"; Rec."Jurisdiction Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the tax jurisdiction code for this business posting group. Used for jurisdiction-specific withholding tax rules.';
+                }
+                field("Default Certificate Type"; Rec."Default Certificate Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the default certificate type to assign to withholding tax entries created with this business posting group.';
+                }
             }
         }
     }

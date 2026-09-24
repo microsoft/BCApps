@@ -23,6 +23,7 @@ report 198 "Date Compress Customer Ledger"
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "Cust. Ledger Entry" = rimd,
                   TableData "G/L Register" = rimd,
+                  TableData "G/L Transaction" = rimd,
                   TableData "Date Compr. Register" = rimd,
                   TableData "Reminder/Fin. Charge Entry" = rimd,
                   TableData "Dimension Set ID Filter Line" = rimd,

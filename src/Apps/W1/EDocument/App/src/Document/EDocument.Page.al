@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
@@ -218,6 +219,12 @@ page 6121 "E-Document"
                 Enabled = Rec.Direction = Rec.Direction::Outgoing;
                 Visible = Rec.Direction = Rec.Direction::Outgoing;
             }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                Caption = 'Messages';
+                SubPageLink = "E-Document Entry No." = field("Entry No");
+                ShowFilter = false;
+            }
         }
     }
     actions
@@ -301,6 +308,19 @@ page 6121 "E-Document"
                             EDocumentErrorHelper.ClearErrorMessages(Rec);
                             EDocIntegrationManagement.GetCancellationStatus(Rec, EDocService, ActionContext);
                         end
+                    end;
+                }
+                action(RejectOrder)
+                {
+                    Caption = 'Reject Order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Reject;
+                    Visible = IsIncomingDoc;
+
+                    trigger OnAction()
+                    begin
+                        EDocumentHelper.SendOrderRejection(Rec);
                     end;
                 }
                 action(ViewFile)
@@ -498,6 +518,13 @@ page 6121 "E-Document"
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
                 ObsoleteTag = '29.0';
+
+                trigger OnAction()
+                var
+                    EDocOrderMatch: Codeunit "E-Doc. Line Matching";
+                begin
+                    EDocOrderMatch.RunMatching(Rec);
+                end;
             }
 #endif
         }

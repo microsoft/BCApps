@@ -5,8 +5,6 @@
 
 namespace System.MCP;
 
-using System.Reflection;
-
 codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
 {
     Access = Internal;
@@ -20,7 +18,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
     procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        PageMetadata: Record "Page Metadata";
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
         MCPUtilities: Codeunit "MCP Utilities";
         PageIdVersions: Dictionary of [Integer, Text];
         ParentMCPTools: Dictionary of [Integer, List of [Integer]];
@@ -37,9 +35,8 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
             exit;
 
         repeat
-            if PageMetadata.Get(MCPConfigurationTool."Object ID") then
-                if PageMetadata.PageType = PageMetadata.PageType::API then
-                    PageIdVersions.Add(MCPConfigurationTool."Object ID", MCPConfigurationTool."API Version");
+            if MCPConfigImplementation.IsAPIPage(MCPConfigurationTool."Object ID") then
+                PageIdVersions.Add(MCPConfigurationTool."Object ID", MCPConfigurationTool."API Version");
         until MCPConfigurationTool.Next() = 0;
 
         // Get parent mappings from platform

@@ -327,7 +327,6 @@ page 5087 "Campaign List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Campaign - Details";
-                ToolTip = 'Show detailed information about the campaign.';
             }
         }
         area(Promoted)

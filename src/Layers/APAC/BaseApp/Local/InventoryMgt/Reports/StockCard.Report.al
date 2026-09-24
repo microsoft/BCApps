@@ -330,13 +330,16 @@ report 14311 "Stock Card"
                    (Item."Costing Method" = Item."Costing Method"::Specific)
                 then begin
                     if "Item Ledger Entry".Quantity > 0 then begin
+                        ValueEntry.Reset();
                         ValueEntry.SetRange("Item Ledger Entry No.", "Item Ledger Entry"."Entry No.");
                         ValueEntry.SetFilter("Invoiced Quantity", '<>0');
-                        if not ValueEntry.FindFirst() then
-                            ValueEntry.Init();
+                        ValueEntry.CalcSums("Invoiced Quantity", "Cost Amount (Actual)");
                         ReceivedQty := ValueEntry."Invoiced Quantity";
-                        ReceivedCost := ValueEntry."Cost per Unit";
-                        Amount := ReceivedQty * ReceivedCost;
+                        Amount := ValueEntry."Cost Amount (Actual)";
+                        if ReceivedQty <> 0 then
+                            ReceivedCost := Amount / ReceivedQty
+                        else
+                            ReceivedCost := 0;
                         BalanceQty := OpeningStock + ReceivedQty;
                         TotalBalanceAmount := OpeningStockAmount + Amount;
                         OpeningStock := BalanceQty;
@@ -357,13 +360,16 @@ report 14311 "Stock Card"
                     end;
                 end else
                     if "Item Ledger Entry".Quantity > 0 then begin
+                        ValueEntry.Reset();
                         ValueEntry.SetRange("Item Ledger Entry No.", "Item Ledger Entry"."Entry No.");
                         ValueEntry.SetFilter("Invoiced Quantity", '<>0');
-                        if not ValueEntry.FindFirst() then
-                            ValueEntry.Init();
+                        ValueEntry.CalcSums("Invoiced Quantity", "Cost Amount (Actual)");
                         ReceivedQty := ValueEntry."Invoiced Quantity";
-                        ReceivedCost := ValueEntry."Cost per Unit";
-                        Amount := ReceivedQty * ReceivedCost;
+                        Amount := ValueEntry."Cost Amount (Actual)";
+                        if ReceivedQty <> 0 then
+                            ReceivedCost := Amount / ReceivedQty
+                        else
+                            ReceivedCost := 0;
                         BalanceQty := OpeningStock + ReceivedQty;
                         TotalBalanceAmount := OpeningStockAmount + Amount;
                         OpeningStock := BalanceQty;

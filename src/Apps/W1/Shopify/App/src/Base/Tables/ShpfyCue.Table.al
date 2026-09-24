@@ -26,13 +26,13 @@ table 30100 "Shpfy Cue"
         }
         field(2; "Unmapped Customers"; Integer)
         {
-            CalcFormula = count("Shpfy Customer" where("Customer No." = const('')));
+            CalcFormula = count("Shpfy Customer" where("Customer SystemId" = const('00000000-0000-0000-0000-000000000000')));
             Caption = 'Unmapped Customers';
             FieldClass = FlowField;
         }
         field(3; "Unmapped Products"; Integer)
         {
-            CalcFormula = count("Shpfy Product" where("Item No." = const('')));
+            CalcFormula = count("Shpfy Product" where("Item SystemId" = const('00000000-0000-0000-0000-000000000000')));
             Caption = 'Unmapped Products';
             FieldClass = FlowField;
         }
@@ -81,8 +81,20 @@ table 30100 "Shpfy Cue"
         }
         field(9; "Unmapped Companies"; Integer)
         {
-            CalcFormula = count("Shpfy Company" where("Customer No." = const('')));
+            CalcFormula = count("Shpfy Company" where("Customer SystemId" = const('00000000-0000-0000-0000-000000000000')));
             Caption = 'Unmapped Companies';
+            FieldClass = FlowField;
+        }
+        field(10; "Skipped Records"; Integer)
+        {
+            CalcFormula = count("Shpfy Skipped Record");
+            Caption = 'Skipped Records';
+            FieldClass = FlowField;
+        }
+        field(11; "API Errors"; Integer)
+        {
+            CalcFormula = count("Shpfy Log Entry" where("Has Error" = const(true)));
+            Caption = 'API Errors';
             FieldClass = FlowField;
         }
     }

@@ -14,6 +14,7 @@ report 99000791 "Production Order Statistics"
     AdditionalSearchTerms = 'material cost,capacity cost,material overhead';
     ApplicationArea = Manufacturing;
     Caption = 'Production Order Statistics';
+    ToolTip = 'View statistical information about the production order''s direct material and capacity costs and overhead as well as its capacity need in the time unit of measure.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = ProdOrderStatisticsExcel;
 

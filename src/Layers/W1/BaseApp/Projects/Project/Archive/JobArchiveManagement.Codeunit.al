@@ -47,6 +47,8 @@ codeunit 5139 "Job Archive Management"
                 StoreJob(Job, false);
             JobSetup."Archive Jobs"::Question:
                 ArchiveJob(Job);
+            else
+                OnAutoArchiveJobOnCaseElse(Job, JobSetup);
         end;
     end;
 
@@ -538,6 +540,11 @@ codeunit 5139 "Job Archive Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteJobTasks(var JobTask: Record "Job Task"; var JobTaskDimension: Record "Job Task Dimension"; var JobPlanningLine: Record "Job Planning Line"; var JobArchive: Record "Job Archive"; Job: Record Job)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAutoArchiveJobOnCaseElse(var Job: Record Job; JobsSetup: Record "Jobs Setup")
     begin
     end;
 }

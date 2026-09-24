@@ -107,9 +107,9 @@ codeunit 134648 "O365 S. Quote Type Lookup Test"
         SalesQuote.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.Type::Item));
 
         // [WHEN] Setting the Subtype on the Sales Line to co
-        SalesQuote.SalesLines.FilteredTypeField.SetValue(CopyStr(Format(SalesLine.FormatType()), 1, 2));
+        SalesQuote.SalesLines.FilteredTypeField.SetValue(CopyStr(Format(SalesLine.FormatTypeAsText()), 1, 2));
         // [THEN] The Subtype is set to Comment
-        SalesQuote.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatType());
+        SalesQuote.SalesLines.FilteredTypeField.AssertEquals(SalesLine.FormatTypeAsText());
     end;
 
     [Test]
@@ -128,12 +128,12 @@ codeunit 134648 "O365 S. Quote Type Lookup Test"
         // [WHEN] Setting the Subtype on the Sales Line to ' '
         SalesQuote.SalesLines.FilteredTypeField.SetValue(' ');
         // [THEN] The Subtype is set to Blank
-        SalesQuote.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.FormatType()));
+        SalesQuote.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.FormatTypeAsText()));
 
         // [WHEN] Setting the Subtype on the Sales Line to ''
         SalesQuote.SalesLines.FilteredTypeField.SetValue('');
         // [THEN] The Subtype is set to Blank
-        SalesQuote.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.FormatType()));
+        SalesQuote.SalesLines.FilteredTypeField.AssertEquals(Format(SalesLine.FormatTypeAsText()));
     end;
 
     [Test]

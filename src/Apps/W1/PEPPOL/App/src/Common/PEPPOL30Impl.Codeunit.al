@@ -54,7 +54,55 @@ codeunit 37201 "PEPPOL30 Impl."
         PaymentDisAmtTxt: Label 'Payment Discount Amount';
         AllowanceChargePaymentDiscountReasonCodeTxt: Label '95', Locked = true;
         FileNameTok: Label '%1_%2.pdf', Comment = '1: Document Type, 2: Document No', Locked = true;
+        GLNSchemeIDTxt: Label '0088', Locked = true;
+        CreditTransferPaymentMeansCodeTxt: Label '31', Locked = true;
+        CheckPaymentMeansCodeTxt: Label '20', Locked = true;
 
+    procedure GetPayeePartyInfo(Vendor: Record Vendor; var PayeeEndpointID: Text; var PayeeSchemeID: Text; var PayeePartyName: Text)
+    begin
+        if Vendor.GLN <> '' then begin
+            PayeeEndpointID := Vendor.GLN;
+            PayeeSchemeID := GLNSchemeIDTxt;
+        end else begin
+            PayeeEndpointID := Vendor."VAT Registration No.";
+            PayeeSchemeID := '';
+        end;
+        PayeePartyName := Vendor.Name;
+    end;
+
+    procedure GetPaymentMeansInfo(RemitAdviceBuffer: Record "Remit. Advice Buffer" temporary; var PaymentMeansCode: Text; var PayeeFinancialAccountID: Text)
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        case RemitAdviceBuffer."Bank Payment Type" of
+            RemitAdviceBuffer."Bank Payment Type"::"Electronic Payment", RemitAdviceBuffer."Bank Payment Type"::"Electronic Payment-IAT":
+                PaymentMeansCode := CreditTransferPaymentMeansCodeTxt;
+            RemitAdviceBuffer."Bank Payment Type"::"Computer Check", RemitAdviceBuffer."Bank Payment Type"::"Manual Check":
+                PaymentMeansCode := CheckPaymentMeansCodeTxt;
+            else
+                PaymentMeansCode := '';
+        end;
+
+        PayeeFinancialAccountID := '';
+        if PaymentMeansCode = '' then
+            exit;
+
+        if RemitAdviceBuffer."Recipient Bank Account" = '' then
+            exit;
+        if not VendorBankAccount.Get(RemitAdviceBuffer."Vendor No.", RemitAdviceBuffer."Recipient Bank Account") then
+            exit;
+
+        if VendorBankAccount.IBAN <> '' then
+            PayeeFinancialAccountID := VendorBankAccount.IBAN
+        else
+            PayeeFinancialAccountID := VendorBankAccount."Bank Account No.";
+    end;
+
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
+    begin
+        CustomizationID := '';
+        ProfileID := '';
+    end;
 
     procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
     var
@@ -1276,7 +1324,8 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += SalesLine."Line Amount";
             VATAmtLine.Modify();
-        end;
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, SalesLine."Line Amount");
     end;
 
     procedure GetTaxTotals(PurchaseLine: Record "Purchase Line"; var VATAmtLine: Record "VAT Amount Line")
@@ -1301,8 +1350,10 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += PurchaseLine."Line Amount";
             VATAmtLine.Modify();
-        end;
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, PurchaseLine."Line Amount");
     end;
+
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -1356,6 +1407,7 @@ codeunit 37201 "PEPPOL30 Impl."
             TempPurchaseLine.Insert();
         end;
     end;
+
     procedure GetTaxExemptionReason(var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
     begin
         TaxExemptionReasonTxt := '';
@@ -1592,6 +1644,7 @@ codeunit 37201 "PEPPOL30 Impl."
         end;
         exit(false);
     end;
+
     procedure TransferHeaderToSalesHeader(FromRecord: Variant; var ToSalesHeader: Record "Sales Header")
     var
         ToRecord: Variant;
@@ -1798,5 +1851,18 @@ codeunit 37201 "PEPPOL30 Impl."
         CountrySubentity := PurchaseHeader."Ship-to County";
         IdentificationCode := GetCountryISOCode(PurchaseHeader."Ship-to Country/Region Code");
         ListID := GetISO3166_1Alpha2();
+    end;
+
+    local procedure InsertZeroAmountVATAmtLine(var VATAmtLine: Record "VAT Amount Line"; LineAmount: Decimal)
+    begin
+        VATAmtLine.Validate(Positive, LineAmount >= 0);
+        if VATAmtLine.Find() then begin
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Modify();
+        end else begin
+            VATAmtLine."VAT Amount" := VATAmtLine."Amount Including VAT" - VATAmtLine."VAT Base";
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Insert();
+        end;
     end;
 }

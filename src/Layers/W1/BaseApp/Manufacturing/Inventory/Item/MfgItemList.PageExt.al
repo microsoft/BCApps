@@ -10,6 +10,7 @@ using Microsoft.Inventory.Reports;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000751 "Mfg. Item List" extends "Item List"
 {
@@ -102,7 +103,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Where-Used (Top Level)';
                     Image = "Report";
                     RunObject = Report Microsoft.Manufacturing.Reports."Where-Used (Top Level)";
-                    ToolTip = 'View where and in what quantities the item is used in the product structure. The report only shows information for the top-level item. For example, if item "A" is used to produce item "B", and item "B" is used to produce item "C", the report will show item B if you run this report for item A. If you run this report for item B, then item C will be shown as where-used.';
                 }
                 action("Quantity Explosion of BOM")
                 {
@@ -110,7 +110,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Quantity Explosion of BOM';
                     Image = "Report";
                     RunObject = Report Microsoft.Manufacturing.Reports."Quantity Explosion of BOM";
-                    ToolTip = 'View an indented BOM listing for the item or items that you specify in the filters. The production BOM is completely exploded for all levels.';
                 }
             }
             group(Costing)
@@ -123,7 +122,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Caption = 'Inventory Valuation - WIP';
                     Image = "Report";
                     RunObject = Report "Inventory Valuation - WIP";
-                    ToolTip = 'View inventory valuation for selected production orders in your WIP inventory. The report also shows information about the value of consumption, capacity usage and output in WIP. The printed report only shows invoiced amounts, that is, the cost of entries that have been posted as invoiced.';
                 }
                 action("Cost Shares Breakdown")
                 {
@@ -176,6 +174,23 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                 Caption = 'Compare Production Cost Shares';
                 Image = "Report";
                 RunObject = Report "Compare Production Cost Shares";
+            }
+        }
+        addafter("&Create Stockkeeping Unit")
+        {
+            action("Mfg. RunProdDefinition")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Production Definition';
+                Image = ProductionSetup;
+                ToolTip = 'Define or review the bill of materials and routing for this item using the Production Definition Wizard.';
+
+                trigger OnAction()
+                var
+                    ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                begin
+                    ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
+                end;
             }
         }
     }

@@ -13,6 +13,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 
@@ -24,6 +25,13 @@ permissionset 6105 "E-Doc. Core - User"
     IncludedPermissionSets = "E-Doc. Core - Read";
 
     Permissions =
+        codeunit "E-Document Message API" = X,
+        codeunit "E-Doc. Message Response Job" = X,
+        codeunit "E-Doc. Message Send Job" = X,
+        codeunit "E-Doc. Message Send Runner" = X,
+        codeunit "E-Doc. Payment Occ. Dispatcher" = X,
+        codeunit "E-Doc. Payment Occ. Runner" = X,
+        codeunit "E-Doc. Payment Occurrence Mgt." = X,
         tabledata "E-Document" = iMD,
     #region Service
         tabledata "E-Document Service" = im,
@@ -40,6 +48,9 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Document Log" = imd,
         tabledata "E-Doc. Data Storage" = imd,
         tabledata "E-Document Integration Log" = imd,
+        tabledata "E-Document Message" = imd,
+        tabledata "E-Doc. Payment Occurrence" = rimd,
+        tabledata "E-Doc. External Reference" = rimd,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = IMD,
         tabledata "E-Doc. Order Match" = IMD,

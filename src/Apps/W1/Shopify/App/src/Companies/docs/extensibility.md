@@ -31,10 +31,21 @@ are matched and updated on BC Customers. Three methods:
 - `UpdateTaxRegistrationId` -- writes a new tax ID to a BC Customer during
   company creation
 
-Two implementations: `ShpfyTaxRegistrationNo` (uses Customer."Registration No."
-from the Registration No. extension) and `ShpfyVATRegistrationNo` (uses
-Customer."VAT Registration No."). Selected via the "Shpfy Comp. Tax Id Mapping"
-enum on the Shop.
+The base app provides `ShpfyTaxRegistrationNo` (uses
+Customer."Registration Number") and `ShpfyVATRegistrationNo` (uses
+Customer."VAT Registration No."). Selected via the extensible
+"Shpfy Comp. Tax Id Mapping" enum on the Shop.
+
+*Updated: 2026-07-29 -- tax ID mapping can be extended by localizations such
+as the Belgian Enterprise No. mapping*
+
+Add another country-specific tax ID strategy by extending
+`Shpfy Comp. Tax Id Mapping` and implementing
+`Shpfy Tax Registration Id Mapping`. The same implementation is used when
+matching a Shopify Company Location to an existing BC Customer, creating or
+updating the BC Customer from Shopify, and exporting a BC Customer's tax ID
+back to the Shopify Company Location. This keeps localization-specific fields
+out of the company import/export code.
 
 ## Customizing company import
 
@@ -50,5 +61,10 @@ customize company-to-customer creation, implement a custom
 
 `ShpfyCompanyExport` pushes BC Customer data to existing Shopify companies.
 There are no company-specific events -- the export uses the same field-diff
-pattern as customer export. Customization is through the interfaces above
-or by modifying the company/location data after API retrieval.
+pattern as customer export. It resolves `Country/Region`.`ISO Code` before
+filtering `Shpfy Tax Area`, so custom county or tax-area data must use
+Shopify's ISO country code. Customization is through the interfaces above or
+by modifying the company/location data after API retrieval.
+
+*Updated: 2026-07-29 -- company export tax-area filtering now uses ISO country
+codes*

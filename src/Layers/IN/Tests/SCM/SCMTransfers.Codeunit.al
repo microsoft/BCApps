@@ -39,6 +39,7 @@
         IncorrectSNUndoneErr: Label 'The Serial No. of the item on the transfer shipment line that was undone was different from the SN on the corresponding transfer line.';
         ItemIsNotOnInventoryErr: Label 'Item %1 is not in inventory.', Locked = true;
         LocationCodeSameErr: Label 'Location Code must be same.';
+        NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
         NoOfLinesMustBeEqualErr: Label 'No. of Line Must Be Equal.';
         RoundingBalanceErr: Label 'This will cause the quantity and base quantity fields to be out of balance.';
         RoundingErr: Label 'is of lower precision than expected';
@@ -196,6 +197,32 @@
 
         // [THEN] The order can be fully shipped and received with no error
         ShipAndReceiveTransOrderFully(TransferHeader, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    [Scope('OnPrem')]
+    procedure UndoAlreadyUndoneTransferShipmentError()
+    var
+        TransferHeader: Record "Transfer Header";
+        QtyToShip: Integer;
+    begin
+        // [FEATURE] [Transfer] [Order] [Undo Shipment]
+        // [SCENARIO] Undoing an already-fully-reversed Transfer Shipment Line raises NoLinesToReverseErr.
+        Initialize();
+        QtyToShip := LibraryRandom.RandInt(10) + 1;
+
+        // [GIVEN] A shipped Transfer Order with one line
+        CreateAndShipTransferOrder(TransferHeader, QtyToShip, false, false);
+
+        // [GIVEN] The posted Transfer Shipment Line has been undone
+        LibraryInventory.UndoTransferShipments(TransferHeader."No.");
+
+        // [WHEN] Undo Transfer Shipment is invoked again on the same order (no non-correction lines remain)
+        asserterror LibraryInventory.UndoTransferShipments(TransferHeader."No.");
+
+        // [THEN] The error indicates that there are no lines with a quantity available for reversal
+        Assert.ExpectedError(NoLinesToReverseErr);
     end;
 
     [Test]

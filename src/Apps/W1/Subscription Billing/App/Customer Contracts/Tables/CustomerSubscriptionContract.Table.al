@@ -246,6 +246,10 @@ table 8052 "Customer Subscription Contract"
         {
             Caption = 'Your Reference';
         }
+        field(100; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+        }
         field(12; "Ship-to Code"; Code[10])
         {
             Caption = 'Ship-to Code';
@@ -1381,6 +1385,9 @@ table 8052 "Customer Subscription Contract"
                 "Sell-to Contact" := ''
             else
                 "Sell-to Contact" := Cont.Name;
+
+        "Sell-to Phone No." := Cont."Phone No.";
+        "Sell-to E-Mail" := Cont."E-Mail";
 
         if ("Sell-to Customer No." = "Bill-to Customer No.") or
            ("Bill-to Customer No." = '')
