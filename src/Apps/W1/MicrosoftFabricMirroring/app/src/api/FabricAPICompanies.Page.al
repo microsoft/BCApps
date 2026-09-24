@@ -42,7 +42,7 @@ page 48503 "Fabric API Companies"
     [ServiceEnabled]
     [Caption('Add a company to Fabric mirroring')]
     [Scope('Cloud')]
-    procedure Addcompany(NewCompanyName: Text[30]; var ActionContext: WebServiceActionContext)
+    procedure AddCompany(NewCompanyName: Text[30]; var ActionContext: WebServiceActionContext)
     var
         TenantFabricCompanies: Record "Tenant Fabric Companies";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";

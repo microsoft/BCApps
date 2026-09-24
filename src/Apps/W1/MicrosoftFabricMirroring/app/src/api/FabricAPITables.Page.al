@@ -57,7 +57,7 @@ page 48502 "Fabric API Tables"
     [ServiceEnabled]
     [Caption('Add a table to Fabric mirroring')]
     [Scope('Cloud')]
-    procedure Addtable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
+    procedure AddTable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";

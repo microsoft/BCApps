@@ -69,7 +69,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Enable Fabric mirroring')]
     [Scope('Cloud')]
-    procedure Enableexport(var ActionContext: WebServiceActionContext)
+    procedure EnableExport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
@@ -80,7 +80,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Start Fabric mirroring')]
     [Scope('Cloud')]
-    procedure Startexport(var ActionContext: WebServiceActionContext)
+    procedure StartExport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
@@ -91,7 +91,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Stop Fabric mirroring')]
     [Scope('Cloud')]
-    procedure Stopexport(var ActionContext: WebServiceActionContext)
+    procedure StopExport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
@@ -102,7 +102,7 @@ page 48507 "Fabric API Setup"
     [ServiceEnabled]
     [Caption('Disable Fabric mirroring')]
     [Scope('Cloud')]
-    procedure Disableexport(var ActionContext: WebServiceActionContext)
+    procedure DisableExport(var ActionContext: WebServiceActionContext)
     var
         FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
     begin
