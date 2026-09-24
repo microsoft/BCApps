@@ -1096,7 +1096,6 @@ report 20 "Calc. and Post VAT Settlement"
         PrintVATEntries: Boolean;
         NextVATEntryNo: BigInteger;
         LastVATEntryNo: BigInteger;
-        VATDate: Date;
         DocNo: Code[20];
         VATType: Enum "General Posting Type";
         VATAmount: Decimal;
