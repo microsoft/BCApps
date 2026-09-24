@@ -3388,7 +3388,10 @@ table 27 Item
                 exit(Item."No.");
         end;
 
-        Error(SelectItemErr);
+        IsHandled := false;
+        OnGetFirstItemNoFromLookupOnBeforeShowSelectItemError(ItemText, IsHandled);
+        if not IsHandled then
+            Error(SelectItemErr);
     end;
 
     procedure GetItemNo(ItemText: Text): Code[20]
@@ -4449,6 +4452,11 @@ table 27 Item
     /// <param name="IsHandled">Set to true to skip the default lookup logic and use the value in FoundItemNo.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetFirstItemNoFromLookup(ItemText: Text; var FoundItemNo: Code[20]; var SuppressAdvancedItemSearch: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetFirstItemNoFromLookupOnBeforeShowSelectItemError(ItemText: Text; var IsHandled: Boolean)
     begin
     end;
 }
