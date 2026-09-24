@@ -29,6 +29,9 @@ codeunit 133504 "SCM Costing Performance"
         OrderSelectionSubscriberFilter: Code[20];
         SelectionItemsForSubscriber: List of [Code[20]];
         SelectionReplacementItemNo: Code[20];
+        SharedInboundItemNo: Code[20];
+        SharedInboundVisits: Integer;
+        SharedInboundEntryNos: Dictionary of [Integer, Boolean];
 
     local procedure Initialize()
     var
@@ -40,6 +43,9 @@ codeunit 133504 "SCM Costing Performance"
         Clear(OrderSelectionSubscriberFilter);
         Clear(SelectionItemsForSubscriber);
         Clear(SelectionReplacementItemNo);
+        Clear(SharedInboundItemNo);
+        Clear(SharedInboundVisits);
+        Clear(SharedInboundEntryNos);
         // Lazy Setup.
         if isInitialized then
             exit;
@@ -53,6 +59,159 @@ codeunit 133504 "SCM Costing Performance"
 
         isInitialized := true;
         Commit();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SharedInboundCostInputsStayFresh()
+    var
+        Item: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ValueEntry: Record "Value Entry";
+        EntryCount: Integer;
+        Measurement: Text;
+    begin
+        // [SCENARIO] Sales sharing a receipt receive later item charges, and another adjustment is idempotent.
+        Initialize();
+        Measurement := MeasureSharedInboundCostInputs(Item, PurchRcptLine, 5, 2);
+        Assert.IsTrue(SharedInboundVisits > SharedInboundEntryNos.Count(),
+            'The fixture must exercise repeated inbound cost inputs. ' + Measurement);
+
+        PostSharedInboundItemCharge(PurchRcptLine, 1);
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        VerifySharedInboundCosts(Item, 5, 5);
+
+        ValueEntry.SetRange("Item No.", Item."No.");
+        EntryCount := ValueEntry.Count();
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        Assert.AreEqual(EntryCount, ValueEntry.Count(), 'An unchanged adjustment must not add value entries.');
+        VerifySharedInboundCosts(Item, 5, 5);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SharedInboundCostInputsAcrossFanOut()
+    var
+        Item: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        Initialize();
+        MeasureSharedInboundCostInputs(Item, PurchRcptLine, 5, 1);
+        MeasureSharedInboundCostInputs(Item, PurchRcptLine, 20, 1);
+        MeasureSharedInboundCostInputs(Item, PurchRcptLine, 20, 10);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SharedInboundCostInputsIncludeNegativeCorrection()
+    var
+        Item: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        Initialize();
+        MeasureSharedInboundCostInputs(Item, PurchRcptLine, 5, 2);
+
+        PostSharedInboundItemCharge(PurchRcptLine, -1);
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+
+        VerifySharedInboundCosts(Item, 5, 3);
+    end;
+
+    local procedure MeasureSharedInboundCostInputs(var Item: Record Item; var PurchRcptLine: Record "Purch. Rcpt. Line"; SaleCount: Integer; ChargeCount: Integer): Text
+    var
+        PurchaseHeader: Record "Purchase Header";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        InventorySetup: Record "Inventory Setup";
+        EntryIndex: Integer;
+        StatementsBefore: BigInteger;
+        RowsBefore: BigInteger;
+        StatementCount: BigInteger;
+        RowCount: BigInteger;
+        StartedAt: DateTime;
+        Elapsed: Duration;
+    begin
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        InventorySetup.Get();
+        InventorySetup.Validate("Automatic Cost Posting", false);
+        InventorySetup.Modify(true);
+        CreateItem(Item, Item."Costing Method"::FIFO);
+        LibraryPurchase.POSTPurchaseOrder(PurchaseHeader, Item, '', '', SaleCount + 1, WorkDate(), 2, true, true);
+        PurchRcptLine.Reset();
+        PurchRcptLine.SetRange("No.", Item."No.");
+        PurchRcptLine.FindLast();
+        for EntryIndex := 1 to SaleCount do
+            LibraryInventory.PostItemJournalLine(
+                ItemJournalBatch."Template Type"::Item, ItemJournalLine."Entry Type"::Sale, Item, '', '', '', 1, WorkDate(), 10);
+        for EntryIndex := 1 to ChargeCount do
+            PostSharedInboundItemCharge(PurchRcptLine, 1);
+
+        SharedInboundItemNo := Item."No.";
+        Clear(SharedInboundVisits);
+        Clear(SharedInboundEntryNos);
+        BindSubscription(this);
+        SelectLatestVersion();
+        StatementsBefore := SessionInformation.SqlStatementsExecuted();
+        RowsBefore := SessionInformation.SqlRowsRead();
+        StartedAt := CurrentDateTime();
+        LibraryCosting.AdjustCostItemEntries(Item."No.", '');
+        Elapsed := CurrentDateTime() - StartedAt;
+        RowCount := SessionInformation.SqlRowsRead() - RowsBefore;
+        StatementCount := SessionInformation.SqlStatementsExecuted() - StatementsBefore;
+        UnbindSubscription(this);
+
+        VerifySharedInboundCosts(Item, SaleCount, 2 + ChargeCount);
+        Assert.IsTrue(SharedInboundEntryNos.Count() >= ChargeCount + 1, 'Receipt and charge inputs must be observed.');
+        Assert.AreEqual(SaleCount * (ChargeCount + 1), SharedInboundVisits,
+            'The per-entry extension hook must observe every applicable receipt and charge input for every sale.');
+        exit(StrSubstNo('Sales=%1, charges=%2, SQL statements=%3, SQL rows=%4, source visits=%5, distinct inputs=%6, ms=%7; ',
+            SaleCount, ChargeCount, StatementCount, RowCount, SharedInboundVisits, SharedInboundEntryNos.Count(), Elapsed / 1));
+    end;
+
+    local procedure PostSharedInboundItemCharge(PurchRcptLine: Record "Purch. Rcpt. Line"; DirectUnitCost: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        DocumentType: Enum "Purchase Document Type";
+    begin
+        if DirectUnitCost < 0 then
+            DocumentType := PurchaseHeader."Document Type"::"Credit Memo"
+        else
+            DocumentType := PurchaseHeader."Document Type"::Invoice;
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, DocumentType, PurchRcptLine."Buy-from Vendor No.");
+        LibraryPurchase.AssignPurchChargeToPurchRcptLine(PurchaseHeader, PurchRcptLine, PurchRcptLine.Quantity, Abs(DirectUnitCost));
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    local procedure VerifySharedInboundCosts(var Item: Record Item; SaleCount: Integer; ExpectedUnitCost: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.AreEqual(SaleCount, ItemLedgerEntry.Count(), 'Sale entries');
+        ItemLedgerEntry.FindSet();
+        repeat
+            ItemLedgerEntry.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+            Assert.AreEqual(-ExpectedUnitCost, ItemLedgerEntry."Cost Amount (Actual)", 'Adjusted sale cost');
+            Assert.AreEqual(0, ItemLedgerEntry."Cost Amount (Expected)", 'Invoiced sale expected cost');
+        until ItemLedgerEntry.Next() = 0;
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.CalcSums("Cost Amount (Actual)", "Cost Amount (Expected)");
+        Assert.AreEqual(ExpectedUnitCost, ValueEntry."Cost Amount (Actual)", 'Remaining one-unit inventory value');
+        Assert.AreEqual(0, ValueEntry."Cost Amount (Expected)", 'Remaining expected inventory value');
+        LibraryCosting.CheckAdjustment(Item);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Adjustment", 'OnCalcInbndEntryAdjustedCostOnBeforeAddCost', '', false, false)]
+    local procedure CountSharedInboundCostInputs(var Item: Record Item; var InbndValueEntry: Record "Value Entry")
+    begin
+        if Item."No." <> SharedInboundItemNo then
+            exit;
+        SharedInboundVisits += 1;
+        if not SharedInboundEntryNos.ContainsKey(InbndValueEntry."Entry No.") then
+            SharedInboundEntryNos.Add(InbndValueEntry."Entry No.", true);
     end;
 
     [Test]
