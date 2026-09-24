@@ -1227,13 +1227,114 @@ codeunit 144035 "Test G/L Acc Sheet Reports"
         until GLEntry.Next() = 0;
     end;
 
+    [Test]
+    [HandlerFunctions('GLAccSheetFCYWithDateFilterRPH')]
+    procedure GLSheetForeignCurrIncludesOpeningBalanceWhenSourceCurrCodeBlank()
+    var
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccountSourceCurrency: Record "G/L Account Source Currency";
+        GLEntry: Record "G/L Entry";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        CurrencyCode: Code[10];
+        SecondCurrencyCode: Code[10];
+        OpeningBalanceFCY: Decimal;
+        SecondOpeningBalanceFCY: Decimal;
+        PeriodAmountFCY: Decimal;
+    begin
+        // [FEATURE] [SR G/L Acc Sheet Foreign Curr]
+        // [SCENARIO 651296] Report 11564 includes the FCY opening balance for a multiple-currency G/L Account.
+        Initialize();
+
+        // [GIVEN] A multiple-currency G/L Account with a blank Source Currency Code and two registered currencies.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(
+            CalcDate('<-1D>', WorkDate()), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+        SecondCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(
+            CalcDate('<-1D>', WorkDate()), LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Validate("Source Currency Posting", GLAccount."Source Currency Posting"::"Multiple Currencies");
+        GLAccount.Modify(true);
+
+        GLAccountSourceCurrency.Init();
+        GLAccountSourceCurrency."G/L Account No." := GLAccount."No.";
+        GLAccountSourceCurrency."Currency Code" := CurrencyCode;
+        GLAccountSourceCurrency.Insert();
+
+        GLAccountSourceCurrency.Init();
+        GLAccountSourceCurrency."G/L Account No." := GLAccount."No.";
+        GLAccountSourceCurrency."Currency Code" := SecondCurrencyCode;
+        GLAccountSourceCurrency.Insert();
+
+        LibraryERM.CreateGLAccount(BalGLAccount);
+
+        // [GIVEN] The additional reporting currency also has a rate before the report period.
+        GeneralLedgerSetup.Get();
+        LibraryERM.CreateExchangeRate(
+            GeneralLedgerSetup."Additional Reporting Currency", CalcDate('<-1D>', WorkDate()),
+            LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2));
+
+        // [GIVEN] An entry in the first source currency before the report period.
+        CreateGenJournalLine(
+            GenJournalLine, GLAccount, GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.",
+            LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode);
+        GenJournalLine.Validate("Posting Date", CalcDate('<-1D>', WorkDate()));
+        GenJournalLine.Validate("VAT Reporting Date", GenJournalLine."Posting Date");
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        OpeningBalanceFCY := GLEntry."Source Currency Amount";
+
+        // [GIVEN] An entry in the second source currency before the report period.
+        CreateGenJournalLine(
+            GenJournalLine, GLAccount, GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.",
+            LibraryRandom.RandIntInRange(1000, 2000), SecondCurrencyCode);
+        GenJournalLine.Validate("Posting Date", CalcDate('<-1D>', WorkDate()));
+        GenJournalLine.Validate("VAT Reporting Date", GenJournalLine."Posting Date");
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        SecondOpeningBalanceFCY := GLEntry."Source Currency Amount";
+
+        // [GIVEN] A foreign-currency entry within the report period.
+        CreateGenJournalLine(
+            GenJournalLine, GLAccount, GenJournalLine."Bal. Account Type"::"G/L Account", BalGLAccount."No.",
+            LibraryRandom.RandIntInRange(1000, 2000), CurrencyCode);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.FindFirst();
+        PeriodAmountFCY := GLEntry."Source Currency Amount";
+
+        // [WHEN] Run report 11564 for the period containing only the last entry.
+        GLAccount.SetRange("No.", GLAccount."No.");
+        LibraryVariableStorage.Enqueue(GLAccount."No.");
+        LibraryVariableStorage.Enqueue(Format(WorkDate()) + '..' + Format(WorkDate()));
+        LibraryVariableStorage.Enqueue(false);
+        RunSRGLAccSheetForeignCurrReport(GLAccount);
+
+        // [THEN] The FCY opening balance sums both source currencies posted before the period.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_GLAccount', GLAccount."No.");
+        LibraryReportDataset.SetRange('DocumentNo_GLEntry', GenJournalLine."Document No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals(
+            'FcyAcyBalanceFcyAcyAmt', OpeningBalanceFCY + SecondOpeningBalanceFCY);
+        LibraryReportDataset.AssertCurrentRowValueEquals(
+            'GLEntryFcyAcyBalance', OpeningBalanceFCY + SecondOpeningBalanceFCY + PeriodAmountFCY);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         GenJnlTemplate: Record "Gen. Journal Template";
     begin
         LibraryVariableStorage.Clear();
         GenJnlTemplate.DeleteAll(true);
-
         if isInitialised then
             exit;
 
