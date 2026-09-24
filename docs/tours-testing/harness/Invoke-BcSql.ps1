@@ -73,6 +73,12 @@ try {
 }
 
 $text  = ($raw | Out-String)
+
+# ⚠️ Strip ANSI SGR escapes before parsing. PowerShell colours the header and rule of formatted
+# output, and those escapes are INVISIBLE in a terminal but break any parser downstream - one tour
+# lost time to a "the oracle returned null" that was really an escape sequence inside the payload.
+$text  = [regex]::Replace($text, "`e\[[0-9;]*m", '')
+
 $start = $text.IndexOf('<<<BCSQL-JSON>>>')
 $end   = $text.IndexOf('<<<END-BCSQL-JSON>>>')
 if ($start -lt 0 -or $end -lt 0) {

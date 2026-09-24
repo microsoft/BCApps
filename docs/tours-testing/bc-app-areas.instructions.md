@@ -129,6 +129,17 @@ were true on build 30.0.54812.0-W1:
   So an arithmetic charter against Fixed Assets must **construct** every awkward case — and before
   planning one, check §5.8, because several of the fields those cases need ship
   `Visible = false`.
+- **Warehouse: `SILVER` is bin-mandatory with 38 bins** (`Bin Mandatory` = 1, `Directed` = 0), which
+  is exactly what `ItemJnlCheckLine.CheckBins` requires — `WHITE` is Directed and exits first.
+  `DROP SHIP` purchasing code ships too. Deferrals are the opposite: **zero** Deferral Templates,
+  Headers or Lines. Reminders ship 4 attachment text lines, **all Ending, zero Beginning**.
+  Vendor ledger entries: 210 Payments, 223 Invoices, and **zero Refunds or Credit Memos**.
+
+  ⚠️ **Scope a census claim to the procedure it was measured against.** "No CRONUS location reaches
+  the warehouse-availability code" was true of `CalcAvailableQtyBase` — which additionally needs
+  `Require Pick`/`Require Put-away` — and was then over-generalised into later charters as "no
+  bin-mandatory location exists". A tour that had believed it would have constructed a location it
+  already had. A census result is evidence about *one* query, not about the database.
 
 ## 5. Choosing tours by area
 
