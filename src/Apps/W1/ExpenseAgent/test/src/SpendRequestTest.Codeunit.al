@@ -1546,7 +1546,6 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure ApproverFilterReturnsDefaultApproverTravelRequests()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] The default approver sees requests without an explicit approval assignment.
         Initialize();
 
@@ -1556,7 +1555,6 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure DefaultApproverFilterQuotesWildcardUserNo()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] A literal wildcard user number must not expose another approver's requests.
         Initialize();
 
@@ -1566,7 +1564,6 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure DefaultApproverFilterQuotesPipeUserNo()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] A pipe in a user number must not become an OR filter for other users.
         Initialize();
 
@@ -1576,7 +1573,6 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure ApproverFilterQuotesExplicitWildcardUserNo()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] An explicitly assigned literal wildcard user must not expose another approver's requests.
         Initialize();
 
@@ -1586,7 +1582,6 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure ApproverFilterQuotesExplicitPipeUserNo()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] An explicitly assigned user with a pipe in its number must not expose another approver's requests.
         Initialize();
 
@@ -1608,7 +1603,6 @@ codeunit 148339 "Spend Request Test"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Adjacent approval setups must not expose a user between them who belongs to another default approver.
         Initialize();
 

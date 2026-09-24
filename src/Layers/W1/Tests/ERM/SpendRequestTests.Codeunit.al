@@ -348,7 +348,6 @@ codeunit 134242 "Spend Request Tests"
         FirstSpendRequestDetail: Record "Spend Request Detail";
         RemainingSpendRequestDetail: Record "Spend Request Detail";
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 646383] Real detail deletion applies each LCY delta exactly once without removing the other detail.
         Initialize();
 

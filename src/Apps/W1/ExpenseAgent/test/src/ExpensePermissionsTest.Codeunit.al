@@ -66,7 +66,6 @@ codeunit 148338 "Expense Permissions Test"
     [Test]
     procedure D365BasicCanUpdateTravelRequestDetailsIndirectly()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 646383] D365 BASIC applies successive detail amount deltas without direct header or detail writes.
         Initialize();
         VerifyTravelRequestDetailUpdateIndirectly(D365BasicPermissionSetTok);
@@ -75,7 +74,6 @@ codeunit 148338 "Expense Permissions Test"
     [Test]
     procedure ExpenseAgentCanUpdateTravelRequestDetailsIndirectly()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 646383] Expense Agent applies successive detail amount deltas without direct header or detail writes.
         Initialize();
         VerifyTravelRequestDetailUpdateIndirectly(ExpenseAgentPermissionSetTok);
@@ -92,7 +90,6 @@ codeunit 148338 "Expense Permissions Test"
         PermissionErrorCode: Text;
         PermissionErrorText: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 646383] A caller with only header read and indirect detail modify cannot update the header through an amount change.
         Initialize();
 
@@ -133,7 +130,6 @@ codeunit 148338 "Expense Permissions Test"
         ValidationErrorCode: Text;
         ValidationErrorText: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO 646383] Indirect header modification does not bypass the Open status guard.
         Initialize();
 
