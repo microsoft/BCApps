@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/b97c03d40c6f3d32a1e12a54a316c9a0d68c6261/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps ES",
     "country":  "ES",
     "appFolders":  [
@@ -7,8 +7,6 @@
                        "../../../src/Apps/ES/EDocumentES/demo data",
                        "../../../src/Apps/ES/EDocumentFormats/DocumentRegistration/app",
                        "../../../src/Apps/ES/EDocumentFormats/FacturaE/app",
-                       "../../../src/Apps/ES/ExpenseAgent_ES/app",
-                       "../../../src/Apps/ES/ExpenseAgent_ES/demo data",
                        "../../../src/Apps/ES/HybridBCLast_ES/app",
                        "../../../src/Apps/ES/IntrastatES/app",
                        "../../../src/Apps/ES/Onprem Permissions ES/app",
@@ -59,6 +57,7 @@
                        "../../../src/Apps/W1/ExciseTaxes/app",
                        "../../../src/Apps/W1/ExpenseAgent/app",
                        "../../../src/Apps/W1/ExpenseAgent/demo data",
+                       "../../../src/Apps/W1/ExpenseWithholdingTax/app",
                        "../../../src/Apps/W1/External File Storage - Azure Blob Service Connector/App",
                        "../../../src/Apps/W1/External File Storage - Azure File Service Connector/App",
                        "../../../src/Apps/W1/External File Storage - SFTP Connector/App",
@@ -164,6 +163,7 @@
                         "../../../src/Apps/W1/ExcelReports/Test",
                         "../../../src/Apps/W1/ExciseTaxes/test",
                         "../../../src/Apps/W1/ExpenseAgent/test",
+                        "../../../src/Apps/W1/External Storage - Document Attachments/Test",
                         "../../../src/Apps/W1/ExternalEvents/test",
                         "../../../src/Apps/W1/FieldServiceIntegration/test",
                         "../../../src/Apps/W1/FieldServiceIntegration/test library",

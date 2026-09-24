@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Setup;
 using System.Environment.Configuration;
 using System.Media;
 
-codeunit 99001502 "Subc. Business Setup Ext."
+codeunit 20502 "Subc. Business Setup Ext."
 {
     var
         AssistedSetupDescriptionLbl: Label 'Review company defaults and continue with the pages used to configure your subcontracting process.';

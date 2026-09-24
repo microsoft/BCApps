@@ -66,6 +66,59 @@ codeunit 134276 "Currency Exch. Rate Unit Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestResponseSizeRejectsOversizedPayload()
+    var
+        UpdateCurrencyExchangeRates: Codeunit "Update Currency Exchange Rates";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] An exchange-rate service response larger than the maximum allowed size is rejected before it is processed
+        Initialize();
+
+        // [GIVEN] A raw response body that exceeds the 10 MB cap
+        WriteRawResponseToTempBlob(TempBlob, 11000000);
+
+        // [THEN] The size check rejects it
+        asserterror UpdateCurrencyExchangeRates.CheckResponseSize(TempBlob);
+        Assert.ExpectedError('exceeded the maximum allowed size');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseSizeAcceptsWithinLimit()
+    var
+        UpdateCurrencyExchangeRates: Codeunit "Update Currency Exchange Rates";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] An exchange-rate service response within the maximum allowed size passes the size check
+        Initialize();
+
+        // [GIVEN] A raw response body within the 10 MB cap
+        WriteRawResponseToTempBlob(TempBlob, 1024);
+
+        // [THEN] The size check passes without error
+        UpdateCurrencyExchangeRates.CheckResponseSize(TempBlob);
+    end;
+
+    local procedure WriteRawResponseToTempBlob(var TempBlob: Codeunit "Temp Blob"; TargetCharCount: Integer)
+    var
+        OutStream: OutStream;
+        ChunkSize: Integer;
+        Remaining: Integer;
+    begin
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(OutStream);
+        Remaining := TargetCharCount;
+        while Remaining > 0 do begin
+            ChunkSize := Remaining;
+            if ChunkSize > 100000 then
+                ChunkSize := 100000;
+            OutStream.WriteText(PadStr('', ChunkSize, 'A'));
+            Remaining -= ChunkSize;
+        end;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure TestCurrencyCodeIsMandatoryField()
     var
         DataExch: Record "Data Exch.";

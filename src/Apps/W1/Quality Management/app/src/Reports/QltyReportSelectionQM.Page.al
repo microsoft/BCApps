@@ -91,6 +91,10 @@ page 20442 "Qlty. Report Selection - QM"
         SetUsageFilter(false);
     end;
 
+    /// <summary>
+    /// Saves the current record when requested and filters report selections to the selected quality usage.
+    /// </summary>
+    /// <param name="ModifyRec">Indicates whether to insert or modify the current record before applying the filter.</param>
     local procedure SetUsageFilter(ModifyRec: Boolean)
     begin
         if ModifyRec then

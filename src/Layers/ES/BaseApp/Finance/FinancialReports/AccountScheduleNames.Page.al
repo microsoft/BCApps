@@ -155,7 +155,6 @@ page 103 "Account Schedule Names"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
-                Visible = false;
                 action("Export Schedules to ASC format")
                 {
                     ApplicationArea = Basic, Suite;

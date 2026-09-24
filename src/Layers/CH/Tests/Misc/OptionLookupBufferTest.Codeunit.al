@@ -534,6 +534,36 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure BlanketSalesOrderSupportsLongLineTypeCaption()
+    var
+        Customer: Record Customer;
+        SalesLine: Record "Sales Line";
+        OptionLookupBufferTest: Codeunit "Option Lookup Buffer Test";
+        BlanketSalesOrder: TestPage "Blanket Sales Order";
+        LineTypeCaption: Text[30];
+    begin
+        // [SCENARIO 644921] A line type caption longer than 20 characters can be selected on a blanket sales order
+        Initialize();
+
+        // [GIVEN] A custom line type with a long caption and a blanket sales order
+        BindSubscription(OptionLookupBufferTest);
+        LineTypeCaption := Format(SalesLine.Type::Test_Custom1);
+        Assert.IsTrue(StrLen(LineTypeCaption) > 20, 'The test line type caption must be longer than 20 characters.');
+        LibrarySales.CreateCustomer(Customer);
+        BlanketSalesOrder.OpenNew();
+        BlanketSalesOrder."Sell-to Customer Name".SetValue(Customer.Name);
+
+        // [WHEN] Selecting the custom line type
+        BlanketSalesOrder.SalesLines.First();
+        BlanketSalesOrder.SalesLines.FilteredTypeField.SetValue(LineTypeCaption);
+
+        // [THEN] The complete caption is displayed
+        BlanketSalesOrder.SalesLines.FilteredTypeField.AssertEquals(LineTypeCaption);
+        BlanketSalesOrder.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SalesInvoiceSubtypeAutoComplete()
     var
         SalesLine: Record "Sales Line";

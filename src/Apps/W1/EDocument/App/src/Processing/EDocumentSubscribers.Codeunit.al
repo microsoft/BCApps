@@ -296,12 +296,12 @@ codeunit 6103 "E-Document Subscribers"
             exit;
         if PurchInvHdrNo <> '' then begin
             if PurchInvHeader.Get(PurchInvHdrNo) then begin
-                PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice");
+                PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice", PurchInvHeader."Posting Date");
                 CreateSelfBilledEDocument(CommitIsSupressed, PurchaseHeader."Buy-from Vendor No.", PurchInvHeader, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
             end;
         end else
             if PurchCrMemoHdr.Get(PurchCrMemoHdrNo) then begin
-                PointEDocumentToPostedDocument(PurchaseHeader, PurchCrMemoHdr, PurchCrMemoHdrNo, Enum::"E-Document Type"::"Purchase Credit Memo");
+                PointEDocumentToPostedDocument(PurchaseHeader, PurchCrMemoHdr, PurchCrMemoHdrNo, Enum::"E-Document Type"::"Purchase Credit Memo", PurchCrMemoHdr."Posting Date");
                 CreateSelfBilledEDocument(CommitIsSupressed, PurchaseHeader."Buy-from Vendor No.", PurchCrMemoHdr, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo");
             end;
     end;
@@ -613,6 +613,7 @@ codeunit 6103 "E-Document Subscribers"
     begin
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Service Data Exch. Def.");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Message");
 #if not CLEAN28
 #pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Documents Setup");
@@ -869,7 +870,7 @@ codeunit 6103 "E-Document Subscribers"
         Workflow.TestField(Enabled, true);
     end;
 
-    local procedure UpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
+    local procedure UpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type"; PostedDocumentPostingDate: Date)
     var
         EDocService: Record "E-Document Service";
         EDocumentLog: Codeunit "E-Document Log";
@@ -881,6 +882,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocument.Validate("Document Record ID", PostedSourceDocumentHeader.RecordId);
         EDocument."Document No." := PostedDocumentNo;
         EDocument."Document Type" := DocumentType;
+        EDocument."Posting Date" := PostedDocumentPostingDate;
         EDocument.Status := Enum::"E-Document Status"::Processed;
         EDocument.Modify(true);
 
@@ -940,13 +942,13 @@ codeunit 6103 "E-Document Subscribers"
         exit(EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport));
     end;
 
-    local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
+    local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type"; PostedDocumentPostingDate: Date)
     var
         EDocument: Record "E-Document";
     begin
         if IsEDocumentLinkedToPurchaseDocument(EDocument, OpenRecord) then begin
             EDocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
-            UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
+            UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType, PostedDocumentPostingDate);
             RemoveEDocumentLinkFromPurchaseDocument(OpenRecord);
         end;
     end;

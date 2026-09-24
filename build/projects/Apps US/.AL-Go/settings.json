@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/b97c03d40c6f3d32a1e12a54a316c9a0d68c6261/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps US",
     "country":  "US",
     "appFolders":  [
@@ -9,10 +9,9 @@
                        "../../../src/Apps/NA/MX_DIOT/app",
                        "../../../src/Apps/NA/Onprem Permissions NA/app",
                        "../../../src/Apps/NA/PEPPOLNA/app",
+                       "../../../src/Apps/NA/ShopifyNA/app",
                        "../../../src/Apps/US/ContosoCoffeeDemoDatasetUS/app",
                        "../../../src/Apps/US/EDocument_US/demo data",
-                       "../../../src/Apps/US/ExpenseAgent_US/app",
-                       "../../../src/Apps/US/ExpenseAgent_US/demo data",
                        "../../../src/Apps/US/HybridBCLast_US/app",
                        "../../../src/Apps/US/HybridGP_US/app",
                        "../../../src/Apps/US/HybridSL_US/app",
@@ -67,6 +66,7 @@
                        "../../../src/Apps/W1/ExciseTaxes/app",
                        "../../../src/Apps/W1/ExpenseAgent/app",
                        "../../../src/Apps/W1/ExpenseAgent/demo data",
+                       "../../../src/Apps/W1/ExpenseWithholdingTax/app",
                        "../../../src/Apps/W1/External File Storage - Azure Blob Service Connector/App",
                        "../../../src/Apps/W1/External File Storage - Azure File Service Connector/App",
                        "../../../src/Apps/W1/External File Storage - SFTP Connector/App",
@@ -143,6 +143,7 @@
     "testFolders":  [
                         "../../../src/Apps/NA/EnvestnetYodleeBankFeeds/test",
                         "../../../src/Apps/NA/MX_DIOT/test",
+                        "../../../src/Apps/NA/ShopifyNA/test",
                         "../../../src/Apps/US/HybridGP_US/test",
                         "../../../src/Apps/US/HybridSL_US/test",
                         "../../../src/Apps/US/IRS1096/test",
@@ -181,6 +182,7 @@
                         "../../../src/Apps/W1/ExcelReports/Test",
                         "../../../src/Apps/W1/ExciseTaxes/test",
                         "../../../src/Apps/W1/ExpenseAgent/test",
+                        "../../../src/Apps/W1/External Storage - Document Attachments/Test",
                         "../../../src/Apps/W1/ExternalEvents/test",
                         "../../../src/Apps/W1/FieldServiceIntegration/test",
                         "../../../src/Apps/W1/FieldServiceIntegration/test library",

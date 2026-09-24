@@ -6220,6 +6220,298 @@
         BankAccReconciliationLine.DisplayApplication();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackStartDateMath()
+    var
+        BankPmtApplSettings: Record "Bank Pmt. Appl. Settings";
+        ReferenceDate: Date;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] GetCandidateLookbackStartDate returns the earliest posting date to include, or 0D when not applicable.
+        Initialize();
+        ReferenceDate := DMY2Date(15, 6, 2026);
+
+        // [WHEN] Lookback is 0 [THEN] there is no lower bound
+        BankPmtApplSettings."Candidate Lookback (Days)" := 0;
+        Assert.AreEqual(0D, BankPmtApplSettings.GetCandidateLookbackStartDate(ReferenceDate), 'Zero lookback should not set a lower bound.');
+
+        // [WHEN] There is no reference date [THEN] there is no lower bound
+        BankPmtApplSettings."Candidate Lookback (Days)" := 30;
+        Assert.AreEqual(0D, BankPmtApplSettings.GetCandidateLookbackStartDate(0D), 'A missing reference date should not set a lower bound.');
+
+        // [WHEN] A positive lookback is configured [THEN] the bound is the reference date minus the configured days
+        Assert.AreEqual(
+          CalcDate('<-30D>', ReferenceDate), BankPmtApplSettings.GetCandidateLookbackStartDate(ReferenceDate),
+          'The lower bound should be the reference date minus the configured days.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackExcludesEntriesPostedBeforeWindow()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        Customer: Record Customer;
+        TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary;
+        MatchBankPayments: Codeunit "Match Bank Payments";
+        Amount: Decimal;
+        RecentEntryNo: Integer;
+        OldEntryNo: Integer;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] With a lookback configured, entries posted before the window are not loaded as candidates.
+        Initialize();
+
+        // [GIVEN] A customer with one recent and one old open invoice
+        CreateCustomer(Customer);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        RecentEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, WorkDate());
+        OldEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, CalcDate('<-400D>', WorkDate()));
+
+        // [GIVEN] A payment reconciliation line dated today and a 30 day lookback
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        CreateBankReconciliationLine(BankAccReconciliation, BankAccReconciliationLine, Amount, '', '');
+        SetCandidateLookbackDays(30);
+
+        // [WHEN] The customer candidate buffer is initialized
+        MatchBankPayments.InitializeCustomerLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer);
+
+        // [THEN] Only the entry posted within the lookback window is loaded
+        Assert.IsTrue(BufferHasEntry(TempLedgerEntryMatchingBuffer, RecentEntryNo), 'Entry posted within the lookback window should be a candidate.');
+        Assert.IsFalse(BufferHasEntry(TempLedgerEntryMatchingBuffer, OldEntryNo), 'Entry posted before the lookback window should be excluded.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackZeroLoadsAllEntries()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        Customer: Record Customer;
+        TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary;
+        MatchBankPayments: Codeunit "Match Bank Payments";
+        Amount: Decimal;
+        RecentEntryNo: Integer;
+        OldEntryNo: Integer;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] With lookback disabled (0), entries are loaded regardless of how far back they were posted.
+        Initialize();
+
+        // [GIVEN] A customer with one recent and one old open invoice
+        CreateCustomer(Customer);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        RecentEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, WorkDate());
+        OldEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, CalcDate('<-400D>', WorkDate()));
+
+        // [GIVEN] A payment reconciliation line and lookback disabled
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        CreateBankReconciliationLine(BankAccReconciliation, BankAccReconciliationLine, Amount, '', '');
+        SetCandidateLookbackDays(0);
+
+        // [WHEN] The customer candidate buffer is initialized
+        MatchBankPayments.InitializeCustomerLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer);
+
+        // [THEN] Both entries are loaded
+        Assert.IsTrue(BufferHasEntry(TempLedgerEntryMatchingBuffer, RecentEntryNo), 'Recent entry should be a candidate when lookback is disabled.');
+        Assert.IsTrue(BufferHasEntry(TempLedgerEntryMatchingBuffer, OldEntryNo), 'Old entry should be a candidate when lookback is disabled.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackBoundaryIsInclusive()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        Customer: Record Customer;
+        TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary;
+        MatchBankPayments: Codeunit "Match Bank Payments";
+        Amount: Decimal;
+        StartDate: Date;
+        OnBoundaryEntryNo: Integer;
+        BeforeBoundaryEntryNo: Integer;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] The lookback lower bound is inclusive: an entry posted exactly on the boundary date is a candidate.
+        Initialize();
+
+        // [GIVEN] Invoices posted exactly on, and one day before, the lookback boundary
+        StartDate := CalcDate('<-30D>', WorkDate());
+        CreateCustomer(Customer);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        OnBoundaryEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, StartDate);
+        BeforeBoundaryEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, CalcDate('<-1D>', StartDate));
+
+        // [GIVEN] A payment reconciliation line dated today and a 30 day lookback
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        CreateBankReconciliationLine(BankAccReconciliation, BankAccReconciliationLine, Amount, '', '');
+        SetCandidateLookbackDays(30);
+
+        // [WHEN] The customer candidate buffer is initialized
+        MatchBankPayments.InitializeCustomerLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer);
+
+        // [THEN] The entry on the boundary is included and the one before it is excluded
+        Assert.IsTrue(BufferHasEntry(TempLedgerEntryMatchingBuffer, OnBoundaryEntryNo), 'Entry posted on the boundary date should be a candidate.');
+        Assert.IsFalse(BufferHasEntry(TempLedgerEntryMatchingBuffer, BeforeBoundaryEntryNo), 'Entry posted before the boundary date should be excluded.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackBatchUsesEarliestTransactionDate()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        EarlyLine: Record "Bank Acc. Reconciliation Line";
+        LateLine: Record "Bank Acc. Reconciliation Line";
+        Customer: Record Customer;
+        Amount: Decimal;
+        InWindowEntryNo: Integer;
+        OutOfWindowEntryNo: Integer;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] For a multi-line journal the lookback window is measured from the earliest line's transaction date, so a later line can still see older entries.
+        Initialize();
+
+        // [GIVEN] A customer with an invoice inside, and one before, the earliest line's lookback window
+        CreateCustomer(Customer);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        InWindowEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, CalcDate('<-45D>', WorkDate()));
+        OutOfWindowEntryNo := PostCustomerInvoiceWithPostingDate(Customer."No.", Amount, CalcDate('<-100D>', WorkDate()));
+
+        // [GIVEN] A journal with an early line (60 days ago) and a late line (today), and a 30 day lookback
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        CreateBankReconciliationLine(BankAccReconciliation, EarlyLine, Amount, '', '');
+        EarlyLine.Validate("Transaction Date", CalcDate('<-60D>', WorkDate()));
+        EarlyLine.Modify(true);
+        CreateBankReconciliationLine(BankAccReconciliation, LateLine, Amount, '', '');
+        SetCandidateLookbackDays(30);
+
+        // [WHEN] The whole journal is matched
+        RunMatch(BankAccReconciliation, false);
+
+        // [THEN] The late line sees the invoice within the earliest line's window (posted 45 days ago, outside its own 30 day window)
+        Assert.IsTrue(
+          CandidateExistsForLine(LateLine."Statement Line No.", InWindowEntryNo),
+          'A later line should consider entries within the earliest line''s lookback window.');
+        // [THEN] An entry posted before the earliest line's window is still excluded
+        Assert.IsFalse(
+          CandidateExistsForLine(LateLine."Statement Line No.", OutOfWindowEntryNo),
+          'Entries posted before the earliest line''s lookback window should be excluded.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackExcludesVendorEntriesPostedBeforeWindow()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        Vendor: Record Vendor;
+        TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary;
+        MatchBankPayments: Codeunit "Match Bank Payments";
+        Amount: Decimal;
+        RecentEntryNo: Integer;
+        OldEntryNo: Integer;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] The lookback also limits vendor candidates: entries posted before the window are not loaded.
+        Initialize();
+
+        // [GIVEN] A vendor with one recent and one old open invoice
+        CreateVendor(Vendor);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        RecentEntryNo := PostVendorInvoiceWithPostingDate(Vendor."No.", Amount, WorkDate());
+        OldEntryNo := PostVendorInvoiceWithPostingDate(Vendor."No.", Amount, CalcDate('<-400D>', WorkDate()));
+
+        // [GIVEN] A payment reconciliation line dated today and a 30 day lookback
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        CreateBankReconciliationLine(BankAccReconciliation, BankAccReconciliationLine, -Amount, '', '');
+        SetCandidateLookbackDays(30);
+
+        // [WHEN] The vendor candidate buffer is initialized
+        MatchBankPayments.InitializeVendorLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer);
+
+        // [THEN] Only the entry posted within the lookback window is loaded
+        Assert.IsTrue(BufferHasEntry(TempLedgerEntryMatchingBuffer, RecentEntryNo), 'Vendor entry posted within the lookback window should be a candidate.');
+        Assert.IsFalse(BufferHasEntry(TempLedgerEntryMatchingBuffer, OldEntryNo), 'Vendor entry posted before the lookback window should be excluded.');
+    end;
+
+    local procedure SetCandidateLookbackDays(Days: Integer)
+    var
+        BankPmtApplSettings: Record "Bank Pmt. Appl. Settings";
+    begin
+        BankPmtApplSettings.GetOrInsert();
+        BankPmtApplSettings."Candidate Lookback (Days)" := Days;
+        BankPmtApplSettings.Modify();
+    end;
+
+    local procedure PostCustomerInvoiceWithPostingDate(CustomerNo: Code[20]; Amount: Decimal; PostingDate: Date): Integer
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DocumentNo: Code[20];
+        SavedWorkDate: Date;
+    begin
+        CreateItem(Item, Amount);
+        // Align the work date to the posting date so back-dated posting does not raise the work-date confirmation.
+        SavedWorkDate := WorkDate();
+        WorkDate(PostingDate);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Posting Date", PostingDate);
+        SalesHeader.Validate("External Document No.", GenerateExtDocNo());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        WorkDate(SavedWorkDate);
+
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Document No.", DocumentNo);
+        CustLedgerEntry.FindFirst();
+        exit(CustLedgerEntry."Entry No.");
+    end;
+
+    local procedure PostVendorInvoiceWithPostingDate(VendorNo: Code[20]; Amount: Decimal; PostingDate: Date): Integer
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DocumentNo: Code[20];
+        SavedWorkDate: Date;
+    begin
+        CreateItem(Item, Amount);
+        // Align the work date to the posting date so back-dated posting does not raise the work-date confirmation.
+        SavedWorkDate := WorkDate();
+        WorkDate(PostingDate);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        PurchaseHeader.Validate("Vendor Invoice No.", GenerateExtDocNo());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        WorkDate(SavedWorkDate);
+
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendorLedgerEntry.FindFirst();
+        exit(VendorLedgerEntry."Entry No.");
+    end;
+
+    local procedure BufferHasEntry(var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; EntryNo: Integer): Boolean
+    begin
+        TempLedgerEntryMatchingBuffer.Reset();
+        TempLedgerEntryMatchingBuffer.SetRange("Entry No.", EntryNo);
+        exit(not TempLedgerEntryMatchingBuffer.IsEmpty());
+    end;
+
+    local procedure CandidateExistsForLine(LineNo: Integer; EntryNo: Integer): Boolean
+    begin
+        TempBankStatementMatchingBuffer.Reset();
+        TempBankStatementMatchingBuffer.SetRange("Line No.", LineNo);
+        TempBankStatementMatchingBuffer.SetRange("Entry No.", EntryNo);
+        exit(not TempBankStatementMatchingBuffer.IsEmpty());
+    end;
 
     local procedure Initialize()
     var

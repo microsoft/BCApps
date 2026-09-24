@@ -1025,6 +1025,15 @@ codeunit 37201 "PEPPOL30 Impl."
         InvoiceLineAccountingCost := '';
     end;
 
+    procedure GetLineRequestedDeliveryPeriod(PurchaseLine: Record "Purchase Line"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseLine."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseLine."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
+    end;
+
     procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var UnitCode: Text; var UnitCodeListID: Text)
     var
         UOM: Record "Unit of Measure";
@@ -1384,7 +1393,8 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += SalesLine."Line Amount";
             VATAmtLine.Modify();
-        end;
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, SalesLine."Line Amount");
     end;
 
     procedure GetTaxTotals(PurchaseLine: Record "Purchase Line"; var VATAmtLine: Record "VAT Amount Line")
@@ -1409,8 +1419,10 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += PurchaseLine."Line Amount";
             VATAmtLine.Modify();
-        end;
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, PurchaseLine."Line Amount");
     end;
+
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -1464,6 +1476,7 @@ codeunit 37201 "PEPPOL30 Impl."
             TempPurchaseLine.Insert();
         end;
     end;
+
     procedure GetTaxExemptionReason(var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
     begin
         TaxExemptionReasonTxt := '';
@@ -1700,6 +1713,7 @@ codeunit 37201 "PEPPOL30 Impl."
         end;
         exit(false);
     end;
+
     procedure TransferHeaderToSalesHeader(FromRecord: Variant; var ToSalesHeader: Record "Sales Header")
     var
         ToRecord: Variant;
@@ -1955,5 +1969,27 @@ codeunit 37201 "PEPPOL30 Impl."
         CountrySubentity := PurchaseHeader."Ship-to County";
         IdentificationCode := GetCountryISOCode(PurchaseHeader."Ship-to Country/Region Code");
         ListID := GetISO3166_1Alpha2();
+    end;
+
+    procedure GetRequestedDeliveryPeriod(PurchaseHeader: Record "Purchase Header"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseHeader."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseHeader."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
+    end;
+
+    local procedure InsertZeroAmountVATAmtLine(var VATAmtLine: Record "VAT Amount Line"; LineAmount: Decimal)
+    begin
+        VATAmtLine.Validate(Positive, LineAmount >= 0);
+        if VATAmtLine.Find() then begin
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Modify();
+        end else begin
+            VATAmtLine."VAT Amount" := VATAmtLine."Amount Including VAT" - VATAmtLine."VAT Base";
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Insert();
+        end;
     end;
 }
