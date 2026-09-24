@@ -818,7 +818,7 @@ table 8068 "Sales Subscription Line"
 
     local procedure GetDate(): Date
     begin
-        SalesLine.Get(Rec."Document Type", Rec."Document No.", Rec."Document Line No.");
+        GetSalesLine(SalesLine);
         exit(SalesLine.GetDate());
     end;
 
