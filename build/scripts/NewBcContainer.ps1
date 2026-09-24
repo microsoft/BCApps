@@ -24,6 +24,15 @@ if ($platformVersion) {
 
 New-BcContainer @parameters
 
+if ($parameters.auth -in @('UserPassword', 'NavUserPassword')) {
+    if (-not $parameters.credential) {
+        throw "The BCApps UserPassword test container requires a credential."
+    }
+
+    Import-Module (Join-Path $PSScriptRoot 'ApiTestCredential.psm1') -Force
+    Write-ApiTestPassword -ContainerName $parameters.ContainerName -Credential $parameters.credential
+}
+
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnforceUserPathForAlFileOperations" -keyValue "false"
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
 Restart-BcContainer -containerName $parameters.ContainerName
