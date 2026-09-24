@@ -549,12 +549,12 @@ codeunit 139400 "Permissions Test"
         AccessControl."User Security ID" := UserSecurityId();
         AccessControl."Role ID" := TenantPermissionSet."Role ID";
         AccessControl.Scope := AccessControl.Scope::Tenant;
-        AccessControl."Company Name" := CompanyName();
+        AccessControl."Company Name" := GetCurrentCompanyName();
         AccessControl.Insert(true);
 
         // [WHEN] The permission buffer is populated for the specific page
         EffectivePermissionsMgt.PopulatePermissionBuffer(
-            TempPermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+            TempPermissionBuffer, UserSecurityId(), GetCurrentCompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
 
         // [THEN] The specific page permission is displayed
         TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
@@ -603,12 +603,12 @@ codeunit 139400 "Permissions Test"
         AccessControl."User Security ID" := UserSecurityId();
         AccessControl."Role ID" := TenantPermissionSet."Role ID";
         AccessControl.Scope := AccessControl.Scope::Tenant;
-        AccessControl."Company Name" := CompanyName();
+        AccessControl."Company Name" := GetCurrentCompanyName();
         AccessControl.Insert(true);
 
         // [WHEN] The permission buffer is populated for the specific page
         EffectivePermissionsMgt.PopulatePermissionBuffer(
-            TempPermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+            TempPermissionBuffer, UserSecurityId(), GetCurrentCompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
 
         // [THEN] The specific page exclusion is displayed
         TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
@@ -636,7 +636,7 @@ codeunit 139400 "Permissions Test"
         AccessControl."App ID" := AppID;
         AccessControl."Role ID" := PermissionSetNonExistentTxt;
         AccessControl."User Security ID" := UserSecurityId();
-        AccessControl."Company Name" := CompanyName();
+        AccessControl."Company Name" := GetCurrentCompanyName();
         AccessControl.Scope := AccessControl.Scope::Tenant;
         AccessControl.Insert();
 
@@ -644,7 +644,7 @@ codeunit 139400 "Permissions Test"
         PermissionPagesMgt.CreateAndSendResolvePermissionNotification();
 
         // [Then] Validate that the record no longer exists
-        Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, CompanyName(), AccessControl.Scope::Tenant, AppID);
+        Found := AccessControl.Get(UserSecurityId(), PermissionSetNonExistentTxt, GetCurrentCompanyName(), AccessControl.Scope::Tenant, AppID);
         Assert.IsFalse(Found, 'Access control still exists.');
     end;
 
@@ -1045,6 +1045,13 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet."Role ID" := LibraryUtility.GenerateGUID();
         TenantPermissionSet.Name := LibraryUtility.GenerateGUID();
         TenantPermissionSet.Insert();
+    end;
+
+    local procedure GetCurrentCompanyName(): Text[30]
+    var
+        AccessControl: Record "Access Control";
+    begin
+        exit(CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name")));
     end;
 
     local procedure TearDown()
