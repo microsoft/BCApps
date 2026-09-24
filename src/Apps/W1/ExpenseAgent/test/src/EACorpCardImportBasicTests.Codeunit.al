@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Setup;
 
-codeunit 148352 EACorpCardImportBasicTests
+codeunit 148356 EACorpCardImportBasicTests
 {
     Subtype = Test;
     TestType = IntegrationTest;
