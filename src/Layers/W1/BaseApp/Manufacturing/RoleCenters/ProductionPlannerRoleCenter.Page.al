@@ -190,7 +190,7 @@ page 9010 "Production Planner Role Center"
 #endif
                 action("Production Cost Shares")
                 {
-                    ApplicationArea = Manufacturing, Assembly;
+                    ApplicationArea = Assembly, Manufacturing;
                     Caption = 'Production Cost Shares';
                     RunObject = report "Production Cost Shares";
                 }

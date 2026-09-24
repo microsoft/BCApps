@@ -851,7 +851,7 @@ page 8909 "Warehouse Manager Role Center"
 #endif
                     action("Production Cost Shares")
                     {
-                        ApplicationArea = Manufacturing, Assembly;
+                        ApplicationArea = Assembly, Manufacturing;
                         Caption = 'Production Cost Shares';
                         RunObject = report "Production Cost Shares";
                     }

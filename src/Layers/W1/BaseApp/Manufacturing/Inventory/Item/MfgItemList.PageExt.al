@@ -165,7 +165,7 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
 #endif
                 action("Production Cost Shares")
                 {
-                    ApplicationArea = Basic, Suite, Manufacturing, Assembly;
+                    ApplicationArea = Basic, Suite, Assembly, Manufacturing;
                     Caption = 'Production Cost Shares';
                     RunObject = report "Production Cost Shares";
                 }

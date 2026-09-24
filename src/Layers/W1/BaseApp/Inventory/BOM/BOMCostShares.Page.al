@@ -6,7 +6,9 @@ namespace Microsoft.Inventory.BOM;
 
 using Microsoft.Inventory.BOM.Tree;
 using Microsoft.Inventory.Item;
+#if not CLEAN29
 using Microsoft.Inventory.Reports;
+#endif
 
 page 5872 "BOM Cost Shares"
 {
