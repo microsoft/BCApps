@@ -49,7 +49,15 @@ async function appFrame(page, timeoutMs = 120000) {
     // had touched the product - a claim about the instrument that reads like a page failure.
     // Take the richest child frame instead, with a low floor that still excludes the empty
     // placeholder iframe BC creates before the page arrives.
-    if (best && bestN >= 8) return best;
+    //
+    // ⚠️ The floor was 8 and that was still too high. A REPORT REQUEST PAGE (`?report=<id>`)
+    // renders about 7, so `?report=` looked like it "yields no app frame at all" and a tour
+    // wrote that up as a product limitation - which would have closed off the only route to a
+    // report's dataset. It is the same mistake twice: an instrument threshold reported as a
+    // fact about BC. Reports ARE drivable by deep link. Keep this floor low; the richest-frame
+    // selection is what does the real work.
+    if (best && bestN >= 3) return best;
+
     await page.waitForTimeout(500);
   }
   throw new Error(`BC app frame not found (best child frame had ${bestN} [aria-label] elements)`);
