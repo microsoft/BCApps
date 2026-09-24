@@ -302,11 +302,12 @@ looks identical whether the run rightly declined to create one or destroyed an e
 empty result occurred **both ways in one session**, and resolving which was which took two extra
 sittings purely because the first snapshot stored counts.
 
-Snapshot **identities** — primary key, status, key dates. The bar for filing is three things:
+Snapshot **identities** — primary key, status, key dates. The bar for filing is four things:
 
 1. the **named record** that changed,
 2. a **control** proving the alternative outcome was available,
-3. a **config/source check** (§5.2).
+3. a **config/source check** (§5.2),
+4. **reachability** — proof a user can get there (§5.8).
 
 ### 5.6 Validate the oracle before you trust it
 
@@ -317,16 +318,82 @@ Wrong-oracle mistakes are as common as wrong-probe ones, and louder:
 | The table named after the concept holds the record | it is a **transient buffer**, empty before and after a successful operation |
 | An option field's stored value maps to the caption you expect | the ordinal was off by one |
 | `COUNT(*)` answers *"did this record survive?"* | it cannot |
+| The field on the page has a column in the table | it is a **FlowField** — the query fails with *Invalid object name*, which reads like a wrong table name |
 
 Confirm a table, column or enum means what you think **from the data**, before it decides a verdict.
 Anchor tables that have been checked in a container are listed in
-[`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) §6.
+[`bc-app-areas.instructions.md`](./bc-app-areas.instructions.md) §6. Measured enum ordinals are in
+§9 of [`playwright-bc.instructions.md`](./playwright-bc.instructions.md) — **two** separate tours
+filed a finding-shaped lie from an off-by-one ordinal.
 
 ### 5.7 Empty is the most dangerous result
 
 Zero lines, zero rows, empty error message — every one of these occurred both legitimately and as a
 defect symptom in the same sessions. **Never report an absence without a control**, and prove the
 input signal existed first.
+
+The operational form of this rule, which would have caught every instance in these sessions in
+seconds:
+
+> **An empty result is never evidence until the instrument has been shown to produce a non-empty
+> one on a case that must succeed.**
+
+The failure mode is that a broken instrument returns a *confident, well-formed, empty* answer.
+Nothing about it looks like a failure. Three separate causes produced exactly that shape in one
+area: an off-by-one enum filter, a half-built container, and a report that declined to run. In each
+case a single positive control separated instrument from product immediately.
+
+### 5.8 Prove the field is reachable before filing
+
+**The highest-value gate, and the one that decided three findings in a single area.**
+
+A gap in a table trigger is not a defect until a user can reach the field. Three tours found the
+same *class* of gap on the same table, and the outcomes diverged entirely on reachability:
+
+| Tour | Field | Reachable? | Outcome |
+| --- | --- | --- | --- |
+| Saboteur | `FA Depreciation Book."FA Posting Group"` (13) | **Yes** — both pages exposing the caption bind it; the *guarded* twin `Fixed Asset` field 29 is on **no** page | **Filed** |
+| Configuration | `Temp. Ending Date` (61), `Temp. Fixed Depr. Amount` (62), `Use DB% First Fiscal Year` (60), `Depr. This Year % (Custom 1)` (53) | **No** — hard-coded `Visible = false` | Parked, not filed |
+| Money | `First User-Defined Depr. Date` (43) | **No** — same | Parked, not filed |
+
+Without this gate two of those three become false findings. With it, the *asymmetry itself* — a
+correct guard that is unreachable, next to an unguarded field that is — became the heart of the
+filed bug.
+
+So, before filing anything field-level:
+
+```powershell
+# Which pages bind this field, and is any of them visible?
+rg -n '"<Field Caption>"' --glob '**/*.Page*.al'
+```
+
+Then read the binding: `Visible = false` is a **blocker**, `Importance = Additional` is not — the
+latter only means the field sits behind *Show more*, a normal affordance.
+
+**Personalisation is not a workaround, and do not spend a session proving it again.** Two tours
+independently failed to reach hidden fields, by two different routes:
+
+- BC's Personalize designer uses HTML5 `DataTransfer`, so synthetic mouse events **never drop** —
+  tried with multiple targets, dragstart jiggle and pre-drop hover;
+- the purely **click-based** affordances exist (*Set Freeze Pane / Move / Hide / Unlock editing*,
+  and the header menus) but **every one operates on columns already shown**. There is no `+ Field`
+  pane reachable by click at all.
+
+Together those say the route is closed to automation generally, not merely to synthetic drags. If a
+charter depends on hidden FA-book style fields, solve reachability **first** — a RapidStart
+configuration package is the untried route — or pick a different charter.
+
+### 5.9 Verify every clause of a control, not just its headline
+
+A control is evidence, so it is held to the same standard as the finding. When bug 651316 was
+re-verified in a clean container, its core defect reproduced exactly — but its control had claimed
+the alternative line *"posts cleanly"*, and that half was wrong: the line got its document number
+as stated, then failed to post for an unrelated reason (no balancing account). The finding
+survived; the stated *Expected result* did not.
+
+Check each clause of a control independently. A control that is right about the mechanism and wrong
+about the consequence will send the owning team down the wrong fix.
+
 
 ### 5.8 Reproduce on a clean container before filing
 
@@ -632,9 +699,9 @@ Out of scope (assumed developer-tested): <the sunshine path for this area>.
 | # | Probe | Target | Expected | Observed | SQL delta |
 
 ## Findings
-F1 — <one line>. Evidence: the **named record** that changed, the control, the config/source check.
-Confirmed / unconfirmed. Reproduced on clean container <name>, build <x>. Preconditions for the
-repro steps.
+F1 — <one line>. Evidence: the **named record** that changed, the control, the config/source check,
+and the **reachability proof** (§5.8). Confirmed / unconfirmed. Reproduced on clean container
+<name>, build <x>. Preconditions for the repro steps.
 
 ## Issues
 Problems with the *harness or session* — kept strictly separate from findings.
@@ -651,6 +718,43 @@ The ideas you did not have time for.
 ## Verdict on the method
 Did this tour earn its time against this area?
 ```
+
+### 8.1 Bug draft template
+
+A finding that survives §5 becomes a bug draft. House style is one line of title stating the
+**mechanism *and* the consequence**, then two HTML fields.
+
+**Symptom**, in this order: *Summary* (2–3 sentences) · *The mechanism* — the offending code in a
+`<pre>`, codeunit and procedure named, and one sentence saying exactly which line or missing guard
+breaks it · *Why it matters* — the business consequence, and whether it escapes into posted or
+irreversible state · *Scope* — grep for duplicates of the same logic and name them · *Ruling
+question for the owning team*, phrased so that *"this is intended"* is an acceptable answer that
+still produces work, usually a documentation fix · *Provenance*.
+
+**Repro steps**: `Build:` exact version and company · numbered `<ol>` including **every** setup
+value changed · *Actual result* as named records with exact numbers · *Expected result*, noting a
+correct-by-construction alternative where one exists.
+
+Two practical notes, both learned by having to hand-patch every bug filed from these tours:
+
+- **Provenance must be repo-relative** — `src/Layers/W1/BaseApp/FixedAssets`, never a local
+  worktree path. A path on the tourer's machine means nothing to the owning team.
+- **ADO requires two fields the draft usually forgets**, and rejects the work item without them:
+  `Issue` = *Code Defect*, and `Security Rating` = *Not A Security Issue*. Set `Severity`,
+  `Priority`, `How Found` = *Manual Testing: Other Test Pass* and an area path at the same time.
+
+### 8.2 Verify the repro in a clean container before filing
+
+Write the repro steps **first**, as a numbered list a stranger could follow with no knowledge of
+the session. Then build a **second, fresh container** and follow them literally.
+
+- If you have to deviate, the steps are wrong. Fix them and run again.
+- If it does not reproduce, it is not a finding — record it as withdrawn, with why.
+- Assert the actual result in SQL, on named records, **in the verify container**.
+- Re-verify the **control** too, and every clause of it (§5.9).
+
+This matters most for Saboteur-style findings, which often depend on a half-invalid state built up
+earlier in the session: the repro must construct that state explicitly from clean demo data.
 
 ## 9. Does a new tour need a clean container?
 

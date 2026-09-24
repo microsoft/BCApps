@@ -58,6 +58,31 @@ Write-Host "Credentials written to $SecretPath" -ForegroundColor Yellow
 
 Create-BCContainer -ContainerName $ContainerName -Authentication 'UserPassword' -Credential $credential
 
+# ⚠️ A half-built container passes every obvious readiness check.
+#
+# Three separate tours were handed a container that reported `healthy` to docker, served
+# HTTP 200 from the web client, and returned the correct build from Get-BcContainerNavVersion
+# - while [dbo].[User] was EMPTY, because the build had been interrupted after the service
+# tier started but before the tenant was finished. Every probe then failed in a way that
+# reads like a product defect rather than a broken environment.
+#
+# The User table is the cheapest thing that is only populated once the container is genuinely
+# usable, so check it explicitly rather than trusting health + HTTP + version.
+Write-Host 'Verifying the container is genuinely ready (not just healthy)...' -ForegroundColor Cyan
+$userCount = Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+    try {
+        (Invoke-Sqlcmd -ServerInstance 'localhost\SQLEXPRESS' -Database 'CRONUS' `
+            -Query 'SELECT COUNT(*) AS N FROM [dbo].[User]' -TrustServerCertificate).N
+    } catch { -1 }
+}
+if ($userCount -lt 1) {
+    throw "Container '$ContainerName' reports healthy but [dbo].[User] has $userCount rows, so the " +
+          "build did not finish. Do NOT tour it - every probe will fail in ways that look like " +
+          "product defects. Remove it and rebuild (the artifact cache is warm, so a rebuild is " +
+          "minutes, not the full download)."
+}
+Write-Host "Ready: [dbo].[User] has $userCount row(s)." -ForegroundColor Green
+
 Write-Host "Container build: $(Get-BcContainerNavVersion -containerOrImageName $ContainerName)" -ForegroundColor Green
 docker logs $ContainerName 2>&1 | Select-String 'Web Client'
 

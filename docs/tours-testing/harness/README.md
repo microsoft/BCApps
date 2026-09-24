@@ -4,9 +4,10 @@ Working code from the tours run so far, so a new tour starts from something that
 
 | File | Purpose |
 | --- | --- |
-| `New-TourContainer.ps1` | Creates the container non-interactively — generates a random password, persists `bc-credentials.json`. Never prompts. |
+| `New-TourContainer.ps1` | Creates the container non-interactively — generates a random password, persists `<container>-credentials.json`. Never prompts. **Refuses to hand back a container whose `[dbo].[User]` is empty**, because a half-built container reports healthy, serves HTTP 200 and returns the right build (three tours were bitten). |
 | `bc.js` | Playwright helpers. Every trap in `playwright-bc.instructions.md` is already handled here. |
-| `Invoke-Probe.ps1` | Runs one probe with a SQL snapshot before and after, and prints the delta. |
+| `Invoke-BcSql.ps1` | One SQL query in the tour's container. Handles the `pwsh -File` / `$`-interpolation trap; container comes from `$env:BC_CREDS`. |
+| `Invoke-Probe.ps1` | Runs one probe with a SQL snapshot either side and prints the delta **by identity** — which rows appeared, disappeared and changed (§5.5). Also `-Manual`, to bracket something done by hand. |
 | `readError.test.js` | Regression test for `readError()`. Mocks the frame, so it needs no container: `node readError.test.js`. |
 | `Find-TourTargets.ps1` | Static scan of an app's `*.Table.al`. *"What is worth probing here?"* before opening a browser. |
 | `Find-UnguardedFields.ps1` | Per-field status-guard scan of one document table. Flags deliberate `Status::Released` handling so it is not reported as a defect. |
@@ -17,6 +18,10 @@ Working code from the tours run so far, so a new tour starts from something that
 Method behind the scanners: §6 of the tours instructions. **They generate hypotheses, never
 verdicts** — every scan-based prediction made so far has been wrong, always by under-reporting
 guarding (§6.3).
+
+⚠️ A static scan cannot tell you whether a user can reach the field. Before filing anything
+field-level, run the reachability gate in §5.8 — it is what separated one filed bug from two
+correctly-withheld ones in the same area.
 
 ## ⚠️ The harness runs from a working copy, not from the repo
 
@@ -94,7 +99,10 @@ Each session also needs its **own scratch folder**, since probe files are edited
 | `fieldOne(frame, caption)` | First *visible and editable* match, for captions that legitimately repeat. |
 | `newDocument(page, listId, cardId)` | Clicks New and waits for the navigation to land. |
 | `linesGrid(frame)` | Picks the lines grid out of the **two** grids in the DOM, by marker column header. |
-| `lineCell(frame, column, opts)` | Maps a column header's x-centre onto `gridcell` x-ranges. `{click:false}` reads without entering edit mode. |
+| `lineCell(frame, column, opts)` | Maps a column header's x-centre onto `gridcell` x-ranges. `{click:false}` reads without entering edit mode. ⚠️ Prefer `focusCell` — BC virtualises columns, so a header that is merely off-screen reports as "not found". |
+| `focusCell(page, frame, column)` | Focuses a grid column **by `controlname`**, the real cell identifier (no `data-` prefix). Tabs forward only; a backward walk wraps onto the next row. |
+| `readRowCells(frame, row)` | Reads every cell of a row **without moving focus** — the naive Tab-back readback walks onto the blank new row and compares against the wrong record. |
+| `writeCell(page, frame, {column, value, verify})` | Writes a grid cell and **proves it committed in SQL**. `verify` is required and it throws if the database disagrees: there is no trustworthy client-side readback for a grid cell (see below). |
 | `setBoolean(page, frame, {row, column, value, verify})` | Ticks a boolean cell and **polls SQL until the database agrees**. `verify` is required — `aria-checked` flips before BC commits, so a DOM readback is not evidence. ⚠️ Not yet re-verified from `bc.js`: a clean CRONUS produces no planning-worksheet lines to tick. |
 | `chooseRadio(page, frame, caption)` | Picks a radio option by its `<li>` caption. The inputs carry no accessible name, so `getByRole('radio', {name})` finds nothing. |
 | `postDocument(page, frame, choice)` | `F9`, choose *Receive* / *Invoice* / *Receive and Invoice* explicitly, then drive **OK** — `Enter` does not submit that dialog. Assert what posted in SQL, not the radio. |

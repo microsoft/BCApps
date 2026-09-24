@@ -117,6 +117,18 @@ were true on build 30.0.54812.0-W1:
   *Fixed Reorder Qty.* Maximum Qty. and Lot-for-Lot have **no** demo data.
 - `Requisition Line`, `Planning Component` start empty, so count-based oracles are safe there —
   but see §5.5, count oracles are weak anyway.
+- **Fixed Assets is configured but barely exercised**: 9 assets, 9 FA depreciation books, 88 FA
+  ledger entries, **1** depreciation book (`COMPANY`), and **0** depreciation tables. Every one of
+  the 9 demo assets is **Straight-Line**, so there is no demo data at all for Declining-Balance
+  1/2, DB1-SL, DB2-SL, User-Defined, half-year convention, salvage value or bonus depreciation.
+  `COMPANY` ships `Allow Depr. below Zero` = false, `Use Rounding in Periodic Depr.` = true,
+  `Default Final Rounding Amount` = 10.00. **Bonus depreciation is doubly disabled**: FA Setup
+  carries `Bonus Depreciation %` = 0 and `Bonus Depr. Effective Date` = 0D, and the book has
+  `Use Bonus Depreciation` = No.
+
+  So an arithmetic charter against Fixed Assets must **construct** every awkward case — and before
+  planning one, check §5.8, because several of the fields those cases need ship
+  `Visible = false`.
 
 ## 5. Choosing tours by area
 
@@ -149,6 +161,16 @@ this session and are safe starting points:
 | Production supply | `Production Order`, `Prod. Order Line`, `Prod. Order Component` |
 | Purchase posting | `Purch. Rcpt. Header`, `Purch. Inv. Header` |
 | Planning failures | `Planning Error Log` |
+| FA posting, and the FA ↔ G/L seam | `FA Ledger Entry` joined to `G/L Entry` on `FA Ledger Entry.[G_L Entry No_]` → `G/L Entry.[Entry No_]` |
+| FA master / per-book settings | `Fixed Asset`, `FA Depreciation Book`, `Depreciation Book`, `FA Posting Group` |
+| Unposted FA journal work | `Gen. Journal Line` filtered on `Journal Template Name = 'ASSETS'` |
+
+⚠️ On the FA join, a `G/L Entry No.` of **0** is not a missing link: `FAInsertLedgerEntry.CalcGLIntegration()`
+deliberately zeroes it for *Proceeds on Disposal* under the Net disposal method. A count-based
+oracle reads that as a lost entry.
+
+⚠️ `FA Depreciation Book."Salvage Value"` is a **FlowField with no physical column** — see
+[`playwright-bc.instructions.md`](./playwright-bc.instructions.md) §9.
 
 For anything else, discover it — and confirm it means what you think before it decides a verdict
 (§5.6).

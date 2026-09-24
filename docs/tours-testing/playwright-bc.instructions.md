@@ -196,6 +196,80 @@ await page.keyboard.press('Home');            // first option (often blank)
 await page.keyboard.press('Enter');
 ```
 
+### ⚠️⚠️ Grid cells lie in BOTH directions — there is no trustworthy client-side readback
+
+Everything above applies to *card* fields. Inside a **lines grid** the situation is worse, and it
+is the single most expensive trap these tours have found. Four sessions hit it; it produced false
+findings in two of them.
+
+Two tours measured **opposite** commit behaviour on the same build, and both measurements were
+real:
+
+| Tour | Measured |
+| --- | --- |
+| Saboteur | `selectOption()` did **not** commit a grid `<select>`; keyboard **did** |
+| Money | `selectOption()` **did** commit; typing did **not** |
+
+The reconciling detail is that Money's passing case also **left and re-entered the row**. So the
+honest generalisation is:
+
+> **Leaving the row is what commits a grid line — not the choice of writer.**
+
+Both tours then saw the DOM agree with the *wrong* answer, in opposite directions:
+
+- a cell read back correctly **and BC-formatted** (`-50,000.00`) while SQL showed the journal line
+  **completely unchanged** — the DOM agreeing with itself about a write that never happened;
+- after the keyboard route, `inputValue()` returned the **old** value while SQL already held the
+  **new** one — so a probe that reads back after a successful write concludes the product
+  *refused* it.
+
+No DOM readback distinguishes these. Therefore:
+
+> **For BC grid cells, SQL is the only oracle. Type on the keyboard, leave the row, then assert in
+> the database — and treat any client-side readback as a hint, never as evidence.**
+
+`bc.js` `writeCell()` encodes this: it **requires** a `verify()` that queries SQL and throws if the
+write did not land, because an uncommitted setup field turns every later probe into a false
+negative.
+
+### ⚠️ `controlname` is the real cell identifier — and columns are virtualised
+
+BC grid cells carry `controlname="Posting Date"`. There is **no `data-` prefix**, which is why
+searching for `data-control-name` finds nothing and sends you to fragile x-centre geometry.
+
+Worse, BC **virtualises columns horizontally**: page 5619 defines ~39 columns and
+`getByRole('columnheader')` sees about **8** of them. A column that is merely off-screen reports as
+"not found", which reads like the product not having the field.
+
+Use `bc.focusCell(page, frame, 'Posting Date')` — it lands in the row and Tabs until
+`document.activeElement` reports that `controlname`.
+
+**Tab forward only.** A backward walk wraps onto the *next* row — on a journal page that is the
+blank new row, whose Posting Date is the work date. One probe wrapped, compared its write against a
+different row, and reported "did not commit" for a write that had committed perfectly. Request
+columns left-to-right, and use `bc.readRowCells()` to read a row **without moving focus**.
+
+### ⚠️ `Home`, `End` and `Ctrl+A` are GRID keys, not text keys
+
+In a grid they operate on the *row*, not the editor: `Home` jumps to the row's **first cell**. So
+the natural "click the cell, `Home`, `Shift+End`, type" idiom silently types into **Posting Date**
+no matter which cell you clicked — and the value you meant to test never reaches the field you
+meant to test.
+
+`document.activeElement` is also a **lagging** indicator: it updates before BC's live editor does,
+so a focus assertion can pass while the keystrokes still go somewhere else.
+
+### ⚠️ One poisoned line masquerades as several bugs
+
+Once *"The page has an error"* appears, **BC discards every later edit in that batch**. A single bad
+cell therefore produces a cascade of unrelated-looking failures downstream — one session reported
+four candidate defects that were all one uncommitted enum. When that banner appears, stop, fix the
+line, and re-run; do not keep probing.
+
+Related: `Escape` on a **dirty** journal row **discards the row**, and `Escape` on a worksheet page
+**closes the page** — which then reports every column as NOT-FOUND plus *"nothing to post"*, a
+perfect false *"the journal has no fields"*.
+
 ## 5. Prefer keyboard shortcuts to toolbar clicks
 
 The sticky line toolbar intercepts pointer events. Clicking `Post…` failed with a normal click, with
@@ -599,6 +673,31 @@ The durable post-posting oracle for item tracking is **`Item Entry Relation`** p
 fields on **`Item Ledger Entry`** — those did move, exactly in step with the posts. Before trusting
 a zero, confirm the table is where the data is *supposed* to end up.
 
+### ⚠️ Confirm enum ordinals from the data — an off-by-one is a finding-shaped lie
+
+A snapshot filtered `Account Type = 3` (Bank Account) instead of `4` (Fixed Asset) and reported
+**zero lines** seconds after BC had confirmed *"1 fixed asset G/L journal line was created"*. It
+looked exactly like the product silently failing to write. It was caught only by dumping the table
+unfiltered.
+
+Measured ordinals, confirmed against demo rows on build 30.0.54812.0-W1:
+
+| Field | Ordinal |
+| --- | --- |
+| `Gen. Journal Line."Account Type"` | **4** = Fixed Asset (not 3 — 3 is Bank Account) |
+| `FA Ledger Entry."FA Posting Type"` | 0 = Acquisition Cost, 1 = Depreciation, 6 = Proceeds on Disposal, 8 = Gain/Loss |
+| `Production Order."Status"` | 1 = Planned, 2 = Firm Planned, 3 = Released, 4 = Finished |
+
+Two separate tours were bitten by an off-by-one ordinal. **Never assume the caption order is the
+stored order** — `SELECT DISTINCT <col>, COUNT(*)` against known demo rows first.
+
+### ⚠️ Some fields have no physical column at all
+
+`FA Depreciation Book."Salvage Value"` is a **FlowField**. Querying it fails with *Invalid object
+name*, which reads exactly like a wrong table name and sends you back to re-deriving the company
+prefix and GUID suffix that were never wrong. If a column is missing from `sys.columns` but visible
+on the page, it is computed — find the underlying entries instead.
+
 ### Verify your cleanup, not just your probes
 
 Anything a tour changes outside the document under test — blocking flags, setup, posting windows —
@@ -610,3 +709,10 @@ silently corrupted master data.
 - Screenshot on failure. Cheap, and invaluable when a selector breaks.
 - Exploratory runs create junk and post irreversibly. Plan clean-up, or use a disposable container.
 - Record what the session mutated, in the session sheet.
+- **A deep-linked *list* page opens read-only.** Writes are silent no-ops that look like refusals;
+  call `enterEditMode()` after `openPage()`, exactly as for a card.
+- **The container name can stop resolving mid-session** while the container is perfectly healthy —
+  `ERR_NAME_NOT_RESOLVED` from the browser, which reads exactly like a dead container. Check
+  `docker ps` before rebuilding anything; if it is up, set `BC_BASE` to the container's IP and
+  carry on.
+

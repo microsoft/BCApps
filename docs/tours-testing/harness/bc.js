@@ -255,9 +255,11 @@ async function linesGrid(frame, markerHeader = 'Type') {
   throw new Error(`lines grid (marker column '${markerHeader}') not found`);
 }
 
-// Returns cell(headerText) for one row of the lines grid. Grid cells ARE exposed as
-// role=gridcell, but they carry no column name, so match the header's x-centre
-// against each cell's x-range.
+// ⚠️ PREFER cellByName() BELOW. This x-centre mapping works, but it is intercepted at both
+// ends of a wide grid, and `getByRole('columnheader')` only sees the columns currently
+// rendered - page 5619 has ~39 columns and exposes about 8, because BC virtualises them
+// horizontally. A column that is merely off-screen then reports as "not found", which reads
+// like the product not having the field.
 async function lineCell(frame, rowIndex = 1, markerHeader = 'Type') {
   const lg = await linesGrid(frame, markerHeader);
   const row = lg.getByRole('row').nth(rowIndex);          // row 0 is the header row
@@ -282,6 +284,131 @@ async function lineCell(frame, rowIndex = 1, markerHeader = 'Type') {
     throw new Error(`no cell under column '${headerText}'`);
   };
 }
+
+// The name of the control currently holding focus.
+//
+// ⚠️ This is a *lagging* indicator: document.activeElement updates before BC's live editor
+// does, so a focus assertion can pass while the next keystrokes still go elsewhere. Always
+// pair it with a SQL assertion; never treat arrival as proof the write landed.
+const activeControl = (frame) => frame.evaluate(() => {
+  const e = document.activeElement;
+  if (!e) return '';
+  return e.getAttribute('controlname') ||
+         e.closest('[controlname]')?.getAttribute('controlname') || '';
+});
+
+// Focus a named grid column, by NAME rather than by geometry.
+//
+// BC grid cells carry `controlname="Posting Date"` - note there is no `data-` prefix, which
+// is why searching for `data-control-name` finds nothing and sends you to x-centre mapping.
+// Because columns are virtualised horizontally, the only reliable way to reach one is to
+// land in the row and Tab until the focused control reports the name you want.
+//
+// ⚠️ Tab FORWARD only. A backward walk wraps onto the next row - which on a journal page is
+// the blank new row, whose Posting Date is the work date. A probe that wrapped then compared
+// its write against a different row and reported "did not commit" for a write that had
+// committed perfectly. Request columns in left-to-right order.
+async function focusCell(page, frame, column, markerHeader = 'Type', maxTabs = 80) {
+  if (!(await activeControl(frame))) {
+    const lg = await linesGrid(frame, markerHeader);
+    const row = lg.getByRole('row').nth(1);
+    await row.scrollIntoViewIfNeeded().catch(() => {});
+    let landed = false;
+    // The sticky column header overlaps the row, so a pointer click on the target cell can be
+    // intercepted by the <th>. Click whatever cell accepts a click, then Tab to the target.
+    for (const c of await row.getByRole('gridcell').all()) {
+      try { await clickSettled(page, frame, c, 2); landed = true; break; } catch { /* intercepted */ }
+    }
+    if (!landed) throw new Error('no clickable gridcell in the row');
+    await page.waitForTimeout(800);
+  }
+  for (let i = 0; i < maxTabs; i++) {
+    if ((await activeControl(frame)) === column) return true;
+    await page.keyboard.press('Tab');
+    await page.waitForTimeout(250);
+  }
+  throw new Error(`could not reach column '${column}'; last focus '${await activeControl(frame)}'`);
+}
+
+// Read every cell of one grid row WITHOUT moving focus.
+//
+// Written because the obvious readback - Tab back to the column - walks off the end of the
+// row and reads the NEXT one (see focusCell). Read the row; do not walk it.
+async function readRowCells(frame, rowIndex = 1, markerHeader = 'Type') {
+  const lg = await linesGrid(frame, markerHeader);
+  const row = lg.getByRole('row').nth(rowIndex);
+  return row.evaluate((r) => {
+    const out = {};
+    for (const c of r.querySelectorAll('[controlname]')) {
+      const name = c.getAttribute('controlname');
+      const inp = c.querySelector('input,select,textarea') ||
+                  (c.matches('input,select,textarea') ? c : null);
+      let v;
+      if (inp && inp.tagName === 'SELECT') v = inp.selectedOptions[0]?.text ?? '';
+      else if (inp && 'value' in inp) v = inp.value;
+      else v = (c.innerText || c.textContent || '').trim();
+      if (name && (out[name] === undefined || out[name] === '')) out[name] = v;
+    }
+    return out;
+  });
+}
+
+// Write one grid cell addressed by NAME.
+//
+// ⚠️⚠️ THE RETURN VALUE IS NOT EVIDENCE. There is no trustworthy client-side readback for a
+// BC grid cell - see the "grid cells lie in both directions" section of
+// playwright-bc.instructions.md. Two tours measured OPPOSITE commit behaviour for typing vs
+// selectOption(), and in both a DOM readback agreed with the wrong answer:
+//   - a cell read back correctly AND BC-formatted ("-50,000.00") while SQL showed the
+//     journal line completely unchanged;
+//   - a cell read back with the OLD value while SQL already held the NEW one.
+// The common factor was leaving the row, not the choice of writer.
+//
+// So: `verify` is REQUIRED, it must query the database, and this throws unless it passes.
+// An uncommitted setup field turns every later probe in the session into a false negative.
+async function writeCell(page, frame, { column, value, markerHeader = 'Type',
+                                        verify, leaveRow = true, attempts = 3 } = {}) {
+  if (typeof verify !== 'function') {
+    throw new Error('writeCell requires a verify() that asserts in SQL - a DOM readback is not evidence');
+  }
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    await focusCell(page, frame, column, markerHeader);
+
+    // Enum columns are a native <select> whose .value is the option INDEX, so typing cannot
+    // set them and reading back "0" is the index, not a refusal.
+    const isSelect = await frame.evaluate(() => document.activeElement?.tagName === 'SELECT');
+    if (isSelect) {
+      await frame.evaluate((v) => {
+        const el = document.activeElement;
+        const opt = Array.from(el.options).find((o) => o.text.trim() === String(v).trim());
+        if (opt) {
+          el.value = opt.value;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }, value);
+    } else {
+      // Ctrl+A is a GRID key here, not a text key - it selects rows and relocates the editor
+      // to the row's first cell, so "click cell, Ctrl+A, type" silently types into Posting
+      // Date whichever cell you clicked. Clear with the keyboard instead.
+      await page.keyboard.press('Control+Shift+End').catch(() => {});
+      await page.keyboard.press('Delete').catch(() => {});
+      await page.keyboard.type(String(value), { delay: 40 });
+    }
+    await page.keyboard.press('Tab');
+    await page.waitForTimeout(1200);
+
+    // Leaving the row is what actually commits a BC grid line.
+    if (leaveRow) {
+      await page.keyboard.press('Escape').catch(() => {});   // closes the editor, not the row
+      await page.waitForTimeout(1500);
+    }
+
+    if (await verify()) return { ok: true, attempt };
+    await page.waitForTimeout(1500);
+  }
+  throw new Error(`writeCell('${column}') did not commit after ${attempts} attempts - SQL still disagrees`);
+}
+
 
 // BC reports validation failures as a modal error dialog, an inline notification, or
 // a red field. Collect all three; never use loose page text as an oracle.
@@ -847,4 +974,5 @@ module.exports = {
   topDialog, setOption, getOption, findOptionControl, openAction, dismissTeachingTip,
   readErrorPage, setBoolean, chooseRadio, postDocument,
   enterEditMode, expandTab, setField, warmUp,
+  activeControl, focusCell, readRowCells, writeCell,
 };
