@@ -4,10 +4,6 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         ERMVATToolHelper: Codeunit "ERM VAT Tool - Helper";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";

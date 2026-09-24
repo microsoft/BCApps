@@ -12,10 +12,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         Assert: Codeunit Assert;
         LibraryUtility: Codeunit "Library - Utility";
