@@ -87,7 +87,7 @@ tests:
         autoCreateTaxJurisdictions: true
       taxJurisdictions:
         - Code: NYSTAX
-          Description: New York State Tax
+          Description: Admin-maintained New York State Tax
       orderAddress:
         countryRegionCode: US
         county: NY
@@ -104,10 +104,13 @@ tests:
         - parentId: 10001
           lineNo: 1
           jurisdictionCode: NYSTAX
+      taxJurisdictionDescriptions:
+        - code: NYSTAX
+          description: Admin-maintained New York State Tax
       matchResult: true
 
-  - name: JC5-DescriptionEqualsCode
-    description: Auto-created jurisdiction's Description must equal its Code
+  - name: JC5-DescriptionMatchesTaxTitle
+    description: Auto-created jurisdiction's Description uses the full Shopify tax title
     setup:
       shopSettings:
         autoCreateTaxJurisdictions: true
@@ -122,10 +125,10 @@ tests:
           taxGroupCode: TAXABLE
           taxLines:
             - lineNo: 1
-              title: NEW YORK STATE TAX
+              title: METROPOLITAN COMMUTER TRANSPORTATION MOBILITY TAX
               ratePct: 4.0
               channelLiable: false
     expected:
       allTaxLinesMatched: true
-      createdJurisdictionDescriptionEqualsCode: true
+      createdJurisdictionDescriptionMatchesTitle: true
       matchResult: true

@@ -259,6 +259,7 @@ codeunit 30471 "Shpfy TMA Matcher"
         LineNo: Integer;
         Parts: List of [Text];
         JurisdictionValid: Boolean;
+        TaxLineFound: Boolean;
         AnyMatched: Boolean;
     begin
         if not MatchResults.Get('matches', MatchesToken) then
@@ -292,18 +293,22 @@ codeunit 30471 "Shpfy TMA Matcher"
                 else begin
                     // Parse tax line ID (format: ParentId-LineNo)
                     Parts := TaxLineId.Split('-');
-                    if (Parts.Count() >= 2) and Evaluate(ParentId, Parts.Get(1)) and Evaluate(LineNo, Parts.Get(2)) then begin
+                    TaxLineFound := false;
+                    if (Parts.Count() >= 2) and Evaluate(ParentId, Parts.Get(1)) and Evaluate(LineNo, Parts.Get(2)) then
+                        TaxLineFound := OrderTaxLine.Get(ParentId, LineNo);
+
+                    if TaxLineFound then begin
                         // Validate jurisdiction exists (or create if allowed)
                         JurisdictionValid := TaxJurisdiction.Get(JurisdictionCode);
                         if not JurisdictionValid then
                             if not Shop."Auto Create Tax Jurisdictions" then
                                 Session.LogMessage('0000UMQ', StrSubstNo(JurisdictionNotFoundMsg, JurisdictionCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName())
                             else begin
-                                CreateTaxJurisdiction(TaxJurisdiction, JurisdictionCode, OrderHeader);
+                                CreateTaxJurisdiction(TaxJurisdiction, JurisdictionCode, OrderTaxLine.Title, OrderHeader);
                                 JurisdictionValid := true;
                             end;
 
-                        if JurisdictionValid and OrderTaxLine.Get(ParentId, LineNo) then begin
+                        if JurisdictionValid then begin
                             AnyMatched := true;
                             // A match to a provisional (agent-created, not yet verified) jurisdiction
                             // is forced to low confidence so the order is held for review: the agent
@@ -565,11 +570,13 @@ codeunit 30471 "Shpfy TMA Matcher"
         exit(true);
     end;
 
-    local procedure CreateTaxJurisdiction(var TaxJurisdiction: Record "Tax Jurisdiction"; JurisdictionCode: Code[10]; OrderHeader: Record "Shpfy Order Header")
+    local procedure CreateTaxJurisdiction(var TaxJurisdiction: Record "Tax Jurisdiction"; JurisdictionCode: Code[10]; TaxTitle: Text; OrderHeader: Record "Shpfy Order Header")
     begin
         TaxJurisdiction.Init();
         TaxJurisdiction.Code := JurisdictionCode;
-        TaxJurisdiction.Description := CopyStr(JurisdictionCode, 1, MaxStrLen(TaxJurisdiction.Description));
+        TaxJurisdiction.Description := CopyStr(TaxTitle, 1, MaxStrLen(TaxJurisdiction.Description));
+        if TaxJurisdiction.Description = '' then
+            TaxJurisdiction.Description := JurisdictionCode;
         Evaluate(TaxJurisdiction."Country/Region", OrderHeader."Ship-to Country/Region Code");
         TaxJurisdiction."Shpfy Created by Agent" := true;
         TaxJurisdiction."Shpfy Verified" := false;

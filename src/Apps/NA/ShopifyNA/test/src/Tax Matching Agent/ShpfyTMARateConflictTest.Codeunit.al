@@ -437,7 +437,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsTrue(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Low Confidence Only must hold a low-confidence order.');
     end;
 
-    // Guard — matching runs only when enabled, no Tax Area yet, and not tax exempt.
+    // Guard — matching runs only when enabled, supported for the country, no Tax Area yet, and not tax exempt.
     [Test]
     procedure ShouldAttemptMatchWhenEligible()
     var
@@ -485,6 +485,34 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         BuildGuardRecords(OrderHeader, Shop, true, '', true);
         LibraryAssert.IsFalse(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
             'Matching must not run for a tax-exempt order.');
+    end;
+
+    [Test]
+    procedure ShouldAttemptMatchForCanadianOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+
+        LibraryAssert.IsTrue(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching should run for a Canadian order.');
+    end;
+
+    [Test]
+    procedure ShouldNotAttemptMatchOutsideNorthAmericanTaxDomain()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        OrderHeader."Ship-to Country/Region Code" := 'DK';
+
+        LibraryAssert.IsFalse(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching must not run outside the US and Canada.');
     end;
 
     // RD9 — Undo Approval clears the reviewed flag, so a held order is held again.
@@ -670,6 +698,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
         Clear(OrderHeader);
         OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Ship-to Country/Region Code" := 'US';
         OrderHeader."Tax Area Code" := ExistingTaxAreaCode;
         OrderHeader."Tax Exempt" := TaxExempt;
     end;

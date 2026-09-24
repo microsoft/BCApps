@@ -28,7 +28,7 @@ table 30122 "Shpfy Order Tax Line"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(3; Title; Code[20])
+        field(3; Title; Code[100])
         {
             Caption = 'Title';
             DataClassification = SystemMetadata;
