@@ -1,5 +1,6 @@
 codeunit 134315 "Workflow Queuing Tests"
 {
+    EventSubscriberInstance = Manual;
     Permissions = tabledata "Workflow Step Instance Archive" = rd;
     Subtype = Test;
     TestPermissions = NonRestrictive;
@@ -18,6 +19,7 @@ codeunit 134315 "Workflow Queuing Tests"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryUtility: Codeunit "Library - Utility";
         WorkflowRecordManagement: Codeunit "Workflow Record Management";
+        ReplayedResponseCount: Integer;
 
     local procedure Initialize()
     begin
@@ -164,6 +166,223 @@ codeunit 134315 "Workflow Queuing Tests"
 
         // Clean up
         WorkflowStepInstance.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BlockedQueuedEventRetainsRecordsUntilUnblocked()
+    var
+        Customer: Record Customer;
+        xCustomer: Record Customer;
+        QueuedEvent: Record "Workflow Step Instance";
+        BlockingResponse: Record "Workflow Step Instance";
+        WorkflowEventQueue: Record "Workflow Event Queue";
+        SavedWorkflowEventQueue: Record "Workflow Event Queue";
+        WorkflowManagement: Codeunit "Workflow Management";
+        WorkflowQueuingTests: Codeunit "Workflow Queuing Tests";
+    begin
+        // [SCENARIO] Another workflow in the session must not consume a blocked event's saved records.
+        InitializeQueueReplayTest(Customer, xCustomer);
+        BindSubscription(WorkflowQueuingTests);
+
+        // [GIVEN] An event is queued while a response in its workflow instance is still processing.
+        CreateBlockedWorkflowEvent(QueuedEvent, BlockingResponse);
+        WorkflowManagement.ExecuteResponses(Customer, xCustomer, QueuedEvent);
+        FindQueuedEvent(WorkflowEventQueue, QueuedEvent);
+        SavedWorkflowEventQueue := WorkflowEventQueue;
+
+        // [WHEN] Other workflow instances attempt to process the session's queue.
+        ProcessSessionQueue(Customer);
+        ProcessSessionQueue(Customer);
+
+        // [THEN] The original queue entry and both saved record indices are retained without executing the response.
+        FindQueuedEvent(WorkflowEventQueue, QueuedEvent);
+        Assert.AreEqual(1, WorkflowEventQueue.Count(), 'The blocked event must not be queued again.');
+        Assert.AreEqual(SavedWorkflowEventQueue.ID, WorkflowEventQueue.ID, 'The original queue entry must be retained.');
+        Assert.AreEqual(SavedWorkflowEventQueue."Record Index", WorkflowEventQueue."Record Index", 'The saved record index must not change.');
+        Assert.AreEqual(SavedWorkflowEventQueue."xRecord Index", WorkflowEventQueue."xRecord Index", 'The saved previous record index must not change.');
+        Assert.AreEqual(0, WorkflowQueuingTests.GetReplayedResponseCount(), 'The blocked event must not execute.');
+
+        // [WHEN] The blocking response completes and the queue is processed again.
+        CompleteBlockingResponse(BlockingResponse);
+        ProcessSessionQueue(Customer);
+
+        // [THEN] The event executes exactly once with the original current and previous records and is archived.
+        VerifyQueuedEventCompleted(QueuedEvent);
+        Assert.AreEqual(1, WorkflowQueuingTests.GetReplayedResponseCount(), 'The deferred response must execute once.');
+        ProcessSessionQueue(Customer);
+        Assert.AreEqual(1, WorkflowQueuingTests.GetReplayedResponseCount(), 'The completed response must not execute again.');
+        UnbindSubscription(WorkflowQueuingTests);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReadyQueuedEventRunsWhileAnotherInstanceIsBlocked()
+    var
+        Customer: Record Customer;
+        xCustomer: Record Customer;
+        BlockedEvent: Record "Workflow Step Instance";
+        BlockingResponse: Record "Workflow Step Instance";
+        ReadyEvent: Record "Workflow Step Instance";
+        CompletedResponse: Record "Workflow Step Instance";
+        WorkflowEventQueue: Record "Workflow Event Queue";
+        WorkflowManagement: Codeunit "Workflow Management";
+        WorkflowQueuingTests: Codeunit "Workflow Queuing Tests";
+    begin
+        // [SCENARIO] A blocked workflow instance must not prevent another instance's queued event from completing.
+        InitializeQueueReplayTest(Customer, xCustomer);
+        BindSubscription(WorkflowQueuingTests);
+
+        // [GIVEN] Two workflow instances have queued events, and only the second instance is ready.
+        CreateBlockedWorkflowEvent(BlockedEvent, BlockingResponse);
+        WorkflowManagement.ExecuteResponses(Customer, xCustomer, BlockedEvent);
+        CreateBlockedWorkflowEvent(ReadyEvent, CompletedResponse);
+        WorkflowManagement.ExecuteResponses(Customer, xCustomer, ReadyEvent);
+        CompleteBlockingResponse(CompletedResponse);
+
+        // [WHEN] Another workflow processes the session's queue.
+        ProcessSessionQueue(Customer);
+
+        // [THEN] The ready event completes while the first event remains queued.
+        VerifyQueuedEventCompleted(ReadyEvent);
+        FindQueuedEvent(WorkflowEventQueue, BlockedEvent);
+        Assert.AreEqual(1, WorkflowEventQueue.Count(), 'The blocked event must remain queued.');
+        Assert.AreEqual(1, WorkflowQueuingTests.GetReplayedResponseCount(), 'Only the ready response must execute.');
+
+        // [WHEN] The remaining blocking response completes.
+        CompleteBlockingResponse(BlockingResponse);
+        ProcessSessionQueue(Customer);
+
+        // [THEN] Both events have completed exactly once.
+        VerifyQueuedEventCompleted(BlockedEvent);
+        Assert.AreEqual(2, WorkflowQueuingTests.GetReplayedResponseCount(), 'Both deferred responses must execute once.');
+        UnbindSubscription(WorkflowQueuingTests);
+    end;
+
+    local procedure InitializeQueueReplayTest(var Customer: Record Customer; var xCustomer: Record Customer)
+    var
+        WorkflowEventQueue: Record "Workflow Event Queue";
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+    begin
+        Initialize();
+        LibraryWorkflow.DisableAllWorkflows();
+        WorkflowEventQueue.SetRange("Session ID", SessionId());
+        WorkflowEventQueue.DeleteAll();
+        WorkflowResponseHandling.AddResponseToLibrary(VerifyQueuedRecordsCode(), Database::Customer, VerifyQueuedRecordsCode(), 'GROUP 0');
+
+        Customer.Init();
+        Customer."No." := LibraryUtility.GenerateRandomCode(Customer.FieldNo("No."), Database::Customer);
+        Customer.Name := 'Current name';
+        Customer.Insert();
+        xCustomer := Customer;
+        xCustomer.Name := 'Previous name';
+    end;
+
+    local procedure CreateEventInstance(var WorkflowStepInstance: Record "Workflow Step Instance")
+    var
+        Workflow: Record Workflow;
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+    begin
+        LibraryWorkflow.CreateWorkflow(Workflow);
+        WorkflowStepInstance.Init();
+        WorkflowStepInstance.ID := CreateGuid();
+        WorkflowStepInstance."Workflow Code" := Workflow.Code;
+        WorkflowStepInstance."Workflow Step ID" := 1;
+        WorkflowStepInstance.Type := WorkflowStepInstance.Type::"Event";
+        WorkflowStepInstance.Status := WorkflowStepInstance.Status::Active;
+        WorkflowStepInstance."Function Name" := WorkflowEventHandling.RunWorkflowOnCustomerChangedCode();
+        WorkflowStepInstance.Insert(true);
+    end;
+
+    local procedure CreateBlockedWorkflowEvent(var QueuedEvent: Record "Workflow Step Instance"; var BlockingResponse: Record "Workflow Step Instance")
+    var
+        QueuedResponse: Record "Workflow Step Instance";
+        WorkflowResponseHandling: Codeunit "Workflow Response Handling";
+    begin
+        CreateEventInstance(QueuedEvent);
+
+        BlockingResponse := QueuedEvent;
+        BlockingResponse."Workflow Step ID" := 2;
+        BlockingResponse.Type := BlockingResponse.Type::Response;
+        BlockingResponse.Status := BlockingResponse.Status::Processing;
+        BlockingResponse."Function Name" := WorkflowResponseHandling.DoNothingCode();
+        BlockingResponse.Insert(true);
+
+        QueuedEvent."Previous Workflow Step ID" := BlockingResponse."Workflow Step ID";
+        QueuedEvent.Modify(true);
+
+        QueuedResponse := QueuedEvent;
+        QueuedResponse."Workflow Step ID" := 3;
+        QueuedResponse."Previous Workflow Step ID" := QueuedEvent."Workflow Step ID";
+        QueuedResponse.Type := QueuedResponse.Type::Response;
+        QueuedResponse.Status := QueuedResponse.Status::Inactive;
+        QueuedResponse."Function Name" := VerifyQueuedRecordsCode();
+        QueuedResponse.Insert(true);
+    end;
+
+    local procedure ProcessSessionQueue(Customer: Record Customer)
+    var
+        WorkflowStepInstance: Record "Workflow Step Instance";
+        WorkflowManagement: Codeunit "Workflow Management";
+    begin
+        CreateEventInstance(WorkflowStepInstance);
+        WorkflowManagement.ExecuteResponses(Customer, Customer, WorkflowStepInstance);
+    end;
+
+    local procedure FindQueuedEvent(var WorkflowEventQueue: Record "Workflow Event Queue"; WorkflowStepInstance: Record "Workflow Step Instance")
+    begin
+        WorkflowEventQueue.Reset();
+        WorkflowEventQueue.SetRange("Session ID", SessionId());
+        WorkflowEventQueue.SetRange("Step Record ID", WorkflowStepInstance.RecordId());
+        WorkflowEventQueue.FindFirst();
+    end;
+
+    local procedure CompleteBlockingResponse(var WorkflowStepInstance: Record "Workflow Step Instance")
+    begin
+        WorkflowStepInstance.Status := WorkflowStepInstance.Status::Completed;
+        WorkflowStepInstance.Modify(true);
+    end;
+
+    local procedure VerifyQueuedEventCompleted(WorkflowStepInstance: Record "Workflow Step Instance")
+    var
+        WorkflowEventQueue: Record "Workflow Event Queue";
+        WorkflowStepInstanceArchive: Record "Workflow Step Instance Archive";
+    begin
+        WorkflowEventQueue.SetRange("Session ID", SessionId());
+        WorkflowEventQueue.SetRange("Step Record ID", WorkflowStepInstance.RecordId());
+        Assert.IsTrue(WorkflowEventQueue.IsEmpty(), 'The completed event must be removed from the queue.');
+        WorkflowStepInstanceArchive.Get(WorkflowStepInstance.ID, WorkflowStepInstance."Workflow Code", WorkflowStepInstance."Workflow Step ID");
+        Assert.AreEqual(WorkflowStepInstanceArchive.Status::Completed, WorkflowStepInstanceArchive.Status, 'The queued event must complete.');
+    end;
+
+    procedure GetReplayedResponseCount(): Integer
+    begin
+        exit(ReplayedResponseCount);
+    end;
+
+    local procedure VerifyQueuedRecordsCode(): Code[128]
+    begin
+        exit('VERIFYQUEUEDRECORDS');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", 'OnExecuteWorkflowResponse', '', false, false)]
+    local procedure VerifyQueuedRecords(var ResponseExecuted: Boolean; var Variant: Variant; xVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance")
+    var
+        Customer: Record Customer;
+        xCustomer: Record Customer;
+    begin
+        if ResponseWorkflowStepInstance."Function Name" <> VerifyQueuedRecordsCode() then
+            exit;
+
+        Assert.IsTrue(Variant.IsRecord, 'A replayed response must receive a Record-backed Variant.');
+        Assert.IsTrue(xVariant.IsRecord, 'A replayed response must receive a Record-backed xVariant.');
+        Customer := Variant;
+        xCustomer := xVariant;
+        Assert.AreEqual(Customer."No.", xCustomer."No.", 'Both saved records must belong to the same customer.');
+        Assert.AreEqual('Current name', Customer.Name, 'The current record must be preserved while the event is blocked.');
+        Assert.AreEqual('Previous name', xCustomer.Name, 'The previous record must be preserved while the event is blocked.');
+        ReplayedResponseCount += 1;
+        ResponseExecuted := true;
     end;
 
     local procedure EnsurePurchSetupNoSeries()
