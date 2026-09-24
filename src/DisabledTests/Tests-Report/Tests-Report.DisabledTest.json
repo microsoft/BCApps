@@ -352,12 +352,12 @@
   {
     "codeunitId": 134422,
     "codeunitName": "Rep. Selections - Std. Stmt.",
-    "method": "PrintCustomerStatementWhenCustomerInFilter"
+    "method": "PrintCustomerStatementWhenCustomerInFilterAndHasCustomDocLayout"
   },
   {
     "codeunitId": 134422,
     "codeunitName": "Rep. Selections - Std. Stmt.",
-    "method": "PrintCustomerStatementWhenCustomerNotInFilter"
+    "method": "PrintCustomerStatementWhenCustomerNotInFilterAndHasCustomDocLayout"
   },
   {
     "codeunitId": 134422,

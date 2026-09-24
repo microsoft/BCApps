@@ -99,19 +99,40 @@ codeunit 8800 "Custom Layout Reporting"
         TargetEmailAddressErr: Label 'The target email address has not been specified on the document layout for %1, %2. //Choose the Document Layouts action on the customer or vendor card to specify the email address.', Comment = '%1 - Source Data RecordID, %2 - Usage';
         TargetEmailAddressNotValidErr: Label 'The target email address "%1" is not valid on the document layout for %2, %3. //Choose the Document Layouts action on the customer or vendor card to adjust the email address.', Comment = '%1 - Target email address, %2 - Source Data RecordID, %3 - Usage';
         DifferentThanFilterTxt: Label '<>%1', Locked = true;
+        LayoutNameKeyTok: Label 'NAME:%1:%2', Locked = true;
+        LayoutCodeKeyTok: Label 'CODE:%1', Locked = true;
 
     procedure GetLayoutIteratorKeyFilter(var FilterRecordRef: RecordRef; var FilterRecordKeyFieldRef: FieldRef; CustomReportLayoutCode: Code[20])
     var
         CustomReportSelection2: Record "Custom Report Selection";
-        "Filter": Text;
     begin
         // Further filters the items in FilterRecordRef by restricting them only to items who have entries in the "* Report Selection" tables
         // This prevents us from iterating over items that aren't related to the custom layouts
         CustomReportSelection2.SetView(CustomReportSelection.GetView());
 
-        // Set the filters on the "* Report Selection" table and iterate through
+        // Selections that carry a report layout name are grouped by that name instead, see the overload below
         CustomReportSelection2.SetRange("Custom Report Layout Code", CustomReportLayoutCode);
+        CustomReportSelection2.SetRange("Email Attachment Layout Name", '');
 
+        SetLayoutIteratorKeyFilter(FilterRecordRef, FilterRecordKeyFieldRef, CustomReportSelection2);
+    end;
+
+    procedure GetLayoutIteratorKeyFilter(var FilterRecordRef: RecordRef; var FilterRecordKeyFieldRef: FieldRef; LayoutName: Text[250]; LayoutAppID: Guid)
+    var
+        CustomReportSelection2: Record "Custom Report Selection";
+    begin
+        // Further filters the items in FilterRecordRef to the items whose document layout selects the given report layout
+        CustomReportSelection2.SetView(CustomReportSelection.GetView());
+        CustomReportSelection2.SetRange("Email Attachment Layout Name", LayoutName);
+        CustomReportSelection2.SetRange("Email Attachment Layout AppID", LayoutAppID);
+
+        SetLayoutIteratorKeyFilter(FilterRecordRef, FilterRecordKeyFieldRef, CustomReportSelection2);
+    end;
+
+    local procedure SetLayoutIteratorKeyFilter(var FilterRecordRef: RecordRef; var FilterRecordKeyFieldRef: FieldRef; var CustomReportSelection2: Record "Custom Report Selection")
+    var
+        "Filter": Text;
+    begin
         if CustomReportSelection2.FindSet() then
             case CustomReportSelection2."Source Type" of
                 Database::Customer:
@@ -313,7 +334,7 @@ codeunit 8800 "Custom Layout Reporting"
         TempRecordKeyFieldRef: FieldRef;
         ReportedLayouts: DotNet ArrayList;
         ReportedObjects: DotNet ArrayList;
-        CustomReportLayoutCode: Code[20];
+        ReportedLayoutKey: Text;
         ReportedRecordKeyVal: Text;
     begin
         ReportingType := ReportingType::Layout;
@@ -328,20 +349,22 @@ codeunit 8800 "Custom Layout Reporting"
         // Iterate through the layouts in the Custom Report Selection table
         if CustomReportSelection.FindSet() then
             repeat
-                CustomReportLayoutCode := CustomReportSelection."Custom Report Layout Code";
+                ReportedLayoutKey := GetReportedLayoutKey(CustomReportSelection);
 
                 // Reset the TempRecordRef object
                 TempRecordRef := ReportDataRecordRef.Duplicate();
                 TempRecordKeyFieldRef := TempRecordRef.Field(ReportDataIteratorFieldRef.Number);
 
                 // If we've not already reported on this layout and it truly is a custom layout, then report on it
-                if not ReportedLayouts.Contains(CustomReportLayoutCode) and
-                   (ResolveCustomReportLayoutCode(CustomReportSelection) <> '')
-                then begin
-                    ReportedLayouts.Add(CustomReportLayoutCode);
+                if (ReportedLayoutKey <> '') and not ReportedLayouts.Contains(ReportedLayoutKey) then begin
+                    ReportedLayouts.Add(ReportedLayoutKey);
 
-                    // Run the report only for those objects that have this layout
-                    GetLayoutIteratorKeyFilter(TempRecordRef, TempRecordKeyFieldRef, CustomReportLayoutCode); // set view based on intersection of lists
+                    // Run the report only for those objects that have this layout, set view based on intersection of lists
+                    if CustomReportSelection."Email Attachment Layout Name" <> '' then
+                        GetLayoutIteratorKeyFilter(
+                            TempRecordRef, TempRecordKeyFieldRef, CustomReportSelection."Email Attachment Layout Name", CustomReportSelection."Email Attachment Layout AppID")
+                    else
+                        GetLayoutIteratorKeyFilter(TempRecordRef, TempRecordKeyFieldRef, CustomReportSelection."Custom Report Layout Code");
 
                     if TempRecordRef.FindFirst() then begin
                         // Run the report on the data record, using the above filter
@@ -488,9 +511,14 @@ codeunit 8800 "Custom Layout Reporting"
         end;
 
         // Set the custom report layout
-        if CustomReportSelection."Email Attachment Layout Name" <> '' then
-            ReportLayoutSelection.SetTempLayoutSelectedName(CustomReportSelection."Email Attachment Layout Name")
-        else begin
+        if CustomReportSelection."Email Attachment Layout Name" <> '' then begin
+            // Upgraded selections only carry the layout name, so the App ID is only used when it has been set
+            if IsNullGuid(CustomReportSelection."Email Attachment Layout AppID") then
+                ReportLayoutSelection.SetTempLayoutSelectedName(CustomReportSelection."Email Attachment Layout Name")
+            else
+                ReportLayoutSelection.SetTempLayoutSelectedName(
+                    CustomReportSelection."Email Attachment Layout Name", CustomReportSelection."Email Attachment Layout AppID");
+        end else begin
             CustomReportLayoutCode := ResolveCustomReportLayoutCode(CustomReportSelection);
             ReportLayoutSelection.SetTempLayoutSelected(CustomReportLayoutCode);
         end;
@@ -1146,6 +1174,18 @@ codeunit 8800 "Custom Layout Reporting"
     procedure SetTestModeWebClient(TestModeSpoofWebClient: Boolean)
     begin
         TestModeWebClient := TestModeSpoofWebClient;
+    end;
+
+    local procedure GetReportedLayoutKey(var CustomReportSelection: Record "Custom Report Selection"): Text
+    begin
+        // Identifies the layout a document layout prints with, or returns blank when it uses the report's default layout
+        if CustomReportSelection."Email Attachment Layout Name" <> '' then
+            exit(StrSubstNo(LayoutNameKeyTok, CustomReportSelection."Email Attachment Layout AppID", CustomReportSelection."Email Attachment Layout Name"));
+
+        if ResolveCustomReportLayoutCode(CustomReportSelection) <> '' then
+            exit(StrSubstNo(LayoutCodeKeyTok, CustomReportSelection."Custom Report Layout Code"));
+
+        exit('');
     end;
 
     local procedure ResolveCustomReportLayoutCode(var CustomReportSelection: Record "Custom Report Selection"): Code[20]

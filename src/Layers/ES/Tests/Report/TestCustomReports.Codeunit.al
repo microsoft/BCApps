@@ -16,6 +16,13 @@ codeunit 134761 "Test Custom Reports"
 #if not CLEAN30
         CustomReportLayout: Record "Custom Report Layout";
 #endif
+        QuoteFullModLayout: Record "Report Layout List";
+        OrderFullModLayout: Record "Report Layout List";
+        InvoiceFullModLayout: Record "Report Layout List";
+        CreditMemoFullModLayout: Record "Report Layout List";
+        StandardStatementFullModLayout: Record "Report Layout List";
+        StandardStatementModLayout: Record "Report Layout List";
+        StatementModLayout: Record "Report Layout List";
         QuoteSalesHeaderFullMod: Record "Sales Header";
         OrderSalesHeaderFullMod: Record "Sales Header";
         InvoiceSalesHeaderFullMod: Record "Sales Header";
@@ -39,9 +46,7 @@ codeunit 134761 "Test Custom Reports"
         Assert: Codeunit Assert;
         LibrarySales: Codeunit "Library - Sales";
         LibraryInventory: Codeunit "Library - Inventory";
-#if not CLEAN30
         LibraryPurchase: Codeunit "Library - Purchase";
-#endif
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
@@ -49,17 +54,15 @@ codeunit 134761 "Test Custom Reports"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         LibraryERM: Codeunit "Library - ERM";
+        DocumentLayoutTestHelper: Codeunit "Document Layout Test Helper";
         FormatDocument: Codeunit "Format Document";
         Usage: Enum "Custom Report Selection Sales";
         ReportSelectionUsage: Enum "Report Selection Usage";
         IsInitialized: Boolean;
         ExpectedFilesErr: Label 'Expected files as report output in temporary directory. None found.', Comment = '%1, filename.';
         TempFolderIndex: Integer;
-#if not CLEAN30
-        StandardStatementModTxt: Label 'Standard Statement Mod';
-        StatementModTxt: Label 'Statement Mod';
-        StandardStatementFullModTxt: Label 'Standard Statement Full Mod';
-#endif
+        WrongLayoutErr: Label 'The report was not run with the report layout selected on the document layout.';
+        LayoutNotUsedErr: Label 'The report was not run with report layout "%1" for %2.', Comment = '%1 = report layout name, %2 = customer number';
         InvoiceDiscountTxt: Label 'Invoice Discount';
         SubtotalTxt: Label 'Subtotal';
         DescriptionReportTotalsLineTxt: Label 'Description_ReportTotalsLine';
@@ -72,18 +75,14 @@ codeunit 134761 "Test Custom Reports"
     [Test]
     [Scope('OnPrem')]
     procedure TestDeletionOfCustomer()
+    var
+        QuoteLayout: Record "Report Layout List";
     begin
         LibrarySales.CreateCustomer(CustomerFullMod);
 
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Sales - Quote", CustomReportLayout.Type::Word, 'Quote Customer Full Mod');
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote",
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Sales - Quote", QuoteLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote", QuoteLayout);
 
         CustomReportSelection.SetRange("Source Type", DATABASE::Customer);
         CustomReportSelection.SetRange("Source No.", CustomerFullMod."No.");
@@ -98,9 +97,6 @@ codeunit 134761 "Test Custom Reports"
         Assert.IsFalse(CustomReportSelection.FindFirst(), 'Customer.OnDelete failed to remove CustomReportSelection');
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CustomReportLayout.DeleteAll();
-#endif
     end;
 
     [Test]
@@ -111,7 +107,7 @@ codeunit 134761 "Test Custom Reports"
         Initialize();
 
         PrintCustomReportSelectionFullMod(
-            QuoteSalesHeaderFullMod, REPORT::"Standard Sales - Quote", "Report Selection Usage"::"S.Quote");
+            QuoteSalesHeaderFullMod, REPORT::"Standard Sales - Quote", "Report Selection Usage"::"S.Quote", QuoteFullModLayout.Name);
 
         PrintCustomReportSelectionPartMod(
             QuoteSalesHeaderParitalMod, REPORT::"Standard Sales - Quote", "Report Selection Usage"::"S.Quote");
@@ -128,7 +124,7 @@ codeunit 134761 "Test Custom Reports"
         Initialize();
 
         PrintCustomReportSelectionFullMod(
-            OrderSalesHeaderFullMod, REPORT::"Standard Sales - Order Conf.", "Report Selection Usage"::"S.Order");
+            OrderSalesHeaderFullMod, REPORT::"Standard Sales - Order Conf.", "Report Selection Usage"::"S.Order", OrderFullModLayout.Name);
 
         PrintCustomReportSelectionPartMod(
             OrderSalesHeaderPartialMod, REPORT::"Standard Sales - Order Conf.", "Report Selection Usage"::"S.Order");
@@ -143,25 +139,20 @@ codeunit 134761 "Test Custom Reports"
     procedure TestPrintInvoices()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        CustomReportID: Integer;
     begin
         Initialize();
 
+        // [THEN] The invoice of the customer with a report layout on its document layout is printed with that layout
         SalesInvoiceHeader.Get(InvoiceSalesHeaderFullMod."Last Posting No.");
+        VerifyDocumentPrintedWithLayout(
+            SalesInvoiceHeader, "Report Selection Usage"::"S.Invoice", SalesInvoiceHeader.FieldNo("Bill-to Customer No."),
+            REPORT::"Standard Sales - Invoice", InvoiceFullModLayout.Name, 'Printing a Modified Custom Invoice failed.');
 
-        Clear(CustomReportSelection);
-        CustomReportID :=
-          CustomReportSelectionPrint(
-              SalesInvoiceHeader, "Report Selection Usage"::"S.Invoice", false, true, SalesInvoiceHeader.FieldNo("Bill-to Customer No."));
-        Assert.AreEqual(REPORT::"Standard Sales - Invoice", CustomReportID, 'Printing a Modified Custom Invoice failed.');
-
+        // [THEN] The invoice of the customer with a document layout without a report layout is printed with the default layout
         SalesInvoiceHeader.Get(InvoiceSalesHeaderPartialMod."Last Posting No.");
-
-        Clear(CustomReportSelection);
-        CustomReportID :=
-          CustomReportSelectionPrint(
-              SalesInvoiceHeader, "Report Selection Usage"::"S.Invoice", false, true, SalesInvoiceHeader.FieldNo("Bill-to Customer No."));
-        Assert.AreEqual(REPORT::"Standard Sales - Invoice", CustomReportID, 'Printing a Custom Invoice failed.');
+        VerifyDocumentPrintedWithLayout(
+            SalesInvoiceHeader, "Report Selection Usage"::"S.Invoice", SalesInvoiceHeader.FieldNo("Bill-to Customer No."),
+            REPORT::"Standard Sales - Invoice", '', 'Printing a Custom Invoice failed.');
 
         SalesInvoiceHeader.Get(InvoiceSalesHeaderNoMod."Last Posting No.");
 
@@ -179,18 +170,17 @@ codeunit 134761 "Test Custom Reports"
     begin
         Initialize();
 
+        // [THEN] The credit memo of the customer with a report layout on its document layout is printed with that layout
         SalesCrMemoHeader.Get(CreditMemoSalesHeaderFullMod."Last Posting No.");
-        Clear(CustomReportSelection);
-        CustomReportID :=
-          CustomReportSelectionPrint(SalesCrMemoHeader, "Report Selection Usage"::"S.Cr.Memo", false, true, SalesCrMemoHeader.FieldNo("Bill-to Customer No."));
-        Assert.AreEqual(REPORT::"Standard Sales - Credit Memo", CustomReportID, 'Printing a Modified Custom Credit Memo failed.');
+        VerifyDocumentPrintedWithLayout(
+            SalesCrMemoHeader, "Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader.FieldNo("Bill-to Customer No."),
+            REPORT::"Standard Sales - Credit Memo", CreditMemoFullModLayout.Name, 'Printing a Modified Custom Credit Memo failed.');
 
+        // [THEN] The credit memo of the customer with a document layout without a report layout is printed with the default layout
         SalesCrMemoHeader.Get(CreditMemoSalesHeaderPartialMod."Last Posting No.");
-
-        Clear(CustomReportSelection);
-        CustomReportID :=
-          CustomReportSelectionPrint(SalesCrMemoHeader, "Report Selection Usage"::"S.Cr.Memo", false, true, SalesCrMemoHeader.FieldNo("Bill-to Customer No."));
-        Assert.AreEqual(REPORT::"Standard Sales - Credit Memo", CustomReportID, 'Printing a Custom Credit Memo failed.');
+        VerifyDocumentPrintedWithLayout(
+            SalesCrMemoHeader, "Report Selection Usage"::"S.Cr.Memo", SalesCrMemoHeader.FieldNo("Bill-to Customer No."),
+            REPORT::"Standard Sales - Credit Memo", '', 'Printing a Custom Credit Memo failed.');
 
         SalesCrMemoHeader.Get(CreditMemoSalesHeaderNoMod."Last Posting No.");
 
@@ -238,11 +228,17 @@ codeunit 134761 "Test Custom Reports"
     procedure PrintStandardStatementReport()
     var
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
     begin
         Initialize();
 
         // Ensure that the report path runs without errors. Suppress output.
+        BindSubscription(LayoutSelectionSpy);
         RunStatementReportWithStandardSelection(CustomerFullMod, CustomLayoutReporting, TemporaryPath, true, true);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        // [THEN] The statement is printed once with each report layout on the customer's document layouts
+        VerifyStatementLayouts(LayoutSelectionSpy, StandardStatementFullModLayout.Name, StandardStatementModLayout.Name);
     end;
 
     [Test]
@@ -251,11 +247,16 @@ codeunit 134761 "Test Custom Reports"
     procedure PrintStatementReport()
     var
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
     begin
         Initialize();
 
         // Ensure that the report path runs without errors. Suppress output.
+        BindSubscription(LayoutSelectionSpy);
         RunStatementReport(CustomerFullMod, CustomLayoutReporting, TemporaryPath, true, true);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        VerifyStatementLayouts(LayoutSelectionSpy, StatementModLayout.Name, '');
     end;
 
     [Test]
@@ -264,11 +265,65 @@ codeunit 134761 "Test Custom Reports"
     procedure PrintStatementReportWithDifferentIterator()
     var
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
     begin
         Initialize();
 
         // Ensure that the report path runs without errors. Suppress output.
+        BindSubscription(LayoutSelectionSpy);
         RunStatementReport(CustomerFullMod, CustomLayoutReporting, TemporaryPath, true, false);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        VerifyStatementLayouts(LayoutSelectionSpy, StatementModLayout.Name, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('StandardStatementPrintHandler')]
+    [Scope('OnPrem')]
+    procedure PrintStandardStatementUsesReportLayoutOfEachCustomer()
+    var
+        Customer: array[3] of Record Customer;
+        CustomerFilter: Record Customer;
+        ReportLayoutList: array[2] of Record "Report Layout List";
+        CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
+        i: Integer;
+    begin
+        // [SCENARIO] Printing statements for several customers uses the report layout from each customer's document layout
+        Initialize();
+
+        // [GIVEN] Customers C1 and C2 with document layouts for "Standard Statement" that select report layouts L1 and L2
+        // [GIVEN] Customer C3 without a document layout
+        for i := 1 to ArrayLen(Customer) do
+            LibrarySales.CreateCustomer(Customer[i]);
+        for i := 1 to ArrayLen(ReportLayoutList) do begin
+            DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Statement", ReportLayoutList[i]);
+            AssignReportLayoutToCustomer(
+              Customer[i]."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", ReportLayoutList[i]);
+        end;
+
+        // [WHEN] Print "Standard Statement" for C1, C2 and C3
+        CustomerFilter.SetFilter("No.", '%1|%2|%3', Customer[1]."No.", Customer[2]."No.", Customer[3]."No.");
+        BindSubscription(LayoutSelectionSpy);
+        RunStatementReportWithStandardSelection(CustomerFilter, CustomLayoutReporting, TemporaryPath, true, true);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        // [THEN] The statement of C1 is printed once with L1 and the statement of C2 is printed once with L2
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(Customer[1]."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[1]."No.", ReportLayoutList[1].Name), WrongLayoutErr);
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(Customer[2]."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[2]."No.", ReportLayoutList[2].Name), WrongLayoutErr);
+
+        // [THEN] The statement of C3 is printed once with the default layout
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(Customer[3]."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(Customer[3]."No.", ''), WrongLayoutErr);
+
+        // Tear down, the customers have no entries and would fail statements rendered by later tests
+        CustomReportSelection.Reset();
+        CustomReportSelection.SetRange("Source Type", Database::Customer);
+        CustomReportSelection.SetFilter("Source No.", '%1|%2', Customer[1]."No.", Customer[2]."No.");
+        CustomReportSelection.DeleteAll();
+        Clear(CustomReportSelection);
     end;
 
     [Test]
@@ -277,11 +332,16 @@ codeunit 134761 "Test Custom Reports"
     procedure DefaultLayoutReportWebClient()
     var
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
     begin
         Initialize();
 
         CustomLayoutReporting.SetTestModeWebClient(true);
+        BindSubscription(LayoutSelectionSpy);
         RunStatementReportWithStandardSelection(CustomerFullMod, CustomLayoutReporting, TemporaryPath, true, true);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        VerifyStatementLayouts(LayoutSelectionSpy, StandardStatementFullModLayout.Name, StandardStatementModLayout.Name);
     end;
 
     [Test]
@@ -313,6 +373,7 @@ codeunit 134761 "Test Custom Reports"
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
         FileManagement: Codeunit "File Management";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
         OutputPath: Text;
     begin
         Initialize();
@@ -320,10 +381,13 @@ codeunit 134761 "Test Custom Reports"
         BindSubscription(TestClientTypeSubscriber);
         OutputPath := GetOutputFolder();
 
+        BindSubscription(LayoutSelectionSpy);
         RunStatementReport(CustomerFullMod, CustomLayoutReporting, OutputPath, false, true);
+        UnbindSubscription(LayoutSelectionSpy);
 
         // Validate that an output file exists
         Assert.IsFalse(FileManagement.IsServerDirectoryEmpty(OutputPath), ExpectedFilesErr);
+        VerifyStatementLayouts(LayoutSelectionSpy, StatementModLayout.Name, '');
     end;
 
     [Test]
@@ -334,6 +398,7 @@ codeunit 134761 "Test Custom Reports"
         CustomLayoutReporting: Codeunit "Custom Layout Reporting";
         FileManagement: Codeunit "File Management";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
         OutputPath: Text;
     begin
         Initialize();
@@ -341,7 +406,10 @@ codeunit 134761 "Test Custom Reports"
         BindSubscription(TestClientTypeSubscriber);
         OutputPath := GetOutputFolder();
 
+        BindSubscription(LayoutSelectionSpy);
         RunStatementReport(CustomerFullMod, CustomLayoutReporting, OutputPath, false, true);
+        UnbindSubscription(LayoutSelectionSpy);
+        VerifyStatementLayouts(LayoutSelectionSpy, StatementModLayout.Name, '');
 
         // Validate that an output file exists
         Assert.IsFalse(FileManagement.IsServerDirectoryEmpty(OutputPath), ExpectedFilesErr);
@@ -1256,6 +1324,114 @@ codeunit 134761 "Test Custom Reports"
 #endif
 
     [Test]
+    [HandlerFunctions('StandardStatementDefaultLayoutHandler,StatementCancelHandler')]
+    [Scope('OnPrem')]
+    procedure RunGetLayoutIteratorKeyFilterByLayoutNameForCustomerConsecutiveRecords()
+    var
+        Customer: Record Customer;
+        TempCustomer: Record Customer temporary;
+        ReportLayoutList: Record "Report Layout List";
+        CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
+        CustomerNo: array[7] of Code[20];
+        CustomerNoFilter: Text;
+        i: Integer;
+    begin
+        // [FEATURE] [Customer]
+        // [SCENARIO 319005] Run GetLayoutIteratorKeyFilter function of "Custom Layout Reporting" for a report layout name on consecutive Customer numbers.
+        Initialize();
+
+        // [GIVEN] Customers C1, C2,...,C7, that are added both to database and temporary table "T1".
+        for i := 1 to ArrayLen(CustomerNo) do begin
+            LibrarySales.CreateCustomer(Customer);
+            TempCustomer := Customer;
+            TempCustomer.Insert();
+            CustomerNo[i] := Customer."No.";
+        end;
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Statement", ReportLayoutList);
+
+        // [GIVEN] Customers C1..C3|C5|C7 has report layout "L1" for Usage "C.Statement".
+        CustomerNoFilter := StrSubstNo('%1..%2|%3|%4', CustomerNo[1], CustomerNo[3], CustomerNo[5], CustomerNo[7]);
+        TempCustomer.SetFilter("No.", CustomerNoFilter);
+        TempCustomer.FindSet();
+        repeat
+            AssignReportLayoutToSource(
+              DATABASE::Customer, TempCustomer."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", ReportLayoutList);
+        until TempCustomer.Next() = 0;
+        TempCustomer.Reset();
+        RecRef.GetTable(TempCustomer);
+        FieldRef := RecRef.Field(Customer.FieldNo("No."));
+
+        // [WHEN] Run GetLayoutIteratorKeyFilter function of "Custom Layout Reporting" on temporary table "T1" and report layout "L1".
+        LibraryVariableStorage.Enqueue(WorkDate());
+        CustomLayoutReporting.InitializeReportData(
+          CustomReportSelection.Usage::"C.Statement", RecRef, Customer.FieldName("No."), DATABASE::Customer, Customer.FieldName("No."), true);
+        CustomLayoutReporting.GetLayoutIteratorKeyFilter(RecRef, FieldRef, ReportLayoutList.Name, ReportLayoutList."Application ID");
+
+        // [THEN] "T1" was filtered to "C1..C3|C5|C7" inside filtergroup 10.
+        RecRef.SetTable(TempCustomer);
+        TempCustomer.FilterGroup(10);
+        Assert.AreEqual(CustomerNoFilter, TempCustomer.GetFilter("No."), '');
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchaseInvoiceCancelRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure RunGetLayoutIteratorKeyFilterByLayoutNameForVendorConsecutiveRecords()
+    var
+        Vendor: Record Vendor;
+        TempVendor: Record Vendor temporary;
+        ReportLayoutList: Record "Report Layout List";
+        CustomLayoutReporting: Codeunit "Custom Layout Reporting";
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
+        VendorNo: array[7] of Code[20];
+        VendorNoFilter: Text;
+        i: Integer;
+    begin
+        // [FEATURE] [Vendor]
+        // [SCENARIO 319005] Run GetLayoutIteratorKeyFilter function of "Custom Layout Reporting" for a report layout name on consecutive Vendor numbers.
+        Initialize();
+        LibraryERM.SetupReportSelection("Report Selection Usage"::"P.Invoice", REPORT::"Purchase - Invoice");
+
+        // [GIVEN] Vendors V1, V2,...,V7, that are added both to database and temporary table "T1".
+        for i := 1 to ArrayLen(VendorNo) do begin
+            LibraryPurchase.CreateVendor(Vendor);
+            TempVendor := Vendor;
+            TempVendor.Insert();
+            VendorNo[i] := Vendor."No.";
+        end;
+        DocumentLayoutTestHelper.CreateRDLCLayout(REPORT::"Purchase - Invoice", ReportLayoutList);
+
+        // [GIVEN] Vendors V1..V3|V5|V7 has report layout "L1" for Usage "P.Invoice".
+        VendorNoFilter := StrSubstNo('%1..%2|%3|%4', VendorNo[1], VendorNo[3], VendorNo[5], VendorNo[7]);
+        TempVendor.SetFilter("No.", VendorNoFilter);
+        TempVendor.FindSet();
+        repeat
+            AssignReportLayoutToSource(
+              DATABASE::Vendor, TempVendor."No.", CustomReportSelection.Usage::"P.Invoice", REPORT::"Purchase - Invoice", ReportLayoutList);
+        until TempVendor.Next() = 0;
+        TempVendor.Reset();
+        RecRef.GetTable(TempVendor);
+        FieldRef := RecRef.Field(Vendor.FieldNo("No."));
+
+        // [WHEN] Run GetLayoutIteratorKeyFilter function of "Custom Layout Reporting" on temporary table "T1" and report layout "L1".
+        LibraryVariableStorage.Enqueue(WorkDate());
+        CustomLayoutReporting.InitializeReportData(
+          CustomReportSelection.Usage::"P.Invoice", RecRef, Vendor.FieldName("No."), DATABASE::Vendor, Vendor.FieldName("No."), true);
+        CustomLayoutReporting.GetLayoutIteratorKeyFilter(RecRef, FieldRef, ReportLayoutList.Name, ReportLayoutList."Application ID");
+
+        // [THEN] "T1" was filtered to "V1..V3|V5|V7" inside filtergroup 10.
+        RecRef.SetTable(TempVendor);
+        TempVendor.FilterGroup(10);
+        Assert.AreEqual(VendorNoFilter, TempVendor.GetFilter("No."), '');
+
+        // Tear down
+        InitReportSelections();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure FormatDocSetPurchaseFormattedVATPctAndLineAmount()
     var
@@ -1416,92 +1592,52 @@ codeunit 134761 "Test Custom Reports"
 #if not CLEAN30
         CustomReportLayout.DeleteAll();
 #endif
+        DocumentLayoutTestHelper.DeleteTestLayouts();
 
         InitReportSelections();
 
         LibrarySales.CreateCustomer(CustomerFullMod);
         LibrarySales.CreateCustomer(CustomerPartialMod);
         LibrarySales.CreateCustomer(CustomerNoMod);
+
+        // Customer "Full Mod" has its own report layout for every document, customer "Partial Mod" has document layouts
+        // without a report layout (the report's default layout is used) and customer "No Mod" has no document layouts.
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Sales - Quote", CustomReportLayout.Type::Word, 'Quote Customer Full Mod');
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote",
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Sales - Quote", QuoteFullModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote", QuoteFullModLayout);
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Sales - Order Conf.", CustomReportLayout.Type::Word, 'Order Customer Full Mod');
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.",
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Sales - Order Conf.", OrderFullModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.", OrderFullModLayout);
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Sales - Invoice", CustomReportLayout.Type::Word, 'Invoice Customer Full Mod');
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Invoice", REPORT::"Standard Sales - Invoice",
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Invoice", REPORT::"Standard Sales - Invoice", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Sales - Invoice", InvoiceFullModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"S.Invoice", REPORT::"Standard Sales - Invoice", InvoiceFullModLayout);
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Sales - Credit Memo", CustomReportLayout.Type::Word,
-          'Credit Memo Customer Full Mod');
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Cr.Memo",
-          REPORT::"Standard Sales - Credit Memo", CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Cr.Memo",
-          REPORT::"Standard Sales - Credit Memo", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Sales - Credit Memo", CreditMemoFullModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"S.Cr.Memo", REPORT::"Standard Sales - Credit Memo", CreditMemoFullModLayout);
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Statement", CustomReportLayout.Type::Word, StandardStatementFullModTxt);
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement",
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Statement", StandardStatementFullModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", StandardStatementFullModLayout);
         CustomReportSelection."Send To Email" := 'test@contoso.com';
         CustomReportSelection.Modify();
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::Statement, CustomReportLayout.Type::RDLC, StatementModTxt);
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::Statement,
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::Statement, '');
-#endif
+        DocumentLayoutTestHelper.CreateRDLCLayout(REPORT::Statement, StatementModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::Statement, StatementModLayout);
 
         Clear(CustomReportSelection);
-#if not CLEAN30
-        CreateCustomReportLayout(REPORT::"Standard Statement", CustomReportLayout.Type::Word, StandardStatementModTxt);
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement",
-          CustomReportLayout.Code);
-#else
-        AssignCustomLayoutToCustomer(
-          DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", '');
-#endif
+        DocumentLayoutTestHelper.CreateWordLayout(REPORT::"Standard Statement", StandardStatementModLayout);
+        AssignReportLayoutToCustomer(
+          CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement", StandardStatementModLayout);
 
         CreateSalesRecord(QuoteSalesHeaderFullMod, QuoteSalesHeaderFullMod."Document Type"::Quote, CustomerFullMod);
         CreateSalesRecord(OrderSalesHeaderFullMod, QuoteSalesHeaderFullMod."Document Type"::Order, CustomerFullMod);
@@ -1635,24 +1771,51 @@ codeunit 134761 "Test Custom Reports"
           CustomerNo, Amount2, CalcDate('<-CM-1M+3W>', GetDate()), GetDate());
     end;
 
-    local procedure PrintCustomReportSelectionFullMod(SalesHeader: Record "Sales Header"; ExpectedReportID: Integer; ReportUsage: Enum "Report Selection Usage")
-    var
-        CustomReportID: Integer;
+    local procedure PrintCustomReportSelectionFullMod(SalesHeader: Record "Sales Header"; ExpectedReportID: Integer; ReportUsage: Enum "Report Selection Usage"; ExpectedLayoutName: Text)
     begin
-        Clear(CustomReportSelection);
         SalesHeader.SetRecFilter();
-        CustomReportID := CustomReportSelectionPrint(SalesHeader, ReportUsage, false, true, SalesHeader.FieldNo("Bill-to Customer No."));
-        Assert.AreEqual(ExpectedReportID, CustomReportID, 'Print fully modified customer failed');
+        VerifyDocumentPrintedWithLayout(
+            SalesHeader, ReportUsage, SalesHeader.FieldNo("Bill-to Customer No."), ExpectedReportID, ExpectedLayoutName,
+            'Print fully modified customer failed');
     end;
 
     local procedure PrintCustomReportSelectionPartMod(SalesHeader: Record "Sales Header"; ExpectedReportID: Integer; ReportUsage: Enum "Report Selection Usage")
+    begin
+        SalesHeader.SetRecFilter();
+        VerifyDocumentPrintedWithLayout(
+            SalesHeader, ReportUsage, SalesHeader.FieldNo("Bill-to Customer No."), ExpectedReportID, '',
+            'Print partially modified customer failed');
+    end;
+
+    local procedure VerifyDocumentPrintedWithLayout(Document: Variant; ReportUsage: Enum "Report Selection Usage"; CustomerNoFieldNo: Integer; ExpectedReportID: Integer; ExpectedLayoutName: Text; ErrorMsg: Text)
     var
+        LayoutSelectionSpy: Codeunit "Document Layout Test Helper";
         CustomReportID: Integer;
     begin
         Clear(CustomReportSelection);
-        SalesHeader.SetRecFilter();
-        CustomReportID := CustomReportSelectionPrint(SalesHeader, ReportUsage, false, true, SalesHeader.FieldNo("Bill-to Customer No."));
-        Assert.AreEqual(ExpectedReportID, CustomReportID, 'Print partially modified customer failed');
+        BindSubscription(LayoutSelectionSpy);
+        CustomReportID := CustomReportSelectionPrint(Document, ReportUsage, false, true, CustomerNoFieldNo);
+        UnbindSubscription(LayoutSelectionSpy);
+
+        Assert.AreEqual(ExpectedReportID, CustomReportID, ErrorMsg);
+        Assert.AreEqual(ExpectedLayoutName, LayoutSelectionSpy.GetLastSelectedLayoutName(), WrongLayoutErr);
+    end;
+
+    local procedure VerifyStatementLayouts(var LayoutSelectionSpy: Codeunit "Document Layout Test Helper"; FirstLayoutName: Text; SecondLayoutName: Text)
+    begin
+        // Customer "Full Mod" gets a statement for each report layout on its document layouts
+        Assert.IsTrue(
+            LayoutSelectionSpy.IsLayoutUsedFor(CustomerFullMod."No.", FirstLayoutName), StrSubstNo(LayoutNotUsedErr, FirstLayoutName, CustomerFullMod."No."));
+        if SecondLayoutName <> '' then begin
+            Assert.IsTrue(
+                LayoutSelectionSpy.IsLayoutUsedFor(CustomerFullMod."No.", SecondLayoutName), StrSubstNo(LayoutNotUsedErr, SecondLayoutName, CustomerFullMod."No."));
+            Assert.AreEqual(2, LayoutSelectionSpy.GetReportRunCount(CustomerFullMod."No."), WrongLayoutErr);
+        end else
+            Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(CustomerFullMod."No."), WrongLayoutErr);
+
+        // Customer "No Mod" has no document layouts, so its statement uses the default layout
+        Assert.AreEqual(1, LayoutSelectionSpy.GetReportRunCount(CustomerNoMod."No."), WrongLayoutErr);
+        Assert.IsTrue(LayoutSelectionSpy.IsLayoutUsedFor(CustomerNoMod."No.", ''), StrSubstNo(LayoutNotUsedErr, '', CustomerNoMod."No."));
     end;
 
     local procedure PrintCustomReportSelectionNoMod(DocumentRecVar: Variant; ExpectedReportID: Integer; AccountNoFieldNo: Integer; ReportUsage: Enum "Report Selection Usage")
@@ -1714,6 +1877,23 @@ codeunit 134761 "Test Custom Reports"
         CustomReportSelection.Usage := Usage;
         CustomReportSelection."Report ID" := ReportID;
         CustomReportSelection."Custom Report Layout Code" := CustomReportLayoutCode;
+        CustomReportSelection.Insert();
+        Commit();
+    end;
+
+    local procedure AssignReportLayoutToCustomer(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; ReportLayoutList: Record "Report Layout List")
+    begin
+        AssignReportLayoutToSource(Database::Customer, CustomerNo, UsageValue, ReportID, ReportLayoutList);
+    end;
+
+    local procedure AssignReportLayoutToSource(SourceType: Integer; SourceNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; ReportLayoutList: Record "Report Layout List")
+    begin
+        CustomReportSelection.Init();
+        CustomReportSelection."Source Type" := SourceType;
+        CustomReportSelection."Source No." := SourceNo;
+        CustomReportSelection.Usage := UsageValue;
+        CustomReportSelection."Report ID" := ReportID;
+        DocumentLayoutTestHelper.SetDocumentLayout(CustomReportSelection, ReportLayoutList);
         CustomReportSelection.Insert();
         Commit();
     end;
@@ -2236,7 +2416,6 @@ codeunit 134761 "Test Custom Reports"
         RequestPage.OK().Invoke();
     end;
 
-#if not CLEAN30
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StatementCancelHandler(var RequestPage: TestRequestPage Statement)
@@ -2262,7 +2441,6 @@ codeunit 134761 "Test Custom Reports"
     begin
         PurchaseInvoice.Cancel().Invoke();
     end;
-#endif
 
     [ReportHandler]
     [Scope('OnPrem')]
