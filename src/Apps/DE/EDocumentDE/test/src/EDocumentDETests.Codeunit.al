@@ -41,6 +41,8 @@ codeunit 13926 "E-Document DE Tests"
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
         UnsupportedMeansCodeTok: Label '48', Locked = true;
+        BankAccountNotFoundErr: Label 'Customer bank account %1 on mandate %2 does not exist.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
+        MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
         UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents.', Comment = '%1 = UNCL4461 payment means code';
 
     #region BuyerReference
@@ -253,9 +255,9 @@ codeunit 13926 "E-Document DE Tests"
         SEPADirectDebitMandate.Delete(true);
 
         // [WHEN] XRechnungFormat.Check() is called
-        // [THEN] An error is raised
+        // [THEN] An error names the missing mandate
         asserterror CheckSalesHeader(SalesHeader);
-        Assert.ExpectedError('does not exist');
+        Assert.ExpectedError(StrSubstNo(MandateNotFoundErr, SEPADirectDebitMandate.ID));
     end;
 
     [Test]
@@ -286,9 +288,9 @@ codeunit 13926 "E-Document DE Tests"
         SalesHeader.Modify(true);
 
         // [WHEN] XRechnungFormat.Check() is called
-        // [THEN] An error is raised
+        // [THEN] An error names the missing customer bank account and the mandate
         asserterror CheckSalesHeader(SalesHeader);
-        Assert.ExpectedError('does not exist');
+        Assert.ExpectedError(StrSubstNo(BankAccountNotFoundErr, SEPADirectDebitMandate."Customer Bank Account Code", SEPADirectDebitMandate.ID));
     end;
 
     [Test]
