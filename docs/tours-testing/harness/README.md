@@ -48,11 +48,30 @@ Build with `Compile-AppInBcContainer` + `Publish-BcContainerApp -sync -install`.
 **must be under a path shared with the container** — `C:\ProgramData\BcContainerHelper\Extensions\<container>\`
 works; a session-state folder does not.
 
+⚠️⚠️ **Republishing at the SAME version is a silent no-op.** `Publish-BcContainerApp -sync -install
+-upgrade` reports *"successfully published"* and leaves the **old** code installed. One tour
+measured a source it had already fixed as "still broken" **three times** before noticing — the
+instrument was reporting on code that was no longer in the project. **Bump the `app.json` revision
+on every deploy**; treat a successful-looking publish as unproven until a value you changed shows up
+in the output.
+
+⚠️ **`[TryFunction]` cannot wrap BaseApp code that calls `DELETEALL`** — AL forbids it, and the
+error names *your* caller, so it reads like a bug in your probe. Use `Codeunit.Run`, and note that
+`Codeunit.Run` needs a `Commit()` before it or you get *"An error occurred and the transaction is
+stopped"*, which reads like a dead container.
+
 ⚠️ **`Invoke-NAVCodeunit` does not work in a tours container.** It authenticates with Windows
 credentials and tour containers run `UserPassword`, so the service tier answers *"The server has
 rejected the client credentials."* Register the codeunit with `New-NAVWebService` and POST SOAP with
 basic auth instead — which also runs the code as a **named user**, mattering whenever behaviour
-depends on user personalization.
+depends on user personalization. From PowerShell 7 that call needs `-AllowUnencryptedAuthentication`,
+and the SOAP fault body is in `$_.ErrorDetails.Message`; `$_.Exception.Response.GetResponseStream()`
+does not exist on `HttpResponseMessage` and hides the real error.
+
+⚠️ **A web-service session's work date is TODAY, not the CRONUS work date.** Measured: `09/24/2026`
+in a SOAP session against a demo database whose work date is `1/27/2028`. Set it explicitly and
+assert what the session actually saw — this is the same class as the session-time-zone trap above.
+
 
 
 ## ⚠️ The repo pins an artifact that can predate your own commits
