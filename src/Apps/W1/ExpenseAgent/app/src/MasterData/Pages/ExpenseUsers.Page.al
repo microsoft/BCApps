@@ -107,8 +107,11 @@ page 6951 "Expense Users"
                 Visible = IsCreateEmployeeVisible;
 
                 trigger OnAction()
+                var
+                    ExpenseUser: Record "Expense User";
                 begin
-                    Rec.CreateEmployeeFromExpenseUser();
+                    CurrPage.SetSelectionFilter(ExpenseUser);
+                    Rec.CreateEmployeesFromExpenseUsers(ExpenseUser);
                 end;
             }
             action("Send Welcome Email")

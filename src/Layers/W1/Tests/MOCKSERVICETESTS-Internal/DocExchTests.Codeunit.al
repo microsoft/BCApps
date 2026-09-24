@@ -42,7 +42,9 @@ codeunit 139159 "Doc.Exch.Tests"
     local procedure Initialize()
     var
         CompanyInfo: Record "Company Information";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         LibraryVariableStorage.Clear();
         SetupDocExch();
 
