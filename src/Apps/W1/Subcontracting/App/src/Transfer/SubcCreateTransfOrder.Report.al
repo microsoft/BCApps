@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
@@ -36,13 +35,18 @@ report 20501 "Subc. Create Transf. Order"
                 end;
             }
             trigger OnAfterGetRecord()
+            var
+                SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
             begin
                 "Purchase Header".CalcFields("Subc. Order");
                 if not "Subc. Order" then
                     Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
 
-                if not CheckTransferCreated() then
+                if not CheckTransferCreated() then begin
+                    if HasCoveredDemand then
+                        Error(SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo("Purchase Header"));
                     Error(NothingToCreateErr);
+                end;
 
                 Vendor.Get("Purchase Header"."Buy-from Vendor No.");
             end;
@@ -78,6 +82,7 @@ report 20501 "Subc. Create Transf. Order"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
+        HasCoveredDemand: Boolean;
         PurchOrderNo: Code[20];
         LineNo: Integer;
         ExcessReservationsErr: Label 'The transfer quantity (%1) is less than the reserved quantity (%2) on the production order component for item %3. Cancel existing reservations on the component before creating a partial transfer.', Comment = '%1=Transfer Quantity, %2=Reserved Quantity, %3=Item No.';
@@ -85,18 +90,6 @@ report 20501 "Subc. Create Transf. Order"
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
-        CannotCreateTransferErr: Label 'Cannot create a transfer from location %1 to location %2 because location %1 requires warehousing. Set up an in-transit transfer route between the locations, or set Direct Transfer Posting to Direct Transfer on the transfer route or in Inventory Setup.', Comment = '%1=Transfer-from location code, %2=Transfer-to location code';
-
-    local procedure CheckDirectTransferAllowed(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean; TransferFromLocation: Code[10]; TransferToLocation: Code[10])
-    var
-        Location: Record Location;
-    begin
-        if IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
-            exit;
-
-        if Location.RequirePicking(TransferFromLocation) or Location.RequireShipment(TransferFromLocation) then
-            Error(CannotCreateTransferErr, TransferFromLocation, TransferToLocation);
-    end;
 
     local procedure IsOneStepDirectTransfer(var TransferRoute: Record "Transfer Route"; TransferRouteExists: Boolean): Boolean
     var
@@ -137,10 +130,9 @@ report 20501 "Subc. Create Transf. Order"
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
             TransferRouteExists := TransferRoute.Get(TransferFromLocation, TransferToLocationCode);
-            if not TransferRouteExists or (TransferRoute."In-Transit Code" = '') then begin
-                CheckDirectTransferAllowed(TransferRoute, TransferRouteExists, TransferFromLocation, TransferToLocationCode);
-                TransferHeader.Validate("Direct Transfer", true);
-            end else
+            if not TransferRouteExists or (TransferRoute."In-Transit Code" = '') then
+                TransferHeader.Validate("Direct Transfer", true)
+            else
                 if not IsOneStepDirectTransfer(TransferRoute, TransferRouteExists) then
                     TransferHeader.Validate("In-Transit Code", TransferRoute."In-Transit Code");
 
@@ -175,6 +167,7 @@ report 20501 "Subc. Create Transf. Order"
     var
         PurchaseLine: Record "Purchase Line";
     begin
+        HasCoveredDemand := false;
         PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Document No.", PurchOrderNo);
         PurchaseLine.SetFilter("Prod. Order No.", '<>''''');
@@ -233,6 +226,12 @@ report 20501 "Subc. Create Transf. Order"
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent, Round(PurchaseLine.Quantity * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
                 ProdOrderComponent.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+                if (QtyToPost > 0) and
+                   (QtyToPost <= (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
+                                 ProdOrderComponent."Subc. Qty. in Transit (Base)" +
+                                 Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr")))
+                then
+                    HasCoveredDemand := true;
                 if QtyToPost > (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
                                 ProdOrderComponent."Subc. Qty. in Transit (Base)" +
                                 Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr"))
@@ -601,6 +600,9 @@ report 20501 "Subc. Create Transf. Order"
 
         PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
         OpenWIPLineQtyBase := GetOpenWIPTransferLineQtyBase(PurchaseLine, ProdOrderLine);
+
+        if (ExpectedQtyBase > 0) and ((PostedWIPQtyBase + OpenWIPLineQtyBase) >= ExpectedQtyBase) then
+            HasCoveredDemand := true;
 
         exit((PostedWIPQtyBase + OpenWIPLineQtyBase) < ExpectedQtyBase);
     end;

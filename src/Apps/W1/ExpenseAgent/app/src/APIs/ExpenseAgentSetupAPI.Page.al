@@ -42,6 +42,10 @@ page 6942 "Expense Agent Setup API"
                 {
                     Caption = 'Use Rules';
                 }
+                field(submitterRunEvaluation; Rec."Submitter-run Evaluation")
+                {
+                    Caption = 'Allow Submitters to Evaluate Policies';
+                }
                 field(enableAgent; Rec."Enable Agent")
                 {
                     Caption = 'Enable Agent';

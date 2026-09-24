@@ -25,7 +25,9 @@ report 15000002 "Remittance Test Report"
     {
         dataitem(Transaction; "Gen. Journal Line")
         {
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
             DataItemTableView = sorting("Journal Template Name", "Journal Batch Name", "Remittance Agreement Code", "Remittance Type");
+#pragma warning restore AL0254
             RequestFilterFields = "Account Type", "Account No.";
             column(JnlTempName_Transaction; "Journal Template Name")
             {
@@ -131,7 +133,9 @@ report 15000002 "Remittance Test Report"
             }
             dataitem("Gen. Journal Line"; "Gen. Journal Line")
             {
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting("Journal Template Name", "Journal Batch Name", "Remittance Agreement Code", "Remittance Type");
+#pragma warning restore AL0254
                 column(TransactionNo; TransactionNo)
                 {
                 }
