@@ -17,6 +17,10 @@ Working code from the tours run so far, so a new tour starts from something that
 | `sab.js` / `psab.js` / `tsab.js` / `svc.js` | Worked Saboteur probes for Sales, Purchase, Transfer and Service orders. |
 | `runReport.js` | Runs a report and captures its **dataset XML** via *Send to… → XML*. Reports **are** drivable by `?report=<id>` deep link (an earlier claim that they were not turned out to be `appFrame`'s own threshold rejecting a request page's ~7 labels). |
 | `parseDs.js` | Reconciles a report's printed **lines against its printed total**, by entry identity. The dataset is a far better oracle than rendered layout. |
+| `xlCells.js` | Dumps every cell of a BC-generated `.xlsx` as `addr=value` by reading `xl/worksheets/sheet1.xml` directly. **`exceljs` cannot read BC workbooks at all** (`Cannot read properties of undefined (reading 'sheets')`), so raw OOXML is the only route. |
+| `xlRows.js` | Offset-tolerant workbook comparison by row tuple, keyed on **column letter** — so a value that moved column shows up as a change rather than hiding in a diff of row numbers. |
+| `Invoke-XLProbe.ps1` | SOAP driver for report export probes. |
+| `Redeploy-ProbeApp.ps1` | Rebuilds and republishes a probe app **with a bumped revision** — see the silent-no-op warning below. |
 | `probeapp/` | A working AL probe extension (table + codeunit + page). The pattern for **driving a pure function** — see below. |
 
 ## Driving a pure function
