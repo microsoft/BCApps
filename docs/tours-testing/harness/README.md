@@ -4,9 +4,10 @@ Working code from the tours run so far, so a new tour starts from something that
 
 | File | Purpose |
 | --- | --- |
-| `New-TourContainer.ps1` | Creates the container non-interactively — generates a random password, persists `<container>-credentials.json`. Never prompts. **Refuses to hand back a container whose `[dbo].[User]` is empty**, because a half-built container reports healthy, serves HTTP 200 and returns the right build (three tours were bitten). |
+| `New-TourContainer.ps1` | Creates the container non-interactively — generates a random password, persists `<container>-credentials.json`. Never prompts. **Defaults to the LATEST insider artifact**, not the repo pin (see below), and prints both. **Refuses to hand back a container whose `[dbo].[User]` is empty**, because a half-built container reports healthy, serves HTTP 200 and returns the right build (three tours were bitten). |
+| `Test-FixInArtifact.ps1` | ⚠️ **Run this BEFORE building a container for any charter that names a commit.** Unpacks the Base Application straight from the artifact cache and greps the shipped AL for the change under test — no container required. `-Version scan` walks backwards from the newest build and stops at the first one containing it, answering *"which build do I need?"* in one command. `-AlsoShow` prints the sites the fix did **not** touch, which is what turns "the diff shows an asymmetry" into "the build I am about to measure has one". Exit code 0 present / 1 absent, so it works as a gate. |
 | `bc.js` | Playwright helpers. Every trap in `playwright-bc.instructions.md` is already handled here. |
-| `Invoke-BcSql.ps1` | One SQL query in the tour's container. Handles the `pwsh -File` / `$`-interpolation trap; container comes from `$env:BC_CREDS`. |
+| `Invoke-BcSql.ps1` | One SQL query in the tour's container, **returning real objects**. Handles the `pwsh -File` / `$`-interpolation trap; container comes from `$env:BC_CREDS`. |
 | `Invoke-Probe.ps1` | Runs one probe with a SQL snapshot either side and prints the delta **by identity** — which rows appeared, disappeared and changed (§5.5). Also `-Manual`, to bracket something done by hand. |
 | `readError.test.js` | Regression test for `readError()`. Mocks the frame, so it needs no container: `node readError.test.js`. |
 | `Find-TourTargets.ps1` | Static scan of an app's `*.Table.al`. *"What is worth probing here?"* before opening a browser. |
@@ -15,6 +16,27 @@ Working code from the tours run so far, so a new tour starts from something that
 | `Find-PageDrift.ps1` | Differential across pages that share one table — the six sales document types. |
 | `sab.js` / `psab.js` / `tsab.js` / `svc.js` | Worked Saboteur probes for Sales, Purchase, Transfer and Service orders. |
 
+## ⚠️ The repo pins an artifact that can predate your own commits
+
+`.github/AL-Go-Settings.json` carries an explicit `artifact` version, and `Get-CurrentBCArtifactUrl`
+returns it faithfully — so "the container matches your checkout" is **false in the direction that
+matters for testing a fix**. Measured on 2026-09-24: the pin resolved to `30.0.54812.0` while the
+latest insider was `30.0.55076.0`, and a commit that was an *ancestor of the checkout* was absent
+from the pinned build entirely — along with the pre-fix state its own diff showed.
+
+A tour that measures a build without the change under test produces confidently wrong conclusions.
+So, for any charter naming a commit:
+
+```powershell
+# 1. Which build actually contains it?
+.\Test-FixInArtifact.ps1 -Version scan -ObjectFile 'GenJnlPostLine.Codeunit.al' `
+    -Pattern '"Source Currency Code" <> '''''
+
+# 2. Build on the artifact you just validated - pin it, don't rely on "latest",
+#    which can move underneath a session.
+.\New-TourContainer.ps1 -ContainerName BCApps-MyTour -ArtifactUrl '<the validated url>'
+```
+
 Method behind the scanners: §6 of the tours instructions. **They generate hypotheses, never
 verdicts** — every scan-based prediction made so far has been wrong, always by under-reporting
 guarding (§6.3).
@@ -22,6 +44,19 @@ guarding (§6.3).
 ⚠️ A static scan cannot tell you whether a user can reach the field. Before filing anything
 field-level, run the reachability gate in §5.8 — it is what separated one filed bug from two
 correctly-withheld ones in the same area.
+
+## ⚠️ Wrap anything you index in `@()`
+
+**Indexing a single-element pipeline returns the first *character* of a string, silently.** Three
+sightings in one session, each producing a confident, well-formed wrong answer rather than an
+error: a resolved table name became `C` (SQL then said *"Invalid object name 'C'"*, which reads
+exactly like a wrong table name), and an artifact path became `c`.
+
+```powershell
+$t = @($rows | Sort-Object Length)[0]     # ✓
+$t = ($rows | Sort-Object Length)[0]      # ✗ returns 'C' when $rows has one element
+```
+
 
 ## ⚠️ The harness runs from a working copy, not from the repo
 
