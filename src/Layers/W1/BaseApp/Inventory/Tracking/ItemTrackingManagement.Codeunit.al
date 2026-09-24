@@ -379,6 +379,7 @@ codeunit 6500 "Item Tracking Management"
         ExpDate: Date;
         EntriesExist: Boolean;
         IsHandled: Boolean;
+        OriginalReadIsolation: IsolationLevel;
     begin
         IsHandled := false;
         OnBeforeSumUpItemTracking(ReservEntry, TempHandlingSpecification, SumPerLine, SumPerTracking, IsHandled);
@@ -393,6 +394,9 @@ codeunit 6500 "Item Tracking Management"
         if SumPerTracking then
             TempHandlingSpecification.SetTrackingKey();
 
+        OriginalReadIsolation := ReservEntry.ReadIsolation();
+        if OriginalReadIsolation = IsolationLevel::Default then
+            ReservEntry.ReadIsolation(IsolationLevel::ReadCommitted);
         if ReservEntry.FindSet() then begin
             GetItemTrackingCode(ReservEntry."Item No.", ItemTrackingCode);
             repeat
@@ -443,6 +447,7 @@ codeunit 6500 "Item Tracking Management"
                 end;
             until ReservEntry.Next() = 0;
         end;
+        ReservEntry.ReadIsolation(OriginalReadIsolation);
 
         TempHandlingSpecification.Reset();
         exit(TempHandlingSpecification.FindFirst())
