@@ -59,6 +59,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert: Codeunit Assert;
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
@@ -4130,7 +4131,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
-        SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
+        SalesLine.Validate("Tax Category", TaxCategoryStandardTok);
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
@@ -4359,6 +4360,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
@@ -4381,6 +4384,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
@@ -4403,6 +4408,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
@@ -4425,6 +4432,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempBlob.CreateInStream(PdfInStream);
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
+        DEXMLDocumentValidator.ValidateZUGFeRDXML(PdfAttachmentStream);
+        PdfAttachmentStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 

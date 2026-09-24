@@ -45,10 +45,10 @@ codeunit 13916 "Export XRechnung Document"
         TypeHelper: Codeunit "Type Helper";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
-        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
         FeatureNameTok: Label 'E-document XRechnung Format', Locked = true;
         StartEventNameTok: Label 'E-document XRechnung export started', Locked = true;
         EndEventNameTok: Label 'E-document XRechnung export completed', Locked = true;

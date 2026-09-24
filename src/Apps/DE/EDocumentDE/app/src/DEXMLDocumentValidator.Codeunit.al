@@ -12,6 +12,12 @@ codeunit 11042 "DE XML Document Validator"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    /// <summary>
+    /// Validates a ZUGFeRD document against the UN/CEFACT Cross Industry Invoice (CII) D22B schemas
+    /// bundled with this app. Raises an error describing the first schema violation found.
+    /// </summary>
+    /// <param name="XmlStream">The generated CII XML. For a ZUGFeRD PDF this is the embedded XML attachment,
+    /// not the PDF itself. The stream is read to its end, so reset its position before reading it again.</param>
     procedure ValidateZUGFeRDXML(var XmlStream: InStream)
     var
         XmlValidation: Codeunit "Xml Validation";
@@ -30,6 +36,12 @@ codeunit 11042 "DE XML Document Validator"
         XmlValidation.TryValidateAgainstSchema();
     end;
 
+    /// <summary>
+    /// Validates an XRechnung invoice against the OASIS UBL 2.1 Invoice schemas bundled with this app.
+    /// Raises an error describing the first schema violation found.
+    /// </summary>
+    /// <param name="XmlStream">The generated UBL Invoice XML. The stream is read to its end, so reset its
+    /// position before reading it again.</param>
     procedure ValidateXRechnungInvoiceXML(var XmlStream: InStream)
     var
         XmlValidation: Codeunit "Xml Validation";
@@ -51,6 +63,12 @@ codeunit 11042 "DE XML Document Validator"
         XmlValidation.TryValidateAgainstSchema();
     end;
 
+    /// <summary>
+    /// Validates an XRechnung credit note against the OASIS UBL 2.1 CreditNote schemas bundled with this app.
+    /// Raises an error describing the first schema violation found.
+    /// </summary>
+    /// <param name="XmlStream">The generated UBL CreditNote XML. The stream is read to its end, so reset its
+    /// position before reading it again.</param>
     procedure ValidateXRechnungCreditNoteXML(var XmlStream: InStream)
     var
         XmlValidation: Codeunit "Xml Validation";

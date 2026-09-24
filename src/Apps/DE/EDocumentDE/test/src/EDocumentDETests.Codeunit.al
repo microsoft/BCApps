@@ -33,6 +33,8 @@ codeunit 13926 "E-Document DE Tests"
         LibraryService: Codeunit "Library - Service";
         LibraryERM: Codeunit "Library - ERM";
         LibraryEDocDE: Codeunit "Library - E-Doc DE";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryEdocument: Codeunit "Library - E-Document";
         LibraryUtility: Codeunit "Library - Utility";
@@ -40,9 +42,11 @@ codeunit 13926 "E-Document DE Tests"
         DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+        SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         UnsupportedMeansCodeTok: Label '48', Locked = true;
         BankAccountNotFoundErr: Label 'Customer bank account %1 on mandate %2 does not exist.', Comment = '%1 = Bank Account Code, %2 = Mandate ID';
         MandateNotFoundErr: Label 'SEPA Direct Debit Mandate %1 does not exist.', Comment = '%1 = Mandate ID';
+        SEPADDOnCrMemoErr: Label 'Payment means code %1 (SEPA direct debit) cannot be used on a credit memo or return order.', Comment = '%1 = UNCL4461 payment means code';
         UnsupportedPaymentMeansCodeErr: Label 'Payment means code %1 is not supported for German electronic documents.', Comment = '%1 = UNCL4461 payment means code';
 
     #region BuyerReference
@@ -186,9 +190,10 @@ codeunit 13926 "E-Document DE Tests"
     #region PaymentMeansValidation
 
     [Test]
-    procedure CheckPaymentMeansDirectDebitOnCrMemoRaisesError()
+    procedure CheckPaymentMeansDirectDebitOnPostedSalesCrMemoRaisesError()
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
         PaymentMethodCode: Code[10];
     begin
         // [SCENARIO] Creating an e-document from a posted sales credit memo with a SEPA direct-debit payment method (code 59) raises an error.
@@ -197,13 +202,78 @@ codeunit 13926 "E-Document DE Tests"
         // [GIVEN] A Payment Method with Payment Means Code = '59'
         PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
 
-        // [GIVEN] An otherwise valid Sales Credit Memo that uses that Payment Method
-        CreateValidSalesCrMemoHeader(SalesCrMemoHeader, PaymentMethodCode);
+        // [GIVEN] A Sales Credit Memo that uses that Payment Method, posted through the regular posting flow
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::"Credit Memo", PaymentMethodCode);
+        CreateSalesLine(SalesHeader);
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
         // [WHEN] XRechnungFormat.Check() is called
-        // [THEN] An error is raised containing the payment means code
+        // [THEN] An error names the payment means code
         asserterror CheckSalesCrMemoHeader(SalesCrMemoHeader);
-        Assert.ExpectedError('SEPA direct debit');
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnSalesCrMemoRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a sales credit memo with a SEPA direct-debit payment method raises an error, before it is posted.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] An otherwise valid Sales Credit Memo that uses that Payment Method
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::"Credit Memo", PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnSalesReturnOrderRaisesError()
+    var
+        SalesHeader: Record "Sales Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a sales return order with a SEPA direct-debit payment method raises an error, like a credit memo.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] An otherwise valid Sales Return Order that uses that Payment Method
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::"Return Order", PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckSalesHeader(SalesHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
+    end;
+
+    [Test]
+    procedure CheckPaymentMeansDirectDebitOnServiceCrMemoRaisesError()
+    var
+        ServiceHeader: Record "Service Header";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Releasing a service credit memo with a SEPA direct-debit payment method raises an error.
+        Initialize();
+
+        // [GIVEN] A Payment Method with Payment Means Code = '59'
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+
+        // [GIVEN] An otherwise valid Service Credit Memo that uses that Payment Method
+        CreateServiceDocumentWithPaymentMethod(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", PaymentMethodCode);
+
+        // [WHEN] XRechnungFormat.Check() is called
+        // [THEN] An error names the payment means code
+        asserterror CheckServiceHeader(ServiceHeader);
+        Assert.ExpectedError(StrSubstNo(SEPADDOnCrMemoErr, SEPADirectDebitMeansCodeTok));
     end;
 
     [Test]
@@ -399,9 +469,37 @@ codeunit 13926 "E-Document DE Tests"
 
     local procedure CreateSalesInvoiceWithPaymentMethod(var SalesHeader: Record "Sales Header"; PaymentMethodCode: Code[10])
     begin
-        CreateValidSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CreateValidCustomer());
+        CreateSalesDocumentWithPaymentMethod(SalesHeader, SalesHeader."Document Type"::Invoice, PaymentMethodCode);
+    end;
+
+    local procedure CreateSalesDocumentWithPaymentMethod(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; PaymentMethodCode: Code[10])
+    begin
+        CreateValidSalesHeader(SalesHeader, DocumentType, CreateValidCustomer());
         SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
         SalesHeader.Modify(true);
+    end;
+
+    local procedure CreateServiceDocumentWithPaymentMethod(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type"; PaymentMethodCode: Code[10])
+    var
+        PostCode: Record "Post Code";
+    begin
+        LibraryERM.FindPostCode(PostCode);
+        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, CreateValidCustomer());
+        ServiceHeader.Validate("Bill-to Address", LibraryUtility.GenerateGUID());
+        ServiceHeader.Validate("Bill-to City", PostCode.City);
+        ServiceHeader.Validate("Payment Terms Code", LibraryERM.FindPaymentTermsCode());
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Modify(true);
+    end;
+
+    local procedure CreateSalesLine(var SalesHeader: Record "Sales Header")
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDecInRange(10, 20, 5));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
+        SalesLine.Modify(true);
     end;
 
     local procedure CreateValidCustomer(): Code[20]
@@ -444,26 +542,6 @@ codeunit 13926 "E-Document DE Tests"
         SalesHeader.Modify(true);
     end;
 
-    local procedure CreateValidSalesCrMemoHeader(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; PaymentMethodCode: Code[10])
-    var
-        PostCode: Record "Post Code";
-    begin
-        LibraryERM.FindPostCode(PostCode);
-        SalesCrMemoHeader.Init();
-        SalesCrMemoHeader."Bill-to Name" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesCrMemoHeader."Bill-to Name"));
-        SalesCrMemoHeader."Bill-to Address" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesCrMemoHeader."Bill-to Address"));
-        SalesCrMemoHeader."Bill-to City" := PostCode.City;
-        SalesCrMemoHeader."Bill-to Post Code" := PostCode.Code;
-        SalesCrMemoHeader."Bill-to Country/Region Code" := CompanyInformation."Country/Region Code";
-        SalesCrMemoHeader."Ship-to Address" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesCrMemoHeader."Ship-to Address"));
-        SalesCrMemoHeader."Ship-to City" := PostCode.City;
-        SalesCrMemoHeader."Ship-to Post Code" := PostCode.Code;
-        SalesCrMemoHeader."Ship-to Country/Region Code" := CompanyInformation."Country/Region Code";
-        SalesCrMemoHeader."Due Date" := WorkDate();
-        SalesCrMemoHeader."Sell-to E-Mail" := LibraryUtility.GenerateRandomEmail();
-        SalesCrMemoHeader."Payment Method Code" := PaymentMethodCode;
-    end;
-
     local procedure CheckPaymentDataAvailable(SalesHeader: Record "Sales Header")
     var
         SourceDocumentHeader: RecordRef;
@@ -477,6 +555,14 @@ codeunit 13926 "E-Document DE Tests"
         SourceDocumentHeader: RecordRef;
     begin
         SourceDocumentHeader.GetTable(SalesHeader);
+        ExportXRechnungFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Release);
+    end;
+
+    local procedure CheckServiceHeader(ServiceHeader: Record "Service Header")
+    var
+        SourceDocumentHeader: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(ServiceHeader);
         ExportXRechnungFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Release);
     end;
 

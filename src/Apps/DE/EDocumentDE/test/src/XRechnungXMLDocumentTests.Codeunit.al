@@ -59,6 +59,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         LibraryEDocDE: Codeunit "Library - E-Doc DE";
         Assert: Codeunit Assert;
         ExportXRechnungFormat: Codeunit "XRechnung Format";
+        DEXMLDocumentValidator: Codeunit "DE XML Document Validator";
         ExportXRechnungDocument: Codeunit "Export XRechnung Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
@@ -4090,7 +4091,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesLine, SalesHeader, LineType, LineNo, LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 5));
         SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
-        SalesLine.Validate("Tax Category", LibraryRandom.RandText(2));
+        SalesLine.Validate("Tax Category", TaxCategoryStandardTok);
         if LineDiscount then
             SalesLine.Validate("Line Discount %", LibraryRandom.RandDecInRange(10, 20, 5));
         SalesLine.Modify(true);
@@ -4313,6 +4314,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(SalesInvoiceLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungInvoiceXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4329,6 +4332,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(ServiceInvoiceLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungInvoiceXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4345,6 +4350,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(SalesCrMemoLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungCreditNoteXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
@@ -4361,6 +4368,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         SourceDocumentLines.GetTable(ServiceCrMemoLine);
         ExportXRechnungFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
         TempBlob.CreateInStream(FileInStream);
+        DEXMLDocumentValidator.ValidateXRechnungCreditNoteXML(FileInStream);
+        FileInStream.ResetPosition();
         TempXMLBuffer.LoadFromStream(FileInStream);
     end;
 
