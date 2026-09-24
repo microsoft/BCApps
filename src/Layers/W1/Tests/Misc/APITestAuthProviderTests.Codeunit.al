@@ -35,7 +35,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     [Test]
     procedure DefaultAuthenticationDoesNotConfigureRequest()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] The default API test authentication does not configure the request
         Initialize();
 
@@ -52,7 +51,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     [Test]
     procedure ExtendedAuthenticationProviderRunsBeforeFinalEvent()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] An enum extension can provide API test authentication
         Initialize();
 
@@ -73,7 +71,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     [Test]
     procedure AuthenticationProviderInstanceIsReused()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] A selected authentication provider instance is reused across requests
         Initialize();
 
@@ -95,7 +92,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     [Test]
     procedure AuthenticationProviderSelectionIsInstanceScoped()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Authentication provider selection is scoped to a Graph library instance
         Initialize();
 
@@ -116,7 +112,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     [Test]
     procedure RepeatedProviderSelectionPreservesInstance()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Repeated initialization with the same provider preserves its state
         Initialize();
 
@@ -139,7 +134,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     [Test]
     procedure SelectingNoneStopsConfiguringRequests()
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Selecting None replaces the previously selected provider
         Initialize();
 
@@ -164,7 +158,6 @@ codeunit 139494 "API Test Auth Provider Tests"
         ExpectedURL: Text;
         ActualURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Empty subpage segments do not append a slash to the original URL
         Initialize();
 
@@ -184,7 +177,6 @@ codeunit 139494 "API Test Auth Provider Tests"
         ExpectedURL: Text;
         ActualURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] An empty first subpage does not add a slash before the second subpage
         Initialize();
 
@@ -204,7 +196,6 @@ codeunit 139494 "API Test Auth Provider Tests"
         ExpectedURL: Text;
         ActualURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Both subpage segments and the bracket-free subpage ID precede any query
         Initialize();
 
@@ -225,7 +216,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     var
         ActualURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Appending a subpage path preserves the query after the entire path
         Initialize();
 
@@ -246,7 +236,6 @@ codeunit 139494 "API Test Auth Provider Tests"
     var
         ActualURL: Text;
     begin
-        // [FEATURE] [AI test 1.0]
         // [SCENARIO] Appending subpages to a URL without a query preserves all path segments
         Initialize();
 

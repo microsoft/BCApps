@@ -8,6 +8,9 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
+using System.Environment.Configuration;
+using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 148338 "Expense Permissions Test"
 {
@@ -22,6 +25,8 @@ codeunit 148338 "Expense Permissions Test"
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        AgentAdminPermissionSetTok: Label 'Agent - Admin', Locked = true;
+        BaseApplicationAppIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
         EmployeeOnlyPermissionSetTok: Label 'Exp. Emp. Only Test', Locked = true;
         HREditPermissionSetTok: Label 'Exp. HR Edit Test', Locked = true;
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
@@ -30,6 +35,9 @@ codeunit 148338 "Expense Permissions Test"
         DetailOnlyPermissionSetTok: Label 'Exp. Detail Test', Locked = true;
         HeaderModifyPermissionErr: Label 'TableData %1 %2 IndirectModify', Comment = '%1 = Spend Request table ID, %2 = Spend Request table caption', Locked = true;
         RequestMustBeOpenErr: Label 'The %1 %2 must have the status %3.', Comment = '%1 = document type description, %2 = document number, %3 = Open status';
+        ExpenseAgentAppIdTok: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
+        ExpenseMgmtAdminPermissionSetTok: Label 'Expense Mgmt. Admin', Locked = true;
+        SecurityPermissionSetTok: Label 'SECURITY', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
@@ -400,6 +408,54 @@ codeunit 148338 "Expense Permissions Test"
         RestoreFullPermissions();
     end;
 
+    [Test]
+    procedure SuperCanActivateWithoutAdditionalPermissionSets()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [SCENARIO 640454] SUPER can activate without additional Expense Agent administrator permission sets
+        Initialize();
+
+        // [GIVEN] Disabled Entra app "EA" without an Expense Agent permission
+        PrepareAadApplication(AadApplication, AadApplication.State::Disabled);
+
+        // [GIVEN] SUPER user "U" has none of the additional Expense Agent administrator permission sets
+        PrepareCurrentUserPermissionAssignments();
+        VerifySuperWithoutAdditionalExpenseAgentPermissionSets();
+
+        // [WHEN] "U" activates "EA"
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
+
+        // [THEN] "EA" is enabled with one current-company Expense Agent permission
+        VerifyAadApplicationState(AadApplication.State::Enabled);
+        VerifyExpenseAgentPermissionCount(AadApplication, GetCurrentCompanyName(), 1);
+    end;
+
+    [Test]
+    procedure SuperCanDeactivateWithoutAdditionalPermissionSets()
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        // [SCENARIO 640454] SUPER can deactivate without additional Expense Agent administrator permission sets
+        Initialize();
+
+        // [GIVEN] Enabled Entra app "EA" with the current-company Expense Agent permission
+        PrepareAadApplication(AadApplication, AadApplication.State::Enabled);
+        AssignExpenseAgentPermission(AadApplication, GetCurrentCompanyName());
+
+        // [GIVEN] SUPER user "U" has none of the additional Expense Agent administrator permission sets
+        PrepareCurrentUserPermissionAssignments();
+        VerifySuperWithoutAdditionalExpenseAgentPermissionSets();
+
+        // [WHEN] "U" deactivates "EA"
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
+
+        // [THEN] The current-company Expense Agent permission is removed
+        VerifyExpenseAgentPermissionCount(AadApplication, GetCurrentCompanyName(), 0);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Permissions Test");
@@ -416,6 +472,134 @@ codeunit 148338 "Expense Permissions Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Permissions Test");
+    end;
+
+    local procedure PrepareCurrentUserPermissionAssignments()
+    begin
+        RemoveCurrentUserPermissionSet(AgentAdminPermissionSetTok);
+        RemoveCurrentUserPermissionSet(ExpenseMgmtAdminPermissionSetTok);
+        RemoveCurrentUserPermissionSet(SecurityPermissionSetTok);
+        RemoveCurrentUserPermissionSet(ExpenseAgentPermissionSetTok);
+    end;
+
+    local procedure VerifySuperWithoutAdditionalExpenseAgentPermissionSets()
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        UserPermissions: Codeunit "User Permissions";
+        BaseApplicationAppId: Guid;
+        NullGuid: Guid;
+    begin
+        Assert.IsTrue(UserPermissions.IsSuper(UserSecurityId()), 'The test user must be SUPER.');
+
+        Evaluate(BaseApplicationAppId, BaseApplicationAppIdTok);
+        AggregatePermissionSet.SetRange("App ID", BaseApplicationAppId);
+        AggregatePermissionSet.SetRange("Role ID", AgentAdminPermissionSetTok);
+        AggregatePermissionSet.FindFirst();
+        Assert.IsFalse(
+            UserPermissions.HasUserPermissionSetAssigned(
+                UserSecurityId(), GetCurrentCompanyName(), AggregatePermissionSet."Role ID", AggregatePermissionSet.Scope, AggregatePermissionSet."App ID"),
+            'Agent - Admin must not be assigned.');
+
+        GetExpensePermissionSet(AggregatePermissionSet, ExpenseMgmtAdminPermissionSetTok);
+        Assert.IsFalse(
+            UserPermissions.HasUserPermissionSetAssigned(
+                UserSecurityId(), GetCurrentCompanyName(), AggregatePermissionSet."Role ID", AggregatePermissionSet.Scope, AggregatePermissionSet."App ID"),
+            'Expense Mgmt. Admin must not be assigned.');
+
+        Assert.IsFalse(
+            UserPermissions.HasUserPermissionSetAssigned(
+                UserSecurityId(), GetCurrentCompanyName(), SecurityPermissionSetTok, AccessControl.Scope::System, NullGuid),
+            'SECURITY must not be assigned.');
+
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
+        Assert.IsFalse(
+            UserPermissions.HasUserPermissionSetAssigned(
+                UserSecurityId(), GetCurrentCompanyName(), AggregatePermissionSet."Role ID", AggregatePermissionSet.Scope, AggregatePermissionSet."App ID"),
+            'Expense Agent must not be assigned.');
+    end;
+
+    local procedure RemoveCurrentUserPermissionSet(PermissionSetId: Code[20])
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.SetRange("User Security ID", UserSecurityId());
+        AccessControl.SetRange("Role ID", PermissionSetId);
+        AccessControl.DeleteAll(true);
+    end;
+
+    local procedure PrepareAadApplication(var AadApplication: Record "AAD Application"; State: Option)
+    var
+        AccessControl: Record "Access Control";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId());
+        if AadApplication.State <> State then begin
+            AadApplication.Validate(State, State);
+            AadApplication.Modify(true);
+        end;
+
+        AccessControl.SetRange("User Security ID", AadApplication."User ID");
+        AccessControl.DeleteAll(true);
+    end;
+
+    local procedure AssignExpenseAgentPermission(AadApplication: Record "AAD Application"; CompanyNameValue: Text[30])
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+    begin
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
+        AccessControl.Init();
+        AccessControl."User Security ID" := AadApplication."User ID";
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl."Company Name" := CompanyNameValue;
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl.Insert(true);
+    end;
+
+    local procedure GetExpenseAgentPermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set")
+    begin
+        GetExpensePermissionSet(AggregatePermissionSet, ExpenseAgentPermissionSetTok);
+    end;
+
+    local procedure GetExpensePermissionSet(var AggregatePermissionSet: Record "Aggregate Permission Set"; PermissionSetId: Code[20])
+    var
+        ExpenseAgentAppId: Guid;
+    begin
+        Evaluate(ExpenseAgentAppId, ExpenseAgentAppIdTok);
+        AggregatePermissionSet.SetRange("App ID", ExpenseAgentAppId);
+        AggregatePermissionSet.SetRange("Role ID", PermissionSetId);
+        AggregatePermissionSet.FindFirst();
+    end;
+
+    local procedure GetCurrentCompanyName(): Text[30]
+    begin
+        exit(CopyStr(CompanyName(), 1, 30));
+    end;
+
+    local procedure VerifyAadApplicationState(ExpectedState: Option)
+    var
+        AadApplication: Record "AAD Application";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
+    begin
+        AadApplication.Get(ExpenseAgentEntraApp.GetAadAppId());
+        Assert.AreEqual(ExpectedState, AadApplication.State, 'The Entra application state is incorrect.');
+    end;
+
+    local procedure VerifyExpenseAgentPermissionCount(AadApplication: Record "AAD Application"; CompanyNameValue: Text[30]; ExpectedCount: Integer)
+    var
+        AccessControl: Record "Access Control";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+    begin
+        AadApplication.Get(AadApplication."Client Id");
+        GetExpenseAgentPermissionSet(AggregatePermissionSet);
+        AccessControl.SetRange("User Security ID", AadApplication."User ID");
+        AccessControl.SetRange("Role ID", AggregatePermissionSet."Role ID");
+        AccessControl.SetRange("Company Name", CompanyNameValue);
+        AccessControl.SetRange(Scope, AggregatePermissionSet.Scope);
+        AccessControl.SetRange("App ID", AggregatePermissionSet."App ID");
+        Assert.AreEqual(ExpectedCount, AccessControl.Count(), 'The number of matching Expense Agent permissions is incorrect.');
     end;
 
     local procedure VerifyExpenseMgmtPermissions(PermissionSetId: Code[20]; CanEdit: Boolean)
