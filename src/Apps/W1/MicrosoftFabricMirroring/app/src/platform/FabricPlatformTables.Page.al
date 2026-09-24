@@ -30,11 +30,6 @@ page 48512 "Fabric Platform Tables"
                     Editable = false;
                     ToolTip = 'Specifies the name of the Business Central table to export.';
                 }
-                field("Per Company"; Rec."Per Company")
-                {
-                    Editable = false;
-                    ToolTip = 'Specifies whether the table stores data per company.';
-                }
                 field("Fabric Entity Name"; Rec."Fabric Entity Name")
                 {
                     Editable = false;
