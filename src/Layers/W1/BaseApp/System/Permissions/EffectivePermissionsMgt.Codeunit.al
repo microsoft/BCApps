@@ -566,11 +566,7 @@ codeunit 9852 "Effective Permissions Mgt."
             exit(false);
         end;
 
-        TenantPermission.SetRange("App ID", AccessControl."App ID");
-        TenantPermission.SetRange("Role ID", AccessControl."Role ID");
-        TenantPermission.SetRange("Object Type", ObjectType);
-        TenantPermission.SetRange("Object ID", ObjectID);
-        if TenantPermission.FindFirst() then begin
+        if TenantPermission.Get(AccessControl."App ID", AccessControl."Role ID", ObjectType, ObjectID) then begin
             FillPermissionBufferFromTenantPermission(PermissionBuffer, TenantPermission);
             exit(true);
         end;

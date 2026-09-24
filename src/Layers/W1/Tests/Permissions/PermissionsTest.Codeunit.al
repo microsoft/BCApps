@@ -518,7 +518,7 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet: Record "Tenant Permission Set";
         TenantPermission: Record "Tenant Permission";
         AccessControl: Record "Access Control";
-        PermissionBuffer: Record "Permission Buffer" temporary;
+        TempPermissionBuffer: Record "Permission Buffer" temporary;
         EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
         SpecificPageId: Integer;
     begin
@@ -554,13 +554,13 @@ codeunit 139400 "Permissions Test"
 
         // [WHEN] The permission buffer is populated for the specific page
         EffectivePermissionsMgt.PopulatePermissionBuffer(
-            PermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+            TempPermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
 
         // [THEN] The specific page permission is displayed
-        PermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
-        Assert.IsTrue(PermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(TempPermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
         Assert.AreEqual(
-            PermissionBuffer."Execute Permission"::Yes, PermissionBuffer."Execute Permission",
+            TempPermissionBuffer."Execute Permission"::Yes, TempPermissionBuffer."Execute Permission",
             'The specific page permission should override the wildcard permission.');
     end;
 
@@ -572,7 +572,7 @@ codeunit 139400 "Permissions Test"
         TenantPermissionSet: Record "Tenant Permission Set";
         TenantPermission: Record "Tenant Permission";
         AccessControl: Record "Access Control";
-        PermissionBuffer: Record "Permission Buffer" temporary;
+        TempPermissionBuffer: Record "Permission Buffer" temporary;
         EffectivePermissionsMgt: Codeunit "Effective Permissions Mgt.";
         SpecificPageId: Integer;
     begin
@@ -608,13 +608,13 @@ codeunit 139400 "Permissions Test"
 
         // [WHEN] The permission buffer is populated for the specific page
         EffectivePermissionsMgt.PopulatePermissionBuffer(
-            PermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
+            TempPermissionBuffer, UserSecurityId(), CompanyName(), TenantPermission."Object Type"::Page, SpecificPageId);
 
         // [THEN] The specific page exclusion is displayed
-        PermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
-        Assert.IsTrue(PermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
+        TempPermissionBuffer.SetRange("Permission Set", TenantPermissionSet."Role ID");
+        Assert.IsTrue(TempPermissionBuffer.FindFirst(), 'Permission buffer should contain the permission set.');
         Assert.AreEqual(
-            PermissionBuffer."Execute Permission"::" ", PermissionBuffer."Execute Permission",
+            TempPermissionBuffer."Execute Permission"::" ", TempPermissionBuffer."Execute Permission",
             'The specific page exclusion should override the wildcard permission.');
     end;
 
