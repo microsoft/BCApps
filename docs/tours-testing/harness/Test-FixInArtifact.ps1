@@ -90,6 +90,16 @@ param(
     # A .NET regex. PRESENT => the change is in this build.
     [Parameter(Mandatory)][string] $Pattern,
 
+    # Which shipped .app to unpack. The Base Application is the default, but plenty of
+    # charters tour the System Application, which is a DIFFERENT package in the same
+    # platform artifact. Grepping the Base App for a System App change returns
+    # "SOURCE NOT SHIPPED", which reads exactly like "the build is too old".
+    [string] $AppNamePattern = '*Base Application*.app',
+
+    # Write the matched shipped file here, so it can be diffed against <fix> and <fix>^.
+    # A grep that finds nothing is only ever a negative result; a diff is a positive one.
+    [string] $ExtractTo,
+
     # Optional second regex, printed with context. Use it to show that the sibling
     # sites a fix did NOT touch really are still un-narrowed IN THE SHIPPED BUILD -
     # which is the only version of an asymmetry claim worth anything.
@@ -132,10 +142,10 @@ function Get-BaseAppSource {
     if (-not $platform) { $platform = $paths[-1] }
 
     $app = @(Get-ChildItem (Join-Path $platform 'Applications') -Recurse `
-                -Filter '*Base Application*.app' -ErrorAction SilentlyContinue |
+                -Filter $AppNamePattern -ErrorAction SilentlyContinue |
              Sort-Object Length -Descending)[0]
-    if (-not $app) { throw "No Base Application .app under '$platform\Applications'. Did -includePlatform work?" }
-    Write-Host "  base app: $($app.Name) ($([math]::Round($app.Length/1MB,1)) MB)" -ForegroundColor DarkGray
+    if (-not $app) { throw "No '$AppNamePattern' under '$platform\Applications'. Did -includePlatform work?" }
+    Write-Host "  app: $($app.Name) ($([math]::Round($app.Length/1MB,1)) MB)" -ForegroundColor DarkGray
 
     $stem  = Join-Path $Work ([guid]::NewGuid().ToString('N').Substring(0,8))
     $outer = Join-Path $stem 'outer'
@@ -173,6 +183,10 @@ function Test-OneArtifact {
 
     $found = $false
     foreach ($f in $files) {
+        if ($ExtractTo) {
+            New-Item -ItemType Directory -Force -Path $ExtractTo | Out-Null
+            Copy-Item $f.FullName (Join-Path $ExtractTo $f.Name) -Force
+        }
         $hits = @(Select-String -Path $f.FullName -Pattern $Pattern)
         if ($hits.Count) {
             $found = $true

@@ -707,6 +707,15 @@ each pass, SQL confirmed the new value, and **all seven passes ran in the previo
 results were internally consistent, correctly shaped and entirely worthless — the failure looks
 exactly like a product that ignores the setting.
 
+**It bites on reads too, and worse.** Rows **bulk-inserted** with SQL can be *invisible* to AL if
+the service tier has already read that table as empty. One tour inserted 10,001 expired records,
+asserted every date in SQL, and got *"There are no records to delete"* — which it was one step away
+from reporting as "the fix suppresses deletions". The control was decisive: **restart
+`MicrosoftDynamicsNavServer$BC`, re-run unchanged → 10,000 deleted.**
+
+> **After any SQL bulk insert, restart the service tier before measuring.** Otherwise a confident,
+> well-formed, empty result is indistinguishable from the product refusing to act.
+
 Two rules, in order of importance:
 
 > **Assert the independent variable, not just the dependent one.** Have the probe record the value
@@ -719,6 +728,18 @@ Two rules, in order of importance:
 
 The generalisation is the first rule. A tour that snapshots only outputs cannot tell *"the product
 ignored my input"* from *"my input never arrived"*, and those are the same two causes as §5.3.
+
+### ⚠️ `WorkDate()` is not the only clock — some features use `Today()`
+
+The CRONUS **work date is 1/27/2028** and demo data is dated 2027–2028, so most charters seed data
+relative to the work date. **Retention policies do not**: `CalculateExpirationDate` uses
+**`Today()`**, never `WorkDate()`. Measured: a *1 MONTH* period resolved to 2026-08-24 and *1 WEEK*
+to 2026-09-17 — real calendar dates, nowhere near the work date.
+
+A tour that seeds "expired" records relative to 1/27/2028 therefore gets **zero** expired records
+and reads the empty result as the feature suppressing everything. Before seeding anything by date,
+check which clock the feature under test actually reads.
+
 
 ### The session's time zone is not the user's time zone
 

@@ -199,6 +199,17 @@ byte-identical to the fix's *parent*, and the charter still completed, because
 diff before you rebuild — if the fix deletes a body and calls something that already exists, you
 probably have both halves already.**
 
+**Delegation is not the only route.** A second tour found its fix in no published build and no
+delegation either — the commit *added* lines rather than replacing a body. It ran anyway, because
+the fix's whole effect was to make an isolated code path behave like a neighbouring path that
+already went through the same outer loop. So the **pre-fix build already exhibited post-fix
+semantics on the neighbouring path**, and both halves were comparable in one container.
+
+> Generalised: when the artifact lacks the commit, ask **"is there an existing path that already
+> does what the fix makes this path do?"** Delegation is one way that happens; a shared outer loop,
+> a sibling overload, or a second caller of the same routine are others.
+
+
 
 **Churn without surface.** `MasterDataManagement` ranked third on a 14-day churn scan (~4,700
 lines) and defines **37 fields** in total — the churn is all in synchronisation codeunits. High
