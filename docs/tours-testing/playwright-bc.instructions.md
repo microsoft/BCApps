@@ -657,6 +657,10 @@ tenant database.
 - **`LINENO` is a reserved T-SQL keyword.** `SELECT [Line No_] AS LineNo` fails with *"Incorrect
   syntax near the keyword 'LineNo'"*, which reads exactly like a mangled table or column name and
   sends you hunting a PowerShell `$`-escaping problem that was never there. Alias it `LnNo`.
+  **`IDENTITY` is reserved too**, and the family is larger than it looks — two tours lost time to
+  it. The tell is that *other aliases in the same query work*, so suspect the alias, not the
+  connection: `SELECT name FROM sys.types` is not the list you need; check the T-SQL reserved-word
+  list before blaming the harness.
 
 Useful tables: `Customer`, `Sales Header` (`Document Type` 2 = Invoice), `Sales Invoice Header`,
 `Cust_ Ledger Entry`, `G_L Entry`. Duplicate-post detector: group `Sales Invoice Header` by

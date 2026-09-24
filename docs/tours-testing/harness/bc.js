@@ -134,8 +134,25 @@ async function expandTab(page, frame, name) {
 // ⚠️ Still assert the stored value in SQL. `fill()` does not commit - Tab does - and even a
 // committed-looking field can be reverted server-side.
 async function setField(page, frame, label, value) {
-  const el = await fieldOne(frame, label);
-  if (!el) return { ok: false, why: 'absent' };
+  let el = await fieldOne(frame, label);
+
+  // ⚠️ "absent" is a claim about the DOM, not about the page.
+  //
+  // Fields marked `Importance = Additional` are NOT in the DOM until "Show more" is clicked, so a
+  // first look reports them absent - and a tour then writes that up as the product not having the
+  // field, which is exactly the false conclusion §5.8 exists to prevent. Expand first, then
+  // re-look, and only then say absent.
+  if (!el) {
+    for (let i = 0; i < 8; i++) {
+      const link = frame.getByText('Show more', { exact: true }).first();
+      if (!(await link.isVisible().catch(() => false))) break;
+      await clickSettled(page, frame, link).catch(() => {});
+      await page.waitForTimeout(900);
+    }
+    el = await fieldOne(frame, label);
+  }
+  if (!el) return { ok: false, why: 'absent (after expanding every "Show more" on the page)' };
+
   if (!(await el.isEditable().catch(() => false))) {
     return { ok: false, why: 'present but not editable - is it gated by another field?' };
   }
