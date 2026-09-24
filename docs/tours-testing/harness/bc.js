@@ -304,6 +304,18 @@ const activeControl = (frame) => frame.evaluate(() => {
 // Because columns are virtualised horizontally, the only reliable way to reach one is to
 // land in the row and Tab until the focused control reports the name you want.
 //
+// ⚠️⚠️ THE COLUMN HEADER CAPTION IS NOT THE CONTROLNAME. This matches the controlname, and the
+// two differ often enough to burn a probe. Measured on `Purch. Invoice Subform`:
+//
+//     header "Type"                       -> controlname "FilteredTypeField"
+//     header "Direct Unit Cost Excl. VAT" -> controlname "Direct Unit Cost"
+//     header "Line Amount Excl. VAT"      -> controlname "Line Amount"
+//     header "Description/Comment"        -> controlname "Description"
+//
+// Passing the caption throws "could not reach column 'Type'", which reads exactly like the
+// virtualised-column symptom and is actually a wrong identifier. When a column will not resolve,
+// dump the row's controlnames with readRowCells() before concluding anything about the page.
+//
 // ⚠️ Tab FORWARD only. A backward walk wraps onto the next row - which on a journal page is
 // the blank new row, whose Posting Date is the work date. A probe that wrapped then compared
 // its write against a different row and reported "did not commit" for a write that had
@@ -398,8 +410,17 @@ async function writeCell(page, frame, { column, value, markerHeader = 'Type',
     await page.waitForTimeout(1200);
 
     // Leaving the row is what actually commits a BC grid line.
+    //
+    // ⚠️ NOT with Escape. Escape on a card or worksheet CLOSES THE PAGE - and it does so
+    // silently: one tour's line committed, F9 then landed on the list behind it, nothing
+    // posted, and readError() reported NO surfaces at all. A textbook silent false negative;
+    // only SQL caught it. ArrowDown moves to the next row, which commits the current one.
+    //
+    // ⚠️ On a grid with a single row and no blank new row, ArrowDown does not move, so nothing
+    // commits. That is why verify() is mandatory rather than advisory - on such a grid you must
+    // leave the whole grid (Tab out, or click another control) instead.
     if (leaveRow) {
-      await page.keyboard.press('Escape').catch(() => {});   // closes the editor, not the row
+      await page.keyboard.press('ArrowDown');
       await page.waitForTimeout(1500);
     }
 
