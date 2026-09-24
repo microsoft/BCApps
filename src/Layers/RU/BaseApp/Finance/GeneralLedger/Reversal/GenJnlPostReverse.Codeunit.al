@@ -222,7 +222,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverse(GLRegister, GLRegister2);
     end;
 
-    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: BigInteger; var NextDtldVendLedgEntryEntryNo: BigInteger; var NextDtldEmplLedgEntryNo: BigInteger; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry")
+    local procedure ReverseGLEntry(var GLEntry2: Record "G/L Entry"; var GenJournalLine: Record "Gen. Journal Line"; var GLRegister: Record "G/L Register"; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary; var TempBankAccountLedgerEntry: Record "Bank Account Ledger Entry" temporary; var NextDtldCustLedgEntryEntryNo: Integer; var NextDtldVendLedgEntryEntryNo: Integer; var NextDtldEmplLedgEntryNo: Integer; FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var ReversalEntry: Record "Reversal Entry"; var TempTaxDiffLedgerEntry: Record "Tax Diff. Ledger Entry" temporary; var ReversalEntry2: Record "Reversal Entry")
     var
         GLEntry: Record "G/L Entry";
         ReversedGLEntry: Record "G/L Entry";
@@ -376,7 +376,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnAfterReverseGLEntry(GLEntry);
     end;
 
-    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: BigInteger; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: BigInteger)
+    local procedure ReverseCustLedgEntry(CustLedgerEntry: Record "Cust. Ledger Entry"; NewEntryNo: Integer; Correction: Boolean; SourceCode: Code[10]; var NextDtldCustLedgEntryEntryNo: Integer)
     var
         NewCustLedgerEntry: Record "Cust. Ledger Entry";
         ReversedCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -461,7 +461,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewCustLedgerEntry, CustLedgerEntry, DetailedCustLedgEntry, NewCustLedgerEntry."Entry No.", NextDtldCustLedgEntryEntryNo);
     end;
 
-    local procedure ReverseVendLedgEntry(VendorLedgerEntry: Record "Vendor Ledger Entry"; NewEntryNo: BigInteger; Correction: Boolean; SourceCode: Code[10]; var NextDtldVendLedgEntryEntryNo: BigInteger)
+    local procedure ReverseVendLedgEntry(VendorLedgerEntry: Record "Vendor Ledger Entry"; NewEntryNo: Integer; Correction: Boolean; SourceCode: Code[10]; var NextDtldVendLedgEntryEntryNo: Integer)
     var
         NewVendorLedgerEntry: Record "Vendor Ledger Entry";
         ReversedVendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -542,7 +542,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             NewVendorLedgerEntry, VendorLedgerEntry, DetailedVendorLedgEntry, NewVendorLedgerEntry."Entry No.", NextDtldVendLedgEntryEntryNo);
     end;
 
-    local procedure ReverseEmplLedgEntry(EmployeeLedgerEntry: Record "Employee Ledger Entry"; NewEntryNo: BigInteger; Correction: Boolean; SourceCode: Code[10]; var NextDtldEmplLedgEntryNo: BigInteger)
+    local procedure ReverseEmplLedgEntry(EmployeeLedgerEntry: Record "Employee Ledger Entry"; NewEntryNo: Integer; Correction: Boolean; SourceCode: Code[10]; var NextDtldEmplLedgEntryNo: Integer)
     var
         NewEmployeeLedgerEntry: Record "Employee Ledger Entry";
         ReversedEmployeeLedgerEntry: Record "Employee Ledger Entry";
@@ -614,7 +614,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="BankAccountLedgerEntry">Original bank account ledger entry to reverse</param>
     /// <param name="NewEntryNo">Entry number for the new reversal entry</param>
     /// <param name="SourceCode">Source code to assign to the reversal entry</param>
-    procedure ReverseBankAccLedgEntry(BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; NewEntryNo: BigInteger; SourceCode: Code[10])
+    procedure ReverseBankAccLedgEntry(BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; NewEntryNo: Integer; SourceCode: Code[10])
     var
         NewBankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         ReversedBankAccountLedgerEntry: Record "Bank Account Ledger Entry";
@@ -717,7 +717,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
             until GLEntryVATEntryLink.Next() = 0;
     end;
 
-    local procedure ReverseSpendRequest(OldGLEntryNo: BigInteger; NewGLEntryNo: BigInteger)
+    local procedure ReverseSpendRequest(OldGLEntryNo: Integer; NewGLEntryNo: Integer)
     var
         SpendRequestToGLLink: Record "Spend Request To G/L Link";
     begin
@@ -730,7 +730,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         if SpendRequestToGLLink.Insert() then;
     end;
 
-    local procedure SpendRequestLinkedToGLEntry(GLEntryNo: BigInteger): Boolean
+    local procedure SpendRequestLinkedToGLEntry(GLEntryNo: Integer): Boolean
     var
         SpendRequestToGLLink: Record "Spend Request To G/L Link";
     begin
@@ -738,7 +738,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         exit(not SpendRequestToGLLink.IsEmpty());
     end;
 
-    local procedure ApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: BigInteger; var NextDtldCustLedgEntryEntryNo: BigInteger)
+    local procedure ApplyCustLedgEntryByReversal(CustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry2: Record "Cust. Ledger Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; AppliedEntryNo: Integer; var NextDtldCustLedgEntryEntryNo: Integer)
     var
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         IsHandled: Boolean;
@@ -774,7 +774,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnApplyCustLedgEntryByReversalOnAfterInsertDtldCustLedgEntry(NewDetailedCustLedgEntry, CustLedgerEntry2);
     end;
 
-    local procedure ApplyVendLedgEntryByReversal(VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorLedgerEntry2: Record "Vendor Ledger Entry"; DetailedVendorLedgEntry2: Record "Detailed Vendor Ledg. Entry"; AppliedEntryNo: BigInteger; var NextDtldVendLedgEntryEntryNo: BigInteger)
+    local procedure ApplyVendLedgEntryByReversal(VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorLedgerEntry2: Record "Vendor Ledger Entry"; DetailedVendorLedgEntry2: Record "Detailed Vendor Ledg. Entry"; AppliedEntryNo: Integer; var NextDtldVendLedgEntryEntryNo: Integer)
     var
         NewDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         IsHandled: Boolean;
@@ -805,7 +805,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         OnApplyVendLedgEntryByReversalOnAfterInsertDtldVendLedgEntry(NewDetailedVendorLedgEntry, VendorLedgerEntry2);
     end;
 
-    local procedure ApplyEmplLedgEntryByReversal(EmployeeLedgerEntry: Record "Employee Ledger Entry"; EmployeeLedgerEntry2: Record "Employee Ledger Entry"; DetailedEmployeeLedgerEntry2: Record "Detailed Employee Ledger Entry"; AppliedEntryNo: BigInteger; var NextDtldEmplLedgEntryNo: BigInteger)
+    local procedure ApplyEmplLedgEntryByReversal(EmployeeLedgerEntry: Record "Employee Ledger Entry"; EmployeeLedgerEntry2: Record "Employee Ledger Entry"; DetailedEmployeeLedgerEntry2: Record "Detailed Employee Ledger Entry"; AppliedEntryNo: Integer; var NextDtldEmplLedgEntryNo: Integer)
     var
         NewDetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
     begin
@@ -841,7 +841,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     /// <param name="AccNo1">Primary account number for dimension validation</param>
     /// <param name="TableID2">Secondary table ID for dimension validation</param>
     /// <param name="AccNo2">Secondary account number for dimension validation</param>
-    procedure CheckDimComb(EntryNo: BigInteger; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20])
+    procedure CheckDimComb(EntryNo: Integer; DimSetID: Integer; TableID1: Integer; AccNo1: Code[20]; TableID2: Integer; AccNo2: Code[20])
     var
         DimensionManagement: Codeunit DimensionManagement;
         TableID: array[10] of Integer;
