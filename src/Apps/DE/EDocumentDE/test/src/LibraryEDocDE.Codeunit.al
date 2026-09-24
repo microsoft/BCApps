@@ -25,7 +25,7 @@ codeunit 13925 "Library - E-Doc DE"
         PaymentMethod: Record "Payment Method";
     begin
         LibraryERM.CreatePaymentMethod(PaymentMethod);
-        PaymentMethod.Validate("PEPPOL Payment Means Code", '59');
+        PaymentMethod.Validate("Payment Means Code", '59');
         PaymentMethod.Modify(true);
         exit(PaymentMethod.Code);
     end;
