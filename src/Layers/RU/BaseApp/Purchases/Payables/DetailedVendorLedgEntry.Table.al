@@ -297,13 +297,6 @@ table 380 "Detailed Vendor Ledg. Entry"
         {
             Caption = 'Tax Diff. Transaction No.';
         }
-        field(95; "G/L Register No."; Integer)
-        {
-            Caption = 'G/L Register No.';
-            Editable = false;
-            TableRelation = "G/L Register";
-            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
-        }
         field(7000004; "Excluded from calculation"; Boolean)
         {
             Caption = 'Excluded from calculation';
