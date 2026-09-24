@@ -201,6 +201,18 @@ codeunit 8207 "Create Expense G/L Account"
             exit('');
     end;
 
+    internal procedure FindGLAccountByNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        GLAccount.SetRange("No.", AccountNo);
+        GLAccount.SetRange("Account Type", GLAccount."Account Type"::Posting);
+        if GLAccount.FindFirst() then
+            exit(GLAccount."No.")
+        else
+            exit('');
+    end;
+
     procedure CompanyCreditCardsAccount(): Code[20]
     begin
         exit(ContosoGLAccount.GetAccountNo(CompanyCreditCardsAccountName()));

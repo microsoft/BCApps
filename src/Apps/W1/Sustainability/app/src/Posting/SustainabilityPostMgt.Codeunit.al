@@ -1,5 +1,6 @@
 namespace Microsoft.Sustainability.Posting;
 
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -16,7 +17,9 @@ codeunit 6212 "Sustainability Post Mgt"
 {
     Permissions =
         tabledata "Sustainability Ledger Entry" = i,
-        tabledata "Sustainability Value Entry" = i;
+        tabledata "Sustainability Value Entry" = i,
+        tabledata "Sust. G/L - Sust. Ledger Rel." = ri,
+        tabledata "Sust. Jnl. Line G/L Entry" = r;
 
     procedure InsertLedgerEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line")
     var
@@ -47,8 +50,29 @@ codeunit 6212 "Sustainability Post Mgt"
 
         IsHandled := false;
         OnInsertLedgerEntryOnBeforeInsert(SustainabilityLedgerEntry, IsHandled);
-        if not IsHandled then
+        if not IsHandled then begin
             SustainabilityLedgerEntry.Insert(true);
+            CreateGLEntryRelations(SustainabilityJnlLine, SustainabilityLedgerEntry."Entry No.");
+        end;
+    end;
+
+    local procedure CreateGLEntryRelations(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; SustLedgerEntryNo: Integer)
+    var
+        GLEntry: Record "G/L Entry";
+        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
+        SustJnlLineGLEntry: Record "Sust. Jnl. Line G/L Entry";
+    begin
+        if not SustainabilityJnlLine."Collected from G/L Entries" then
+            exit;
+
+        SustJnlLineGLEntry.SetJournalLineFilter(SustainabilityJnlLine);
+        if not SustJnlLineGLEntry.FindSet() then
+            exit;
+
+        repeat
+            if GLEntry.Get(SustJnlLineGLEntry."G/L Entry No.") then
+                SustGLSustLedgerRel.CreateRelation(GLEntry, SustLedgerEntryNo, SustJnlLineGLEntry."Account Category");
+        until SustJnlLineGLEntry.Next() = 0;
     end;
 
     procedure InsertValueEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
