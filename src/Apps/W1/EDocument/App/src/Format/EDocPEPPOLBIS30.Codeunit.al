@@ -123,7 +123,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                 GeneratePurchaseOrderXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo":
                 if ValidateSelfBilledDocument(EDocument, EDocErrorHelper) then
-                    GenerateSelfBilledXMLFile(SourceDocumentHeader, DocOutStream);
+                    GenerateSelfBilledXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Remittance Advice":
                 GenerateRemittanceAdviceXMLFile(SourceDocumentHeader, DocOutStream);
             else
@@ -242,7 +242,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
-    local procedure GenerateSelfBilledXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream)
+    local procedure GenerateSelfBilledXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream; GeneratePDF: Boolean)
     var
         PeppolSetup: Record "PEPPOL 3.0 Setup";
         SelfBilledExport: Codeunit "Export Self-Billed PEPPOL30";
@@ -250,40 +250,38 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     begin
         PeppolSetup.GetSetup();
         SelfBilledExport.SetFormat(PeppolSetup."PEPPOL 3.0 Purchase Format");
+        SelfBilledExport.SetGeneratePDF(GeneratePDF);
         SelfBilledExport.GenerateXML(SourceDocumentHeader);
         SelfBilledExport.GetXML(TempBlob);
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
-    local procedure ValidateSelfBilledDocument(var EDocument: Record "E-Document"; EDocErrorHelper: Codeunit "E-Document Error Helper"): Boolean
+    local procedure ValidateSelfBilledDocument(var EDocument: Record "E-Document"; EDocErrorHelper: Codeunit "E-Document Error Helper") IsValid: Boolean
     var
         Vendor: Record Vendor;
         ServiceParticipant: Codeunit "Service Participant";
-        IsValid: Boolean;
     begin
         IsValid := true;
-
-        if not Vendor.Get(EDocument."Bill-to/Pay-to No.") then begin
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledVendorNotFoundErr, EDocument."Bill-to/Pay-to No."));
-            exit(false);
-        end;
-
-        if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, Vendor."No.") = 0 then begin
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingParticipantErr, Vendor."No."));
-            IsValid := false;
-        end;
 
         if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Company, '') = 0 then begin
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, SelfBilledMissingCompanyParticipantErr);
             IsValid := false;
         end;
 
-        if Vendor."VAT Registration No." = '' then begin
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingVendorVATRegNoErr, Vendor."No."));
+        if not Vendor.Get(EDocument."Bill-to/Pay-to No.") then begin
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledVendorNotFoundErr, EDocument."Bill-to/Pay-to No."));
             IsValid := false;
-        end;
+        end else begin
+            if ServiceParticipant.GetParticipantIdCount(Enum::"E-Document Source Type"::Vendor, Vendor."No.") = 0 then begin
+                EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingParticipantErr, Vendor."No."));
+                IsValid := false;
+            end;
 
-        exit(IsValid);
+            if Vendor."VAT Registration No." = '' then begin
+                EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBilledMissingVendorVATRegNoErr, Vendor."No."));
+                IsValid := false;
+            end;
+        end;
     end;
 
     local procedure GenerateRemittanceAdviceXMLFile(SourceDocumentHeader: RecordRef; DocOutStream: OutStream)

@@ -112,6 +112,9 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         this.AddNonEmptyNode(this.RootNode, 'AccountingCost', AccountingCost, this.CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(this.RootNode, 'BuyerReference', CustomerReference, this.CbcNamespaceTok, ChildNode);
 
+        if this.GeneratePDF then
+            this.AddAdditionalDocumentReference(PurchaseHeader);
+
         this.AddAccountingSupplierParty(PurchaseHeader);
         this.AddAccountingCustomerParty(PurchaseHeader);
         this.AddDelivery(PurchaseHeader);
@@ -565,6 +568,33 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         this.XMLDOMManagement.AddElement(LineNode, 'Price', '', this.CacNamespaceTok, PriceNode);
         this.XMLDOMManagement.AddElement(PriceNode, 'PriceAmount', PriceAmount, this.CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', PriceAmountCurrencyID);
+    end;
+
+    local procedure AddAdditionalDocumentReference(PurchaseHeader: Record "Purchase Header")
+    var
+        PEPPOLAttachment: Interface "PEPPOL Purchase Attachment Provider";
+        AdditionalDocRefNode: XmlNode;
+        AttachmentNode: XmlNode;
+        EmbeddedDocNode: XmlNode;
+        ChildNode: XmlNode;
+        AdditionalDocumentReferenceID: Text;
+        AdditionalDocRefDocumentType: Text;
+        URI: Text;
+        Filename: Text;
+        MimeCode: Text;
+        EmbeddedDocumentBinaryObject: Text;
+    begin
+        PEPPOLAttachment := this.GetFormat();
+        PEPPOLAttachment.GeneratePDFAttachmentAsAdditionalDocRef(PurchaseHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject);
+        if EmbeddedDocumentBinaryObject = '' then
+            exit;
+
+        this.XMLDOMManagement.AddElement(this.RootNode, 'AdditionalDocumentReference', '', this.CacNamespaceTok, AdditionalDocRefNode);
+        this.XMLDOMManagement.AddElement(AdditionalDocRefNode, 'ID', AdditionalDocumentReferenceID, this.CbcNamespaceTok, ChildNode);
+        this.XMLDOMManagement.AddElement(AdditionalDocRefNode, 'Attachment', '', this.CacNamespaceTok, AttachmentNode);
+        this.XMLDOMManagement.AddElement(AttachmentNode, 'EmbeddedDocumentBinaryObject', EmbeddedDocumentBinaryObject, this.CbcNamespaceTok, EmbeddedDocNode);
+        this.XMLDOMManagement.AddAttribute(EmbeddedDocNode, 'filename', Filename);
+        this.XMLDOMManagement.AddAttribute(EmbeddedDocNode, 'mimeCode', MimeCode);
     end;
 
     local procedure AddNonEmptyNode(Node: XmlNode; NodeName: Text; NodeValue: Text; Namespace: Text; var ChildNode: XmlNode)
