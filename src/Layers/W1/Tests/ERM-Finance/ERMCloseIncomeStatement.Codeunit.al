@@ -572,6 +572,96 @@ codeunit 134228 "ERM Close Income Statement"
         Assert.RecordIsEmpty(GenJournalLine);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    procedure ThirdIncomeStatementCloseTransfersOnlyAuditAdjustment()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        FirstClosedAccount: Record "G/L Account";
+        SecondClosedAccount: Record "G/L Account";
+        AuditAdjustmentAccount: Record "G/L Account";
+        RetainedEarningsAccountNo: Code[20];
+        BalancingAccountNo: Code[20];
+        SourceCurrencyCode: Code[10];
+        FirstClosingDocumentNo: Code[20];
+        SecondClosingDocumentNo: Code[20];
+        ThirdClosingDocumentNo: Code[20];
+        IncomeAccountFilter: Text;
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+        CorrectionAmount: Decimal;
+        AuditAdjustmentAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A third closing transfers only a backdated audit adjustment despite historical blank-source closing entries.
+        Initialize();
+
+        // [GIVEN] A closed fiscal year, AED LCY, no reporting currency or selected dimensions, and blank business units
+        // The customer's currency setup and Business Unit setting are unknown; these are reproduction assumptions.
+        PrepareThirdClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate);
+        CreateIncomeStatementAccount(FirstClosedAccount);
+        CreateIncomeStatementAccount(SecondClosedAccount);
+        CreateIncomeStatementAccount(AuditAdjustmentAccount);
+        BalancingAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        IncomeAccountFilter :=
+            StrSubstNo('%1|%2|%3', FirstClosedAccount."No.", SecondClosedAccount."No.", AuditAdjustmentAccount."No.");
+        FirstClosingDocumentNo := LibraryUtility.GenerateGUID();
+        SecondClosingDocumentNo := LibraryUtility.GenerateGUID();
+        ThirdClosingDocumentNo := LibraryUtility.GenerateGUID();
+        CorrectionAmount := 2000;
+        AuditAdjustmentAmount := 60000;
+
+        // [GIVEN] Accounts "A1" and "A2" each have a blank-source entry followed by two USD entries on different dates
+        PostThirdClosingHistory(GenJournalLine, FirstClosedAccount."No.", BalancingAccountNo, FiscalYearStartDate, SourceCurrencyCode);
+        PostThirdClosingHistory(GenJournalLine, SecondClosedAccount."No.", BalancingAccountNo, FiscalYearStartDate, SourceCurrencyCode);
+        Commit();
+
+        // [GIVEN] The first closing correctly closes "A1" and "A2"
+        RunFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, FirstClosingDocumentNo, IncomeAccountFilter);
+        VerifyIncomeStatementAccountBalance(FirstClosedAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(SecondClosedAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+
+        // [GIVEN] A backdated correction on account "A3" is the only net transfer in the second closing
+        PostIncomeStatementEntry(
+            GenJournalLine, AuditAdjustmentAccount."No.", BalancingAccountNo, FiscalYearStartDate + 90, -CorrectionAmount, '');
+        Commit();
+        RunFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, SecondClosingDocumentNo, IncomeAccountFilter);
+        VerifyClosingTransfer(
+            FirstClosedAccount."No.", SecondClosedAccount."No.", AuditAdjustmentAccount."No.",
+            RetainedEarningsAccountNo, SecondClosingDocumentNo, CorrectionAmount);
+        VerifyIncomeStatementAccountBalance(FirstClosedAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(SecondClosedAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(AuditAdjustmentAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+
+        // [GIVEN] Prior closing entries have blank source metadata, as in the reported legacy history
+        // Seed only metadata after the two successful runs; current code cannot recreate the historical version's output.
+        SeedLegacyClosingSourceMetadata(FirstClosingDocumentNo, SourceCurrencyCode, FiscalYearEndDate);
+        VerifyHistoricalSourceGroups(FirstClosedAccount."No.", SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate);
+        VerifyHistoricalSourceGroups(SecondClosedAccount."No.", SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate);
+
+        // [GIVEN] Another backdated audit adjustment leaves a credit balance of 60,000 on "A3"
+        PostIncomeStatementEntry(
+            GenJournalLine, AuditAdjustmentAccount."No.", BalancingAccountNo, FiscalYearStartDate + 120, -AuditAdjustmentAmount, '');
+        VerifyIncomeStatementAccountBalance(AuditAdjustmentAccount."No.", FiscalYearStartDate, FiscalYearEndDate, -AuditAdjustmentAmount);
+        Commit();
+
+        // [WHEN] The third closing runs with Business Unit selected and all business unit codes blank
+        RunFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, ThirdClosingDocumentNo, IncomeAccountFilter);
+
+        // [THEN] Only the audit adjustment is transferred, allowing offsetting lines for historical currency groups
+        VerifyClosingTransfer(
+            FirstClosedAccount."No.", SecondClosedAccount."No.", AuditAdjustmentAccount."No.",
+            RetainedEarningsAccountNo, ThirdClosingDocumentNo, AuditAdjustmentAmount);
+        VerifyIncomeStatementAccountBalance(FirstClosedAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(SecondClosedAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(AuditAdjustmentAccount."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -592,6 +682,155 @@ codeunit 134228 "ERM Close Income Statement"
 
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Close Income Statement");
+    end;
+
+    local procedure PrepareThirdClosingScenario(var GenJournalLine: Record "Gen. Journal Line"; var SourceCurrencyCode: Code[10]; var FiscalYearStartDate: Date; var FiscalYearEndDate: Date)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        SelectedDimension: Record "Selected Dimension";
+        Currency: Record Currency;
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := 'AED';
+        GeneralLedgerSetup."Additional Reporting Currency" := '';
+        GeneralLedgerSetup.Modify(true);
+
+        SelectedDimension.SetRange("User ID", UserId);
+        SelectedDimension.SetRange("Object Type", 3);
+        SelectedDimension.SetRange("Object ID", Report::"Close Income Statement");
+        SelectedDimension.DeleteAll();
+
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        LibraryFiscalYear.CloseFiscalYear();
+        FiscalYearEndDate := CalcDate('<CM>', LibraryFiscalYear.GetLastPostingDate(true));
+        FiscalYearStartDate := CalcDate('<-1Y+1D>', FiscalYearEndDate);
+
+        if not Currency.Get('USD') then begin
+            LibraryERM.CreateCurrency(Currency);
+            Currency.Rename('USD');
+        end;
+        SourceCurrencyCode := Currency.Code;
+
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GenJournalLine.Init();
+        GenJournalLine."Journal Template Name" := GenJournalBatch."Journal Template Name";
+        GenJournalLine."Journal Batch Name" := GenJournalBatch.Name;
+    end;
+
+    local procedure CreateIncomeStatementAccount(var GLAccount: Record "G/L Account")
+    begin
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Income Statement");
+        GLAccount.Modify(true);
+    end;
+
+    local procedure PostThirdClosingHistory(var GenJournalLine: Record "Gen. Journal Line"; AccountNo: Code[20]; BalancingAccountNo: Code[20]; PostingDate: Date; SourceCurrencyCode: Code[10])
+    begin
+        PostIncomeStatementEntry(GenJournalLine, AccountNo, BalancingAccountNo, PostingDate + 10, 50, '');
+        PostIncomeStatementEntry(GenJournalLine, AccountNo, BalancingAccountNo, PostingDate + 40, 100, SourceCurrencyCode);
+        PostIncomeStatementEntry(GenJournalLine, AccountNo, BalancingAccountNo, PostingDate + 70, 200, SourceCurrencyCode);
+    end;
+
+    local procedure PostIncomeStatementEntry(var GenJournalLine: Record "Gen. Journal Line"; AccountNo: Code[20]; BalancingAccountNo: Code[20]; PostingDate: Date; Amount: Decimal; SourceCurrencyCode: Code[10])
+    begin
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", AccountNo,
+            GenJournalLine."Bal. Account Type"::"G/L Account", BalancingAccountNo, Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        GenJournalLine.Validate("Source Currency Code", SourceCurrencyCode);
+        if SourceCurrencyCode <> '' then
+            GenJournalLine."Source Currency Amount" := Amount / 4;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure RunFilteredIncomeStatementClosing(var GenJournalLine: Record "Gen. Journal Line"; FiscalYearEndDate: Date; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; IncomeAccountFilter: Text)
+    var
+        GLAccount: Record "G/L Account";
+        CloseIncomeStatementReport: Report "Close Income Statement";
+    begin
+        LibraryVariableStorage.Enqueue(FiscalYearEndDate);
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
+        LibraryVariableStorage.Enqueue(DocumentNo);
+        LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
+        LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc::Details);
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
+        GLAccount.SetFilter("No.", IncomeAccountFilter);
+        CloseIncomeStatementReport.SetTableView(GLAccount);
+        CloseIncomeStatementReport.Run();
+
+        GenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        GenJournalLine.FindFirst();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure SeedLegacyClosingSourceMetadata(DocumentNo: Code[20]; SourceCurrencyCode: Code[10]; FiscalYearEndDate: Date)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("Posting Date", ClosingDate(FiscalYearEndDate));
+        GLEntry.SetRange("Source Currency Code", SourceCurrencyCode);
+        Assert.IsFalse(GLEntry.IsEmpty(), 'The first closing must contain source-currency entries before seeding legacy metadata.');
+        GLEntry.ModifyAll("Source Currency Amount", 0);
+        GLEntry.ModifyAll("Source Currency VAT Amount", 0);
+        GLEntry.ModifyAll("Source Currency Code", '');
+    end;
+
+    local procedure VerifyHistoricalSourceGroups(AccountNo: Code[20]; SourceCurrencyCode: Code[10]; FiscalYearStartDate: Date; FiscalYearEndDate: Date)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        VerifyIncomeStatementAccountBalance(AccountNo, FiscalYearStartDate, FiscalYearEndDate, 0);
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        GLEntry.SetRange("Posting Date", FiscalYearStartDate, ClosingDate(FiscalYearEndDate));
+        GLEntry.SetRange("Source Currency Code", SourceCurrencyCode);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(300, GLEntry.Amount, 'The original USD entries must remain after seeding legacy closing metadata.');
+        GLEntry.SetRange("Source Currency Code", '');
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-300, GLEntry.Amount, 'The blank-source history must offset the USD group in LCY.');
+    end;
+
+    local procedure VerifyIncomeStatementAccountBalance(AccountNo: Code[20]; FiscalYearStartDate: Date; FiscalYearEndDate: Date; ExpectedAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("G/L Account No.", AccountNo);
+        GLEntry.SetRange("Posting Date", FiscalYearStartDate, ClosingDate(FiscalYearEndDate));
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo('Unexpected fiscal-year balance for account %1.', AccountNo));
+    end;
+
+    local procedure VerifyClosingTransfer(FirstClosedAccountNo: Code[20]; SecondClosedAccountNo: Code[20]; AuditAdjustmentAccountNo: Code[20]; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; ExpectedAdjustmentAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", AuditAdjustmentAccountNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(ExpectedAdjustmentAmount, GLEntry.Amount, 'The adjustment account must be debited by exactly the new adjustment.');
+        GLEntry.SetRange("G/L Account No.", RetainedEarningsAccountNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-ExpectedAdjustmentAmount, GLEntry.Amount, 'Retained earnings must be credited only for the new adjustment, not previously closed accounts.');
+        GLEntry.SetRange("G/L Account No.", FirstClosedAccountNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'Closing entries for the first previously closed account must net to zero.');
+        GLEntry.SetRange("G/L Account No.", SecondClosedAccountNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'Closing entries for the second previously closed account must net to zero.');
+        GLEntry.SetRange("G/L Account No.");
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(0, GLEntry.Amount, 'The complete closing document must balance.');
     end;
 
     local procedure CloseIncomeStatementWithPostingLines(var GenJournalLine: Record "Gen. Journal Line") DocumentNo: Code[20]
@@ -964,4 +1203,3 @@ codeunit 134228 "ERM Close Income Statement"
         DimensionSelectionMultiple.OK().Invoke();
     end;
 }
-
