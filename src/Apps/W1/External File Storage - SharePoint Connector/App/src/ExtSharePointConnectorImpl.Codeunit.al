@@ -383,6 +383,32 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SharePoint";
     end;
 
+    internal procedure ModifyAccount(var AccountToModify: Record "Ext. SharePoint Account"; AccountWithNewValues: Record "Ext. SharePoint Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText; var TempFileAccount: Record "File Account" temporary)
+    begin
+        case AccountToModify."Authentication Type" of
+            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                AccountToModify.ClearClientSecretAuthentication();
+            Enum::"Ext. SharePoint Auth Type"::Certificate:
+                AccountToModify.ClearCertificateAuthentication();
+        end;
+        AccountToModify.TransferFields(AccountWithNewValues, false);
+        case AccountToModify."Authentication Type" of
+            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                AccountToModify.SetClientSecret(ClientSecretOrCertificate);
+            Enum::"Ext. SharePoint Auth Type"::Certificate:
+                begin
+                    AccountToModify.SetCertificate(ClientSecretOrCertificate);
+                    AccountToModify.SetCertificatePassword(CertificatePassword);
+                end;
+        end;
+
+        AccountToModify.Modify();
+
+        TempFileAccount."Account Id" := AccountToModify.Id;
+        TempFileAccount.Name := AccountToModify.Name;
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SharePoint";
+    end;
+
     local procedure InitSharePointClient(var AccountId: Guid; var SharePointClient: Codeunit "SharePoint Client")
     var
         SharePointAccount: Record "Ext. SharePoint Account";
