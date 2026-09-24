@@ -688,23 +688,13 @@ table 79 "Company Information"
     procedure GetCompanyDescription(): Text
     var
         DescriptionInStream: InStream;
-        DescriptionBuilder: TextBuilder;
-        DescriptionLine: Text;
     begin
         CalcFields("Company Description");
         if not "Company Description".HasValue() then
             exit('');
 
         "Company Description".CreateInStream(DescriptionInStream, GetTextEncoding());
-        DescriptionInStream.ReadText(DescriptionLine);
-        DescriptionBuilder.Append(DescriptionLine);
-        while not DescriptionInStream.EOS() do begin
-            DescriptionInStream.ReadText(DescriptionLine);
-            DescriptionBuilder.AppendLine('');
-            DescriptionBuilder.Append(DescriptionLine);
-        end;
-
-        exit(DescriptionBuilder.ToText());
+        exit(ReadText(DescriptionInStream));
     end;
 
     procedure SetCompanyDescription(Description: Text)
@@ -715,6 +705,23 @@ table 79 "Company Information"
         "Company Description".CreateOutStream(DescriptionOutStream, GetTextEncoding());
         DescriptionOutStream.WriteText(Description);
         Modify(true);
+    end;
+
+    local procedure ReadText(Input: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+        FirstLine: Boolean;
+    begin
+        FirstLine := true;
+        while not Input.EOS() do begin
+            Input.ReadText(TextLine);
+            if not FirstLine then
+                TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+            FirstLine := false;
+        end;
+        exit(TextBuilder.ToText());
     end;
 
     local procedure GetTextEncoding(): TextEncoding

@@ -64,8 +64,6 @@ codeunit 3702 "Environment Information Impl."
     var
         EnvironmentInformation: Record "Environment Information";
         DescriptionInStream: InStream;
-        DescriptionBuilder: TextBuilder;
-        DescriptionLine: Text;
     begin
         GetEnvironmentInformationSafe(EnvironmentInformation);
         EnvironmentInformation.CalcFields(Description);
@@ -73,15 +71,7 @@ codeunit 3702 "Environment Information Impl."
             exit('');
 
         EnvironmentInformation.Description.CreateInStream(DescriptionInStream, GetTextEncoding());
-        DescriptionInStream.ReadText(DescriptionLine);
-        DescriptionBuilder.Append(DescriptionLine);
-        while not DescriptionInStream.EOS() do begin
-            DescriptionInStream.ReadText(DescriptionLine);
-            DescriptionBuilder.AppendLine('');
-            DescriptionBuilder.Append(DescriptionLine);
-        end;
-
-        exit(DescriptionBuilder.ToText());
+        exit(ReadText(DescriptionInStream));
     end;
 
     procedure SetEnvironmentDescription(Description: Text)
@@ -228,6 +218,23 @@ codeunit 3702 "Environment Information Impl."
 
         EnvironmentInformation.Insert();
         EnvironmentInformation.Find();
+    end;
+
+    local procedure ReadText(Input: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+        FirstLine: Boolean;
+    begin
+        FirstLine := true;
+        while not Input.EOS() do begin
+            Input.ReadText(TextLine);
+            if not FirstLine then
+                TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+            FirstLine := false;
+        end;
+        exit(TextBuilder.ToText());
     end;
 
     local procedure GetTextEncoding(): TextEncoding
