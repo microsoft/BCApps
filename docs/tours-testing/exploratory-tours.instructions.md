@@ -171,6 +171,17 @@ artifact cache **before** a container is built.
 run `git diff --no-index` against both `<fix>` and `<fix>^`. *"Identical to the parent"* is a
 positive result; a grep that finds nothing is only ever a negative one (§6.3 rule 2).
 
+This is not theoretical. One tour ran both checks on the same file: the **grep said "not found"
+while the diff said PRESENT**, because the search pattern contained `[1]`, which PowerShell `-like`
+treats as a character class. A grep-only gate would have reported the fix missing and sent the tour
+to rebuild a container it already had.
+
+⚠️ **The pinned artifact may not merely be old — it may not exist.** The same tour found
+`30.0.54812.0` **absent from the storage account** (81 artifacts listed for 30.0, that one gone),
+so "build the way the repo says" was impossible, failing at container creation with an error that
+reads like an infrastructure fault. Defaulting to the latest artifact is therefore the only thing
+that reliably works, not a preference.
+
 **ABSENT is not automatically the end of the charter.** When the artifact does not contain the
 commit, ask one more question before declaring the area untourable: **does the new behaviour already
 ship somewhere else in the same build?**

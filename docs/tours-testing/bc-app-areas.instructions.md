@@ -129,11 +129,32 @@ were true on build 30.0.54812.0-W1:
   So an arithmetic charter against Fixed Assets must **construct** every awkward case — and before
   planning one, check §5.8, because several of the fields those cases need ship
   `Visible = false`.
-- **Warehouse: `SILVER` is bin-mandatory with 38 bins** (`Bin Mandatory` = 1, `Directed` = 0), which
-  is exactly what `ItemJnlCheckLine.CheckBins` requires — `WHITE` is Directed and exits first.
-  `DROP SHIP` purchasing code ships too. Deferrals are the opposite: **zero** Deferral Templates,
-  Headers or Lines. Reminders ship 4 attachment text lines, **all Ending, zero Beginning**.
-  Vendor ledger entries: 210 Payments, 223 Invoices, and **zero Refunds or Credit Memos**.
+- **Warehouse: only two CRONUS locations have any bins at all.** Measured in full, because two tours
+  contradicted each other and one had transposed a bin count:
+
+  | Loc | BinMand | Directed | ReqShip | ReqPick | ReqRcv | ReqPutAway | InTransit | Bins |
+  | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+  | **SILVER** | **1** | 0 | **0** | 0 | 0 | 0 | 0 | **40** |
+  | **WHITE** | **1** | **1** | **1** | **1** | **1** | **1** | 0 | **38** |
+  | YELLOW | 0 | 0 | 0 | **1** | **1** | **1** | 0 | 0 |
+  | OUT./OWN LOG. | 0 | 0 | 0 | 0 | 0 | 0 | **1** | 0 |
+  | EAST, MAIN, WEST, S82000, S83000 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+  Three consequences that decide whether a charter is constructible at all:
+  - **`WHITE` is the only location satisfying Bin Mandatory + Require Shipment + Require Pick
+    together**, so any bin-level warehouse-shipment charter must use WHITE or build a location.
+  - **`SILVER` is Bin Mandatory and not Directed** — which is what `ItemJnlCheckLine.CheckBins`
+    needs — but `Require Shipment = 0`, so it cannot host a warehouse shipment.
+  - **`YELLOW` requires shipment and pick but has zero bins**, so a bin code never lands on a
+    source line there. That makes it a useful **negative control**, not a dead end.
+
+  Deferrals are the opposite of well-stocked: **zero** Deferral Templates, Headers or Lines.
+  Reminders ship 4 attachment text lines, **all Ending, zero Beginning**. Vendor ledger entries:
+  210 Payments, 223 Invoices, and **zero Refunds or Credit Memos**. Service: 21 unposted contract
+  invoices (eight on one contract) but **zero posted service invoices**. Item tracking ships codes
+  but **zero lot-bearing item ledger entries, zero tracking specifications, zero reservation
+  entries**, and there are **no warehouse journal templates or batches**, which blocks any
+  bin-level fixture until you create them.
 
   ⚠️ **Scope a census claim to the procedure it was measured against.** "No CRONUS location reaches
   the warehouse-availability code" was true of `CalcAvailableQtyBase` — which additionally needs
