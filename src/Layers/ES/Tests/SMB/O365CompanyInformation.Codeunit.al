@@ -230,7 +230,7 @@ codeunit 138041 "O365 Company Information"
         DescriptionBuilder: TextBuilder;
     begin
         DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
-        DescriptionBuilder.AppendLine(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
         exit(DescriptionBuilder.ToText());
     end;
 }

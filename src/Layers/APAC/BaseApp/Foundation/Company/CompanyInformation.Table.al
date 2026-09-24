@@ -749,9 +749,12 @@ table 79 "Company Information"
             exit('');
 
         "Company Description".CreateInStream(DescriptionInStream, GetTextEncoding());
+        DescriptionInStream.ReadText(DescriptionLine);
+        DescriptionBuilder.Append(DescriptionLine);
         while not DescriptionInStream.EOS() do begin
             DescriptionInStream.ReadText(DescriptionLine);
-            DescriptionBuilder.AppendLine(DescriptionLine);
+            DescriptionBuilder.AppendLine('');
+            DescriptionBuilder.Append(DescriptionLine);
         end;
 
         exit(DescriptionBuilder.ToText());

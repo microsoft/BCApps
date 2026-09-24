@@ -246,7 +246,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         DescriptionBuilder: TextBuilder;
     begin
         DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
-        DescriptionBuilder.AppendLine(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
         exit(DescriptionBuilder.ToText());
     end;
 }

@@ -73,9 +73,12 @@ codeunit 3702 "Environment Information Impl."
             exit('');
 
         EnvironmentInformation.Description.CreateInStream(DescriptionInStream, GetTextEncoding());
+        DescriptionInStream.ReadText(DescriptionLine);
+        DescriptionBuilder.Append(DescriptionLine);
         while not DescriptionInStream.EOS() do begin
             DescriptionInStream.ReadText(DescriptionLine);
-            DescriptionBuilder.AppendLine(DescriptionLine);
+            DescriptionBuilder.AppendLine('');
+            DescriptionBuilder.Append(DescriptionLine);
         end;
 
         exit(DescriptionBuilder.ToText());
