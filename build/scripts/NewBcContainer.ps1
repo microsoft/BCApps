@@ -19,7 +19,7 @@ $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Vers
 if ($platformVersion) {
     $platformVersion = Resolve-PlatformVersion -Version $platformVersion
     $platformUrl = Get-PlatformVersionUrl -Version $platformVersion
-    $parameters.platformArtifactUrl = "$platformUrl/platform"
+    # $parameters.platformArtifactUrl = "$platformUrl/platform" # TODO: Re-enable this when we have a newer platform artifact
 }
 
 New-BcContainer @parameters

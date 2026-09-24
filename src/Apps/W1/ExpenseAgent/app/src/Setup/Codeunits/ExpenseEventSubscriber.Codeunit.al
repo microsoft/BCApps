@@ -329,6 +329,9 @@ codeunit 6908 "Expense Event Subscriber"
             exit;
 
         SpendRequest.Status := SpendRequest.Status::Approved;
+        SpendRequest."Approved/Rejected At" := CurrentDateTime();
+        SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
+        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
         SpendRequest.Modify();
     end;
 }

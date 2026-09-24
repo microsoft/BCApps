@@ -272,6 +272,14 @@ report 114 "Salesperson - Sales Statistics"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
+            Caption = 'Body-only: Salesperson Sales Statistics Word';
+            Summary = 'Landscape orientated. Shows sales, profit, and adjusted profit in LCY and as a percentage for each salesperson, together with invoice discount, payment discount given, and payment tolerance. Includes column totals.';
+        }
     }
 
     labels
