@@ -35,15 +35,24 @@ const BASE = process.env.BC_BASE || `http://${CONTAINER}/BC/`;
 
 async function appFrame(page, timeoutMs = 120000) {
   const deadline = Date.now() + timeoutMs;
+  let best = null, bestN = 0;
   while (Date.now() < deadline) {
+    best = null; bestN = 0;
     for (const f of page.frames()) {
       if (f === page.mainFrame()) continue;
       const n = await f.locator('[aria-label]').count().catch(() => 0);
-      if (n > 20) return f;
+      if (n > bestN) { best = f; bestN = n; }
     }
+    // A fixed ">20 aria-labels" threshold is wrong: it is a density heuristic dressed as a
+    // constant. Depreciation Book Card (5610) renders 18 in its iframe, so a perfectly loaded
+    // card was rejected for 120 s and the probe died with "BC app frame not found" before it
+    // had touched the product - a claim about the instrument that reads like a page failure.
+    // Take the richest child frame instead, with a low floor that still excludes the empty
+    // placeholder iframe BC creates before the page arrives.
+    if (best && bestN >= 8) return best;
     await page.waitForTimeout(500);
   }
-  throw new Error('BC app frame not found');
+  throw new Error(`BC app frame not found (best child frame had ${bestN} [aria-label] elements)`);
 }
 
 async function signIn(page, url = BASE) {
@@ -661,11 +670,22 @@ async function openAction(page, frame, name, group = null) {
 // ⚠️ It must be closed with its own "Got it" button. Escape would close the PAGE behind it
 // (playwright-bc §6), which looks like the page failing to open.
 async function dismissTeachingTip(page, frame) {
-  const btn = frame.getByRole('button', { name: /got it/i }).last();
-  if (!(await btn.count().catch(() => 0))) return false;
-  await clickSettled(page, frame, btn).catch(() => {});
-  await page.waitForTimeout(800);
-  return true;
+  // Two variants exist and only one has a "Got it": the AboutTitle/AboutText teaching tip
+  // rendered on page open ("About <page> ... Show Help / Take a tour") closes through a
+  // button whose only accessible name is aria-label="Dismiss". Matching /got it/ alone
+  // returned false and left the tip on top of the grid, where it swallowed the first click -
+  // so a probe reported an empty error and an unchanged record, which reads exactly like
+  // "the product refused the edit". It had not; the click never reached the cell.
+  for (const btn of [
+    frame.getByRole('button', { name: /got it/i }).last(),
+    frame.getByRole('button', { name: /^dismiss$/i }).last(),
+  ]) {
+    if (!(await btn.count().catch(() => 0))) continue;
+    await clickSettled(page, frame, btn).catch(() => {});
+    await page.waitForTimeout(800);
+    return true;
+  }
+  return false;
 }
 
 // Set a BOOLEAN cell in a lines grid, and PROVE it committed against the database.
