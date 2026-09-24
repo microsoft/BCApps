@@ -51,6 +51,7 @@ codeunit 6941 "EA Http Client"
         CanaryAllowlistEndpointTok: Label '/api/v1.0/canary/allowlist', Locked = true;
         ProdBaseUrlSecretNameTok: Label 'EABaseUrl', Locked = true;
         CanaryBaseUrlSecretNameTok: Label 'EABaseUrlCanary', Locked = true;
+        ExpenseAgentSetupMissingTxt: Label 'Expense Agent setup is missing. The service request was not sent.', Locked = true;
 
     [NonDebuggable]
     procedure SubmitExpenseWithAttachments(ConversationId: Text; Context: Text; OnBehalfUser: Text; var TempAttachment: Record "EA Email Attachment" temporary): Boolean
@@ -431,14 +432,24 @@ codeunit 6941 "EA Http Client"
     local procedure GetExpenseAgentBaseUrl(var BaseUrl: SecretText): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        SecretName: Text;
     begin
-        SecretName := ProdBaseUrlSecretNameTok;
-        if ExpenseAgentSetup.Get() then
-            if ExpenseAgentSetup."Use Canary Endpoint" then
-                SecretName := CanaryBaseUrlSecretNameTok;
-        exit(AzureKeyVault.GetAzureKeyVaultSecret(SecretName, BaseUrl));
+        Clear(BaseUrl);
+        if not ExpenseAgentSetup.Get() then begin
+            FeatureTelemetry.LogError('0000VGO', ExpenseAgentSetup.GetFeatureName(), 'Resolve service endpoint', ExpenseAgentSetupMissingTxt);
+            exit(false);
+        end;
+
+        exit(GetExpenseAgentBaseUrl(ExpenseAgentSetup."Use Canary Endpoint", BaseUrl));
+    end;
+
+    local procedure GetExpenseAgentBaseUrl(UseCanaryEndpoint: Boolean; var BaseUrl: SecretText): Boolean
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+    begin
+        if UseCanaryEndpoint then
+            exit(AzureKeyVault.GetAzureKeyVaultSecret(CanaryBaseUrlSecretNameTok, BaseUrl));
+
+        exit(GetProductionBaseUrl(BaseUrl));
     end;
 
     local procedure GetProductionBaseUrl(var BaseUrl: SecretText): Boolean
@@ -449,19 +460,19 @@ codeunit 6941 "EA Http Client"
     end;
 
     [NonDebuggable]
-    procedure RegisterErpConfiguration(): Boolean
+    procedure RegisterErpConfiguration(UseCanaryEndpoint: Boolean): Boolean
     begin
-        exit(SendErpConfigRequest('POST', ErpRegistrationFailedErr));
+        exit(SendErpConfigRequest('POST', ErpRegistrationFailedErr, UseCanaryEndpoint));
     end;
 
     [NonDebuggable]
-    procedure UnregisterErpConfiguration(): Boolean
+    procedure UnregisterErpConfiguration(UseCanaryEndpoint: Boolean): Boolean
     begin
-        exit(SendErpConfigRequest('DELETE', ErpUnregistrationFailedErr));
+        exit(SendErpConfigRequest('DELETE', ErpUnregistrationFailedErr, UseCanaryEndpoint));
     end;
 
     [NonDebuggable]
-    local procedure SendErpConfigRequest(HttpMethod: Text; FailureError: Text): Boolean
+    local procedure SendErpConfigRequest(HttpMethod: Text; FailureError: Text; UseCanaryEndpoint: Boolean): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         Client: HttpClient;
@@ -473,7 +484,7 @@ codeunit 6941 "EA Http Client"
         Url: Text;
         BaseUrl: SecretText;
     begin
-        if not GetExpenseAgentBaseUrl(BaseUrl) then begin
+        if not GetExpenseAgentBaseUrl(UseCanaryEndpoint, BaseUrl) then begin
             Message(FailureError);
             exit(false);
         end;
@@ -589,13 +600,13 @@ codeunit 6941 "EA Http Client"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         AzureADMgt: Codeunit "Azure AD Mgt.";
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         OAuthScope: Text;
         OAuthScopePatternLbl: Label 'api://%1/', Locked = true;
     begin
-        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentAPIValidation.GetAadAppId());
+        OAuthScope := StrSubstNo(OAuthScopePatternLbl, ExpenseAgentEntraApp.GetAadAppId());
         Scopes.Add(OAuthScope + 'Expenses.ReadWrite.All');
         AccessToken := AzureADMgt.GetAccessTokenAsSecretText(OAuthScope, '', false);
         if AccessToken.IsEmpty() then begin

@@ -1,5 +1,7 @@
 #pragma warning disable AA0247
+#pragma warning disable AS0103, PTE0004 // Accepted: this internal table is intentionally accessed only by its owning infrastructure and is not exposed through user permission sets. Tracked by AB#640773.
 table 19298 "India Data Transfer Statistics"
+#pragma warning restore AS0103, PTE0004
 {
     DataClassification = CustomerContent;
 
