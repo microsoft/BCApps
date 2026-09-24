@@ -269,6 +269,15 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             end;
         end;
 
+        // The BaseApp sync engine does not transfer a blanked (0D/0DT) Date/DateTime, so clearing it on the source
+        // leaves the subsidiary value stale; force the blank through so the clear is mirrored (bug 648540).
+        if SourceFieldRef.Type in [SourceFieldRef.Type::Date, SourceFieldRef.Type::DateTime] then
+            if IsBlankDateTime(SourceFieldRef) and not IsBlankDateTime(DestinationFieldRef) then begin
+                NewValue := SourceFieldRef.Value();
+                IsValueFound := true;
+                NeedsConversion := false;
+            end;
+
         if SourceFieldRef.Value() <> DestinationFieldRef.Value() then begin
             DestinationRecordRef := DestinationFieldRef.Record();
             DestinationRecCreatedAt := DestinationRecordRef.Field(DestinationRecordRef.SystemCreatedAtNo()).Value();
@@ -309,6 +318,27 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             if ThrowError then
                 Error(ValueWillBeOverwrittenErr, DestinationFieldRef.Caption(), Format(DestinationFieldRef.Record().RecordId()), Format(SourceFieldRef.Value()), Format(DestinationFieldRef.Record().Caption()));
         end;
+    end;
+
+    // A blanked Date/DateTime reads as 0D/0DT; the BaseApp transfer treats that as "no value" and skips it.
+    local procedure IsBlankDateTime(FieldReference: FieldRef): Boolean
+    var
+        DateValue: Date;
+        DateTimeValue: DateTime;
+    begin
+        case FieldReference.Type of
+            FieldReference.Type::Date:
+                begin
+                    DateValue := FieldReference.Value();
+                    exit(DateValue = 0D);
+                end;
+            FieldReference.Type::DateTime:
+                begin
+                    DateTimeValue := FieldReference.Value();
+                    exit(DateTimeValue = 0DT);
+                end;
+        end;
+        exit(false);
     end;
 
     local procedure UpdateMedia(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var NewValue: Variant): Boolean
