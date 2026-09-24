@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using System.IO;
 
 codeunit 148353 EACorpCardPhase3Tests
 {
@@ -207,6 +208,32 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.IsTrue(CorpCardTransDetail.IsEmpty(), 'Deleting a batch must delete transaction detail lines.');
         CorpCardException.SetRange("Batch No.", CorpCardBatch."Batch No.");
         Assert.IsTrue(CorpCardException.IsEmpty(), 'Deleting a batch must delete its exceptions.');
+    end;
+
+    [Test]
+    procedure DeletingProviderDoesNotDeleteSharedDataExchangeDefinition()
+    var
+        CorpCardProvider: Record "EA Corp Card Provider";
+        SharedCorpCardProvider: Record "EA Corp Card Provider";
+        DataExchDef: Record "Data Exch. Def";
+        SharedDataExchDefCode: Code[20];
+    begin
+        Initialize();
+
+        SharedCorpCardProvider.Get(CorpCardXmlProviderCodeTok);
+        SharedDataExchDefCode := SharedCorpCardProvider."Data Exch Def Code";
+        DataExchDef.Get(SharedDataExchDefCode);
+
+        CorpCardProvider.Init();
+        CorpCardProvider.Code := SharedDefinitionTestProviderCodeTok;
+        CorpCardProvider.Description := 'Shared definition deletion test';
+        CorpCardProvider."Data Exch Def Code" := SharedDataExchDefCode;
+        CorpCardProvider.Insert(true);
+
+        CorpCardProvider.Delete(true);
+
+        Assert.IsTrue(DataExchDef.Get(SharedDataExchDefCode), 'Deleting a provider must not delete a shared Data Exchange definition.');
+        Assert.IsTrue(SharedCorpCardProvider.Get(CorpCardXmlProviderCodeTok), 'Deleting a provider must not affect another provider that uses the shared definition.');
     end;
 
     [Test]
@@ -512,6 +539,7 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardIsoProviderCodeTok: Label 'CORPCARDISO', Locked = true;
         CorpCardCamt053ProviderCodeTok: Label 'CORPCAMT053', Locked = true;
         CorpCardCamt054ProviderCodeTok: Label 'CORPCAMT054', Locked = true;
+        SharedDefinitionTestProviderCodeTok: Label 'SHAREDDEFTEST', Locked = true;
         CorpCardL3ProviderCodeTok: Label 'CORPCARDL3', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         MalformedXmlRootElementTok: Label 'CorporateCardTransactions', Locked = true;

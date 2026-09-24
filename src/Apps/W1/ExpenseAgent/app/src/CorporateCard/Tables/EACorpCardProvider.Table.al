@@ -22,11 +22,6 @@ table 7216 "EA Corp Card Provider"
         tabledata "EA Corp Card Trans" = rimd,
         tabledata "EA Corp Card Trans Detail" = rimd,
         tabledata "Data Exch." = rimd,
-        tabledata "Data Exch. Def" = rimd,
-        tabledata "Data Exch. Mapping" = rimd,
-        tabledata "Data Exch. Line Def" = rimd,
-        tabledata "Data Exch. Column Def" = rimd,
-        tabledata "Data Exch. Field Mapping" = rimd,
         tabledata "EA Corp Card Provider" = rimd;
 
     fields
@@ -266,9 +261,6 @@ table 7216 "EA Corp Card Provider"
         if not CorpCardTrans.IsEmpty() then
             exit(true);
 
-        if "Data Exch Def Code" <> '' then
-            exit(true);
-
         DataExch.SetRange("Related Record", RecordId);
         if not DataExch.IsEmpty() then
             exit(true);
@@ -282,11 +274,6 @@ table 7216 "EA Corp Card Provider"
         CorpCard: Record "EA Corp Card";
         CorpCardBatch: Record "EA Corp Card Batch";
         DataExch: Record "Data Exch.";
-        DataExchDef: Record "Data Exch. Def";
-        DataExchLineDef: Record "Data Exch. Line Def";
-        DataExchColumnDef: Record "Data Exch. Column Def";
-        DataExchMapping: Record "Data Exch. Mapping";
-        DataExchFieldMapping: Record "Data Exch. Field Mapping";
         JobQueueEntry: Record "Job Queue Entry";
     begin
         JobQueueEntry.SetRange("Record ID to Process", RecordId);
@@ -300,23 +287,6 @@ table 7216 "EA Corp Card Provider"
 
         CorpCard.SetRange("Provider Code", Code);
         CorpCard.DeleteAll(true);
-
-        if "Data Exch Def Code" <> '' then begin
-            DataExchFieldMapping.SetRange("Data Exch. Def Code", "Data Exch Def Code");
-            DataExchFieldMapping.DeleteAll(true);
-
-            DataExchMapping.SetRange("Data Exch. Def Code", "Data Exch Def Code");
-            DataExchMapping.DeleteAll(true);
-
-            DataExchColumnDef.SetRange("Data Exch. Def Code", "Data Exch Def Code");
-            DataExchColumnDef.DeleteAll(true);
-
-            DataExchLineDef.SetRange("Data Exch. Def Code", "Data Exch Def Code");
-            DataExchLineDef.DeleteAll(true);
-
-            if DataExchDef.Get("Data Exch Def Code") then
-                DataExchDef.Delete(true);
-        end;
     end;
 
     var
