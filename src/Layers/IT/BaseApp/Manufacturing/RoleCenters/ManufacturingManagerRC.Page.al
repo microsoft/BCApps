@@ -609,6 +609,12 @@ page 8903 "Manufacturing Manager RC"
                 group("Group16")
                 {
                     Caption = 'Reports';
+                    action("Production Cost Shares")
+                    {
+                        ApplicationArea = Assembly, Manufacturing;
+                        Caption = 'Production Cost Shares';
+                        RunObject = report "Production Cost Shares";
+                    }
                     action("Compare Production Cost Shares")
                     {
                         ApplicationArea = Manufacturing;
