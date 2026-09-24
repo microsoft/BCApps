@@ -1,10 +1,6 @@
 codeunit 130622 "Library - Graph Journal Lines"
 {
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
