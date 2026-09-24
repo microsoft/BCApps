@@ -139,6 +139,10 @@ table 1504 "Workflow Step Instance"
         key(Key6; Type, Status, "Function Name", "Previous Workflow Step ID")
         {
         }
+        key(Key7; Type, Status, "Function Name", "Sequence No.")
+        {
+            IncludedFields = "Previous Workflow Step ID", Argument;
+        }
     }
 
     fieldgroups
