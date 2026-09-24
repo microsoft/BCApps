@@ -3,10 +3,6 @@ codeunit 139860 "APIV2 - G/L Setup E2E"
     Subtype = Test;
     RequiredTestIsolation = Disabled;
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         Assert: Codeunit "Assert";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";

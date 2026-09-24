@@ -3,10 +3,6 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
     Subtype = Test;
     RequiredTestIsolation = Disabled;
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
