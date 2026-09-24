@@ -30,6 +30,14 @@ if (-not $Query) { throw 'Pass -Query or -QueryFile.' }
 
 if ($Query -match "'@") { throw 'Query contains an @-terminator sequence; rewrite it.' }
 
+# ⚠️ ONE result set per call. Invoke-Sqlcmd flattens multiple result sets, so two differently
+# shaped SELECTs come back as one ragged list and everything after the first is silently lost -
+# a confident, well-formed, wrong answer. Use one SELECT, or UNION ALL with matching columns.
+if (([regex]::Matches($Query, '(?im)^\s*SELECT\b')).Count -gt 1 -and $Query -notmatch '(?i)UNION') {
+    Write-Warning ('Invoke-BcSql: the query contains more than one SELECT and no UNION. ' +
+                   'Only the first result set will survive - split the call or use UNION ALL.')
+}
+
 $tmp = Join-Path $env:TEMP ("bcsql-" + [guid]::NewGuid().ToString('N') + ".ps1")
 
 $script = @"

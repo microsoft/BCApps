@@ -142,16 +142,29 @@ async function setField(page, frame, label, value) {
   // first look reports them absent - and a tour then writes that up as the product not having the
   // field, which is exactly the false conclusion §5.8 exists to prevent. Expand first, then
   // re-look, and only then say absent.
+  //
+  // ⚠️ Scope the expansion to the CARD. A lines grid has its own "Show more", and clicking that
+  // one opens the Lines menu - after which typing goes to the menu and the write becomes a
+  // phantom silent refusal. One tour lost a probe to exactly that. So skip any "Show more"
+  // that sits inside a grid.
   if (!el) {
     for (let i = 0; i < 8; i++) {
-      const link = frame.getByText('Show more', { exact: true }).first();
-      if (!(await link.isVisible().catch(() => false))) break;
-      await clickSettled(page, frame, link).catch(() => {});
-      await page.waitForTimeout(900);
+      const links = frame.getByText('Show more', { exact: true });
+      let clicked = false;
+      for (const link of await links.all()) {
+        if (!(await link.isVisible().catch(() => false))) continue;
+        const inGrid = await link.evaluate((e) => !!e.closest('[role="grid"]')).catch(() => true);
+        if (inGrid) continue;
+        await clickSettled(page, frame, link).catch(() => {});
+        await page.waitForTimeout(900);
+        clicked = true;
+        break;
+      }
+      if (!clicked) break;
     }
     el = await fieldOne(frame, label);
   }
-  if (!el) return { ok: false, why: 'absent (after expanding every "Show more" on the page)' };
+  if (!el) return { ok: false, why: 'absent (after expanding every card-level "Show more")' };
 
   if (!(await el.isEditable().catch(() => false))) {
     return { ok: false, why: 'present but not editable - is it gated by another field?' };
