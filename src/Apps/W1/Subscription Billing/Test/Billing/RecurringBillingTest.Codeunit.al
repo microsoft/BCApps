@@ -1578,7 +1578,7 @@ codeunit 139688 "Recurring Billing Test"
         ContractType: Record "Subscription Contract Type";
         BillingDate: Date;
         CappedNextBillingTo: Date;
-      begin
+    begin
         // [SCENARIO 637042] Creating a Billing Proposal for a harmonized billing contract must not hang when the contract "Next Billing To" caps the calculated billing period below the Billing Date
         Initialize();
 
@@ -1613,6 +1613,33 @@ codeunit 139688 "Recurring Billing Test"
         Assert.RecordIsNotEmpty(BillingLine);
         BillingLine.FindLast();
         Assert.AreEqual(CappedNextBillingTo, BillingLine."Billing to", BillingToCappedErr);
+    end;
+
+    [Test]
+    procedure CalculateNextToDateWithSubscriptionLineEndDate()
+    var
+        MonthlyPeriodLbl: Label '<1M>', Locked = true;
+        WeeklyPeriodLbl: Label '<1W>', Locked = true;
+    begin
+        Initialize();
+
+        // [GIVEN] A Subscription Line starts on 29/05/2026,
+        // uses Align to End of Month and has a 1M period.
+        // [WHEN] CalculateNextToDate is called with the Subscription Line End Date of 28/06/2026.
+        // [THEN] The calculated Next To Date includes the Subscription Line End Date.
+        CheckNextToDateWithEndDate("Period Calculation"::"Align to End of Month", MonthlyPeriodLbl, 20260529D, 20260628D, 20260628D);
+
+        // [GIVEN] Monthly period starts on 29/05/2026 and the Subscription Line End Date
+        // is the next period start date, 29/06/2026.
+        // [WHEN] CalculateNextToDate is called.
+        // [THEN] The next period start date is not included in the current period.
+        CheckNextToDateWithEndDate("Period Calculation"::"Align to End of Month", MonthlyPeriodLbl, 20260529D, 20260629D, 20260627D);
+
+        // [GIVEN] A Subscription Line starts on 29/05/2026,
+        // uses Align to End of Month and has a fixed 1W period.
+        // [WHEN] CalculateNextToDate is called with an end date equal to CalcDate(1W).
+        // [THEN] The fixed weekly period still ends one day before that date.
+        CheckNextToDateWithEndDate("Period Calculation"::"Align to End of Month", WeeklyPeriodLbl, 20260529D, 20260605D, 20260604D);
     end;
 
     #endregion Tests
@@ -1962,6 +1989,24 @@ codeunit 139688 "Recurring Billing Test"
         ExtendedTextLine.Text := CopyStr(LibraryRandom.RandText(50), 1, 50);
         ExtendedTextLine.Modify(true);
         ExtendedTextLine.Find();
+    end;
+
+    local procedure CheckNextToDateWithEndDate(PeriodCalculation: Enum "Period Calculation"; PeriodTxt: Text; StartDate: Date; SubscriptionLineEndDate: Date; ExpectedEndDate: Date)
+    var
+        PeriodFormula: DateFormula;
+        NoPeriodErr: Label 'Period must be entered when calculating Next To Date.', Locked = true;
+        NextDateErr: Label 'Next To Date is incorrect for period %1, Start Date %2 and Subscription Line End Date %3.', Locked = true;
+    begin
+        if PeriodTxt = '' then
+            Error(NoPeriodErr);
+
+        Evaluate(PeriodFormula, PeriodTxt);
+
+        ServiceCommitment."Period Calculation" := PeriodCalculation;
+        ServiceCommitment."Subscription Line Start Date" := StartDate;
+        ServiceCommitment."Subscription Line End Date" := SubscriptionLineEndDate;
+
+        Assert.AreEqual(ExpectedEndDate, ServiceCommitment.CalculateNextToDate(PeriodFormula, StartDate), StrSubstNo(NextDateErr, PeriodTxt, StartDate, SubscriptionLineEndDate));
     end;
 
     #endregion Procedures
