@@ -1,6 +1,7 @@
 namespace Microsoft.Sustainability.Ledger;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Navigate;
 
 page 6220 "Sustainability Ledger Entries"
 {
@@ -102,6 +103,18 @@ page 6220 "Sustainability Ledger Entries"
                 field("Custom Amount"; Rec."Custom Amount")
                 {
                     ToolTip = 'Specifies the custom amount of the entry.';
+                }
+                field("Collected from G/L Entries"; Rec."Collected from G/L Entries")
+                {
+                    ToolTip = 'Specifies whether the amount of the entry was collected from general ledger entries. Use the Collected G/L Entries action to see which entries were consumed.';
+                }
+                field("Collect From Date"; Rec."Collect From Date")
+                {
+                    ToolTip = 'Specifies the start of the period that the general ledger entries were collected for.';
+                }
+                field("Collect To Date"; Rec."Collect To Date")
+                {
+                    ToolTip = 'Specifies the end of the period that the general ledger entries were collected for.';
                 }
                 field("Emission Factor CO2"; Rec."Emission Factor CO2")
                 {
@@ -270,10 +283,34 @@ page 6220 "Sustainability Ledger Entries"
                         Rec.SetFilter("Dimension Set ID", DimensionSetIDFilter.LookupFilter());
                     end;
                 }
+                action(CollectedGLEntries)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Collected G/L Entries';
+                    Image = GLRegisters;
+                    RunObject = page "Sust. G/L - Sust. Ledger Rel.";
+                    RunPageLink = "Sust. Ledger Entry No." = field("Entry No.");
+                    Scope = Repeater;
+                    ToolTip = 'View the general ledger entries that were collected into the selected sustainability entry.';
+                }
             }
         }
         area(processing)
         {
+            action("Navigate")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Find entries...';
+                Image = Navigate;
+                ShortCutKey = 'Ctrl+Alt+Q';
+                ToolTip = 'Find entries and documents that exist for the document number and posting date on the selected document. (Formerly this action was named Navigate.)';
+
+                trigger OnAction()
+                begin
+                    NavigatePage.SetDoc(Rec."Posting Date", Rec."Document No.");
+                    NavigatePage.Run();
+                end;
+            }
             action(ReverseTransaction)
             {
                 ApplicationArea = Basic, Suite;
@@ -301,22 +338,25 @@ page 6220 "Sustainability Ledger Entries"
         }
         area(Promoted)
         {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+                actionref("Navigate_Promoted"; "Navigate") { }
+                actionref(ReverseTransaction_Promoted; ReverseTransaction) { }
+            }
             group(Category_Category4)
             {
                 Caption = 'Entry';
                 actionref(Dimensions_Promoted; Dimensions) { }
                 actionref(SetDimensionFilter_Promoted; SetDimensionFilter) { }
-            }
-            group(Category_Process)
-            {
-                Caption = 'Process';
-                actionref(ReverseTransaction_Promoted; ReverseTransaction) { }
+                actionref(CollectedGLEntries_Promoted; CollectedGLEntries) { }
             }
         }
     }
 
     var
         DimensionSetIDFilter: Page "Dimension Set ID Filter";
+        NavigatePage: Page Navigate;
         Dim1Visible, Dim2Visible, Dim3Visible, Dim4Visible, Dim5Visible, Dim6Visible, Dim7Visible, Dim8Visible : Boolean;
         DimensionCaptionLbl: Label '%1 %2', Locked = true;
         ReversalSuccessMsg: Label 'The entry has been successfully reversed.';

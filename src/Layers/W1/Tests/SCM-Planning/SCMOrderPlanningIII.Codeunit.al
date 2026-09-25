@@ -32,6 +32,7 @@ codeunit 137088 "SCM Order Planning - III"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         VerifyOnGlobal: Option RequisitionLine,Orders;
         DemandTypeGlobal: Option Sales,Production;
         GlobalChildItemNo: Code[20];
@@ -1569,6 +1570,49 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [Test]
+    procedure CreatePurchaseOrderFromDropShipmentSalesOrderWithLotTracking()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        Purchasing: Record Purchasing;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        LotNo: Code[50];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 647806] Create a purchase order from a drop shipment sales order with lot tracking.
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        Quantity := LibraryRandom.RandInt(10);
+
+        // [GIVEN] A lot-tracked item with a vendor and a drop shipment sales order line with item tracking.
+        LibraryItemTracking.CreateLotItem(Item);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
+        CreateSalesOrderWithPurchasingCode(SalesHeader, SalesLine, Item."No.", Purchasing.Code);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Validate(Quantity, Quantity);
+        SalesLine.Modify(true);
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo, Quantity);
+
+        // [WHEN] Create a purchase order from the sales order.
+        CreatePurchaseOrderFromSalesOrder(SalesHeader."No.", true);
+
+        // [THEN] The purchase order is created with the lot tracking from the sales line.
+        FindPurchaseDocumentByItemNo(PurchaseHeader, PurchaseLine, Item."No.");
+        ReservationEntry.SetSourceFilter(
+            Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", PurchaseLine."Line No.", true);
+        ReservationEntry.SetSourceFilter('', 0);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        Assert.RecordIsNotEmpty(ReservationEntry);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure CreatingPlanningComponentsForOrderPlanningLine()
     var
@@ -2206,7 +2250,7 @@ codeunit 137088 "SCM Order Planning - III"
         ItemVendor.Validate("Lead Time Calculation", LeadTimeFormula);
         ItemVendor.Modify(true);
 
-        CreateSalesOrder(SalesHeader, Item."No.", '', Qty, Qty);
+        CreateSalesOrderWithShipmentDate(SalesHeader, Item."No.", '', Qty, Qty, CalcDate('<1M>', WorkDate()));
         FindSalesLine(SalesLine, SalesHeader, Item."No.");
 
         LibraryVariableStorage.Enqueue(Vendor."No.");
@@ -2249,7 +2293,7 @@ codeunit 137088 "SCM Order Planning - III"
         ItemVendor.Validate("Lead Time Calculation", LeadTimeFormula);
         ItemVendor.Modify(true);
 
-        CreateSalesOrder(SalesHeader, Item."No.", '', Qty, Qty);
+        CreateSalesOrderWithShipmentDate(SalesHeader, Item."No.", '', Qty, Qty, CalcDate('<1M>', WorkDate()));
         FindSalesLine(SalesLine, SalesHeader, Item."No.");
 
         LibraryVariableStorage.Enqueue(Vendor."No.");
@@ -4099,6 +4143,15 @@ codeunit 137088 "SCM Order Planning - III"
           SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', ItemNo, LibraryRandom.RandInt(100), '', WorkDate());
         SalesLine.Validate("Purchasing Code", PurchasingCode);
         SalesLine.Modify(true);
+    end;
+
+    local procedure CreateSalesOrderWithShipmentDate(var SalesHeader: Record "Sales Header"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; QtyToShip: Decimal; ShipmentDate: Date)
+    begin
+        Clear(SalesHeader);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        SalesHeader.Validate("Location Code", LocationCode);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, ItemNo, LocationCode, ShipmentDate, Quantity, QtyToShip);
     end;
 
     local procedure CreateLocation(var Location: Record Location)

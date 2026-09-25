@@ -1,3 +1,4 @@
+#if not CLEAN29
 ﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -17,6 +18,9 @@ page 433 "Reminder Text"
     PageType = List;
     SaveValues = true;
     SourceTable = "Reminder Text";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Use page 835 "Reminder Level Communication" instead.';
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -73,4 +77,4 @@ page 433 "Reminder Text"
     var
         PageCaptionVariable: Text[250];
 }
-
+#endif

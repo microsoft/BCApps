@@ -22,4 +22,8 @@ enum 6924 "Expense Activity Actor Role"
     {
         Caption = 'Approver';
     }
+    value(3; Administrator)
+    {
+        Caption = 'Administrator';
+    }
 }

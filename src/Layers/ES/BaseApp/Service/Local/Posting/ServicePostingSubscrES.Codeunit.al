@@ -64,11 +64,13 @@ codeunit 10789 "Service Posting Subscr. ES"
         ValidatePaymentTermsOnPost(ServiceHeader);
     end;
 
+#pragma warning disable AS0022 // Accepted: pre-existing CLEAN29-gated scope reduction; the method becomes local when CLEAN29 is defined
 #if not CLEAN29
     procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
 #else
     local procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
 #endif
+#pragma warning restore AS0022
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";

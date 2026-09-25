@@ -178,12 +178,14 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetInventoryPlanningSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetICTransactionSourceTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetFinancialReportDefaultsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetShowCurrencySymbolPositionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetInitializeABCAnalysisSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchRcptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetSalesShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetServiceShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPurchLineReceiptOnInvoiceUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
@@ -1261,6 +1263,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('GIT-1494-FinancialReportDefaultsUpgradeTag-20250801');
     end;
 
+    internal procedure GetShowCurrencySymbolPositionUpgradeTag(): Code[250]
+    begin
+        exit('MS-578641-SetShowCurrencySymbolUpgradeTag-20251014');
+    end;
+
     internal procedure GetCreateExpenseAgentAADApplicationsTag(): Code[250]
     begin
         exit('MS-580734-CreateExpenseAgentAADApplication-20260115');
@@ -1294,6 +1301,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetDepreciationBooksGLIntegrationUpgradeTag(): Code[250]
     begin
         exit('MS-626097-DepreciationBooksGLIntegrationUpgradeTag-20260319');
+    end;
+
+    internal procedure GetPurchLineReceiptOnInvoiceUpgradeTag(): Code[250]
+    begin
+        exit('MS-625392-PurchLineReceiptOnInvoiceUpgradeTag-20260703');
     end;
 
     internal procedure GetRemittanceAdviceReportSelectionUpgradeTag(): Code[250]

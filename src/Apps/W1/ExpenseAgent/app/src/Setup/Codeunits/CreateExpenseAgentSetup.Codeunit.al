@@ -222,9 +222,9 @@ codeunit 6970 "Create Expense Agent Setup"
         CardTok: Label 'Card', Locked = true;
         CashTok: Label 'Cash', Locked = true;
         BankTok: Label 'Bank', Locked = true;
-        XCARDTxt: Label 'Card';
-        XCASHTxt: Label 'Cash';
-        XBANKTxt: Label 'Bank';
+        XCARDTxt: Label 'Company credit card', MaxLength = 100;
+        XCASHTxt: Label 'Cash paid by employee', MaxLength = 100;
+        XBANKTxt: Label 'Company paid by bank transfer', MaxLength = 100;
         MilesTxt: Label 'Miles';
         MilesCodeTxt: Label 'MILES';
 }

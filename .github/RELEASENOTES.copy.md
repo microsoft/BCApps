@@ -2,6 +2,25 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### New `unpublishOldVersions` setting for deployment
+
+The `DeployTo<environment>` setting now supports an opt-in `unpublishOldVersions` boolean (default `false`). When enabled, AL-Go unpublishes old, uninstalled versions of the deployed apps from the environment after a successful deployment, keeping Extension Management clean. This only applies to PTE deployments (Scope PTE / automation API), uses the Automation API v2.0 `Microsoft.NAV.unpublish` action, and is non-fatal (failures are reported as warnings and never fail the deployment).
+
+### Expanded AL-Go telemetry dashboard
+
+The starter Azure Data Explorer dashboard now includes dedicated views for workflow reliability, run exploration, test quality, workflow duration, runner efficiency, and AL-Go maintenance. It also provides repository, workflow, branch, and repository-type filtering, clearer empty states, and repository-level runtime supportability information.
+
+### Create Release checks AL-Go system file updates separately
+
+The `Create Release` workflow now checks for available AL-Go system file updates in a separate job that runs in parallel with and independently of release creation. This allows the release to be created without waiting for the update check and can reduce the overall workflow duration.
+
+### Local development environments use cacheImageName
+
+localDevEnv now passes the configured cacheImageName to Run-AlPipeline, allowing BcContainerHelper to reuse artifact-specific images.
+To retain the previous behavior, set `cacheImageName` to an empty string in .AL-Go/localDevEnv.settings.json.
+
+## v9.2
+
 ### New `doNotPerformUpgrade` setting
 
 AL-Go now supports a new `doNotPerformUpgrade` setting that is passed through to `Run-AlPipeline`. Use it to skip the upgrade phase while still running the rest of the pipeline.
@@ -33,6 +52,10 @@ As part of this, the warning comparison now also parses the raw AL compiler outp
 ### Valid SARIF URIs for file paths containing spaces
 
 `ProcessALCodeAnalysisLogs` now URI-encodes each segment of the artifact location path when writing SARIF (for example `1.Setup Data/Foo.al` becomes `1.Setup%20Data/Foo.al`). Paths that contain spaces or other characters that are not valid in a URI previously caused `github/codeql-action/upload-sarif` to log "is not a valid URI" warnings and could prevent AL code scanning alerts from mapping to the correct files. The `/` path separators are preserved so the path structure is unchanged.
+
+### AL alerts for the workspace compilation build
+
+The `trackALAlertsInGitHub` setting now also works when `workspaceCompilation` (preview) is enabled. When both are turned on, AL-Go passes `--errorlogdirectory` to `altool workspace compile` so each project emits an `*.errorLog.json` diagnostics file into `.buildartifacts/ErrorLogs/`, which is processed into SARIF and surfaced as code scanning alerts — matching the classic Run-AlPipeline behavior. If the consumed compiler version does not yet support `--errorlogdirectory`, the option is skipped and a warning is logged (the rest of the build is unaffected).
 
 ## v9.1
 

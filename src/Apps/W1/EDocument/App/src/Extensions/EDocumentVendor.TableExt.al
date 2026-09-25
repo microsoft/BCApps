@@ -9,5 +9,16 @@ tableextension 6165 "E-Document Vendor" extends Vendor
             InitValue = "Purchase Order";
             ValuesAllowed = "Purchase Order", "Purchase Invoice";
         }
+        field(6102; "Use Reg. No. in E-Document"; Boolean)
+        {
+            Caption = 'Use Registration No. in Electronic Document';
+            DataClassification = CustomerContent;
+        }
+    }
+    keys
+    {
+        key(EDocRegistrationNumber; "Registration Number")
+        {
+        }
     }
 }

@@ -192,13 +192,24 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Creates a new API tool for the specified configuration and codeunit.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="CodeunitId">The ID of the codeunit.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateCodeunitAPITool(ConfigId: Guid; CodeunitId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPICodeunitTool(ConfigId, CodeunitId));
+    end;
+
+    /// <summary>
     /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="ObjectId">The ID of the API page or query.</param>
-    /// <param name="ObjectType">The object type (Page or Query).</param>
+    /// <param name="ObjectType">The object type (Page, Query or Codeunit).</param>
     /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
-    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query): Guid
+    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query,Codeunit): Guid
     begin
         exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
     end;
@@ -269,14 +280,28 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Sets the actions permission for the specified tool. For API pages this controls bound actions;
+    /// for codeunit tools this controls whether the codeunit action can be invoked.
+    /// </summary>
+    /// <param name="ToolSystemId">The SystemId (GUID) of the tool.</param>
+    /// <param name="Allow">True to allow actions, false to disallow.</param>
+    procedure AllowActions(ToolSystemId: Guid; Allow: Boolean)
+    begin
+        MCPConfigImplementation.AllowActions(ToolSystemId, Allow);
+    end;
+
+#if not CLEAN29
+    /// <summary>
     /// Sets the bound actions permission for the specified tool.
     /// </summary>
     /// <param name="ToolSystemId">The SystemId (GUID) of the tool.</param>
     /// <param name="Allow">True to allow bound actions, false to disallow.</param>
+    [Obsolete('Renamed to AllowActions.', '29.0')]
     procedure AllowBoundActions(ToolSystemId: Guid; Allow: Boolean)
     begin
-        MCPConfigImplementation.AllowBoundActions(ToolSystemId, Allow);
+        MCPConfigImplementation.AllowActions(ToolSystemId, Allow);
     end;
+#endif
 
     /// <summary>
     /// Creates a new MCP Entra Application with the specified name, description, and client ID.

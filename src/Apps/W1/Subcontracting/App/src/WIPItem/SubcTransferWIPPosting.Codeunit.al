@@ -103,6 +103,19 @@ codeunit 20541 "Subc. Transfer WIP Posting"
             IsHandled := true;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", OnBeforePostItemJnlLine, '', false, false)]
+    local procedure HandleWipTransferOnBeforePostItemJnlLine(var TransferReceiptHeader: Record "Transfer Receipt Header"; var IsHandled: Boolean; TransferReceiptLine: Record "Transfer Receipt Line")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if TransferReceiptLine."Transfer WIP Item" then
+            IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", OnBeforeCheckEmptyQuantity, '', false, false)]
     local procedure HandleWipTransferOnBeforeCheckEmptyQuantity(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     var
@@ -122,6 +135,22 @@ codeunit 20541 "Subc. Transfer WIP Posting"
         if not TransferLine."Transfer WIP Item" then
             exit;
         IsHandled := true;
+    end;
+
+    ///Sets the transfer line number on direct-transfer WIP journal lines for empty-quantity validation.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnPostItemJnlLineBeforeItemJnlPostLineRunWithCheck, '', false, false)]
+    local procedure HandleWipTransferOnPostItemJnlLineBeforeItemJnlPostLineRunWithCheck(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line"; DirectTransHeader: Record "Direct Trans. Header"; DirectTransLine: Record "Direct Trans. Line"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if not TransferLine."Transfer WIP Item" then
+            exit;
+
+        ItemJournalLine."Order Line No." := TransferLine."Line No.";
     end;
 
 
