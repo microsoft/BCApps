@@ -12,7 +12,7 @@ page 7232 "MDM Connection Details"
     PageType = NavigatePage;
     ApplicationArea = Suite;
     UsageCategory = None;
-    Permissions = tabledata "Master Data Management Setup" = imd;
+    Permissions = tabledata "Master Data Management Setup" = rimd;
 
     layout
     {

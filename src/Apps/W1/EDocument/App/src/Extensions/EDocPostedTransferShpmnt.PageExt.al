@@ -5,9 +5,28 @@
 namespace Microsoft.Inventory.Transfer;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6106 "E-Doc. Posted Transfer Shpmnt." extends "Posted Transfer Shipment"
 {
+    layout
+    {
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
+            }
+        }
+    }
     actions
     {
         addafter("&Shipment")
@@ -62,8 +81,9 @@ pageextension 6106 "E-Doc. Posted Transfer Shpmnt." extends "Posted Transfer Shi
     var
         EDocument: Record "E-Document";
     begin
-        EDocument.SetRange("Document Record ID", Rec.RecordId());
-        EDocumentExists := not EDocument.IsEmpty();
+        EDocumentExists := EDocument.HasEDocument(Rec.RecordId());
+        CurrPage.EDocMessages.Page.SetSourceRecordId(Rec.RecordId());
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
     end;
 
 }

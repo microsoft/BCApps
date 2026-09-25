@@ -1623,7 +1623,6 @@ codeunit 18466 "Subcontracting Post"
         end else begin
             ItemLedgerEntry.Reset();
             ItemLedgerEntry.SetCurrentKey("Entry Type", "Location Code", "External Document No.", "Item No.");
-            ItemLedgerEntry.SetRange("Entry No.", AppDelChallan."Applies-to Entry");
             ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
             ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
             ItemLedgerEntry.SetRange("External Document No.", AppDelChallan."Applied Delivery Challan No.");
@@ -1632,20 +1631,6 @@ codeunit 18466 "Subcontracting Post"
             ItemLedgerEntry.SetRange(Open, true);
             ItemLedgerEntry.SetRange(Positive, true);
             ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
-
-            // Fallback to re-resolve from the selected challan line when stored entry becomes stale.
-            if not ItemLedgerEntry.FindFirst() then begin
-                ItemLedgerEntry.Reset();
-                ItemLedgerEntry.SetCurrentKey("Entry Type", "Location Code", "External Document No.", "Item No.");
-                ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
-                ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
-                ItemLedgerEntry.SetRange("External Document No.", AppDelChallan."Applied Delivery Challan No.");
-                ItemLedgerEntry.SetRange("Item No.", AppDelChallan."Item No.");
-                ItemLedgerEntry.SetRange("Variant Code", VariantCode);
-                ItemLedgerEntry.SetRange(Open, true);
-                ItemLedgerEntry.SetRange(Positive, true);
-                ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
-            end;
         end;
     end;
 
@@ -2596,8 +2581,10 @@ codeunit 18466 "Subcontracting Post"
         if ItemJnlLine."Entry Type" <> ItemJnlLine."Entry Type"::Output then
             exit;
 
-        if (PurchLine."Prod. Order No." <> '') and (PurchLine."Subcon. Receiving") then
+        if (PurchLine."Prod. Order No." <> '') and (PurchLine."Subcon. Receiving") then begin
             ItemJnlLine."Posting Date" := PurchLine."Posting Date";
+            ItemJnlLine."Subcon Order No." := PurchLine."Document No.";
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateQtyToInvoice', '', false, false)]
