@@ -235,9 +235,12 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         IntegrationTableMapping: Record "Integration Table Mapping";
         IntegrationFieldMapping: Record "Integration Field Mapping";
         MasterDataManagement: Codeunit "Master Data Management";
+        InlineMedia: Codeunit "MDM Inline Media";
         TypeHelper: Codeunit "Type Helper";
+        SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
         OriginalDestinationFieldValue, DestinationFieldValue : Variant;
+        SourceSystemId: Guid;
         EmptyGuid: Guid;
         SourceValue: Text;
         DestinationRecCreatedAt: DateTime;
@@ -257,6 +260,20 @@ codeunit 7237 "Master Data Mgt. Subscribers"
 
         if SourceFieldRef.Record().Number() <> DestinationFieldRef.Record().Number() then
             exit;
+
+        // Cross-env over-cap Blob: the source skipped the bytes, so the empty temp value would clear the destination.
+        // Blobs travel in-band on the temp record (unlike the out-of-band media cache), so keep the destination blob.
+        if (SourceFieldRef.Type = SourceFieldRef.Type::Blob) and IsCrossEnvironmentSync() then begin
+            SourceRecordRef := SourceFieldRef.Record();
+            SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+            if InlineMedia.IsBlobSkipped(SourceSystemId, SourceFieldRef.Number()) then begin
+                DestinationFieldRef.CalcField(); // load the current destination blob so it survives the transfer unchanged
+                NewValue := DestinationFieldRef.Value();
+                IsValueFound := true;
+                NeedsConversion := false;
+                exit;
+            end;
+        end;
 
         OriginalDestinationFieldValue := DestinationFieldRef.Value();
         if DestinationFieldRef.Name() = 'Primary Contact No.' then begin
