@@ -379,6 +379,12 @@ jobs:
           project: ${{ inputs.project }}
           testType: "pageScripting"
 
+      - name: Remove API test credential
+        if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.BCAppsApiTestPasswordPath != ''
+        timeout-minutes: 2
+        run: |
+          & (Join-Path $env:GITHUB_WORKSPACE 'build/scripts/Remove-ApiTestPassword.ps1') -ContainerName $env:containerName -FilePath $env:BCAppsApiTestPasswordPath
+
       - name: Cleanup
         if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True'
         uses: microsoft/AL-Go/Actions/PipelineCleanup@91b96c2b294be6f823277dafe6f03350abfb9d23
