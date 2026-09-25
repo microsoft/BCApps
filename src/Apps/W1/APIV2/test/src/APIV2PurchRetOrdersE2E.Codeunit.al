@@ -24,6 +24,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a purchase return order and use GET to retrieve it
         // [GIVEN] A purchase return order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", '');
@@ -44,6 +46,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a purchase return order and GET it by SystemId
         // [GIVEN] A purchase return order
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", '');
@@ -66,6 +70,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a purchase return order with $expand=dimensionSetLines
         // [GIVEN] A purchase return order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Return Order");
@@ -92,6 +98,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         TargetURL: Text;
         AttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a purchase return order with $expand=attachments
         // [GIVEN] A purchase return order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Return Order");
@@ -118,6 +126,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         TargetURL: Text;
         DocumentAttachmentsValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a purchase return order with $expand=documentAttachments
         // [GIVEN] A purchase return order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Return Order");
@@ -144,6 +154,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         TargetURL: Text;
         PdfDocumentValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a purchase return order with $expand=pdfDocument
         // [GIVEN] A purchase return order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Return Order");
@@ -170,6 +182,8 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         TargetURL: Text;
         LinesValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] GET a purchase return order with $expand=purchaseReturnOrderLines
         // [GIVEN] A purchase return order
         PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::"Return Order");
@@ -193,5 +207,11 @@ codeunit 139923 "APIV2 - Purch. Ret. Orders E2E"
         if StrPos(TargetURL, '?') <> 0 then
             exit(TargetURL + '&$expand=' + ExpandValue);
         exit(TargetURL + '?$expand=' + ExpandValue);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }
