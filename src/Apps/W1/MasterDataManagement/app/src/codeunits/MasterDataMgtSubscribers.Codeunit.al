@@ -666,6 +666,58 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         ApplyTransformations(SourceRecordRef, DestinationRecordRef);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnAfterTransferRecordFields', '', false, false)]
+    local procedure OnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef; var AdditionalFieldsWereModified: Boolean)
+    begin
+        HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+    end;
+
+    // The field transfer keeps a skipped (over-cap) cross-env Blob unchanged via the text round-trip, which is
+    // byte-exact only for UTF-8. Re-read the original bytes from the database and restore them (binary streams) so
+    // non-UTF-8/binary destination blobs survive exactly. Runs before the single tracked Modify persists the record.
+    internal procedure HandleOnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+        TempBlob: Codeunit "Temp Blob";
+        OriginalRecordRef: RecordRef;
+        OriginalFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        SourceSystemId: Guid;
+        FieldIndex: Integer;
+        HasSkippedBlob: Boolean;
+    begin
+        if not IsCrossEnvironmentSync() then
+            exit;
+        if SourceRecordRef.Number() = 0 then
+            exit;
+        SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+        for FieldIndex := 1 to DestinationRecordRef.FieldCount() do begin
+            DestinationFieldRef := DestinationRecordRef.FieldIndex(FieldIndex);
+            if (DestinationFieldRef.Type = DestinationFieldRef.Type::Blob) and InlineMedia.IsBlobSkipped(SourceSystemId, DestinationFieldRef.Number()) then
+                HasSkippedBlob := true;
+        end;
+        if not HasSkippedBlob then
+            exit;
+
+        // The single tracked Modify has not run yet, so the database still holds the original destination blob bytes.
+        OriginalRecordRef.Open(DestinationRecordRef.Number());
+        if not OriginalRecordRef.Get(DestinationRecordRef.RecordId()) then begin
+            OriginalRecordRef.Close(); // new destination record: no prior blob to preserve
+            exit;
+        end;
+        for FieldIndex := 1 to DestinationRecordRef.FieldCount() do begin
+            DestinationFieldRef := DestinationRecordRef.FieldIndex(FieldIndex);
+            if (DestinationFieldRef.Type = DestinationFieldRef.Type::Blob) and InlineMedia.IsBlobSkipped(SourceSystemId, DestinationFieldRef.Number()) then begin
+                OriginalFieldRef := OriginalRecordRef.Field(DestinationFieldRef.Number());
+                OriginalFieldRef.CalcField();
+                Clear(TempBlob);
+                TempBlob.FromFieldRef(OriginalFieldRef);
+                TempBlob.ToFieldRef(DestinationFieldRef);
+            end;
+        end;
+        OriginalRecordRef.Close();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnBeforeDetermineConfigTemplateCode', '', false, false)]
     local procedure OnBeforeDetermineConfigTemplateCode(IntegrationTableMapping: Record "Integration Table Mapping"; var TemplateCode: Code[10]; var Handled: Boolean)
     begin
