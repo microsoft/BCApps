@@ -300,7 +300,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mock API Test Auth Provider", OnAuthenticationConfigured, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mock API Test Auth Provider", OnAfterConfigureAuthentication, '', false, false)]
     local procedure RecordProviderInvocation(InvocationNumber: Integer)
     begin
         LibraryVariableStorage.Enqueue(StrSubstNo(ProviderCallTok, InvocationNumber));
