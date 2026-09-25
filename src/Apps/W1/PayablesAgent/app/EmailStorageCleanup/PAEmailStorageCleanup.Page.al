@@ -7,7 +7,7 @@ namespace Microsoft.Agent.PayablesAgent;
 
 /// <summary>
 /// Admin entry point for the Email Inbox duplicate cleanup mitigation.
-// </summary>
+/// </summary>
 page 3325 "PA Email Storage Cleanup"
 {
     PageType = Card;
