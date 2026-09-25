@@ -598,7 +598,7 @@ codeunit 134228 "ERM Close Income Statement"
 
         // [GIVEN] A closed fiscal year, AED LCY, no reporting currency or selected dimensions, and blank business units
         // The customer's currency setup and Business Unit setting are unknown; these are reproduction assumptions.
-        PrepareThirdClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate);
+        PrepareIncomeStatementClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate, 'AED');
         CreateIncomeStatementAccount(FirstClosedAccount);
         CreateIncomeStatementAccount(SecondClosedAccount);
         CreateIncomeStatementAccount(AuditAdjustmentAccount);
@@ -662,6 +662,89 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler')]
+    procedure CloseMixedCurrenciesWithBalanceWithoutDimensions()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        IncomeStatementAccounts: array[2] of Record "G/L Account";
+        RetainedEarningsAccountNo: Code[20];
+        ClosingDocumentNo: Code[20];
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Balance closing without dimensions sums mixed LCY and USD entries once per account.
+        Initialize();
+
+        // [GIVEN] Accounts "A1" and "A2" have the reported LCY/USD totals, two global dimensions and no reporting currency
+        PrepareMixedCurrencyClosingScenario(
+            GenJournalLine, IncomeStatementAccounts, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
+        ClosingDocumentNo := LibraryUtility.GenerateGUID();
+        Commit();
+
+        // [WHEN] Close by business unit with Balance selected and no dimensions selected
+        CreateFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, ClosingDocumentNo,
+            StrSubstNo('%1|%2', IncomeStatementAccounts[1]."No.", IncomeStatementAccounts[2]."No."),
+            PostToRetainedEarningsAcc::Balance, false);
+
+        // [THEN] Both closing amounts offset their original balances and retained earnings balances the journal
+        VerifyMixedCurrencyClosingJournal(
+            GenJournalLine, IncomeStatementAccounts, RetainedEarningsAccountNo, FiscalYearEndDate, 0);
+
+        // [WHEN] Post the generated closing journal
+        GenJournalLine.FindFirst();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Both income statement accounts are closed
+        VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[1]."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[2]."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler,CloseIncomeStatementRequestPageHandler,BothGlobalDimensionsModalPageHandler')]
+    procedure CloseMixedCurrenciesWithBalanceGlobalDimensions()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        IncomeStatementAccounts: array[2] of Record "G/L Account";
+        RetainedEarningsAccountNo: Code[20];
+        ClosingDocumentNo: Code[20];
+        FiscalYearStartDate: Date;
+        FiscalYearEndDate: Date;
+        DimensionSetID: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Balance closing by both global dimensions sums mixed LCY and USD entries once per account.
+        Initialize();
+
+        // [GIVEN] Accounts "A1" and "A2" have the reported LCY/USD totals, two global dimensions and no reporting currency
+        DimensionSetID := PrepareMixedCurrencyClosingScenario(
+            GenJournalLine, IncomeStatementAccounts, FiscalYearStartDate, FiscalYearEndDate, RetainedEarningsAccountNo);
+        ClosingDocumentNo := LibraryUtility.GenerateGUID();
+        Commit();
+
+        // [WHEN] Close by business unit with Balance and both global dimensions selected
+        CreateFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, ClosingDocumentNo,
+            StrSubstNo('%1|%2', IncomeStatementAccounts[1]."No.", IncomeStatementAccounts[2]."No."),
+            PostToRetainedEarningsAcc::Balance, true);
+
+        // [THEN] Both closing amounts offset their original balances and preserve the selected dimensions
+        VerifyMixedCurrencyClosingJournal(
+            GenJournalLine, IncomeStatementAccounts, RetainedEarningsAccountNo, FiscalYearEndDate, DimensionSetID);
+
+        // [WHEN] Post the generated closing journal
+        GenJournalLine.FindFirst();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Both income statement accounts are closed
+        VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[1]."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[2]."No.", FiscalYearStartDate, FiscalYearEndDate, 0);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -684,7 +767,7 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Close Income Statement");
     end;
 
-    local procedure PrepareThirdClosingScenario(var GenJournalLine: Record "Gen. Journal Line"; var SourceCurrencyCode: Code[10]; var FiscalYearStartDate: Date; var FiscalYearEndDate: Date)
+    local procedure PrepareIncomeStatementClosingScenario(var GenJournalLine: Record "Gen. Journal Line"; var SourceCurrencyCode: Code[10]; var FiscalYearStartDate: Date; var FiscalYearEndDate: Date; LocalCurrencyCode: Code[10])
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         GenJournalTemplate: Record "Gen. Journal Template";
@@ -693,7 +776,7 @@ codeunit 134228 "ERM Close Income Statement"
         Currency: Record Currency;
     begin
         GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."LCY Code" := 'AED';
+        GeneralLedgerSetup."LCY Code" := LocalCurrencyCode;
         GeneralLedgerSetup."Additional Reporting Currency" := '';
         GeneralLedgerSetup.Modify(true);
 
@@ -721,6 +804,37 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine."Journal Batch Name" := GenJournalBatch.Name;
     end;
 
+    local procedure PrepareMixedCurrencyClosingScenario(var GenJournalLine: Record "Gen. Journal Line"; var IncomeStatementAccounts: array[2] of Record "G/L Account"; var FiscalYearStartDate: Date; var FiscalYearEndDate: Date; var RetainedEarningsAccountNo: Code[20]) DimensionSetID: Integer
+    var
+        TempDimensionSetEntry: Record "Dimension Set Entry" temporary;
+        DimensionManagement: Codeunit DimensionManagement;
+        SourceCurrencyCode: Code[10];
+        BalancingAccountNo: Code[20];
+    begin
+        PrepareIncomeStatementClosingScenario(GenJournalLine, SourceCurrencyCode, FiscalYearStartDate, FiscalYearEndDate, 'AUD');
+        CreateIncomeStatementAccount(IncomeStatementAccounts[1]);
+        CreateIncomeStatementAccount(IncomeStatementAccounts[2]);
+        BalancingAccountNo := CreateBalanceGLAccountNo();
+        RetainedEarningsAccountNo := CreateBalanceGLAccountNo();
+        CreateDimensionSet(TempDimensionSetEntry);
+        CreateAndAddDimValueToDimSetEntry(TempDimensionSetEntry, LibraryERM.GetGlobalDimensionCode(2));
+        DimensionSetID := DimensionManagement.GetDimensionSetID(TempDimensionSetEntry);
+
+        // Preserve the reported currency-group totals; reconstruct entry splits and dates to interleave the groups.
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[1]."No.", BalancingAccountNo, FiscalYearStartDate + 10, 140000, '', DimensionSetID);
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[1]."No.", BalancingAccountNo, FiscalYearStartDate + 40, 18409.47, SourceCurrencyCode, DimensionSetID);
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[1]."No.", BalancingAccountNo, FiscalYearStartDate + 70, 143909.20, '', DimensionSetID);
+
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[2]."No.", BalancingAccountNo, FiscalYearStartDate + 10, 40000, SourceCurrencyCode, DimensionSetID);
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[2]."No.", BalancingAccountNo, FiscalYearStartDate + 40, 20000, '', DimensionSetID);
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[2]."No.", BalancingAccountNo, FiscalYearStartDate + 70, 42801.82, SourceCurrencyCode, DimensionSetID);
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[2]."No.", BalancingAccountNo, FiscalYearStartDate + 100, 20000, '', DimensionSetID);
+        PostIncomeStatementEntry(GenJournalLine, IncomeStatementAccounts[2]."No.", BalancingAccountNo, FiscalYearStartDate + 130, 11439.69, '', DimensionSetID);
+
+        VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[1]."No.", FiscalYearStartDate, FiscalYearEndDate, 302318.67);
+        VerifyIncomeStatementAccountBalance(IncomeStatementAccounts[2]."No.", FiscalYearStartDate, FiscalYearEndDate, 134241.51);
+    end;
+
     local procedure CreateIncomeStatementAccount(var GLAccount: Record "G/L Account")
     begin
         LibraryERM.CreateGLAccount(GLAccount);
@@ -737,6 +851,11 @@ codeunit 134228 "ERM Close Income Statement"
 
     local procedure PostIncomeStatementEntry(var GenJournalLine: Record "Gen. Journal Line"; AccountNo: Code[20]; BalancingAccountNo: Code[20]; PostingDate: Date; Amount: Decimal; SourceCurrencyCode: Code[10])
     begin
+        PostIncomeStatementEntry(GenJournalLine, AccountNo, BalancingAccountNo, PostingDate, Amount, SourceCurrencyCode, 0);
+    end;
+
+    local procedure PostIncomeStatementEntry(var GenJournalLine: Record "Gen. Journal Line"; AccountNo: Code[20]; BalancingAccountNo: Code[20]; PostingDate: Date; Amount: Decimal; SourceCurrencyCode: Code[10]; DimensionSetID: Integer)
+    begin
         LibraryERM.CreateGeneralJnlLineWithBalAcc(
             GenJournalLine, GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",
             GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", AccountNo,
@@ -745,12 +864,22 @@ codeunit 134228 "ERM Close Income Statement"
         GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
         GenJournalLine.Validate("Source Currency Code", SourceCurrencyCode);
         if SourceCurrencyCode <> '' then
-            GenJournalLine."Source Currency Amount" := Amount / 4;
+            GenJournalLine."Source Currency Amount" := Round(Amount / 4, 0.01);
+        GenJournalLine.Validate("Dimension Set ID", DimensionSetID);
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     local procedure RunFilteredIncomeStatementClosing(var GenJournalLine: Record "Gen. Journal Line"; FiscalYearEndDate: Date; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; IncomeAccountFilter: Text)
+    begin
+        CreateFilteredIncomeStatementClosing(
+            GenJournalLine, FiscalYearEndDate, RetainedEarningsAccountNo, DocumentNo, IncomeAccountFilter,
+            PostToRetainedEarningsAcc::Details, false);
+        GenJournalLine.FindFirst();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure CreateFilteredIncomeStatementClosing(var GenJournalLine: Record "Gen. Journal Line"; FiscalYearEndDate: Date; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; IncomeAccountFilter: Text; RetainedEarningsPosting: Option; UseDimensions: Boolean)
     var
         GLAccount: Record "G/L Account";
         CloseIncomeStatementReport: Report "Close Income Statement";
@@ -760,17 +889,56 @@ codeunit 134228 "ERM Close Income Statement"
         LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
         LibraryVariableStorage.Enqueue(DocumentNo);
         LibraryVariableStorage.Enqueue(RetainedEarningsAccountNo);
-        LibraryVariableStorage.Enqueue(PostToRetainedEarningsAcc::Details);
+        LibraryVariableStorage.Enqueue(RetainedEarningsPosting);
         LibraryVariableStorage.Enqueue(true);
-        LibraryVariableStorage.Enqueue(false);
+        LibraryVariableStorage.Enqueue(UseDimensions);
         GLAccount.SetFilter("No.", IncomeAccountFilter);
         CloseIncomeStatementReport.SetTableView(GLAccount);
         CloseIncomeStatementReport.Run();
 
         GenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
         GenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+    end;
+
+    local procedure VerifyMixedCurrencyClosingJournal(GenJournalLine: Record "Gen. Journal Line"; IncomeStatementAccounts: array[2] of Record "G/L Account"; RetainedEarningsAccountNo: Code[20]; FiscalYearEndDate: Date; ExpectedDimensionSetID: Integer)
+    var
+        ClosingAmounts: array[2] of Decimal;
+        ExpectedClosingAmounts: array[2] of Decimal;
+        AccountIndex: Integer;
+        ClosingAmountsErr: Label 'Mixed-currency closing totals: first account expected %1, actual %2; second account expected %3, actual %4.', Comment = '%1, %3 = expected amounts, %2, %4 = actual amounts';
+    begin
+        GenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        ExpectedClosingAmounts[1] := -302318.67;
+        ExpectedClosingAmounts[2] := -134241.51;
+        for AccountIndex := 1 to ArrayLen(IncomeStatementAccounts) do begin
+            GenJournalLine.SetRange("Account No.", IncomeStatementAccounts[AccountIndex]."No.");
+            GenJournalLine.CalcSums(Amount);
+            ClosingAmounts[AccountIndex] := GenJournalLine.Amount;
+        end;
+        for AccountIndex := 1 to ArrayLen(IncomeStatementAccounts) do
+            Assert.AreEqual(
+                ExpectedClosingAmounts[AccountIndex], ClosingAmounts[AccountIndex],
+                StrSubstNo(ClosingAmountsErr, ExpectedClosingAmounts[1], ClosingAmounts[1], ExpectedClosingAmounts[2], ClosingAmounts[2]));
+
+        GenJournalLine.SetRange("Account No.", RetainedEarningsAccountNo);
+        Assert.RecordCount(GenJournalLine, 1);
         GenJournalLine.FindFirst();
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        Assert.AreEqual(
+            -(ExpectedClosingAmounts[1] + ExpectedClosingAmounts[2]), GenJournalLine.Amount,
+            'Retained earnings must balance the two original account balances.');
+        GenJournalLine.SetRange("Account No.");
+        GenJournalLine.CalcSums(Amount);
+        Assert.AreEqual(0, GenJournalLine.Amount, 'The closing journal must balance.');
+        GenJournalLine.SetFilter("Bal. Account No.", '<>%1', '');
+        Assert.RecordIsEmpty(GenJournalLine);
+        GenJournalLine.SetRange("Bal. Account No.");
+        GenJournalLine.SetFilter("Account No.", '%1|%2', IncomeStatementAccounts[1]."No.", IncomeStatementAccounts[2]."No.");
+        GenJournalLine.FindSet();
+        repeat
+            Assert.AreEqual(ClosingDate(FiscalYearEndDate), GenJournalLine."Posting Date", 'The journal must use the fiscal-year closing date.');
+            Assert.AreEqual(ExpectedDimensionSetID, GenJournalLine."Dimension Set ID", 'The journal must retain only the selected dimensions.');
+        until GenJournalLine.Next() = 0;
     end;
 
     local procedure SeedLegacyClosingSourceMetadata(DocumentNo: Code[20]; SourceCurrencyCode: Code[10]; FiscalYearEndDate: Date)
@@ -1199,6 +1367,18 @@ codeunit 134228 "ERM Close Income Statement"
         // Select only two created dimensions
         DimensionSelectionMultiple.FILTER.SetFilter(Code, LibraryERM.GetGlobalDimensionCode(1));
         DimensionSelectionMultiple.First();
+        DimensionSelectionMultiple.Selected.SetValue(true);
+        DimensionSelectionMultiple.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure BothGlobalDimensionsModalPageHandler(var DimensionSelectionMultiple: TestPage "Dimension Selection-Multiple")
+    begin
+        DimensionSelectionMultiple.Filter.SetFilter(
+            Code, StrSubstNo('%1|%2', LibraryERM.GetGlobalDimensionCode(1), LibraryERM.GetGlobalDimensionCode(2)));
+        DimensionSelectionMultiple.First();
+        DimensionSelectionMultiple.Selected.SetValue(true);
+        DimensionSelectionMultiple.Next();
         DimensionSelectionMultiple.Selected.SetValue(true);
         DimensionSelectionMultiple.OK().Invoke();
     end;
