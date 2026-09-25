@@ -706,7 +706,7 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror Approver.Validate("Approval Limit (LCY)", 100);
 
         // [THEN] An error explains that the two settings are mutually exclusive.
-        Assert.ExpectedError('You cannot have both a Approval Limit and Unlimited Approval.');
+        Assert.ExpectedError('You cannot have both a Approval Limit (LCY) and Unlimited Approval.');
         Assert.ExpectedErrorCode('Dialog');
     end;
 
