@@ -9,6 +9,7 @@ using System;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Security.AccessControl;
+using System.Test.Library;
 
 /// <summary>
 /// Provides authentication for API tests running in Microsoft test environments.
