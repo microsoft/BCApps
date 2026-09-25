@@ -2,7 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 enum 8008 "Usage Based Billing Doc. Type"
 {
-    Extensible = false;
+    Extensible = true;
     value(0; None)
     {
         Caption = ' ', Locked = true;
