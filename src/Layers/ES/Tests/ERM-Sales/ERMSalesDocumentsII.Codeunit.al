@@ -4735,7 +4735,6 @@ codeunit 134386 "ERM Sales Documents II"
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
         DocumentNoVisibility.ClearState();
-
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"ERM Sales Documents II");
@@ -4967,7 +4966,6 @@ codeunit 134386 "ERM Sales Documents II"
           LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup[1]."VAT Bus. Posting Group"));
         SalesHeader.Validate("Prices Including VAT", PriceIncludingVAT);
         SalesHeader.Modify(true);
-
         for i := 1 to ArrayLen(VATPostingSetup) do begin
             LibrarySales.CreateSalesLine(
               SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
@@ -5218,7 +5216,6 @@ codeunit 134386 "ERM Sales Documents II"
         DimensionValue: Record "Dimension Value";
         DefaultDimension: Record "Default Dimension";
         Customer: Record Customer;
-        LibraryDimension: Codeunit "Library - Dimension";
     begin
         LibrarySales.CreateCustomer(Customer);
         LibraryDimension.FindDimension(Dimension);
@@ -6829,7 +6826,6 @@ codeunit 134386 "ERM Sales Documents II"
             LibraryVariableStorage.DequeueText(); // dummy dequeue
             Flag := LibraryVariableStorage.DequeueBoolean();
         end;
-        
         if Flag then
             // Enter Quantity To Create Page is Handled in 'EnterQuantityToCreatePageHandler'.
             ItemTrackingLines."Assign Serial No.".Invoke()
