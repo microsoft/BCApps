@@ -91,17 +91,6 @@ table 30121 "Shpfy Orders to Import"
             DataClassification = CustomerContent;
             Editable = false;
         }
-#if not CLEANSCHEMA28
-        field(12; "Risk Level"; enum "Shpfy Risk Level")
-        {
-            Caption = 'Risk Level';
-            DataClassification = CustomerContent;
-            Editable = false;
-            ObsoleteReason = 'This field is not imported. Use field ';
-                                ObsoleteState = Removed;
-                                ObsoleteTag = '28.0';
-        }
-#endif
         field(13; "Financial Status"; enum "Shpfy Financial Status")
         {
             Caption = 'Financial Status';

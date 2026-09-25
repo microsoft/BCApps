@@ -498,15 +498,6 @@ table 313 "Inventory Setup"
             ToolTip = 'Specifies the number series that will be used to assign numbers to physical inventory orders when they are posted.';
             TableRelation = "No. Series";
         }
-#if not CLEANSCHEMA27
-        field(5877; "Invt. Orders Package Tracking"; Boolean)
-        {
-            Caption = 'Invt. Orders Package Tracking';
-            ObsoleteReason = 'Temporary setup to enable/disable package tracking in Phys. Inventory Orders';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
         field(6500; "Package Caption"; Text[30])
         {
             Caption = 'Package Caption';

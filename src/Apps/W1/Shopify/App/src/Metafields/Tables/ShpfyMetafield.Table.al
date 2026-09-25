@@ -31,16 +31,6 @@ table 30101 "Shpfy Metafield"
             DataClassification = SystemMetadata;
         }
 
-#if not CLEANSCHEMA28
-        field(3; "Owner Resource"; Text[50])
-        {
-            Caption = 'Owner Resource';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'Owner Resource is obsolete. Use Owner Type instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
 
         field(4; "Owner Id"; BigInteger)
         {
@@ -55,17 +45,6 @@ table 30101 "Shpfy Metafield"
             DataClassification = CustomerContent;
         }
 
-#if not CLEANSCHEMA28
-#pragma warning disable AS0105,AL0432
-        field(6; "Value Type"; Enum "Shpfy Metafield Value Type")
-        {
-            Caption = 'Value Type';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Value Type is obsolete in Shopify API. Use Type instead.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
 #pragma warning restore AS0105,AL0432
 
 #pragma warning disable AS0086 // false positive on extending the field length on internal table

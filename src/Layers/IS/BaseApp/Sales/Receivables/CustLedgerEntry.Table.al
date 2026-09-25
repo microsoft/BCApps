@@ -1059,15 +1059,6 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
-#if not CLEANSCHEMA25
-        field(10900; "Credit Memo Document"; Code[20])
-        {
-            Caption = 'Credit Memo Document';
-            ObsoleteReason = 'This is an unused rogue field from legacy functionality that was removed.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

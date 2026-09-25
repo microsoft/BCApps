@@ -23,15 +23,6 @@ table 10000 "PAC Web Service"
         {
             Caption = 'Name';
         }
-#if not CLEANSCHEMA25
-        field(22; "Certificate Thumbprint"; Text[250])
-        {
-            Caption = 'Certificate Thumbprint';
-            ObsoleteReason = 'Using Local Certificate store is deprecated. Use Certificate field instead that are linked to certificate table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(23; Certificate; Code[20])
         {
             Caption = 'Certificate';

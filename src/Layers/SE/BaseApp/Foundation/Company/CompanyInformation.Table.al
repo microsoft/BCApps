@@ -514,23 +514,6 @@ table 79 "Company Information"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the name of the Power BI workspace that deployable Power BI reports are deployed to. An empty value means the reports are deployed to "My Workspace".';
         }
-#if not CLEANSCHEMA26
-        field(11200; "Plus Giro No."; Text[20])
-        {
-            Caption = 'Plus Giro No.';
-            MaskType = Concealed;
-            ObsoleteReason = 'The field is moved to SE Core extension, and renamed to "Plus Giro Number"';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(11201; "Registered Office"; Text[20])
-        {
-            Caption = 'Registered Office';
-            ObsoleteReason = 'The field is moved to SE Core extension, and renamed to "Registered Office Info"';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
     }
 
     keys

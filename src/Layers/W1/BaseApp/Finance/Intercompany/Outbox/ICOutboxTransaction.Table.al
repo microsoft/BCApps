@@ -43,21 +43,6 @@ table 414 "IC Outbox Transaction"
             Editable = false;
             TableRelation = "IC Partner".Code;
         }
-#if not CLEANSCHEMA29
-        /// <summary>
-        /// Source type option indicating the origin of the intercompany transaction.
-        /// </summary>
-        field(3; "Source Type"; Option)
-        {
-            Caption = 'Source Type';
-            Editable = false;
-            OptionCaption = 'Journal Line,Sales Document,Purchase Document';
-            OptionMembers = "Journal Line","Sales Document","Purchase Document";
-            ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
-            ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
-        }
-#endif
         /// <summary>
         /// Source type enum indicating the origin of the intercompany transaction.
         /// </summary>
@@ -132,18 +117,6 @@ table 414 "IC Outbox Transaction"
                 end;
             end;
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// IC Partner G/L account number for the intercompany transaction.
-        /// </summary>
-        field(12; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Source line number from the originating document for transaction traceability.
         /// </summary>

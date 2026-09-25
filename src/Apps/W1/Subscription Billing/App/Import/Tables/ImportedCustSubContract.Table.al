@@ -153,20 +153,6 @@ table 8010 "Imported Cust. Sub. Contract"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
-#if not CLEANSCHEMA30
-        field(14; "Without Contract Deferrals"; Boolean)
-        {
-            ObsoleteReason = 'Removed in favor of Create Contract Deferrals.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-            Caption = 'Without Contract Deferrals';
-        }
-#endif
         field(15; "Detail Overview"; Enum "Contract Detail Overview")
         {
             Caption = 'Detail Overview';

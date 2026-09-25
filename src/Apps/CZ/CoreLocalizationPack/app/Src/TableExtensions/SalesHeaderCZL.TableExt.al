@@ -216,31 +216,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
                 UpdateVATCurrencyFactorCZL();
             end;
         }
-#if not CLEANSCHEMA25
-        field(11780; "VAT Date CZL"; Date)
-        {
-            Caption = 'VAT Date';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Replaced by VAT Reporting Date.';
-        }
-#endif
-#if not CLEANSCHEMA30
-        field(11781; "Registration No. CZL"; Text[20])
-        {
-            Caption = 'Registration No. (Obsolete)';
-            DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-            ObsoleteReason = 'Replaced by standard "Registration Number" field.';
-        }
-#endif
         field(11782; "Tax Registration No. CZL"; Text[20])
         {
             Caption = 'Tax Registration No.';
@@ -259,24 +234,6 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
                     Clear("Credit Memo Type CZL");
             end;
         }
-#if not CLEANSCHEMA25
-        field(31068; "Physical Transfer CZL"; Boolean)
-        {
-            Caption = 'Physical Transfer';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
-        }
-        field(31069; "Intrastat Exclude CZL"; Boolean)
-        {
-            Caption = 'Intrastat Exclude';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-            ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions. This field is not used any more.';
-        }
-#endif
         field(31072; "EU 3-Party Intermed. Role CZL"; Boolean)
         {
             Caption = 'EU 3-Party Intermediate Role';

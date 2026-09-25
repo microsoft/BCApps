@@ -266,16 +266,6 @@ table 272 "Check Ledger Entry"
         {
             Caption = 'Positive Pay Exported';
         }
-#if not CLEANSCHEMA27
-        field(26; "Record ID to Print"; RecordId)
-        {
-            Caption = 'Record ID to Print';
-            DataClassification = SystemMetadata;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Replaced by Print Gen Jnl Line SystemId field';
-            ObsoleteTag = '27.0';
-        }
-#endif
         /// <summary>
         /// SystemId reference to the General Journal Line used for check printing operations.
         /// </summary>

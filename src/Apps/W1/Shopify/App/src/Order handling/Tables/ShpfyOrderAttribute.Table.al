@@ -25,16 +25,6 @@ table 30116 "Shpfy Order Attribute"
             Caption = 'Key';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA27
-        field(3; Value; Text[250])
-        {
-            Caption = 'Value';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced with Attribute Value';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-        }
-#endif
         field(4; "Attribute Value"; Text[2048])
         {
             Caption = 'Value';

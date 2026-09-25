@@ -629,21 +629,6 @@ table 5200 Employee
             Caption = 'Cost Object Code';
             TableRelation = "Cost Object";
         }
-#if not CLEANSCHEMA30
-        field(10800; "Marital Status"; Enum "Employee Marital Status")
-        {
-            Caption = 'Marital Status';
-#if not CLEAN28
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-            ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteReason = 'This field is obsolete and should not be used.';
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
     }
 
     keys

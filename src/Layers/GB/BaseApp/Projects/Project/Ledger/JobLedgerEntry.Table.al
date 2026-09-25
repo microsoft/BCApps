@@ -551,16 +551,6 @@ table 169 "Job Ledger Entry"
             Caption = 'Package No.';
             CaptionClass = '6,1';
         }
-#if not CLEANSCHEMA25
-        field(10500; "Shipment Method Code"; Code[10])
-        {
-            Caption = 'Shipment Method Code';
-            ObsoleteReason = 'Merge to W1';
-            ObsoleteState = Removed;
-            TableRelation = "Shipment Method";
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

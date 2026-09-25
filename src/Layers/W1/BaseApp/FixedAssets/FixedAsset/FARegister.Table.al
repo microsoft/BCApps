@@ -84,15 +84,6 @@ table 5617 "FA Register"
             ToolTip = 'Specifies the last maintenance entry number in the register.';
             TableRelation = "Maintenance Ledger Entry";
         }
-#if not CLEANSCHEMA27
-        field(13; "Creation Time"; Time)
-        {
-            Caption = 'Creation Time';
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-            ObsoleteReason = 'Use the system audit field "System Created at" instead.';
-        }
-#endif
     }
 
     keys

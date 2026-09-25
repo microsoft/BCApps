@@ -79,18 +79,6 @@ table 30128 "Shpfy Shop Collection Map"
             Caption = 'Collection Name';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA25
-        field(7; "Item Template Code"; Code[10])
-        {
-            Caption = 'Item Template Code';
-            TableRelation = "Config. Template Header".Code where("Table Id" = const(27));
-            ValidateTableRelation = true;
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by Item Templ. Code';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(8; "Default for Export"; Boolean)
         {
             Caption = 'Default for Export';

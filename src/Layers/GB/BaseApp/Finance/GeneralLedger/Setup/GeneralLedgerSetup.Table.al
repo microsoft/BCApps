@@ -912,72 +912,6 @@ table 98 "General Ledger Setup"
             ToolTip = 'Specifies whether to prevent users from deleting G/L accounts with ledger entries that are after the date in the Check G/L Acc. Deletion After field. For example, blocking deletion helps you avoid losing financial data that your business should keep due to country regional requirements.';
             InitValue = true;
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Obsolete: Account schedule name for balance sheet financial reporting.
-        /// </summary>
-        field(110; "Acc. Sched. for Balance Sheet"; Code[10])
-        {
-            Caption = 'Account Schedule for Balance Sheet';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-        /// <summary>
-        /// Obsolete: Account schedule name for income statement financial reporting.
-        /// </summary>
-        field(111; "Acc. Sched. for Income Stmt."; Code[10])
-        {
-            Caption = 'Account Schedule for Income Stmt.';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-        /// <summary>
-        /// Obsolete: Account schedule name for cash flow statement financial reporting.
-        /// </summary>
-        field(112; "Acc. Sched. for Cash Flow Stmt"; Code[10])
-        {
-            Caption = 'Account Schedule for Cash Flow Stmt';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-        /// <summary>
-        /// Obsolete: Account schedule name for retained earnings financial reporting.
-        /// </summary>
-        field(113; "Acc. Sched. for Retained Earn."; Code[10])
-        {
-            Caption = 'Account Schedule for Retained Earn.';
-            TableRelation = "Acc. Schedule Name";
-            ObsoleteReason = 'Financial Reporting is replacing Account Schedules for financial statements';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-
-            trigger OnValidate()
-            begin
-                Error(AccSchedObsoleteErr);
-            end;
-        }
-#endif
         /// <summary>
         /// Default financial report used for generating balance sheet statements and analysis.
         /// </summary>
@@ -1442,34 +1376,6 @@ table 98 "General Ledger Setup"
             Caption = 'Use Concurrent Posting';
             ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
         }
-#if not CLEANSCHEMA30
-        field(10500; "Threshold applies"; Boolean)
-        {
-            Caption = 'Threshold applies';
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-        field(10501; "Threshold Amount"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Threshold Amount';
-            MinValue = 0;
-            ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
-        }
-#endif
     }
 
     keys

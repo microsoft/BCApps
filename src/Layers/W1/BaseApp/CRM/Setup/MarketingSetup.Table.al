@@ -233,75 +233,11 @@ table 5079 "Marketing Setup"
             Caption = 'Default Correspondence Type';
             ToolTip = 'Specifies the preferred type of correspondence for the interaction. NOTE: If you use the Web client, you must not select the Hard Copy option because printing is not possible from the web client.';
         }
-#if not CLEANSCHEMA25
-        field(56; "Queue Folder Path"; Text[250])
-        {
-            Caption = 'Queue Folder Path';
-            Editable = false;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(57; "Queue Folder UID"; BLOB)
-        {
-            Caption = 'Queue Folder UID';
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(59; "Storage Folder Path"; Text[250])
-        {
-            Caption = 'Storage Folder Path';
-            Editable = false;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(60; "Storage Folder UID"; BLOB)
-        {
-            Caption = 'Storage Folder UID';
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(67; "Default To-do Date Calculation"; DateFormula)
         {
             Caption = 'Default Task Date Calculation';
             ToolTip = 'Specifies the task date calculation formula to use to calculate the ending date for tasks in Business Central if you haven''t entered any due date in the Outlook task. If you leave the field blank, today''s date is applied.';
         }
-#if not CLEANSCHEMA25
-        field(69; "Autodiscovery E-Mail Address"; Text[250])
-        {
-            Caption = 'Autodiscovery Email Address';
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(70; "Email Batch Size"; Integer)
-        {
-            Caption = 'Email Batch Size';
-            MinValue = 0;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(71; "Exchange Service URL"; Text[250])
-        {
-            Caption = 'Exchange Service URL';
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(72; "Exchange Account User Name"; Text[250])
-        {
-            Caption = 'Exchange Account User Name';
-            DataClassification = EndUserIdentifiableInformation;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(73; "Exchange Account Password Key"; Guid)
         {
             Caption = 'Exchange Account Password Key';
@@ -323,40 +259,6 @@ table 5079 "Marketing Setup"
             Caption = 'Exchange Tenant Id Key';
             DataClassification = EndUserPseudonymousIdentifiers;
         }
-#if not CLEANSCHEMA25
-        field(79; "Exchange Client Id"; Text[250])
-        {
-            Caption = 'Exchange Client Id';
-            DataClassification = EndUserIdentifiableInformation;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(80; "Exchange Client Secret Key"; Guid)
-        {
-            Caption = 'Exchange Client Secret Key';
-            DataClassification = EndUserPseudonymousIdentifiers;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(81; "Email Logging Enabled"; Boolean)
-        {
-            Caption = 'Email Logging Enabled';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-        field(82; "Exchange Redirect URL"; Text[2048])
-        {
-            Caption = 'Exchange Redirect URL';
-            DataClassification = EndUserIdentifiableInformation;
-            ObsoleteReason = 'Feature EmailLoggingUsingGraphApi will be enabled by default in version 22.0';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(83; "Inherit Format Region"; Boolean)
         {
             Caption = 'Inherit Format Region';

@@ -43,24 +43,6 @@ table 88 "Financial Report"
             Caption = 'Use Amounts in Additional Currency';
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA30
-        /// <summary>
-        /// Period type used for financial report analysis and calculations.
-        /// </summary>
-        field(4; PeriodType; Enum "Analysis Period Type")
-        {
-            Caption = 'Period Type';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'This field has been replaced by the PeriodTypeDefault field.';
-#if not CLEAN28
-            ObsoleteState = Pending;
-            ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
         /// <summary>
         /// Controls whether to show account schedule lines marked with Show = No.
         /// </summary>
@@ -159,24 +141,6 @@ table 88 "Financial Report"
             TableRelation = "Fin. Report Excel Template"."Code" where("Financial Report Name" = field(Name));
             ToolTip = 'Specifies the Excel Layout that will be used when exporting to Excel.';
         }
-#if not CLEANSCHEMA30
-        /// <summary>
-        /// Format specification for displaying negative amounts in the financial report.
-        /// </summary>
-        field(17; NegativeAmountFormat; Enum "Analysis Negative Format")
-        {
-            Caption = 'Negative Amount Format';
-            DataClassification = SystemMetadata;
-            ObsoleteReason = 'This field has been replaced by the NegativeAmountFormatDefault field.';
-#if not CLEAN28
-            ObsoleteState = Pending;
-            ObsoleteTag = '28.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '30.0';
-#endif
-        }
-#endif
         field(18; PeriodTypeDefault; Enum "Financial Report Period Type")
         {
             Caption = 'Period Type';

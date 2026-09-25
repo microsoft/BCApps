@@ -64,48 +64,6 @@ table 1275 "Doc. Exch. Service Setup"
                     WebRequestHelper.IsSecureHttpUrl("Sign-in URL");
             end;
         }
-#if not CLEANSCHEMA26
-        field(7; "Consumer Key"; Guid)
-        {
-            Caption = 'Consumer Key';
-            ObsoleteReason = 'Authentication with OAuth 1.0 is deprecated.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(8; "Consumer Secret"; Guid)
-        {
-            Caption = 'Consumer Secret';
-            Editable = false;
-            ObsoleteReason = 'Authentication with OAuth 1.0 is deprecated.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(9; Token; Guid)
-        {
-            Caption = 'Token';
-            Editable = false;
-            ObsoleteReason = 'Authentication with OAuth 1.0 is deprecated.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(10; "Token Secret"; Guid)
-        {
-            Caption = 'Token Secret';
-            Editable = false;
-            ObsoleteReason = 'Authentication with OAuth 1.0 is deprecated.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(11; "Doc. Exch. Tenant ID"; Guid)
-        {
-            Caption = 'Doc. Exch. Tenant ID';
-            DataClassification = OrganizationIdentifiableInformation;
-            Editable = false;
-            ObsoleteReason = 'Authentication with OAuth 1.0 is deprecated.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(12; "User Agent"; Text[30])
         {
             Caption = 'User Agent';

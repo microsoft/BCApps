@@ -559,15 +559,6 @@ table 79 "Company Information"
         {
             Caption = 'CISD';
         }
-#if not CLEANSCHEMA25
-        field(10812; "Last Intrastat Declaration ID"; Integer)
-        {
-            Caption = 'Last Intrastat Declaration ID';
-            ObsoleteReason = 'The new Intrastat FR extension will replace this functionality.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

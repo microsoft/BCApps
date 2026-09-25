@@ -983,18 +983,6 @@ table 1001 "Job Task"
             TableRelation = Currency;
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA28
-        field(721; "Coupled to Dataverse"; Boolean)
-        {
-            FieldClass = FlowField;
-            Caption = 'Coupled to Field Service';
-            Editable = false;
-            CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Job Task")));
-            ObsoleteReason = 'Field Service is moved to Field Service Integration app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
     }
 
     keys

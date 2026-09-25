@@ -1298,16 +1298,6 @@ table 23 Vendor
             ToolTip = 'Specifies the vendor bank account that will be used by default on payment journal lines for export to a payment bank file.';
             TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("No."));
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dataverse';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(721; "Coupled to Dataverse"; Boolean)
         {
             FieldClass = FlowField;
@@ -1717,16 +1707,6 @@ table 23 Vendor
             OptionCaption = ' ,-,.,/';
             OptionMembers = " ","-",".","/";
         }
-#if not CLEANSCHEMA28
-        field(10020; "IRS 1099 Code"; Code[10])
-        {
-            Caption = 'IRS 1099 Code';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-
-        }
-#endif
         field(10021; "Balance on Date"; Decimal)
         {
             AutoFormatExpression = Rec."Currency Code";
@@ -1789,15 +1769,6 @@ table 23 Vendor
             Caption = 'State Inscription';
             OptimizeForTextSearch = true;
         }
-#if not CLEANSCHEMA28
-        field(10026; "FATCA filing requirement"; Boolean)
-        {
-            Caption = 'FATCA filing requirement';
-            ObsoleteReason = 'Moved to IRS Forms App.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(14020; "Tax Identification Type"; Enum "Tax Identification Type")
         {
             Caption = 'Tax Identification Type';

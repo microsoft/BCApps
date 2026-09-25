@@ -226,16 +226,6 @@ table 256 "VAT Statement Line"
             Caption = 'Box No.';
             ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
         }
-#if not CLEANSCHEMA26
-        field(10600; "VAT Code"; Code[10])
-        {
-            Caption = 'VAT Code';
-            ObsoleteReason = 'Use VAT Business and VAT Product posting groups for filtering.';
-            TableRelation = "VAT Code";
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10601; "Incl. Non Deductible VAT"; Boolean)
         {
             Caption = 'Incl. Non Deductible VAT';

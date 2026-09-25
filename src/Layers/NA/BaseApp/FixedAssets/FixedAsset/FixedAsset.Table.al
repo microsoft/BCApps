@@ -372,15 +372,6 @@ table 5600 "Fixed Asset"
             Caption = 'SCT Permission Type';
             TableRelation = "SAT Permission Type";
         }
-#if not CLEANSCHEMA26
-        field(10007; "SCT Permission Number"; Code[20])
-        {
-            Caption = 'SCT Permission Number';
-            ObsoleteReason = 'Replaced by field SCT Permission No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(10008; "SCT Permission No."; Text[50])
         {
             Caption = 'SCT Permission No.';

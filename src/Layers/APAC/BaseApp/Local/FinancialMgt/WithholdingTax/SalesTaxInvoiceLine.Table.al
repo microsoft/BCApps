@@ -454,15 +454,6 @@ table 28072 "Sales Tax Invoice Line"
             Caption = 'Purchasing Code';
             TableRelation = Purchasing;
         }
-#if not CLEANSCHEMA28
-        field(5712; "Product Group Code"; Code[10])
-        {
-            Caption = 'Product Group Code';
-            ObsoleteReason = 'Product Groups became first level children of Item Categories.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '28.0';
-        }
-#endif
         field(5811; "Appl.-from Item Entry"; Integer)
         {
             Caption = 'Appl.-from Item Entry';

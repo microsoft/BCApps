@@ -225,15 +225,6 @@ table 1296 "Posted Payment Recon. Line"
         {
             Caption = 'Reconciled';
         }
-#if not CLEANSCHEMA25
-        field(31000; "Advance Letter Link Code"; Code[30])
-        {
-            Caption = 'Advance Letter Link Code';
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Replaced by Advance Payments Localization for Czech.';
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

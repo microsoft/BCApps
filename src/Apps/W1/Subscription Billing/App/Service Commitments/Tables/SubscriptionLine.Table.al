@@ -575,25 +575,6 @@ table 8059 "Subscription Line"
             FieldClass = FlowField;
             CalcFormula = lookup("Subscription Header"."Source No." where("No." = field("Subscription Header No.")));
         }
-#if not CLEANSCHEMA29
-        field(8009; "Item No."; Code[20])
-        {
-            Caption = 'Item No.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup("Subscription Header"."Item No." where("No." = field("Subscription Header No.")));
-            ObsoleteReason = 'Replaced by field Source No.';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-        }
-#endif
         field(8010; "Subscription Description"; Text[100])
         {
             Caption = 'Subscription Description';

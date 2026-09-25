@@ -81,44 +81,6 @@ tableextension 10015 "Location NA" extends Location
             DataClassification = CustomerContent;
             TableRelation = "Isolated Certificate";
         }
-#if not CLEANSCHEMA26
-        field(27026; "SAT State Code"; Code[10])
-        {
-            Caption = 'SAT State Code';
-            DataClassification = CustomerContent;
-            TableRelation = "SAT State";
-            ObsoleteReason = 'Replaced with SAT Address table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(27027; "SAT Municipality Code"; Code[10])
-        {
-            Caption = 'SAT Municipality Code';
-            DataClassification = CustomerContent;
-            TableRelation = "SAT Municipality" where(State = field("SAT State Code"));
-            ObsoleteReason = 'Replaced with SAT Address table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(27028; "SAT Locality Code"; Code[10])
-        {
-            Caption = 'SAT Locality Code';
-            DataClassification = CustomerContent;
-            TableRelation = "SAT Locality" where(State = field("SAT State Code"));
-            ObsoleteReason = 'Replaced with SAT Address table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-        field(27029; "SAT Suburb ID"; Integer)
-        {
-            Caption = 'SAT Suburb ID';
-            DataClassification = CustomerContent;
-            TableRelation = "SAT Suburb";
-            ObsoleteReason = 'Replaced with SAT Address table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         field(27030; "ID Ubicacion"; Integer)
         {
             Caption = 'ID Ubicacion';

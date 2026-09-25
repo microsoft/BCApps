@@ -118,15 +118,6 @@ table 9 "Country/Region"
             Caption = 'Currency Code';
             TableRelation = Currency;
         }
-#if not CLEANSCHEMA25
-        field(12101; Blacklisted; Boolean)
-        {
-            Caption = 'Blacklisted';
-            ObsoleteReason = 'Obsolete feature';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         field(12102; "Foreign Country/Region Code"; Code[3])
         {
             Caption = 'Foreign Country/Region Code';

@@ -153,26 +153,6 @@ table 1250 "Bank Statement Matching Buffer"
         {
             Caption = 'Date Matches';
         }
-#if not CLEANSCHEMA25
-        field(30000; "Letter Type"; Option)
-        {
-            Caption = 'Letter Type';
-            DataClassification = SystemMetadata;
-            OptionCaption = 'Sales,Purchase';
-            OptionMembers = Sales,Purchase;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Replaced by Advance Payments Localization for Czech.';
-            ObsoleteTag = '25.0';
-        }
-        field(31001; "Letter No."; Code[20])
-        {
-            Caption = 'Letter No.';
-            DataClassification = SystemMetadata;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Replaced by Advance Payments Localization for Czech.';
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Score for exact document number matches without fuzzy logic.
         /// Higher weight given to precise document number correspondences.

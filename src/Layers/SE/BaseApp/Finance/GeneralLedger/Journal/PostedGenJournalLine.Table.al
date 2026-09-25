@@ -979,19 +979,6 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'IC Direction';
         }
-#if not CLEANSCHEMA25
-        /// <summary>
-        /// Intercompany partner G/L account number used for intercompany transactions (obsolete field replaced by IC Account No.).
-        /// </summary>
-        field(116; "IC Partner G/L Acc. No."; Code[20])
-        {
-            Caption = 'IC Partner G/L Acc. No.';
-            TableRelation = "IC G/L Account";
-            ObsoleteReason = 'Replaced by IC Account No.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
         /// <summary>
         /// Intercompany partner transaction number for cross-reference tracking.
         /// </summary>
@@ -1808,25 +1795,6 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Indentation';
         }
-#if not CLEANSCHEMA26
-        field(11200; "Source Posting Date"; Date)
-        {
-            Caption = 'Source Posting Date';
-            ObsoleteReason = 'The field is not used and will be obsoleted';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
-#if not CLEANSCHEMA25
-        field(11201; "Auto. Acc. Group"; Code[10])
-        {
-            Caption = 'Auto. Acc. Group';
-            TableRelation = "Automatic Acc. Header";
-            ObsoleteReason = 'Moved to Automatic Account Codes app.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys

@@ -213,16 +213,6 @@ table 7002 "Sales Price"
                         Error(Text002, "Sales Type");
             end;
         }
-#if not CLEANSCHEMA26
-        field(720; "Coupled to CRM"; Boolean)
-        {
-            Caption = 'Coupled to Dynamics 365 Sales';
-            Editable = false;
-            ObsoleteReason = 'Replaced by flow field Coupled to Dataverse';
-            ObsoleteState = Removed;
-            ObsoleteTag = '26.0';
-        }
-#endif
         /// <summary>
         /// Indicates whether the sales price is coupled to a record in Dynamics 365 Sales.
         /// </summary>

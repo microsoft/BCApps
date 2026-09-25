@@ -105,64 +105,15 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Charge Start Date';
         }
-#if not CLEANSCHEMA29
-        field(17; "Charge Start Time"; Time)
-        {
-            Caption = 'Charge Start Time';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-            ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
-        }
-#endif
         field(18; "Charge End Date"; Date)
         {
             Caption = 'Charge End Date';
         }
-#if not CLEANSCHEMA29
-        field(19; "Charge End Time"; Time)
-        {
-            Caption = 'Charge End Time';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-            ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
-        }
-#endif
         field(20; "Charged Period (Days)"; Decimal)
         {
             Caption = 'Charged Period (Days)';
             AutoFormatType = 0;
         }
-#if not CLEANSCHEMA29
-        field(21; "Charged Period (Hours)"; Decimal)
-        {
-            Caption = 'Charged Period (Hours)';
-            AutoFormatType = 0;
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
-            ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-            ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
-        }
-#endif
         field(22; Quantity; Decimal)
         {
             Caption = 'Quantity';

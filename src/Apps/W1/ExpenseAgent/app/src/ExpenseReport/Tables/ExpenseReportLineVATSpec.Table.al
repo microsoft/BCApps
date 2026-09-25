@@ -258,6 +258,7 @@ table 6922 "Expense Report Line VAT Spec."
             Caption = 'Reclaim Reason';
             ToolTip = 'Specifies a short reason supplied with the reclaim suggestion.';
         }
+#if not CLEANSCHEMA32
         field(33; "Reclaim Approved"; Boolean)
         {
             Caption = 'Reclaim Approved';
@@ -272,6 +273,7 @@ table 6922 "Expense Report Line VAT Spec."
 #endif
             ToolTip = 'Specifies whether reclaim has been approved for this VAT row.';
         }
+#endif
         field(34; "Reclaim Approved By"; Code[50])
         {
             Caption = 'Reclaim Approved By';
