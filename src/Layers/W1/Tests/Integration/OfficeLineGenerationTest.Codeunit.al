@@ -119,6 +119,7 @@ codeunit 139061 "Office Line Generation Test"
 
         TempOfficeSuggestedLineItem.FindSet();
         asserterror OfficeLineGeneration.InsertLineItemsAndUpdateAggregate(TempOfficeSuggestedLineItem, HeaderRecRef, AddedCount);
+        LibraryAssert.ExpectedErrorCannotFind(Database::Item);
 
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
@@ -158,13 +159,13 @@ codeunit 139061 "Office Line Generation Test"
         TempOfficeSuggestedLineItem.Insert();
     end;
 
-    procedure StartAggregateUpdateCount(DocumentNo: Code[20])
+    local procedure StartAggregateUpdateCount(DocumentNo: Code[20])
     begin
         AggregateDocumentNo := DocumentNo;
         AggregateUpdateCount := 0;
     end;
 
-    procedure GetAggregateUpdateCount(): Integer
+    local procedure GetAggregateUpdateCount(): Integer
     begin
         exit(AggregateUpdateCount);
     end;
