@@ -34,6 +34,7 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
     begin
         OnBeforeCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
         CheckCompanyInfoMandatory(CompanyInformation);
+        EDocumentDEHelper.CheckSellerContactMandatory(SourceDocumentHeader);
         CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
         EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
         DEContext.Start();
@@ -83,6 +84,12 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         TempBlob.FromRecord(TempRecordExportBuffer, TempRecordExportBuffer.FieldNo("File Content"));
     end;
 
+    /// <summary>
+    /// Checks the Company Information data that the electronic document requires.
+    /// The E-Mail supplies the seller electronic address (BT-34), which XRechnung requires
+    /// (PEPPOL-EN16931-R020). BT-34 is a party level routing address and is always taken from Company
+    /// Information, never from the salesperson, so it is independent of the seller contact (BG-6).
+    /// </summary>
     local procedure CheckCompanyInfoMandatory(var CompanyInformation: Record "Company Information")
     begin
         CompanyInformation.Get();
