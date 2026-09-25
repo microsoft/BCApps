@@ -1148,6 +1148,8 @@ page 283 "Recurring General Journal"
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
         RecurringFrequency: Text;
+        GenJnlBatchApprovalStatus: Text[20];
+        GenJnlLineApprovalStatus: Text[20];
         InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
         Balance: Decimal;
         TotalBalance: Decimal;
@@ -1165,8 +1167,6 @@ page 283 "Recurring General Journal"
         VATDateEnabled: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
-        GenJnlBatchApprovalStatus: Text[20];
-        GenJnlLineApprovalStatus: Text[20];
         ApprovalEntriesExistSentByCurrentUser: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;
         OpenApprovalEntriesOnJnlLineExist: Boolean;

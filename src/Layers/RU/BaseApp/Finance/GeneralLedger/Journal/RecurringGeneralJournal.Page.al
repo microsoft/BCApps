@@ -49,39 +49,39 @@ page 283 "Recurring General Journal"
     {
         area(content)
         {
-        group(Control120)
+            group(Control120)
             {
-            ShowCaption = false;
-            field(CurrentJnlBatchName; CurrentJnlBatchName)
-            {
-                ApplicationArea = Suite;
-                Caption = 'Batch Name';
-                Lookup = true;
-                ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the journal is based on.';
+                ShowCaption = false;
+                field(CurrentJnlBatchName; CurrentJnlBatchName)
+                {
+                    ApplicationArea = Suite;
+                    Caption = 'Batch Name';
+                    Lookup = true;
+                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the journal is based on.';
 
-                trigger OnLookup(var Text: Text): Boolean
-                begin
-                    CurrPage.SaveRecord();
-                    GenJnlManagement.LookupName(CurrentJnlBatchName, Rec);
-                    SetControlAppearanceFromBatch();
-                    CurrPage.Update(false);
-                end;
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        CurrPage.SaveRecord();
+                        GenJnlManagement.LookupName(CurrentJnlBatchName, Rec);
+                        SetControlAppearanceFromBatch();
+                        CurrPage.Update(false);
+                    end;
 
-                trigger OnValidate()
-                begin
-                    GenJnlManagement.CheckName(CurrentJnlBatchName, Rec);
-                    CurrentJnlBatchNameOnAfterVali();
-                end;
+                    trigger OnValidate()
+                    begin
+                        GenJnlManagement.CheckName(CurrentJnlBatchName, Rec);
+                        CurrentJnlBatchNameOnAfterVali();
+                    end;
+                }
+                field(GenJnlBatchApprovalStatus; GenJnlBatchApprovalStatus)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Approval Status';
+                    Editable = false;
+                    Visible = EnabledGenJnlBatchWorkflowsExist;
+                    ToolTip = 'Specifies the approval status for recurring general journal batch.';
+                }
             }
-            field(GenJnlBatchApprovalStatus; GenJnlBatchApprovalStatus)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Approval Status';
-                Editable = false;
-                Visible = EnabledGenJnlBatchWorkflowsExist;
-                ToolTip = 'Specifies the approval status for recurring general journal batch.';
-            }
-        }
             repeater(Control1)
             {
                 ShowCaption = false;
@@ -1242,6 +1242,8 @@ page 283 "Recurring General Journal"
         AccSchedLineDesc: Text[250];
         ColumnLayoutHeader: Text[50];
         RecurringFrequency: Text;
+        GenJnlBatchApprovalStatus: Text[20];
+        GenJnlLineApprovalStatus: Text[20];
         InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
         Balance: Decimal;
         TotalBalance: Decimal;
@@ -1259,8 +1261,6 @@ page 283 "Recurring General Journal"
         VATDateEnabled: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
-        GenJnlBatchApprovalStatus: Text[20];
-        GenJnlLineApprovalStatus: Text[20];
         ApprovalEntriesExistSentByCurrentUser: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;
         OpenApprovalEntriesOnJnlLineExist: Boolean;
