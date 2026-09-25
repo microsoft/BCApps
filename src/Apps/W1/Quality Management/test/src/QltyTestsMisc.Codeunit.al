@@ -36,6 +36,7 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Tracking;
 using Microsoft.Warehouse.Worksheet;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.TestLibraries.Utilities;
@@ -57,6 +58,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         DocumentNo: Text;
         FlagTestNavigateToSourceDocument: Text;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
+        AssignToYourselfNotificationIdTok: Label 'de535e9b-2727-4d23-8be4-e2ff33a2c586', Locked = true;
+        AssignToYourselfNotificationNameTok: Label 'Assign to yourself', Locked = true;
         Bin1Tok: Label 'Bin1';
         Bin2Tok: Label 'Bin2';
         WarehouseEntryTypeBlockedErr: Label '"%1" warehouse transaction is not allowed for item %2 with tracking %3 because quality inspection %4 has result %5, which is configured to block this transaction.', Comment = '%1=entry type being blocked, %2=item, %3=combined package tracking details of Lot No., Serial No. and Package No., %4=quality inspection, %5=result';
@@ -2834,43 +2837,30 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure HandleNotificationActionIgnore()
+    procedure OptOutOfAssignToYourselfNotificationDisablesMyNotifications()
     var
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        Location: Record Location;
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-        LibraryInventory: Codeunit "Library - Inventory";
+        MyNotifications: Record "My Notifications";
         MockNotification: Notification;
+        AssignToYourselfNotificationId: Guid;
     begin
-        // [SCENARIO] Notification action handler successfully sets quality inspection to prevent auto assignment when ignored
-
-        // [GIVEN] Quality management setup with location, item, and inspection template are configured
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 647649] Opting out of the "assign to yourself" inspection notification disables it in My Notifications, matching the standard "Don't show again" opt-out pattern.
         Initialize();
 
-        QltyInspectionUtility.EnsureSetupExists();
-        LibraryWarehouse.CreateLocation(Location);
-        LibraryInventory.CreateItem(Item);
-        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
-        QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+        // [GIVEN] The assign-to-yourself notification "N" is enabled for the current user
+        Evaluate(AssignToYourselfNotificationId, AssignToYourselfNotificationIdTok);
+        MyNotifications.InsertDefault(AssignToYourselfNotificationId, AssignToYourselfNotificationNameTok, AssignToYourselfNotificationNameTok, true);
+        MyNotifications.SetStatus(AssignToYourselfNotificationId, true);
+        LibraryAssert.IsTrue(MyNotifications.IsEnabled(AssignToYourselfNotificationId), 'N should start enabled for the current user');
 
-        // [GIVEN] A quality inspection is created from a purchase line for an untracked item
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-        QltyInspectionGenRule.Delete();
-
-        // [GIVEN] A mock notification with the inspection record ID is prepared
-        MockNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
-
-        // [WHEN] The ignore notification action is handled
+        // [WHEN] The user chooses the opt-out action on the assign-to-yourself notification
         QltyInspectionUtility.HandleNotificationActionIgnore(MockNotification);
 
-        // [THEN] The quality inspection is marked to prevent auto assignment
-        LibraryAssert.IsTrue(QltyInspectionHeader.GetPreventAutoAssignment(), 'Inspection should be ignored');
+        // [THEN] N is disabled in My Notifications so the assign-to-yourself prompt no longer appears
+        LibraryAssert.IsFalse(MyNotifications.IsEnabled(AssignToYourselfNotificationId), 'N should be disabled in My Notifications after the user opts out');
+
+        // Restore the default enabled state so this test does not leak My Notifications state into other tests
+        MyNotifications.SetStatus(AssignToYourselfNotificationId, true);
     end;
 
     [Test]
