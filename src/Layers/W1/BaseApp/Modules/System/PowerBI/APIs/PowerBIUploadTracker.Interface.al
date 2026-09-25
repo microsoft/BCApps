@@ -43,6 +43,15 @@ interface "Power BI Upload Tracker"
     procedure SetUploadedReportName(ReportName: Text);
 
     /// <summary>
+    /// Records the Power BI workspace the report was actually imported into.
+    /// An empty (null) workspace ID means the user's "My Workspace".
+    /// </summary>
+    procedure SetTargetWorkspace(WorkspaceId: Guid)
+    begin
+        // Default implementation: implementations that cannot be targeted at a workspace ignore this.
+    end;
+
+    /// <summary>
     /// Returns the name of the report as it was uploaded to Power BI.
     /// </summary>
     procedure GetUploadedReportName(): Text;
