@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.Vendor;
@@ -96,6 +97,7 @@ codeunit 12184 "Fattura Doc. Helper"
         FixedAssetTransferTxt: Label 'Fixed assed transfer or internal  transfer  (ex art.36 DPR 633/72)';
         SelfConsumingInvoiceTxt: Label 'Invoice for self-consuming or free gift without VAT Compensation';
         FatturaDocTypeDiffQst: Label 'There are one or more different values of Fattura document type coming from the VAT posting setup of lines. As it''''s not possible to identify the value, %1 from the header will be used.\\Do you want to continue?', Comment = '%1 = the value of Fattura Document type from the header';
+        InvalidISOCountryCodeErr: Label 'The Country/Region must have a two-character ISO Code for FatturaPA.';
 
     [Scope('OnPrem')]
     procedure CollectDocumentInformation(var TempFatturaHeader: Record "Fattura Header" temporary; var TempFatturaLine: Record "Fattura Line" temporary; HeaderRecRef: RecordRef)
@@ -427,6 +429,7 @@ codeunit 12184 "Fattura Doc. Helper"
         CheckCompanyInformationFields(ErrorMessage);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("PA Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
+        CheckFatturaPAISOCountryCode(Customer."Country/Region Code", Customer, Customer.FieldNo("Country/Region Code"), ErrorMessage);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(Address), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo("Post Code"), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(Customer, Customer.FieldNo(City), ErrorMessage."Message Type"::Error);
@@ -443,6 +446,9 @@ codeunit 12184 "Fattura Doc. Helper"
         if TaxRepresentativeVendor.Get(CompanyInformation."Tax Representative No.") then begin
             ErrorMessage.LogIfEmpty(
               TaxRepresentativeVendor, TaxRepresentativeVendor.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
+            CheckFatturaPAISOCountryCode(
+              TaxRepresentativeVendor."Country/Region Code", TaxRepresentativeVendor,
+              TaxRepresentativeVendor.FieldNo("Country/Region Code"), ErrorMessage);
             ErrorMessage.LogIfEmpty(
               TaxRepresentativeVendor, TaxRepresentativeVendor.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
         end;
@@ -450,6 +456,9 @@ codeunit 12184 "Fattura Doc. Helper"
         if TransmissionIntermediaryVendor.Get(CompanyInformation."Transmission Intermediary No.") then begin
             ErrorMessage.LogIfEmpty(TransmissionIntermediaryVendor,
               TransmissionIntermediaryVendor.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
+            CheckFatturaPAISOCountryCode(
+              TransmissionIntermediaryVendor."Country/Region Code", TransmissionIntermediaryVendor,
+              TransmissionIntermediaryVendor.FieldNo("Country/Region Code"), ErrorMessage);
             ErrorMessage.LogIfEmpty(TransmissionIntermediaryVendor,
               TransmissionIntermediaryVendor.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error);
         end;
@@ -471,6 +480,9 @@ codeunit 12184 "Fattura Doc. Helper"
           CompanyInformation, CompanyInformation.FieldNo("Fiscal Code"), ErrorMessage."Message Type"::Error, 16);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("Country/Region Code"), ErrorMessage."Message Type"::Error);
+        CheckFatturaPAISOCountryCode(
+          CompanyInformation."Country/Region Code", CompanyInformation,
+          CompanyInformation.FieldNo("Country/Region Code"), ErrorMessage);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
@@ -481,6 +493,22 @@ codeunit 12184 "Fattura Doc. Helper"
         ErrorMessage.LogIfEmpty(CompanyInformation, CompanyInformation.FieldNo("REA No."), ErrorMessage."Message Type"::Error);
         ErrorMessage.LogIfEmpty(
           CompanyInformation, CompanyInformation.FieldNo("Registry Office Province"), ErrorMessage."Message Type"::Error);
+    end;
+
+    local procedure CheckFatturaPAISOCountryCode(CountryRegionCode: Code[10]; SourceRecord: Variant; SourceFieldNo: Integer; var ErrorMessage: Record "Error Message")
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if CountryRegionCode = '' then
+            exit;
+
+        if not CountryRegion.Get(CountryRegionCode) then begin
+            ErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
+            exit;
+        end;
+
+        if StrLen(CountryRegion."ISO Code") <> 2 then
+            ErrorMessage.LogMessage(SourceRecord, SourceFieldNo, ErrorMessage."Message Type"::Error, InvalidISOCountryCodeErr);
     end;
 
     local procedure CheckFatturaPANos(var ErrorMessage: Record "Error Message")
