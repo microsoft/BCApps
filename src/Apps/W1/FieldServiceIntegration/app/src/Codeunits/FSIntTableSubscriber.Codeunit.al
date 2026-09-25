@@ -291,6 +291,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         FSWorkOrderService: Record "FS Work Order Service";
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
         CRMProduct: Record "CRM Product";
+        ExistingCRMProduct: Record "CRM Product";
         ServiceLine: Record "Service Line";
         SourceDestCode: Text;
     begin
@@ -302,14 +303,18 @@ codeunit 6610 "FS Int. Table Subscriber"
         case SourceDestCode of
             'Item-CRM Product':
                 begin
-                    if DestinationIsInserted then
-                        DestinationRecordRef.LoadFields(CRMProduct.FieldNo(ConvertToCustomerAsset));
                     DestinationRecordRef.SetTable(CRMProduct);
-                    if CRMProduct.ConvertToCustomerAsset then begin
-                        CRMProduct.ConvertToCustomerAsset := false;
-                        AdditionalFieldsWereModified := true;
-                        DestinationRecordRef.GetTable(CRMProduct);
-                    end;
+                    if DestinationIsInserted then begin
+                        ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
+                        ExistingCRMProduct.Get(CRMProduct.ProductId);
+                        if not ExistingCRMProduct.ConvertToCustomerAsset then
+                            exit;
+                    end else
+                        if not CRMProduct.ConvertToCustomerAsset then
+                            exit;
+
+                    DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset)).Value(false);
+                    AdditionalFieldsWereModified := true;
                 end;
             'FS Work Order Product-Service Line':
                 begin

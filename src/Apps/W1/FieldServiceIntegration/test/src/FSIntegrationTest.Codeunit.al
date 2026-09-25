@@ -1578,6 +1578,46 @@ codeunit 139204 "FS Integration Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
+    procedure InitialItemSynchronizationDisablesCustomerAssetConversion()
+    var
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        CRMProduct: Record "CRM Product";
+        CRMTransactioncurrency: Record "CRM Transactioncurrency";
+        CRMUom: Record "CRM Uom";
+        CRMUomschedule: Record "CRM Uomschedule";
+        Currency: Record Currency;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+    begin
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] The first synchronization of an item disables native Field Service customer asset creation.
+        Initialize();
+        LibraryCRMIntegration.CreateCRMConnectionSetup('', '@@test@@', true);
+        InitSetup(true, '');
+
+        // [GIVEN] An uncoupled item whose unit of measure and currency are coupled to Dataverse.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        LibraryCRMIntegration.CreateCoupledUnitOfMeasureAndUomSchedule(UnitOfMeasure, CRMUom, CRMUomschedule);
+        LibraryCRMIntegration.CreateCoupledCurrencyAndTransactionCurrency(Currency, CRMTransactioncurrency);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
+        Item.Modify();
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
+
+        // [WHEN] The item is synchronized to a new Field Service product.
+        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
+
+        // [THEN] Native Field Service customer asset creation is disabled on the new product.
+        Assert.IsTrue(CRMIntegrationRecord.FindByRecordID(Item.RecordId()), 'The item should be coupled to a product.');
+        CRMProduct.Get(CRMIntegrationRecord."CRM ID");
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
         Item: Record Item;
