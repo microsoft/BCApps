@@ -120,6 +120,7 @@ codeunit 3324 "PA Email Cleanup Scheduler"
         JobQueueEntry: Record "Job Queue Entry";
         NoDateTime: DateTime;
     begin
+        NoDateTime := 0DT;
         if not TryGetCleanupEntry(JobQueueEntry) then
             exit(NoDateTime);
         exit(JobQueueEntry."Earliest Start Date/Time");
