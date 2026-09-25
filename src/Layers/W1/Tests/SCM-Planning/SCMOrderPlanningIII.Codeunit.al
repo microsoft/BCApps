@@ -51,7 +51,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLineQuantityMismatchErr: Label 'Mismatch in Requisition Line Quantity';
         RequisitionLinesShouldBeEmptyErr: Label 'Requisition lines should be empty.';
         NotAllItemsWerePlannedMsg: Label 'Not all items were planned. A total of %1 items were not planned.', Comment = '%1 = Number of items not planned';
-        PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
+        ProdBOMMustBeCertifiedErr: Label '%1 %2 %3 is not certified.', Comment = '%1 = Table caption, %2 = No. field caption, %3 = Production BOM number';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
         MinTotalQuantityMismatchErr: Label 'Expected total quantity >= %1, but got %2', Comment = '%1 = minimum expected quantity, %2 = actual summed quantity';
 
@@ -3391,7 +3391,6 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [Test]
-    [HandlerFunctions('PlanningErrorLogModalPageHandler,ErrorMessageHandler')]
     procedure VerifyPlanningWorksheetWithItemCardPolicyDifferentAsComponentLocationWithSKUDontExist()
     var
         Location: array[2] of Record Location;
@@ -3430,6 +3429,7 @@ codeunit 137088 "SCM Order Planning - III"
         ReqLine.SetRange("Location Code", Location[2].Code);
         ReqLine.CalcSums(Quantity);
         Assert.AreEqual(300, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+        VerifyPlanningErrorCount(Item."No.", 0);
     end;
 
     [Test]
@@ -3463,13 +3463,11 @@ codeunit 137088 "SCM Order Planning - III"
         // [GIVEN] Created Sales Order with Items and Locations.
         CreateSalesOrder(SalesHeader, Item, Location, LocationQuantity[1], LocationQuantity[2], LocationQuantity[3]);
 
-        // [GIVEN] Enqueue Expected Error Message for Item with "Dont Plan" policy, and Planning Parameters taken from Item Card for "Item Card" policy.
+        // [GIVEN] Only items at the location with "Dont Plan" policy have planning errors.
         LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 2));
-        LibraryVariableStorage.Enqueue(4);
+        LibraryVariableStorage.Enqueue(2);
         LibraryVariableStorage.Enqueue(StrSubstNo(SKUNotPlannedTxt, Item[1]."No.", Location[1].Code, Location[1].FieldCaption("Missing SKU Planning Policy"), Location[1]."Missing SKU Planning Policy"));
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location[2].FieldCaption("Missing SKU Planning Policy"), Location[2]."Missing SKU Planning Policy", Item[1]."No.", Location[2].Code));
         LibraryVariableStorage.Enqueue(StrSubstNo(SKUNotPlannedTxt, Item[2]."No.", Location[1].Code, Location[1].FieldCaption("Missing SKU Planning Policy"), Location[1]."Missing SKU Planning Policy"));
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location[2].FieldCaption("Missing SKU Planning Policy"), Location[2]."Missing SKU Planning Policy", Item[2]."No.", Location[2].Code));
 
         // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
         Item[1].SetFilter("No.", '%1|%2', Item[1]."No.", Item[2]."No.");
@@ -3488,6 +3486,8 @@ codeunit 137088 "SCM Order Planning - III"
 
         // [THEN] Verify combined quantity in Requisition Line for Items.
         VerifyMinTotalQuantityInRequisitionLine(Item[1]."No." + '|' + Item[2]."No.", '', LocationQuantity[2] * 2 + LocationQuantity[3] * 2 + 190);
+        VerifyPlanningErrorCount(Item[1]."No." + '|' + Item[2]."No.", 2);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -3580,7 +3580,6 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [Test]
-    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
     procedure VerifyRequisitionLineAreCreatedForMissingSKUPolicyItemCard()
     var
         Location: array[3] of Record Location;
@@ -3610,12 +3609,6 @@ codeunit 137088 "SCM Order Planning - III"
         // [GIVEN] Created Sales Order with Items and Locations.
         CreateSalesOrder(SalesHeader, Item, Location, LocationQuantity[1], LocationQuantity[2], LocationQuantity[3]);
 
-        // [GIVEN] Enqueue Expected Error Message for Item withPlanning Parameters taken from Item Card for "Item Card" policy.
-        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 2));
-        LibraryVariableStorage.Enqueue(2);
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location[2].FieldCaption("Missing SKU Planning Policy"), Location[2]."Missing SKU Planning Policy", Item[1]."No.", Location[2].Code));
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location[2].FieldCaption("Missing SKU Planning Policy"), Location[2]."Missing SKU Planning Policy", Item[2]."No.", Location[2].Code));
-
         // [WHEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
         Item[1].SetFilter("No.", '%1|%2', Item[1]."No.", Item[2]."No.");
         Item[1].SetRange("Location Filter", Location[2].Code);
@@ -3627,10 +3620,10 @@ codeunit 137088 "SCM Order Planning - III"
 
         // [THEN] Verify combined quantity in Requisition Line for Items.
         VerifyMinTotalQuantityInRequisitionLine(Item[1]."No." + '|' + Item[2]."No.", Location[2].Code, LocationQuantity[2] * 2);
+        VerifyPlanningErrorCount(Item[1]."No." + '|' + Item[2]."No.", 0);
     end;
 
     [Test]
-    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
     procedure ItemCardFixedReorderQtyUsedWithMissingSKUPolicyItemCard()
     var
         Location: Record Location;
@@ -3655,11 +3648,6 @@ codeunit 137088 "SCM Order Planning - III"
         // [GIVEN] Create Sales Order with demand of 50 units at Location "L".
         CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 50, 50);
 
-        // [GIVEN] Expected planning warning message for Item Card policy.
-        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 1));
-        LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", Item."No.", Location.Code));
-
         // [WHEN] Calculate regenerative plan in planning worksheet.
         CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
 
@@ -3668,12 +3656,12 @@ codeunit 137088 "SCM Order Planning - III"
         ReqLine.SetRange("Location Code", Location.Code);
         ReqLine.FindFirst();
         Assert.AreEqual(200, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+        VerifyPlanningErrorCount(Item."No.", 0);
 
         LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
-    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
     procedure ItemCardMaximumQtyUsedWithMissingSKUPolicyItemCard()
     var
         Location: Record Location;
@@ -3698,11 +3686,6 @@ codeunit 137088 "SCM Order Planning - III"
         // [GIVEN] Create Sales Order with demand of 150 units at Location "L".
         CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 150, 150);
 
-        // [GIVEN] Expected planning warning message for Item Card policy.
-        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 1));
-        LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", Item."No.", Location.Code));
-
         // [WHEN] Calculate regenerative plan in planning worksheet.
         CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
 
@@ -3711,11 +3694,11 @@ codeunit 137088 "SCM Order Planning - III"
         ReqLine.SetRange("Location Code", Location.Code);
         ReqLine.FindFirst();
         Assert.AreEqual(500, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+        VerifyPlanningErrorCount(Item."No.", 0);
         LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
-    [HandlerFunctions('ExpectedErrorMessageHandler,ExpectedPlanningErrorLogModalPageHandler')]
     procedure ItemCardOrderPolicyUsedWithMissingSKUPolicyItemCard()
     var
         Location: Record Location;
@@ -3738,11 +3721,6 @@ codeunit 137088 "SCM Order Planning - III"
         // [GIVEN] Create Sales Order with demand of 75 units at Location "L".
         CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 75, 75);
 
-        // [GIVEN] Create Expected planning warning message for Item Card policy.
-        LibraryVariableStorage.Enqueue(StrSubstNo(NotAllItemsWerePlannedMsg, 1));
-        LibraryVariableStorage.Enqueue(1);
-        LibraryVariableStorage.Enqueue(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", Item."No.", Location.Code));
-
         // [WHEN] Calculate regenerative plan in planning worksheet.
         CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
 
@@ -3751,6 +3729,7 @@ codeunit 137088 "SCM Order Planning - III"
         ReqLine.SetRange("Location Code", Location.Code);
         ReqLine.FindFirst();
         Assert.AreEqual(75, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+        VerifyPlanningErrorCount(Item."No.", 0);
 
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -3819,6 +3798,77 @@ codeunit 137088 "SCM Order Planning - III"
         ReqLine.SetRange("Location Code", '');
         ReqLine.FindFirst();
         Assert.AreEqual(200, ReqLine.Quantity, RequisitionLineQuantityMismatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CapturePlanningFailureMessage,PlanningErrorLogModalPageHandler')]
+    procedure ItemCardMissingSKUReportsUncertifiedProductionBOM()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Planning] [Missing SKU]
+        // [SCENARIO] Item Card fallback preserves the actual production BOM certification error.
+        Initialize();
+
+        // [GIVEN] Item "I" has sales demand at location "L", no SKU, and an uncertified BOM "B".
+        CreateMissingSKUProductionDemand(Item, Location, ProductionBOMHeader, Location."Missing SKU Planning Policy"::"Item Card");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        // [WHEN] Calculate the plan with planning resiliency enabled.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] The certification error identifies "B", and no invalid planning line remains.
+        VerifyUncertifiedBOMPlanningFailure(Item, ProductionBOMHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure ItemCardMissingSKUPlansCertifiedProductionBOMWithoutErrors()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Planning] [Missing SKU]
+        // [SCENARIO] Item Card fallback plans a certified production BOM without a failure dialog or log.
+        Initialize();
+
+        // [GIVEN] Item "I" has sales demand of 50 at location "L", no SKU, and a certified BOM "B".
+        CreateMissingSKUProductionDemand(Item, Location, ProductionBOMHeader, Location."Missing SKU Planning Policy"::"Item Card");
+
+        // [WHEN] Calculate the plan with planning resiliency enabled.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] A production planning line covers demand using the item card and there are no planning errors.
+        VerifyCertifiedBOMPlanningSuccess(Item, Location);
+    end;
+
+    [Test]
+    [HandlerFunctions('CapturePlanningFailureMessage,PlanningErrorLogModalPageHandler')]
+    procedure MinimalMissingSKUReportsUncertifiedProductionBOM()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Planning] [Missing SKU]
+        // [SCENARIO] Minimal fallback continues to report the actual production BOM certification error.
+        Initialize();
+
+        // [GIVEN] Item "I" has sales demand at location "L", no SKU, and an uncertified BOM "B".
+        CreateMissingSKUProductionDemand(Item, Location, ProductionBOMHeader, Location."Missing SKU Planning Policy"::Minimal);
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        // [WHEN] Calculate the plan with planning resiliency enabled.
+        CalculateRegenerativePlanningWorksheet(Item, WorkDate(), WorkDate(), true, false);
+
+        // [THEN] The certification error identifies "B", and no invalid planning line remains.
+        VerifyUncertifiedBOMPlanningFailure(Item, ProductionBOMHeader);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -4683,6 +4733,64 @@ codeunit 137088 "SCM Order Planning - III"
         Location.Modify(true);
     end;
 
+    local procedure CreateMissingSKUProductionDemand(var Item: Record Item; var Location: Record Location; var ProductionBOMHeader: Record "Production BOM Header"; MissingSKUPlanningPolicy: Enum "Missing SKU Planning Policy")
+    var
+        ComponentItem: Record Item;
+        SalesHeader: Record "Sales Header";
+    begin
+        LibraryManufacturing.SetComponentsAtLocation('');
+        CreateLocationWithMissingSKUPlanningPolicy(Location, MissingSKUPlanningPolicy);
+        LibraryInventory.CreateItem(ComponentItem);
+        CreateAndCertifyProductionBOM(ProductionBOMHeader, ComponentItem, '', 1);
+        CreateItem(Item, Item."Replenishment System"::"Prod. Order", '', ProductionBOMHeader."No.");
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Modify(true);
+        CreateSalesOrder(SalesHeader, Item."No.", Location.Code, 50, 50);
+        Item.SetRange("No.", Item."No.");
+        Item.SetRange("Location Filter", Location.Code);
+    end;
+
+    local procedure VerifyUncertifiedBOMPlanningFailure(Item: Record Item; ProductionBOMHeader: Record "Production BOM Header")
+    var
+        PlanningErrorLog: Record "Planning Error Log";
+    begin
+        PlanningErrorLog.SetRange("Item No.", Item."No.");
+        Assert.RecordCount(PlanningErrorLog, 1);
+        PlanningErrorLog.FindFirst();
+        Assert.AreEqual(
+            StrSubstNo(ProdBOMMustBeCertifiedErr, ProductionBOMHeader.TableCaption(), ProductionBOMHeader.FieldCaption("No."), ProductionBOMHeader."No."),
+            PlanningErrorLog."Error Description", 'Planning must report the production BOM certification error.');
+        Assert.AreEqual(Database::"Production BOM Header", PlanningErrorLog."Table ID", 'The error must refer to the production BOM.');
+        Assert.AreEqual(ProductionBOMHeader.GetPosition(), PlanningErrorLog."Table Position", 'The error must identify the uncertified BOM.');
+        Assert.AreEqual(StrSubstNo(NotAllItemsWerePlannedMsg, 1), LibraryVariableStorage.DequeueText(), 'Only the item with the uncertified BOM must fail planning.');
+        VerifyRecordCountAndQuantityInRequisitionLine(Item."No.", 0, 0);
+    end;
+
+    local procedure VerifyCertifiedBOMPlanningSuccess(Item: Record Item; Location: Record Location)
+    var
+        RequisitionLine: Record "Requisition Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        StockkeepingUnit.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(StockkeepingUnit);
+        VerifyPlanningErrorCount(Item."No.", 0);
+        RequisitionLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(RequisitionLine, 1);
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(Location.Code, RequisitionLine."Location Code", 'Planning must use the demand location.');
+        Assert.AreEqual(RequisitionLine."Replenishment System"::"Prod. Order", RequisitionLine."Replenishment System", 'Planning must use production replenishment.');
+        Assert.AreEqual(Item."Production BOM No.", RequisitionLine."Production BOM No.", 'Planning must use the item BOM.');
+        Assert.AreEqual(50, RequisitionLine.Quantity, RequisitionLineQuantityMismatchErr);
+    end;
+
+    local procedure VerifyPlanningErrorCount(ItemNoFilter: Text; ExpectedRecordCount: Integer)
+    var
+        PlanningErrorLog: Record "Planning Error Log";
+    begin
+        PlanningErrorLog.SetFilter("Item No.", ItemNoFilter);
+        Assert.RecordCount(PlanningErrorLog, ExpectedRecordCount);
+    end;
+
     local procedure CreateMultipleItemWithReOrderPolicy(var Item: array[2] of Record Item; ReorderPoint: Integer; ReorderQuantity: Integer)
     begin
         LibraryInventory.CreateItem(Item[1]);
@@ -4865,6 +4973,12 @@ codeunit 137088 "SCM Order Planning - III"
     end;
 
     [MessageHandler]
+    procedure CapturePlanningFailureMessage(Message: Text[1024])
+    begin
+        LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    [MessageHandler]
     procedure ExpectedErrorMessageHandler(Message: Text[1024])
     begin
         Assert.IsTrue(StrPos(Message, LibraryVariableStorage.DequeueText()) > 0, StrSubstNo(UnexpectedMessageDialog, Message));
@@ -4891,4 +5005,3 @@ codeunit 137088 "SCM Order Planning - III"
         PlanningErrorLog.OK().Invoke();
     end;
 }
-
