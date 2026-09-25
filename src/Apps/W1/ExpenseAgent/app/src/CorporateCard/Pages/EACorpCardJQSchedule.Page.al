@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7229 "EA Corp Card JQ Schedule"
+page 7439 "EA Corp Card JQ Schedule"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Import Schedule';

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7225 "EA Corp Card MCC Map"
+page 7435 "EA Corp Card MCC Map"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card MCC Map';

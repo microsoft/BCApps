@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7223 "EA Corp Card Trans List"
+page 7433 "EA Corp Card Trans List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Transactions';

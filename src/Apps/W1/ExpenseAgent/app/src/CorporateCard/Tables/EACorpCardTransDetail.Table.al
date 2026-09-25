@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7219 "EA Corp Card Trans Detail"
+table 7429 "EA Corp Card Trans Detail"
 {
     Access = Internal;
     Caption = 'Corp Card Transaction Detail';

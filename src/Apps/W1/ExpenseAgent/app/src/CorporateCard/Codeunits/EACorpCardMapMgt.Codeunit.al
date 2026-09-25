@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using System.IO;
 using System.Utilities;
 
-codeunit 7227 "EA Corp Card Map Mgt"
+codeunit 7437 "EA Corp Card Map Mgt"
 {
     Access = Internal;
 

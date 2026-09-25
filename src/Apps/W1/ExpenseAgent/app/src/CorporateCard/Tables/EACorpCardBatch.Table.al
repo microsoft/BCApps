@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-table 7212 "EA Corp Card Batch"
+table 7422 "EA Corp Card Batch"
 {
     Caption = 'Corp Card Import Batch';
     DataClassification = CustomerContent;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7222 "EA Corp Card Exceptions"
+page 7432 "EA Corp Card Exceptions"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Exceptions';

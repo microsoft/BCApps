@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7221 "EA Corp Card Prov Reg"
+codeunit 7431 "EA Corp Card Prov Reg"
 {
     Access = Internal;
 

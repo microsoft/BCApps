@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using System.IO;
 using System.Threading;
 
-table 7216 "EA Corp Card Provider"
+table 7426 "EA Corp Card Provider"
 {
     Access = Internal;
     Caption = 'Corp Card Provider';

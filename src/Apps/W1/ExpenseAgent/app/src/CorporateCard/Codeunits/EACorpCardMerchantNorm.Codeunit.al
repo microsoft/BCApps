@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Applies merchant normalization rules to corporate card transactions.
 /// Normalizes raw merchant names using configured patterns and priority-based rules.
 /// </summary>
-codeunit 7210 "EA Corp Card Merchant Norm"
+codeunit 7420 "EA Corp Card Merchant Norm"
 {
     Access = Internal;
 

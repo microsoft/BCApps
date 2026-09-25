@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 
-codeunit 7225 "EA Corp Card Validate Mgt"
+codeunit 7435 "EA Corp Card Validate Mgt"
 {
     Access = Internal;
 

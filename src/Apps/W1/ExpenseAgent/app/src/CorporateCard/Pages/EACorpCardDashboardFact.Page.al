@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7231 "EA Corp Card Dashboard Fact"
+page 7441 "EA Corp Card Dashboard Fact"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Recent Import Batches';

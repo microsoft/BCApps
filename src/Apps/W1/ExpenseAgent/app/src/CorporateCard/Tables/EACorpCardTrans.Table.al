@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 
-table 7218 "EA Corp Card Trans"
+table 7428 "EA Corp Card Trans"
 {
     Caption = 'Corp Card Transaction';
     DataClassification = CustomerContent;

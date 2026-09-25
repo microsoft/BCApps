@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Job Queue runner for corporate card imports.
 /// Executes provider imports via Job Queue scheduler with error handling and telemetry.
 /// </summary>
-codeunit 7223 "EA Corp Card JQ Runner"
+codeunit 7433 "EA Corp Card JQ Runner"
 {
     Access = Internal;
 

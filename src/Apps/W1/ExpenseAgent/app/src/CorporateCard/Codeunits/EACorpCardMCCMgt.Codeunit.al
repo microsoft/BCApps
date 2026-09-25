@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// MCC code mapping and validation for corporate card transactions.
 /// Maps Merchant Category Codes to Expense Categories.
 /// </summary>
-codeunit 7217 "EA Corp Card MCC Mgt"
+codeunit 7427 "EA Corp Card MCC Mgt"
 {
     Access = Internal;
 

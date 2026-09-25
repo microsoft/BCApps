@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7213 "EA Corp Card Exception"
+table 7423 "EA Corp Card Exception"
 {
     Access = Internal;
     Caption = 'Corp Card Exception';

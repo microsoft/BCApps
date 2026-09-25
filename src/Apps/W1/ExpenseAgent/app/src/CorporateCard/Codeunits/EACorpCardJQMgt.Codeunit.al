@@ -10,7 +10,7 @@ using System.Threading;
 /// Manages Job Queue entry creation and scheduling for corporate card imports.
 /// Provides helper methods to schedule provider imports with configurable frequency.
 /// </summary>
-codeunit 7215 "EA Corp Card JQ Mgt"
+codeunit 7425 "EA Corp Card JQ Mgt"
 {
     Access = Internal;
 

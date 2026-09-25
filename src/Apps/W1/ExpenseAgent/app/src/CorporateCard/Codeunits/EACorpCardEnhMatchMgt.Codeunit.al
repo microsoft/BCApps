@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Enhanced matching for corporate card transactions.
 /// Provides receipt-based matching, fuzzy merchant matching, and match scoring.
 /// </summary>
-codeunit 7216 "EA Corp Card Enh. Match Mgt"
+codeunit 7426 "EA Corp Card Enh. Match Mgt"
 {
     Access = Internal;
 

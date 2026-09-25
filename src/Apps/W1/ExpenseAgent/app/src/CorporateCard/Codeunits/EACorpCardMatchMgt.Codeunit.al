@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Matches corporate card transactions to existing Expense records.
 /// Uses employee, date, and amount tolerance to find potential matches.
 /// </summary>
-codeunit 7211 "EA Corp Card Match Mgt"
+codeunit 7421 "EA Corp Card Match Mgt"
 {
     Access = Internal;
 

@@ -10,7 +10,7 @@ namespace Microsoft.ExpenseAgent;
 /// Note: Individual expenses transition to "Released" status, but actual approval 
 /// happens at the Expense Report level using the standard approval workflow.
 /// </summary>
-codeunit 7218 "EA Corp Card Approval Mgt"
+codeunit 7428 "EA Corp Card Approval Mgt"
 {
     Access = Internal;
 

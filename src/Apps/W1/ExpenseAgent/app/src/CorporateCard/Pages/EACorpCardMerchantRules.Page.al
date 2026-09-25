@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7227 "EA Corp Card Merchant Rules"
+page 7437 "EA Corp Card Merchant Rules"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Merchant Normalization Rules';

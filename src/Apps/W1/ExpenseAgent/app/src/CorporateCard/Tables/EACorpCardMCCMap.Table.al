@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.VAT.Setup;
 
-table 7214 "EA Corp Card MCC Map"
+table 7424 "EA Corp Card MCC Map"
 {
     Access = Internal;
     Caption = 'Corp Card MCC Map';

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7228 "EA Corp Card Dashboard"
+page 7438 "EA Corp Card Dashboard"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Import Dashboard';

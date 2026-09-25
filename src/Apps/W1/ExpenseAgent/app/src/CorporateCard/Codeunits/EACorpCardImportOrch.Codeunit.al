@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.IO;
 
-codeunit 7222 "EA Corp Card Import Orch"
+codeunit 7432 "EA Corp Card Import Orch"
 {
     Access = Internal;
     Permissions = tabledata "Data Exch." = d;

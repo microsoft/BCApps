@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7221 "EA Corp Card Cards"
+page 7431 "EA Corp Card Cards"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Cards';

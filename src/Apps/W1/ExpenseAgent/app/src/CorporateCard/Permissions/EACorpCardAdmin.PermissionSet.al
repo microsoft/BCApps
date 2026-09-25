@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-permissionset 7213 EACorpCardAdmin
+permissionset 7423 EACorpCardAdmin
 {
     Access = Internal;
     Assignable = false;

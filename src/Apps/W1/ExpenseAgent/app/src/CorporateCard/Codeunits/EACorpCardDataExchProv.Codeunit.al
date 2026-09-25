@@ -8,7 +8,7 @@ using System.IO;
 using System.Security.Encryption;
 using System.Utilities;
 
-codeunit 7224 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
+codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 {
     Access = Internal;
     Permissions = tabledata "Data Exch." = rimd,

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7224 "EA Corp Card Exception Type"
+enum 7434 "EA Corp Card Exception Type"
 {
     Access = Internal;
     Caption = 'Corp Card Exception Type';

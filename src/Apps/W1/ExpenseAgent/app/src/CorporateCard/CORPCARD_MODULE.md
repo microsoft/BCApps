@@ -37,7 +37,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Regex patterns applied to normalize merchant names                │
 │ - Rules sorted by priority, first match wins                        │
 │ - Normalized name + category stored for later use                   │
-│ - Codeunit: EACorpCardMerchantNorm (7210)                           │
+│ - Codeunit: EACorpCardMerchantNorm (7420)                           │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -46,7 +46,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Strategy 2: Fuzzy merchant name match via Levenshtein (70-85%)    │
 │ - Strategy 3: Employee-only match as fallback (score 50)            │
 │ - Match type & score stored; transaction status updated             │
-│ - Codeunit: EACorpCardEnhancedMatchMgt (7216)                       │
+│ - Codeunit: EACorpCardEnhancedMatchMgt (7426)                       │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -56,8 +56,8 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Level 3 detail rows can seed Expense VAT Specification lines      │
 │ - Persisted VAT spec lines rely on table autoincrement for Line No. │
 │ - Warns if Level 3 totals differ from transaction header amount     │
-│ - Codeunit: EACorpCardExpWriter (7212)                              │
-│ - MCC mapping to category: Codeunit EACorpCardMCCMgt (7217)         │
+│ - Codeunit: EACorpCardExpWriter (7422)                              │
+│ - MCC mapping to category: Codeunit EACorpCardMCCMgt (7427)         │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -65,7 +65,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Employee reviews drafts and existing expenses                     │
 │ - Creates/updates Expense Report via UI or EACorpCardReportMgt      │
 │ - Adds individual expenses to report                                │
-│ - Codeunit: EACorpCardReportMgt (7219)                              │
+│ - Codeunit: EACorpCardReportMgt (7429)                              │
 └─────────────────────────────────────────────────────────────────────┘
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -74,7 +74,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 │ - Manager approves via standard Expense Agent workflow              │
 │ - Report released to Posted status                                  │
 │ - GL postings created via platform ExpenseReportPost (6987)         │
-│ - Codeunit: EACorpCardApprovalMgt (7218)                            │
+│ - Codeunit: EACorpCardApprovalMgt (7428)                            │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -86,34 +86,34 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 
 | ID | Name | Purpose | Key Procedures |
 |----|------|---------|-----------------|
-| 7210 | EACorpCardMerchantNorm | Merchant name normalization via regex patterns | NormalizeTransaction, FindMatchingRule, PatternMatches |
-| 7211 | EACorpCardMatchMgt | Basic transaction matching (reference only) | MatchTransaction |
-| 7212 | EACorpCardExpWriter | Draft Expense creation from transactions | CreateDraftFromTrans, LinkPosted, GetExpenseCategoryFromMCC |
-| 7213 | EACorpCardPostImportOrch | Post-import orchestration pipeline | ProcessBatchPostImport |
-| 7214 | EACorpCardAuditSubscribers | Centralized telemetry logging | LogImportStarted/Completed/Failed, LogMatchingCompleted, LogDraftCreated, LogReportCreatedFromCorpCard, LogReportSubmittedForApproval, LogReportApprovedForPosting, LogReportRejected |
-| 7215 | EACorpCardJQMgt | Job Queue entry lifecycle management | ScheduleProviderImport, UnscheduleProviderImport, UpdateJobQueueFrequency |
-| 7216 | EACorpCardEnhancedMatchMgt | Multi-strategy matching with fuzzy algorithm | EnhancedMatchTransaction, CalculateSimilarity, LevenshteinDistance |
-| 7217 | EACorpCardMCCMgt | MCC validation and category mapping | ValidateAndMapMCC, GetExpenseCategoryForMCC, InitializeDefaultMCCMappings, IsValidMCC |
-| 7218 | EACorpCardApprovalMgt | Expense Report approval workflow | SubmitReportForApproval, ReleaseReportForPosting, RejectReport |
-| 7219 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
-| 7223 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
+| 7420 | EACorpCardMerchantNorm | Merchant name normalization via regex patterns | NormalizeTransaction, FindMatchingRule, PatternMatches |
+| 7421 | EACorpCardMatchMgt | Basic transaction matching (reference only) | MatchTransaction |
+| 7422 | EACorpCardExpWriter | Draft Expense creation from transactions | CreateDraftFromTrans, LinkPosted, GetExpenseCategoryFromMCC |
+| 7423 | EACorpCardPostImportOrch | Post-import orchestration pipeline | ProcessBatchPostImport |
+| 7424 | EACorpCardAuditSubscribers | Centralized telemetry logging | LogImportStarted/Completed/Failed, LogMatchingCompleted, LogDraftCreated, LogReportCreatedFromCorpCard, LogReportSubmittedForApproval, LogReportApprovedForPosting, LogReportRejected |
+| 7425 | EACorpCardJQMgt | Job Queue entry lifecycle management | ScheduleProviderImport, UnscheduleProviderImport, UpdateJobQueueFrequency |
+| 7426 | EACorpCardEnhancedMatchMgt | Multi-strategy matching with fuzzy algorithm | EnhancedMatchTransaction, CalculateSimilarity, LevenshteinDistance |
+| 7427 | EACorpCardMCCMgt | MCC validation and category mapping | ValidateAndMapMCC, GetExpenseCategoryForMCC, InitializeDefaultMCCMappings, IsValidMCC |
+| 7428 | EACorpCardApprovalMgt | Expense Report approval workflow | SubmitReportForApproval, ReleaseReportForPosting, RejectReport |
+| 7429 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
+| 7433 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
 
 ### Pages (13 total)
 
 | ID | Name | Type | Purpose |
 |----|------|------|----------|
-| 7220 | EACorpCardBatches | List | Import batch listing with transaction/exception drill-down |
-| 7221 | EACorpCardCards | List | Corporate card transaction list (import staging) |
-| 7222 | EACorpCardExceptions | List | Import exceptions with resolution tracking |
-| 7223 | EACorpCardTransList | List | Imported transaction listing with expense linking |
-| 7224 | EACorpCardProviders | List | Provider administration with scheduling actions |
-| 7225 | EACorpCardMCCMap | List | Merchant category code to expense category mapping |
-| 7227 | EACorpCardMerchantRules | List | Merchant name normalization regex pattern rules |
-| 7228 | EACorpCardDashboard | RoleCenter | Import reconciliation dashboard with navigation |
-| 7229 | EACorpCardJQSchedule | List+Card | Job Queue schedule management UI for providers |
-| 7235 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
-| 7231 | EACorpCardDashboardFactbox | ListPart | Recent import batches sorted chronologically |
-| 7232 | EACorpCardStatisticsFactbox | CardPart | KPI statistics (30-day rolling aggregation) |
+| 7430 | EACorpCardBatches | List | Import batch listing with transaction/exception drill-down |
+| 7431 | EACorpCardCards | List | Corporate card transaction list (import staging) |
+| 7432 | EACorpCardExceptions | List | Import exceptions with resolution tracking |
+| 7433 | EACorpCardTransList | List | Imported transaction listing with expense linking |
+| 7434 | EACorpCardProviders | List | Provider administration with scheduling actions |
+| 7435 | EACorpCardMCCMap | List | Merchant category code to expense category mapping |
+| 7437 | EACorpCardMerchantRules | List | Merchant name normalization regex pattern rules |
+| 7438 | EACorpCardDashboard | RoleCenter | Import reconciliation dashboard with navigation |
+| 7439 | EACorpCardJQSchedule | List+Card | Job Queue schedule management UI for providers |
+| 7445 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
+| 7441 | EACorpCardDashboardFactbox | ListPart | Recent import batches sorted chronologically |
+| 7442 | EACorpCardStatisticsFactbox | CardPart | KPI statistics (30-day rolling aggregation) |
 | 7099 | EACorpCardL3Details | List | Imported Level 3 VAT/tax detail lines per transaction |
 
 ### Tables (0 new)
@@ -392,16 +392,16 @@ A **"Corporate Card"** section is available in the main Expense Management Role 
 ```
 ExpenseManagementRoleCenter (6933)
 └── Corporate Card Group
-    ├─ Corp Card Dashboard (7228)
+    ├─ Corp Card Dashboard (7438)
     │  └─ Shows: Recent batches, statistics, import status
     │  └─ Actions: Providers, Transactions, Batches, Exceptions, Setup
-    ├─ Corp Card Providers (7224)
+    ├─ Corp Card Providers (7434)
     │  └─ Manage provider credentials & scheduling
     ├─ Corp Card Setup
     │  └─ Opens Expense Agent Setup (Corporate Card settings)
-    ├─ Merchant Normalization Rules (7227)
+    ├─ Merchant Normalization Rules (7437)
     │  └─ Create/edit regex patterns for merchant standardization
-    └─ MCC Code Mappings (7225)
+    └─ MCC Code Mappings (7435)
        └─ Map merchant category codes to expense categories
 ```
 
@@ -409,14 +409,14 @@ ExpenseManagementRoleCenter (6933)
 
 ### Dashboard Navigation
 
-The **EACorpCardDashboard** (RoleCenter 7228) provides drill-down navigation:
+The **EACorpCardDashboard** (RoleCenter 7438) provides drill-down navigation:
 
 | Navigation Area | Target | Purpose |
 |-----------------|--------|---------|
-| Providers | EACorpCardProviders (7224) | View/manage all providers |
-| Transactions | EACorpCardTransList (7223) | View imported transactions |
-| Batches | EACorpCardBatches (7220) | View import batches |
-| Exceptions | EACorpCardExceptions (7222) | View & resolve import errors |
+| Providers | EACorpCardProviders (7434) | View/manage all providers |
+| Transactions | EACorpCardTransList (7433) | View imported transactions |
+| Batches | EACorpCardBatches (7430) | View import batches |
+| Exceptions | EACorpCardExceptions (7432) | View & resolve import errors |
 | Setup | Expense Agent Setup (6996) | Configure import parameters |
 
 ### Employee Integration
@@ -434,9 +434,9 @@ Pages are interlinked with drill-down actions:
 
 | Page | Drill-Down Actions |
 |------|-------------------|
-| EACorpCardBatches (7220) | → Show Transactions, Run Matching |
-| EACorpCardTransList (7223) | → Open Matched Expense, Show Level 3 Details |
-| EACorpCardExceptions (7222) | → Mark Resolved, View Batch, View Transaction |
+| EACorpCardBatches (7430) | → Show Transactions, Run Matching |
+| EACorpCardTransList (7433) | → Open Matched Expense, Show Level 3 Details |
+| EACorpCardExceptions (7432) | → Mark Resolved, View Batch, View Transaction |
 
 ---
 
@@ -623,9 +623,9 @@ If values differ (rounded to 2 decimals), processing continues but a warning is 
 
 ## Object ID Allocation
 
-**Range:** [7210–7299] (90 IDs)  
-**Used in Sprint 3:** 7210-7219, 7223 (11 codeunits + 7 pages)
-**Available:** 7220-7222, 7225-7299 (78 IDs for future enhancements)
+**Ranges:** [7420–7449], [7458–7477] (50 IDs per object type)
+**Used:** 8 tables, 13 pages, 21 codeunits, 6 enums, and 3 permission sets
+**Available:** 42 tables, 37 pages, 29 codeunits, 44 enums, and 47 permission sets
 
 ---
 

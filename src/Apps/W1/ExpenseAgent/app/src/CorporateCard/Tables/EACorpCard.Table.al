@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 
-table 7211 "EA Corp Card"
+table 7421 "EA Corp Card"
 {
     Access = Internal;
     Caption = 'Corp Card';

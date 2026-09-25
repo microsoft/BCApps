@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Orchestrates post-import processing: merchant normalization, matching, and draft creation.
 /// Runs after corporate card transactions are imported into staging.
 /// </summary>
-codeunit 7213 "EA Corp Card Post Import Orch"
+codeunit 7423 "EA Corp Card Post Import Orch"
 {
     Access = Internal;
 
