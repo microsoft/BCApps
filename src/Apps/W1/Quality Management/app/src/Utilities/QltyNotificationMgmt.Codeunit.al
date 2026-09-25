@@ -21,11 +21,10 @@ codeunit 20437 "Qlty. Notification Mgmt."
     Permissions = tabledata "Qlty. Inspection Header" = r;
 
     var
-        AssignToSelfLbl: Label 'Assign to myself';
+        AssignToSelfLbl: Label 'Assign to me';
         OpenTheDocumentLbl: Label 'Open the document';
         HandleNotificationActionAssignToSelfTok: Label 'HandleNotificationActionAssignToSelf', Locked = true;
         HandleOpenDocumentTok: Label 'HandleOpenDocument', Locked = true;
-        IgnoreLbl: Label 'Ignore';
         HandleNotificationActionIgnoreTok: Label 'HandleNotificationActionIgnore', Locked = true;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
@@ -176,7 +175,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
             exit;
 
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
-        AvailableOptions.Add(IgnoreLbl, HandleNotificationActionIgnoreTok);
+        AvailableOptions.Add(DontShowAgainLbl, HandleNotificationActionIgnoreTok);
         AssignToSelfNotification.Id := GetAssignToYourselfNotificationId();
         AssignToSelfNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
         CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), AvailableOptions);
@@ -553,22 +552,6 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
-    /// Prevents automatic assignment for the inspection referenced by the notification.
-    /// </summary>
-    /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        InspectionRecordId: RecordId;
-        RecordIdData: Text;
-    begin
-        RecordIdData := NotificationToShow.GetData(NotificationDataInspectionRecordIdTok);
-        if Evaluate(InspectionRecordId, RecordIdData) then
-            if QltyInspectionHeader.Get(InspectionRecordId) then
-                QltyInspectionHeader.SetPreventAutoAssignment(true);
-    end;
-
-    /// <summary>
     /// Creates a notification that the tracking state has changed.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection associated with the tracking information.</param>
@@ -743,6 +726,20 @@ codeunit 20437 "Qlty. Notification Mgmt."
     begin
         InitializeInspectionCreatedNotification();
         MyNotifications.Disable(GetInspectionCreatedNotificationId());
+    end;
+
+    /// <summary>
+    /// Disables the "Assign to yourself" notification for the current user so the assign-to-yourself
+    /// prompt no longer appears, matching the standard "Don't show again" opt-out pattern.
+    /// Procedure name must match HandleNotificationActionIgnoreTok.
+    /// </summary>
+    /// <param name="NotificationToShow">The notification that triggered the action.</param>
+    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        InitializeAssignToYourselfNotification();
+        MyNotifications.Disable(GetAssignToYourselfNotificationId());
     end;
 
     # region Event Subscribers
