@@ -69,16 +69,15 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
     end;
 
     [TryFunction]
+    [NonDebuggable]
     local procedure TryGetContainerPassword(var Password: SecretText)
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        LibraryAzureKVMockMgmt: Codeunit "Library - Azure KV Mock Mgmt.";
+        MockAzureKeyvaultSecretProvider: DotNet MockAzureKeyVaultSecretProvider;
     begin
-        LibraryAzureKVMockMgmt.InitMockAzureKeyvaultSecretProvider();
-        LibraryAzureKVMockMgmt.AddMockAzureKeyvaultSecretProviderMappingFromFile(NavServerUserPasswordKeyTok, ApiTestPasswordFileTok);
-        LibraryAzureKVMockMgmt.UseAzureKeyvaultSecretProvider();
-        if not AzureKeyVault.GetAzureKeyVaultSecret(NavServerUserPasswordKeyTok, Password) then
-            Error(PasswordRetrievalFailedErr);
+        // Read through a private provider without replacing the session's Azure Key Vault provider or cache.
+        MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
+        MockAzureKeyvaultSecretProvider.AddSecretMappingFromFile(NavServerUserPasswordKeyTok, ApiTestPasswordFileTok);
+        Password := MockAzureKeyvaultSecretProvider.GetSecret(NavServerUserPasswordKeyTok);
         if Password.IsEmpty() then
             Error(PasswordRetrievalFailedErr);
     end;

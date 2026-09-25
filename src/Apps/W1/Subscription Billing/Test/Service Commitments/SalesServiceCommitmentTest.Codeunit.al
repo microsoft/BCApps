@@ -2172,6 +2172,52 @@ codeunit 139915 "Sales Service Commitment Test"
         ServiceCommitment.TestField("Subscription Line End Date", 0D);
     end;
 
+    [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    procedure TestTransferSalesServiceCommitmentsOnExplodeBOMForFCYCustomer()
+    var
+        Item2: Record Item;
+        Currency2: Record Currency;
+    begin
+        // [SCENARIO 649784] Exploding an Assembly BOM on a sales order for a foreign-currency
+        // customer creates the Sales Subscription Line without a "Sales Line does not exist" error.
+
+        // [GIVEN] An Assembly item with a sales service commitment BOM component
+        Initialize();
+
+        LibraryAssembly.CreateItem(Item2, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithSalesServiceCommitments(Item2."No.");
+
+        // [GIVEN] A foreign currency with an exchange rate
+        LibraryERM.CreateCurrency(Currency2);
+        LibraryERM.CreateRandomExchangeRate(Currency2.Code);
+
+        // [GIVEN] A customer using the foreign currency
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Currency Code", Currency2.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] A sales order for the foreign-currency customer
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [GIVEN] The Assembly item is added to the sales order
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item2."No.", WorkDate(), LibraryRandom.RandInt(100));
+
+        // [WHEN] The BOM is exploded
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+
+        // [THEN] The BOM component Sales Line is created
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        SalesLine.SetRange("No.", Item."No.");
+        SalesLine.FindLast();
+
+        // [THEN] A Sales Subscription Line is created for the BOM component
+        SalesLine.CalcFields("Subscription Lines");
+        SalesLine.TestField("Subscription Lines");
+    end;
+
     #endregion Tests
 
     #region Procedures
