@@ -58,20 +58,6 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.UpdateQuantities(FSBookableResourceBooking, ServiceLine);
     end;
 
-    procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
-    var
-        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
-    begin
-        exit(FSIntTableSubscriber.GetCustomerAssetConversion(ItemIsManaged));
-    end;
-
-    procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
-    var
-        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
-    begin
-        FSIntTableSubscriber.HandleOnBeforeIsFieldModified(SourceFieldRef, DestinationFieldRef, Result, IsHandled);
-    end;
-
     procedure IgnorePostedJobJournalLinesOnQueryPostFilterIgnoreRecord(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";

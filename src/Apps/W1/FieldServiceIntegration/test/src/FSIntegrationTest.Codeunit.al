@@ -1582,6 +1582,7 @@ codeunit 139204 "FS Integration Test"
     var
         Item: Record Item;
         CRMProduct: Record "CRM Product";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
         IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
@@ -1592,12 +1593,15 @@ codeunit 139204 "FS Integration Test"
         LibraryCRMIntegration.CreateCRMConnectionSetup('', '@@test@@', true);
         InitSetup(true, '');
 
-        // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes.
+        // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes and the existing mapping has no conversion rule.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
         LibraryCRMIntegration.CreateCoupledItemAndProduct(Item, CRMProduct);
         CRMProduct.ConvertToCustomerAsset := true;
         CRMProduct.Modify();
 
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        IntegrationFieldMapping.DeleteAll();
         IntegrationTableMapping.Get('ITEM-PRODUCT');
 
         // [WHEN] The item is synchronized to the Field Service product.
@@ -1609,75 +1613,28 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure CustomerAssetConversionReflectsItemManagement()
-    begin
-        // [FEATURE] [Item-Product Mapping]
-        // [SCENARIO] Customer asset conversion is disabled only for items managed through synchronization.
-
-        // [WHEN] An item is not managed through synchronization.
-        // [THEN] Native Field Service customer asset conversion remains enabled.
-        Assert.IsTrue(FSIntegrationTestLibrary.GetCustomerAssetConversion(false), 'An unmanaged item should allow customer asset conversion.');
-
-        // [WHEN] An item is managed through synchronization.
-        // [THEN] Native Field Service customer asset conversion is disabled.
-        Assert.IsFalse(FSIntegrationTestLibrary.GetCustomerAssetConversion(true), 'A managed item should disable customer asset conversion.');
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure ItemProductComparisonIgnoredWhenFieldServiceIsDisabled()
-    var
-        Item: Record Item;
-        CRMProduct: Record "CRM Product";
-        SourceRecordRef: RecordRef;
-        DestinationRecordRef: RecordRef;
-        SourceFieldRef: FieldRef;
-        DestinationFieldRef: FieldRef;
-        Result: Boolean;
-        IsHandled: Boolean;
-    begin
-        // [FEATURE] [Item-Product Mapping]
-        // [SCENARIO] Field Service does not handle synchronization comparisons while its integration is disabled.
-        ResetFSEnvironment();
-
-        // [GIVEN] The fields used to derive customer asset conversion and no Field Service connection setup.
-        SourceRecordRef.GetTable(Item);
-        SourceFieldRef := SourceRecordRef.Field(Item.FieldNo("Coupled to Dataverse"));
-        DestinationRecordRef.GetTable(CRMProduct);
-        DestinationFieldRef := DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset));
-
-        // [WHEN] The synchronization engine compares those fields.
-        FSIntegrationTestLibrary.HandleOnBeforeIsFieldModified(SourceFieldRef, DestinationFieldRef, Result, IsHandled);
-
-        // [THEN] Field Service leaves the comparison to the synchronization engine.
-        Assert.IsFalse(IsHandled, 'Field Service should not handle synchronization comparisons while its integration is disabled.');
-    end;
-
-    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure ItemProductMappingDisablesCustomerAssetConversion()
     var
-        Item: Record Item;
         CRMProduct: Record "CRM Product";
         IntegrationFieldMapping: Record "Integration Field Mapping";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
     begin
         // [FEATURE] [Item-Product Mapping]
-        // [SCENARIO] The item-product mapping derives native Field Service customer asset creation from item management.
+        // [SCENARIO] The item-product mapping always disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
 
         // [WHEN] The default item-product mapping is reset.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
 
-        // [THEN] Convert to Customer Asset is mapped from the item's Dataverse coupling state in the outbound direction.
+        // [THEN] Convert to Customer Asset is mapped to constant false in the outbound direction.
         IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
         IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
         Assert.IsTrue(IntegrationFieldMapping.FindFirst(), 'The Convert to Customer Asset mapping should exist.');
-        Assert.AreEqual(Item.FieldNo("Coupled to Dataverse"), IntegrationFieldMapping."Field No.", 'The mapping should use the item coupling state.');
+        Assert.AreEqual(0, IntegrationFieldMapping."Field No.", 'The mapping should use a constant value.');
         Assert.AreEqual(IntegrationFieldMapping.Direction::ToIntegrationTable, IntegrationFieldMapping.Direction, 'The mapping should be outbound.');
-        Assert.AreEqual('', IntegrationFieldMapping."Constant Value", 'The mapping should not use a constant value.');
+        Assert.AreEqual('false', IntegrationFieldMapping."Constant Value", 'The mapping should disable Convert to Customer Asset.');
     end;
 
     local procedure Initialize()
@@ -2015,4 +1972,3 @@ codeunit 139204 "FS Integration Test"
         InventorySetup.Modify(true);
     end;
 }
-

@@ -290,6 +290,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         FSWorkOrderProduct: Record "FS Work Order Product";
         FSWorkOrderService: Record "FS Work Order Service";
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
+        CRMProduct: Record "CRM Product";
         ServiceLine: Record "Service Line";
         SourceDestCode: Text;
     begin
@@ -299,6 +300,17 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                begin
+                    if DestinationIsInserted then
+                        DestinationRecordRef.LoadFields(CRMProduct.FieldNo(ConvertToCustomerAsset));
+                    DestinationRecordRef.SetTable(CRMProduct);
+                    if CRMProduct.ConvertToCustomerAsset then begin
+                        CRMProduct.ConvertToCustomerAsset := false;
+                        AdditionalFieldsWereModified := true;
+                        DestinationRecordRef.GetTable(CRMProduct);
+                    end;
+                end;
             'FS Work Order Product-Service Line':
                 begin
                     SourceRecordRef.SetTable(FSWorkOrderProduct);
@@ -358,35 +370,6 @@ codeunit 6610 "FS Int. Table Subscriber"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnBeforeIsFieldModified', '', true, false)]
-    local procedure OnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        HandleOnBeforeIsFieldModified(SourceFieldRef, DestinationFieldRef, Result, IsHandled);
-    end;
-
-    internal procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
-    var
-        FSConnectionSetup: Record "FS Connection Setup";
-        CRMProduct: Record "CRM Product";
-        ExistingCRMProduct: Record "CRM Product";
-        DestinationRecordRef: RecordRef;
-        ItemIsManaged: Boolean;
-    begin
-        if not FSConnectionSetup.IsEnabled() then
-            exit;
-
-        if not IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then
-            exit;
-
-        ItemIsManaged := SourceFieldRef.Value();
-        DestinationRecordRef := DestinationFieldRef.Record();
-        DestinationRecordRef.SetTable(CRMProduct);
-        ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
-        ExistingCRMProduct.Get(CRMProduct.ProductId);
-        Result := ExistingCRMProduct.ConvertToCustomerAsset <> GetCustomerAssetConversion(ItemIsManaged);
-        IsHandled := true;
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnTransferFieldData', '', true, false)]
     local procedure OnTransferFieldData(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef; var NewValue: Variant; var IsValueFound: Boolean; var NeedsConversion: Boolean)
     var
@@ -409,7 +392,6 @@ codeunit 6610 "FS Int. Table Subscriber"
         QuantityToTransferToInvoice: Decimal;
         QuantityCurrentlyConsumed: Decimal;
         QuantityCurrentlyInvoiced: Decimal;
-        ItemIsManaged: Boolean;
         NotCoupledCRMUomErr: Label 'The unit is not coupled to a unit of measure.';
     begin
         if not FSConnectionSetup.IsEnabled() then
@@ -421,14 +403,6 @@ codeunit 6610 "FS Int. Table Subscriber"
         if SourceFieldRef.Number() = DestinationFieldRef.Number() then
             if SourceFieldRef.Record().Number() = DestinationFieldRef.Record().Number() then
                 exit;
-
-        if IsItemCouplingToCustomerAssetConversion(SourceFieldRef, DestinationFieldRef) then begin
-            ItemIsManaged := SourceFieldRef.Value();
-            NewValue := GetCustomerAssetConversion(ItemIsManaged);
-            IsValueFound := true;
-            NeedsConversion := false;
-            exit;
-        end;
 
         if (SourceFieldRef.Record().Number = Database::"Service Header") and
             (DestinationFieldRef.Record().Number = Database::"FS Work Order") then
@@ -708,23 +682,6 @@ codeunit 6610 "FS Int. Table Subscriber"
             MaxQuantity := Quantity3;
 
         exit(MaxQuantity);
-    end;
-
-    local procedure IsItemCouplingToCustomerAssetConversion(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef): Boolean
-    var
-        Item: Record Item;
-        CRMProduct: Record "CRM Product";
-    begin
-        exit(
-            (SourceFieldRef.Record().Number() = Database::Item) and
-            (SourceFieldRef.Number() = Item.FieldNo("Coupled to Dataverse")) and
-            (DestinationFieldRef.Record().Number() = Database::"CRM Product") and
-            (DestinationFieldRef.Number() = CRMProduct.FieldNo(ConvertToCustomerAsset)));
-    end;
-
-    internal procedure GetCustomerAssetConversion(ItemIsManaged: Boolean): Boolean
-    begin
-        exit(not ItemIsManaged);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Int. Table. Subscriber", 'OnFindNewValueForCoupledRecordPK', '', true, false)]
@@ -1517,13 +1474,13 @@ codeunit 6610 "FS Int. Table Subscriber"
           IntegrationFieldMapping.Direction::ToIntegrationTable,
           '', false, false);
 
-        // Coupled Business Central items are managed by Field Service customer assets.
+        // Business Central service items are the source for Field Service customer assets.
         Sender.InsertIntegrationFieldMapping(
             IntegrationTableMappingName,
-            Item.FieldNo("Coupled to Dataverse"),
+            0,
             CRMProduct.FieldNo(ConvertToCustomerAsset),
             IntegrationFieldMapping.Direction::ToIntegrationTable,
-            '', false, false);
+            'false', false, false);
     end;
 
     local procedure UpdateCorrelatedJobJournalLine(var SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
