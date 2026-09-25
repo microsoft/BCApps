@@ -1363,6 +1363,33 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure RejectOrderActionReachableOnInboundSalesOrderDraft()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        EDocumentSalesDraft: TestPage "E-Document Sales Draft";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Reject Order is reachable on the sales order draft page a seller opens for an inbound order.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-standard.xml', TempEDocImportParameters);
+        EDocument.Get(EDocument."Entry No");
+        EDocument."Document Type" := "E-Document Type"::"Sales Order";
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+
+        EDocumentSalesDraft.Trap();
+        EDocumentHelper.OpenDraftPage(EDocument);
+
+        Assert.IsTrue(EDocumentSalesDraft.RejectOrder.Visible(), 'Reject Order should be reachable on the inbound sales order draft page.');
+        EDocumentSalesDraft.Close();
+    end;
+
+    [Test]
     procedure FinishDraftSalesOrder_CanBeUndone()
     var
         EDocument: Record "E-Document";
