@@ -160,13 +160,13 @@ codeunit 139061 "Office Line Generation Test"
         TempOfficeSuggestedLineItem.Insert();
     end;
 
-    local procedure StartAggregateUpdateCount(DocumentNo: Code[20])
+    internal procedure StartAggregateUpdateCount(DocumentNo: Code[20])
     begin
         AggregateDocumentNo := DocumentNo;
         AggregateUpdateCount := 0;
     end;
 
-    local procedure GetAggregateUpdateCount(): Integer
+    internal procedure GetAggregateUpdateCount(): Integer
     begin
         exit(AggregateUpdateCount);
     end;
