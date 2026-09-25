@@ -66,7 +66,6 @@ codeunit 113 "Vend. Entry-Edit"
         OnBeforeVendLedgEntryModify(VendLedgEntry, Rec);
         VendLedgEntry.TestField("Entry No.", Rec."Entry No.");
         VendLedgEntry.Modify();
-        UpdatePurchInvHeader(VendLedgEntry);
         OnRunOnAfterVendLedgEntryModify(Rec, VendLedgEntry);
 #if not CLEAN29
         OnRunOnAfterVendLedgEntryMofidy(VendLedgEntry);
