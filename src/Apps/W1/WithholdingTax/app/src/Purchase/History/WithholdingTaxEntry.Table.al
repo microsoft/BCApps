@@ -430,6 +430,7 @@ table 6788 "Withholding Tax Entry"
         {
             Caption = 'Taxable Base Amount';
             AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
             Editable = false;
         }
         field(28101; "Pymt. Disc. Diff. Base"; Decimal)

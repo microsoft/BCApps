@@ -320,4 +320,75 @@ codeunit 139604 "Shpfy Product Mapping Test"
         // [THEN] The facade returns the product's URL
         LibraryAssert.AreEqual(ProductUrlTok, ActualUrl, 'The facade should return the Shopify product URL for the item.');
     end;
+
+    [Test]
+    procedure ShowProductActionDisabledWhenVariantMissingOnItemCard()
+    var
+        Item: Record Item;
+        ItemCard: TestPage "Item Card";
+    begin
+        // [SCENARIO] A mapped product has no Shopify variant linked to the item.
+        CreateMappedProductWithoutVariant(Item);
+
+        // [WHEN] The item card is opened.
+        ItemCard.OpenEdit();
+        ItemCard.GoToRecord(Item);
+
+        // [THEN] The action to show the product in Shopify is disabled.
+        LibraryAssert.IsFalse(ItemCard."Show product in Shopify".Enabled(), 'The action should be disabled when no Shopify variant is linked to the item.');
+    end;
+
+    [Test]
+    procedure ShowProductActionDisabledWhenVariantMissingOnItemList()
+    var
+        Item: Record Item;
+        ItemList: TestPage "Item List";
+    begin
+        // [SCENARIO] A mapped product has no Shopify variant linked to the item.
+        CreateMappedProductWithoutVariant(Item);
+
+        // [WHEN] The item list is opened.
+        ItemList.OpenView();
+        ItemList.GoToRecord(Item);
+
+        // [THEN] The action to show the product in Shopify is disabled.
+        LibraryAssert.IsFalse(ItemList."Show product in Shopify".Enabled(), 'The action should be disabled when no Shopify variant is linked to the item.');
+    end;
+
+    [Test]
+    procedure GetProductsOverviewShowsClearErrorWhenVariantMissing()
+    var
+        Item: Record Item;
+        ShopifyVariant: Record "Shpfy Variant";
+        ShopifyProductMgt: Codeunit "Shpfy Product";
+    begin
+        // [SCENARIO] Product navigation starts after the linked Shopify variant has been deleted.
+        CreateMappedProductWithoutVariant(Item);
+        ShopifyVariant.SetRange("Item SystemId", Item.SystemId);
+
+        // [WHEN] The product overview is requested.
+        asserterror ShopifyProductMgt.GetProductsOverview(ShopifyVariant);
+
+        // [THEN] A clear mapping error is shown.
+        LibraryAssert.ExpectedError('No Shopify product variant is linked to this item. Synchronize products with Shopify, refresh the page, and try again.');
+    end;
+
+    local procedure CreateMappedProductWithoutVariant(var Item: Record Item)
+    var
+        Shop: Record "Shpfy Shop";
+        ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        Shop := InitializeTest.CreateShop();
+        Item := ProductInitTest.CreateItem();
+        ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+        ShopifyProduct.Get(ShopifyVariant."Product Id");
+        ShopifyProduct."Item SystemId" := Item.SystemId;
+        ShopifyProduct.Modify();
+        ShopifyVariant."Item SystemId" := Item.SystemId;
+        ShopifyVariant.Modify();
+        ShopifyVariant.Delete();
+    end;
 }

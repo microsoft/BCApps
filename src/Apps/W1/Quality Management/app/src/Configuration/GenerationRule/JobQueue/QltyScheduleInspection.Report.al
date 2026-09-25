@@ -123,9 +123,9 @@ report 20412 "Qlty. Schedule Inspection"
     end;
 
     /// <summary>
-    /// This will use the generation rule, and create inspections that match the records found with that rule.
+    /// Creates or matches inspections for records selected by an enabled, schedulable generation rule.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
+    /// <param name="QltyInspectionGenRule">The generation rule that selects the source records and inspection template.</param>
     procedure CreateInspectionsThatMatchRule(QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyJobQueueManagement: Codeunit "Qlty. Job Queue Management";
@@ -143,6 +143,10 @@ report 20412 "Qlty. Schedule Inspection"
         CreateInspectionsPerSourceConfigFilter(QltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Creates inspections for source records that satisfy each enabled source configuration filter for the generation rule.
+    /// </summary>
+    /// <param name="QltyInspectionGenRule">The generation rule whose source table and condition filter select records.</param>
     local procedure CreateInspectionsPerSourceConfigFilter(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";

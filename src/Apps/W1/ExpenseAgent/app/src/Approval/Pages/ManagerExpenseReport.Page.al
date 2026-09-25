@@ -205,6 +205,14 @@ page 6980 "Manager Expense Report"
                 SubPageLink = "Expense Report No." = field("Document No."), "Report Line No." = field("Line No.");
                 Visible = Rec."No." <> '';
             }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'History';
+                SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
+                Visible = Rec."No." <> '';
+            }
             part("Expense Picture"; "Expense Picture")
             {
                 ApplicationArea = Basic, Suite;
@@ -495,7 +503,7 @@ page 6980 "Manager Expense Report"
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
+            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
             if not UserSetup."Unlimited Expense Approval" then begin
                 CheckSetDefaultOwnerFilter();
                 ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();

@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
@@ -21,6 +22,8 @@ codeunit 139630 "E-Doc. Impl. State"
         PurchDocTestBuffer: Codeunit "E-Doc. Test Buffer";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         EnableOnCheck, DisableOnCreateOutput, DisableOnCreateBatch, IsAsync2, EnableHttpData, ThrowIntegrationRuntimeError, ThrowIntegrationLoggedError : Boolean;
+        ThrowPaymentOccurrenceProcessingError: Boolean;
+        EnableSourceDocumentHeaderCapture: Boolean;
         ThrowRuntimeError, ThrowLoggedError, ThrowBasicInfoError, ThrowCompleteInfoError, OnGetResponseSuccess, ActionHasUpdate : Boolean;
 #if not CLEAN26
         OnGetApprovalSuccess: Boolean;
@@ -32,6 +35,13 @@ codeunit 139630 "E-Doc. Impl. State"
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")
     begin
         LibraryVariableStorage.Enqueue(EDocument);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Payment Occurrence Mgt.", 'OnAfterCreatePaymentOccurrence', '', false, false)]
+    local procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        if ThrowPaymentOccurrenceProcessingError then
+            Error('TEST PAYMENT OCCURRENCE PROCESSING');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnBeforeCreateEDocument', '', false, false)]
@@ -67,6 +77,9 @@ codeunit 139630 "E-Doc. Impl. State"
             Error('TEST');
         if ThrowLoggedError then
             EDocErrorHelper.LogErrorMessage(EDocument, EDocService, EDocService.FieldNo("Auto Import"), 'TEST');
+
+        if EnableSourceDocumentHeaderCapture then
+            LibraryVariableStorage.Enqueue(SourceDocumentHeader);
 
         if not DisableOnCreateOutput then begin
             TempBlob.CreateOutStream(OutStream);
@@ -180,12 +193,6 @@ codeunit 139630 "E-Doc. Impl. State"
         IsAsync := IsAsync2;
         HttpResponse := LocalHttpResponse;
 
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-
         if EnableHttpData then begin
             HttpRequest.SetRequestUri('http://cronus.test');
             HttpRequest.Method := 'POST';
@@ -194,6 +201,12 @@ codeunit 139630 "E-Doc. Impl. State"
             HttpResponse.Content.WriteFrom('Test response');
             HttpResponse.Headers.Add('Accept', '*');
         end;
+
+        if ThrowIntegrationRuntimeError then
+            Error('TEST');
+
+        if ThrowIntegrationLoggedError then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
 
     end;
 
@@ -229,12 +242,6 @@ codeunit 139630 "E-Doc. Impl. State"
         Success := OnGetResponseSuccess;
         HttpResponse := LocalHttpResponse;
 
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-
         if EnableHttpData then begin
             HttpRequest.SetRequestUri('http://cronus.test');
             HttpRequest.Method := 'POST';
@@ -243,6 +250,12 @@ codeunit 139630 "E-Doc. Impl. State"
             HttpResponse.Content.WriteFrom('Test response');
             HttpResponse.Headers.Add('Accept', '*');
         end;
+
+        if ThrowIntegrationRuntimeError then
+            Error('TEST');
+
+        if ThrowIntegrationLoggedError then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock V2", OnReceiveDocuments, '', false, false)]
@@ -451,6 +464,11 @@ codeunit 139630 "E-Doc. Impl. State"
         EnableOnCheck := true;
     end;
 
+    internal procedure EnableSourceDocumentHeaderCaptureEvent()
+    begin
+        EnableSourceDocumentHeaderCapture := true;
+    end;
+
     internal procedure SetThrowRuntimeError()
     begin
         ThrowRuntimeError := true;
@@ -479,6 +497,11 @@ codeunit 139630 "E-Doc. Impl. State"
     internal procedure SetThrowIntegrationRuntimeError()
     begin
         ThrowIntegrationRuntimeError := true;
+    end;
+
+    internal procedure SetThrowPaymentOccurrenceProcessingError()
+    begin
+        ThrowPaymentOccurrenceProcessingError := true;
     end;
 
     internal procedure SetHttpResponse(HttpResponse: HttpResponseMessage)

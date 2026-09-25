@@ -151,7 +151,13 @@ pageextension 18770 "Journal Voucher" extends "Journal Voucher"
     local procedure UpdateTaxAmount()
     var
         CalculateTax: Codeunit "Calculate Tax";
+        IsHandled: Boolean;
     begin
+        CalculateTax.RunOnBeforeUpdateTaxAmountOnGenJnlLine(Rec, xRec, IsHandled);
+        if IsHandled then
+            exit;
+
+        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

@@ -154,6 +154,13 @@ table 6911 "Expense Report Line Item"
         Rec.TestField("Expense Subcategory Code");
 
         UpdateExpenseReportLineInformation(Rec."Expense Report No.", Rec."Expense Report Line No.");
+
+        InvalidateParentPolicy();
+    end;
+
+    trigger OnModify()
+    begin
+        InvalidateParentPolicy();
     end;
 
     trigger OnDelete()
@@ -161,11 +168,21 @@ table 6911 "Expense Report Line Item"
         TestStatusOpenOfExpenseReport();
 
         UpdateItemizationInformationOnExpenseReportLine(true);
+
+        InvalidateParentPolicy();
     end;
 
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHelper: Codeunit "Expense Report";
+
+    local procedure InvalidateParentPolicy()
+    var
+        ParentExpenseReportLine: Record "Expense Report Line";
+    begin
+        if ParentExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then
+            ParentExpenseReportLine.InvalidatePolicyEvaluation();
+    end;
 
     local procedure UpdateExpenseReportLineInformation(ExpenseReportNo: Code[20]; ExpenseReportLineNo: Integer)
     begin

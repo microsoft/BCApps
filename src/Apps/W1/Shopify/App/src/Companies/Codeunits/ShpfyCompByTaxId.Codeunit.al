@@ -14,7 +14,7 @@ codeunit 30398 "Shpfy Comp. By Tax Id" implements "Shpfy ICompany Mapping", "Shp
 {
     Access = Internal;
 
-    internal procedure DoMapping(CompanyId: BigInteger; ShopCode: Code[20]; TemplateCode: Code[20]; AllowCreate: Boolean): Code[20]
+    procedure DoMapping(CompanyId: BigInteger; ShopCode: Code[20]; TemplateCode: Code[20]; AllowCreate: Boolean): Code[20]
     var
         ShopifyCompany: Record "Shpfy Company";
     begin
@@ -32,7 +32,7 @@ codeunit 30398 "Shpfy Comp. By Tax Id" implements "Shpfy ICompany Mapping", "Shp
             exit(CreateCompany(CompanyId, ShopCode, TemplateCode, AllowCreate));
     end;
 
-    internal procedure FindMapping(var ShopifyCompany: Record "Shpfy Company"; var TempShopifyCustomer: Record "Shpfy Customer" temporary): Boolean
+    procedure FindMapping(var ShopifyCompany: Record "Shpfy Company"; var TempShopifyCustomer: Record "Shpfy Customer" temporary): Boolean
     var
         Customer: Record Customer;
         CompanyLocation: Record "Shpfy Company Location";
