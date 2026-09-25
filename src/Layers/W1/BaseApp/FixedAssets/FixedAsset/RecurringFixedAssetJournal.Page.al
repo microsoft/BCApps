@@ -9,7 +9,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.Foundation.Reporting;
 using System.Automation;
-using System.Privacy;
 
 page 5634 "Recurring Fixed Asset Journal"
 {
