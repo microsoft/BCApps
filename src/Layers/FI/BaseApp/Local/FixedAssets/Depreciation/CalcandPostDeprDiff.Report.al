@@ -13,7 +13,7 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
 
-#if not CLEANSCHEMA32
+#if not CLEAN32
 #pragma warning disable AL0432
 report 13402 "Calc. and Post Depr. Diff."
 {
