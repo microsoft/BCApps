@@ -533,7 +533,7 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
 
         // [THEN] An error explains that a next approver must be configured for "A1".
-        Assert.ExpectedError(StrSubstNo(ApproverRequiredErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit"), Approver."No."));
+        Assert.ExpectedError(StrSubstNo(ApproverRequiredErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit (LCY)"), Approver."No."));
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -589,7 +589,7 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
 
         // [THEN] An error explains that the report exceeds "I"'s approval limit.
-        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit"), InterimApprover."No."));
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit (LCY)"), InterimApprover."No."));
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -614,7 +614,7 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror ExpenseReportHeader.PerformManualApproved(Approver."No.", true);
 
         // [THEN] An error explains that the report exceeds "A1"'s approval limit.
-        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit"), Approver."No."));
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit (LCY)"), Approver."No."));
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -683,10 +683,10 @@ codeunit 148346 "Expense Interim Approval Test"
         Approver.Validate("Unlimited Approval", false);
 
         // [WHEN] The approval limit of "A1" is set to -100.
-        asserterror Approver.Validate("Approval Limit", -100);
+        asserterror Approver.Validate("Approval Limit (LCY)", -100);
 
         // [THEN] An error explains that the approval limit must not be negative.
-        Assert.ExpectedError(StrSubstNo(ApprovalLimitMustNotBeNegativeErr, Approver.FieldCaption("Approval Limit")));
+        Assert.ExpectedError(StrSubstNo(ApprovalLimitMustNotBeNegativeErr, Approver.FieldCaption("Approval Limit (LCY)")));
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -703,7 +703,7 @@ codeunit 148346 "Expense Interim Approval Test"
         CreateApproverExpenseUser(Approver);
 
         // [WHEN] The approval limit of "A1" is set to 100.
-        asserterror Approver.Validate("Approval Limit", 100);
+        asserterror Approver.Validate("Approval Limit (LCY)", 100);
 
         // [THEN] An error explains that the two settings are mutually exclusive.
         Assert.ExpectedError('You cannot have both a Approval Limit and Unlimited Approval.');
@@ -722,7 +722,7 @@ codeunit 148346 "Expense Interim Approval Test"
         // [GIVEN] Approver "A1" has an approval limit of 100.
         CreateApproverExpenseUser(Approver);
         Approver.Validate("Unlimited Approval", false);
-        Approver.Validate("Approval Limit", 100);
+        Approver.Validate("Approval Limit (LCY)", 100);
 
         // [WHEN] Unlimited approval is enabled for "A1".
         Approver.Validate("Unlimited Approval", true);
@@ -731,7 +731,7 @@ codeunit 148346 "Expense Interim Approval Test"
         // [THEN] Unlimited approval is enabled and the approval limit is 0.
         Approver.Get(Approver."No.");
         Approver.TestField("Unlimited Approval", true);
-        Approver.TestField("Approval Limit", 0);
+        Approver.TestField("Approval Limit (LCY)", 0);
     end;
 
     [Test]
@@ -828,7 +828,7 @@ codeunit 148346 "Expense Interim Approval Test"
         asserterror ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
 
         // [THEN] An error explains that a different next approver must be configured for "A1".
-        Assert.ExpectedError(StrSubstNo(ApproverRequiredErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit"), Approver."No."));
+        Assert.ExpectedError(StrSubstNo(ApproverRequiredErr, ExpenseReportHeader."No.", Approver.FieldCaption("Approval Limit (LCY)"), Approver."No."));
         Assert.ExpectedErrorCode('Dialog');
     end;
 
@@ -1342,7 +1342,7 @@ codeunit 148346 "Expense Interim Approval Test"
     local procedure SetApprovalLimit(var Approver: Record "Expense User"; ApprovalLimit: Decimal)
     begin
         Approver.Validate("Unlimited Approval", false);
-        Approver.Validate("Approval Limit", ApprovalLimit);
+        Approver.Validate("Approval Limit (LCY)", ApprovalLimit);
         Approver.Modify();
     end;
 

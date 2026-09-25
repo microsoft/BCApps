@@ -62,9 +62,9 @@ page 6918 "Expense Users API"
                 {
                     Caption = 'Employee Status';
                 }
-                field(approvalLimit; Rec."Approval Limit")
+                field(approvalLimitLCY; Rec."Approval Limit (LCY)")
                 {
-                    Caption = 'Approval Limit';
+                    Caption = 'Approval Limit (LCY)';
                 }
                 field(unlimitedApproval; Rec."Unlimited Approval")
                 {

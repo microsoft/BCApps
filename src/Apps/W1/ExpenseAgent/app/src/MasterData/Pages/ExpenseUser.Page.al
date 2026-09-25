@@ -150,7 +150,7 @@ page 6949 "Expense User"
                 Caption = 'Approval Information';
                 Visible = Rec."Can Approve";
 
-                field("Approval Limit"; Rec."Approval Limit")
+                field("Approval Limit (LCY)"; Rec."Approval Limit (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                 }
