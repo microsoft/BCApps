@@ -990,18 +990,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         SourceRecord: Record "MDM Test Table A";
         DestinationRecord: Record "MDM Test Table A";
-        TempResult: Record "MDM Test Table A" temporary;
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
-        TempBlob: Codeunit "Temp Blob";
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
-        TempResultRef: RecordRef;
         SourceFieldRef: FieldRef;
         DestinationFieldRef: FieldRef;
-        ResultFieldRef: FieldRef;
+        BlobOutStream: OutStream;
         NewValue: Variant;
-        ResultInStream: InStream;
-        ResolvedText: Text;
         IsValueFound: Boolean;
         NeedsConversion: Boolean;
     begin
@@ -1011,8 +1006,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Initialize();
         EnableCrossEnvForTransfer('PROD');
 
-        // [GIVEN] a destination record with an existing blob, and a source record whose (over-cap) blob was skipped
-        CreateTestTableAWithBlob(DestinationRecord, 'existing destination blob');
+        // [GIVEN] a destination record with an existing blob (seeded like the engine's SetTextValue, i.e. Write, so the
+        // read round-trips), and a source record whose (over-cap) blob was skipped
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
         Clear(SourceRecord);
         SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
         SourceRecord.Insert(); // empty (skipped) blob; carries a real SystemId
@@ -1026,17 +1026,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [WHEN] the field-transfer subscriber resolves the blob value
         LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
 
-        // [THEN] the subscriber keeps the destination's own blob rather than clearing it with the empty source value
+        // [THEN] the resolved value is the destination's own content. The engine writes a resolved Blob via
+        // SetTextValue(dest, Format(NewValue)), so asserting Format(NewValue) mirrors the production write and proves
+        // the destination blob is preserved unchanged (not cleared by the empty source value).
         Assert.IsTrue(IsValueFound, 'A skipped cross-env blob must be resolved so the destination is not cleared');
-        TempResult.Insert();
-        TempResultRef.GetTable(TempResult);
-        ResultFieldRef := TempResultRef.Field(TempResult.FieldNo("Test Blob"));
-        ResultFieldRef.Value := NewValue;
-        TempBlob.FromFieldRef(ResultFieldRef);
-        Assert.IsTrue(TempBlob.HasValue(), 'The preserved blob must still have content (not cleared)');
-        TempBlob.CreateInStream(ResultInStream, TextEncoding::UTF8);
-        ResultInStream.ReadText(ResolvedText);
-        Assert.AreEqual('existing destination blob', ResolvedText, 'The skipped blob must resolve to the destination''s current content, unchanged');
+        Assert.AreEqual(false, NeedsConversion, '');
+        Assert.AreEqual('existing destination blob', Format(NewValue), 'The skipped blob must resolve to the destination''s current content, unchanged');
 
         CleanUp();
     end;

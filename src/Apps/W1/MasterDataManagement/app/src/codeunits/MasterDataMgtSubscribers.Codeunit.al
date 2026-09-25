@@ -267,8 +267,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             SourceRecordRef := SourceFieldRef.Record();
             SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
             if InlineMedia.IsBlobSkipped(SourceSystemId, SourceFieldRef.Number()) then begin
-                DestinationFieldRef.CalcField(); // load the current destination blob so it survives the transfer unchanged
-                NewValue := DestinationFieldRef.Value();
+                // The engine writes a resolved Blob via SetTextValue(dest, Format(NewValue)) (text round-trip), so
+                // return the destination's current blob text; that rewrites the same content and leaves it unchanged.
+                NewValue := GetBlobFieldText(DestinationFieldRef);
                 IsValueFound := true;
                 NeedsConversion := false;
                 exit;
@@ -335,6 +336,22 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             if ThrowError then
                 Error(ValueWillBeOverwrittenErr, DestinationFieldRef.Caption(), Format(DestinationFieldRef.Record().RecordId()), Format(SourceFieldRef.Value()), Format(DestinationFieldRef.Record().Caption()));
         end;
+    end;
+
+    // Reads a Blob field's content as UTF8 text, matching the sync engine's GetTextValue/SetTextValue round-trip.
+    local procedure GetBlobFieldText(DestinationFieldRef: FieldRef): Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        BlobInStream: InStream;
+        BlobText: Text;
+    begin
+        DestinationFieldRef.CalcField(); // load the current destination blob
+        TempBlob.FromFieldRef(DestinationFieldRef);
+        if TempBlob.HasValue() then begin
+            TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+            BlobInStream.Read(BlobText);
+        end;
+        exit(BlobText);
     end;
 
     // A blanked Date/DateTime reads as 0D/0DT; the BaseApp transfer treats that as "no value" and skips it.
