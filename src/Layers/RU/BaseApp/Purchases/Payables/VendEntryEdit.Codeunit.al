@@ -191,7 +191,7 @@ codeunit 113 "Vend. Entry-Edit"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdatePurchaseInvoiceHeader(var UpdatePurchaseInvoiceCustLedgerEntry: Record "Vendor Ledger Entry"; CalledFromPurchaseInvEdit: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeUpdatePurchaseInvoiceHeader(var UpdatePurchaseInvoiceVendLedgerEntry: Record "Vendor Ledger Entry"; CalledFromPurchaseInvEdit: Boolean; var IsHandled: Boolean)
     begin
     end;
 }
