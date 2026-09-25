@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001501 "Subcontract. - Objs"
+permissionset 20501 "Subcontract. - Objs"
 {
     Caption = 'Subcontracting - Objects';
     Assignable = true;

@@ -7,8 +7,8 @@ page 8103 "Revenue Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue Analysis';
-    AboutTitle = 'About Revenue Analysis';
+    Caption = 'Revenue Analysis (Power BI)';
+    AboutTitle = 'About Revenue Analysis (Power BI)';
     AboutText = 'The Revenue Analysis report breaks down Monthly Recurring Revenue by various dimension such as billing rhythm, contract type or customer.';
 
     layout

@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
@@ -282,6 +283,10 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
+        field(45; "Receiving Company Reg. No."; Text[20])
+        {
+            Caption = 'Receiving Company Registration No.';
+        }
         #endregion
 
         #region Clearance Model
@@ -409,6 +414,14 @@ table 6121 "E-Document"
         exit(EDocumentPurchaseHeader.Total);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"E-Document", 'd')]
+    internal procedure DeleteOrphanedImport()
+    begin
+        CleanupDocument();
+        Rec.Delete(false);
+        Commit();
+    end;
+
     procedure CleanupDocument()
     var
         DocumentAttachment: Record "Document Attachment";
@@ -416,6 +429,8 @@ table 6121 "E-Document"
         EDocumentIntegrationLog: Record "E-Document Integration Log";
         EDocumentLog: Record "E-Document Log";
         EDocImportedLine: Record "E-Doc. Imported Line";
+        EDocExternalReference: Record "E-Doc. External Reference";
+        EDocumentMessage: Record "E-Document Message";
         EDocumentServiceStatus: Record "E-Document Service Status";
 #if not CLEAN27
         PurchaseHeader: Record "Purchase Header";
@@ -449,6 +464,14 @@ table 6121 "E-Document"
         EDocImportedLine.SetRange("E-Document Entry No.", Rec."Entry No");
         if not EDocImportedLine.IsEmpty() then
             EDocImportedLine.DeleteAll(true);
+
+        EDocumentMessage.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocumentMessage.IsEmpty() then
+            EDocumentMessage.DeleteAll(true);
+
+        EDocExternalReference.SetRange("E-Document Entry No.", Rec."Entry No");
+        if not EDocExternalReference.IsEmpty() then
+            EDocExternalReference.DeleteAll(true);
 
 #if not CLEAN27
         // Version 1 processing cleanup

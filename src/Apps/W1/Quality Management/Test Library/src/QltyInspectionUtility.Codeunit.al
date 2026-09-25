@@ -2610,6 +2610,16 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for QltyWorkflowResponse.GetWellKnownInTransit
+    /// </summary>
+    internal procedure GetWellKnownInTransit(): Text
+    var
+        QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+    begin
+        exit(QltyWorkflowResponse.GetWellKnownInTransit());
+    end;
+
+    /// <summary>
     /// Wrapper for QltyWorkflowResponse.GetStepConfigurationValue
     /// </summary>
     internal procedure GetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text): Text

@@ -386,14 +386,14 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyLocation(), QltyLocationCode);
-                            if not QltyShouldShowGrpTransfer then begin
-                                QltyShowBinCode := true;
-                                if DestinationLocation.Get(QltyLocationCode) then begin
-                                    QltyShowBinCode := DestinationLocation."Bin Mandatory";
-                                    if QltyBinCode <> '' then
-                                        if not DestinationBin.Get(QltyLocationCode, QltyBinCode) then
-                                            QltyBinCode := '';
-                                end;
+                            QltyShowBinCode := true;
+                            if DestinationLocation.Get(QltyLocationCode) then begin
+                                QltyShowBinCode := DestinationLocation."Bin Mandatory" and not DestinationLocation."Directed Put-away and Pick";
+                                if QltyBinCode <> '' then
+                                    if not QltyShowBinCode or not DestinationBin.Get(QltyLocationCode, QltyBinCode) then begin
+                                        QltyBinCode := '';
+                                        QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
+                                    end;
                             end;
                         end;
                     }
@@ -1044,10 +1044,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyLocationCode := QltyWorkflowResponse.GetStepConfigurationValueAsCode10(Rec, QltyWorkflowResponse.GetWellKnownKeyLocation());
         QltyBinCode := QltyWorkflowResponse.GetStepConfigurationValueAsCode20(Rec, QltyWorkflowResponse.GetWellKnownKeyBin());
 
-        if not QltyShouldShowGrpTransfer then begin
-            QltyShowBinCode := true;
-            if Location.Get(QltyLocationCode) then;
-            QltyShowBinCode := Location."Bin Mandatory";
-        end;
+        QltyShowBinCode := true;
+        if Location.Get(QltyLocationCode) then;
+        QltyShowBinCode := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
     end;
 }

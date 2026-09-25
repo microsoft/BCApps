@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-permissionset 99001502 "Subcontract. - Read"
+permissionset 20502 "Subcontract. - Read"
 {
     Caption = 'Subcontracting - Read';
     Access = Public;

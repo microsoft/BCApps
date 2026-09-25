@@ -18,7 +18,7 @@ codeunit 30129 "Shpfy GQL FindCustByEMail" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Text.</returns>
     internal procedure GetGraphQL(): Text
     begin
-        exit('{"query":"{customers(first: 1, query:\"email:{{EMail}}\") {edges {node {id}}}}"}');
+        exit('{"query":"{customers(first: 1, query:\"email:{{EMail}}\") {edges {node {id defaultEmailAddress { emailAddress }}}}}"}');
     end;
 
     /// <summary>
@@ -27,7 +27,7 @@ codeunit 30129 "Shpfy GQL FindCustByEMail" implements "Shpfy IGraphQL"
     /// <returns>Return value of type Integer.</returns>
     internal procedure GetExpectedCost(): Integer
     begin
-        exit(3);
+        exit(4);
     end;
 
 }

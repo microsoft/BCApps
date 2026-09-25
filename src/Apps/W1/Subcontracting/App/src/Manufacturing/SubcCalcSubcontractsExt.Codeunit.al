@@ -8,7 +8,7 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
 
-codeunit 99001529 "Subc. Calc Subcontracts Ext."
+codeunit 20529 "Subc. Calc Subcontracts Ext."
 {
     [EventSubscriber(ObjectType::Report, Report::"Subc. Calculate Subcontracts", OnAfterTransferProdOrderRoutingLine, '', false, false)]
     local procedure OnAfterTransferProdOrderRoutingLine(var RequisitionLine: Record "Requisition Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")

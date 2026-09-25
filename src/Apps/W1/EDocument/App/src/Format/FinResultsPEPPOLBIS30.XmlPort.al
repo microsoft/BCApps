@@ -2,9 +2,9 @@ namespace Microsoft.EServices.EDocument.IO.Peppol;
 
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Peppol;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
-using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Reminder;
 using System.Utilities;
 
@@ -1036,7 +1036,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
 
                         trigger OnBeforePassVariable()
                         begin
-                            this.PEPPOLMgt.GetLineItemClassfiedTaxCategoryBIS(
+                            this.PEPPOLMgt.GetLineItemClassifiedTaxCategoryBIS(
                               this.GlobalSalesLine,
                               ClassifiedTaxCategoryID,
                               this.DummyVar,
@@ -1179,7 +1179,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
         GlobalIssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
         GlobalIssuedFinChargeMemoLine: Record "Issued Fin. Charge Memo Line";
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
-        PEPPOLMgt: Codeunit "PEPPOL Management";
+        PEPPOLMgt: Codeunit "PEPPOL30";
         SourceRecRef: RecordRef;
         DummyVar: Text;
         IsReminder: Boolean;
@@ -1194,7 +1194,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
             if this.GlobalIssuedReminderLine.FindSet() then
                 repeat
                     this.CopyReminderLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedReminderHeader, this.GlobalIssuedReminderLine);
-                    this.PEPPOLMgt.GetTotals(this.GlobalSalesLine, this.TempVATAmtLine);
+                    this.PEPPOLMgt.GetTaxTotals(this.GlobalSalesLine, this.TempVATAmtLine);
                     this.PEPPOLMgt.GetTaxCategories(this.GlobalSalesLine, this.TempVATProductPostingGroup);
                 until this.GlobalIssuedReminderLine.Next() = 0;
         end;
@@ -1204,7 +1204,7 @@ xmlport 6100 "Fin. Results - PEPPOL BIS 3.0"
             if this.GlobalIssuedFinChargeMemoLine.FindSet() then
                 repeat
                     this.CopyFinChargeMemoLineToSalesLine(this.GlobalSalesLine, this.GlobalIssuedFinChargeMemoHeader, this.GlobalIssuedFinChargeMemoLine);
-                    this.PEPPOLMgt.GetTotals(this.GlobalSalesLine, this.TempVATAmtLine);
+                    this.PEPPOLMgt.GetTaxTotals(this.GlobalSalesLine, this.TempVATAmtLine);
                     this.PEPPOLMgt.GetTaxCategories(this.GlobalSalesLine, this.TempVATProductPostingGroup);
                 until this.GlobalIssuedFinChargeMemoLine.Next() = 0;
         end;

@@ -11,8 +11,8 @@ page 37033 "Projects Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Projects Overview';
-    AboutTitle = 'About Projects Overview';
+    Caption = 'Projects Overview (Power BI)';
+    AboutTitle = 'About Projects Overview (Power BI)';
     AboutText = 'The Projects Overview dashboard provides key insights into project performance with metrics like Percent Complete, Percent Invoiced, Realization Percent, Actual Profit, and Actual Profit Margin. It features visuals comparing Actual vs. Budgeted Costs, highlighting Profit per Project, and organizing projects by Project Manager for streamlined project management.';
 
     layout

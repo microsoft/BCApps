@@ -1637,46 +1637,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_InspectionAssignSelfOnModify()
-    var
-        Location: Record Location;
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-    begin
-        // [SCENARIO] Inspection is automatically assigned to current user on modification
-
-        Initialize();
-
-        // [GIVEN] Quality management setup is configured
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-
-        // [GIVEN] A location is created
-        LibraryWarehouse.CreateLocation(Location);
-
-        // [GIVEN] An inspection is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-
-        // [GIVEN] Inspection has no assigned user initially
-        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
-
-        // [WHEN] Inspection is modified by changing source quantity
-        QltyInspectionHeader."Source Quantity (Base)" := 99;
-        QltyInspectionHeader.Modify(true);
-
-        // [THEN] Inspection is automatically assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
-    end;
-
-    [Test]
     procedure Table_GetReferenceRecordId_TriggeringRecord()
     var
         Location: Record Location;

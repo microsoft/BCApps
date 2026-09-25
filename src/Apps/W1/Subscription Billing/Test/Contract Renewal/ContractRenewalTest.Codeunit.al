@@ -740,6 +740,51 @@ codeunit 139692 "Contract Renewal Test"
         until SalesLine.Next() = 0;
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [Test]
+    procedure RenewalTermEnteredValueIsRetainedOnPage()
+    var
+        ServiceCommitment: Record "Subscription Line";
+        CurrentRenewalTerm: DateFormula;
+        EmptyDateFormula: DateFormula;
+        NewRenewalTerm: DateFormula;
+        ContractRenewalSelection: TestPage "Contract Renewal Selection";
+        RenewalTermDateFormulaLbl: Label '<%1D>', Locked = true;
+        RenewalTermNotRetainedFirstLineErr: Label 'Renewal Term should retain the entered value on the first line.';
+        RenewalTermNotRetainedNextLineErr: Label 'Renewal Term should retain the entered value on the next line.';
+    begin
+        // [SCENARIO 645198] Renewal Term entered on the Create Contract Renewal Quote page is retained after leaving the field.
+        Initialize();
+        Evaluate(NewRenewalTerm, StrSubstNo(RenewalTermDateFormulaLbl, LibraryRandom.RandInt(365)));
+
+        // [GIVEN] A Customer Subscription Contract whose Subscription Lines have no Renewal Term.
+        CreateBaseData();
+        ServiceCommitment.Reset();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.ModifyAll("Renewal Term", EmptyDateFormula, false);
+
+        // [GIVEN] The Create Contract Renewal Quote page is open.
+        ContractRenewalSelection.OpenEdit();
+
+        // [WHEN] A Renewal Term is entered on the first line and the field is left.
+        ContractRenewalSelection.First();
+        ContractRenewalSelection.RenewalTermCtrl.SetValue(NewRenewalTerm);
+
+        // [THEN] The entered Renewal Term is retained and not reset to blank.
+        Evaluate(CurrentRenewalTerm, ContractRenewalSelection.RenewalTermCtrl.Value());
+        Assert.AreEqual(NewRenewalTerm, CurrentRenewalTerm, RenewalTermNotRetainedFirstLineErr);
+
+        // [WHEN] A Renewal Term is entered on the next line and the field is left.
+        ContractRenewalSelection.Next();
+        ContractRenewalSelection.RenewalTermCtrl.SetValue(NewRenewalTerm);
+
+        // [THEN] Verify the entered Renewal Term is retained and not reset to blank.
+        Evaluate(CurrentRenewalTerm, ContractRenewalSelection.RenewalTermCtrl.Value());
+        Assert.AreEqual(NewRenewalTerm, CurrentRenewalTerm, RenewalTermNotRetainedNextLineErr);
+
+        ContractRenewalSelection.Close();
+    end;
+
     #endregion Tests
 
     #region Procedures

@@ -11,8 +11,8 @@ page 37057 "Inventory Valuation by Item"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory Valuation by Item';
-    AboutTitle = 'About Inventory Valuation by Item';
+    Caption = 'Inventory Valuation by Item (Power BI)';
+    AboutTitle = 'About Inventory Valuation by Item (Power BI)';
     AboutText = 'The Inventory Valuation by Item report features a Treemap that visualizes ending balance quantities by item category. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
 
     layout

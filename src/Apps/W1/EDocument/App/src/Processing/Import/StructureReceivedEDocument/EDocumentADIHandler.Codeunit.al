@@ -79,7 +79,7 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
     begin
         ReadIntoBuffer(EDocument, TempBlob, TempEDocPurchaseHeader, TempEDocPurchaseLine);
         EDocPurchaseDraftUtility.PersistDraft(EDocument, TempEDocPurchaseHeader, TempEDocPurchaseLine);
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+        exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
     end;
 
     local procedure ReadIntoBuffer(
@@ -238,4 +238,5 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         exit(-1); // Signal parse failure
     end;
 #pragma warning restore AA0139
+
 }
