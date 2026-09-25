@@ -21,7 +21,7 @@ codeunit 3322 "PA Email Cleanup"
     /// <summary>
     /// Scans the Email Inbox and fills the buffer with one row per duplicate group.
     /// </summary>
-    procedure BuildDuplicateGroups(var DuplicateBuffer: Record "PA Email Duplicate Buffer" temporary) TotalDeletable: Integer
+    procedure BuildDuplicateGroups(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary) TotalDeletable: Integer
     var
         EmailInbox: Record "Email Inbox";
         GroupMessageIds: List of [Guid];
@@ -30,8 +30,8 @@ codeunit 3322 "PA Email Cleanup"
         GroupStarted: Boolean;
         NextEntryNo: Integer;
     begin
-        DuplicateBuffer.Reset();
-        DuplicateBuffer.DeleteAll();
+        TempDuplicateBuffer.Reset();
+        TempDuplicateBuffer.DeleteAll();
         TotalDeletable := 0;
 
         EmailInbox.ReadIsolation(IsolationLevel::ReadCommitted);
@@ -47,25 +47,25 @@ codeunit 3322 "PA Email Cleanup"
             if not GroupStarted then begin
                 CurrentAccountId := EmailInbox."Account Id";
                 CurrentExternalId := EmailInbox."External Message Id";
-                StartGroup(DuplicateBuffer, EmailInbox, GroupMessageIds);
+                StartGroup(TempDuplicateBuffer, EmailInbox, GroupMessageIds);
                 GroupStarted := true;
             end else
                 if (EmailInbox."Account Id" <> CurrentAccountId) or (EmailInbox."External Message Id" <> CurrentExternalId) then begin
-                    TotalDeletable += FlushGroup(DuplicateBuffer, NextEntryNo, GroupMessageIds);
+                    TotalDeletable += FlushGroup(TempDuplicateBuffer, NextEntryNo, GroupMessageIds);
                     CurrentAccountId := EmailInbox."Account Id";
                     CurrentExternalId := EmailInbox."External Message Id";
-                    StartGroup(DuplicateBuffer, EmailInbox, GroupMessageIds);
+                    StartGroup(TempDuplicateBuffer, EmailInbox, GroupMessageIds);
                 end else
-                    ExtendGroup(DuplicateBuffer, EmailInbox, GroupMessageIds);
+                    ExtendGroup(TempDuplicateBuffer, EmailInbox, GroupMessageIds);
         until EmailInbox.Next() = 0;
         if GroupStarted then
-            TotalDeletable += FlushGroup(DuplicateBuffer, NextEntryNo, GroupMessageIds);
+            TotalDeletable += FlushGroup(TempDuplicateBuffer, NextEntryNo, GroupMessageIds);
 
-        DuplicateBuffer.Reset();
-        DuplicateBuffer.SetCurrentKey("Redundant Count");
-        DuplicateBuffer.Ascending(false);
+        TempDuplicateBuffer.Reset();
+        TempDuplicateBuffer.SetCurrentKey("Redundant Count");
+        TempDuplicateBuffer.Ascending(false);
 
-        LogScanTelemetry(DuplicateBuffer.Count(), TotalDeletable);
+        LogScanTelemetry(TempDuplicateBuffer.Count(), TotalDeletable);
     end;
 
     procedure GetDuplicateStatistics(var GroupCount: Integer; var RedundantRowCount: Integer; var SkippedRowCount: Integer)
@@ -108,14 +108,14 @@ codeunit 3322 "PA Email Cleanup"
         LogCleanupTelemetry(DeletedCount, SkippedCount, CommitBatchSize);
     end;
 
-    internal procedure DeleteRedundantRowsOfGroup(var DuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; CommitBatchSize: Integer; var DeletedCount: Integer; var SkippedCount: Integer; var UncommittedCount: Integer)
+    internal procedure DeleteRedundantRowsOfGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; CommitBatchSize: Integer; var DeletedCount: Integer; var SkippedCount: Integer; var UncommittedCount: Integer)
     var
         EmailInbox: Record "Email Inbox";
         EmailInboxToDelete: Record "Email Inbox";
         IsFirst: Boolean;
     begin
-        EmailInbox.SetRange("Account Id", DuplicateBuffer."Account Id");
-        EmailInbox.SetRange("External Message Id", DuplicateBuffer."External Message Id");
+        EmailInbox.SetRange("Account Id", TempDuplicateBuffer."Account Id");
+        EmailInbox.SetRange("External Message Id", TempDuplicateBuffer."External Message Id");
         EmailInbox.SetCurrentKey(Id);
         EmailInbox.SetAscending(Id, true);
         EmailInbox.SetLoadFields(Id, "Message Id");
@@ -155,32 +155,32 @@ codeunit 3322 "PA Email Cleanup"
         exit(EmailInbox.Count() <= 1);
     end;
 
-    local procedure StartGroup(var DuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; var EmailInbox: Record "Email Inbox"; var GroupMessageIds: List of [Guid])
+    local procedure StartGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; var EmailInbox: Record "Email Inbox"; var GroupMessageIds: List of [Guid])
     begin
-        DuplicateBuffer.Init();
-        DuplicateBuffer."Account Id" := EmailInbox."Account Id";
-        DuplicateBuffer."External Message Id" := EmailInbox."External Message Id";
-        DuplicateBuffer."Keep Email Inbox Id" := EmailInbox.Id;
-        DuplicateBuffer."Duplicate Count" := 1;
-        DuplicateBuffer."Sender Address" := EmailInbox."Sender Address";
-        DuplicateBuffer.Description := EmailInbox.Description;
-        DuplicateBuffer."Oldest Received DateTime" := EmailInbox."Received DateTime";
-        DuplicateBuffer."Newest Received DateTime" := EmailInbox."Received DateTime";
+        TempDuplicateBuffer.Init();
+        TempDuplicateBuffer."Account Id" := EmailInbox."Account Id";
+        TempDuplicateBuffer."External Message Id" := EmailInbox."External Message Id";
+        TempDuplicateBuffer."Keep Email Inbox Id" := EmailInbox.Id;
+        TempDuplicateBuffer."Duplicate Count" := 1;
+        TempDuplicateBuffer."Sender Address" := EmailInbox."Sender Address";
+        TempDuplicateBuffer.Description := EmailInbox.Description;
+        TempDuplicateBuffer."Oldest Received DateTime" := EmailInbox."Received DateTime";
+        TempDuplicateBuffer."Newest Received DateTime" := EmailInbox."Received DateTime";
         Clear(GroupMessageIds);
         GroupMessageIds.Add(EmailInbox."Message Id");
     end;
 
-    local procedure ExtendGroup(var DuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; var EmailInbox: Record "Email Inbox"; var GroupMessageIds: List of [Guid])
+    local procedure ExtendGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; var EmailInbox: Record "Email Inbox"; var GroupMessageIds: List of [Guid])
     begin
-        DuplicateBuffer."Duplicate Count" += 1;
-        if EmailInbox."Received DateTime" < DuplicateBuffer."Oldest Received DateTime" then
-            DuplicateBuffer."Oldest Received DateTime" := EmailInbox."Received DateTime";
-        if EmailInbox."Received DateTime" > DuplicateBuffer."Newest Received DateTime" then
-            DuplicateBuffer."Newest Received DateTime" := EmailInbox."Received DateTime";
+        TempDuplicateBuffer."Duplicate Count" += 1;
+        if EmailInbox."Received DateTime" < TempDuplicateBuffer."Oldest Received DateTime" then
+            TempDuplicateBuffer."Oldest Received DateTime" := EmailInbox."Received DateTime";
+        if EmailInbox."Received DateTime" > TempDuplicateBuffer."Newest Received DateTime" then
+            TempDuplicateBuffer."Newest Received DateTime" := EmailInbox."Received DateTime";
         GroupMessageIds.Add(EmailInbox."Message Id");
     end;
 
-    local procedure FlushGroup(var DuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; var NextEntryNo: Integer; var GroupMessageIds: List of [Guid]): Integer
+    local procedure FlushGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; var NextEntryNo: Integer; var GroupMessageIds: List of [Guid]): Integer
     var
         Deletable: Integer;
         Skipped: Integer;
@@ -195,10 +195,10 @@ codeunit 3322 "PA Email Cleanup"
                 Skipped += 1;
 
         NextEntryNo += 1;
-        DuplicateBuffer."Entry No." := NextEntryNo;
-        DuplicateBuffer."Redundant Count" := Deletable;
-        DuplicateBuffer."Skipped Count" := Skipped;
-        DuplicateBuffer.Insert();
+        TempDuplicateBuffer."Entry No." := NextEntryNo;
+        TempDuplicateBuffer."Redundant Count" := Deletable;
+        TempDuplicateBuffer."Skipped Count" := Skipped;
+        TempDuplicateBuffer.Insert();
         exit(Deletable);
     end;
 
