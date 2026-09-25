@@ -231,6 +231,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Day Book Vendor Ledger Entry";
                         }
                     }
+
                 }
                 group("Group3")
                 {
@@ -1751,6 +1752,7 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Calc. and Post Depr. Difference';
                     RunObject = report "Calc. and Post Depr. Diff.";
+                    Visible = LegacyDepreciationDifferencesVisible;
                 }
 #pragma warning restore AL0432
 #endif
@@ -2624,6 +2626,17 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+
         }
     }
+
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        LegacyDepreciationDifferencesVisible: Boolean;
 }

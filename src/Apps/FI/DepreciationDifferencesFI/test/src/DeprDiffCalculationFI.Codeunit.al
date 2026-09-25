@@ -23,6 +23,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         LibraryERM: Codeunit "Library - ERM";
 #if not CLEAN30
         TestCU: Codeunit "Depr. Diff. Calculation FI";
+        FeatureEnabled: Boolean;
 #endif
         isInitialized: Boolean;
         PleaseEnterPostingDateTxt: Label 'Please enter the Posting Date.';
@@ -42,6 +43,9 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         HandledMessage: Text;
         DifferenceAmtErr: Label 'Current row does not have ''DifferenceAmt'' value greater than zero. Value  = <%1>.', Comment = '%1 is the name of the DataSet field, and %2 is the value of that field.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
+#if not CLEAN30
+        FeatureNotEnabledErr: Label 'The Depreciation Differences FI feature must be enabled before you can run this report.';
+#endif
 
     local procedure Initialize()
     begin
@@ -57,6 +61,21 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Depr. Diff. Calculation FI");
     end;
+
+#if not CLEAN30
+    [Test]
+    [Scope('OnPrem')]
+    procedure CannotRunReportWhenFeatureIsDisabled()
+    begin
+        Initialize();
+        SetFeatureEnabled(false);
+
+        asserterror Report.Run(Report::"Calc. and Post Depr. Diff. FI", false, false);
+
+        Assert.ExpectedError(FeatureNotEnabledErr);
+        DisableFeature();
+    end;
+#endif
 
     [Test]
     [HandlerFunctions('CalcAndPostDeprDifferenceRPH,DepreciationCalcConfirmHandler')]
@@ -938,6 +957,12 @@ codeunit 148152 "Depr. Diff. Calculation FI"
 #if not CLEAN30
     local procedure EnableFeature()
     begin
+        SetFeatureEnabled(true);
+    end;
+
+    local procedure SetFeatureEnabled(Enabled: Boolean)
+    begin
+        FeatureEnabled := Enabled;
         BindSubscription(TestCU);
     end;
 
@@ -946,10 +971,10 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         UnbindSubscription(TestCU);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Dep Diff FI Feature", OnAfterCheckFeatureEnabled, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"FI Depreciation Diff. Feature", OnAfterCheckFeatureEnabled, '', false, false)]
     local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
     begin
-        IsEnabled := true;
+        IsEnabled := FeatureEnabled;
     end;
 #else
     local procedure EnableFeature()

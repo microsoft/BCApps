@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.FixedAsset;
 
+using Microsoft.FixedAssets.Depreciation;
+
 page 5613 "FA Posting Groups"
 {
     AdditionalSearchTerms = 'fixed asset posting groups';
@@ -61,6 +63,7 @@ page 5613 "FA Posting Groups"
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                    Visible = LegacyDepreciationDifferencesVisible;
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Depreciation Differences FI app.';
@@ -73,6 +76,7 @@ page 5613 "FA Posting Groups"
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                    Visible = LegacyDepreciationDifferencesVisible;
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Depreciation Differences FI app.';
@@ -351,8 +355,18 @@ page 5613 "FA Posting Groups"
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
                     }
                 }
+
             }
         }
     }
-}
 
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        LegacyDepreciationDifferencesVisible: Boolean;
+}

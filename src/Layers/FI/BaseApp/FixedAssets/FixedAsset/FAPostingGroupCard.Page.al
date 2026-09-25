@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.FixedAsset;
 
+using Microsoft.FixedAssets.Depreciation;
+
 page 5612 "FA Posting Group Card"
 {
     Caption = 'FA Posting Group Card';
@@ -60,6 +62,7 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                    Visible = LegacyDepreciationDifferencesVisible;
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Depreciation Differences FI app.';
@@ -142,6 +145,7 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                    Visible = LegacyDepreciationDifferencesVisible;
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
                     ObsoleteReason = 'Moved to Depreciation Differences FI app.';
@@ -389,10 +393,17 @@ page 5612 "FA Posting Group Card"
         }
     }
 
+    trigger OnOpenPage()
     var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        LegacyDepreciationDifferencesVisible: Boolean;
 #pragma warning disable AA0074
         Text19064976: Label 'Allocated %';
         Text19080001: Label 'Allocated %';
 #pragma warning restore AA0074
 }
-

@@ -35,7 +35,7 @@ codeunit 13445 "Create FA Posting Grp. FI"
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
 #if not CLEAN30
     var
-        DepreciationDifferencesFIFeature: Codeunit "Depreciation Differences FI Feature";
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
 #endif
     begin
 #if not CLEAN30

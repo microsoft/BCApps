@@ -15,7 +15,6 @@ permissionsetextension 13485 "Dep Diff FI - Objects" extends "D365 BASIC"
         report "Calc. and Post Depr. Diff. FI" = X,
         codeunit "Dep Diff FI Subscribers" = X,
 #if not CLEAN30
-        codeunit "Dep Diff FI Feature" = X,
         codeunit "Dep Diff FI Feature Data Upd." = X,
 #endif
 #if CLEAN30

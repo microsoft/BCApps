@@ -13,7 +13,7 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
 
-#if not CLEAN33
+#if not CLEAN30
 #pragma warning disable AL0432
 report 13402 "Calc. and Post Depr. Diff."
 {
@@ -24,13 +24,8 @@ report 13402 "Calc. and Post Depr. Diff."
     Permissions = TableData "FA Ledger Entry" = rimd;
     UsageCategory = ReportsAndAnalysis;
     ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-#if not CLEAN30
     ObsoleteState = Pending;
     ObsoleteTag = '30.0';
-#else
-    ObsoleteState = Removed;
-    ObsoleteTag = '33.0';
-#endif
 
     dataset
     {

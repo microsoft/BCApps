@@ -5,6 +5,8 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+using Microsoft.FixedAssets.Depreciation;
+
 pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
 {
     layout
@@ -17,6 +19,7 @@ pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
+                Visible = LegacyDepreciationDifferencesVisible;
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
                 ObsoleteReason = 'Moved to Depreciation Differences FI app.';
@@ -25,4 +28,14 @@ pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
 #endif
         }
     }
+
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        LegacyDepreciationDifferencesVisible: Boolean;
 }

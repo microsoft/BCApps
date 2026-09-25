@@ -250,7 +250,12 @@ report 13478 "Calc. and Post Depr. Diff. FI"
     }
 
     trigger OnPreReport()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
     begin
+        if not DepreciationDifferencesFIFeature.IsEnabled() then
+            Error(FeatureNotEnabledErr);
+
         if (DeprBookCode1 = '') or (DeprBookCode2 = '') then
             Error(Text13405);
         if StartDate = 0D then
@@ -317,6 +322,7 @@ report 13478 "Calc. and Post Depr. Diff. FI"
         Text13410: Label 'The Depreciation Book Code 1 must be integrated with G/L.';
         Text13411: Label 'The Depreciation Book Code 2 must not be integrated with G/L.';
         Text13412: Label 'There is no Depreciation Difference posted for the specified period.';
+        FeatureNotEnabledErr: Label 'The Depreciation Differences FI feature must be enabled before you can run this report.';
         StartDate: Date;
         EndDate: Date;
         PostingDate: Date;
@@ -378,4 +384,3 @@ report 13478 "Calc. and Post Depr. Diff. FI"
         DeprDiffPostingBuffer.Insert();
     end;
 }
-

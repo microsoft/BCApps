@@ -14,6 +14,9 @@ codeunit 101803 "Create FA Posting Group"
     var
         "FA Posting Group": Record "FA Posting Group";
         CA: Codeunit "Make Adjustments";
+#if not CLEAN30
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+#endif
         XCAR: Label 'CAR';
         XMACHINERY: Label 'MACHINERY';
         XTELEPHONE: Label 'TELEPHONE';
@@ -27,7 +30,7 @@ codeunit 101803 "Create FA Posting Group"
         XIP: Label 'IP';
         XLEASEHOLD: Label 'LEASEHOLD';
 
-    procedure InsertData("Code": Code[10]; "Acquisition Cost Account": Code[20]; "Accum. Depreciation Account": Code[20]; "Acq. Cost Acc. on Disposal": Code[20]; "Accum. Depr. Acc. on Disposal": Code[20]; "Gains Acc. on Disposal": Code[20]; "Losses Acc. on Disposal": Code[20]; "Maintenance Expense Account": Code[20]; "Depreciation Expense Acc.": Code[20]; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20]; "Acquisition Cost Bal. Acc.": Code[20])
+    procedure InsertData("Code": Code[10]; "Acquisition Cost Account": Code[20]; "Accum. Depreciation Account": Code[20]; "Acq. Cost Acc. on Disposal": Code[20]; "Accum. Depr. Acc. on Disposal": Code[20]; "Gains Acc. on Disposal": Code[20]; "Losses Acc. on Disposal": Code[20]; "Maintenance Expense Account": Code[20]; "Depreciation Expense Acc.": Code[20]; "Depr. Difference Acc.": Code[20]; "Depr. Difference Bal. Acc.": Code[20]; "Acquisition Cost Bal. Acc.": Code[20])
     begin
         "FA Posting Group".Init();
         "FA Posting Group".Validate(Code, Code);
@@ -42,8 +45,10 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
 #if not CLEAN30
 #pragma warning disable AL0432
-        "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert(DeprDifferenceAcc));
-        "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert(DeprDifferenceBalAcc));
+        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
+            "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert("Depr. Difference Acc."));
+            "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert("Depr. Difference Bal. Acc."));
+        end;
 #pragma warning restore AL0432
 #endif
 
@@ -71,4 +76,3 @@ codeunit 101803 "Create FA Posting Group"
         InsertData(XEQUIPMENT, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991645', '991646', '991220');
     end;
 }
-

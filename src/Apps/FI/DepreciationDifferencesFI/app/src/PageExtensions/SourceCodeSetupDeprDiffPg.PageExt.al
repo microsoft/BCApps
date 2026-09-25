@@ -5,6 +5,8 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+using Microsoft.FixedAssets.Depreciation;
+
 pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
 {
     layout
@@ -15,7 +17,18 @@ pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
+                Visible = DepreciationDifferencesEnabled;
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        DepreciationDifferencesEnabled := DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        DepreciationDifferencesEnabled: Boolean;
 }

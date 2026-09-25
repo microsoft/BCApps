@@ -5,6 +5,8 @@
 
 namespace Microsoft.FixedAssets.FixedAsset;
 
+using Microsoft.FixedAssets.Depreciation;
+
 pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
 {
     layout
@@ -15,12 +17,24 @@ pageextension 13473 "FA Posting Groups DeprDiff FI" extends "FA Posting Groups"
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                Visible = DepreciationDifferencesEnabled;
             }
             field("Depreciation Difference Bal Acct"; Rec."Depreciation Difference Bal Acct")
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                Visible = DepreciationDifferencesEnabled;
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        DepreciationDifferencesEnabled := DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        DepreciationDifferencesEnabled: Boolean;
 }

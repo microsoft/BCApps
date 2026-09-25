@@ -5,6 +5,8 @@
 
 namespace Microsoft.FixedAssets.FixedAsset;
 
+using Microsoft.FixedAssets.Depreciation;
+
 pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group Card"
 {
     layout
@@ -15,6 +17,7 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                Visible = DepreciationDifferencesEnabled;
             }
         }
         addafter("Maintenance Bal. Acc.")
@@ -23,7 +26,18 @@ pageextension 13472 "FA Posting Group Card DeprDiff" extends "FA Posting Group C
             {
                 ApplicationArea = FixedAssets;
                 ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                Visible = DepreciationDifferencesEnabled;
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        DepreciationDifferencesEnabled := DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        DepreciationDifferencesEnabled: Boolean;
 }
