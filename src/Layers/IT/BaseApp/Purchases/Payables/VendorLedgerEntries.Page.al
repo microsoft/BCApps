@@ -937,4 +937,3 @@ page 29 "Vendor Ledger Entries"
             VendorLedgerEntry.FieldNo("Vendor No."), VendorLedgerEntry.FieldNo("Document No."));
     end;
 }
-

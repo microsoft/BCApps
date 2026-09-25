@@ -66,8 +66,10 @@ report 87 "Copy - General Posting Setup"
 
                 OnAfterCopyGenPostingSetup("General Posting Setup", GenPostingSetup, CopySales, CopyPurchases, CopyInventory, CopyManufacturing);
 
-                if ConfirmManagement.GetResponseOrDefault(Text000, true) then
+                if ConfirmManagement.GetResponseOrDefault(Text000, true) then begin
                     Modify();
+                    OnAfterGetRecordOnAfterConfirmAndModify("General Posting Setup", GenPostingSetup);
+                end;
             end;
 
             trigger OnPreDataItem()
@@ -218,6 +220,16 @@ report 87 "Copy - General Posting Setup"
     /// <param name="CopyManufacturing">True when copying manufacturing accounts</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCopyGenPostingSetup(var ToGeneralPostingSetup: Record "General Posting Setup"; FromGeneralPostingSetup: Record "General Posting Setup"; var CopySales: Boolean; var CopyPurchases: Boolean; var CopyInventory: Boolean; var CopyManufacturing: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the target General Posting Setup is modified, once the user confirms the copy.
+    /// </summary>
+    /// <param name="ToGeneralPostingSetup">Target record that was modified</param>
+    /// <param name="FromGeneralPostingSetup">Source record</param>
+    [IntegrationEvent(true, false)]
+    local procedure OnAfterGetRecordOnAfterConfirmAndModify(var ToGeneralPostingSetup: Record "General Posting Setup"; FromGeneralPostingSetup: Record "General Posting Setup")
     begin
     end;
 

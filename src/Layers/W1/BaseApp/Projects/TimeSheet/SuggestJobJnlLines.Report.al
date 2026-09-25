@@ -206,6 +206,7 @@ report 952 "Suggest Job Jnl. Lines"
             TimeSheetHeader.SetFilter("Ending Date", '%1..', TimeSheetHeader.GetRangeMin("Ending Date"));
         end;
 
+        OnFillTimeSheetLineBufferOnAfterFilterTimeSheetHeader(TimeSheetHeader);
         if TimeSheetHeader.FindSet() then
             repeat
                 TimeSheetLine.SetRange("Time Sheet No.", TimeSheetHeader."No.");
@@ -216,6 +217,7 @@ report 952 "Suggest Job Jnl. Lines"
                 if JobTaskNoFilter <> '' then
                     TimeSheetLine.SetFilter("Job Task No.", JobTaskNoFilter);
                 TimeSheetLine.SetRange(Posted, false);
+                OnFillTimeSheetLineBufferOnAfterFilterTimeSheetLine(TimeSheetHeader, TimeSheetLine);
                 if TimeSheetLine.FindSet() then
                     repeat
                         TempTimeSheetLine := TimeSheetLine;
@@ -247,11 +249,21 @@ report 952 "Suggest Job Jnl. Lines"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertTempTimeSheetLine(JobJournalLine: Record "Job Journal Line"; TimeSheetHeader: Record "Time Sheet Header"; var TempTimeSheetLine: Record "Time Sheet Line" temporary; var SkipLine: Boolean)
+    local procedure OnFillTimeSheetLineBufferOnAfterFilterTimeSheetHeader(var TimeSheetHeader: Record "Time Sheet Header")
     begin
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnFillTimeSheetLineBufferOnAfterFilterTimeSheetLine(TimeSheetHeader: Record "Time Sheet Header"; var TimeSheetLine: Record "Time Sheet Line")
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnBeforeInsertTempTimeSheetLine(JobJournalLine: Record "Job Journal Line"; TimeSheetHeader: Record "Time Sheet Header"; var TempTimeSheetLine: Record "Time Sheet Line" temporary; var SkipLine: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
     local procedure OnAfterTransferTimeSheetDetailToJobJnlLine(var JobJournalLine: Record "Job Journal Line"; JobJournalTemplate: Record "Job Journal Template"; var TempTimeSheetLine: Record "Time Sheet Line" temporary; TimeSheetDetail: Record "Time Sheet Detail"; JobJournalBatch: Record "Job Journal Batch"; var LineNo: Integer)
     begin
     end;
@@ -266,4 +278,3 @@ report 952 "Suggest Job Jnl. Lines"
     begin
     end;
 }
-

@@ -39,6 +39,8 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
 #if not CLEAN27
         UpgradeGranularWarehouseHandlingSetup();
 #endif
+
+        UpgradeProdDefinitionDisplaySetup();
     end;
 
 #if not CLEANSCHEMA29
@@ -69,6 +71,31 @@ codeunit 104062 "Mfg. Upgrade BaseApp"
         SetUpgradeTag(true, UpgradeTagDefinitions.GetManufacturingFlushingMethodActivateManualWithoutPickUpgradeTag());
     end;
 #endif
+
+    local procedure UpgradeProdDefinitionDisplaySetup()
+    var
+        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
+        UpgradeTagLocal: Codeunit System.Upgrade."Upgrade Tag";
+        UpgradeTagDefinitionsLocal: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTagLocal.HasUpgradeTag(UpgradeTagDefinitionsLocal.GetProdDefinitionDisplaySetupUpgradeTag()) then
+            exit;
+
+        // The "Show Rtng BOM Select ..." and "Show Prod Comp Select ..." fields on Manufacturing Setup were added with
+        // InitValue = Edit, but InitValue only applies to new records. Back-fill the fields to Edit to match the intended 
+        // default.
+        if ManufacturingSetup.Get() then begin
+            ManufacturingSetup."Show Rtng BOM Select Both" := ManufacturingSetup."Show Rtng BOM Select Both"::Edit;
+            ManufacturingSetup."Show Rtng BOM Select Partial" := ManufacturingSetup."Show Rtng BOM Select Partial"::Edit;
+            ManufacturingSetup."Show Rtng BOM Select Nothing" := ManufacturingSetup."Show Rtng BOM Select Nothing"::Edit;
+            ManufacturingSetup."Show Prod Comp Select Both" := ManufacturingSetup."Show Prod Comp Select Both"::Edit;
+            ManufacturingSetup."Show Prod Comp Select Partial" := ManufacturingSetup."Show Prod Comp Select Partial"::Edit;
+            ManufacturingSetup."Show Prod Comp Select Nothing" := ManufacturingSetup."Show Prod Comp Select Nothing"::Edit;
+            ManufacturingSetup.Modify();
+        end;
+
+        UpgradeTagLocal.SetUpgradeTag(UpgradeTagDefinitionsLocal.GetProdDefinitionDisplaySetupUpgradeTag());
+    end;
 
 #if not CLEANSCHEMA29
     local procedure CheckProductionOrderIsEmpty(): Boolean;

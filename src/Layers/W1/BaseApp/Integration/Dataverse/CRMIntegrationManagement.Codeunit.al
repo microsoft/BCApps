@@ -1254,6 +1254,7 @@ codeunit 5330 "CRM Integration Management"
             exit;
         end;
 
+        OnRemoveCouplingOnBeforeGetIntegrationTableMappingForUncoupling(IntegrationTableMapping, LocalRecordRef);
         if GetIntegrationTableMappingForUncoupling(IntegrationTableMapping, LocalRecordRef.Number()) then
             if Schedule then
                 ScheduleUncoupling(IntegrationTableMapping, IntegrationRecordSynch.GetTableViewForLocalRecords(LocalRecordRef), '')
@@ -1340,6 +1341,7 @@ codeunit 5330 "CRM Integration Management"
             exit;
         end;
 
+        OnMatchBasedCouplingOnBeforeGetIntegrationTableMappingForMatchBasedCoupling(IntegrationTableMapping, LocalRecordRef);
         if GetIntegrationTableMappingForCoupling(IntegrationTableMapping, LocalRecordRef.Number()) then begin
             IntegrationFieldMapping.SetMatchBasedCouplingFilters(IntegrationTableMapping);
             if Page.RunModal(Page::"Match Based Coupling Criteria", IntegrationFieldMapping) = Action::LookupOK then
@@ -2972,6 +2974,7 @@ codeunit 5330 "CRM Integration Management"
 
     procedure CheckModifyCRMConnectionURL(var ServerAddress: Text[250])
     var
+        CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         UriHelper: DotNet Uri;
         UriHelper2: DotNet Uri;
         UriPartialHelper: DotNet UriPartial;
@@ -2981,6 +2984,8 @@ codeunit 5330 "CRM Integration Management"
 
         if IsNull(UriHelper2) then
             exit;
+
+        CDSIntegrationImpl.CheckServerAddressHostSuffix(ServerAddress);
 
         ProposedUri := UriHelper2.GetLeftPart(UriPartialHelper.Authority);
 
@@ -4255,6 +4260,16 @@ codeunit 5330 "CRM Integration Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRescheduleJobQueueEntries(TableNo: Integer; var RescheduleOffSetInMs: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRemoveCouplingOnBeforeGetIntegrationTableMappingForUncoupling(var IntegrationTableMapping: Record "Integration Table Mapping"; LocalRecordRef: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMatchBasedCouplingOnBeforeGetIntegrationTableMappingForMatchBasedCoupling(var IntegrationTableMapping: Record "Integration Table Mapping"; LocalRecordRef: RecordRef)
     begin
     end;
 }

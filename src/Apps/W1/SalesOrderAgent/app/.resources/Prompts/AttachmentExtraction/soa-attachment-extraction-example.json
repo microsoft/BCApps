@@ -1,0 +1,185 @@
+{
+  "schema": "soa-attachment-content",
+  "document_summary": "Purchase order from Fabrikam Retail requesting three products and one installation service for delivery to the Boston warehouse.",
+  "parties": [
+    {
+      "role": "buyer",
+      "name": "Fabrikam Retail Inc.",
+      "address": "1200 Harbor Street, Boston, MA 02128, USA",
+      "contact_information": "orders@fabrikam-retail.com, +1 617 555 0134",
+      "contact_person": "Dana Reyes"
+    },
+    {
+      "role": "ship-to",
+      "name": "Fabrikam Boston Warehouse",
+      "address": "45 Dockside Road, Boston, MA 02129, USA"
+    }
+  ],
+  "references": [
+    {
+      "type": "purchase order number",
+      "value": "PO-2026-004871"
+    },
+    {
+      "type": "document date",
+      "value": "2026-03-04"
+    },
+    {
+      "type": "customer account number",
+      "value": "CUST-10093"
+    }
+  ],
+  "requested_dates": [
+    {
+      "type": "requested delivery date",
+      "value": "2026-03-19"
+    },
+    {
+      "type": "ship-by date",
+      "value": "2026-03-16",
+      "source_location": "line 3"
+    }
+  ],
+  "items": [
+    {
+      "identifiers": [
+        {
+          "type": "vendor item number",
+          "value": "1928-S"
+        },
+        {
+          "type": "customer item number",
+          "value": "FR-CHAIR-BLU-L"
+        },
+        {
+          "type": "variant code",
+          "value": "BLUE-L"
+        },
+        {
+          "type": "GTIN",
+          "value": "05012345678900"
+        }
+      ],
+      "description": "ATHENS Desk Chair, blue fabric upholstery, large frame, height-adjustable gas lift, chrome five-star base, assembly required",
+      "quantity": 12,
+      "unit_of_measure": "PCS",
+      "attributes": [
+        {
+          "name": "Brand",
+          "value": "ATHENS"
+        },
+        {
+          "name": "Color",
+          "value": "Blue"
+        },
+        {
+          "name": "Size",
+          "value": "Large"
+        },
+        {
+          "name": "Material",
+          "value": "Fabric"
+        },
+        {
+          "name": "Frame Finish",
+          "value": "Chrome"
+        },
+        {
+          "name": "Assembly",
+          "value": "Required"
+        }
+      ],
+      "source_location": "line 1"
+    },
+    {
+      "identifiers": [
+        {
+          "type": "manufacturer item number",
+          "value": "TC-7734"
+        }
+      ],
+      "description": "PARIS Guest Table, oak veneer top, 1400 x 800 mm, four legs, flat-packed, model year 2025",
+      "quantity": 3,
+      "unit_of_measure": "EA",
+      "attributes": [
+        {
+          "name": "Material",
+          "value": "Oak veneer"
+        },
+        {
+          "name": "Dimensions",
+          "value": "1400 x 800 mm"
+        },
+        {
+          "name": "Packaging",
+          "value": "Flat-packed"
+        },
+        {
+          "name": "Model Year",
+          "value": "2025"
+        }
+      ],
+      "source_location": "line 2"
+    },
+    {
+      "identifiers": [
+        {
+          "type": "catalog number",
+          "value": "CAT-4410-Z"
+        }
+      ],
+      "description": "OSLO Shelf Support Pins, zinc-plated steel, 5 mm diameter, supplied in boxes of 250",
+      "quantity": 5,
+      "unit_of_measure": "BOX 250",
+      "attributes": [
+        {
+          "name": "Material",
+          "value": "Zinc-plated steel"
+        },
+        {
+          "name": "Diameter",
+          "value": "5 mm"
+        },
+        {
+          "name": "Package Size",
+          "value": "250 pieces per box"
+        }
+      ],
+      "status_notes": [
+        "Replaces discontinued CAT-4410-N",
+        "Partial delivery accepted"
+      ],
+      "source_location": "line 3"
+    },
+    {
+      "description": "On-site installation service for the delivered furniture, preferred time window weekday mornings",
+      "quantity": 1,
+      "unit_of_measure": "SERVICE",
+      "attributes": [
+        {
+          "name": "Service Type",
+          "value": "On-site installation"
+        },
+        {
+          "name": "Preferred Time Window",
+          "value": "Weekday mornings"
+        }
+      ],
+      "source_location": "line 4"
+    }
+  ],
+  "additional_relevant_information": [
+    {
+      "label": "Delivery instruction",
+      "value": "Deliver to loading dock B, call 30 minutes before arrival"
+    },
+    {
+      "label": "Order note",
+      "value": "Do not split the order across more than two shipments"
+    }
+  ],
+  "warnings": [
+    "The unit of measure on line 3 is printed as BOX 250 and carries a pack size, so the quantity 5 means 5 boxes rather than 5 pieces.",
+    "The item table on page 1 is skewed and its columns were matched to their headers by position."
+  ]
+}
