@@ -56,6 +56,18 @@ table 3320 "PA Email Cleanup Setup"
             Caption = 'Last run''s copies skipped';
             Editable = false;
         }
+        field(50; "Limit Rows To Delete"; Boolean)
+        {
+            Caption = 'Limit rows to delete (test run)';
+            ToolTip = 'Specifies whether a cleanup deletes only a limited number of copies. Enable this to do a small test run and verify the outcome before deleting everything.';
+        }
+        field(51; "Rows To Delete Limit"; Integer)
+        {
+            Caption = 'Rows to delete';
+            ToolTip = 'Specifies the maximum number of redundant copies a cleanup deletes in one run. Only used when "Limit rows to delete (test run)" is enabled.';
+            InitValue = 10;
+            MinValue = 1;
+        }
     }
 
     keys
@@ -95,5 +107,22 @@ table 3320 "PA Email Cleanup Setup"
     procedure DefaultCommitBatchSize(): Integer
     begin
         exit(100);
+    end;
+
+    procedure GetDeletionLimit(): Integer
+    begin
+        GetSingleton();
+        if not Rec."Limit Rows To Delete" then
+            exit(0);
+        if Rec."Rows To Delete Limit" < 1 then begin
+            Rec."Rows To Delete Limit" := DefaultDeletionLimit();
+            Rec.Modify();
+        end;
+        exit(Rec."Rows To Delete Limit");
+    end;
+
+    procedure DefaultDeletionLimit(): Integer
+    begin
+        exit(10);
     end;
 }

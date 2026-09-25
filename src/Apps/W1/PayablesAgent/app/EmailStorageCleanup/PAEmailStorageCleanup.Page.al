@@ -74,6 +74,29 @@ page 3325 "PA Email Storage Cleanup"
                         CurrPage.SaveRecord();
                     end;
                 }
+                field(LimitRowsToDelete; Rec."Limit Rows To Delete")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether a cleanup deletes only a limited number of copies. Enable this to do a small test run and verify the outcome before deleting everything.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.SaveRecord();
+                        DeletionLimitEnabled := Rec."Limit Rows To Delete";
+                        CurrPage.Update(false);
+                    end;
+                }
+                field(RowsToDeleteLimit; Rec."Rows To Delete Limit")
+                {
+                    ApplicationArea = All;
+                    Enabled = DeletionLimitEnabled;
+                    ToolTip = 'Specifies the maximum number of redundant copies a cleanup deletes in one run. The rest are left for a later run. Only used when the test-run limit is enabled.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.SaveRecord();
+                    end;
+                }
                 field(StartingDateTime; Rec."Starting Date/Time")
                 {
                     ApplicationArea = All;
@@ -266,12 +289,21 @@ page 3325 "PA Email Storage Cleanup"
         ScheduleStyle: Text;
         ScheduledAt: DateTime;
         BackgroundError: Text;
+        DeletionLimitEnabled: Boolean;
+
+    trigger OnAfterGetRecord()
+    begin
+        DeletionLimitEnabled := Rec."Limit Rows To Delete";
+    end;
 
     trigger OnOpenPage()
     begin
         Rec.GetSingleton();
         if Rec."Commit Batch Size" < 1 then
             Rec."Commit Batch Size" := Rec.DefaultCommitBatchSize();
+        if Rec."Rows To Delete Limit" < 1 then
+            Rec."Rows To Delete Limit" := Rec.DefaultDeletionLimit();
+        DeletionLimitEnabled := Rec."Limit Rows To Delete";
         RefreshScheduleState();
     end;
 
