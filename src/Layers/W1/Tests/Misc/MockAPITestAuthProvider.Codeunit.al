@@ -20,9 +20,11 @@ codeunit 139493 "Mock API Test Auth Provider" implements "API Test Auth Provider
     procedure ConfigureAuthentication(var Authentication: Codeunit "API Test Auth Context")
     var
         Password: SecretText;
+        PasswordText: Text;
     begin
         InvocationCount += 1;
-        Password := PasswordTxt;
+        PasswordText := PasswordTxt;
+        Password := PasswordText;
         Authentication.SetBasicAuthentication('User', Password);
         OnAfterConfigureAuthentication(InvocationCount);
     end;
