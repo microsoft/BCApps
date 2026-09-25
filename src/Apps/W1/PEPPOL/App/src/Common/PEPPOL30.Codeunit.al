@@ -266,6 +266,25 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Checks that the own company party resolves to a party identifier that can be exported.
+    /// </summary>
+    /// <param name="SupplierEndpointID">The endpoint identifier already resolved for the document that is being validated.</param>
+    procedure CheckCompanyPartyIdentification(SupplierEndpointID: Text)
+    begin
+        PEPPOLManagementImpl.CheckCompanyPartyIdentification(SupplierEndpointID);
+    end;
+
+    /// <summary>
+    /// Checks that the customer party resolves to a party identifier that can be exported.
+    /// </summary>
+    /// <param name="CustomerEndpointID">The endpoint identifier already resolved for the document that is being validated.</param>
+    /// <param name="CustomerNo">The customer the endpoint identifier was resolved for.</param>
+    procedure CheckCustomerPartyIdentification(CustomerEndpointID: Text; CustomerNo: Code[20])
+    begin
+        PEPPOLManagementImpl.CheckCustomerPartyIdentification(CustomerEndpointID, CustomerNo);
+    end;
+
+    /// <summary>
     /// Gets seller supplier party information for BIS format from the purchase header.
     /// </summary>
     /// <param name="PurchaseHeader">The purchase header record containing the supplier information.</param>

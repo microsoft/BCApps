@@ -4,14 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Peppol;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;
 
@@ -70,6 +74,25 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
             until FinChargeMemoLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Validates if a purchase order meets PEPPOL requirements before the outbound e-document is created.
+    /// </summary>
+    /// <param name="PurchaseHeader">Record "Purchase Header" that contains the purchase document to validate.</param>
+    /// <param name="EDocumentProcessingPhase">The phase the source document is currently being processed in.</param>
+    /// <remarks>
+    /// The outbound e-document is created when a purchase order is released, so the buyer party identification
+    /// is only validated in that phase. Posting a purchase document does not create an e-document and must not be blocked.
+    /// </remarks>
+    procedure CheckPurchaseOrder(PurchaseHeader: Record "Purchase Header"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
+    begin
+        if EDocumentProcessingPhase <> EDocumentProcessingPhase::Release then
+            exit;
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+
+        this.CheckCompanyPartyIdentificationForPurchase();
+    end;
+
     local procedure CheckReminderHeader(ReminderHeader: Record "Reminder Header")
     var
         CompanyInfo: Record "Company Information";
@@ -89,8 +112,7 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
         CompanyInfo.TestField("Country/Region Code");
         this.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
-            Error(this.MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+        this.CheckCompanyPartyIdentification();
         ReminderHeader.TestField(Name);
         ReminderHeader.TestField(Address);
         ReminderHeader.TestField(City);
@@ -100,8 +122,7 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
 
         if Customer.Get(ReminderHeader."Customer No.")
         then
-            if (Customer.GLN + Customer."VAT Registration No.") = '' then
-                Error(MissingCustGLNOrVATRegNoErr, Customer."No.");
+            this.CheckCustomerPartyIdentification(Customer."No.");
 
         ReminderHeader.TestField("Your Reference");
         ReminderHeader.TestField("Due Date");
@@ -137,8 +158,7 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
         CompanyInfo.TestField("Country/Region Code");
         this.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
-            Error(this.MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+        this.CheckCompanyPartyIdentification();
         FinChargeMemoHeader.TestField(Name);
         FinChargeMemoHeader.TestField(Address);
         FinChargeMemoHeader.TestField(City);
@@ -148,8 +168,7 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
 
         if Customer.Get(FinChargeMemoHeader."Customer No.")
         then
-            if (Customer.GLN + Customer."VAT Registration No.") = '' then
-                Error(this.MissingCustGLNOrVATRegNoErr, Customer."No.");
+            this.CheckCustomerPartyIdentification(Customer."No.");
 
         FinChargeMemoHeader.TestField("Your Reference");
         FinChargeMemoHeader.TestField("Due Date");
@@ -212,17 +231,66 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
         CompanyInfo.TestField("Country/Region Code");
         this.CheckCountryRegionCode(CompanyInfo."Country/Region Code");
 
-        if CompanyInfo.GLN + CompanyInfo."VAT Registration No." = '' then
-            Error(this.MissingCompInfGLNOrVATRegNoErr, CompanyInfo.TableCaption());
+        this.CheckCompanyPartyIdentificationForPurchase();
+    end;
+
+    local procedure CheckCompanyPartyIdentification()
+    var
+        SupplierEndpointID: Text;
+        SupplierSchemeID: Text;
+        SupplierName: Text;
+    begin
+        this.PEPPOLMgt.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
+        this.PEPPOLMgt.CheckCompanyPartyIdentification(SupplierEndpointID);
+    end;
+
+    local procedure CheckCustomerPartyIdentification(CustomerNo: Code[20])
+    var
+        SalesHeader: Record "Sales Header";
+        CustomerEndpointID: Text;
+        CustomerSchemeID: Text;
+        CustomerPartyIdentificationID: Text;
+        CustomerPartyIDSchemeID: Text;
+        CustomerName: Text;
+    begin
+        Clear(SalesHeader);
+        SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
+        this.PEPPOLMgt.GetAccountingCustomerPartyInfoBIS(
+          SalesHeader, CustomerEndpointID, CustomerSchemeID,
+          CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName);
+        this.PEPPOLMgt.CheckCustomerPartyIdentification(CustomerEndpointID, SalesHeader."Bill-to Customer No.");
+    end;
+
+    local procedure CheckCompanyPartyIdentificationForPurchase()
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        PEPPOLPurchasePartyInfo: Interface "PEPPOL Purchase Party Info Provider";
+        SupplierEndpointID: Text;
+        SupplierSchemeID: Text;
+        SupplierName: Text;
+    begin
+        PeppolSetup.GetSetup();
+        PEPPOLPurchasePartyInfo := PeppolSetup."PEPPOL 3.0 Purchase Format";
+        PEPPOLPurchasePartyInfo.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
+        this.PEPPOLMgt.CheckCompanyPartyIdentification(SupplierEndpointID);
     end;
 
     local procedure CheckVendorForRemittanceAdvice(Vendor: Record Vendor)
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        PEPPOLRemitAdviceInfo: Interface "PEPPOL Remit. Advice Info Provider";
+        PayeeEndpointID: Text;
+        PayeeSchemeID: Text;
+        PayeePartyName: Text;
     begin
         Vendor.TestField(Name);
         Vendor.TestField("Country/Region Code");
         this.CheckCountryRegionCode(Vendor."Country/Region Code");
 
-        if Vendor.GLN + Vendor."VAT Registration No." = '' then
+        PeppolSetup.GetSetup();
+        PEPPOLRemitAdviceInfo := PeppolSetup."PEPPOL 3.0 Purchase Format";
+        PEPPOLRemitAdviceInfo.GetPayeePartyInfo(Vendor, PayeeEndpointID, PayeeSchemeID, PayeePartyName);
+        if PayeeEndpointID = '' then
             Error(this.MissingVendGLNOrVATRegNoErr, Vendor."No.");
     end;
 
@@ -271,9 +339,8 @@ codeunit 6172 "E-Doc. PEPPOL Validation"
     end;
 
     var
+        PEPPOLMgt: Codeunit "PEPPOL30";
         WrongLengthErr: Label 'should be %1 characters long', Comment = '%1 - number of characters';
         MissingDescriptionErr: Label 'Description field is empty. This field must be filled if you want to send the posted document as an electronic document.';
-        MissingCustGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Customer %1.', Comment = '%1 - Customer No.';
-        MissingCompInfGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. in %1.', Comment = '%1 - Company Information';
         MissingVendGLNOrVATRegNoErr: Label 'You must specify either GLN or VAT Registration No. for Vendor %1.', Comment = '%1 - Vendor No.';
 }
