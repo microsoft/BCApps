@@ -10,10 +10,8 @@ codeunit 139493 "Mock API Test Auth Provider" implements "API Test Auth Provider
     Access = Internal;
 
     var
-        APITestAuthRecorder: Codeunit "API Test Auth Recorder";
         InvocationCount: Integer;
         PasswordTxt: Label 'Password', Locked = true;
-        ProviderCallTok: Label 'Provider|%1', Locked = true;
 
     /// <summary>
     /// Records an invocation and configures Basic authentication for the request.
@@ -22,12 +20,15 @@ codeunit 139493 "Mock API Test Auth Provider" implements "API Test Auth Provider
     procedure ConfigureAuthentication(var Authentication: Codeunit "API Test Auth Context")
     var
         Password: SecretText;
-        PasswordText: Text;
     begin
         InvocationCount += 1;
-        APITestAuthRecorder.RecordCall(StrSubstNo(ProviderCallTok, InvocationCount));
-        PasswordText := PasswordTxt;
-        Password := PasswordText;
+        Password := PasswordTxt;
         Authentication.SetBasicAuthentication('User', Password);
+        OnAuthenticationConfigured(InvocationCount);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAuthenticationConfigured(InvocationNumber: Integer)
+    begin
     end;
 }
