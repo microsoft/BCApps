@@ -22,7 +22,7 @@ codeunit 6234 "E-Doc. Purchase Draft Utility"
         EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
         EDocumentPurchaseHeader.DeleteAll();
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocumentPurchaseLine.DeleteAll();
+        EDocumentPurchaseLine.DeleteAll(true);
 
         EDocumentPurchaseHeader := TempEDocPurchaseHeader;
         EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
