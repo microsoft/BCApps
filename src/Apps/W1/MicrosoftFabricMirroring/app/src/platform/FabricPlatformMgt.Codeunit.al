@@ -291,8 +291,8 @@ codeunit 48520 "Fabric Platform Mgt"
             FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
         end else
             CredMgt.SetLastEnableRequestedAt(CurrentDateTime());
-        Telemetry.LogEvent('FAB-100', 'Fabric mirroring enable requested.');
-        Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
+        Telemetry.LogEvent('0000VNB', 'Fabric mirroring enable requested.');
+        Telemetry.LogAudit('0000VNC', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then
             Message(EnableRequestedMsg);
     end;
@@ -382,8 +382,8 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeStartExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StartFabricExport();
-        Telemetry.LogEvent('FAB-101', 'Fabric mirroring start requested.');
-        Telemetry.LogAudit('FAB-101-AUD', 'Microsoft Fabric Open Mirroring - export start requested.');
+        Telemetry.LogEvent('0000VND', 'Fabric mirroring start requested.');
+        Telemetry.LogAudit('0000VNE', 'Microsoft Fabric Open Mirroring - export start requested.');
         if GuiAllowed() then
             Message(StartRequestedMsg);
     end;
@@ -406,8 +406,8 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeStopExport(IsHandled);
         if not IsHandled then
             FabricExportManager.StopFabricExport();
-        Telemetry.LogEvent('FAB-102', 'Fabric mirroring stop requested.');
-        Telemetry.LogAudit('FAB-102-AUD', 'Microsoft Fabric Open Mirroring - export stop requested.');
+        Telemetry.LogEvent('0000VNF', 'Fabric mirroring stop requested.');
+        Telemetry.LogAudit('0000VNG', 'Microsoft Fabric Open Mirroring - export stop requested.');
         if GuiAllowed() then
             Message(StopRequestedMsg);
     end;
@@ -421,8 +421,8 @@ codeunit 48520 "Fabric Platform Mgt"
         OnBeforeDisableExport(IsHandled);
         if not IsHandled then
             FabricExportManager.DisableFabricExport();
-        Telemetry.LogEvent('FAB-103', 'Fabric mirroring disable requested.');
-        Telemetry.LogAudit('FAB-103-AUD', 'Microsoft Fabric Open Mirroring - export disable requested.');
+        Telemetry.LogEvent('0000VNH', 'Fabric mirroring disable requested.');
+        Telemetry.LogAudit('0000VNI', 'Microsoft Fabric Open Mirroring - export disable requested.');
         if GuiAllowed() then
             Message(DisableRequestedMsg);
     end;
@@ -443,7 +443,7 @@ codeunit 48520 "Fabric Platform Mgt"
         // A subscriber must explicitly confirm success; skipping the probe no longer implies it.
         if not IsSuccess then
             exit;
-        Telemetry.LogEvent('FAB-104', 'Fabric connection test succeeded.');
+        Telemetry.LogEvent('0000VNJ', 'Fabric connection test succeeded.');
         if GuiAllowed() then
             Message(TestConnectionSuccessMsg);
     end;

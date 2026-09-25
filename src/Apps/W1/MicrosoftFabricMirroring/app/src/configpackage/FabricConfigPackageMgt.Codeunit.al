@@ -61,8 +61,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Validate("Last Activated Version", Pkg.Version);
         Pkg.Modify(true);
 
-        LogPackageEvent('FAB-150', 'Config package activated.', Pkg."Code");
-        Telemetry.LogAudit('FAB-150-AUD', StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version));
+        LogPackageEvent('0000VN1', 'Config package activated.', Pkg."Code");
+        Telemetry.LogAudit('0000VN2', StrSubstNo(PackageActivatedAuditMsg, Pkg."Code", Pkg.Version));
     end;
 
     internal procedure Deactivate(var Pkg: Record "Fabric Config Package")
@@ -87,8 +87,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Validate("Activated By", '');
         Pkg.Modify(true);
 
-        LogPackageEvent('FAB-151', 'Config package deactivated.', Pkg."Code");
-        Telemetry.LogAudit('FAB-151-AUD', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"));
+        LogPackageEvent('0000VN3', 'Config package deactivated.', Pkg."Code");
+        Telemetry.LogAudit('0000VN4', StrSubstNo(PackageDeactivatedAuditMsg, Pkg."Code"));
 
         if GuiAllowed() and (KeptTableCount > 0) then
             Message(TablesKeptByOtherPackageMsg, KeptTableCount);
@@ -129,8 +129,8 @@ codeunit 48521 "Fabric Config Package Mgt"
         Pkg.Validate("Last Activated Version", Pkg.Version);
         Pkg.Modify(true);
 
-        LogPackageEvent('FAB-152', 'Config package reapplied.', Pkg."Code");
-        Telemetry.LogAudit('FAB-152-AUD', StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version));
+        LogPackageEvent('0000VN5', 'Config package reapplied.', Pkg."Code");
+        Telemetry.LogAudit('0000VN6', StrSubstNo(PackageReappliedAuditMsg, Pkg."Code", Pkg.Version));
     end;
 
     internal procedure IsReapplyAvailable(var Pkg: Record "Fabric Config Package"): Boolean
@@ -162,7 +162,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         if Pkg.Active then
             ReapplyAfterRegister(Pkg, RemovedTableIds, PackageCode);
 
-        LogPackageEvent('FAB-155', StrSubstNo(PackageRegisteredViaCodeMsg, Version), PackageCode);
+        LogPackageEvent('0000VN7', StrSubstNo(PackageRegisteredViaCodeMsg, Version), PackageCode);
     end;
 
     local procedure UpsertPackageHeader(var Pkg: Record "Fabric Config Package"; PackageCode: Code[20]; Description: Text[100]; Version: Code[10]): Boolean
@@ -248,7 +248,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         Dimensions: Dictionary of [Text, Text];
     begin
         Dimensions.Add('PackageCode', PackageCode);
-        Telemetry.LogFailureEvent('FAB-157', StrSubstNo(PackageReapplySkippedMsg, ErrorMessage), Dimensions);
+        Telemetry.LogFailureEvent('0000VN8', StrSubstNo(PackageReapplySkippedMsg, ErrorMessage), Dimensions);
     end;
 
     local procedure LogPackageEvent(EventId: Text; EventMessage: Text; PackageCode: Code[20])
@@ -267,7 +267,7 @@ codeunit 48521 "Fabric Config Package Mgt"
         Dimensions.Add('Category', CategoryTok);
         Dimensions.Add('PackageCode', PackageCode);
         Dimensions.Add('TableId', Format(TableId));
-        Session.LogMessage('FAB-156', 'Config package: skipped missing table — not found in AllObjWithCaption.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+        Session.LogMessage('0000VN9', 'Config package: skipped missing table — not found in AllObjWithCaption.', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     internal procedure ExportPackageToStream(var Pkg: Record "Fabric Config Package"; var OutStream: OutStream)

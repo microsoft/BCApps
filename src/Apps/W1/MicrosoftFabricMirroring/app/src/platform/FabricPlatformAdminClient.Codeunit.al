@@ -117,7 +117,7 @@ codeunit 48526 "Fabric Platform Admin Client"
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(RetrieveMirroredDbsTransportErr);
         if not Resp.GetIsSuccessStatusCode() then begin
-            Telemetry.LogFailureEvent('FAB-120', StrSubstNo(RetrieveMirroredDbsHttpStatusErr, Resp.GetHttpStatusCode()), TelemetryDimensions);
+            Telemetry.LogFailureEvent('0000VNA', StrSubstNo(RetrieveMirroredDbsHttpStatusErr, Resp.GetHttpStatusCode()), TelemetryDimensions);
             Error(CreateMirroredDbsHttpErrorInfo(Resp.GetHttpStatusCode()));
         end;
 
