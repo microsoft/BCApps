@@ -62,7 +62,7 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
                 action(CreateEDocument)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Create Self-Billed E-Document';
+                    Caption = 'Create self-billed E-Document';
                     Image = CreateDocument;
                     ToolTip = 'Creates a self-billed E-Document from this posted purchase invoice and sends it via service. Only available for vendors with a self-billing agreement and registered participant IDs.';
                     Enabled = (not SelfBillEDocumentExists) and CanSelfBill;
