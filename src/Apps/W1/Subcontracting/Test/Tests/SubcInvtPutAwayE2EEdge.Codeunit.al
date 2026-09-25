@@ -12,6 +12,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.WorkCenter;
@@ -457,26 +458,34 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure GetReceiptLinesFromInvtPutAwayReceiptIsCurrentlyBlocked()
+    procedure GetReceiptLinesFromInvtPutAwayReceiptPostsSeparateInvoice()
     var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
         Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
         Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
         ProductionOrder: Record "Production Order";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
         Vendor: Record Vendor;
         WarehouseActivityHeader: Record "Warehouse Activity Header";
         WorkCenter: array[2] of Record "Work Center";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryNo: Integer;
+        CapacityLedgerEntryCount: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
         Quantity: Decimal;
     begin
-        // [FEATURE] Group I - Purchase invoice / financial post-processes
-        // [SCENARIO] TC-GAP-I01 A subcontracting receipt cannot be invoiced through Get Receipt Lines
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649862] TC-GAP-I01 A subcontracting inventory put-away receipt can be invoiced through Get Receipt Lines
 
-        // [GIVEN] LastOperation purchase line fully received via Inventory Put-Away (per TC-E2E-A01)
+        // [GIVEN] LastOperation purchase line fully received via Inventory Put-Away with one output and linked capacity cost
         Initialize();
         Quantity := LibraryRandom.RandIntInRange(5, 10);
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
@@ -503,15 +512,50 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
         PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
         PurchRcptLine.FindFirst();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        CapacityLedgerEntryCount := CapacityLedgerEntry.Count();
+        CapacityLedgerEntry.FindFirst();
+        CapacityLedgerEntryNo := CapacityLedgerEntry."Entry No.";
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        OutputItemLedgerEntryCount := ItemLedgerEntry.Count();
 
-        // [WHEN] Get Receipt Lines is run for a new purchase invoice
+        // [WHEN] Get Receipt Lines is run for a new purchase invoice and the separate invoice is posted
         LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
         PurchRcptLine.SetRecFilter();
         PurchGetReceipt.SetPurchHeader(InvoiceHeader);
-        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
 
-        // [THEN] Separate invoice creation is blocked for the subcontracting receipt
-        Assert.ExpectedError('subcontracting receipt lines');
+        // [THEN] The receipt is fully invoiced and the invoice cost remains linked to the original capacity entry
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The subcontracting receipt must be fully invoiced.');
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Invoice");
+        ValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(
+            Round(Quantity * InvoiceLine."Direct Unit Cost"), Round(ValueEntry."Cost Amount (Actual)"),
+            'The separate invoice cost must remain assigned to the original capacity ledger entry.');
+
+        // [THEN] Posting the separate invoice does not create duplicate capacity or output entries
+        CapacityLedgerEntry.Reset();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Separate invoicing must not duplicate capacity output.');
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not duplicate item output.');
     end;
 
     [Test]
