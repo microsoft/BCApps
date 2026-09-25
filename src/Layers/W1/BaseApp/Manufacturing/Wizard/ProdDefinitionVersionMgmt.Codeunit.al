@@ -11,6 +11,10 @@ codeunit 99001015 "Prod. Definition Version Mgmt."
 {
     var
         VersionManagement: Codeunit VersionManagement;
+        ActionableBOMVersionNosErr: Label 'To create a version for production BOM %1, specify a value in the Version Nos. field on the production BOM.', Comment = '%1 = Production BOM No.';
+        ActionableRoutingVersionNosErr: Label 'To create a version for routing %1, specify a value in the Version Nos. field on the routing.', Comment = '%1 = Routing No.';
+        ShowProductionBOMLbl: Label 'Show Production BOM %1', Comment = '%1 = Production BOM No.';
+        ShowRoutingLbl: Label 'Show Routing %1', Comment = '%1 = Routing No.';
 
     /// <summary>
     /// Opens a lookup page for certified Production BOM versions and returns the selected version code.
@@ -255,20 +259,50 @@ codeunit 99001015 "Prod. Definition Version Mgmt."
     end;
 
     /// <summary>
-    /// Validates that the production BOM has a version number series configured. Throws an error if not set.
+    /// Validates that the production BOM has a version number series configured. Raises an actionable
+    /// error that opens the affected production BOM if not set.
     /// </summary>
     /// <param name="BOMNo">The production BOM number to validate the version number series for.</param>
     internal procedure ValidateBOMVersionNoSeries(BOMNo: Code[20])
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        BOMVersionNosErrorInfo: ErrorInfo;
     begin
+        ProductionBOMHeader.SetLoadFields("Version Nos.");
+        ProductionBOMHeader.Get(BOMNo);
+        if ProductionBOMHeader."Version Nos." = '' then begin
+            BOMVersionNosErrorInfo := ErrorInfo.Create(StrSubstNo(ActionableBOMVersionNosErr, BOMNo), true);
+            BOMVersionNosErrorInfo.RecordId := ProductionBOMHeader.RecordId;
+            BOMVersionNosErrorInfo.FieldNo := ProductionBOMHeader.FieldNo("Version Nos.");
+            BOMVersionNosErrorInfo.PageNo := Page::"Production BOM";
+            BOMVersionNosErrorInfo.AddNavigationAction(StrSubstNo(ShowProductionBOMLbl, BOMNo));
+            Error(BOMVersionNosErrorInfo);
+        end;
+
         GetBOMVersionNoSeries(BOMNo);
     end;
 
     /// <summary>
-    /// Validates that the routing has a version number series configured. Throws an error if not set.
+    /// Validates that the routing has a version number series configured. Raises an actionable error
+    /// that opens the affected routing if not set.
     /// </summary>
     /// <param name="RoutingNo">The routing number to validate the version number series for.</param>
     internal procedure ValidateRoutingVersionNoSeries(RoutingNo: Code[20])
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingVersionNosErrorInfo: ErrorInfo;
     begin
+        RoutingHeader.SetLoadFields("Version Nos.");
+        RoutingHeader.Get(RoutingNo);
+        if RoutingHeader."Version Nos." = '' then begin
+            RoutingVersionNosErrorInfo := ErrorInfo.Create(StrSubstNo(ActionableRoutingVersionNosErr, RoutingNo), true);
+            RoutingVersionNosErrorInfo.RecordId := RoutingHeader.RecordId;
+            RoutingVersionNosErrorInfo.FieldNo := RoutingHeader.FieldNo("Version Nos.");
+            RoutingVersionNosErrorInfo.PageNo := Page::Routing;
+            RoutingVersionNosErrorInfo.AddNavigationAction(StrSubstNo(ShowRoutingLbl, RoutingNo));
+            Error(RoutingVersionNosErrorInfo);
+        end;
+
         GetRoutingVersionNoSeries(RoutingNo);
     end;
 }
