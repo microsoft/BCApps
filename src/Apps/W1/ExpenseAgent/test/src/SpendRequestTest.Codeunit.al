@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
+using System.Security.AccessControl;
 
 codeunit 148339 "Spend Request Test"
 {
@@ -77,6 +78,17 @@ codeunit 148339 "Spend Request Test"
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
         EmployeeNotLinkedErr: Label 'No expense user is linked to employee %1.', Comment = '%1 = Employee No.', Locked = true;
         DuplicateTravelerMappingErr: Label 'is already on this travel request', Locked = true;
+        ApproverUserIdRecordedMsg: Label 'The approving or rejecting user ID should be recorded on the travel request.';
+        ApproverUserNameRecordedMsg: Label 'The approving or rejecting user name should be recorded on the travel request.';
+        ApproverDateTimeRecordedMsg: Label 'The approval or rejection date and time should be recorded on the travel request.';
+        AutoApprovedStatusMsg: Label 'A released travel request should be approved automatically when the agent is disabled.';
+        ManualApprovedStatusMsg: Label 'The travel request should be approved by the assigned approver.';
+        RejectedByApproverStatusMsg: Label 'The travel request should be rejected by the assigned approver.';
+        AutoApprovalReportCreatedMsg: Label 'Auto-approving a travel request should still create one expense report.';
+        RequestedForNameMirrorsMsg: Label 'The requested-for name should mirror the expense user name.';
+        RequestedForNameClearedMsg: Label 'The requested-for name should be cleared when the requester is removed.';
+        RequesterFieldsEditableMsg: Label 'The requester fields and purpose should be editable while the travel request is open.';
+        RequesterFieldsReadOnlyMsg: Label 'The requester fields and purpose should be read-only once the travel request leaves the open status.';
 
     [Test]
     procedure EmployeeExpenseUserFilterIncludesOnlyLinkedEmployees()
@@ -2144,6 +2156,176 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual('', LumpSumLine."Expense Category Code", CategoryClearedMsg);
     end;
 
+    [Test]
+    procedure ReleaseSpendReqRecordsApproverInfoWhenAgentDisabled()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 650348] Auto-approving a released travel request records the releasing user as the approver, including the user name.
+        Initialize();
+
+        // [GIVEN] A releasable travel request with the agent disabled.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The travel request is released and therefore approved automatically.
+        ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] The request is approved and the approver audit fields, including the user name, are recorded.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, AutoApprovedStatusMsg);
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+        Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", ApproverDateTimeRecordedMsg);
+
+        // [THEN] The expense report is still created for the requested user.
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.AreEqual(1, ExpenseReportHeader.Count(), AutoApprovalReportCreatedMsg);
+    end;
+
+    [Test]
+    procedure ApproveTravelRequestRecordsApproverName()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 650348] Approving a released travel request records the approver's user name alongside the user ID.
+        Initialize();
+
+        // [GIVEN] A released travel request with an assigned approver and the agent enabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        // [WHEN] The assigned approver approves the request.
+        TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
+
+        // [THEN] The request is approved and the approver's user name is recorded.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, ManualApprovedStatusMsg);
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+    end;
+
+    [Test]
+    procedure RejectTravelRequestRecordsRejecterName()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO 650348] Rejecting a released travel request records the rejecting user's name alongside the user ID.
+        Initialize();
+
+        // [GIVEN] A released travel request with an assigned approver and the agent enabled.
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        // [WHEN] The assigned approver rejects the request.
+        TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", 'The destination is outside the approved travel policy.');
+
+        // [THEN] The request is rejected and the rejecting user's name is recorded.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, RejectedByApproverStatusMsg);
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", ApproverUserIdRecordedMsg);
+        Assert.AreEqual(GetExpectedApproverName(), SpendRequest."Approved/Rejected by User Name", ApproverUserNameRecordedMsg);
+    end;
+
+    [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
+    procedure RequestedForNameMirrorsExpenseUserName()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 650348] "Requested For Name" mirrors the expense user name and clears when the requester is removed.
+        Initialize();
+
+        // [GIVEN] An expense user and an open travel request.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+
+        // [WHEN] The expense user is set as the requester.
+        SpendRequest.Validate("Requested For", ExpenseUser."No.");
+        SpendRequest.Modify(true);
+
+        // [THEN] The denormalized name mirrors the expense user name.
+        SpendRequest.CalcFields("Requested For Name");
+        Assert.AreEqual(ExpenseUser.Name, SpendRequest."Requested For Name", RequestedForNameMirrorsMsg);
+
+        // [WHEN] The requester is removed (the traveler replacement is confirmed by the handler).
+        SpendRequest.Get(SpendRequest."No.");
+        SpendRequest.Validate("Requested For", '');
+
+        // [THEN] The denormalized name is cleared as well.
+        SpendRequest.CalcFields("Requested For Name");
+        Assert.AreEqual('', SpendRequest."Requested For Name", RequestedForNameClearedMsg);
+    end;
+
+    [Test]
+    procedure PurposeCannotBeEditedWhenRequestNotOpen()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 650348] The purpose cannot be changed once the travel request leaves the Open status.
+        Initialize();
+
+        // [GIVEN] An approved (non-open) travel request.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+
+        // [WHEN] The purpose is changed.
+        asserterror SpendRequest.Validate(Purpose, 'Updated purpose after approval');
+
+        // [THEN] It fails because the request must be open to be edited.
+        Assert.ExpectedError(StatusNotOpenErr);
+    end;
+
+    [Test]
+    procedure TravelRequestIdentityFieldsEditableOnlyWhenOpen()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestCard: TestPage "Travel Request Card";
+    begin
+        // [SCENARIO 650348] The requester and purpose fields on the travel request card are editable only while the request is Open.
+        Initialize();
+
+        // [GIVEN] An open travel request.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+
+        // [WHEN] The card is opened while the request is Open.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The requester fields and purpose are editable.
+        Assert.IsTrue(TravelRequestCard."Requested For".Editable(), RequesterFieldsEditableMsg);
+        Assert.IsTrue(TravelRequestCard.Purpose.Editable(), RequesterFieldsEditableMsg);
+        TravelRequestCard.Close();
+
+        // [GIVEN] The request is approved and therefore no longer open.
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+
+        // [WHEN] The card is reopened.
+        TravelRequestCard.OpenEdit();
+        TravelRequestCard.GoToRecord(SpendRequest);
+
+        // [THEN] The requester fields and purpose are read-only.
+        Assert.IsFalse(TravelRequestCard."Requested For".Editable(), RequesterFieldsReadOnlyMsg);
+        Assert.IsFalse(TravelRequestCard."Requested For Name".Editable(), RequesterFieldsReadOnlyMsg);
+        Assert.IsFalse(TravelRequestCard.Purpose.Editable(), RequesterFieldsReadOnlyMsg);
+        TravelRequestCard.Close();
+    end;
+
     local procedure Initialize()
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
@@ -2521,6 +2703,16 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.FilterGroup(OriginalFilterGroup);
         TravelRequestsAPI.SetTableView(SpendRequest);
         TravelRequestsAPI.SetRecord(SpendRequest);
+    end;
+
+    local procedure GetExpectedApproverName(): Code[50]
+    var
+        User: Record User;
+    begin
+        if User.ReadPermission() then
+            if User.Get(UserSecurityId()) then
+                exit(CopyStr(User."User Name", 1, 50));
+        exit(CopyStr(UserId(), 1, 50));
     end;
 
     [PageHandler]
