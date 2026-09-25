@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.RoleCenters;
 
 using Microsoft.Purchases.History;
 
-pageextension 11413 "Purchasing Mgr. RC NL" extends "Purchasing Manager Role Center"
+pageextension 11413 "Purchasing Manager RC NL" extends "Purchasing Manager Role Center"
 {
     actions
     {

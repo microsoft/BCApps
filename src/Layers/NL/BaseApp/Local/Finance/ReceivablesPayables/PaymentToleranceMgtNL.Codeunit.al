@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.ReceivablesPayables;
 
 using Microsoft.Bank.Statement;
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;

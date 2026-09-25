@@ -50,6 +50,16 @@ table 262 "Intrastat Jnl. Batch"
             AccessByPermission = TableData Currency = R;
             Caption = 'Currency Identifier';
         }
+        field(11400; "Export Date"; Date)
+        {
+            Caption = 'Export Date';
+            Editable = false;
+        }
+        field(11401; "Export Time"; Time)
+        {
+            Caption = 'Export Time';
+            Editable = false;
+        }
     }
 
     keys

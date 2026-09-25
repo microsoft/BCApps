@@ -34,6 +34,7 @@ codeunit 1220 "SEPA CT-Export File"
     var
         ExportToServerFile: Boolean;
         FeatureNameTxt: label 'SEPA Credit Transfer Export', locked = true;
+        FileNameLbl: Label '%1.XML', Locked = true;
 
     internal procedure FeatureName(): Text
     begin
@@ -81,7 +82,7 @@ codeunit 1220 "SEPA CT-Export File"
         CreditTransferRegister.FindLast();
 
         if FileName = '' then
-            FileName := StrSubstNo('%1.XML', CreditTransferRegister.Identifier)
+            FileName := StrSubstNo(FileNameLbl, CreditTransferRegister.Identifier)
         else
             FileName := FileManagement.GetFileName(FileName);
 
