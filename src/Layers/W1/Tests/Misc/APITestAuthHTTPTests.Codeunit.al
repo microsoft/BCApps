@@ -18,43 +18,43 @@ codeunit 139496 "API Test Auth HTTP Tests"
         SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
 
     [Test]
-    procedure MicrosoftAuthenticationIsRequiredForHttpRequest()
+    procedure MicrosoftAuthenticationRespectsServerAuthMode()
     var
         EnvironmentInfo: Codeunit "Environment Information";
-        SecurityGroup: Codeunit "Security Group";
         TargetURL: Text;
         ResponseCode: Integer;
+        ExpectedAmbientResponseCode: Integer;
     begin
-        // [SCENARIO] A UserPassword service accepts the configured credentials but rejects requests without them
+        // [SCENARIO] Authentication supplies UserPassword credentials or preserves ambient Windows credentials
         Initialize();
 
-        // [GIVEN] The uptake fixture provisions credentials for the current OnPrem UserPassword tenant
-        Assert.IsFalse(EnvironmentInfo.IsSaaSInfrastructure(), 'This HTTP scenario requires an OnPrem UserPassword test environment.');
-        Assert.IsFalse(SecurityGroup.IsWindowsAuthentication(), 'This HTTP scenario must not pass under ambient Windows authentication.');
+        // [GIVEN] An OnPrem service accepts configured UserPassword credentials or authorized ambient Windows credentials
+        Assert.IsFalse(EnvironmentInfo.IsSaaSInfrastructure(), 'This HTTP scenario requires an OnPrem test environment.');
+        ExpectedAmbientResponseCode := GetExpectedAmbientResponseCode();
         TargetURL := GetUrl(ClientType::ODataV4);
 
         // [WHEN] The default provider sends a real request to the authenticated OData service document
         LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURL);
         ResponseCode := ExecuteRequest(FirstHttpWebRequestMgt);
 
-        // [THEN] The service rejects ambient credentials
-        Assert.AreEqual(401, ResponseCode, 'A request without the provider must be unauthorized.');
+        // [THEN] Only a Windows-authenticated service accepts ambient credentials
+        Assert.AreEqual(ExpectedAmbientResponseCode, ResponseCode, 'The default provider must respect the server authentication mode.');
 
         // [WHEN] The Microsoft provider configures a new request to the same endpoint
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.InitializeWebRequestWithURL(SecondHttpWebRequestMgt, TargetURL);
         ResponseCode := ExecuteRequest(SecondHttpWebRequestMgt);
 
-        // [THEN] Credentials applied by the context reach the server and authenticate the request
-        Assert.AreEqual(200, ResponseCode, 'The configured credentials must authenticate the HTTP request.');
+        // [THEN] Configured UserPassword credentials or preserved Windows credentials authenticate the request
+        Assert.AreEqual(200, ResponseCode, 'The Microsoft provider must authenticate without disrupting ambient Windows credentials.');
 
         // [WHEN] Authentication is deselected and another request is created
         LibraryGraphMgt.SetAuthenticationProvider(Enum::"API Test Authentication"::None);
         LibraryGraphMgt.InitializeWebRequestWithURL(FirstHttpWebRequestMgt, TargetURL);
         ResponseCode := ExecuteRequest(FirstHttpWebRequestMgt);
 
-        // [THEN] Credentials do not leak to the new request
-        Assert.AreEqual(401, ResponseCode, 'Deselecting the provider must leave the new request unauthorized.');
+        // [THEN] Configured credentials do not leak and ambient Windows authentication remains available
+        Assert.AreEqual(ExpectedAmbientResponseCode, ResponseCode, 'Deselecting the provider must restore the server authentication mode.');
     end;
 
     local procedure Initialize()
@@ -62,6 +62,16 @@ codeunit 139496 "API Test Auth HTTP Tests"
         Clear(LibraryGraphMgt);
         Clear(FirstHttpWebRequestMgt);
         Clear(SecondHttpWebRequestMgt);
+    end;
+
+    local procedure GetExpectedAmbientResponseCode(): Integer
+    var
+        SecurityGroup: Codeunit "Security Group";
+    begin
+        if SecurityGroup.IsWindowsAuthentication() then
+            exit(200);
+
+        exit(401);
     end;
 
     local procedure ExecuteRequest(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.") ResponseCode: Integer
