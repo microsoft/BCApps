@@ -31,6 +31,11 @@ if (-not (Get-Command Invoke-ScriptInBcContainer -ErrorAction SilentlyContinue))
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
 Describe "ParallelTestExecution app-name resolution" {
+    BeforeEach {
+        Mock -ModuleName ParallelTestExecution Get-ALGoSetting { $true } -ParameterFilter {
+            $Key -eq 'enableCleanTestCodeunitExecution'
+        }
+    }
     BeforeAll {
         # Get-BcContainerAppInfo comes from BcContainerHelper, which is present when the module
         # runs inside a BC container but is NOT loaded in the "Run PS Tests" runner. Pester cannot
@@ -431,6 +436,9 @@ Describe "ParallelTestExecution clean tenant scheduling" {
     }
 
     BeforeEach {
+        Mock -ModuleName ParallelTestExecution Get-ALGoSetting { $true } -ParameterFilter {
+            $Key -eq 'enableCleanTestCodeunitExecution'
+        }
         Mock -ModuleName ParallelTestExecution Invoke-ScriptInBcContainer {
             throw 'Unexpected unmocked container access.'
         }
@@ -896,6 +904,37 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             }
         }
 
+        It "preserves ordinary <Lane> execution when clean-codeunit activation is <Activation>" -ForEach @(
+            @{ Lane = 'IntegrationTest'; Activation = 'absent'; Enabled = $null }
+            @{ Lane = 'IntegrationTest'; Activation = 'false'; Enabled = $false }
+            @{ Lane = 'UnitTest'; Activation = 'absent'; Enabled = $null }
+            @{ Lane = 'UnitTest'; Activation = 'false'; Enabled = $false }
+            @{ Lane = 'Legacy'; Activation = 'absent'; Enabled = $null }
+            @{ Lane = 'Legacy'; Activation = 'false'; Enabled = $false }
+        ) {
+            InModuleScope ParallelTestExecution -Parameters @{ Lane = $Lane; Enabled = $Enabled } {
+                $script:activationUnderTest = $Enabled
+                Mock Get-ALGoSetting { $script:activationUnderTest } -ParameterFilter {
+                    $Key -eq 'enableCleanTestCodeunitExecution'
+                }
+                Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
+                    -testType $Lane -appNamesToTest @('Tests') | Should -BeTrue
+
+                $script:fixtureEvents | Should -Be @('warmup', 'ordinary:primary')
+                Should -Invoke Get-RequiredDisabledWorkItems -Times 0
+                Should -Invoke Reset-BcTestTenant -Times 0
+                Should -Invoke New-BcTestTenantTemplate -Times 0
+                Should -Invoke Invoke-RequiredDisabledTestExecution -Times 0
+                Should -Invoke Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
+                    $CleanTenantAppNames.Count -eq 0
+                }
+                Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
+                    -not $SkipAutomaticDisabledPass
+                }
+                ($script:fixtureParameters | ConvertTo-Json -Depth 5) | Should -Be $script:originalFixtureParameters
+            }
+        }
+
         It "restores secondary discovery before copying the pristine primary and dispatching tests" {
             InModuleScope ParallelTestExecution {
                 Invoke-ParallelTestExecution -parameters $script:fixtureParameters -scriptPath 'unused.ps1' `
@@ -911,6 +950,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
                     $Parameters.tenant -eq 'worker-a' -and $TestType -eq 'UnitTest' -and
                     $AppNamesToTest.Count -eq 1 -and $AppIdByName.Tests -eq 'tests-id'
+                }
+                Should -Invoke Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
+                    $CleanTenantAppNames.Count -eq 1 -and $CleanTenantAppNames[0] -eq 'Tests'
+                }
+                Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
+                    $SkipAutomaticDisabledPass
                 }
                 Should -Invoke Invoke-ScriptInBcContainer -Times 0
             }
@@ -1253,11 +1298,20 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
     }
 
-    It "re-runs a failed app on a different tenant than the one it failed on" {
+    It "re-runs a failed <Lane> app on a different tenant with clean activation <Enabled>" -ForEach @(
+        @{ Lane = 'Legacy'; Enabled = $false }
+        @{ Lane = 'UnitTest'; Enabled = $false }
+        @{ Lane = 'UnitTest'; Enabled = $true }
+    ) {
         # A failed app is retried once, and never on the tenant it failed on: tests are not
         # guaranteed to clean up after themselves, so residue from the failed run could
         # re-trigger the same failure and make the retry worthless.
-        InModuleScope ParallelTestExecution {
+        InModuleScope ParallelTestExecution -Parameters @{ Lane = $Lane; Enabled = $Enabled } {
+            $script:activationUnderTest = $Enabled
+            Mock Get-ALGoSetting { $script:activationUnderTest } -ParameterFilter {
+                $Key -eq 'enableCleanTestCodeunitExecution'
+            }
+            Mock Reset-BcTestTenant { }
             $script:dispatched = [System.Collections.Generic.List[object]]::new()
             $script:failed = $false
 
@@ -1299,13 +1353,13 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
 
             $params = @{ containerName = "ut-$([guid]::NewGuid().ToString('N'))"; tenant = 'default' }
             $result = Invoke-ParallelTestExecution -parameters $params -scriptPath 'unused.ps1' `
-                -testType 'Legacy' -appNamesToTest @('Big', 'Small')
+                -testType $Lane -appNamesToTest @('Big', 'Small')
 
             $rerun = $script:dispatched | Where-Object { $_.Suffix }
             $rerun.App | Should -Be 'Big'
             $rerun.Tenant | Should -Be 'tenant2'
             $rerun.Suffix | Should -Be 'rerun1'
-            $rerun.SkipDisabled | Should -BeTrue
+            $rerun.SkipDisabled | Should -Be $Enabled
             # The rerun passed, so the run as a whole passed.
             $result | Should -BeTrue
         }
