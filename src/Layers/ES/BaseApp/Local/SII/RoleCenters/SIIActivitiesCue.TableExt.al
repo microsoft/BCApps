@@ -4,7 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.RoleCenters;
 
-tableextension 7000143 "SII Activities Cue" extends "Activities Cue"
+#pragma warning disable AS0088
+tableextension 7000043 "SII Activities Cue" extends "Activities Cue"
 {
     fields
     {
