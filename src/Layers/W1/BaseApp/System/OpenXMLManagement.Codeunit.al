@@ -16,7 +16,7 @@ codeunit 6223 "OpenXML Management"
         WrkShtHelper: DotNet WorksheetHelper;
         UID: Integer;
 
-        ExcelBuf: Record "Excel Buffer";
+        ExcelBuffer: Record "Excel Buffer";
         CreateWrkBkFailedErr: Label 'Could not create the Excel workbook.';
         OpenWrkBkFailedErr: Label 'Could not open the Excel workbook.';
         MissingXMLMapErr: Label 'The Excel workbook must contain an XML map.';
@@ -296,7 +296,7 @@ codeunit 6223 "OpenXML Management"
         ShowDialog: Boolean;
         CellDecorator: DotNet CellDecorator;
     begin
-        ExcelBuf.Init();
+        ExcelBuffer.Init();
         CellDecorator := WorksheetWriter.DefaultCellDecorator;
         DataTableRowsCount := DataTable.Rows.Count();
         RowsCount := 0;
@@ -580,27 +580,27 @@ codeunit 6223 "OpenXML Management"
         // The code is manually inlined here to avoid calling the GetXLColumnID function
         // this is to save an allocation of the Excel Buffer record and a method call
         // since this method is called tables * rows * column times.
-        ExcelBuf.Validate(ExcelBuf."Column No.", ColumnsCount + 1);
+        ExcelBuffer.Validate(ExcelBuffer."Column No.", ColumnsCount + 1);
         case DataColumnDataType of
             'System.DateTime':
                 WrkShtWriter.SetCellValueDate(
-                  RowsCount + 4, ExcelBuf.xlColID, DataRow.Item(ColumnsCount), '',
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount), '',
                   CellDecorator);
             'System.Time':
                 WrkShtWriter.SetCellValueTime(
-                  RowsCount + 4, ExcelBuf.xlColID, DataRow.Item(ColumnsCount), '',
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount), '',
                   CellDecorator);
             'System.Boolean':
                 WrkShtWriter.SetCellValueBoolean(
-                  RowsCount + 4, ExcelBuf.xlColID, DataRow.Item(ColumnsCount),
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount),
                   CellDecorator);
             'System.Integer', 'System.Int32':
                 WrkShtWriter.SetCellValueNumber(
-                  RowsCount + 4, ExcelBuf.xlColID, Format(DataRow.Item(ColumnsCount)), '',
+                  RowsCount + 4, ExcelBuffer.xlColID, Format(DataRow.Item(ColumnsCount)), '',
                   CellDecorator);
             else
                 WrkShtWriter.SetCellValueText(
-                  RowsCount + 4, ExcelBuf.xlColID, DataRow.Item(ColumnsCount),
+                  RowsCount + 4, ExcelBuffer.xlColID, DataRow.Item(ColumnsCount),
                   CellDecorator);
         end;
     end;
