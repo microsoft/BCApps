@@ -2387,9 +2387,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure MoveItemByPath(DriveId: Text; ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
-        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         TempTargetFolderItem: Record "SharePoint Graph Drive Item";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         TargetFolderId: Text;
     begin
         EnsureInitialized();
@@ -2591,6 +2591,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(SharePointGraphResponse);
         end;
         ChunkSize := 100 * 1024 * 1024;
+        RangeStart := 0;
         TempBlob.CreateOutStream(FileOutStream);
         while RangeStart < FileSize do begin
             Clear(ChunkTempBlob);
@@ -2631,6 +2632,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(SharePointGraphResponse);
         end;
         ChunkSize := 100 * 1024 * 1024;
+        RangeStart := 0;
         TempBlob.CreateOutStream(FileOutStream);
         while RangeStart < FileSize do begin
             Clear(ChunkTempBlob);
