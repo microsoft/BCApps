@@ -62,7 +62,9 @@ table 6930 "Expense Agent Setup"
 
             trigger OnValidate()
             begin
-                if not "Enable Agent" then
+                if not Rec."Enable Agent" then
+                    ConfirmCanScheduleTasks();
+                if not Rec."Enable Agent" then
                     RemoveAllScheduledTasks();
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
@@ -781,6 +783,7 @@ table 6930 "Expense Agent Setup"
         RecordHasBeenRead: Boolean;
         NoRegisteredUserLbl: Label 'No registered user';
         RegisteredUserLbl: Label '1 registered user';
+        ConfirmDeactivateWithLimitedPermissionsQst: Label 'You are about to deactivate the agent, but you miss some permissions needed to reenable it. The agent might not function correctly, unless a user with the necessary permissions reactivates it.\\Do you want to continue?';
         RegisteredUsersLbl: Label '%1 registered users', Comment = '%1 is an integer value';
         InvalidDayErr: Label '%1 must be between 1 and 31.', Comment = '%1 = Field Caption';
         CannotUseMinHoursErr: Label 'Minimum Hours for Per Diem can only be set when Full Per-Diem Calculation is either %1 or %2.', Comment = '%1 - Enum value "24-hour Rolling Period", %2 - Enum value "Overnight Stay"';
@@ -1264,6 +1267,14 @@ table 6930 "Expense Agent Setup"
         ExpenseReportHeader.SetRange(Status, ExpenseReportHeader.Status::"Pending Approval");
         if not ExpenseReportHeader.IsEmpty() then
             Error(CannotDisableApprovalWorkflowErr);
+    end;
+
+    internal procedure ConfirmCanScheduleTasks()
+    begin
+        if GuiAllowed() then
+            if not TaskScheduler.CanCreateTask() then
+                if not Confirm(ConfirmDeactivateWithLimitedPermissionsQst, false) then
+                    Error('');
     end;
 
     local procedure GetExpenseUserName(ExpenseUserNo: Code[20]): Text
