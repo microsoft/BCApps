@@ -388,11 +388,13 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <returns>True if the current location-only entry should be skipped; otherwise, false.</returns>
     local procedure CheckIfShouldSkipBinContent(var TempExistingBinContent: Record "Bin Content" temporary; var TempCopyBinContent: Record "Bin Content" temporary; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; MultipleBins: Boolean; BinMandatory: Boolean): Boolean
     begin
-        if MultipleBins and BinMandatory and (QltyQuantityBehavior <> QltyQuantityBehavior::"Item Tracked Quantity") and (TempExistingBinContent."Bin Code" = '') then begin
-            TempCopyBinContent.SetFilter("Bin Code", '<>%1', '');
-            TempCopyBinContent.SetRange("Location Code", TempExistingBinContent."Location Code");
-            exit(not TempCopyBinContent.IsEmpty());
-        end;
+        if MultipleBins then
+            if BinMandatory then
+                if (QltyQuantityBehavior <> QltyQuantityBehavior::"Item Tracked Quantity") and (TempExistingBinContent."Bin Code" = '') then begin
+                    TempCopyBinContent.SetFilter("Bin Code", '<>%1', '');
+                    TempCopyBinContent.SetRange("Location Code", TempExistingBinContent."Location Code");
+                    exit(not TempCopyBinContent.IsEmpty());
+                end;
     end;
 
     /// <summary>
