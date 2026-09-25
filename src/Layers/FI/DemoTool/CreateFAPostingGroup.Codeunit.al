@@ -40,7 +40,7 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Maintenance Expense Account", CA.Convert("Maintenance Expense Account"));
         "FA Posting Group".Validate("Depreciation Expense Acc.", CA.Convert("Depreciation Expense Acc."));
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert(DeprDifferenceAcc));
         "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert(DeprDifferenceBalAcc));

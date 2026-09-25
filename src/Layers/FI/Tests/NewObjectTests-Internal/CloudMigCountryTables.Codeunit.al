@@ -2,7 +2,7 @@ codeunit 135161 "Cloud Mig Country Tables"
 {
     procedure GetTablesThatShouldBeCloudMigrated(var ListOfTablesToMigrate: List of [Integer])
     begin
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AL0432
         ListOfTablesToMigrate.Add(Database::"Depr. Diff. Posting Buffer");
 #pragma warning restore AL0432

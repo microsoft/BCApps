@@ -1,4 +1,4 @@
-#if CLEAN29
+#if CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -24,7 +24,7 @@ codeunit 13475 "Upgrade Depreciation Diff. FI"
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if CurrentModuleInfo.AppVersion().Major() < 32 then
+        if CurrentModuleInfo.AppVersion().Major() < 33 then
             exit;
 
         UpgradeDepreciationDifferencesFI();

@@ -1352,7 +1352,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Fixed Assets Reports");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
     [Test]
     [HandlerFunctions('CalcAndPostDeprDifferenceRPH,DepreciationCalcConfirmHandler')]
@@ -2073,7 +2073,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
         Sleep(200);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
     [RequestPageHandler]
     [Scope('OnPrem')]

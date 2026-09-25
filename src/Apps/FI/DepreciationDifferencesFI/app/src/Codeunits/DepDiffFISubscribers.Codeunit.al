@@ -15,12 +15,12 @@ codeunit 13467 "Dep Diff FI Subscribers"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ReportManagement, 'OnAfterSubstituteReport', '', false, false)]
     local procedure OnAfterSubstituteReport(ReportId: Integer; var NewReportId: Integer)
-#if not CLEAN29
+#if not CLEAN30
     var
         FeatureCU: Codeunit "Dep Diff FI Feature";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not FeatureCU.IsEnabled() then
             exit;
 #endif

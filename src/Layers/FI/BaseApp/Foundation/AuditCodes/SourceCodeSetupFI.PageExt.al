@@ -11,14 +11,14 @@ pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
     {
         addafter("Insurance Journal")
         {
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             field("Depr. Difference"; Rec."Depr. Difference")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
                 ObsoleteReason = 'Moved to Depreciation Differences FI app.';
             }
 #pragma warning restore AL0432

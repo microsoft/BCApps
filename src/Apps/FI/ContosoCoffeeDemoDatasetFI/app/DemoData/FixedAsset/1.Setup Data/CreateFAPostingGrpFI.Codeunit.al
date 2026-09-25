@@ -33,12 +33,12 @@ codeunit 13445 "Create FA Posting Grp. FI"
     end;
 
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
-#if not CLEAN29
+#if not CLEAN30
     var
         DepreciationDifferencesFIFeature: Codeunit "Depreciation Differences FI Feature";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not DepreciationDifferencesFIFeature.IsEnabled() then begin
 #pragma warning disable AL0432
             FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);

@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -19,9 +19,9 @@ codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
     Permissions = tabledata "Feature Data Update Status" = rm;
     InherentEntitlements = X;
     InherentPermissions = X;
-    ObsoleteReason = 'Feature Depreciation Differences FI will be enabled by default in version 32.0.';
+    ObsoleteReason = 'Feature Depreciation Differences FI will be enabled by default in version 33.0.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     var
         TempDocumentEntry: Record "Document Entry" temporary;

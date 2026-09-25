@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1744,7 +1744,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = report "Index Insurance";
                     Tooltip = 'Run the Index Insurance report.';
                 }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 action("Calc. and Post Depr. Differenc")
                 {

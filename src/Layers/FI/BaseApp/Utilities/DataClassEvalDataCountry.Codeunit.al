@@ -34,7 +34,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
         ClassifyEmployeeQualification();
         ClassifyVATReportHeader();
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Vendor Payment Buffer");
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AL0432
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Depr. Diff. Posting Buffer");
 #pragma warning restore AL0432

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -507,18 +507,18 @@ table 5601 "FA Ledger Entry"
         {
             Caption = 'Non-Deductible VAT FA Cost';
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
 #pragma warning disable AA0232
         field(13400; "Depr. Difference Posted"; Boolean)
         {
             Caption = 'Depr. Difference Posted';
             ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-#if not CLEAN29
+#if not CLEAN30
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '33.0';
 #endif
             Editable = false;
         }
@@ -571,7 +571,7 @@ table 5601 "FA Ledger Entry"
         key(Key12; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Document No.")
         {
         }
-#if not CLEANSCHEMA32
+#if not CLEANSCHEMA33
         key(Key13; "FA No.", "FA Posting Group", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted")
         {
             SumIndexFields = Amount;

@@ -21,7 +21,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryERM: Codeunit "Library - ERM";
-#if not CLEAN29
+#if not CLEAN30
         TestCU: Codeunit "Depr. Diff. Calculation FI";
 #endif
         isInitialized: Boolean;
@@ -935,7 +935,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
     end;
 
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure EnableFeature()
     begin
         BindSubscription(TestCU);

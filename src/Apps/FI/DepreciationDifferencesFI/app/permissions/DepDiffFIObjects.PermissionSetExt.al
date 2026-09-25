@@ -14,11 +14,11 @@ permissionsetextension 13485 "Dep Diff FI - Objects" extends "D365 BASIC"
         table "Depr. Diff. Posting Buffer FI" = X,
         report "Calc. and Post Depr. Diff. FI" = X,
         codeunit "Dep Diff FI Subscribers" = X,
-#if not CLEAN29
+#if not CLEAN30
         codeunit "Dep Diff FI Feature" = X,
         codeunit "Dep Diff FI Feature Data Upd." = X,
 #endif
-#if CLEAN29
+#if CLEAN30
         codeunit "Upgrade Depreciation Diff. FI" = X,
 #endif
         codeunit "Dep Diff FI Upgrade Tag" = X;
