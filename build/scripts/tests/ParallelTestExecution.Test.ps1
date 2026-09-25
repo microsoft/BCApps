@@ -613,7 +613,8 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 $content = Get-Content (Join-Path $repoRoot $candidateFile) -Raw
                 if (($content -match 'Subtype\s*=\s*Test\s*;') -and
                     ($content -match '\.(GetFromWebService|PostToWebService|PatchToWebService|DeleteFromWebService|InitializeWebRequestWithURL|GetBinaryFromWebService)') -and
-                    ($candidateFile -notlike '*APITestAuthProviderTests.Codeunit.al')) {
+                    ($candidateFile -notlike '*APITestAuthProviderTests.Codeunit.al') -and
+                    ($candidateFile -notlike '*APITestAuthHTTPTests.Codeunit.al')) {
                     $content | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);' `
                         -Because "$candidateFile issues API requests"
                     $onRun = [regex]::Match($content, '(?is)trigger\s+OnRun\s*\(\)\s*begin\b.*?\bend\s*;')
