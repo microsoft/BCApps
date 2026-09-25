@@ -483,6 +483,7 @@ codeunit 8062 "Billing Proposal"
     local procedure CalculateBillingPeriod(ServiceCommitment: Record "Subscription Line"; BillingDate: Date; BillToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        PreviousBillingPeriodEnd: Date;
     begin
         BillingPeriodEnd := 0D;
         BillingPeriodStart := ServiceCommitment."Next Billing Date";
@@ -505,10 +506,14 @@ codeunit 8062 "Billing Proposal"
         end;
 
         BillingPeriodEnd := CalculateNextBillingToDateForServiceCommitment(ServiceCommitment, BillingPeriodStart);
+        PreviousBillingPeriodEnd := 0D;
         while (BillingPeriodEnd < BillingDate) and
-              ((BillingPeriodEnd < ServiceCommitment."Subscription Line End Date") or (ServiceCommitment."Subscription Line End Date" = 0D))
-        do
+              ((BillingPeriodEnd < ServiceCommitment."Subscription Line End Date") or (ServiceCommitment."Subscription Line End Date" = 0D)) and
+              (BillingPeriodEnd > PreviousBillingPeriodEnd)
+        do begin
+            PreviousBillingPeriodEnd := BillingPeriodEnd;
             BillingPeriodEnd := CalculateNextBillingToDateForServiceCommitment(ServiceCommitment, BillingPeriodEnd + 1);
+        end;
     end;
 
     procedure CalculateNextBillingToDateForServiceCommitment(ServiceCommitment: Record "Subscription Line"; BillingFromDate: Date) NextBillingToDate: Date
