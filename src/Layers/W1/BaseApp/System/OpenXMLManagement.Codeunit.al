@@ -564,8 +564,11 @@ codeunit 6223 "OpenXML Management"
 
     [Scope('OnPrem')]
     procedure WriteCellValue(var WrkShtWriter: DotNet WorksheetWriter; DataColumnDataType: Text; var DataRow: DotNet DataRow; RowsCount: Integer; ColumnsCount: Integer)
+    var
+        CellDecorator: DotNet CellDecorator;
     begin
-        WriteCellValue(WrkShtWriter, DataColumnDataType, DataRow, RowsCount, ColumnsCount, WrkShtWriter.DefaultCellDecorator);
+        CellDecorator := WrkShtWriter.DefaultCellDecorator;
+        WriteCellValue(WrkShtWriter, DataColumnDataType, DataRow, RowsCount, ColumnsCount, CellDecorator);
     end;
 
     [Scope('OnPrem')]
