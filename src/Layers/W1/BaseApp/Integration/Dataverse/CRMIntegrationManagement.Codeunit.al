@@ -2974,6 +2974,7 @@ codeunit 5330 "CRM Integration Management"
 
     procedure CheckModifyCRMConnectionURL(var ServerAddress: Text[250])
     var
+        CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         UriHelper: DotNet Uri;
         UriHelper2: DotNet Uri;
         UriPartialHelper: DotNet UriPartial;
@@ -2983,6 +2984,8 @@ codeunit 5330 "CRM Integration Management"
 
         if IsNull(UriHelper2) then
             exit;
+
+        CDSIntegrationImpl.CheckServerAddressHostSuffix(ServerAddress);
 
         ProposedUri := UriHelper2.GetLeftPart(UriPartialHelper.Authority);
 
