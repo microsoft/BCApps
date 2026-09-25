@@ -166,7 +166,7 @@ codeunit 5522 "Order Planning Mgt."
         HeaderExists := false;
 
         repeat
-            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then begin
+            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then
                 if not IsItemBlocked(Item, TempUnplannedDemand."Item No.") then begin
                     if not HeaderExists then
                         InsertDemandHeader(UnplannedDemand, ReqLine);
@@ -177,7 +177,6 @@ codeunit 5522 "Order Planning Mgt."
                     ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
                     InsertReqLineFromUnplannedDemand(ReqLine, Item);
                 end;
-            end;
             TempUnplannedDemand.Delete();
         until TempUnplannedDemand.Next() = 0;
 
