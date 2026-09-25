@@ -82,6 +82,7 @@ codeunit 139915 "Sales Service Commitment Test"
     procedure AssignSubscriptionLinesCaptionIdentifiesSalesLine()
     var
         SalesItem: Record Item;
+        VATPostingSetup: Record "VAT Posting Setup";
         SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
         ActualCaption: Text;
     begin
@@ -89,8 +90,14 @@ codeunit 139915 "Sales Service Commitment Test"
 
         // [GIVEN] Sales Line for an Item with a Subscription Package assigned to it
         Initialize();
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(SalesItem, Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        SalesItem.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        SalesItem.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, SalesItem."No.", LibraryRandom.RandIntInRange(1, 100));
         SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
         SalesLine.Modify(false);
