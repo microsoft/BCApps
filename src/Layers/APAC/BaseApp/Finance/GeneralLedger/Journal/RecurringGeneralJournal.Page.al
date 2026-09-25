@@ -879,8 +879,8 @@ page 283 "Recurring General Journal"
 
                     trigger OnAction()
                     var
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                         GenJournalBatch: Record "Gen. Journal Batch";
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
                     begin
                         if OpenApprovalEntriesOnJnlLineExist then
                             ApprovalsMgmt.GetApprovalComment(Rec)
