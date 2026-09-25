@@ -700,7 +700,6 @@ page 5634 "Recurring Fixed Asset Journal"
         FAJnlManagement: Codeunit FAJnlManagement;
         ReportPrint: Codeunit "Test Report-Print";
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
-        FlowServiceManagement: Codeunit "Flow Service Management";
         CurrentJnlBatchName: Code[10];
         FADescription: Text[100];
         FAJnlBatchApprovalStatus: Text[20];
