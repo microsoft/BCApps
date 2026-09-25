@@ -371,7 +371,7 @@ page 132 "Posted Sales Invoice"
                     Editable = false;
                     Importance = Additional;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;
@@ -379,7 +379,7 @@ page 132 "Posted Sales Invoice"
                     ToolTip = 'Specifies if the VAT was paid on debits for this document.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 group(Control15)

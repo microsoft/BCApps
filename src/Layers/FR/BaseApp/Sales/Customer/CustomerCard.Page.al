@@ -405,14 +405,14 @@ page 21 "Customer Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("SIREN No."; Rec."SIREN No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the SIREN No. for the customer.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 group(PostingDetails)

@@ -345,7 +345,7 @@ page 134 "Posted Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;
@@ -353,7 +353,7 @@ page 134 "Posted Sales Credit Memo"
                     ToolTip = 'Specifies if the VAT was paid on debits for this document.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 field("EU 3-Party Trade"; Rec."EU 3-Party Trade")

@@ -256,14 +256,14 @@ page 5050 "Contact Card"
                     Enabled = "APE CodeEnable";
                     ToolTip = 'Specifies the APE code for the contact.';
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("SIREN No."; Rec."SIREN No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the SIREN No. for the contact.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 field("Legal Form"; Rec."Legal Form")
