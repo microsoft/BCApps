@@ -2631,11 +2631,9 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
-                if "Deferral Code" = xRec."Deferral Code" then begin
-                    if PurchHeader.Status = PurchHeader.Status::Released then
-                        exit;
-                end else
-                    PurchHeader.TestField(Status, PurchHeader.Status::Open);
+                if ("Deferral Code" = xRec."Deferral Code") and (PurchHeader.Status = PurchHeader.Status::Released) then
+                    exit;
+                TestStatusOpen();
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
