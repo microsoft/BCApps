@@ -1,6 +1,10 @@
 codeunit 130618 "Library - Graph Mgt"
 {
 
+    trigger OnRun()
+    begin
+    end;
+
     var
         Assert: Codeunit Assert;
         Authentication: Enum "API Test Authentication";
