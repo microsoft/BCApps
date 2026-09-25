@@ -201,6 +201,39 @@ table 6923 "Expense User"
             Editable = false;
             ToolTip = 'Specifies the identifier used to correlate the welcome email with its delivery from the outbox.';
         }
+        field(60; "Approval Limit (LCY)"; Integer)
+        {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            Caption = 'Approval Limit (LCY)';
+            ToolTip = 'Specifies the maximum expense report amount this user can approve. Leave empty when Unlimited Approval is selected.';
+            BlankZero = true;
+
+            trigger OnValidate()
+            begin
+                if Rec."Approval Limit (LCY)" <> 0 then
+                    Rec.TestField("Can Approve", true);
+
+                if Rec."Unlimited Approval" and (Rec."Approval Limit (LCY)" <> 0) then
+                    Error(ConflictingApprovalsErr, Rec.FieldCaption("Approval Limit (LCY)"), Rec.FieldCaption("Unlimited Approval"));
+
+                if Rec."Approval Limit (LCY)" < 0 then
+                    Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit (LCY)"));
+            end;
+        }
+        field(61; "Unlimited Approval"; Boolean)
+        {
+            Caption = 'Unlimited Approval';
+            ToolTip = 'Specifies that this user can approve expense reports without a maximum amount.';
+
+            trigger OnValidate()
+            begin
+                if Rec."Unlimited Approval" then begin
+                    Rec.TestField("Can Approve", true);
+                    Rec."Approval Limit (LCY)" := 0;
+                end;
+            end;
+        }
     }
 
     keys
@@ -241,6 +274,8 @@ table 6923 "Expense User"
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending welcome emails.';
         CurrentBCUserHasNoAuthEmailErr: Label 'Your Business Central user account is not linked to an authentication email, so it cannot be matched to an Expense User. Ask your administrator to set the Authentication Email on your user record in Business Central.';
         CurrentBCUserNotMatchedToExpenseUserErr: Label 'No Expense User exists for the email %1 used by your Business Central account. Ask your administrator to create an Expense User with this email, or to update the email on the existing Expense User to match.', Comment = '%1 = authentication email of the current Business Central user';
+        ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
+        ConflictingApprovalsErr: Label 'You cannot have both a %1 and %2. ', Comment = '%1 = Approval Limit field caption, %2 = Unlimited Approval field caption';
 
     trigger OnDelete()
     var
