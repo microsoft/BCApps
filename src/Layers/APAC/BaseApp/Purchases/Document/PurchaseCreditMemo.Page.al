@@ -644,6 +644,18 @@ page 52 "Purchase Credit Memo"
                         Importance = Promoted;
                         ToolTip = 'Specifies the vendor who is sending the invoice.';
 
+                        trigger OnAfterLookup(Selected: RecordRef)
+                        var
+                            Vendor: Record Vendor;
+                        begin
+                            Selected.SetTable(Vendor);
+                            if Rec."Pay-to Vendor No." <> Vendor."No." then begin
+                                Rec.Validate("Pay-to Vendor No.", Vendor."No.");
+                                if Rec."Pay-to Vendor No." <> Vendor."No." then  // if the user responds 'no' to questions
+                                    error('');
+                            end;
+                        end;
+
                         trigger OnValidate()
                         var
                             ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";

@@ -16,6 +16,7 @@ codeunit 134836 "Test Vendor Lookup"
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         isInitialized: Boolean;
         SelectVendErr: Label 'You must select an existing vendor.';
+        ChangePayToVendorQst: Label 'Do you want to change';
 
     local procedure Initialize()
     var
@@ -153,6 +154,40 @@ codeunit 134836 "Test Vendor Lookup"
         Assert.ExpectedError(SelectVendErr);
     end;
 
+    [Test]
+    [HandlerFunctions('VendorLookupPageHandler,ConfirmPayToVendorChangeHandler')]
+    [Scope('OnPrem')]
+    procedure PayToVendorsWithSameName()
+    var
+        Vend: Record Vendor;
+        PurchaseQuote: TestPage "Purchase Quote";
+    begin
+        // [FEATURE] [AI test 0.3] [Purchase] [Find Vendor] [UI]
+        // [SCENARIO 647591] Pay-to Name lookup on Purchase Quote resolves by Vendor No. not by Name when two vendors share the same Name
+        Initialize();
+
+        // [GIVEN] Two vendors "V1" and "V" with the same name ("V" is the second one)
+        CreateTwoVendorsSameName(Vend);
+
+        // [GIVEN] A new Purchase Quote; Buy-from resolves to "V1" (first same-name vendor via exact-name FindFirst)
+        PurchaseQuote.OpenNew();
+        PurchaseQuote."Buy-from Vendor Name".SetValue(Vend.Name);
+
+        // [WHEN] Pay-to is switched to "Another Vendor" (Pay-to vendor remains "V1")
+        PurchaseQuote.PayToOptions.SetValue('Another Vendor');
+
+        // [WHEN] "V" is selected via the Pay-to Name lookup (same name as current Pay-to "V1")
+        LibraryVariableStorage.Enqueue(Vend."No."); // for VendorLookupPageHandler
+        LibraryVariableStorage.Enqueue(ChangePayToVendorQst); // expected confirm for ConfirmPayToVendorChangeHandler
+        PurchaseQuote."Pay-to Name".Lookup();
+
+        // [THEN] Pay-to fields match "V" - the vendor selected from the lookup, not "V1"
+        VerifyPurchQuoteAgainstBillToVend(PurchaseQuote, Vend);
+
+        // [THEN] The Pay-to change confirm fired exactly once and every queued expectation was consumed
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure CreateTwoVendorsSameName(var Vend: Record Vendor)
     var
         Vend1: Record Vendor;
@@ -215,6 +250,25 @@ codeunit 134836 "Test Vendor Lookup"
     procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmPayToVendorChangeHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := true;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure VendorLookupPageHandler(var VendorLookup: TestPage "Vendor Lookup")
+    var
+        VendNo: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(VendNo);
+        VendorLookup.FILTER.SetFilter("No.", VendNo);
+        VendorLookup.OK().Invoke();
     end;
 }
 
