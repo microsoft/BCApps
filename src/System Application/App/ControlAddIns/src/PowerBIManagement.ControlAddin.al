@@ -159,20 +159,4 @@ controladdin PowerBIManagement
     /// </summary>
     /// <param name="AddPadding">Whether the bottom padding should be added.</param>
     procedure AddBottomPadding(AddPadding: Boolean);
-
-#if not CLEAN26
-    /// <summary>
-    /// Sets the properties for the embed experience
-    /// </summary>
-    ///<param name="ShowBookmarkSelection">Shows the bookmark selection pane.</param>
-    ///<param name="ShowFilterSelection">Shows the filter pane to filter embed.</param>
-    ///<param name="ShowPageSelection">Shows the pane to select the report page.</param>
-    ///<param name="ShowZoomSelection">Shows the bar that allows manual zoom in and zoom out for the embed.</param>
-    ///<param name="ForceTransparentBackground">Forces a transparent background to the embed.</param>
-    ///<param name="ForceFitToPage">Forces the Fit To Page behaviour for the embed.</param>
-    ///<param name="AddBottomPadding">Controls whether a padding is needed on the bottom of the page (useful in case the embed is the only element displayed on the page).</param>
-    [Obsolete('Use SetBookmarksVisible, SetFiltersVisible, AddBottomPadding, SetTransparentBackground, and SetPageSelectionVisible instead. The other options are no longer supported.', '26.0')]
-    procedure SetSettings(ShowBookmarkSelection: Boolean; ShowFilters: Boolean; ShowPageSelection: Boolean; ShowZoomBar: Boolean; ForceTransparentBackground: Boolean; ForceFitToPage: Boolean; AddBottomPadding: Boolean);
-#endif
-
 }

@@ -896,15 +896,8 @@ table 30102 "Shpfy Shop"
             Caption = 'Items Must be Mapped to Products';
             ToolTip = 'Specifies if only the items that are mapped to Shopify products/Shopify variants are synchronized from Posted Sales Invoices to Shopify.';
             ObsoleteReason = 'This setting is not used';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         field(202; "Posted Invoice Sync"; Boolean)

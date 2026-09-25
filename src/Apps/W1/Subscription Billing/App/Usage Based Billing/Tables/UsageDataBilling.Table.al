@@ -109,15 +109,8 @@ table 8006 "Usage Data Billing"
         field(17; "Charge Start Time"; Time)
         {
             Caption = 'Charge Start Time';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
 #endif
@@ -129,15 +122,8 @@ table 8006 "Usage Data Billing"
         field(19; "Charge End Time"; Time)
         {
             Caption = 'Charge End Time';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
 #endif
@@ -151,15 +137,8 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Charged Period (Hours)';
             AutoFormatType = 0;
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
 #endif
