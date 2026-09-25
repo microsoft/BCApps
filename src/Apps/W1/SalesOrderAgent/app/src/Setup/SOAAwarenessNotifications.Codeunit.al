@@ -99,6 +99,6 @@ codeunit 4323 "SOA Awareness Notifications"
         SOAAwarenessNotificationTxt: Label 'You can activate the Sales Order Agent, which uses AI to automatically create and update quotes based on customer email requests.';
         DisableSOAAwarenessNotificationTxt: Label 'Don''t show again';
         LearnMoreLbl: Label 'Learn more';
-        SOAAwarenessLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2344613', Locked = true;
+        SOAAwarenessLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2281481', Locked = true;
         SOARelatedManualActionCount: Integer;
 }
