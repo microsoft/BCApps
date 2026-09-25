@@ -13,6 +13,7 @@ report 329 "Vendor - Trial Balance"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Trial Balance';
+    ToolTip = 'View the beginning and ending balance for vendors with entries within a specified period. The report can be used to verify that the balance for a vendor posting group is equal to the balance on the corresponding general ledger account on a certain date.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;

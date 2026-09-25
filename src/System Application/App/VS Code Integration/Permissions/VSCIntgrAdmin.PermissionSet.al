@@ -17,7 +17,6 @@ permissionset 8335 "VSC Intgr. - Admin"
 
     Permissions = tabledata AllObjWithCaption = R,
                   tabledata "Application Object Metadata" = R, // r needed for check CanInteractWithSourceCode
-                  tabledata "Extension Execution Info" = R,
                   tabledata "Page Info And Fields" = R,
                   tabledata "Published Application" = R;
 }

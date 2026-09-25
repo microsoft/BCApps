@@ -13,6 +13,7 @@ report 309 "Vendor - Purchase List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Purchase List';
+    ToolTip = 'View a list of your purchases in a period, for example, to report purchase activity to customs and tax authorities.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

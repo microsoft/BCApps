@@ -8,7 +8,9 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+#if not CLEAN29
 using Microsoft.Manufacturing.Reports;
+#endif
 
 page 99000754 "Work Center Card"
 {
@@ -145,6 +147,12 @@ page 99000754 "Work Center Card"
                 {
                     ApplicationArea = Planning;
                     Importance = Promoted;
+                }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
                 }
                 field("Calendar Rounding Precision"; Rec."Calendar Rounding Precision")
                 {
@@ -327,18 +335,23 @@ page 99000754 "Work Center Card"
                 end;
             }
         }
+#if not CLEAN29
         area(reporting)
         {
             action("Subcontractor - Dispatch List")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Subcontractor - Dispatch List';
+                Caption = 'Subcontractor - Dispatch List (Obsolete)';
                 Image = "Report";
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
+                ObsoleteState = Pending;
+                ObsoleteReason = 'This report is obsolete. Use the "Subcontractor - Dispatch List (New)" report instead from Subcontracting app.';
+                ObsoleteTag = '29.0';
             }
         }
+#endif
         area(Promoted)
         {
             group(Category_Process)
@@ -384,6 +397,14 @@ page 99000754 "Work Center Card"
         UpdateEnabled();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Avail. Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
     trigger OnInit()
     begin
         FromProductionBinCodeEnable := true;
@@ -400,6 +421,7 @@ page 99000754 "Work Center Card"
         OpenShopFloorBinCodeEnable: Boolean;
         ToProductionBinCodeEnable: Boolean;
         FromProductionBinCodeEnable: Boolean;
+        CalendarHorizonStyleTxt: Text;
 
     local procedure UpdateEnabled()
     var

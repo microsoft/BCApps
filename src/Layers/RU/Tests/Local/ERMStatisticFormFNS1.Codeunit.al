@@ -76,8 +76,10 @@ codeunit 147150 "ERM Statistic Form FNS-1"
 
     local procedure RunStatisticReport()
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         ResponsibleEmployee: Record Employee;
     begin
+        BindSubscription(RUReportDownloadHandler);
         StatisticFormFNS1.UseRequestPage(true);
         ResponsibleEmployee.Get(ResponsibleEmployeeNo);
         StatisticFormFNS1.SetSilentResponsibleEmployee(ResponsibleEmployee);
@@ -86,6 +88,7 @@ codeunit 147150 "ERM Statistic Form FNS-1"
         StatisticFormFNS1.SetSilentEmployeeStatisticalBuffer(TempItemJournalBuffer);
         Commit();
         StatisticFormFNS1.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateEmployeeStatisticalBuffer(StatisticalLines: Integer)

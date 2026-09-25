@@ -1,5 +1,7 @@
 #pragma warning disable AA0215
+#pragma warning disable AS0103, PTE0004 // Accepted: this test-only table is intentionally not exposed through production permission sets. Tracked by AB#640773.
 table 103403 "_Testscript Result"
+#pragma warning restore AS0103, PTE0004
 #pragma warning restore AA0215
 {
     // Unsupported version tags:

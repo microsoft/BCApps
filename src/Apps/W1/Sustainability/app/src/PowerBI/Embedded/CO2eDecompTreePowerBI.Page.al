@@ -7,8 +7,8 @@ page 6303 "CO2e Decomp. Tree Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'CO2e Decomposition Tree';
-    AboutTitle = 'About CO2e Decomposition Tree';
+    Caption = 'CO2e Decomposition Tree (Power BI)';
+    AboutTitle = 'About CO2e Decomposition Tree (Power BI)';
     AboutText = 'The CO2e Decomposition Tree report breaks down CO2e emission metrics into its key contributing components to help users understand what is driving changes in CO2 emissions and why.';
 
     layout

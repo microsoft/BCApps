@@ -39,7 +39,7 @@ codeunit 5228 "Create Company Information"
     begin
         CompanyInformation.Get();
 
-        NavApp.GetResource('CRONUS.jpg', InStream);
+        NavApp.GetResource('CRONUS.png', InStream);
         CompanyInformation.Picture.CreateOutStream(OutStream);
         CopyStream(OutStream, InStream);
         CompanyInformation.Modify(true);

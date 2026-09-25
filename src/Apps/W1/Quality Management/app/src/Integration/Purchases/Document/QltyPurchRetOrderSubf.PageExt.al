@@ -75,6 +75,10 @@ pageextension 20407 "Qlty. Purch. Ret. Order Subf." extends "Purchase Return Ord
         }
     }
 
+    /// <summary>
+    /// Determines whether the current purchase return order line identifies a persisted item.
+    /// </summary>
+    /// <returns>True if the line has a system ID, is an item line, and has a number; otherwise, false.</returns>
     local procedure CanBeProcessed(): Boolean
     begin
         if IsNullGuid(Rec.SystemId) then

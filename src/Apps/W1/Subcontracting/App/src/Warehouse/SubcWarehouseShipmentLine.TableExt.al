@@ -7,11 +7,11 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.Document;
 
-tableextension 99001527 "Subc. Warehouse Shipment Line" extends "Warehouse Shipment Line"
+tableextension 20527 "Subc. Warehouse Shipment Line" extends "Warehouse Shipment Line"
 {
     fields
     {
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;

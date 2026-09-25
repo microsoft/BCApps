@@ -64,6 +64,8 @@ table 3308 "PA Known Sender"
         Setup: Record "Payables Agent Setup";
         SenderEmail: Text[250];
     begin
+        if EDocument."Outlook Mail Message Id" = '' then
+            exit;
         SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(SenderEmail));
         if SenderEmail = '' then
             exit;

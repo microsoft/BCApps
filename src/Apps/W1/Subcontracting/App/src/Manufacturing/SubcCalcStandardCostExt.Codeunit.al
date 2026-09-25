@@ -8,7 +8,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.StandardCost;
 
-codeunit 99001514 "Subc. Calc.StandardCost Ext."
+codeunit 20514 "Subc. Calc.StandardCost Ext."
 {
 #if not CLEAN29
     var

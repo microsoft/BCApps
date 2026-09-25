@@ -176,6 +176,7 @@ page 254 "Purchase Journal"
                         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
                         CurrPage.SaveRecord();
+                        CurrPage.Update(false);
                     end;
                 }
                 field("<Vendor Name>"; GetVendorName())

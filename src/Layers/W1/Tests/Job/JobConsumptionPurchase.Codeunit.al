@@ -2756,7 +2756,7 @@ codeunit 136302 "Job Consumption Purchase"
         asserterror UndoPurchRcptLine(PurchaseReceiptNo, PurchaseReceiptLineNo);
 
         // [THEN] Error message informs user that there is nothing to Undo
-        Assert.ExpectedError('There is no lines with quantity to process.');
+        Assert.ExpectedError('No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.');
     end;
 
     [Test]

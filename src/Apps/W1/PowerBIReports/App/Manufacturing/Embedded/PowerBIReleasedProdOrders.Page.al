@@ -11,8 +11,8 @@ page 37049 "PowerBI Released Prod. Orders"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Released Production Orders';
-    AboutTitle = 'About Released Production Orders';
+    Caption = 'Released Production Orders (Power BI)';
+    AboutTitle = 'About Released Production Orders (Power BI)';
     AboutText = 'View how your released production orders are tracking by comparing Expected Quantity vs. Finished Quantity';
 
     layout

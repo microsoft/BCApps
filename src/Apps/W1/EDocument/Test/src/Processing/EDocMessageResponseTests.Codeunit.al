@@ -11,7 +11,7 @@ using Microsoft.Peppol.Response;
 using Microsoft.Sales.Customer;
 using System.Utilities;
 
-codeunit 139898 "E-Doc. Message Response Tests"
+codeunit 139864 "E-Doc. Message Response Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

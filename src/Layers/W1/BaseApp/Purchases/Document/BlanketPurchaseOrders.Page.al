@@ -421,7 +421,6 @@ page 9310 "Blanket Purchase Orders"
                 Caption = 'Delete Invoiced Orders';
                 Image = Delete;
                 RunObject = Report "Delete Invd Blnkt Purch Orders";
-                ToolTip = 'Delete orders that were not automatically deleted after completion. For example, when several purchase orders were completed by a single invoice.';
             }
         }
         area(Promoted)

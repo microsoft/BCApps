@@ -39,7 +39,7 @@ tableextension 20410 "Qlty. Direct Trans. Header" extends "Direct Trans. Header"
     }
 
     /// <summary>
-    /// Runs associated Quality Inspection page
+    /// Opens the quality inspection associated with the posted direct transfer when it exists.
     /// </summary>
     procedure QltyShowRelatedInspection()
     var

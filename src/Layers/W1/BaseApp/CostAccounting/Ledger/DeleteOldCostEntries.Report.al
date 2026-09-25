@@ -7,6 +7,7 @@ namespace Microsoft.CostAccounting.Ledger;
 report 1141 "Delete Old Cost Entries"
 {
     Caption = 'Delete Old Cost Entries';
+    ToolTip = 'Delete all cost entries up to and including the date that you enter in the report.';
     ProcessingOnly = true;
 
     dataset

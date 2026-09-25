@@ -94,6 +94,18 @@ table 4812 "Intrastat Report Line"
             Caption = 'Country/Region Code';
             TableRelation = "Country/Region";
             ToolTip = 'Specifies the country/region of the address.';
+
+            trigger OnValidate()
+            var
+                IntrastatReportMgt: Codeunit IntrastatReportManagement;
+            begin
+                if "Country/Region Code" = '' then begin
+                    Validate("Intrastat Country/Region Code", '');
+                    exit;
+                end;
+
+                Validate("Intrastat Country/Region Code", IntrastatReportMgt.GetIntrastatCodeFromCountryRegion("Country/Region Code"));
+            end;
         }
         field(8; "Transaction Type"; Code[10])
         {
@@ -896,7 +908,7 @@ table 4812 "Intrastat Report Line"
         end;
     end;
 
-    local procedure GetPartnerIDForCountry(CountryRegionCode: Code[10]; VATRegistrationNo: Text[50]; IsPrivatePerson: Boolean; IsThirdPartyTrade: Boolean): Text[50]
+    procedure GetPartnerIDForCountry(CountryRegionCode: Code[10]; VATRegistrationNo: Text[50]; IsPrivatePerson: Boolean; IsThirdPartyTrade: Boolean): Text[50]
     var
         CountryRegion: Record "Country/Region";
         PartnerID: Text[50];
