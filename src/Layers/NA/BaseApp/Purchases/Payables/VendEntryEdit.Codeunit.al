@@ -10,7 +10,8 @@ using Microsoft.Sales.Receivables;
 codeunit 113 "Vend. Entry-Edit"
 {
     Permissions = TableData "Vendor Ledger Entry" = m,
-                  TableData "Detailed Vendor Ledg. Entry" = m;
+                  TableData "Detailed Vendor Ledg. Entry" = m,
+                  TableData "Purch. Inv. Header" = rm;
     TableNo = "Vendor Ledger Entry";
 
     var
@@ -69,6 +70,7 @@ codeunit 113 "Vend. Entry-Edit"
 #if not CLEAN29
         OnRunOnAfterVendLedgEntryMofidy(VendLedgEntry);
 #endif
+        UpdatePurchInvHeader(VendLedgEntry);
         Rec := VendLedgEntry;
     end;
 
