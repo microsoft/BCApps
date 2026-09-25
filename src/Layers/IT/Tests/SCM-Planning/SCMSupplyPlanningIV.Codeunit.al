@@ -1517,7 +1517,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         if MakeToOrder then
             UpdateItemManufacturingPolicy(Item, Item."Manufacturing Policy"::"Make-to-Order");
         UpdateItemLeadTimeCalculation(Item, '<' + Format(LibraryRandom.RandInt(5) + 10) + 'D>');  // Random Lead Time Calculation.
-        CreateSalesOrder(Item."No.", '');
+        CreateSalesOrderWithShipmentDate(Item."No.", '', LibraryRandom.RandInt(10), CalcDate('<1M>', WorkDate()));
 
         // Exercise: Open Order Promising Lines Page and Invoke Capable to Promise Action.
         FindSalesLine(SalesLine, Item."No.");
@@ -5134,6 +5134,15 @@ codeunit 137077 "SCM Supply Planning -IV"
     begin
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
+    end;
+
+    local procedure CreateSalesOrderWithShipmentDate(ItemNo: Code[20]; CustomerNo: Code[20]; Quantity: Decimal; ShipmentDate: Date)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, ShipmentDate, Quantity);
     end;
 
     local procedure CreateSalesOrderAtLocation(ItemNo: Code[20]; LocationCode: Code[10])
