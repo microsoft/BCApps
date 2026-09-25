@@ -58,6 +58,7 @@ codeunit 6142 "E-Doc. Recurrent Batch Send"
                 Clear(TempEDocMappingLogs);
                 Clear(TempBlob);
                 Clear(BeforeExportEDocumentsErrorCount);
+                Clear(EntryNumbers);
                 EDocumentListExportedFilter := '';
                 EDocExport.ExportEDocumentBatch(EDocuments, EDocumentService, TempEDocMappingLogs, TempBlob, BeforeExportEDocumentsErrorCount);
                 if EDocuments.FindSet() then

@@ -8,7 +8,7 @@ namespace Microsoft.eServices.EDocument;
 /// Direction in which a document type is permitted on an E-Document Service, used by "E-Doc. Service Supported Type" (table 6122).
 /// Both is value 0 so that new/upgraded rows default to it without narrowing existing behavior.
 /// </summary>
-enum 6115 "E-Doc. Supp. Type Direction"
+enum 6166 "E-Doc. Supp. Type Direction"
 {
     Caption = 'E-Doc. Service Supported Type Direction';
     Extensible = false;

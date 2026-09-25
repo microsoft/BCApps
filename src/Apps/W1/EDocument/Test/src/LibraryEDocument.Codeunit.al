@@ -992,6 +992,19 @@ codeunit 139629 "Library - E-Document"
 
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Issued Reminder";
         EDocServiceSupportedType.Insert();
+
+        CreateInboundSupportedDocTypes(EDocService);
+    end;
+
+    /// <summary>
+    /// Adds the purchase document types a receiving E-Document Service needs, with direction Incoming.
+    /// </summary>
+    /// <param name="EDocService">The E-Document Service that receives the documents.</param>
+    procedure CreateInboundSupportedDocTypes(EDocService: Record "E-Document Service")
+    begin
+        AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Incoming);
+        AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Incoming);
+        AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Order", Enum::"E-Doc. Supp. Type Direction"::Incoming);
     end;
 
     /// <summary>
@@ -1042,6 +1055,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
 #if not CLEAN26
@@ -1057,6 +1072,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 #pragma warning restore AL0432
 #endif
@@ -1071,6 +1088,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
 #if not CLEAN26
@@ -1086,6 +1105,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 #pragma warning restore AL0432
 #endif
@@ -1100,6 +1121,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 
 #if not CLEAN26
@@ -1115,6 +1138,8 @@ codeunit 139629 "Library - E-Document"
             EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
+
+        CreateInboundSupportedDocTypes(EDocService);
     end;
 #pragma warning restore AL0432
 #endif

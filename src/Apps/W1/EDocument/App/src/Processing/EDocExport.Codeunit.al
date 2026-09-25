@@ -625,6 +625,18 @@ codeunit 6102 "E-Doc. Export"
         exit(IsDocumentTypeSupportedForDirection(EDocService, EDocumentType, Enum::"E-Doc. Supp. Type Direction"::Incoming));
     end;
 
+    /// <summary>
+    /// Shared inbound check used by both import paths. Returns false and sets ErrorText when the document type is not permitted for the Incoming direction.
+    /// </summary>
+    internal procedure CheckDocumentTypeSupportedForImport(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"; var ErrorText: Text): Boolean
+    begin
+        if IsDocumentTypeSupportedForImport(EDocService, EDocumentType) then
+            exit(true);
+
+        ErrorText := StrSubstNo(DocumentTypeNotSupportedForImportErr, EDocumentType, EDocService.Code);
+        exit(false);
+    end;
+
     local procedure IsDocumentTypeSupportedForDirection(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"; QueriedDirection: Enum "E-Doc. Supp. Type Direction"): Boolean
     var
         EDocSourceType: Enum "E-Document Type";
@@ -699,6 +711,7 @@ codeunit 6102 "E-Doc. Export"
         Telemetry: Codeunit Telemetry;
         EDocumentInterface: Interface "E-Document";
         DocumentTypeNotSupportedForExportErr: Label 'Document type %1 is explicitly restricted from the Outgoing direction on E-Document Service %2.', Comment = '%1 - E-Document Type, %2 - E-Document Service Code';
+        DocumentTypeNotSupportedForImportErr: Label 'Document type %1 is not permitted for the Incoming direction on E-Document Service %2.', Comment = '%1 - E-Document Type, %2 - E-Document Service Code';
         DocumentSendingProfileWithWorkflowErr: Label 'Workflow %1 defined for %2 in Document Sending Profile %3 is not found.', Comment = '%1 - The workflow code, %2 - Enum value set in Electronic Document, %3 - Document Sending Profile Code';
         EDocTelemetryCreateScopeStartLbl: Label 'E-Document Create: Start Scope', Locked = true;
         EDocTelemetryCreateScopeEndLbl: Label 'E-Document Create: End Scope', Locked = true;
