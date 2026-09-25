@@ -28,6 +28,7 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata "Expense Activity Log Entry" = imd,
         tabledata "Expense Team" = IMD,
         tabledata "Expense Approval Setup" = IMD,
+        tabledata "Expense Alternate Approver" = RIMD,
         tabledata "Posted Expense Report Header" = im,
         tabledata "Posted Expense Report Line" = im,
         tabledata "Posted Exp. Rep. Line Item" = im,
