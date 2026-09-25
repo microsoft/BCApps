@@ -614,6 +614,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     SetJobLineFilters(JobPurchLine, TempInvoicePostingBuffer);
                     JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
                 end;
+
+                InsertGST(PurchHeader, TempInvoicePostingBuffer, GenJnlPostLine.GetVATEntryNo());
             until TempInvoicePostingBuffer.Next(1) = 0;
 
         TempInvoicePostingBuffer.CalcSums(Amount);
