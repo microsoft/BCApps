@@ -30,7 +30,11 @@ codeunit 48520 "Fabric Platform Mgt"
         ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling mirroring.';
         ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
         ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling mirroring.';
+        NoCompanyEnabledErr: Label 'At least one company must be enabled for export before starting synchronization.';
+        NoTableSelectedErr: Label 'At least one table must be selected for export before starting synchronization.';
         OpenFabricSetupLbl: Label 'Open Fabric Platform Setup';
+        OpenFabricCompaniesLbl: Label 'Open Fabric Platform Companies';
+        OpenFabricTablesLbl: Label 'Open Fabric Platform Tables';
         SetupRequiredTitleLbl: Label 'Setup required';
         SetupRequiredDetailedMsg: Label 'Open the Fabric Platform Setup page, fill in the missing value described above, and run Enable mirroring again.';
 
@@ -326,13 +330,34 @@ codeunit 48520 "Fabric Platform Mgt"
         exit(15 * 60 * 1000);
     end;
 
+    local procedure CreateNavigationErrorInfo(ErrorMessage: Text; TargetPage: Integer; NavigationActionCaption: Text) NavigationErrorInfo: ErrorInfo
+    begin
+        NavigationErrorInfo := ErrorInfo.Create(ErrorMessage);
+        NavigationErrorInfo.Title(SetupRequiredTitleLbl);
+        NavigationErrorInfo.DetailedMessage(SetupRequiredDetailedMsg);
+        NavigationErrorInfo.PageNo(TargetPage);
+        NavigationErrorInfo.AddNavigationAction(NavigationActionCaption);
+    end;
+
     local procedure CreateSetupErrorInfo(ErrorMessage: Text) SetupErrorInfo: ErrorInfo
     begin
-        SetupErrorInfo := ErrorInfo.Create(ErrorMessage);
-        SetupErrorInfo.Title(SetupRequiredTitleLbl);
-        SetupErrorInfo.DetailedMessage(SetupRequiredDetailedMsg);
-        SetupErrorInfo.PageNo(Page::"Fabric Platform Setup");
-        SetupErrorInfo.AddNavigationAction(OpenFabricSetupLbl);
+        SetupErrorInfo := CreateNavigationErrorInfo(ErrorMessage, Page::"Fabric Platform Setup", OpenFabricSetupLbl);
+    end;
+
+    local procedure CheckAtLeastOneCompanyEnabled()
+    var
+        TenantFabricCompanies: Record "Tenant Fabric Companies";
+    begin
+        TenantFabricCompanies.SetRange(Enabled, true);
+        if TenantFabricCompanies.IsEmpty() then
+            Error(CreateNavigationErrorInfo(NoCompanyEnabledErr, Page::"Fabric Platform Companies", OpenFabricCompaniesLbl));
+    end;
+
+    local procedure CheckAtLeastOneTableSelected()
+    begin
+        // Presence of a row is itself the "selected for export" state; the table has no separate enabled flag.
+        if SelectedTableCount() = 0 then
+            Error(CreateNavigationErrorInfo(NoTableSelectedErr, Page::"Fabric Platform Tables", OpenFabricTablesLbl));
     end;
 
     internal procedure StartExport()
@@ -347,6 +372,9 @@ codeunit 48520 "Fabric Platform Mgt"
                 Message(SyncAlreadyRunningMsg);
             exit;
         end;
+
+        CheckAtLeastOneCompanyEnabled();
+        CheckAtLeastOneTableSelected();
 
         // Privacy approval is a compliance gate and must not be skippable via the seam below.
         FabricPrivacyNotice.EnsureApproved();
