@@ -235,9 +235,22 @@ page 6928 "Expense Reports API"
                 {
                     Caption = 'Travel Request No.';
                 }
+                field(travelRequestId; Rec."Travel Request SystemId")
+                {
+                    Caption = 'Travel Request Id';
+                    Editable = false;
+                }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
                     Caption = 'Travel Request Close';
+                }
+                part(travelRequest; "Travel Requests API")
+                {
+                    Caption = 'Travel Request';
+                    EntityName = 'travelRequest';
+                    EntitySetName = 'travelRequests';
+                    Multiplicity = ZeroOrOne;
+                    SubPageLink = SystemId = field("Travel Request SystemId");
                 }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
@@ -428,8 +441,8 @@ page 6928 "Expense Reports API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
-#if not CLEAN30
-    [Obsolete('Use ReleaseAndMarkPendingApprovalExpenseReportWithComment instead.', '30.0')]
+#if not CLEAN29
+    [Obsolete('Use ReleaseAndMarkPendingApprovalExpenseReportWithComment instead.', '29.0')]
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReport(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     begin

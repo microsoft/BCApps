@@ -2753,7 +2753,13 @@ codeunit 1535 "Approvals Mgmt."
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
         ConfirmManagement: Codeunit "Confirm Management";
         RecRef: RecordRef;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforePreventInsertRecIfOpenApprovalEntryExist(Variant, IsHandled);
+        if IsHandled then
+            exit;
+
         RecRef.GetTable(Variant);
         case RecRef.Number of
             Database::"Gen. Journal Batch":
@@ -3319,6 +3325,11 @@ codeunit 1535 "Approvals Mgmt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePrePostApprovalCheckSales(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePreventInsertRecIfOpenApprovalEntryExist(Variant: Variant; var IsHandled: Boolean)
     begin
     end;
 

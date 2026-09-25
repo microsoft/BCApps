@@ -6808,7 +6808,7 @@ table 36 "Sales Header"
             then
                 Error(
                   Text1500000,
-                  FieldName("Applies-to Doc. No."), FieldName("Adjustment Applies-to"));
+                  FieldCaption("Applies-to Doc. No."), FieldCaption("Adjustment Applies-to"));
             "Applies-to Doc. Type" := CustLedgEntry."Document Type";
             "BAS Adjustment" := BASManagement.CheckBASPeriod("Document Date", CustLedgEntry."Document Date");
         end else begin
