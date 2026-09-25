@@ -965,6 +965,15 @@ codeunit 37201 "PEPPOL30 Impl."
         InvoiceLineAccountingCost := '';
     end;
 
+    procedure GetLineRequestedDeliveryPeriod(PurchaseLine: Record "Purchase Line"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseLine."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseLine."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
+    end;
+
     procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var UnitCode: Text; var UnitCodeListID: Text)
     var
         UOM: Record "Unit of Measure";
@@ -1851,6 +1860,15 @@ codeunit 37201 "PEPPOL30 Impl."
         CountrySubentity := PurchaseHeader."Ship-to County";
         IdentificationCode := GetCountryISOCode(PurchaseHeader."Ship-to Country/Region Code");
         ListID := GetISO3166_1Alpha2();
+    end;
+
+    procedure GetRequestedDeliveryPeriod(PurchaseHeader: Record "Purchase Header"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseHeader."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseHeader."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
     end;
 
     local procedure InsertZeroAmountVATAmtLine(var VATAmtLine: Record "VAT Amount Line"; LineAmount: Decimal)
