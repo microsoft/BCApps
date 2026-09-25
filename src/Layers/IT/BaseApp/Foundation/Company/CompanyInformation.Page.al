@@ -23,6 +23,7 @@ using Microsoft.Projects.Project.Setup;
 using Microsoft.Purchases.Setup;
 using Microsoft.Sales.Setup;
 using System.Diagnostics;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Integration.PowerBI;
@@ -53,6 +54,43 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
+                }
+                grid(Descriptions)
+                {
+                    Caption = 'Descriptions';
+                    GridLayout = Columns;
+                    group(CompanyDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(CompanyDescription; CompanyDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Company Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies the company''s nature and intended purpose. The description applies to the current company and can provide context for AI-powered experiences.';
+
+                            trigger OnValidate()
+                            begin
+                                Rec.SetCompanyDescription(CompanyDescription);
+                            end;
+                        }
+                    }
+                    group(EnvironmentDescriptionGroup)
+                    {
+                        ShowCaption = false;
+                        field(EnvironmentDescription; EnvironmentDescription)
+                        {
+                            ApplicationArea = Basic, Suite;
+                            Caption = 'Environment Description';
+                            MultiLine = true;
+                            ToolTip = 'Specifies the environment''s nature and intended purpose. The description can provide context for AI-powered experiences.';
+
+                            trigger OnValidate()
+                            begin
+                                EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+                            end;
+                        }
+                    }
                 }
                 field(Address; Rec.Address)
                 {
@@ -866,6 +904,7 @@ page 1 "Company Information"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateSystemIndicator();
+        LoadDescriptions();
     end;
 
     trigger OnClosePage()
@@ -916,7 +955,10 @@ page 1 "Company Information"
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
         FormatAddress: Codeunit "Format Address";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EnvironmentInformation: Codeunit "Environment Information";
         Experience: Text;
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
         SystemIndicatorText: Code[6];
         SystemIndicatorTextEditable: Boolean;
         IBANMissing: Boolean;
@@ -958,6 +1000,12 @@ page 1 "Company Information"
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
     end;
 
+    local procedure LoadDescriptions()
+    begin
+        CompanyDescription := Rec.GetCompanyDescription();
+        EnvironmentDescription := EnvironmentInformation.GetEnvironmentDescription();
+    end;
+
     local procedure SetShowMandatoryConditions()
     begin
         BankBranchNoOrAccountNoMissing := (Rec."Bank Branch No." = '') or (Rec."Bank Account No." = '');
@@ -972,4 +1020,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-

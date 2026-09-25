@@ -53,6 +53,36 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     end;
 
     [Test]
+    procedure TestGetCompanyAndEnvironmentDescriptions()
+    var
+        CompanyInformation: Record "Company Information";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyDescription: Text;
+        EnvironmentDescription: Text;
+        Response: Text;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] User can get multiline company and environment descriptions.
+        Initialize();
+
+        // [GIVEN] The company and environment have multiline descriptions.
+        CompanyInformation.Get();
+        CompanyDescription := CreateMultilineDescription('Company');
+        EnvironmentDescription := CreateMultilineDescription('Environment');
+        CompanyInformation.SetCompanyDescription(CompanyDescription);
+        EnvironmentInformation.SetEnvironmentDescription(EnvironmentDescription);
+        Commit();
+
+        // [WHEN] The user calls GET for the given Company Information.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(CompanyInformation.SystemId, Page::"APIV2 - Company Information", ServiceNameTxt);
+        LibraryGraphMgt.GetFromWebService(Response, TargetURL);
+
+        // [THEN] The response contains the complete descriptions.
+        VerifyPropertyInJSON(Response, 'companyDescription', CompanyDescription);
+        VerifyPropertyInJSON(Response, 'environmentDescription', EnvironmentDescription);
+    end;
+
+    [Test]
     procedure TestModifyCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
@@ -145,6 +175,7 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     local procedure VerifyCompanyInformationProperties(CompanyInformationJSON: Text; var CompanyInformation: Record "Company Information")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        EnvironmentInformation: Codeunit "Environment Information";
         CompanyInformationRecordRef: RecordRef;
         EnterpriseNoFieldRef: FieldRef;
         TaxRegistrationNumber: Text;
@@ -154,6 +185,8 @@ codeunit 139806 "APIV2 - Company Info. E2E"
         GeneralLedgerSetup.Get();
 
         VerifyPropertyInJSON(CompanyInformationJSON, 'displayName', CompanyInformation.Name);
+        VerifyPropertyInJSON(CompanyInformationJSON, 'companyDescription', CompanyInformation.GetCompanyDescription());
+        VerifyPropertyInJSON(CompanyInformationJSON, 'environmentDescription', EnvironmentInformation.GetEnvironmentDescription());
         VerifyPropertyInJSON(CompanyInformationJSON, 'phoneNumber', CompanyInformation."Phone No.");
         VerifyPropertyInJSON(CompanyInformationJSON, 'faxNumber', CompanyInformation."Fax No.");
         VerifyPropertyInJSON(CompanyInformationJSON, 'email', CompanyInformation."E-Mail");
@@ -206,5 +239,14 @@ codeunit 139806 "APIV2 - Company Info. E2E"
     local procedure GetExperienceTierJSON(Experience: Text) ExperinceTierJSON: Text
     begin
         ExperinceTierJSON := LibraryGraphMgt.AddPropertytoJSON('', 'experience', Experience);
+    end;
+
+    local procedure CreateMultilineDescription(DescriptionType: Text): Text
+    var
+        DescriptionBuilder: TextBuilder;
+    begin
+        DescriptionBuilder.AppendLine(DescriptionType + ' description first line');
+        DescriptionBuilder.Append(DescriptionType + ' description second line with Unicode: ÆØÅ');
+        exit(DescriptionBuilder.ToText());
     end;
 }

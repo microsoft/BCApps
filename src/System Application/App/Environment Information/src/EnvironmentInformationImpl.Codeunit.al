@@ -14,6 +14,7 @@ codeunit 3702 "Environment Information Impl."
     SingleInstance = true;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Environment Information" = rimd;
 
     var
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
@@ -57,6 +58,32 @@ codeunit 3702 "Environment Information Impl."
             exit(DefaultProductionEnvironmentNameTxt);
 
         exit(DefaultSandboxEnvironmentNameTxt);
+    end;
+
+    procedure GetEnvironmentDescription(): Text
+    var
+        EnvironmentInformation: Record "Environment Information";
+        DescriptionInStream: InStream;
+    begin
+        GetEnvironmentInformationSafe(EnvironmentInformation);
+        EnvironmentInformation.CalcFields(Description);
+        if not EnvironmentInformation.Description.HasValue() then
+            exit('');
+
+        EnvironmentInformation.Description.CreateInStream(DescriptionInStream, GetTextEncoding());
+        exit(ReadText(DescriptionInStream));
+    end;
+
+    procedure SetEnvironmentDescription(Description: Text)
+    var
+        EnvironmentInformation: Record "Environment Information";
+        DescriptionOutStream: OutStream;
+    begin
+        GetEnvironmentInformationSafe(EnvironmentInformation);
+        Clear(EnvironmentInformation.Description);
+        EnvironmentInformation.Description.CreateOutStream(DescriptionOutStream, GetTextEncoding());
+        DescriptionOutStream.WriteText(Description);
+        EnvironmentInformation.Modify();
     end;
 
     procedure SetTestabilitySandbox(EnableSandboxForTest: Boolean)
@@ -184,6 +211,37 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetEnvironmentApplicationSetting(SettingName));
     end;
 
+    local procedure GetEnvironmentInformationSafe(var EnvironmentInformation: Record "Environment Information")
+    begin
+        if EnvironmentInformation.Get() then
+            exit;
+
+        EnvironmentInformation.Insert();
+        EnvironmentInformation.Find();
+    end;
+
+    local procedure ReadText(Input: InStream): Text
+    var
+        TextBuilder: TextBuilder;
+        TextLine: Text;
+        FirstLine: Boolean;
+    begin
+        FirstLine := true;
+        while not Input.EOS() do begin
+            Input.ReadText(TextLine);
+            if not FirstLine then
+                TextBuilder.AppendLine('');
+            TextBuilder.Append(TextLine);
+            FirstLine := false;
+        end;
+        exit(TextBuilder.ToText());
+    end;
+
+    local procedure GetTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeGetApplicationIdentifier(var AppId: Text)
     begin
@@ -191,4 +249,3 @@ codeunit 3702 "Environment Information Impl."
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 }
-
