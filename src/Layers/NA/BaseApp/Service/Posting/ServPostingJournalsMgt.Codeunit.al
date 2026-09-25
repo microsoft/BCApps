@@ -6,6 +6,7 @@ namespace Microsoft.Service.Posting;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
@@ -79,6 +80,16 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         Clear(ServLedgEntriesPost);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeCheckSalesExtDocNo, '', false, false)]
+    local procedure SkipSalesExtDocNoCheckForService(var GenJnlLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    var
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        SourceCodeSetup.Get();
+        if GenJnlLine."Source Code" = SourceCodeSetup."Service Management" then
+            IsHandled := true;
+    end;
+
     procedure SetPostingOptions(PassedConsume: Boolean; PassedInvoice: Boolean)
     begin
         Consume := PassedConsume;
@@ -137,10 +148,8 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         ServiceHeader.CopyToItemJnlLine(ItemJnlLine);
         ServiceLine.CopyToItemJnlLine(ItemJnlLine);
         ItemJnlLine.CopyTrackingFromSpec(TrackingSpecification);
-
         if GenJnlLineExtDocNo = '' then
             GenJnlLineExtDocNo := ServiceHeader."External Document No.";
-
         if QtyToBeShipped = 0 then begin
             if ServiceLine."Document Type" = ServiceLine."Document Type"::"Credit Memo" then
                 ItemJnlLine."Document Type" := ItemJnlLine."Document Type"::"Service Credit Memo"
@@ -197,7 +206,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         ItemJnlLine."Unit Cost (ACY)" := ServiceLine."Unit Cost";
         ItemJnlLine."Value Entry Type" := ItemJnlLine."Value Entry Type"::"Direct Cost";
         ItemJnlLine."Applies-from Entry" := ServiceLine."Appl.-from Item Entry";
-
         if Invoice and (QtyToBeInvoiced <> 0) then begin
             ItemJnlLine.Amount := -(ServiceLine.Amount * (QtyToBeInvoiced / ServiceLine."Qty. to Invoice") - RemAmt);
             if ServiceHeader."Prices Including VAT" then
@@ -214,7 +222,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
                 ItemJnlLine."Discount Amount" :=
                   -(ServiceLine."Line Discount Amount" * QtyToBeConsumed - RemDiscAmt);
             end;
-
         if (QtyToBeInvoiced <> 0) or (QtyToBeConsumed <> 0) then begin
             RemAmt := ItemJnlLine.Amount - Round(ItemJnlLine.Amount);
             RemDiscAmt := ItemJnlLine."Discount Amount" - Round(ItemJnlLine."Discount Amount");
@@ -242,7 +249,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         ItemJnlLine."Source Code" := SrcCode;
         ItemJnlLine."Item Shpt. Entry No." := ItemLedgShptEntryNo;
         ItemJnlLine."Invoice-to Source No." := ServiceLine."Bill-to Customer No.";
-
         if SalesSetup."Exact Cost Reversing Mandatory" and (ServiceLine.Type = ServiceLine.Type::Item) then
             if ServiceLine."Document Type" = ServiceLine."Document Type"::"Credit Memo" then
                 CheckApplFromItemEntry := ServiceLine.Quantity > 0
@@ -251,7 +257,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
 
         ShouldCreateWhseJnlLine := true;
         OnPostItemJnlLineOnBeforeCreateWhseJnlLine(ItemJnlLine, ServiceHeader, ShouldCreateWhseJnlLine, ServShptHeader, ServiceLine, TempWhseJnlLine, WhsePosting, CheckApplFromItemEntry);
-
         if ShouldCreateWhseJnlLine and (ServiceLine."Location Code" <> '') and (ServiceLine.Type = ServiceLine.Type::Item) and ServiceLine.IsInventoriableItem() and (ItemJnlLine.Quantity <> 0) then begin
             GetLocation(ServiceLine."Location Code", Location);
             if ((ServiceLine."Document Type" in [ServiceLine."Document Type"::Invoice, ServiceLine."Document Type"::"Credit Memo"]) and
@@ -262,14 +267,12 @@ codeunit 5987 "Serv-Posting Journals Mgt."
                 WhsePosting := true;
             end;
         end;
-
         if QtyToBeShippedBase <> 0 then
             if ServiceLine."Document Type" = ServiceLine."Document Type"::"Credit Memo" then
                 ServITRMgt.TransServLineToItemJnlLine(ServiceLine, ItemJnlLine, QtyToBeShippedBase, CheckApplFromItemEntry)
             else
                 ServITRMgt.TransferReservToItemJnlLine(
                   ServiceLine, ItemJnlLine, -QtyToBeShippedBase, CheckApplFromItemEntry);
-
         if CheckApplFromItemEntry then
             ServiceLine.TestField("Appl.-from Item Entry");
 
@@ -280,13 +283,11 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
 
         ItemJnlPostLine.CollectValueEntryRelation(TempValueEntryRelation, '');
-
         if ItemJnlPostLine.CollectTrackingSpecification(TempHandlingSpecification) then
             ServITRMgt.InsertTempHandlngSpecification(DATABASE::"Service Line",
               ServiceLine, TempHandlingSpecification,
               TempTrackingSpecification, TempTrackingSpecificationInv,
               QtyToBeInvoiced <> 0);
-
         if WhsePosting then
             PostWhseJnlLines(TempWhseJnlLine, TempTrackingSpecification);
 
@@ -379,7 +380,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         OnBeforePostResJnlLineShip(ServiceLine, DocNo, ExtDocNo, IsHandled);
         if IsHandled then
             exit;
-
         if ServiceLine."Time Sheet No." <> '' then
             ServTimeSheetMgt.CheckServiceLine(ServiceLine);
 
@@ -422,7 +422,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         OnBeforePostResJnlLineConsume(ServiceLine, ServShptHeader, IsHandled);
         if IsHandled then
             exit;
-
         if ServiceLine."Time Sheet No." <> '' then
             ServTimeSheetMgt.CheckServiceLine(ServiceLine);
 
@@ -517,7 +516,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
     begin
         TempValueEntryRelation.Reset();
         PassedValueEntryRelation.Reset();
-
         if TempValueEntryRelation.FindSet() then
             repeat
                 PassedValueEntryRelation := TempValueEntryRelation;
@@ -547,7 +545,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         OnBeforePostJobJnlLine(ServHeader, ServLine, QtyToBeConsumed, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if (ServLine."Job No." = '') or (QtyToBeConsumed = 0) then
             exit(false);
 
@@ -565,7 +562,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         JobJnlLine.Validate("Posting Date", ServLine."Posting Date");
         JobJnlLine."Job Posting Only" := true;
         JobJnlLine."No." := ServLine."No.";
-
         case ServLine.Type of
             ServLine.Type::"G/L Account":
                 JobJnlLine.Type := JobJnlLine.Type::"G/L Account";
@@ -608,7 +604,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         Customer.Get(ServLine."Customer No.");
         if Customer."Prices Including VAT" then
             ServLine.Validate(ServLine."Unit Price", Round(ServLine."Unit Price" / (1 + (ServLine."VAT %" / 100)), Currency."Unit-Amount Rounding Precision"));
-
         if ServLine."Currency Code" = Job."Currency Code" then
             JobJnlLine.Validate("Unit Price", ServLine."Unit Price");
         if ServLine."Currency Code" <> '' then begin
