@@ -143,7 +143,7 @@ page 1 "Company Information"
                 field("Company Type"; Rec."Company Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code that defines the company type.';
+                    ToolTip = 'Specifies the fiscal regime used for FatturaPA. For example, code 19 is exported as RF19.';
                 }
                 field("Registration No."; Rec."Registration No.")
                 {

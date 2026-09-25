@@ -44,13 +44,11 @@ codeunit 143000 "Library - IT Localization"
 
     [Scope('OnPrem')]
     procedure CreateCompanyType(var CompanyTypes: Record "Company Types")
+    var
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
-        CompanyTypes.Init();
-        CompanyTypes.Validate(
-          Code,
-          CopyStr(LibraryUtility.GenerateRandomCode(CompanyTypes.FieldNo(Code), DATABASE::"Company Types"),
-            1, LibraryUtility.GetFieldLength(DATABASE::"Company Types", CompanyTypes.FieldNo(Code))));
-        CompanyTypes.Insert(true);
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
+        CompanyTypes.Get(GetRandomCompanyType());
     end;
 
     [Scope('OnPrem')]
@@ -364,8 +362,10 @@ codeunit 143000 "Library - IT Localization"
     procedure GetRandomCompanyType(): Code[2]
     var
         CompanyTypes: Record "Company Types";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
     begin
-        CompanyTypes.Next(LibraryRandom.RandInt(CompanyTypes.Count));
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
+        CompanyTypes.Get(Format(LibraryRandom.RandIntInRange(1, 19), 2, '<Integer,2><Filler Character,0>'));
         exit(CompanyTypes.Code);
     end;
 

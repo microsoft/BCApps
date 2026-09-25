@@ -1291,6 +1291,177 @@ codeunit 144200 "FatturaPA Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure StandardFatturaPAFiscalRegimesAreSeeded()
+    var
+        CompanyTypes: Record "Company Types";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
+    begin
+        // [FEATURE] [FatturaPA] [Setup]
+        // [SCENARIO] The fixed FatturaPA fiscal regime catalog is seeded without deleting legacy data
+        Initialize();
+
+        // [GIVEN] The standard catalog is missing, an existing regime has an outdated description, and an invalid legacy value exists
+        CompanyTypes.DeleteAll(false);
+        CompanyTypes.Code := '19';
+        CompanyTypes.Description := 'Outdated';
+        CompanyTypes.Insert(false);
+        CompanyTypes.Code := '99';
+        CompanyTypes.Description := 'Legacy';
+        CompanyTypes.Insert(false);
+
+        // [WHEN] The standard catalog is initialized
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
+
+        // [THEN] All 19 supported regimes exist and standard descriptions are repaired
+        CompanyTypes.SetFilter(Code, '01|02|03|04|05|06|07|08|09|10|11|12|13|14|15|16|17|18|19');
+        Assert.RecordCount(CompanyTypes, 19);
+        CompanyTypes.Get('19');
+        CompanyTypes.TestField(Description, 'Flat rate');
+
+        // [THEN] Invalid legacy values are preserved
+        CompanyTypes.Reset();
+        CompanyTypes.Get('99');
+        CompanyTypes.TestField(Description, 'Legacy');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StandardFatturaPAFiscalRegimesAreReadOnly()
+    var
+        CompanyTypes: Record "Company Types";
+        FatturaPASetupMgt: Codeunit "FatturaPA Setup Mgt.";
+    begin
+        // [FEATURE] [FatturaPA] [Setup]
+        // [SCENARIO] Standard FatturaPA fiscal regimes cannot be inserted, changed, or deleted by users
+        Initialize();
+        FatturaPASetupMgt.EnsureStandardFiscalRegimes();
+
+        // [WHEN] A fiscal regime is inserted
+        CompanyTypes.Init();
+        CompanyTypes.Code := '20';
+        CompanyTypes.Description := 'Unsupported';
+        asserterror CompanyTypes.Insert(true);
+
+        // [THEN] The fixed catalog rejects the insert
+        Assert.ExpectedError('cannot be changed');
+
+        // [WHEN] A standard regime is modified
+        Clear(CompanyTypes);
+        CompanyTypes.Get('19');
+        CompanyTypes.Description := 'Modified';
+        asserterror CompanyTypes.Modify(true);
+
+        // [THEN] The fixed catalog rejects the modification
+        Assert.ExpectedError('cannot be changed');
+
+        // [WHEN] A standard regime is deleted
+        Clear(CompanyTypes);
+        CompanyTypes.Get('19');
+        asserterror CompanyTypes.Delete(true);
+
+        // [THEN] The fixed catalog rejects the deletion
+        Assert.ExpectedError('cannot be changed');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithValidFiscalRegime()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] A valid Company Type is exported as the corresponding FatturaPA RegimeFiscale
+        Initialize();
+
+        // [GIVEN] Company Information has fiscal regime code 19
+        CompanyInformation.Get();
+        CompanyInformation.Validate("Company Type", '19');
+        CompanyInformation.Modify(true);
+
+        // [GIVEN] A posted Sales Invoice
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+
+        // [WHEN] The document is exported to FatturaPA
+        ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+
+        // [THEN] RegimeFiscale is RF19
+        LibraryITLocalization.LoadTempXMLBufferFromTempBlob(TempXMLBuffer, TempBlob);
+        AssertCurrentElementValue(
+          TempXMLBuffer,
+          '/p:FatturaElettronica/FatturaElettronicaHeader/CedentePrestatore/DatiAnagrafici/RegimeFiscale',
+          'RF19');
+    end;
+
+    [Test]
+    [HandlerFunctions('InvalidFiscalRegimeErrorMessagesPageHandler')]
+    [Scope('OnPrem')]
+    procedure ExportSalesInvoiceWithInvalidLegacyFiscalRegime()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        DocumentRecRef: RecordRef;
+        ClientFileName: Text[250];
+    begin
+        // [FEATURE] [Sales] [Invoice] [FatturaPA]
+        // [SCENARIO] Existing invalid Company Type data cannot generate an invalid RegimeFiscale
+        Initialize();
+
+        // [GIVEN] Legacy Company Information contains an invalid fiscal regime code
+        CompanyInformation.Get();
+        CompanyInformation."Company Type" := '99';
+        CompanyInformation.Modify();
+
+        // [GIVEN] A posted Sales Invoice
+        SalesInvoiceHeader.SetRange(
+          "No.", CreateAndPostSalesInvoice(DocumentRecRef, CreatePaymentMethod(), CreatePaymentTerms(), CreateCustomer()));
+
+        // [WHEN] The document is exported to FatturaPA
+        asserterror ElectronicDocumentFormat.SendElectronically(
+          TempBlob, ClientFileName, SalesInvoiceHeader, CopyStr(FatturaPA_ElectronicFormatTxt, 1, 20));
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure InvalidFiscalRegimeErrorMessagesPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ErrorFound: Boolean;
+    begin
+        if ErrorMessages.First() then
+            repeat
+                if ErrorMessages.Description.Value = '99 is not a valid FatturaPA fiscal regime code.' then
+                    ErrorFound := true;
+            until not ErrorMessages.Next();
+
+        Assert.IsTrue(ErrorFound, 'The invalid FatturaPA fiscal regime validation error was not shown.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CompanyTypeRejectsInvalidFatturaPAFiscalRegime()
+    var
+        CompanyTypes: Record "Company Types";
+    begin
+        // [FEATURE] [FatturaPA] [Setup]
+        // [SCENARIO] Company Types only accepts supported FatturaPA fiscal regime codes
+        Initialize();
+
+        // [WHEN] An unsupported fiscal regime code is validated
+        asserterror CompanyTypes.Validate(Code, '99');
+
+        // [THEN] The value is rejected
+        Assert.ExpectedError('99');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ExportSalesInvoiceForLocalCustomer()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
