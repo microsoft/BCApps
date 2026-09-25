@@ -201,22 +201,24 @@ table 6923 "Expense User"
             Editable = false;
             ToolTip = 'Specifies the identifier used to correlate the welcome email with its delivery from the outbox.';
         }
-        field(60; "Approval Limit"; Integer)
+        field(60; "Approval Limit (LCY)"; Integer)
         {
-            Caption = 'Approval Limit';
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            Caption = 'Approval Limit (LCY)';
             ToolTip = 'Specifies the maximum expense report amount this user can approve. Leave empty when Unlimited Approval is selected.';
             BlankZero = true;
 
             trigger OnValidate()
             begin
-                if Rec."Approval Limit" <> 0 then
+                if Rec."Approval Limit (LCY)" <> 0 then
                     Rec.TestField("Can Approve", true);
 
-                if Rec."Unlimited Approval" and (Rec."Approval Limit" <> 0) then
-                    Error(ConflictingApprovalsErr, Rec.FieldCaption("Approval Limit"), Rec.FieldCaption("Unlimited Approval"));
+                if Rec."Unlimited Approval" and (Rec."Approval Limit (LCY)" <> 0) then
+                    Error(ConflictingApprovalsErr, Rec.FieldCaption("Approval Limit (LCY)"), Rec.FieldCaption("Unlimited Approval"));
 
-                if Rec."Approval Limit" < 0 then
-                    Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit"));
+                if Rec."Approval Limit (LCY)" < 0 then
+                    Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit (LCY)"));
             end;
         }
         field(61; "Unlimited Approval"; Boolean)
@@ -228,7 +230,7 @@ table 6923 "Expense User"
             begin
                 if Rec."Unlimited Approval" then begin
                     Rec.TestField("Can Approve", true);
-                    Rec."Approval Limit" := 0;
+                    Rec."Approval Limit (LCY)" := 0;
                 end;
             end;
         }

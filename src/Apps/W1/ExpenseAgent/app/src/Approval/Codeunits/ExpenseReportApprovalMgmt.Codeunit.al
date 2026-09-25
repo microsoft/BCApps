@@ -275,8 +275,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         InterimApprover.Get(NewApproverExpenseUserNo);
         CheckApproverPermissions(InterimApprover);
         ExpenseReportHeader.CalcFields("Amount (LCY)");
-        if not InterimApprover."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > InterimApprover."Approval Limit") then
-            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit"), InterimApprover."No.");
+        if not InterimApprover."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > InterimApprover."Approval Limit (LCY)") then
+            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", InterimApprover.FieldCaption("Approval Limit (LCY)"), InterimApprover."No.");
 
         SetInterimApproverInExpenseReport(ExpenseReportHeader, InterimApprover);
         LogInterimApproverAssigned(ExpenseReportHeader, InterimApprover, ActorExpenseUserNo);
@@ -353,11 +353,11 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverExpenseUser.Get(ExpenseReportHeader."Approver Expense User No.");
         ExpenseReportHeader.CalcFields("Amount (LCY)");
 
-        while not ApproverExpenseUser."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit") do begin
+        while not ApproverExpenseUser."Unlimited Approval" and (ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit (LCY)") do begin
             ProcessedApproverNos.Add(ApproverExpenseUser."No.");
             NextApproverNo := GetNextApproverNo(ApproverExpenseUser."No.");
             if (NextApproverNo = '') or ProcessedApproverNos.Contains(NextApproverNo) then
-                Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
+                Error(ApproverRequiredErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit (LCY)"), ApproverExpenseUser."No.");
 
             ApproverExpenseUser.Get(NextApproverNo);
             if not ApproverExpenseUser."Can Approve" then
@@ -373,6 +373,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
     local procedure GetNextApproverNo(CurrentApproverNo: Code[20]): Code[20]
     var
+        ExpenseUser: Record "Expense User";
         ExpenseApprovalSetup: Record "Expense Approval Setup";
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
@@ -380,7 +381,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
             exit(ExpenseApprovalSetup."Approver No.");
 
         ExpenseAgentSetup.GetRecordOnce();
-        exit(ExpenseAgentSetup."Default Approver No.");
+        if ExpenseUser.Get(ExpenseAgentSetup."Default Approver No.") and ExpenseUser."Unlimited Approval" then
+            exit(ExpenseAgentSetup."Default Approver No.");
     end;
 
     local procedure RouteToFinalApprover(var ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])
@@ -439,8 +441,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
             exit;
 
         ExpenseReportHeader.CalcFields("Amount (LCY)");
-        if ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit" then
-            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit"), ApproverExpenseUser."No.");
+        if ExpenseReportHeader."Amount (LCY)" > ApproverExpenseUser."Approval Limit (LCY)" then
+            Error(ApproverApprovalLimitErr, ExpenseReportHeader."No.", ApproverExpenseUser.FieldCaption("Approval Limit (LCY)"), ApproverExpenseUser."No.");
     end;
 
     local procedure SetApprovalStatusInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportStatus: Enum "Expense Report Status"; ApproverExpenseUserNo: Code[20]; ApproverUserId: Code[50])
