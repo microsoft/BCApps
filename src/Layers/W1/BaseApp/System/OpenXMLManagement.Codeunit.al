@@ -12,11 +12,11 @@ codeunit 6223 "OpenXML Management"
     end;
 
     var
+        ExcelBuffer: Record "Excel Buffer";
         FileMgt: Codeunit "File Management";
         WrkShtHelper: DotNet WorksheetHelper;
         UID: Integer;
 
-        ExcelBuffer: Record "Excel Buffer";
         CreateWrkBkFailedErr: Label 'Could not create the Excel workbook.';
         OpenWrkBkFailedErr: Label 'Could not open the Excel workbook.';
         MissingXMLMapErr: Label 'The Excel workbook must contain an XML map.';
