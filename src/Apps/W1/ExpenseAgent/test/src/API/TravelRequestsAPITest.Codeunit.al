@@ -30,7 +30,6 @@ codeunit 148347 "Travel Requests API Test"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
 #if not CLEAN30
@@ -1065,7 +1064,9 @@ codeunit 148347 "Travel Requests API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Travel Requests API Test");
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();

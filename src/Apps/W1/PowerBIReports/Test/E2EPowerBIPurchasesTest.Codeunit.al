@@ -43,6 +43,12 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         PowerBIAPIEndpoints: Enum "PowerBI API Endpoints";
         ResponseEmptyErr: Label 'Response should not be empty.';
 
+    local procedure Initialize()
+    begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     [Test]
     procedure TestGetOutstandingPurchOrderLine()
     var
@@ -53,6 +59,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] An outstanding purchase order with multiple lines exists
         LibPurch.CreatePurchaseOrder(PurchHeader);
         LibInv.CreateItemWithUnitPriceAndUnitCost(
@@ -88,6 +96,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Purchase lines exist outside of the query filter
         PurchHeader."Document Type" := PurchHeader."Document Type"::Invoice;
         PurchHeader."No." := LibUtility.GenerateRandomCode20(PurchHeader.FieldNo("No."), Database::"Purchase Header");
@@ -151,6 +161,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] An item budget entry exists
         LibERM.CreateItemBudgetName(ItemBudgetName, "Analysis Area Type"::Purchase);
         LibInv.CreateItemBudgetEntry(
@@ -198,6 +210,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Item budget entries exist outside of the query filter
         if ItemBudgetEntry.FindLast() then;
         ItemBudgetEntry."Entry No." += 1;
@@ -228,6 +242,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A purchase order is posted with item ledger entry and value entry
         LibPurch.CreatePurchaseOrder(PurchaseHeader);
         PurchaseHeader.Validate("Payment Discount %", 3);
@@ -289,6 +305,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Value entries exist outside of the query filter
         PermissionsMock.Assign('SUPER');
         if ItemLedgerEntry.FindLast() then;
@@ -330,6 +348,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] A purchase order with multiple lines is received but not invoiced
         LibPurch.CreatePurchaseOrder(PurchaseHeader);
         LibInv.CreateItemWithUnitPriceAndUnitCost(
@@ -386,6 +406,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         TargetURL: Text;
         Response: Text;
     begin
+        Initialize();
+
         // [GIVEN] Purchase lines exist outside of the query filter
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
         PurchaseHeader."No." := LibUtility.GenerateRandomCode20(PurchaseHeader.FieldNo("No."), Database::"Purchase Header");
@@ -457,6 +479,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         Response: Text;
         GLAccountCode: Code[20];
     begin
+        Initialize();
+
         // [GIVEN] A purchase order with multiple lines for item, G/L account & resource.
         LibPurch.CreatePurchaseOrder(PurchaseHeader);
         PurchaseHeader."Posting Date" := WorkDate();
@@ -557,6 +581,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         GLAccountCode: Code[20];
         PurchInvoiceNo: Code[20];
     begin
+        Initialize();
+
         // [GIVEN] A purchase invoice with multiple lines for G/L and Resource
         LibPurch.CreatePurchaseInvoice(PurchaseHeader);
 
@@ -634,6 +660,8 @@ codeunit 139880 "E2E PowerBI Purchases Test"
         GLAccountCode: Code[20];
         PurchCrMemoNo: Code[20];
     begin
+        Initialize();
+
         // [GIVEN] A purchase credit memo with multiple lines for G/L and Resource
         LibPurch.CreatePurchaseCreditMemo(PurchaseHeader);
 

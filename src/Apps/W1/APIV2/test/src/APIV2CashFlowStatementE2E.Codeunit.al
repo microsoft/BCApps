@@ -62,8 +62,13 @@ codeunit 139817 "APIV2 - CashFlow Statement E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         LibraryApplicationArea.EnableFoundationSetup();
         IsInitialized := true;
@@ -88,7 +93,6 @@ codeunit 139817 "APIV2 - CashFlow Statement E2E"
         IncomeStatementJSON := JSONManagement.WriteObjectToString();
     end;
 }
-
 
 
 
