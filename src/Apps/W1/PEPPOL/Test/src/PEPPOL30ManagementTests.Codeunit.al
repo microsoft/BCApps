@@ -21,6 +21,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -41,10 +44,13 @@ codeunit 139235 "PEPPOL30 Management Tests"
 
     var
         CompanyInformation: Record "Company Information";
+        GenJournalBatch: Record "Gen. Journal Batch";
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInvt: Codeunit "Library - Inventory";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryResource: Codeunit "Library - Resource";
         LibrarySales: Codeunit "Library - Sales";
@@ -53,6 +59,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryXMLRead: Codeunit "Library - XPath XML Reader";
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
         IsInitialized: Boolean;
         FieldMustHaveValueErr: Label '%1 must have a value', Comment = '%1 - Field caption';
         InvoiceDiscAmtTxt: Label 'Line Discount Amount';
@@ -62,6 +69,115 @@ codeunit 139235 "PEPPOL30 Management Tests"
         NoItemDescriptionErr: Label 'Description field is empty.';
         NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.', Comment = '%1 - Invoice Number';
         SalespersonTxt: Label 'Salesperson';
+
+    [Test]
+    procedure UnknownFormatValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLinesValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLines('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLineValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLine('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineTypeValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateLineTypeAndDescription('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatPostedDocumentValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidatePostedDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatIteratorRaisesControlledError()
+    var
+        SalesHeader: Record "Sales Header";
+        PostedRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedRecRef, SalesHeader);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineIteratorRaisesControlledError()
+    var
+        SalesLine: Record "Sales Line";
+        PostedLineRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedLineRecRef, SalesLine);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
 
     [Test]
     procedure GeneralInfo()
@@ -3437,6 +3553,232 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Evaluate(LineExtensionAmt, InvoiceLineExtensionAmount, 9);
         Assert.AreEqual(PriceAmount * SalesInvoiceLine.Quantity, LineExtensionAmt,
           'LineExtensionAmount must equal PriceAmount * Quantity per PEPPOL BIS 3.0');
+    end;
+
+    [Test]
+    procedure PostedPaymentWithSameDocumentRefundBuildsRemittanceAdvice()
+    var
+        Vendor: Record Vendor;
+        PaymentVendLedgEntry: Record "Vendor Ledger Entry";
+        RefundVendLedgEntry: Record "Vendor Ledger Entry";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        RefundAmount: Decimal;
+        ExpectedTotalPaid: Decimal;
+    begin
+        // [SCENARIO] A posted vendor payment with a same-document refund
+        // produces a remittance advice with the refund as a credit line.
+        Initialize();
+        CreateVendorForRemittanceAdvice(Vendor);
+        CreatePaymentJournalBatch();
+
+        // [GIVEN] A posted vendor payment applied to an invoice.
+        PostAppliedPayment(Vendor."No.", PaymentVendLedgEntry);
+
+        // [GIVEN] A refund for the same vendor sharing the payment document number.
+        CreateRefundWithPaymentDocumentNo(RefundVendLedgEntry, Vendor."No.", PaymentVendLedgEntry."Document No.");
+
+        // [GIVEN] The refund has an application detailed ledger entry.
+        RefundAmount := CreateRefundDetailedVendorLedgerEntry(RefundVendLedgEntry, PaymentVendLedgEntry."Entry No.");
+
+        // [WHEN] The remittance advice buffer is built from the posted payment.
+        RemitAdviceBufferMgt.BuildFromPostedPayment(PaymentVendLedgEntry, TempRemitAdviceBuffer);
+
+        // [THEN] The refund is present in the buffer with the expected amount.
+        TempRemitAdviceBuffer.Reset();
+        TempRemitAdviceBuffer.SetRange("Applied Doc. Type", TempRemitAdviceBuffer."Applied Doc. Type"::Refund);
+
+        Assert.IsTrue(TempRemitAdviceBuffer.FindFirst(), 'The remittance advice buffer should contain the refund line.');
+        Assert.AreEqual(RefundVendLedgEntry."Document No.", TempRemitAdviceBuffer."Our Document No.", 'The refund line should contain the refund document number.');
+        Assert.AreEqual(Abs(RefundAmount), TempRemitAdviceBuffer."Paid Amount", 'The refund line should contain the refund amount.');
+
+        // [THEN] Total Paid equals the signed total of the generated remittance lines.
+        ExpectedTotalPaid := 0;
+
+        TempRemitAdviceBuffer.Reset();
+        TempRemitAdviceBuffer.SetFilter("Line No.", '>%1', 0);
+
+        Assert.IsTrue(TempRemitAdviceBuffer.FindSet(), 'The remittance advice buffer should contain remittance lines.');
+
+        repeat
+            if TempRemitAdviceBuffer."Applied Doc. Type" = TempRemitAdviceBuffer."Applied Doc. Type"::Refund then
+                ExpectedTotalPaid -= TempRemitAdviceBuffer."Paid Amount"
+            else
+                ExpectedTotalPaid += TempRemitAdviceBuffer."Paid Amount";
+        until TempRemitAdviceBuffer.Next() = 0;
+
+        TempRemitAdviceBuffer.Reset();
+        TempRemitAdviceBuffer.SetRange("Line No.", 0);
+
+        Assert.IsTrue(TempRemitAdviceBuffer.FindFirst(), 'The remittance advice buffer should contain a header.');
+        Assert.AreEqual(ExpectedTotalPaid, TempRemitAdviceBuffer."Total Paid Amount", 'Total Paid should equal the signed total of the remittance lines.');
+
+        // [WHEN] The PEPPOL remittance advice XML is generated.
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
+
+        // [THEN] TotalPaymentAmount, CreditLineAmount and the credit document reference are exported.
+        AssertRemittanceAdviceRefundXml(TempBlob, ExpectedTotalPaid, RefundAmount, RefundVendLedgEntry."Document No.");
+    end;
+
+    local procedure CreateVendorForRemittanceAdvice(var Vendor: Record Vendor)
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+
+        if Vendor."VAT Registration No." = '' then
+            Vendor."VAT Registration No." := '987654321';
+
+        if Vendor."Country/Region Code" = '' then begin
+            CompanyInformation.Get();
+            Vendor."Country/Region Code" := CompanyInformation."Country/Region Code";
+        end;
+
+        Vendor.Modify(true);
+    end;
+
+    local procedure CreateRefundDetailedVendorLedgerEntry(RefundVendLedgEntry: Record "Vendor Ledger Entry"; AppliedVendorLedgerEntryNo: Integer): Decimal
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        ExistingDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        if ExistingDetailedVendorLedgEntry.FindLast() then
+            DetailedVendorLedgEntry."Entry No." := ExistingDetailedVendorLedgEntry."Entry No." + 1
+        else
+            DetailedVendorLedgEntry."Entry No." := 1;
+
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := RefundVendLedgEntry."Entry No.";
+        DetailedVendorLedgEntry."Document Type" := DetailedVendorLedgEntry."Document Type"::Refund;
+        DetailedVendorLedgEntry."Document No." := RefundVendLedgEntry."Document No.";
+        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::Application;
+        DetailedVendorLedgEntry.Amount := LibraryRandom.RandDec(10, 2);
+        DetailedVendorLedgEntry."Amount (LCY)" := DetailedVendorLedgEntry.Amount;
+        DetailedVendorLedgEntry."Applied Vend. Ledger Entry No." := AppliedVendorLedgerEntryNo;
+        DetailedVendorLedgEntry."Initial Document Type" := RefundVendLedgEntry."Document Type";
+        DetailedVendorLedgEntry.Unapplied := false;
+        DetailedVendorLedgEntry.Insert(true);
+
+        exit(DetailedVendorLedgEntry.Amount);
+    end;
+
+    local procedure CreatePaymentJournalBatch()
+    var
+        TemplateName: Code[10];
+    begin
+        TemplateName := LibraryJournals.SelectGenJournalTemplate(Enum::"Gen. Journal Template Type"::Payments, Page::"Payment Journal");
+        LibraryJournals.SelectGenJournalBatch(GenJournalBatch, TemplateName);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+    end;
+
+    local procedure PostPurchaseInvoice(VendorNo: Code[20]; var InvoiceVendLedgEntry: Record "Vendor Ledger Entry")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        InvoiceNo: Code[20];
+    begin
+        LibraryInvt.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        PurchaseLine.Modify(true);
+
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        InvoiceVendLedgEntry.Reset();
+        InvoiceVendLedgEntry.SetRange("Document Type", InvoiceVendLedgEntry."Document Type"::Invoice);
+        InvoiceVendLedgEntry.SetRange("Document No.", InvoiceNo);
+        InvoiceVendLedgEntry.SetRange("Vendor No.", VendorNo);
+        InvoiceVendLedgEntry.FindFirst();
+
+        InvoiceVendLedgEntry.CalcFields("Remaining Amount");
+        InvoiceVendLedgEntry."Amount to Apply" := InvoiceVendLedgEntry."Remaining Amount";
+        InvoiceVendLedgEntry.Modify();
+    end;
+
+    local procedure CreatePaymentLine(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; LineAmount: Decimal)
+    begin
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, VendorNo, GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LineAmount);
+    end;
+
+    local procedure CreatePaymentLineAppliedToInvoice(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; InvoiceVendLedgEntry: Record "Vendor Ledger Entry")
+    begin
+        CreatePaymentLine(GenJournalLine, VendorNo, -InvoiceVendLedgEntry."Remaining Amount");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceVendLedgEntry."Document No.");
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure PostAppliedPayment(VendorNo: Code[20]; var PaymentVendLedgEntry: Record "Vendor Ledger Entry")
+    var
+        InvoiceVendLedgEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentDocNo: Code[20];
+    begin
+        PostPurchaseInvoice(VendorNo, InvoiceVendLedgEntry);
+        CreatePaymentLineAppliedToInvoice(GenJournalLine, VendorNo, InvoiceVendLedgEntry);
+        PaymentDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        PaymentVendLedgEntry.Reset();
+        PaymentVendLedgEntry.SetRange("Document Type", PaymentVendLedgEntry."Document Type"::Payment);
+        PaymentVendLedgEntry.SetRange("Vendor No.", VendorNo);
+        PaymentVendLedgEntry.SetRange("Document No.", PaymentDocNo);
+        PaymentVendLedgEntry.FindFirst();
+    end;
+
+    local procedure CreateRefundWithPaymentDocumentNo(var RefundVendLedgEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentNo: Code[20])
+    begin
+        CreateVendorLedgerEntry(RefundVendLedgEntry, VendorNo, RefundVendLedgEntry."Document Type"::Refund);
+        RefundVendLedgEntry."Document No." := DocumentNo;
+        RefundVendLedgEntry.Modify();
+    end;
+
+    local procedure CreateVendorLedgerEntry(var VendorLedgEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        ExistingVendorLedgEntry: Record "Vendor Ledger Entry";
+    begin
+        if ExistingVendorLedgEntry.FindLast() then
+            VendorLedgEntry."Entry No." := ExistingVendorLedgEntry."Entry No." + 1
+        else
+            VendorLedgEntry."Entry No." := 1;
+
+        VendorLedgEntry."Vendor No." := VendorNo;
+        VendorLedgEntry."Document Type" := DocumentType;
+        VendorLedgEntry.Open := true;
+        VendorLedgEntry.Insert();
+    end;
+
+    local procedure AssertRemittanceAdviceRefundXml(
+    var TempBlob: Codeunit "Temp Blob";
+    ExpectedTotalPaid: Decimal;
+    ExpectedRefundAmount: Decimal;
+    ExpectedRefundDocNo: Code[20])
+    var
+        DocInStream: InStream;
+        XmlDoc: XmlDocument;
+        XmlNsManager: XmlNamespaceManager;
+        XmlNode: XmlNode;
+        ExpectedAmountText: Text;
+    begin
+        TempBlob.CreateInStream(DocInStream, TextEncoding::UTF8);
+        XmlDocument.ReadFrom(DocInStream, XmlDoc);
+        XmlNsManager.NameTable(XmlDoc.NameTable());
+        XmlNsManager.AddNamespace('ra', 'urn:oasis:names:specification:ubl:schema:xsd:RemittanceAdvice-2');
+        XmlNsManager.AddNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        XmlNsManager.AddNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+
+        // [THEN] Total Paid is exported as TotalPaymentAmount.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cbc:TotalPaymentAmount', XmlNsManager, XmlNode), 'The remittance advice should contain TotalPaymentAmount.');
+        ExpectedAmountText := Format(Round(ExpectedTotalPaid, 0.01), 0, 9);
+        Assert.AreEqual(ExpectedAmountText, XmlNode.AsXmlElement().InnerText(), 'TotalPaymentAmount should equal Total Paid from the remittance buffer.');
+
+        // [THEN] The refund is exported as CreditLineAmount.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine/cbc:CreditLineAmount', XmlNsManager, XmlNode), 'The refund should be exported as CreditLineAmount.');
+        ExpectedAmountText := Format(Round(Abs(ExpectedRefundAmount), 0.01), 0, 9);
+        Assert.AreEqual(ExpectedAmountText, XmlNode.AsXmlElement().InnerText(), 'CreditLineAmount should equal the refund amount.');
+
+        // [THEN] The refund document is exported as CreditNoteDocumentReference.
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/ra:RemittanceAdvice/cac:RemittanceAdviceLine/cac:BillingReference/cac:CreditNoteDocumentReference/cbc:ID', XmlNsManager, XmlNode), 'The refund should contain a CreditNoteDocumentReference.');
+        Assert.AreEqual(ExpectedRefundDocNo, XmlNode.AsXmlElement().InnerText(), 'The credit document reference should contain the refund document number.');
     end;
 
     var

@@ -20,14 +20,21 @@ codeunit 9762 "SFTP Client"
         SFTPClientImplementation.AddFingerPrintSHA256(Fingerprint);
     end;
 
+#if not CLEAN29
     /// <summary>
-    /// Adds an MD5 fingerprint to the list of accepted host key fingerprints.
+    /// Obsolete. MD5 host key fingerprints are cryptographically insecure and are no longer supported. Calling this method always raises an error. Use AddFingerprintSHA256 instead.
     /// </summary>
-    /// <param name="Fingerprint"></param>
+    /// <param name="Fingerprint">Not used. Retained for binary compatibility only.</param>
+    [Obsolete('MD5 host key fingerprints are cryptographically insecure and are no longer supported. Use AddFingerprintSHA256 instead.', '29.0')]
     procedure AddFingerprintMD5(Fingerprint: Text)
+    var
+        ErrorInfo: ErrorInfo;
     begin
-        SFTPClientImplementation.AddFingerPrintMD5(Fingerprint);
+        ErrorInfo.Message(MD5NotSupportedErr);
+        ErrorInfo.ErrorType := ErrorType::Internal;
+        Error(ErrorInfo);
     end;
+#endif
 
     /// <summary>
     /// Initializes the SFTP client with the specified parameters. The client is connected to the server.
@@ -37,6 +44,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Username">Username for the connection</param>
     /// <param name="Password">Password for the connection</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure Initialize(Hostname: Text; Port: Integer; Username: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.Initialize(HostName, Port, Username, Password));
@@ -51,6 +59,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Username">Username for the connection</param>
     /// <param name="PrivateKey">Private Key for the connection</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.Initialize(HostName, Port, Username, PrivateKey));
@@ -66,6 +75,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="PrivateKey">Private Key for the connection</param>
     /// <param name="Passphrase">Passphrase to decrypt the private key</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure Initialize(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.Initialize(HostName, Port, Username, PrivateKey, Passphrase));
@@ -101,6 +111,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Path">Path to the file</param>
     /// <param name="InStream">An InStream that will be populated with the file content</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure GetFileAsStream(Path: Text; var InStream: InStream): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.GetFileAsStream(Path, InStream));
@@ -153,6 +164,7 @@ codeunit 9762 "SFTP Client"
     /// <param name="Path">The destination path to upload the file to</param>
     /// <param name="SourceInStream">The stream of data to upload</param>
     /// <returns>A response codeunit containing success/failure status and error information if applicable</returns>
+    [NonDebuggable]
     procedure PutFileStream(Path: Text; var SourceInStream: InStream): Codeunit "SFTP Operation Response"
     begin
         exit(SFTPClientImplementation.PutFileStream(Path, SourceInStream));
@@ -202,4 +214,7 @@ codeunit 9762 "SFTP Client"
 
     var
         SFTPClientImplementation: Codeunit "SFTP Client Implementation";
+#if not CLEAN29
+        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported because MD5 is cryptographically broken. Use AddFingerprintSHA256 with a SHA256 fingerprint instead.';
+#endif
 }

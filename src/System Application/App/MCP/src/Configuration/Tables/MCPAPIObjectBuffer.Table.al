@@ -19,8 +19,8 @@ table 8357 "MCP API Object Buffer"
         field(1; "Object Type"; Option)
         {
             Caption = 'Object Type';
-            OptionMembers = Page,Query;
-            OptionCaption = 'Page,Query';
+            OptionMembers = Page,Query,Codeunit;
+            OptionCaption = 'Page,Query,Codeunit';
         }
         field(2; "Object ID"; Integer)
         {

@@ -1028,6 +1028,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
+        TempUsedSalesInvoiceLine: Record "Sales Invoice Line" temporary;
     begin
         SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
@@ -1036,9 +1037,12 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if SalesCrMemoLine.FindSet() then
             repeat
                 Clear(SalesInvoiceLine);
-                SalesCrMemoLine.GetSalesInvoiceLine(SalesInvoiceLine);
-                if SalesInvoiceLine."Line No." <> 0 then
+                SalesCrMemoLine.GetSalesInvoiceLine(SalesInvoiceLine, TempUsedSalesInvoiceLine);
+                if SalesInvoiceLine."Line No." <> 0 then begin
                     UpdateSalesOrderLinesFromCreditMemo(SalesInvoiceLine, SalesCrMemoLine);
+                    TempUsedSalesInvoiceLine := SalesInvoiceLine;
+                    if TempUsedSalesInvoiceLine.Insert() then;
+                end;
             until SalesCrMemoLine.Next() = 0;
     end;
 
@@ -1225,6 +1229,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Currency: Record Currency;
+        IsHandled: Boolean;
     begin
         if not SalesLine.Get(
             SalesLine."Document Type"::Order,
@@ -1238,6 +1243,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
 
         SalesHeader.Get(SalesLine."Document Type"::Order, SalesLine."Document No.");
         Currency.Initialize(SalesHeader."Currency Code", true);
+
+        IsHandled := false;
+        OnUpdateSalesOrderLinePrepmtAmountOnBeforeUpdatePrepmtAmounts(SalesInvoiceLine, SalesLine, SalesHeader, Currency, IsHandled);
+        if IsHandled then
+            exit;
 
         if SalesHeader."Currency Code" <> '' then
             SalesLine.Validate(
@@ -1496,6 +1506,19 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="IsHandled">Set to true to skip default quantity update.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateSalesOrderLineInvoicedQuantity(var SalesLine: Record "Sales Line"; CancelledQuantity: Decimal; CancelledQtyBase: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before updating prepayment amounts on a sales order line during correction.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The sales invoice line being processed.</param>
+    /// <param name="SalesLine">The sales order line that would be updated.</param>
+    /// <param name="SalesHeader">The related sales order header.</param>
+    /// <param name="Currency">The initialized currency for the sales order.</param>
+    /// <param name="IsHandled">Set to true to skip the default prepayment amount update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSalesOrderLinePrepmtAmountOnBeforeUpdatePrepmtAmounts(SalesInvoiceLine: Record "Sales Invoice Line"; var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Currency: Record Currency; var IsHandled: Boolean)
     begin
     end;
 

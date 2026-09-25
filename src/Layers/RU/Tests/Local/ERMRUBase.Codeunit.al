@@ -1467,13 +1467,16 @@ codeunit 144001 "ERM RU - Base"
 
     local procedure ExecuteBankPaymentOrderReport(GenJournalLine: Record "Gen. Journal Line")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         BankPaymentOrder: Report "Bank Payment Order";
     begin
+        BindSubscription(RUReportDownloadHandler);
         Commit();
         GenJournalLine.SetRecFilter();
         BankPaymentOrder.SetTableView(GenJournalLine);
         BankPaymentOrder.SetFileNameSilent(LibraryReportValidation.GetFileName());
         BankPaymentOrder.RunModal();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateStandardText(): Text[250]

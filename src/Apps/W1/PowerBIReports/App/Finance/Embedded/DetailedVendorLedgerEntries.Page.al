@@ -11,8 +11,8 @@ page 36996 "Detailed Vendor Ledger Entries"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Detailed Vendor Ledger Entries';
-    AboutTitle = 'About Detailed Vendor Ledger Entries';
+    Caption = 'Detailed Vendor Ledger Entries (Power BI)';
+    AboutTitle = 'About Detailed Vendor Ledger Entries (Power BI)';
     AboutText = 'The Detailed Vendor Ledger Entries report provides granular detail about the entries posted to Vendor Ledger and Detailed Vendor Ledger.';
 
     layout

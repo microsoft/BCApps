@@ -135,7 +135,6 @@ page 1102 "Cost Allocation Sources"
                 Caption = 'Allocations';
                 Image = Allocations;
                 RunObject = Report "Cost Allocations";
-                ToolTip = 'Verify and print the allocation source and targets that are defined in the Cost Allocation window for controlling purposes.';
             }
         }
         area(processing)
@@ -151,7 +150,6 @@ page 1102 "Cost Allocation Sources"
                     Enabled = true;
                     Image = Costs;
                     RunObject = Report "Cost Allocation";
-                    ToolTip = 'Specifies the cost allocation options.';
                 }
                 action("&Calculate Allocation Keys")
                 {

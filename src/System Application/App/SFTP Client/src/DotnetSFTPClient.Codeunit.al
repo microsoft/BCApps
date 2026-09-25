@@ -17,7 +17,6 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         [WithEvents]
         RenciSFTPClient: DotNet RenciSftpClient;
         FingerprintsSHA256: List of [Text];
-        FingerprintsMD5: List of [Text];
         ServerFingerprintSHA256: Text;
         LastOperationSuccessful: Boolean;
         TrustedServer: Boolean;
@@ -76,6 +75,7 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         exit(LastOperationSuccessful);
     end;
 
+    [NonDebuggable]
     procedure SftpClient(Host: Text; Port: Integer; UserName: Text; PrivateKey: InStream): Boolean
     var
         EmptyPassphrase: SecretText;
@@ -130,24 +130,28 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         exit(Result);
     end;
 
+    [NonDebuggable]
     procedure ReadAllBytes(Path: Text; var Bytes: Dotnet Array): Boolean
     begin
         LastOperationSuccessful := InternalReadAllBytes(Path, Bytes);
         exit(LastOperationSuccessful);
     end;
 
+    [NonDebuggable]
     [TryFunction]
     local procedure InternalReadAllBytes(Path: Text; var Bytes: Dotnet Array)
     begin
         Bytes := RenciSFTPClient.ReadAllBytes(Path);
     end;
 
+    [NonDebuggable]
     procedure WriteAllBytes(Path: Text; Bytes: Dotnet Array): Boolean
     begin
         LastOperationSuccessful := InternalWriteAllBytes(Path, Bytes);
         exit(LastOperationSuccessful);
     end;
 
+    [NonDebuggable]
     [TryFunction]
     local procedure InternalWriteAllBytes(Path: Text; Bytes: Dotnet Array)
     begin
@@ -244,19 +248,10 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
             TrustedServer := true;
             exit;
         end;
-        if not FingerprintsMD5.Contains(e.FingerPrintMD5) then
-            exit;
-        e.CanTrust := true;
-        TrustedServer := true;
     end;
 
     procedure SetSHA256Fingerprints(Fingerprints: List of [Text])
     begin
         FingerprintsSHA256 := Fingerprints;
-    end;
-
-    procedure SetMD5Fingerprints(Fingerprints: List of [Text])
-    begin
-        FingerprintsMD5 := Fingerprints;
     end;
 }

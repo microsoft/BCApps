@@ -99,7 +99,10 @@ page 4316 "Agent List"
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
 
-                    if Rec.State <> Rec.State::Disabled then
+                    if not Agent.IsArchivingSupported(Rec."User Security ID") then
+                        Error(ArchivingNotSupportedErr, Rec."Agent Metadata Provider");
+
+                    if Agent.IsActive(Rec."User Security ID") then
                         Error(DeactivateBeforeArchivingErr);
 
                     Rec.TestField("Display Name");
@@ -274,20 +277,23 @@ page 4316 "Agent List"
 
     local procedure SetCompanyFilter()
     begin
+        Rec.FilterGroup(2);
         if ShouldShowAllCompanies then
             Rec.SetRange("Can Access Current Company")
         else
             Rec.SetRange("Can Access Current Company", true);
+        Rec.FilterGroup(0);
         CurrPage.Update(false);
     end;
 
     local procedure SetAgentSubstateFilter()
     begin
-        // Hide archived agents from the default list; the Show all agents action reveals them.
+        Rec.FilterGroup(2);
         if ShouldShowAllAgents then
             Rec.SetRange(Substate)
         else
             Rec.SetRange(Substate, Rec.Substate::None);
+        Rec.FilterGroup(0);
         CurrPage.Update(false);
     end;
 
@@ -299,4 +305,5 @@ page 4316 "Agent List"
         AgentIsArchived: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
+        ArchivingNotSupportedErr: Label 'Archiving agents of type ''%1'' is not supported.', Comment = '%1 = the type of the agent.';
 }

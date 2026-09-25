@@ -11,7 +11,7 @@ codeunit 8026 "Process Usage Data Billing"
         UsageDataSupplier: Record "Usage Data Supplier";
         DateTimeManagement: Codeunit "Date Time Management";
         ContractItemMgt: Codeunit "Sub. Contracts Item Management";
-        ProgressTracker: Codeunit "Progress Tracker";
+        ProgressTracker: Codeunit "Sub. Billing Progress Tracker";
         ProcessBillingLbl: Label 'Processing usage based billing...';
         ImportEntryDetailLbl: Label 'Import Entry No. %1', Comment = '%1 = Usage Data Import Entry No.';
         DoesNotExistErr: Label 'No data found for processing step %1.', Comment = '%1=Name of the processing step';

@@ -15,6 +15,7 @@ report 321 "Vendor - Balance to Date"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Balance to Date';
+    ToolTip = 'View, print, or save a detail balance to date for selected vendors.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;

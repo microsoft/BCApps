@@ -186,8 +186,10 @@ codeunit 4002 "SOA Prompt Builder"
                 exit(SOASetup."Order Review" and SOASetup."Sales Doc. Configuration");
             ItemAvailabilityLbl:
                 exit(SOASetup."Search Only Available Items");
+            ItemAvailabilityOffLbl:
+                exit(not SOASetup."Search Only Available Items");
             CapableToPromiseLbl:
-                exit(SOASetup."Incl. Capable to Promise");
+                exit(SOASetup."Search Only Available Items" and SOASetup."Incl. Capable to Promise");
             CustomSignatureOffLbl:
                 exit(not SOASetup."Configure Email Template");
             CustomSignatureOnLbl:
@@ -219,6 +221,7 @@ codeunit 4002 "SOA Prompt Builder"
         ReviewQuoteBeforeSendLbl: Label 'review_quote_before_send', Locked = true;
         ReviewOrderBeforeSendLbl: Label 'review_order_before_send', Locked = true;
         ItemAvailabilityLbl: Label 'item_availability', Locked = true;
+        ItemAvailabilityOffLbl: Label 'item_availability_off', Locked = true;
         CapableToPromiseLbl: Label 'capable_to_promise', Locked = true;
         CustomSignatureOffLbl: Label 'custom_signature_off', Locked = true;
         CustomSignatureOnLbl: Label 'custom_signature_on', Locked = true;

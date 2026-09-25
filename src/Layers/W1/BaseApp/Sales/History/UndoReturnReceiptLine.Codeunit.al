@@ -70,6 +70,7 @@ codeunit 5816 "Undo Return Receipt Line"
         Text004: Label 'This receipt has already been invoiced. Undo Return Receipt can be applied only to posted, but not invoiced receipts.';
 #pragma warning restore AA0074
         AlreadyReversedErr: Label 'This return receipt has already been reversed.';
+        NoLinesToReverseErr: Label 'No lines with a quantity available for reversal were found among the selected lines. Select a line with a quantity that has not already been reversed, and try again.';
 
     /// <summary>
     /// Sets whether the confirmation dialog should be hidden when undoing return receipt lines.
@@ -97,7 +98,7 @@ codeunit 5816 "Undo Return Receipt Line"
             ReturnRcptLine.SetRange(Correction, false);
             ReturnRcptLine.SetFilter(Quantity, '<>0');
             if ReturnRcptLine.IsEmpty() then
-                Error(AlreadyReversedErr);
+                Error(NoLinesToReverseErr);
 
             ReturnRcptLine.FindFirst();
             repeat

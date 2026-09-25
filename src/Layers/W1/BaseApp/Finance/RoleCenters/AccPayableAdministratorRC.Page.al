@@ -161,7 +161,6 @@ page 9045 "Acc. Payable Administrator RC"
                 {
                     Caption = 'Purchase Statistics';
                     RunObject = Report "Purchase Statistics";
-                    ToolTip = 'Run the Purchase Statistics report.';
                 }
             }
         }
@@ -313,37 +312,31 @@ page 9045 "Acc. Payable Administrator RC"
                 {
                     Caption = 'Purchase Statistics';
                     RunObject = Report "Purchase Statistics";
-                    ToolTip = 'View the purchase statistics report.';
                 }
                 action(VendorItemCatalog)
                 {
                     Caption = 'Vendor Item Catalog';
                     RunObject = Report "Vendor Item Catalog";
-                    ToolTip = 'View the vendor item catalog report.';
                 }
                 action(VendorRegister)
                 {
                     Caption = 'Vendor Register';
                     RunObject = Report "Vendor Register";
-                    ToolTip = 'View the vendor register report.';
                 }
                 action(VendorBalanceToDate)
                 {
                     Caption = 'Vendor Balance to Date';
                     RunObject = Report "Vendor - Balance to Date";
-                    ToolTip = 'View the vendor balance to date report.';
                 }
                 action(VendorDetailTrialBalance)
                 {
                     Caption = 'Vendor Detail Trial Balance';
                     RunObject = Report "Vendor - Detail Trial Balance";
-                    ToolTip = 'View the vendor detail trial balance report.';
                 }
                 action(VendorLabels)
                 {
                     Caption = 'Vendor Labels';
                     RunObject = Report "Vendor - Labels";
-                    ToolTip = 'View the vendor labels report.';
                 }
 #if not CLEAN28
                 action(VendorList)
@@ -360,19 +353,16 @@ page 9045 "Acc. Payable Administrator RC"
                 {
                     Caption = 'Vendor Order Detail';
                     RunObject = Report "Vendor - Order Detail";
-                    ToolTip = 'View the vendor order detail report.';
                 }
                 action(VendorOrderSummary)
                 {
                     Caption = 'Vendor Order Summary';
                     RunObject = Report "Vendor - Order Summary";
-                    ToolTip = 'View the vendor order summary report.';
                 }
                 action(VendorPurchaseList)
                 {
                     Caption = 'Vendor Purchase List';
                     RunObject = Report "Vendor - Purchase List";
-                    ToolTip = 'View the vendor purchase list report.';
                 }
 #if not CLEAN28
                 action(VendorSummaryAging)
@@ -398,13 +388,11 @@ page 9045 "Acc. Payable Administrator RC"
                 {
                     Caption = 'Vendor Trial Balance';
                     RunObject = Report "Vendor - Trial Balance";
-                    ToolTip = 'View the vendor trial balance report.';
                 }
                 action(VendorItemPurchases)
                 {
                     Caption = 'Vendor Item Purchases';
                     RunObject = Report "Vendor/Item Purchases";
-                    ToolTip = 'View the vendor item purchases report.';
                 }
             }
         }

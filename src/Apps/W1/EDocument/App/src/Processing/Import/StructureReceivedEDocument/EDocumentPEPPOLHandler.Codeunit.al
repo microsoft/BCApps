@@ -149,8 +149,8 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:OrderReference/cbc:ID', Value) then
             Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
-            Header."Applies-to Ext. Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Applies-to Ext. Invoice No."));
-        if Header."Applies-to Ext. Invoice No." = '' then
+            Header."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Vendor Invoice No."));
+        if Header."Vendor Invoice No." = '' then
             Session.LogMessage('0000SNJ', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;
 
@@ -550,7 +550,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
         if OutboundEDocument.FindLast() then
             EDocMessageMgt.CreateMessage(OutboundEDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, ResponseType, TempBlob)
         else
-            Session.LogMessage('', OrderResponseNoMatchTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Session.LogMessage('0000UWG', OrderResponseNoMatchTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
 
         // Response stored on the outbound E-Document; inbound carrier must not continue through the import pipeline.
         EDocument.DeleteOrphanedImport();

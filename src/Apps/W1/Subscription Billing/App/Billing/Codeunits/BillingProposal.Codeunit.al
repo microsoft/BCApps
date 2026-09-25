@@ -12,7 +12,7 @@ codeunit 8062 "Billing Proposal"
     var
         SalesHeaderGlobal: Record "Sales Header";
         PurchaseHeaderGlobal: Record "Purchase Header";
-        ProgressTracker: Codeunit "Progress Tracker";
+        ProgressTracker: Codeunit "Sub. Billing Progress Tracker";
         LastContractNo: Code[20];
         LastPartnerNo: Code[20];
         CreatingProposalLbl: Label 'Creating billing proposal...';
@@ -455,6 +455,9 @@ codeunit 8062 "Billing Proposal"
                 NewBillingFromDate2 := SupplierChargeEndDate + 1;
         end;
 
+        if NewBillingFromDate2 <= BillingLine."Billing to" then
+            NewBillingFromDate2 := BillingLine."Billing to" + 1;
+
         NewBillingToDate2 := CalculateNextBillingToDateForServiceCommitment(ServiceCommitment, NewBillingFromDate2);
         if NewBillingToDate2 >= BillingPeriodEnd then
             NewBillingToDate2 := BillingPeriodEnd;
@@ -627,6 +630,7 @@ codeunit 8062 "Billing Proposal"
     var
         CustomerContract: Record "Customer Subscription Contract";
         SupplierChargeEndDate: Date;
+        CrossingChargeEndDate: Date;
     begin
         ServiceCommitment.TestField("Billing Rhythm");
         NextBillingToDate := ServiceCommitment.CalculateNextToDate(ServiceCommitment."Billing Rhythm", BillingFromDate);
@@ -635,6 +639,12 @@ codeunit 8062 "Billing Proposal"
         SupplierChargeEndDate := ServiceCommitment.GetSupplierChargeEndDateIfRebillingMetadataExist(BillingFromDate);
         if SupplierChargeEndDate <> 0D then
             NextBillingToDate := SupplierChargeEndDate;
+
+        CrossingChargeEndDate := ServiceCommitment.GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate, NextBillingToDate);
+        while (CrossingChargeEndDate <> 0D) and (CrossingChargeEndDate > NextBillingToDate) do begin
+            NextBillingToDate := CrossingChargeEndDate;
+            CrossingChargeEndDate := ServiceCommitment.GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate, NextBillingToDate);
+        end;
 
         if ServiceCommitment.IsPartnerCustomer() then begin
             CustomerContract.Get(ServiceCommitment."Subscription Contract No.");

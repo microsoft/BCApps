@@ -773,9 +773,11 @@
 
     local procedure PrintVendorReconciliationRequestPage(VendorNo: Code[20]; ReportDate: Date; UseRequestPage: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Vendor: Record Vendor;
         VendorReconciliationAct: Report "Vendor - Reconciliation Act";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         VendorReconciliationAct.InitializeRequest(ReportDate, ReportDate, LibraryReportValidation.GetFileName(), true);
         Vendor.SetRange("No.", VendorNo);
@@ -783,6 +785,7 @@
         VendorReconciliationAct.SetTableView(Vendor);
         Commit();
         VendorReconciliationAct.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintCustomerReconciliation(CustomerNo1: Code[20]; CustomerNo2: Code[20]; ReportDate: Date)
@@ -792,9 +795,11 @@
 
     local procedure PrintCustomerReconciliationRequestPage(CustomerNo1: Code[20]; CustomerNo2: Code[20]; ReportDate: Date; UseRequestPage: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Customer: Record Customer;
         CustomerReconciliationAct: Report "Customer - Reconciliation Act";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         Clear(CustomerReconciliationAct);
         CustomerReconciliationAct.InitializeRequest(ReportDate, ReportDate, LibraryReportValidation.GetFileName(), true);
@@ -806,13 +811,16 @@
         CustomerReconciliationAct.SetTableView(Customer);
         Commit();
         CustomerReconciliationAct.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintCustomerReconciliationWithCurrency(CustomerNo: Code[20]; ReportDate: Date; CurrencyCode: Code[10])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         Customer: Record Customer;
         CustomerReconciliationAct: Report "Customer - Reconciliation Act";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryVariableStorage.Enqueue(CurrencyCode);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         Clear(CustomerReconciliationAct);
@@ -822,6 +830,7 @@
         CustomerReconciliationAct.SetTableView(Customer);
         Commit();
         CustomerReconciliationAct.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintReconciliation(IsVendorReconciliation: Boolean; VendorNo: Code[20]; CustomerNo: Code[20]; ReportDate: Date)
