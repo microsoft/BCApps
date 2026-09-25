@@ -515,6 +515,80 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
             'Matching must not run outside the US and Canada.');
     end;
 
+    [Test]
+    procedure CanadianHSTAutoCreateUsesProvinceCode()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'ON';
+
+        LibraryAssert.AreEqual('ONHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', true),
+            'A new Canadian HST jurisdiction must be scoped by province.');
+    end;
+
+    [Test]
+    procedure CanadianHSTReusesProvinceJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureJurisdiction('HST');
+        EnsureJurisdiction('NSHST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('NSHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'An existing province-specific HST jurisdiction must take precedence over generic HST.');
+    end;
+
+    [Test]
+    procedure CanadianHSTDoesNotReuseAgentGenericJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureAgentJurisdiction('HST', false);
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('NSHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', true),
+            'An agent-created generic HST jurisdiction must not be reused for another province.');
+    end;
+
+    [Test]
+    procedure CanadianHSTKeepsGenericWhenCreationDisabled()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureJurisdiction('HST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'ON';
+
+        LibraryAssert.AreEqual('HST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'Generic HST must remain available when province-specific creation is disabled.');
+    end;
+
+    [Test]
+    procedure CanadianGSTRemainsGeneric()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('GST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'GST', true),
+            'GST is federal and must remain reusable across provinces.');
+    end;
+
     // RD9 — Undo Approval clears the reviewed flag, so a held order is held again.
     [Test]
     procedure UndoApprovalReholdsOrder()

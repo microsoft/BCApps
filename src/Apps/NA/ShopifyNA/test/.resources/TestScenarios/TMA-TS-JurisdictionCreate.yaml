@@ -132,3 +132,79 @@ tests:
       allTaxLinesMatched: true
       createdJurisdictionDescriptionMatchesTitle: true
       matchResult: true
+
+  - name: JC6-CanadianHSTUsesProvinceCode
+    description: Generic Canadian HST auto-creation uses a province-specific jurisdiction
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ONHST
+      taxJurisdictionDescriptions:
+        - code: ONHST
+          description: HST - ON
+      createdJurisdictionCountryRegion: CA
+      rateConflict: false
+      matchResult: true
+
+  - name: JC7-CanadianHSTDoesNotReuseAgentGeneric
+    description: A generic agent-created HST jurisdiction is not reused for a different province and rate
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions:
+        - Code: HST
+          Description: HST
+          Country/Region Code: CA
+          Created by Agent: true
+      existingTaxDetails:
+        - Tax Jurisdiction Code: HST
+          Tax Group Code: TAXABLE
+          Tax Below Maximum: 13.0
+          Effective Date: "2026-09-24"
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      documentDate: "2026-09-24"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 14.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NSHST
+      taxJurisdictionDescriptions:
+        - code: NSHST
+          description: HST - NS
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 14.0
+      rateConflict: false
+      matchResult: true

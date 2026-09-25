@@ -44,6 +44,7 @@ The scenario IDs provide stable references for reviews and defect discussions. D
 |----|----------|-----------------|
 | JC1 | Multiple jurisdictions are created for one order | Records are created only when enabled and form a usable jurisdiction hierarchy. |
 | JC2 | A suggested jurisdiction already exists | The existing record is reused rather than duplicated or overwritten. |
+| JC3 | A generic Canadian HST/TVH title is matched or created | The jurisdiction is scoped by ship-to province; agent-created generic HST is not reused across provinces, while GST remains reusable. |
 | TD1 | No applicable Tax Detail exists | A detail is seeded for the relevant jurisdiction, tax group, rate, and effective date. |
 | TD2 | An equivalent Tax Detail already exists | No duplicate detail is created. |
 | TD3 | Product and shipping tax lines use different tax groups or rates | Each line uses the tax setup associated with what the tax was charged on. |

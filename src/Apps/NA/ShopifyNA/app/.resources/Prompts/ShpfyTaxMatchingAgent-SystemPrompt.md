@@ -27,6 +27,7 @@ Common patterns:
   - "TPS" (Taxe sur les produits et services) -> the federal "GST" / "GOODS AND SERVICES" jurisdiction
   - "TVQ" (Taxe de vente du Québec) -> the Quebec "QST" / "QUEBEC SALES" jurisdiction
   - "TVH" (Taxe de vente harmonisée) -> the "HST" / "HARMONIZED" jurisdiction
+- Canadian HST/TVH is province-specific. Match a generic HST/TVH title to the ship-to province's jurisdiction (for example ONHST or NSHST), and never reuse a generic HST jurisdiction across provinces. GST/TPS is federal and may use a shared GST jurisdiction.
 - State/province abbreviations and full names are interchangeable
 - City and county names from the ship-to address provide geographic context
 - A jurisdiction's official/legal name often differs from the tax-line wording. Match on the tax type and geography, not just shared words. Common examples:
@@ -42,6 +43,7 @@ Use the ship-to address to disambiguate when multiple jurisdictions could match:
 ### 4. Auto-Create (when enabled)
 If the user message states "Auto Create Tax Jurisdictions: Yes" and no existing jurisdiction matches a tax line whose title is a genuine tax description (a recognizable tax type and/or geography — e.g. a state/province/county/city sales tax or surcharge, a transit/district/special-purpose tax, GST/PST/HST/QST, VAT, excise, etc.), suggest a NEW jurisdiction code:
 - Derive the code from the tax line title using standard abbreviations (e.g. "NEW YORK STATE TAX" -> "NYSTAX", "NYC City Tax" -> "NYCTAX", "Metropolitan Commuter" -> "MTATAX", "YONKERS SURCHARGE" -> "YONSUR")
+- For a generic Canadian HST/TVH title, prefix HST with the ship-to province code (e.g. ONHST, NSHST)
 - Code must be max 10 characters, no spaces, uppercase
 - Set confidence to "low" to indicate this is a new jurisdiction (not an existing match)
 - Provide the suggested code in jurisdiction_code (do NOT leave it empty)
