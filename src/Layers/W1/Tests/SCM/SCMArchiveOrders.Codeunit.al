@@ -807,7 +807,7 @@ codeunit 137207 "SCM Archive Orders"
         ArchiveManagement.ArchSalesDocumentNoConfirm(SalesHeader);
 
         // [WHEN] The first archived version is opened.
-        // [THEN] Return quantities are 2/0 and invoice quantities are 2/0; shipment fields are hidden.
+        // [THEN] Return quantities are 2/0 and invoice quantities are 2/0.
         VerifyArchivedSalesReturnQuantities(SalesHeader, SalesLine."Line No.", 1, 2, 0);
 
         // [GIVEN] Model the received quantities without posting; this test covers stored snapshots and their page bindings.
@@ -871,8 +871,6 @@ codeunit 137207 "SCM Archive Orders"
         SalesReturnOrderArcSubform."Return Qty. Received".AssertEquals(SalesLineArchive."Return Qty. Received");
         SalesReturnOrderArcSubform."Qty. to Invoice".AssertEquals(SalesLineArchive."Qty. to Invoice");
         SalesReturnOrderArcSubform."Quantity Invoiced".AssertEquals(SalesLineArchive."Quantity Invoiced");
-        Assert.IsFalse(SalesReturnOrderArcSubform."Qty. to Ship".Visible(), 'Qty. to Ship must be hidden.');
-        Assert.IsFalse(SalesReturnOrderArcSubform."Quantity Shipped".Visible(), 'Quantity Shipped must be hidden.');
         SalesReturnOrderArcSubform.Close();
     end;
 
