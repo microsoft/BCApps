@@ -10,9 +10,9 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Capacity;
-using System.Automation;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Warehouse.Structure;
+using System.Automation;
 
 page 99000827 "Recurring Output Journal"
 {
