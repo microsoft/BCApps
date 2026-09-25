@@ -502,11 +502,15 @@ codeunit 5522 "Order Planning Mgt."
     end;
 
     local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]): Boolean
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
         if Item."No." <> ItemNo then
             Item.Get(ItemNo);
-
-        exit(Item.Blocked);
+        OnBeforeCheckBlockedItem(Item, IsHandled);
+        if not IsHandled then
+            exit(Item.Blocked);
     end;
 
     [IntegrationEvent(false, false)]
@@ -604,6 +608,11 @@ codeunit 5522 "Order Planning Mgt."
 
     [InternalEvent(false, false)]
     local procedure OnSubstitutionPossibleOnAfterCheckReqLine(var RequisitionLine: Record "Requisition Line"; var ShouldExit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckBlockedItem(var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 }
