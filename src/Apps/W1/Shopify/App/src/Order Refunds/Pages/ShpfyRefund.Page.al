@@ -78,7 +78,6 @@ page 30145 "Shpfy Refund"
                 }
                 field(CurrencyCode; Rec."Currency Code")
                 {
-                    Editable = false;
                     ToolTip = 'Specifies the currency code for the refund.';
                 }
                 group(PresentmentCurrency)
