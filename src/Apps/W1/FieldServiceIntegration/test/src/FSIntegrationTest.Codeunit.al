@@ -1608,7 +1608,7 @@ codeunit 139204 "FS Integration Test"
         IntegrationTableMapping.Get('ITEM-PRODUCT');
 
         // [WHEN] The item is synchronized to a new Field Service product.
-        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
+        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, true);
 
         // [THEN] Native Field Service customer asset creation is disabled on the new product.
         Assert.IsTrue(CRMIntegrationRecord.FindByRecordID(Item.RecordId()), 'The item should be coupled to a product.');

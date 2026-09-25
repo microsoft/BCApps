@@ -303,18 +303,14 @@ codeunit 6610 "FS Int. Table Subscriber"
         case SourceDestCode of
             'Item-CRM Product':
                 begin
-                    DestinationRecordRef.SetTable(CRMProduct);
-                    if DestinationIsInserted then begin
-                        ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
-                        ExistingCRMProduct.Get(CRMProduct.ProductId);
-                        if not ExistingCRMProduct.ConvertToCustomerAsset then
-                            exit;
-                    end else
-                        if not CRMProduct.ConvertToCustomerAsset then
-                            exit;
+                    if not DestinationIsInserted then
+                        exit;
 
-                    DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset)).Value(false);
-                    AdditionalFieldsWereModified := true;
+                    DestinationRecordRef.SetTable(CRMProduct);
+                    ExistingCRMProduct.SetLoadFields(ConvertToCustomerAsset);
+                    ExistingCRMProduct.Get(CRMProduct.ProductId);
+                    if ExistingCRMProduct.ConvertToCustomerAsset then
+                        AdditionalFieldsWereModified := true;
                 end;
             'FS Work Order Product-Service Line':
                 begin
@@ -1400,6 +1396,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                DisableCustomerAssetConversion(DestinationRecordRef);
             'FS Work Order Service-Job Journal Line':
                 UpdateCorrelatedJobJournalLine(SourceRecordRef, DestinationRecordRef);
             'Service Header-FS Work Order':
@@ -1652,7 +1650,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Rec. Synch. Invoke", 'OnBeforeInsertRecord', '', true, false)]
-    local procedure HandleOnBeforeInsertRecord(SourceRecordRef: RecordRef; DestinationRecordRef: RecordRef)
+    local procedure HandleOnBeforeInsertRecord(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
     var
         FSProjectTask: Record "FS Project Task";
         Customer: Record Customer;
@@ -1687,6 +1685,8 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                DisableCustomerAssetConversion(DestinationRecordRef);
             'Location-FS Warehouse':
                 SetCompanyId(DestinationRecordRef);
             'Service Item-FS Customer Asset':
@@ -2804,6 +2804,13 @@ codeunit 6610 "FS Int. Table Subscriber"
         if (SourceRecordRef.Number() <> 0) and (DestinationRecordRef.Number() <> 0) then
             exit(SourceRecordRef.Name() + '-' + DestinationRecordRef.Name());
         exit('');
+    end;
+
+    local procedure DisableCustomerAssetConversion(var DestinationRecordRef: RecordRef)
+    var
+        CRMProduct: Record "CRM Product";
+    begin
+        DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset)).Value(false);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Mgt. Setup", 'OnBeforeValidateEvent', 'One Service Item Line/Order', true, false)]
