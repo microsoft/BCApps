@@ -5,7 +5,6 @@ using Microsoft.Integration.Graph;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
-using System.TestLibraries.Utilities;
 
 codeunit 139061 "Office Line Generation Test"
 {
@@ -131,7 +130,8 @@ codeunit 139061 "Office Line Generation Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Office Line Generation Test");
-        OfficeLineGenerationTest.StartAggregateUpdateCount('');
+        AggregateDocumentNo := '';
+        AggregateUpdateCount := 0;
 
         if IsInitialized then
             exit;

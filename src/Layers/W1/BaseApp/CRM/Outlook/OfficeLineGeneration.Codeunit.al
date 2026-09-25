@@ -177,10 +177,6 @@ codeunit 1639 "Office Line Generation"
             AddedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
     end;
 
-    /// <summary>
-    /// Inserts suggested line items starting from the current record position and updates the document aggregate once.
-    /// The caller must position TempOfficeSuggestedLineItem with FindSet and initialize AddedCount before calling this procedure.
-    /// </summary>
     [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure InsertLineItemsAndUpdateAggregate(var TempOfficeSuggestedLineItem: Record "Office Suggested Line Item" temporary; var HeaderRecRef: RecordRef; var AddedCount: Integer)
     var
