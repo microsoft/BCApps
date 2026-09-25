@@ -2,7 +2,7 @@
   "id": "8df591a3-d767-4475-8bff-44b8b5527477",
   "name": "Sales FR",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "First-party application for Sales (FR)",
   "description": "Provides Sales module for FR localization",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
