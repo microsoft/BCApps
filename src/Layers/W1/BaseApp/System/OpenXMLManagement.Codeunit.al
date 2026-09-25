@@ -569,7 +569,7 @@ codeunit 6223 "OpenXML Management"
     end;
 
     [Scope('OnPrem')]
-    procedure WriteCellValue(var WrkShtWriter: DotNet WorksheetWriter; DataColumnDataType: Text; var DataRow: DotNet DataRow; RowsCount: Integer; ColumnsCount: Integer; var CellDecorator: DotNet CellDecorator)
+    procedure WriteCellValue(var WrkShtWriter: DotNet WorksheetWriter; DataColumnDataType: Text; var DataRow: DotNet DataRow; RowsCount: Integer; ColumnsCount: Integer; CellDecorator: DotNet CellDecorator)
     begin
         OnBeforeWriteCellValue(RowsCount);
 
