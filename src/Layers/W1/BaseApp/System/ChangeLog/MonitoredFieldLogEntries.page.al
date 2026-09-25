@@ -15,6 +15,8 @@ page 1367 "Monitored Field Log Entries"
     Extensible = false;
     AccessByPermission = tabledata "Field Monitoring Setup" = M;
     Caption = 'Monitored Field Log Entries';
+    AboutTitle = 'Review recorded field changes';
+    AboutText = 'View a history of changes made to monitored fields, including who made the change and when it occurred. Use this information to investigate unexpected updates, support audit activities, and verify that sensitive business data is being changed only by authorized users.';
 
     layout
     {
