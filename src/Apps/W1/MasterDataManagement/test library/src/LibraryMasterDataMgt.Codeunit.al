@@ -325,6 +325,16 @@ codeunit 139757 "Library - Master Data Mgt."
         InlineMedia.PutCleared(SystemId, FieldNo);
     end;
 
+    /// <summary>Drops any cached content/cleared state for a media field (the skip = leave-unchanged transition).</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    procedure InlineMediaClearMediaState(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.ClearMediaState(SystemId, FieldNo);
+    end;
+
     /// <summary>Marks an inline blob field as skipped (over the inline cap) so the transfer keeps the destination blob.</summary>
     /// <param name="SystemId">The SystemId of the source record.</param>
     /// <param name="FieldNo">The field number of the blob field.</param>

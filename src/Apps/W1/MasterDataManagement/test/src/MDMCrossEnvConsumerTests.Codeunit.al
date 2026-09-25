@@ -1082,6 +1082,116 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure InlineMediaSkipSupersedesEarlierContentForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The newest duplicate has over-cap (skipped) media; earlier cached content must be dropped so the
+        // transfer leaves the destination unchanged instead of re-applying stale bytes.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPut(SystemId, 5, 'pic.bin', 'application/octet-stream', 'QUJD');
+        LibraryMasterDataMgt.InlineMediaClearMediaState(SystemId, 5); // newest duplicate is over-cap (skipped)
+
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'A skipped newest state must drop earlier cached content');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A skipped newest state must not leave a cleared marker');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure InlineMediaSkipSupersedesEarlierClearForSameKey()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The newest duplicate has over-cap (skipped) media; an earlier cleared marker must be dropped so
+        // the transfer leaves the destination unchanged instead of clearing it.
+        Initialize();
+        LibraryMasterDataMgt.InlineMediaReset();
+        SystemId := CreateGuid();
+
+        LibraryMasterDataMgt.InlineMediaPutCleared(SystemId, 5);
+        LibraryMasterDataMgt.InlineMediaClearMediaState(SystemId, 5); // newest duplicate is over-cap (skipped)
+
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaIsCleared(SystemId, 5), 'A skipped newest state must drop an earlier cleared marker');
+        Assert.IsFalse(LibraryMasterDataMgt.InlineMediaCacheContains(SystemId, 5), 'A skipped newest state must not leave cached content');
+
+        LibraryMasterDataMgt.InlineMediaReset();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservedThroughSynchEngine()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobField: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        PreservedText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] End-to-end through the real synch engine: an over-cap (skipped) source blob must leave the
+        // destination blob unchanged after Integration Record Synch. transfers the mapped blob field.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob (seeded the way the engine stores blobs, i.e. Write)
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped (empty temp blob + skip marker)
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+
+        // [GIVEN] a field mapping for the blob field (source -> destination)
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 1;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+
+        // [WHEN] the real synch engine transfers the mapped fields
+        IntegrationRecordSynch.SetFieldMapping(TempIntegrationFieldMapping);
+        IntegrationRecordSynch.SetParameters(SourceRecordRef, DestinationRecordRef, false);
+        Commit(); // Integration Record Synch. runs via Codeunit.Run
+        Assert.IsTrue(IntegrationRecordSynch.Run(), 'The field transfer should succeed');
+
+        // [THEN] the destination blob is unchanged (not cleared by the empty skipped source)
+        DestBlobField := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobField);
+        Assert.IsTrue(TempBlob.HasValue(), 'The destination blob must be preserved (not cleared) through the transfer');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.Read(PreservedText);
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the destination content unchanged through the engine');
+
+        CleanUp();
+    end;
+
     local procedure EnableCrossEnvForTransfer(EnvironmentName: Text)
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";

@@ -64,6 +64,19 @@ codeunit 7232 "MDM Inline Media"
         exit(ClearedByKey.ContainsKey(MakeKey(SystemId, FieldNo)));
     end;
 
+    // A skipped (over-cap) media for the same (SystemId, field) means "leave the destination unchanged"; drop any
+    // earlier content or cleared marker so the newest (skip) state wins.
+    procedure ClearMediaState(SystemId: Guid; FieldNo: Integer)
+    var
+        MediaKey: Text;
+    begin
+        MediaKey := MakeKey(SystemId, FieldNo);
+        ContentByKey.Remove(MediaKey);
+        NameByKey.Remove(MediaKey);
+        MimeByKey.Remove(MediaKey);
+        ClearedByKey.Remove(MediaKey);
+    end;
+
     // The source reported the Blob field over the inline cap and skipped it: record it so the transfer keeps the
     // existing destination blob. Unlike media (out-of-band cache), blobs travel in-band on the temp record, so an
     // absent value would otherwise clear the destination.

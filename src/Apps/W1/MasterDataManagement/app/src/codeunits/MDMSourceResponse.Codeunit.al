@@ -216,6 +216,7 @@ codeunit 7248 "MDM Source Response"
         MediaObject := ValueToken.AsObject();
         if IsSkipped(MediaObject) then begin
             LogSkippedField(TableId, FieldNo, MediaObject);
+            InlineMedia.ClearMediaState(SystemId, FieldNo); // newest state is skip (leave unchanged): drop any earlier content/cleared for this key
             exit;
         end;
         if IsEmptyField(MediaObject) then begin
