@@ -1344,7 +1344,14 @@ function Invoke-ParallelTestExecution {
         $tenantInfo |
             Where-Object { $_.Id -ne $parameters.tenant }
     )
-    if ($testType -ne 'Legacy' -and $tenantInfo.Count -gt 1) {
+    # Enable only with the AL authentication uptake; infrastructure alone must not add test lanes.
+    $cleanCodeunitExecution = (Get-ALGoSetting -Key 'enableCleanTestCodeunitExecution') -eq $true
+    $cleanTenantAppNames = @()
+    $requiredDisabledWorkItems = @()
+    if ($cleanCodeunitExecution) {
+        $cleanTenantAppNames = $appNamesToTest
+    }
+    if ($cleanCodeunitExecution -and $testType -ne 'Legacy' -and $tenantInfo.Count -gt 1) {
         $sourceTenantInfo = @($tenantInfo | Where-Object { $_.Id -eq $parameters.tenant })
         if ($sourceTenantInfo.Count -ne 1 -or [string]::IsNullOrWhiteSpace($sourceTenantInfo[0].DatabaseName)) {
             throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
@@ -1372,7 +1379,7 @@ function Invoke-ParallelTestExecution {
             Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $discoveryTenant.Id `
                 -TenantDatabaseName $discoveryTenant.DatabaseName -TemplateDatabaseName $sourceTenantInfo[0].DatabaseName
         }
-    } else {
+    } elseif ($cleanCodeunitExecution) {
         $requiredDisabledWorkItems = @(
             Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
                 -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
@@ -1427,7 +1434,7 @@ function Invoke-ParallelTestExecution {
     # No-op for single-app/single-tenant.
     $pending = @(Invoke-WarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
         -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state `
-        -CleanTenantAppNames $appNamesToTest)
+        -CleanTenantAppNames $cleanTenantAppNames)
 
     $rerunSuffixes = @()
 
@@ -1469,7 +1476,7 @@ function Invoke-ParallelTestExecution {
             Start-TestAppDispatch -Parameters $parameters -AppName $rerunItem.appName -AppId $appIdByName[$rerunItem.appName] `
                 -Tenant $tenant -ScriptPath $scriptPath -TestType $testType -State $state `
                 -Verb 'Re-running' -FileSuffix $rerunItem.suffix `
-                -SkipAutomaticDisabledPass
+                -SkipAutomaticDisabledPass:$cleanCodeunitExecution
             continue
         }
 
@@ -1491,7 +1498,7 @@ function Invoke-ParallelTestExecution {
             }
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
                 -ScriptPath $scriptPath -TestType $testType -State $state `
-                -SkipAutomaticDisabledPass -Verb $verb
+                -SkipAutomaticDisabledPass:$cleanCodeunitExecution -Verb $verb
         } else {
             # Nothing left to dispatch; drain any still-running jobs. New transient failures and
             # reruns discovered here are picked up at the top of the next loop iteration.
