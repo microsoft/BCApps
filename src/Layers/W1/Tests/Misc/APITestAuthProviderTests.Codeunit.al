@@ -18,7 +18,7 @@ codeunit 139494 "API Test Auth Provider Tests"
 
     var
         Assert: Codeunit Assert;
-        APITestAuthRecorder: Codeunit "API Test Auth Recorder";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         APITestAuthProviderTests: Codeunit "API Test Auth Provider Tests";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryUtility: Codeunit "Library - Utility";
@@ -28,7 +28,7 @@ codeunit 139494 "API Test Auth Provider Tests"
         SecondHttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         IsInitialized: Boolean;
         TargetURLTok: Label 'http://127.0.0.1/', Locked = true;
-        ProviderCallTok: Label 'Provider|%1', Locked = true;
+        ProviderCallTok: Label 'Provider|%1', Locked = true, Comment = '%1 - Provider invocation number';
         EventCallTok: Label 'Event', Locked = true;
         UnexpectedCallErr: Label 'Unexpected authentication call.';
 
@@ -257,7 +257,8 @@ codeunit 139494 "API Test Auth Provider Tests"
         Clear(SecondLibraryGraphMgt);
         Clear(FirstHttpWebRequestMgt);
         Clear(SecondHttpWebRequestMgt);
-        APITestAuthRecorder.Reset();
+        // The manually bound instance owns both recording and verification, including cleanup after a failed test.
+        APITestAuthProviderTests.ClearRecordedCalls();
         if IsInitialized then
             exit;
 
@@ -276,17 +277,38 @@ codeunit 139494 "API Test Auth Provider Tests"
 
     local procedure VerifyNextCall(ExpectedCall: Text)
     begin
-        Assert.AreEqual(ExpectedCall, APITestAuthRecorder.DequeueCall(), UnexpectedCallErr);
+        APITestAuthProviderTests.VerifyRecordedCall(ExpectedCall);
     end;
 
     local procedure VerifyNoRemainingCalls()
     begin
-        Assert.AreEqual(0, APITestAuthRecorder.Count(), UnexpectedCallErr);
+        APITestAuthProviderTests.VerifyRecordedCallsEmpty();
+    end;
+
+    internal procedure ClearRecordedCalls()
+    begin
+        LibraryVariableStorage.Clear();
+    end;
+
+    internal procedure VerifyRecordedCall(ExpectedCall: Text)
+    begin
+        Assert.AreEqual(ExpectedCall, LibraryVariableStorage.DequeueText(), UnexpectedCallErr);
+    end;
+
+    internal procedure VerifyRecordedCallsEmpty()
+    begin
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mock API Test Auth Provider", OnAuthenticationConfigured, '', false, false)]
+    local procedure RecordProviderInvocation(InvocationNumber: Integer)
+    begin
+        LibraryVariableStorage.Enqueue(StrSubstNo(ProviderCallTok, InvocationNumber));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", OnAfterInitializeWebRequestWithURL, '', false, false)]
     local procedure RecordFinalRequestEvent(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
     begin
-        APITestAuthRecorder.RecordCall(EventCallTok);
+        LibraryVariableStorage.Enqueue(EventCallTok);
     end;
 }

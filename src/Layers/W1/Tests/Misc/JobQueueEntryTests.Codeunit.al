@@ -748,6 +748,211 @@ codeunit 139018 "Job Queue Entry Tests"
         Assert.AreNotEqual(0DT, JobQueueLogEntry."End Date/Time", 'End Date/Time should be set after finalization');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RetentionContinuationPreservesWaitingJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        RunningJobQueueEntry: Record "Job Queue Entry";
+        WaitingJobQueueEntry: Record "Job Queue Entry";
+        ExpectedJobQueueEntry: Record "Job Queue Entry";
+        RetentionPolicyJQ: Codeunit "Retention Policy JQ";
+    begin
+        // [SCENARIO 649571] Repeated continuation requests preserve an existing Waiting job and its scheduled task.
+        InitializeRetentionPolicyJobQueue(JobQueueEntry);
+        CreateRetentionPolicyJobQueueEntry(RunningJobQueueEntry, RunningJobQueueEntry.Status::"In Process");
+        CreateRetentionPolicyJobQueueEntry(WaitingJobQueueEntry, WaitingJobQueueEntry.Status::Waiting);
+        ExpectedJobQueueEntry := WaitingJobQueueEntry;
+
+        BindSubscription(this);
+        Assert.IsFalse(RetentionPolicyJQ.ScheduleContinuation(), 'Preserving a Waiting job must not report scheduling.');
+        Assert.IsFalse(RetentionPolicyJQ.ScheduleContinuation(), 'Preserving a Waiting job must not report scheduling.');
+        UnbindSubscription(this);
+
+        Assert.AreEqual(2, JobQueueEntry.Count(), 'A Waiting continuation must prevent duplicate retention jobs.');
+        WaitingJobQueueEntry.Get(ExpectedJobQueueEntry.ID);
+        WaitingJobQueueEntry.TestField(Status, WaitingJobQueueEntry.Status::Waiting);
+        WaitingJobQueueEntry.TestField("System Task ID", ExpectedJobQueueEntry."System Task ID");
+        WaitingJobQueueEntry.TestField("Earliest Start Date/Time", ExpectedJobQueueEntry."Earliest Start Date/Time");
+        WaitingJobQueueEntry.TestField("No. of Attempts to Run", ExpectedJobQueueEntry."No. of Attempts to Run");
+        RunningJobQueueEntry.Get(RunningJobQueueEntry.ID);
+        RunningJobQueueEntry.TestField(Status, RunningJobQueueEntry.Status::"In Process");
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RetentionContinuationPrefersWaitingOverReadyJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        // [SCENARIO 649571] A Waiting continuation takes priority over a Ready job that sorts before it.
+        VerifyRetentionContinuationPrefersWaitingJob(JobQueueEntry.Status::Ready);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RetentionContinuationPrefersWaitingOverOnHoldJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        // [SCENARIO 649571] A Waiting continuation takes priority over an On Hold job that sorts before it.
+        VerifyRetentionContinuationPrefersWaitingJob(JobQueueEntry.Status::"On Hold");
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RetentionContinuationRestartsReadyJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        // [SCENARIO 649571] A Ready retention job is still restarted rather than duplicated.
+        VerifyRetentionContinuationRestartsJob(JobQueueEntry.Status::Ready);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RetentionContinuationRestartsOnHoldJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        // [SCENARIO 649571] An On Hold retention job is still restarted rather than duplicated.
+        VerifyRetentionContinuationRestartsJob(JobQueueEntry.Status::"On Hold");
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure RetentionContinuationCreatedWithoutPendingJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        RunningJobQueueEntry: Record "Job Queue Entry";
+        UnrelatedWaitingJobQueueEntry: Record "Job Queue Entry";
+        RetentionPolicyJQ: Codeunit "Retention Policy JQ";
+    begin
+        // [SCENARIO 649571] Running retention jobs and Waiting jobs for another object do not prevent a continuation.
+        InitializeRetentionPolicyJobQueue(JobQueueEntry);
+        CreateRetentionPolicyJobQueueEntry(RunningJobQueueEntry, RunningJobQueueEntry.Status::"In Process");
+        CreateRetentionPolicyJobQueueEntry(UnrelatedWaitingJobQueueEntry, UnrelatedWaitingJobQueueEntry.Status::Waiting);
+        UnrelatedWaitingJobQueueEntry."Object ID to Run" := Codeunit::"Job Queue - Enqueue";
+        UnrelatedWaitingJobQueueEntry.Modify();
+
+        BindSubscription(this);
+        Assert.IsTrue(RetentionPolicyJQ.ScheduleContinuation(), 'Creating a retention continuation must report scheduling.');
+        UnbindSubscription(this);
+
+        Assert.AreEqual(2, JobQueueEntry.Count(), 'A continuation must be created when no retention job is pending.');
+        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::Ready);
+        JobQueueEntry.FindFirst();
+        JobQueueEntry.TestField("Job Queue Category Code", 'RETENTION');
+        JobQueueEntry.TestField("Recurring Job", false);
+        JobQueueEntry.TestField("System Task ID");
+        RunningJobQueueEntry.Get(RunningJobQueueEntry.ID);
+        RunningJobQueueEntry.TestField(Status, RunningJobQueueEntry.Status::"In Process");
+        UnrelatedWaitingJobQueueEntry.Get(UnrelatedWaitingJobQueueEntry.ID);
+        UnrelatedWaitingJobQueueEntry.TestField(Status, UnrelatedWaitingJobQueueEntry.Status::Waiting);
+    end;
+
+    local procedure InitializeRetentionPolicyJobQueue(var JobQueueEntry: Record "Job Queue Entry")
+    begin
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Retention Policy JQ");
+        JobQueueEntry.DeleteAll();
+    end;
+
+    local procedure CreateRetentionPolicyJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry"; InitialStatus: Option)
+    begin
+        Clear(JobQueueEntry);
+        CreateJobQueueEntry(JobQueueEntry, InitialStatus);
+        JobQueueEntry."No. of Attempts to Run" := 3;
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"Retention Policy JQ";
+        JobQueueEntry."Job Queue Category Code" := 'RETENTION';
+        JobQueueEntry."System Task ID" := CreateGuid();
+        JobQueueEntry."Earliest Start Date/Time" := CurrentDateTime() + 60000;
+        JobQueueEntry.Modify();
+        // Capture the persisted DateTime precision before checking that scheduling preserves it.
+        JobQueueEntry.Get(JobQueueEntry.ID);
+    end;
+
+    local procedure VerifyRetentionContinuationPrefersWaitingJob(InitialStatus: Option)
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        RestartableJobQueueEntry: Record "Job Queue Entry";
+        WaitingJobQueueEntry: Record "Job Queue Entry";
+        ExpectedRestartableJobQueueEntry: Record "Job Queue Entry";
+        ExpectedWaitingJobQueueEntry: Record "Job Queue Entry";
+        RetentionPolicyJQ: Codeunit "Retention Policy JQ";
+    begin
+        InitializeRetentionPolicyJobQueue(JobQueueEntry);
+        CreateRetentionPolicyJobQueueEntry(RestartableJobQueueEntry, InitialStatus);
+        CreateRetentionPolicyJobQueueEntry(WaitingJobQueueEntry, InitialStatus);
+
+        // Assign Waiting to the last persisted ID so the original mixed-status lookup finds the restartable job first.
+        JobQueueEntry.SetCurrentKey(ID);
+        JobQueueEntry.FindLast();
+        WaitingJobQueueEntry := JobQueueEntry;
+        WaitingJobQueueEntry.Status := WaitingJobQueueEntry.Status::Waiting;
+        WaitingJobQueueEntry.Modify();
+        WaitingJobQueueEntry.Get(WaitingJobQueueEntry.ID);
+        ExpectedWaitingJobQueueEntry := WaitingJobQueueEntry;
+
+        JobQueueEntry.SetFilter(Status, '%1|%2|%3', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Waiting);
+        JobQueueEntry.FindFirst();
+        Assert.IsTrue(JobQueueEntry.Status = InitialStatus, 'The mixed-status lookup must return the restartable job first.');
+        RestartableJobQueueEntry := JobQueueEntry;
+        ExpectedRestartableJobQueueEntry := RestartableJobQueueEntry;
+        JobQueueEntry.SetRange(Status);
+        Assert.AreEqual(2, JobQueueEntry.Count(), 'The fixture must contain both pending retention jobs.');
+        WaitingJobQueueEntry.TestField("System Task ID");
+        RestartableJobQueueEntry.TestField("System Task ID");
+        WaitingJobQueueEntry.TestField("No. of Attempts to Run");
+        RestartableJobQueueEntry.TestField("No. of Attempts to Run");
+
+        BindSubscription(this);
+        Assert.IsFalse(RetentionPolicyJQ.ScheduleContinuation(), 'A Waiting job must prevent scheduling a restartable job.');
+        Assert.IsFalse(RetentionPolicyJQ.ScheduleContinuation(), 'A Waiting job must prevent scheduling a restartable job.');
+        UnbindSubscription(this);
+
+        Assert.AreEqual(2, JobQueueEntry.Count(), 'Both pending retention jobs must be preserved without duplicates.');
+        WaitingJobQueueEntry.Get(ExpectedWaitingJobQueueEntry.ID);
+        WaitingJobQueueEntry.TestField(Status, ExpectedWaitingJobQueueEntry.Status);
+        WaitingJobQueueEntry.TestField("System Task ID", ExpectedWaitingJobQueueEntry."System Task ID");
+        WaitingJobQueueEntry.TestField("Earliest Start Date/Time", ExpectedWaitingJobQueueEntry."Earliest Start Date/Time");
+        WaitingJobQueueEntry.TestField("No. of Attempts to Run", ExpectedWaitingJobQueueEntry."No. of Attempts to Run");
+        RestartableJobQueueEntry.Get(ExpectedRestartableJobQueueEntry.ID);
+        RestartableJobQueueEntry.TestField(Status, ExpectedRestartableJobQueueEntry.Status);
+        RestartableJobQueueEntry.TestField("System Task ID", ExpectedRestartableJobQueueEntry."System Task ID");
+        RestartableJobQueueEntry.TestField("Earliest Start Date/Time", ExpectedRestartableJobQueueEntry."Earliest Start Date/Time");
+        RestartableJobQueueEntry.TestField("No. of Attempts to Run", ExpectedRestartableJobQueueEntry."No. of Attempts to Run");
+    end;
+
+    local procedure VerifyRetentionContinuationRestartsJob(InitialStatus: Option)
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        ExistingJobQueueEntry: Record "Job Queue Entry";
+        RetentionPolicyJQ: Codeunit "Retention Policy JQ";
+        SystemTaskId: Guid;
+    begin
+        InitializeRetentionPolicyJobQueue(JobQueueEntry);
+        CreateRetentionPolicyJobQueueEntry(ExistingJobQueueEntry, InitialStatus);
+        SystemTaskId := ExistingJobQueueEntry."System Task ID";
+
+        BindSubscription(this);
+        Assert.IsTrue(RetentionPolicyJQ.ScheduleContinuation(), 'Restarting an existing retention job must report scheduling.');
+        UnbindSubscription(this);
+
+        Assert.AreEqual(1, JobQueueEntry.Count(), 'The existing retention job must be reused.');
+        ExistingJobQueueEntry.Get(ExistingJobQueueEntry.ID);
+        ExistingJobQueueEntry.TestField(Status, ExistingJobQueueEntry.Status::Ready);
+        ExistingJobQueueEntry.TestField("No. of Attempts to Run", 0);
+        Assert.AreNotEqual(SystemTaskId, ExistingJobQueueEntry."System Task ID", 'The existing retention job must be restarted.');
+    end;
+
     local procedure CreateJobQueueEntry(var JobQueueEntry: Record "Job Queue Entry"; InitialStatus: Option)
     begin
         JobQueueEntry.Init();
