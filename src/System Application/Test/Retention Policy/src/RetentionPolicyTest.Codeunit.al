@@ -1487,6 +1487,7 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, 0);
@@ -1683,6 +1684,7 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
