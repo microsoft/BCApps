@@ -972,11 +972,12 @@ codeunit 134228 "ERM Close Income Statement"
     local procedure VerifyIncomeStatementAccountBalance(AccountNo: Code[20]; FiscalYearStartDate: Date; FiscalYearEndDate: Date; ExpectedAmount: Decimal)
     var
         GLEntry: Record "G/L Entry";
+        UnexpectedFiscalYearBalanceErr: Label 'Unexpected fiscal-year balance for account %1.', Comment = '%1 = G/L account number';
     begin
         GLEntry.SetRange("G/L Account No.", AccountNo);
         GLEntry.SetRange("Posting Date", FiscalYearStartDate, ClosingDate(FiscalYearEndDate));
         GLEntry.CalcSums(Amount);
-        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo('Unexpected fiscal-year balance for account %1.', AccountNo));
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(UnexpectedFiscalYearBalanceErr, AccountNo));
     end;
 
     local procedure VerifyClosingTransfer(FirstClosedAccountNo: Code[20]; SecondClosedAccountNo: Code[20]; AuditAdjustmentAccountNo: Code[20]; RetainedEarningsAccountNo: Code[20]; DocumentNo: Code[20]; ExpectedAdjustmentAmount: Decimal)
