@@ -17,6 +17,7 @@ codeunit 7208 "Commercial Dataverse Endpoints" implements "Dataverse Cloud Endpo
         ClientCredentialsTokenAuthorityUrlTxt: Label 'https://login.microsoftonline.com/organizations/oauth2/v2.0/token', Locked = true;
         GlobalDiscoveryScopeTxt: Label 'https://globaldisco.crm.dynamics.com/user_impersonation', Locked = true;
         GlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances', Locked = true;
+        EnvironmentHostSuffixTxt: Label 'dynamics.com', Locked = true;
 
     procedure GetOAuthAuthorityUrl(): Text
     begin
@@ -36,5 +37,10 @@ codeunit 7208 "Commercial Dataverse Endpoints" implements "Dataverse Cloud Endpo
     procedure GetGlobalDiscoveryApiUrl(): Text
     begin
         exit(GlobalDiscoveryApiUrlTxt);
+    end;
+
+    procedure GetEnvironmentHostSuffix(): Text
+    begin
+        exit(EnvironmentHostSuffixTxt);
     end;
 }

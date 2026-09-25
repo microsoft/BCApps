@@ -238,6 +238,9 @@ table 6923 "Expense User"
         WelcomeEmailsQueuedMsg: Label '%1 welcome email(s) have been queued. The expense agent will send them shortly.', Comment = '%1 = number of welcome emails queued';
         NoWelcomeEmailsQueuedMsg: Label 'No welcome emails were sent. The selected expense users have already received one or have one that is still being sent.';
         NoExpenseUsersWithEmailErr: Label 'There are no expense users to send welcome email.';
+        NoExpenseUsersForEmployeeCreationErr: Label 'There are no selected expense users eligible for employee creation.';
+        EmployeesFromExpenseUsersProgressTxt: Label 'Creating employees...\\Expense User: #1########################################\\Total: #2####\\Processed: #3####', Comment = '#1 = current expense user value, #2 = total selected expense users, #3 = number of processed expense users';
+        EmployeesCreatedFromExpenseUsersMsg: Label 'Employee creation completed for %1 expense user(s).', Comment = '%1 = number of processed expense users';
         AgentNotEnabledErr: Label 'Please make sure the Expense Agent is active.';
         CommunicationDisabledErr: Label 'Sending emails to users is turned off. Turn on communication for the Expense Agent before sending welcome emails.';
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending welcome emails.';
@@ -575,6 +578,73 @@ table 6923 "Expense User"
         end;
 
         exit(CreateEmployee(EmployeeTempl, TemplateSelected));
+    end;
+
+    internal procedure CreateEmployeesFromExpenseUsers(var ExpenseUser: Record "Expense User")
+    var
+        EmployeeTempl: Record "Employee Templ.";
+        EmployeeTemplMgt: Codeunit "Employee Templ. Mgt.";
+        TemplateSelected: Boolean;
+        ProcessedCount: Integer;
+        TotalCount: Integer;
+        ProgressDialog: Dialog;
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup.TestField("Create Emp. for Expense Users");
+
+        ExpenseUser.SetRange("Employee No.", '');
+        ExpenseUser.SetFilter("Name", '<>%1', '');
+        ExpenseUser.SetFilter("E-mail", '<>%1', '');
+        if ExpenseUser.IsEmpty() then
+            Error(NoExpenseUsersForEmployeeCreationErr);
+
+        TotalCount := ExpenseUser.Count();
+
+        if EmployeeTemplMgt.IsEnabled() then begin
+            TemplateSelected := EmployeeTemplMgt.SelectEmployeeTemplateFromContact(EmployeeTempl);
+            if not TemplateSelected then
+                if EmployeeTemplMgt.TemplatesAreNotEmpty() then
+                    Error('');
+        end;
+
+        if GuiAllowed() then begin
+            ProgressDialog.Open(EmployeesFromExpenseUsersProgressTxt);
+            ProgressDialog.Update(1, '');
+            ProgressDialog.Update(2, TotalCount);
+            ProgressDialog.Update(3, 0);
+        end;
+
+        if ExpenseUser.FindSet() then
+            repeat
+                if GuiAllowed() then
+                    ProgressDialog.Update(1, ExpenseUser."No.");
+
+                ExpenseUser.CreateEmployeeFromExpenseUserWithTemplate(EmployeeTempl, TemplateSelected);
+                ProcessedCount += 1;
+                if GuiAllowed() then
+                    ProgressDialog.Update(3, ProcessedCount);
+            until ExpenseUser.Next() = 0;
+
+        if GuiAllowed() then
+            ProgressDialog.Close();
+
+        Message(EmployeesCreatedFromExpenseUsersMsg, ProcessedCount);
+    end;
+
+    internal procedure CreateEmployeeFromExpenseUserWithTemplate(EmployeeTempl: Record "Employee Templ."; TemplateSelected: Boolean)
+    var
+        ImportExpenseUser: Codeunit "Import Expense User";
+        EmployeeNo: Code[20];
+    begin
+        EmployeeNo := ImportExpenseUser.GetEmployeeNoFromEmail(Rec."E-mail");
+        if EmployeeNo = '' then begin
+            Rec.SetSkipOverwriteFromEmployee(true);
+            Rec.Validate("Employee No.", CreateEmployee(EmployeeTempl, TemplateSelected));
+            Rec.SetSkipOverwriteFromEmployee(false);
+        end else
+            Rec.Validate("Employee No.", EmployeeNo);
+
+        Rec.Modify();
     end;
 
     internal procedure CreateEmployee(EmployeeTempl: Record "Employee Templ."; TemplateSelected: Boolean): Code[20]
