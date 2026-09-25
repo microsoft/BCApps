@@ -1013,7 +1013,6 @@ codeunit 134386 "ERM Sales Documents II"
         SalesHeader: Record "Sales Header";
         StandardSalesLine: Record "Standard Sales Line";
         GeneralLedgerSetup: Record "General Ledger Setup";
-        LibraryDimension: Codeunit "Library - Dimension";
     begin
         // Check Sales Code Line with Dimensions are copied correctly in Sales Line.
 
