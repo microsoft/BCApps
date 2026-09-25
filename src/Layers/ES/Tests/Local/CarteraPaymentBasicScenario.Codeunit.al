@@ -1797,15 +1797,19 @@ codeunit 147500 "Cartera Payment Basic Scenario"
     begin
         // [FEATURE] [Payment Order] [Currency]
         // [SCENARIO 650508] Payment orders posted in foreign currency should populate Source Currency Code and Amount on G/L entries.
+
         Initialize();
 
+        // [GIVEN] Create Currency Setup
+        Currency.Get(LibraryCarteraCommon.CreateCarteraCurrency(false, false, true));
+
         // [GIVEN] A vendor bill and payment order both use USD as the source currency.
-        Currency.Get('USD');
         PrepareVendorRelatedRecords(Vendor, Currency.Code);
         CreateAndPostInvoiceWOutVAT(Vendor, SettleAmount, InvoiceNo, WorkDate(), Currency.Code);
         CreateAndPostPaymentOrder(PaymentOrder, Currency.Code, WorkDate() + 1, InvoiceNo);
 
         // [WHEN] The G/L entries created by the posted payment order are reviewed.
+        // [THEN] The G/L entries should have the correct source currency information.
         GLEntry.SetRange("Document No.", PaymentOrder."No.");
         GLEntry.FindSet();
         repeat
