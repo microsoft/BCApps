@@ -16,6 +16,14 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataMgtSubscribers.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    /// <summary>Invokes the after-transfer subscriber that restores a skipped over-cap Blob to the destination's exact bytes.</summary>
+    /// <param name="SourceRecordRef">The source (temp) record being synchronized.</param>
+    /// <param name="DestinationRecordRef">The destination record whose skipped blob fields are restored byte-exact.</param>
+    procedure HandleOnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
+    begin
+        MasterDataMgtSubscribers.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+    end;
+
     /// <summary>Invokes the deletion-conflict subscriber logic that resolves or fails a coupled-to-deleted-record conflict.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
     /// <param name="SourceRecordRef">The source record whose coupled record was deleted.</param>

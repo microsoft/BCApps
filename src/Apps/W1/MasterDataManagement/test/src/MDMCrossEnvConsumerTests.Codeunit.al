@@ -1192,6 +1192,65 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure CrossEnvSkippedBlobPreservesBinaryDestinationThroughOnAfter()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        OriginalBase64: Text;
+        PreservedBase64: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] Binary (non-UTF-8) destination blob bytes survive a skipped over-cap source blob byte-exact via
+        // the OnAfterTransferRecordFields restore, which the text round-trip alone could not guarantee.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        OriginalBase64 := '//7+/QABAgP/'; // arbitrary non-UTF-8 bytes (0xFF 0xFE ...) that would not survive a UTF-8 round-trip
+
+        // [GIVEN] a destination record whose blob holds non-UTF-8 binary content
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream);
+        Base64Convert.FromBase64(OriginalBase64, BlobOutStream);
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] a destination buffer whose blob was cleared by the field transfer (the database still holds the original)
+        DestinationRecordRef.GetTable(DestinationRecord);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        Clear(TempBlob);
+        TempBlob.ToFieldRef(DestBlobFieldRef);
+        SourceRecordRef.GetTable(SourceRecord);
+
+        // [WHEN] the after-transfer restore runs
+        LibraryMasterDataMgt.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] the destination buffer blob is byte-exact to the original (restored from the database, not text-decoded)
+        Clear(TempBlob);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The binary destination blob must be restored');
+        TempBlob.CreateInStream(BlobInStream);
+        PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
+        Assert.AreEqual(OriginalBase64, PreservedBase64, 'Non-UTF-8 destination blob bytes must be preserved byte-exact');
+
+        CleanUp();
+    end;
+
     local procedure EnableCrossEnvForTransfer(EnvironmentName: Text)
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
