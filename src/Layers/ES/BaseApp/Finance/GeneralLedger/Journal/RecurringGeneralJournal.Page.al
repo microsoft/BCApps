@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Utilities;
+using System.Automation;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
@@ -47,6 +48,9 @@ page 283 "Recurring General Journal"
     {
         area(content)
         {
+        group(Control120)
+            {
+            ShowCaption = false;
             field(CurrentJnlBatchName; CurrentJnlBatchName)
             {
                 ApplicationArea = Suite;
@@ -68,6 +72,15 @@ page 283 "Recurring General Journal"
                     CurrentJnlBatchNameOnAfterVali();
                 end;
             }
+            field(GenJnlBatchApprovalStatus; GenJnlBatchApprovalStatus)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Approval Status';
+                Editable = false;
+                Visible = EnabledGenJnlBatchWorkflowsExist;
+                ToolTip = 'Specifies the approval status for recurring general journal batch.';
+            }
+        }
             repeater(Control1)
             {
                 ShowCaption = false;
@@ -531,6 +544,15 @@ page 283 "Recurring General Journal"
         }
         area(factboxes)
         {
+            part(WorkflowStatusBatch; "Workflow Status FactBox")
+            {
+                ApplicationArea = Suite;
+                Caption = 'Batch Workflows';
+                Editable = false;
+                Enabled = false;
+                ShowFilter = false;
+                Visible = ShowWorkflowStatusOnBatch;
+            }
             part(JournalErrorsFactBox; "Journal Errors FactBox")
             {
                 ApplicationArea = Basic, Suite;
@@ -598,6 +620,21 @@ page 283 "Recurring General Journal"
                     begin
                         Rec.ShowDimensions();
                         CurrPage.SaveRecord();
+                    end;
+                }
+                action(Approvals)
+                {
+                    AccessByPermission = TableData "Approval Entry" = R;
+                    ApplicationArea = Suite;
+                    Caption = 'Approvals';
+                    Image = Approvals;
+                    ToolTip = 'View a list of the records that are waiting to be approved. For example, you can see who requested the record to be approved, when it was sent, and when it is due to be approved.';
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ShowJournalApprovalEntries(Rec);
                     end;
                 }
             }
@@ -725,6 +762,122 @@ page 283 "Recurring General Journal"
                     end;
                 }
             }
+            group("Request Approval")
+            {
+                Caption = 'Request Approval';
+                group(SendApprovalRequest)
+                {
+                    Caption = 'Send Approval Request';
+                    Image = SendApprovalRequest;
+                    action(SendApprovalRequestJournalBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Batch';
+                        Enabled = not OpenApprovalEntriesOnJnlBatchExist and CanRequestFlowApprovalForBatch and EnabledGenJnlBatchWorkflowsExist;
+                        Image = SendApprovalRequest;
+                        ToolTip = 'Send all journal lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TrySendJournalBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromBatch();
+                        end;
+                    }
+                }
+                group(CancelApprovalRequest)
+                {
+                    Caption = 'Cancel Approval Request';
+                    Image = Cancel;
+                    action(CancelApprovalRequestJournalBatch)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Journal Batch';
+                        Enabled = CanCancelApprovalForJnlBatch or CanCancelFlowApprovalForBatch;
+                        Image = CancelApprovalRequest;
+                        ToolTip = 'Cancel sending all journal lines for approval, also those that you may not see because of filters.';
+
+                        trigger OnAction()
+                        var
+                            ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        begin
+                            ApprovalsMgmt.TryCancelJournalBatchApprovalRequest(Rec);
+                            SetControlAppearanceFromBatch();
+                        end;
+                    }
+                }
+            }
+            group(Approval)
+            {
+                Caption = 'Approval';
+                action(Approve)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Approve';
+                    Image = Approve;
+                    ToolTip = 'Approve the requested changes.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.ApproveGenJournalLineRequest(Rec);
+                    end;
+                }
+                action(Reject)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reject';
+                    Image = Reject;
+                    ToolTip = 'Reject the approval request.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.RejectGenJournalLineRequest(Rec);
+                    end;
+                }
+                action(Delegate)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Delegate';
+                    Image = Delegate;
+                    ToolTip = 'Delegate the approval to a substitute approver.';
+                    Visible = OpenApprovalEntriesExistForCurrUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                    begin
+                        ApprovalsMgmt.DelegateGenJournalLineRequest(Rec);
+                    end;
+                }
+                action(Comments)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Comments';
+                    Image = ViewComments;
+                    ToolTip = 'View or add comments for the record.';
+                    Visible = OpenApprovalEntriesExistForCurrUser or ApprovalEntriesExistSentByCurrentUser;
+
+                    trigger OnAction()
+                    var
+                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+                        GenJournalBatch: Record "Gen. Journal Batch";
+                    begin
+                        if OpenApprovalEntriesOnJnlLineExist then
+                            ApprovalsMgmt.GetApprovalComment(Rec)
+                        else
+                            if OpenApprovalEntriesOnJnlBatchExist then
+                                if GenJournalBatch.Get(Rec."Journal Template Name", Rec."Journal Batch Name") then
+                                    ApprovalsMgmt.GetApprovalComment(GenJournalBatch);
+                    end;
+                }
+            }
             group("Page")
             {
                 Caption = 'Page';
@@ -807,6 +960,27 @@ page 283 "Recurring General Journal"
                 actionref(Allocations_Promoted; Allocations)
                 {
                 }
+                group("Category_Request Approval")
+                {
+                    Caption = 'Request Approval';
+
+                    group("Category_Send Approval Request")
+                    {
+                        Caption = 'Send Approval Request';
+
+                        actionref(SendApprovalRequestJournalBatch_Promoted; SendApprovalRequestJournalBatch)
+                        {
+                        }
+                    }
+                    group("Category_Cancel Approval Request")
+                    {
+                        Caption = 'Cancel Approval Request';
+
+                        actionref(CancelApprovalRequestJournalBatch_Promoted; CancelApprovalRequestJournalBatch)
+                        {
+                        }
+                    }
+                }
             }
             group(Category_Category5)
             {
@@ -816,6 +990,27 @@ page 283 "Recurring General Journal"
                 {
                 }
                 actionref(SetDimFilters_Promoted; SetDimFilters)
+                {
+                }
+            }
+            group(Category_Category8)
+            {
+                Caption = 'Approve', Comment = 'Generated from the PromotedActionCategories property index 7.';
+
+                actionref(Approvals_Promoted; Approvals)
+                {
+                }
+
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+                actionref(Comments_Promoted; Comments)
+                {
+                }
+                actionref(Delegate_Promoted; Delegate)
                 {
                 }
             }
@@ -846,6 +1041,8 @@ page 283 "Recurring General Journal"
     }
 
     trigger OnAfterGetCurrRecord()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
     begin
         GenJnlManagement.GetAccounts(Rec, AccName, BalAccName);
         UpdateBalance();
@@ -853,6 +1050,17 @@ page 283 "Recurring General Journal"
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
         SetJobQueueVisibility();
         IsDimensionBalanceLine();
+
+        OpenApprovalEntriesOnJnlLineExist := ApprovalMgmt.HasOpenApprovalEntries(Rec.RecordId);
+
+        if GenJournalBatch.Get(Rec.GetRangeMax("Journal Template Name"), CurrentJnlBatchName) then begin
+            SetApprovalStateForBatch(GenJournalBatch, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnJnlBatchExist, OpenApprovalEntriesOnBatchOrAnyJnlLineExist, CanCancelApprovalForJnlBatch, CanRequestFlowApprovalForBatch, CanCancelFlowApprovalForBatch, CanRequestFlowApprovalForBatchAndAllLines, ApprovalEntriesExistSentByCurrentUser, EnabledGenJnlBatchWorkflowsExist, EnabledGenJnlLineWorkflowsExist);
+            ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.PAGE.SetFilterOnWorkflowRecord(GenJournalBatch.RecordId);
+        end;
+
+        OpenApprovalEntriesExistForCurrUser := OpenApprovalEntriesExistForCurrUser or ApprovalMgmt.HasOpenApprovalEntriesForCurrentUser(Rec.RecordId);
+        ApprovalMgmt.GetGenJnlBatchApprovalStatus(Rec, GenJnlBatchApprovalStatus, EnabledGenJnlBatchWorkflowsExist);
+        ApprovalMgmt.GetGenJnlLineApprovalStatus(Rec, GenJnlLineApprovalStatus, EnabledGenJnlLineWorkflowsExist);
     end;
 
     trigger OnAfterGetRecord()
@@ -878,6 +1086,11 @@ page 283 "Recurring General Journal"
         SetRecurringFrequency();
     end;
 
+    trigger OnModifyRecord(): Boolean
+    begin
+        ApprovalMgmt.CleanGenJournalApprovalStatus(Rec, GenJnlBatchApprovalStatus, GenJnlLineApprovalStatus);
+    end;
+
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         CurrPage.IncomingDocAttachFactBox.PAGE.SetCurrentRecordID(Rec.RecordId);
@@ -898,7 +1111,6 @@ page 283 "Recurring General Journal"
 
         SetControlVisibility();
         SetDimensionsVisibility();
-        SetControlAppearanceFromBatch();
 
         if Rec.IsOpenedFromBatch() then begin
             CurrentJnlBatchName := Rec."Journal Batch Name";
@@ -908,6 +1120,7 @@ page 283 "Recurring General Journal"
 
         SelectJournalWithError();
         GenJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromBatch();
         OnAfterOnOpenPage(CurrentJnlBatchName);
     end;
 
@@ -918,6 +1131,7 @@ page 283 "Recurring General Journal"
         ClientTypeManagement: Codeunit "Client Type Management";
         JournalErrorsMgt: Codeunit "Journal Errors Mgt.";
         BackgroundErrorHandlingMgt: Codeunit "Background Error Handling Mgt.";
+        ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
         RecurringFrequency: Text;
         InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
@@ -937,6 +1151,20 @@ page 283 "Recurring General Journal"
         VATDateEnabled: Boolean;
         BackgroundErrorCheck: Boolean;
         ShowAllLinesEnabled: Boolean;
+        GenJnlBatchApprovalStatus: Text[20];
+        GenJnlLineApprovalStatus: Text[20];
+        ApprovalEntriesExistSentByCurrentUser: Boolean;
+        OpenApprovalEntriesExistForCurrUser: Boolean;
+        OpenApprovalEntriesOnJnlLineExist: Boolean;
+        OpenApprovalEntriesOnJnlBatchExist: Boolean;
+        OpenApprovalEntriesOnBatchOrAnyJnlLineExist: Boolean;
+        EnabledGenJnlBatchWorkflowsExist: Boolean;
+        EnabledGenJnlLineWorkflowsExist: Boolean;
+        ShowWorkflowStatusOnBatch: Boolean;
+        CanCancelApprovalForJnlBatch: Boolean;
+        CanRequestFlowApprovalForBatch: Boolean;
+        CanCancelFlowApprovalForBatch: Boolean;
+        CanRequestFlowApprovalForBatchAndAllLines: Boolean;
 
     protected var
         GenJnlManagement: Codeunit GenJnlManagement;
@@ -997,11 +1225,38 @@ page 283 "Recurring General Journal"
     end;
 
     local procedure SetControlAppearanceFromBatch()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
     begin
+        if not GenJournalBatch.Get(Rec.GetRangeMax("Journal Template Name"), CurrentJnlBatchName) then
+            exit;
+
+        ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.PAGE.SetFilterOnWorkflowRecord(GenJournalBatch.RecordId);
+        SetApprovalStateForBatch(GenJournalBatch, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnJnlBatchExist, OpenApprovalEntriesOnBatchOrAnyJnlLineExist, CanCancelApprovalForJnlBatch, CanRequestFlowApprovalForBatch, CanCancelFlowApprovalForBatch, CanRequestFlowApprovalForBatchAndAllLines, ApprovalEntriesExistSentByCurrentUser, EnabledGenJnlBatchWorkflowsExist, EnabledGenJnlLineWorkflowsExist);
         BackgroundErrorCheck := BackgroundErrorHandlingMgt.BackgroundValidationFeatureEnabled();
         ShowAllLinesEnabled := true;
         Rec.SwitchLinesWithErrorsFilter(ShowAllLinesEnabled);
         JournalErrorsMgt.SetFullBatchCheck(true);
+    end;
+
+    internal procedure SetApprovalStateForBatch(GenJournalBatch: Record "Gen. Journal Batch"; GenJournalLine: Record "Gen. Journal Line"; var OpenApprovalEntriesExistForCurrentUser: Boolean; var OpenApprovalEntriesOnJournalBatchExist: Boolean; var OpenApprovalEntriesOnBatchOrAnyJournalLineExist: Boolean; var CanCancelApprovalForJournalBatch: Boolean; var LocalCanRequestFlowApprovalForBatch: Boolean; var LocalCanCancelFlowApprovalForBatch: Boolean; var LocalCanRequestFlowApprovalForBatchAndAllLines: Boolean; var LocalApprovalEntriesExistSentByCurrentUser: Boolean; var EnabledGeneralJournalBatchWorkflowsExist: Boolean; var EnabledGeneralJournalLineWorkflowsExist: Boolean)
+    var
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+        WorkflowEventHandling: Codeunit "Workflow Event Handling";
+        WorkflowManagement: Codeunit "Workflow Management";
+        CanRequestFlowApprovalForAllLines: Boolean;
+    begin
+        OpenApprovalEntriesExistForCurrentUser := OpenApprovalEntriesExistForCurrentUser or ApprovalsMgmt.HasOpenApprovalEntriesForCurrentUser(GenJournalBatch.RecordId);
+        OpenApprovalEntriesOnJournalBatchExist := ApprovalsMgmt.HasOpenApprovalEntries(GenJournalBatch.RecordId);
+        OpenApprovalEntriesOnBatchOrAnyJournalLineExist := OpenApprovalEntriesOnJournalBatchExist or ApprovalsMgmt.HasAnyOpenJournalLineApprovalEntries(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name");
+        CanCancelApprovalForJournalBatch := ApprovalsMgmt.CanCancelApprovalForRecord(GenJournalBatch.RecordId);
+        WorkflowWebhookManagement.GetCanRequestAndCanCancelJournalBatch(GenJournalBatch, LocalCanRequestFlowApprovalForBatch, LocalCanCancelFlowApprovalForBatch, CanRequestFlowApprovalForAllLines);
+        LocalCanRequestFlowApprovalForBatchAndAllLines := LocalCanRequestFlowApprovalForBatch and CanRequestFlowApprovalForAllLines;
+        LocalApprovalEntriesExistSentByCurrentUser := ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(GenJournalBatch.RecordId) or ApprovalsMgmt.HasApprovalEntriesSentByCurrentUser(GenJournalLine.RecordId);
+
+        EnabledGeneralJournalLineWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(DATABASE::"Gen. Journal Line", WorkflowEventHandling.RunWorkflowOnSendGeneralJournalLineForApprovalCode());
+        EnabledGeneralJournalBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(DATABASE::"Gen. Journal Batch", WorkflowEventHandling.RunWorkflowOnSendGeneralJournalBatchForApprovalCode());
     end;
 
     local procedure SetControlVisibility()
