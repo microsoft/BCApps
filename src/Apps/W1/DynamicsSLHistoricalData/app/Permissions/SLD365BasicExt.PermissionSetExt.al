@@ -42,6 +42,8 @@ permissionsetextension 42800 "SL D365 Basic Ext." extends "D365 BASIC"
                   tabledata "SL Hist. LotSerT Archive" = R,
                   tabledata "SL Hist. Migration Cur. Status" = R,
                   tabledata "SL Hist. Migration Step Status" = R,
+                  tabledata "SL Hist. PJEmploy" = R,
+                  tabledata "SL Hist. PJProj" = R,
                   tabledata "SL Hist. PJTran" = R,
                   tabledata "SL Hist. PJTranEx" = R,
                   tabledata "SL Hist. POReceipt" = R,

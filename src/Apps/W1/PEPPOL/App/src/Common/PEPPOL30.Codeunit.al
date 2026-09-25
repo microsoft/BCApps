@@ -23,8 +23,10 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
                                             , "PEPPOL Tax Info Provider"
                                             , "PEPPOL Purchase Attachment Provider"
                                             , "PEPPOL Purchase Delivery Info Provider"
+                                            , "PEPPOL PO Delivery Period"
                                             , "PEPPOL Purchase Document Info Provider"
                                             , "PEPPOL Purchase Line Info Provider"
+                                            , "PEPPOL PO Line Delivery Period"
                                             , "PEPPOL Purchase Monetary Info Provider"
                                             , "PEPPOL Purchase Party Info Provider"
                                             , "PEPPOL Purchase Payment Info Provider"
@@ -261,6 +263,25 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetAccountingSupplierPartyInfoBIS(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text)
     begin
         PEPPOLManagementImpl.GetAccountingSupplierPartyInfoBIS(SupplierEndpointID, SupplierSchemeID, SupplierName);
+    end;
+
+    /// <summary>
+    /// Checks that the own company party resolves to a party identifier that can be exported.
+    /// </summary>
+    /// <param name="SupplierEndpointID">The endpoint identifier already resolved for the document that is being validated.</param>
+    procedure CheckCompanyPartyIdentification(SupplierEndpointID: Text)
+    begin
+        PEPPOLManagementImpl.CheckCompanyPartyIdentification(SupplierEndpointID);
+    end;
+
+    /// <summary>
+    /// Checks that the customer party resolves to a party identifier that can be exported.
+    /// </summary>
+    /// <param name="CustomerEndpointID">The endpoint identifier already resolved for the document that is being validated.</param>
+    /// <param name="CustomerNo">The customer the endpoint identifier was resolved for.</param>
+    procedure CheckCustomerPartyIdentification(CustomerEndpointID: Text; CustomerNo: Code[20])
+    begin
+        PEPPOLManagementImpl.CheckCustomerPartyIdentification(CustomerEndpointID, CustomerNo);
     end;
 
     /// <summary>
@@ -633,6 +654,17 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets the requested delivery period from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record.</param>
+    /// <param name="StartDate">Returns the requested delivery period start date.</param>
+    /// <param name="EndDate">Returns the requested delivery period end date.</param>
+    procedure GetRequestedDeliveryPeriod(PurchaseHeader: Record "Purchase Header"; var StartDate: Text; var EndDate: Text)
+    begin
+        PEPPOLManagementImpl.GetRequestedDeliveryPeriod(PurchaseHeader, StartDate, EndDate);
+    end;
+
+    /// <summary>
     /// Gets payment means information from the sales header including payment code, due date, and account details.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing the payment information.</param>
@@ -912,6 +944,17 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetLineGeneralInfo(PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var InvoiceLineID: Text; var InvoiceLineNote: Text; var InvoicedQuantity: Text; var InvoiceLineExtensionAmount: Text; var LineExtensionAmountCurrencyID: Text; var InvoiceLineAccountingCost: Text)
     begin
         PEPPOLManagementImpl.GetLineGeneralInfo(PurchaseLine, PurchaseHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity, InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
+    end;
+
+    /// <summary>
+    /// Gets the requested delivery period from the purchase line.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record.</param>
+    /// <param name="StartDate">Returns the requested delivery period start date.</param>
+    /// <param name="EndDate">Returns the requested delivery period end date.</param>
+    procedure GetLineRequestedDeliveryPeriod(PurchaseLine: Record "Purchase Line"; var StartDate: Text; var EndDate: Text)
+    begin
+        PEPPOLManagementImpl.GetLineRequestedDeliveryPeriod(PurchaseLine, StartDate, EndDate);
     end;
 
     /// <summary>

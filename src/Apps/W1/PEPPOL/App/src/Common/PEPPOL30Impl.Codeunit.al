@@ -57,6 +57,8 @@ codeunit 37201 "PEPPOL30 Impl."
         GLNSchemeIDTxt: Label '0088', Locked = true;
         CreditTransferPaymentMeansCodeTxt: Label '31', Locked = true;
         CheckPaymentMeansCodeTxt: Label '20', Locked = true;
+        MissingCompanyPartyIdentificationErr: Label 'You must specify %1 in %2, or specify %3 and enable %4.', Comment = '%1 - VAT Registration No. field caption, %2 - Company Information table caption, %3 - GLN field caption, %4 - Use GLN in Electronic Documents field caption';
+        MissingCustomerPartyIdentificationErr: Label 'You must specify %1 for Customer %2, or specify %3 and enable %4.', Comment = '%1 - VAT Registration No. field caption, %2 - Customer No., %3 - GLN field caption, %4 - Use GLN in Electronic Documents field caption';
 
     procedure GetPayeePartyInfo(Vendor: Record Vendor; var PayeeEndpointID: Text; var PayeeSchemeID: Text; var PayeePartyName: Text)
     begin
@@ -326,6 +328,20 @@ codeunit 37201 "PEPPOL30 Impl."
         GetAccountingSupplierPartyInfoByFormat(SupplierEndpointID, SupplierSchemeID, SupplierName, true);
     end;
 
+    procedure CheckCompanyPartyIdentification(SupplierEndpointID: Text)
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        if SupplierEndpointID <> '' then
+            exit;
+
+        CompanyInfo.Get();
+        Error(
+          MissingCompanyPartyIdentificationErr,
+          CompanyInfo.FieldCaption("VAT Registration No."), CompanyInfo.TableCaption(),
+          CompanyInfo.FieldCaption(GLN), CompanyInfo.FieldCaption("Use GLN in Electronic Document"));
+    end;
+
     local procedure GetAccountingSupplierPartyInfoByFormat(var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text; IsBISBilling: Boolean)
     var
         CompanyInfo: Record "Company Information";
@@ -465,6 +481,19 @@ codeunit 37201 "PEPPOL30 Impl."
         GetAccountingCustomerPartyInfoByFormat(
           SalesHeader, CustomerEndpointID, CustomerSchemeID,
           CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName, true);
+    end;
+
+    procedure CheckCustomerPartyIdentification(CustomerEndpointID: Text; CustomerNo: Code[20])
+    var
+        Cust: Record Customer;
+    begin
+        if CustomerEndpointID <> '' then
+            exit;
+
+        Error(
+          MissingCustomerPartyIdentificationErr,
+          Cust.FieldCaption("VAT Registration No."), CustomerNo,
+          Cust.FieldCaption(GLN), Cust.FieldCaption("Use GLN in Electronic Document"));
     end;
 
     local procedure GetAccountingCustomerPartyInfoByFormat(SalesHeader: Record "Sales Header"; var CustomerEndpointID: Text; var CustomerSchemeID: Text; var CustomerPartyIdentificationID: Text; var CustomerPartyIDSchemeID: Text; var CustomerName: Text; IsBISBilling: Boolean)
@@ -963,6 +992,15 @@ codeunit 37201 "PEPPOL30 Impl."
         InvoiceLineExtensionAmount := Format(PurchaseLineLineAmount, 0, 9);
         LineExtensionAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
         InvoiceLineAccountingCost := '';
+    end;
+
+    procedure GetLineRequestedDeliveryPeriod(PurchaseLine: Record "Purchase Line"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseLine."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseLine."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
     end;
 
     procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var UnitCode: Text; var UnitCodeListID: Text)
@@ -1851,6 +1889,15 @@ codeunit 37201 "PEPPOL30 Impl."
         CountrySubentity := PurchaseHeader."Ship-to County";
         IdentificationCode := GetCountryISOCode(PurchaseHeader."Ship-to Country/Region Code");
         ListID := GetISO3166_1Alpha2();
+    end;
+
+    procedure GetRequestedDeliveryPeriod(PurchaseHeader: Record "Purchase Header"; var StartDate: Text; var EndDate: Text)
+    begin
+        if PurchaseHeader."Requested Receipt Date" = 0D then
+            exit;
+
+        StartDate := Format(PurchaseHeader."Requested Receipt Date", 0, 9);
+        EndDate := StartDate;
     end;
 
     local procedure InsertZeroAmountVATAmtLine(var VATAmtLine: Record "VAT Amount Line"; LineAmount: Decimal)
