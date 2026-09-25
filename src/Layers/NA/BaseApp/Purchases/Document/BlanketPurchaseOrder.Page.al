@@ -503,6 +503,18 @@ page 509 "Blanket Purchase Order"
                         Importance = Promoted;
                         ToolTip = 'Specifies the name of the vendor sending the invoice.';
 
+                        trigger OnAfterLookup(Selected: RecordRef)
+                        var
+                            Vendor: Record Vendor;
+                        begin
+                            Selected.SetTable(Vendor);
+                            if Rec."Pay-to Vendor No." <> Vendor."No." then begin
+                                Rec.Validate("Pay-to Vendor No.", Vendor."No.");
+                                if Rec."Pay-to Vendor No." <> Vendor."No." then  // if the user responds 'no' to questions
+                                    error('');
+                            end;
+                        end;
+
                         trigger OnValidate()
                         begin
                             if Rec.GetFilter("Pay-to Vendor No.") = xRec."Pay-to Vendor No." then

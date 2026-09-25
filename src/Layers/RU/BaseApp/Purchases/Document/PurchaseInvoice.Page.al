@@ -711,6 +711,18 @@ page 51 "Purchase Invoice"
                             NotBlank = true;
                             ToolTip = 'Specifies the name of the vendor sending the invoice.';
 
+                            trigger OnAfterLookup(Selected: RecordRef)
+                            var
+                                Vendor: Record Vendor;
+                            begin
+                                Selected.SetTable(Vendor);
+                                if Rec."Pay-to Vendor No." <> Vendor."No." then begin
+                                    Rec.Validate("Pay-to Vendor No.", Vendor."No.");
+                                    if Rec."Pay-to Vendor No." <> Vendor."No." then  // if the user responds 'no' to questions
+                                        error('');
+                                end;
+                            end;
+
                             trigger OnValidate()
                             var
                                 ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
@@ -724,24 +736,6 @@ page 51 "Purchase Invoice"
                                     PurchCalcDiscByType.ApplyDefaultInvoiceDiscount(0, Rec);
 
                                 CurrPage.Update(false);
-                            end;
-
-                            trigger OnAfterLookup(Selected: RecordRef)
-                            var
-                                Vendor: Record Vendor;
-                            begin
-                                Selected.SetTable(Vendor);
-                                if Rec."Pay-to Vendor No." <> Vendor."No." then begin
-                                    xRec := Rec;
-                                    Rec."Pay-to Name" := Vendor.Name;
-                                    Rec.Validate("Pay-to Vendor No.", Vendor."No.");
-                                end;
-
-                                if Rec.GetFilter("Pay-to Vendor No.") = xRec."Pay-to Vendor No." then
-                                    if Rec."Pay-to Vendor No." <> xRec."Pay-to Vendor No." then
-                                        Rec.SetRange("Pay-to Vendor No.");
-
-                                CurrPage.Update();
                             end;
                         }
                         field("Pay-to Name 2"; Rec."Pay-to Name 2")
