@@ -335,6 +335,17 @@ table 6100 "E-Document Purchase Header"
         exit('E-Document Matching Assistance');
     end;
 
+    internal procedure IsFinalized(): Boolean
+    var
+        EDocument: Record "E-Document";
+    begin
+        if Rec."E-Document Entry No." = 0 then
+            exit(false);
+        if not EDocument.Get(Rec."E-Document Entry No.") then
+            exit(false);
+        exit(EDocument.Status = EDocument.Status::Processed);
+    end;
+
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         DeleteDraftPerformedTxt: Label 'User deleted the draft.', Locked = true;
