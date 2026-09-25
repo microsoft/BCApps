@@ -89,26 +89,28 @@ codeunit 3322 "PA Email Cleanup"
         Setup: Record "PA Email Cleanup Setup";
         TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary;
         CommitBatchSize: Integer;
+        DeleteLimit: Integer;
         SkippedCount: Integer;
         UncommittedCount: Integer;
     begin
         CommitBatchSize := Setup.GetCommitBatchSize();
+        DeleteLimit := Setup.GetDeletionLimit();
 
         BuildDuplicateGroups(TempDuplicateBuffer);
 
         TempDuplicateBuffer.Reset();
         if TempDuplicateBuffer.FindSet() then
             repeat
-                DeleteRedundantRowsOfGroup(TempDuplicateBuffer, CommitBatchSize, DeletedCount, SkippedCount, UncommittedCount);
-            until TempDuplicateBuffer.Next() = 0;
+                DeleteRedundantRowsOfGroup(TempDuplicateBuffer, CommitBatchSize, DeleteLimit, DeletedCount, SkippedCount, UncommittedCount);
+            until (TempDuplicateBuffer.Next() = 0) or ((DeleteLimit > 0) and (DeletedCount >= DeleteLimit));
         if UncommittedCount > 0 then
             Commit();
 
         RecordLastRun(DeletedCount, SkippedCount);
-        LogCleanupTelemetry(DeletedCount, SkippedCount, CommitBatchSize);
+        LogCleanupTelemetry(DeletedCount, SkippedCount, CommitBatchSize, DeleteLimit);
     end;
 
-    internal procedure DeleteRedundantRowsOfGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; CommitBatchSize: Integer; var DeletedCount: Integer; var SkippedCount: Integer; var UncommittedCount: Integer)
+    internal procedure DeleteRedundantRowsOfGroup(var TempDuplicateBuffer: Record "PA Email Duplicate Buffer" temporary; CommitBatchSize: Integer; DeleteLimit: Integer; var DeletedCount: Integer; var SkippedCount: Integer; var UncommittedCount: Integer)
     var
         EmailInbox: Record "Email Inbox";
         EmailInboxToDelete: Record "Email Inbox";
@@ -124,6 +126,8 @@ codeunit 3322 "PA Email Cleanup"
 
         IsFirst := true;
         repeat
+            if (DeleteLimit > 0) and (DeletedCount >= DeleteLimit) then
+                exit;
             if IsFirst then
                 IsFirst := false
             else
@@ -213,13 +217,14 @@ codeunit 3322 "PA Email Cleanup"
         Setup.Modify();
     end;
 
-    local procedure LogCleanupTelemetry(DeletedCount: Integer; SkippedCount: Integer; CommitBatchSize: Integer)
+    local procedure LogCleanupTelemetry(DeletedCount: Integer; SkippedCount: Integer; CommitBatchSize: Integer; DeleteLimit: Integer)
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
         CustomDimensions.Add('DeletedRows', Format(DeletedCount));
         CustomDimensions.Add('SkippedRows', Format(SkippedCount));
         CustomDimensions.Add('CommitBatchSize', Format(CommitBatchSize));
+        CustomDimensions.Add('DeleteLimit', Format(DeleteLimit));
         Session.LogMessage('0000VMY', CleanupCompletedTelemetryLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
