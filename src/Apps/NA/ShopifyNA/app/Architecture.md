@@ -108,6 +108,8 @@ Model output is treated as a proposal, not as an instruction:
 
 When Shopify's rate differs from an existing Business Central Tax Detail, the jurisdiction can still be matched, but the existing rate is preserved and the order is held for review. A reviewer can accept the Business Central rate, select another jurisdiction, or explicitly choose to update tax setup to the Shopify rate.
 
+Canadian HST/TVH jurisdictions are normalized by ship-to province (for example `ONHST` and `NSHST`) when a province-specific jurisdiction exists or the agent is allowed to create one. Agent-created generic HST jurisdictions are not reused across provinces; federal GST/TPS remains reusable.
+
 Jurisdictions created by the agent remain provisional until they are approved through the review workflow. This prevents newly generated master data from being treated as trusted without human confirmation.
 
 ## Review policy

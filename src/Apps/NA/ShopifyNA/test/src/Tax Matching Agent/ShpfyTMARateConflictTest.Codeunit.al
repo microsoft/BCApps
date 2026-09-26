@@ -437,7 +437,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         LibraryAssert.IsTrue(TMAEvents.IsHeldForReviewPreference(OrderHeader, Shop), 'Low Confidence Only must hold a low-confidence order.');
     end;
 
-    // Guard — matching runs only when enabled, no Tax Area yet, and not tax exempt.
+    // Guard — matching runs only when enabled, supported for the country, no Tax Area yet, and not tax exempt.
     [Test]
     procedure ShouldAttemptMatchWhenEligible()
     var
@@ -485,6 +485,108 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
         BuildGuardRecords(OrderHeader, Shop, true, '', true);
         LibraryAssert.IsFalse(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
             'Matching must not run for a tax-exempt order.');
+    end;
+
+    [Test]
+    procedure ShouldAttemptMatchForCanadianOrder()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+
+        LibraryAssert.IsTrue(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching should run for a Canadian order.');
+    end;
+
+    [Test]
+    procedure ShouldNotAttemptMatchOutsideNorthAmericanTaxDomain()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TMAEvents: Codeunit "Shpfy TMA Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        OrderHeader."Ship-to Country/Region Code" := 'DK';
+
+        LibraryAssert.IsFalse(TMAEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching must not run outside the US and Canada.');
+    end;
+
+    [Test]
+    procedure CanadianHSTAutoCreateUsesProvinceCode()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'ON';
+
+        LibraryAssert.AreEqual('ONHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', true),
+            'A new Canadian HST jurisdiction must be scoped by province.');
+    end;
+
+    [Test]
+    procedure CanadianHSTReusesProvinceJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureJurisdiction('HST');
+        EnsureJurisdiction('NSHST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('NSHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'An existing province-specific HST jurisdiction must take precedence over generic HST.');
+    end;
+
+    [Test]
+    procedure CanadianHSTDoesNotReuseAgentGenericJurisdiction()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureAgentJurisdiction('HST', false);
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('NSHST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', true),
+            'An agent-created generic HST jurisdiction must not be reused for another province.');
+    end;
+
+    [Test]
+    procedure CanadianHSTKeepsGenericWhenCreationDisabled()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        EnsureJurisdiction('HST');
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'ON';
+
+        LibraryAssert.AreEqual('HST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'HST', false),
+            'Generic HST must remain available when province-specific creation is disabled.');
+    end;
+
+    [Test]
+    procedure CanadianGSTRemainsGeneric()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMAMatcher: Codeunit "Shpfy TMA Matcher";
+    begin
+        Cleanup();
+        OrderHeader."Ship-to Country/Region Code" := 'CA';
+        OrderHeader."Ship-to County" := 'NS';
+
+        LibraryAssert.AreEqual('GST', TMAMatcher.ResolveCanadianHSTJurisdictionCode(OrderHeader, 'GST', true),
+            'GST is federal and must remain reusable across provinces.');
     end;
 
     // RD9 — Undo Approval clears the reviewed flag, so a held order is held again.
@@ -670,6 +772,7 @@ codeunit 134720 "Shpfy TMA Rate Conflict Test"
 
         Clear(OrderHeader);
         OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Ship-to Country/Region Code" := 'US';
         OrderHeader."Tax Area Code" := ExistingTaxAreaCode;
         OrderHeader."Tax Exempt" := TaxExempt;
     end;

@@ -87,7 +87,7 @@ tests:
         autoCreateTaxJurisdictions: true
       taxJurisdictions:
         - Code: NYSTAX
-          Description: New York State Tax
+          Description: Admin-maintained New York State Tax
       orderAddress:
         countryRegionCode: US
         county: NY
@@ -104,10 +104,13 @@ tests:
         - parentId: 10001
           lineNo: 1
           jurisdictionCode: NYSTAX
+      taxJurisdictionDescriptions:
+        - code: NYSTAX
+          description: Admin-maintained New York State Tax
       matchResult: true
 
-  - name: JC5-DescriptionEqualsCode
-    description: Auto-created jurisdiction's Description must equal its Code
+  - name: JC5-DescriptionMatchesTaxTitle
+    description: Auto-created jurisdiction's Description uses the full Shopify tax title
     setup:
       shopSettings:
         autoCreateTaxJurisdictions: true
@@ -122,10 +125,86 @@ tests:
           taxGroupCode: TAXABLE
           taxLines:
             - lineNo: 1
-              title: NEW YORK STATE TAX
+              title: METROPOLITAN COMMUTER TRANSPORTATION MOBILITY TAX
               ratePct: 4.0
               channelLiable: false
     expected:
       allTaxLinesMatched: true
-      createdJurisdictionDescriptionEqualsCode: true
+      createdJurisdictionDescriptionMatchesTitle: true
+      matchResult: true
+
+  - name: JC6-CanadianHSTUsesProvinceCode
+    description: Generic Canadian HST auto-creation uses a province-specific jurisdiction
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ONHST
+      taxJurisdictionDescriptions:
+        - code: ONHST
+          description: HST - ON
+      createdJurisdictionCountryRegion: CA
+      rateConflict: false
+      matchResult: true
+
+  - name: JC7-CanadianHSTDoesNotReuseAgentGeneric
+    description: A generic agent-created HST jurisdiction is not reused for a different province and rate
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+      taxJurisdictions:
+        - Code: HST
+          Description: HST
+          Country/Region Code: CA
+          Created by Agent: true
+      existingTaxDetails:
+        - Tax Jurisdiction Code: HST
+          Tax Group Code: TAXABLE
+          Tax Below Maximum: 13.0
+          Effective Date: "2026-09-24"
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      documentDate: "2026-09-24"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 14.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NSHST
+      taxJurisdictionDescriptions:
+        - code: NSHST
+          description: HST - NS
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 14.0
+      rateConflict: false
       matchResult: true

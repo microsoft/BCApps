@@ -151,14 +151,15 @@ codeunit 30473 "Shpfy TMA Events"
 
     /// <summary>
     /// Business guards deciding whether Tax Matching Agent should run for an order: the shop
-    /// must have the feature enabled, the order must not already have a Tax Area (idempotency —
-    /// e.g. address-based MapTaxArea already resolved one, or this is a re-import), and the order
-    /// must not be tax exempt. Capability-registration/active checks are evaluated separately in
-    /// the subscriber. Exposed as internal so the guards can be tested without the connector flow.
+    /// must have the feature enabled, ship to the US or Canada, not already have a Tax Area, and
+    /// not be tax exempt. Capability-registration/active checks are evaluated separately in the
+    /// subscriber. Exposed as internal so the guards can be tested without the connector flow.
     /// </summary>
     internal procedure ShouldAttemptMatch(ShopifyOrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"): Boolean
     begin
         if not Shop."Tax Matching Agent Enabled" then
+            exit(false);
+        if not (ShopifyOrderHeader."Ship-to Country/Region Code" in ['US', 'CA']) then
             exit(false);
         if ShopifyOrderHeader."Tax Area Code" <> '' then
             exit(false);
