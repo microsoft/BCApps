@@ -121,6 +121,130 @@ function Invoke-TestsWithReruns {
     }
 }
 
+<#
+.SYNOPSIS
+    Fails the run when a [Test] method declared in an executed test codeunit never produced a result.
+.DESCRIPTION
+    A test object can fail runtime AL-to-C# code generation (or be truncated mid-run) so that some
+    of its [Test] methods are silently dropped while the codeunit still reports success and no
+    failed result is written - reruns and test tolerance cannot see this. This reconciles the
+    declared [Test] methods (read from the AL source) against those in the run's JUnit results.
+
+    Rule: for every codeunit that produced at least one result, every declared, non-disabled [Test]
+    method must appear in the results. A codeunit with zero results is ignored (legitimately
+    filtered out by test-type / codeunit-range selection).
+.OUTPUTS
+    [bool] $true when every declared, non-disabled test in an executed codeunit ran; $false otherwise.
+#>
+function Test-AllSelectedTestsExecuted {
+    param(
+        [Hashtable]$parameters
+    )
+
+    $resultsPath = if ($parameters.ContainsKey("JUnitResultFileName")) { $parameters["JUnitResultFileName"] } else { $null }
+    if ([string]::IsNullOrWhiteSpace($resultsPath) -or -not (Test-Path $resultsPath)) {
+        Write-Host "No JUnit result file available; skipping declared-vs-executed reconciliation."
+        return $true
+    }
+
+    try {
+        [xml]$doc = Get-Content -Path $resultsPath -Raw -ErrorAction Stop
+    } catch {
+        Write-Host "WARNING: Could not read JUnit results '$resultsPath' ($($_.Exception.Message)); skipping reconciliation."
+        return $true
+    }
+
+    # Executed [Test] methods per codeunit id. GetAttribute (not member access) is StrictMode-safe.
+    $executed = @{}
+    foreach ($suite in $doc.SelectNodes('//testsuite')) {
+        $suiteName = $suite.GetAttribute('name') # suite name is "<id> <name>"
+        if ([string]::IsNullOrWhiteSpace($suiteName) -or ($suiteName -notmatch '^\s*(\d+)\s')) { continue }
+        $cuId = [int]$Matches[1]
+        if (-not $executed.ContainsKey($cuId)) { $executed[$cuId] = [System.Collections.Generic.HashSet[string]]::new() }
+        foreach ($tc in $suite.SelectNodes('testcase')) {
+            $tcName = $tc.GetAttribute('name')
+            if ([string]::IsNullOrWhiteSpace($tcName)) { continue }
+            # A tolerated failure is re-labelled "<method> (tolerated)"; strip the annotation to match.
+            if ($tcName -match '^(?<m>\S+)\s+\(.+\)\s*$') { $tcName = $Matches['m'] }
+            [void]$executed[$cuId].Add($tcName)
+        }
+    }
+    if ($executed.Count -eq 0) {
+        Write-Host "No executed test codeunits found in results; skipping reconciliation."
+        return $true
+    }
+
+    # Disabled methods, keyed "<id>|<method>".
+    $disabled = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($d in @($parameters["disabledTests"])) {
+        if ($null -eq $d) { continue }
+        $props = $d.PSObject.Properties
+        if ($props['codeunitId'] -and $props['method'] -and ($null -ne $d.codeunitId) -and ($null -ne $d.method)) {
+            [void]$disabled.Add("$([int]$d.codeunitId)|$([string]$d.method)")
+        }
+    }
+
+    # Declared [Test] methods per codeunit, parsed from AL source under 'test' folders. Only
+    # codeunits that ran are reconciled, so pre-filter files to those declaring one of them.
+    $declared = @{}
+    $baseFolder = Get-BaseFolder
+    $executedIdPattern = 'codeunit\s+(?:' + (($executed.Keys | ForEach-Object { [regex]::Escape("$_") }) -join '|') + ')\b'
+    $testFolders = @(Get-ChildItem -Path $baseFolder -Recurse -Directory -Filter 'test' -ErrorAction SilentlyContinue)
+    $alFiles = foreach ($tf in $testFolders) { Get-ChildItem -Path $tf.FullName -Recurse -Filter '*.al' -File -ErrorAction SilentlyContinue }
+    foreach ($alFile in $alFiles) {
+        $raw = Get-Content -Path $alFile.FullName -Raw -ErrorAction SilentlyContinue
+        if ($null -eq $raw) { continue }
+        if ($raw -notmatch $executedIdPattern) { continue }
+        # Strip comments so a commented-out [Test] is not counted as declared.
+        $raw = [regex]::Replace($raw, '(?s)/\*.*?\*/', "`n")
+        $lines = ($raw -split "`r?`n") | ForEach-Object { $_ -replace '//.*$', '' }
+        $cuId = $null
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match '^\s*codeunit\s+(\d+)\s') {
+                $cuId = [int]$Matches[1]
+                if (-not $declared.ContainsKey($cuId)) { $declared[$cuId] = [System.Collections.Generic.HashSet[string]]::new() }
+                continue
+            }
+            if (($null -ne $cuId) -and ($lines[$i] -match '^\s*\[Test\]\s*$')) {
+                for ($j = $i + 1; $j -lt [Math]::Min($i + 10, $lines.Count); $j++) {
+                    if ($lines[$j] -match '^\s*(local\s+)?procedure\s+(\w+)') {
+                        [void]$declared[$cuId].Add($Matches[2]); break
+                    }
+                }
+            }
+        }
+    }
+
+    # Reconcile: every declared, non-disabled method of an executed codeunit must have run.
+    $violations = @()
+    foreach ($cuId in $executed.Keys) {
+        if (-not $declared.ContainsKey($cuId)) { continue }
+        $missing = @($declared[$cuId] | Where-Object {
+            (-not $executed[$cuId].Contains($_)) -and (-not $disabled.Contains("$cuId|$_"))
+        })
+        if ($missing.Count -gt 0) {
+            $violations += [pscustomobject]@{
+                CodeunitId = $cuId
+                Declared   = $declared[$cuId].Count
+                Executed   = $executed[$cuId].Count
+                Missing    = @($missing | Sort-Object)
+            }
+        }
+    }
+
+    if ($violations.Count -eq 0) {
+        Write-Host "Declared-vs-executed reconciliation passed: every declared, non-disabled test in an executed codeunit ran."
+        return $true
+    }
+
+    $totalMissing = ($violations | ForEach-Object { $_.Missing.Count } | Measure-Object -Sum).Sum
+    Write-Host "::error::Silently skipped test methods detected: $totalMissing declared, non-disabled [Test] method(s) never ran even though their codeunit executed. This is a hard defect (e.g. a runtime AL-to-C# code-generation failure the platform swallows), not flaky instability."
+    foreach ($v in $violations) {
+        Write-Host "::error::  Codeunit $($v.CodeunitId): declared $($v.Declared), executed $($v.Executed), missing $($v.Missing.Count): $([string]::Join(', ', $v.Missing))"
+    }
+    return $false
+}
+
 if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     Write-Host "Using test type $TestType"
     $parameters["testType"] = $TestType
@@ -182,6 +306,12 @@ if (-not $result -and $testResultFileName -and $isPullRequest) {
             Remove-Item -Path $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
+}
+
+# Catch [Test] methods silently dropped at runtime (which reruns and tolerance cannot see) by
+# reconciling declared vs executed tests. Checked last, even when $result was tolerated.
+if (-not (Test-AllSelectedTestsExecuted -parameters $parameters)) {
+    return $false
 }
 
 return $result

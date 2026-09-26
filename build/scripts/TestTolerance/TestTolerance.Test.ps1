@@ -319,13 +319,24 @@ Describe "TestTolerance" {
             Test-ShouldTolerateFailures -TestResultsPath $xmlPath -UnstableTestsPath $unstablePath | Should -BeFalse
         }
 
-        It "returns true when test results have no failures" {
+        It "returns false (hard failure) when a failed run recorded no per-test failures" {
+            # Called only after a failure; no failed testcases means a hard failure that must not be tolerated.
             $unstablePath = New-TempFile -Name 'unstable-nofail.json' -Content '{"tests":[{"extensionId":"ext1","codeunitId":300,"codeunitName":"A","testMethod":"T1"}]}'
             $xmlPath = New-TempFile -Name 'results-nofail.xml' -Content @'
 <?xml version="1.0"?>
 <testsuites><testsuite name="300 A" tests="1" failures="0"><properties><property name="extensionid" value="ext1" /></properties><testcase classname="300 A" name="T1" /></testsuite></testsuites>
 '@
-            Test-ShouldTolerateFailures -TestResultsPath $xmlPath -UnstableTestsPath $unstablePath | Should -BeTrue
+            Test-ShouldTolerateFailures -TestResultsPath $xmlPath -UnstableTestsPath $unstablePath | Should -BeFalse
+        }
+
+        It "returns false (hard failure) when the results file has no testcases at all" {
+            # A selection-time compile failure crashes the run before any testcase is emitted.
+            $unstablePath = New-TempFile -Name 'unstable-empty-results.json' -Content '{"tests":[{"extensionId":"ext1","codeunitId":300,"codeunitName":"A","testMethod":"T1"}]}'
+            $xmlPath = New-TempFile -Name 'results-empty.xml' -Content @'
+<?xml version="1.0"?>
+<testsuites></testsuites>
+'@
+            Test-ShouldTolerateFailures -TestResultsPath $xmlPath -UnstableTestsPath $unstablePath | Should -BeFalse
         }
     }
 

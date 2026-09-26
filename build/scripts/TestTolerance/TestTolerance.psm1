@@ -525,6 +525,9 @@ function Update-TestResultsForTolerance {
     listed as unstable. If so, rewrites the test results to reclassify them and returns $true.
     Returns $false if any failures are not tolerated, or if inputs are missing/unsupported.
 
+    Only called after a run has already failed, so no per-test failures means a hard failure
+    (the run did not complete) that must not be tolerated.
+
 .Parameter TestResultsPath
     Path to the test results XML for the current build.
 .Parameter UnstableTestsPath
@@ -561,8 +564,10 @@ function Test-ShouldTolerateFailures {
     Write-Host "Parsing failed tests from '$TestResultsPath'..."
     $failedTests = @(Get-FailedTestsFromResults -Path $TestResultsPath | Where-Object { $_ })
     if ($failedTests.Count -eq 0) {
-        Write-Host "No failed tests found in results. Nothing to tolerate."
-        return $true
+        # Called only after the run failed, so zero per-test failures means a hard failure that
+        # did not complete (e.g. a runtime compilation failure during selection). Fail closed.
+        Write-Host "Tests failed but no per-test failures were recorded in the results. This indicates a hard failure (the run did not complete) rather than tolerable test failures. Not tolerating."
+        return $false
     }
     Write-Host "Found $($failedTests.Count) failed test(s) in results."
 
