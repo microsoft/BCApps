@@ -38,6 +38,8 @@ codeunit 6108 "E-Document Processing"
         EDocTelemetryCategoryLbl: Label 'E-Document', Locked = true;
         EDocTelemetryIdLbl: Label 'E-Doc %1', Locked = true;
         EDocTok: Label 'W1 E-Document', Locked = true;
+        RejectOrderQst: Label 'Do you want to reject this order and notify the sender?';
+        OrderRejectedMsg: Label 'A rejection response has been created for this order.';
 
     /// <summary>
     /// Inserts E-Document Service Status record. Throws runtime error if record does exists.
@@ -796,9 +798,14 @@ codeunit 6108 "E-Document Processing"
         MessageType := IResponseProvider.GetResponseMessageType(EDocument);
         if MessageType = "E-Document Message Type"::Unknown then
             exit;
+        if GuiAllowed() then
+            if not Confirm(RejectOrderQst) then
+                exit;
         IMessageBuilder := MessageType;
         IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
         EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Rejected, ResponseBlob);
+        if GuiAllowed() then
+            Message(OrderRejectedMsg);
     end;
 
     [IntegrationEvent(false, false)]

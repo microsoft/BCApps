@@ -277,6 +277,21 @@ page 6153 "E-Document Sales Draft"
                         FinalizeEDocument(TempEDocImportParameters);
                     end;
                 }
+                action(RejectOrder)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Reject Order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    Image = Reject;
+                    Visible = ShowFinalizeDraftAction;
+
+                    trigger OnAction()
+                    var
+                        EDocumentProcessing: Codeunit "E-Document Processing";
+                    begin
+                        EDocumentProcessing.SendOrderRejection(EDocument);
+                    end;
+                }
                 action(ResetDraftDocument)
                 {
                     ApplicationArea = Basic, Suite;
