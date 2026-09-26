@@ -52,20 +52,13 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         if DocumentAttachment."Table ID" <> 0 then
             case DocumentAttachment."Table ID" of
                 Database::"Production BOM Header":
-                    begin
-                        RecRef.Open(Database::"Production BOM Header");
-                        if ProdBOMHeader.Get(DocumentAttachment."No.") then
-                            RecRef.GetTable(ProdBOMHeader);
-                    end;
+                    if ProdBOMHeader.Get(DocumentAttachment."No.") then
+                        RecRef.GetTable(ProdBOMHeader);
                 Database::"Routing Header":
-                    begin
-                        RecRef.Open(Database::"Routing Header");
-                        if RoutingHeader.Get(DocumentAttachment."No.") then
-                            RecRef.GetTable(RoutingHeader);
-                    end;
+                    if RoutingHeader.Get(DocumentAttachment."No.") then
+                        RecRef.GetTable(RoutingHeader);
                 Database::"Production Order":
                     begin
-                        RecRef.Open(Database::"Production Order");
                         case DocumentAttachment."Document Type" of
                             DocumentAttachment."Document Type"::"Simulated Production Order":
                                 ProdOrder.Status := ProdOrder.Status::Simulated;
