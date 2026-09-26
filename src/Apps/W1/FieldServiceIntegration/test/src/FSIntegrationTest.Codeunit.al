@@ -1584,11 +1584,9 @@ codeunit 139204 "FS Integration Test"
         CRMProduct: Record "CRM Product";
         CRMTransactioncurrency: Record "CRM Transactioncurrency";
         CRMUom: Record "CRM Uom";
-        CRMUomschedule: Record "CRM Uomschedule";
         Currency: Record Currency;
         IntegrationTableMapping: Record "Integration Table Mapping";
         Item: Record Item;
-        UnitOfMeasure: Record "Unit of Measure";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
         JobID: Guid;
@@ -1601,11 +1599,8 @@ codeunit 139204 "FS Integration Test"
 
         // [GIVEN] An uncoupled item whose unit of measure and currency are coupled to Dataverse.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
-        LibraryCRMIntegration.CreateCoupledUnitOfMeasureAndUomSchedule(UnitOfMeasure, CRMUom, CRMUomschedule);
+        CreateItemWithCoupledUnitOfMeasure(Item, CRMUom);
         LibraryCRMIntegration.CreateCoupledCurrencyAndTransactionCurrency(Currency, CRMTransactioncurrency);
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
-        Item.Modify();
         IntegrationTableMapping.Get('ITEM-PRODUCT');
 
         // [WHEN] The item is synchronized to a new Field Service product.
@@ -1624,6 +1619,7 @@ codeunit 139204 "FS Integration Test"
     var
         Item: Record Item;
         CRMProduct: Record "CRM Product";
+        CRMUom: Record "CRM Uom";
         IntegrationFieldMapping: Record "Integration Field Mapping";
         IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
@@ -1638,7 +1634,8 @@ codeunit 139204 "FS Integration Test"
 
         // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes and the existing mapping has no conversion rule.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
-        LibraryCRMIntegration.CreateCoupledItemAndProduct(Item, CRMProduct);
+        CreateItemWithCoupledUnitOfMeasure(Item, CRMUom);
+        LibraryCRMIntegration.CoupleItem(Item, CRMUom, CRMProduct);
         CRMProduct.ConvertToCustomerAsset := true;
         CRMProduct.Modify();
 
@@ -1722,6 +1719,21 @@ codeunit 139204 "FS Integration Test"
         IntegrationSynchJob.TestField(Failed, 0);
         IntegrationSynchJob.TestField(Inserted, ExpectedInserted);
         IntegrationSynchJob.TestField(Modified, ExpectedModified);
+    end;
+
+    local procedure CreateItemWithCoupledUnitOfMeasure(var Item: Record Item; var CRMUom: Record "CRM Uom")
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        UnitOfMeasure: Record "Unit of Measure";
+        DefaultCRMUom: Record "CRM Uom";
+        CRMUomschedule: Record "CRM Uomschedule";
+    begin
+        LibraryCRMIntegration.CreateCoupledUnitOfMeasureAndUomSchedule(UnitOfMeasure, DefaultCRMUom, CRMUomschedule);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
+        Item.Modify();
+        ItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        LibraryCRMIntegration.CoupleItemUnitOfMeasure(ItemUnitOfMeasure, CRMUomschedule, CRMUom);
     end;
 
     procedure ResetFSEnvironment()
