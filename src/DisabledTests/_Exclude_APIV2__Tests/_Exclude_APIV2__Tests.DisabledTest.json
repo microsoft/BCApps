@@ -57,11 +57,6 @@
   {
     "codeunitId": 139823,
     "codeunitName": "APIV2 - Sales Quotes E2E",
-    "method": "TestActionMakeOrderFromQuote"
-  },
-  {
-    "codeunitId": 139823,
-    "codeunitName": "APIV2 - Sales Quotes E2E",
     "method": "TestCreateQuoteThroughPageAndAPI"
   },
   {
