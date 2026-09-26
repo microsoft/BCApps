@@ -8,6 +8,13 @@ using Microsoft.Inventory.Transfer;
 
 codeunit 20537 "Subc. Transfer Shpt Line Ext."
 {
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Line", OnGetProductionOrderNo, '', false, false)]
+    local procedure OnGetProductionOrderNo_T5745(TransferShipmentLine: Record "Transfer Shipment Line"; var ProductionOrderNo: Code[20])
+    begin
+        if TransferShipmentLine."Subc. Prod. Order No." <> '' then
+            ProductionOrderNo := TransferShipmentLine."Subc. Prod. Order No.";
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var TransferShipmentLine: Record "Transfer Shipment Line"; TransferLine: Record "Transfer Line")
 #if not CLEAN29

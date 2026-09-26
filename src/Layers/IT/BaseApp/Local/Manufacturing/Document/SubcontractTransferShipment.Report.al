@@ -418,10 +418,17 @@ report 12154 "Subcontract. Transfer Shipment"
                         end;
 
                         trigger OnAfterGetRecord()
+                        var
+                            ProductionOrderNo: Code[20];
                         begin
-                            if ("Prod. Order No." <> PrevProdOrd) and ("Prod. Order No." <> '') then begin
-                                PrevProdOrd := "Prod. Order No.";
-                                RefProdOrd := FieldCaption("Prod. Order No.") + ' ' + "Prod. Order No.";
+#if not CLEAN28
+                            ProductionOrderNo := "Prod. Order No.";
+#endif
+                            "Transfer Shipment Line".GetProductionOrderNo(ProductionOrderNo);
+
+                            if (ProductionOrderNo <> PrevProdOrd) and (ProductionOrderNo <> '') then begin
+                                PrevProdOrd := ProductionOrderNo;
+                                RefProdOrd := ProdOrderNoLbl + ' ' + ProductionOrderNo;
                             end else
                                 RefProdOrd := '';
                         end;
@@ -596,6 +603,7 @@ report 12154 "Subcontract. Transfer Shipment"
         Header_DimensionsCaptionLbl: Label 'Header Dimensions';
         Text1130007Lbl: Label 'Continue';
         Line_DimensionsCaptionLbl: Label 'Line Dimensions';
+        ProdOrderNoLbl: Label 'Prod. Order No.';
 
     [Scope('OnPrem')]
     procedure TransferText()
