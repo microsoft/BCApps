@@ -1867,18 +1867,34 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     local procedure TestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code");
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        SkipTrackingValidation: Boolean;
     begin
         OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
 
-        if ItemTrackingCode."SN Specific Tracking" then
-            OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
-        if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
-            OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
+        if ItemLedgEntry."Entry Type" = ItemLedgEntry."Entry Type"::Purchase then
+            if not ItemLedgEntry.Positive then
+                if ItemLedgEntry."Document Type" in [
+                    ItemLedgEntry."Document Type"::"Purchase Return Shipment",
+                    ItemLedgEntry."Document Type"::"Purchase Credit Memo"]
+                then
+                    if ItemLedgEntry."Applies-to Entry" = OldItemLedgEntry."Entry No." then
+                        SkipTrackingValidation :=
+                            ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+                                ItemLedgEntry."Item No.", OldItemLedgEntry."Entry No.");
 
-        if ItemTrackingCode."Lot Specific Tracking" then
-            OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
-        if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Lot No." <> '') then
-            OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
+        if not SkipTrackingValidation then begin
+            if ItemTrackingCode."SN Specific Tracking" then
+                OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
+            if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
+                OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
+
+            if ItemTrackingCode."Lot Specific Tracking" then
+                OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
+            if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Lot No." <> '') then
+                OldItemLedgEntry.TestField("Lot No.", ItemLedgEntry."Lot No.");
+        end;
 
         OnAfterTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
     end;

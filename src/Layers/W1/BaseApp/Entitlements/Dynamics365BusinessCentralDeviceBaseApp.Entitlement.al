@@ -14,6 +14,7 @@ entitlement "Dynamics 365 Business Central Device BaseApp"
                          "D365 BUS FULL ACCESS",
                          "D365 BUS PREMIUM",
                          "D365 DIM CORRECTION",
+                         "ITEM TRACKING CHANGE",
                          "D365 MONITOR FIELDS",
                          "LOCAL",
                          "Reten. Pol. Setup - BaseApp",
