@@ -66,6 +66,9 @@ table 5812 "Item Application Trace"
         {
             Clustered = true;
         }
+        key(EntryNo; "Entry No.")
+        {
+        }
     }
 
     procedure CreateChain(FromItemLedgerEntry: Record "Item Ledger Entry"; var AppliedItemLedgerEntry: Record "Item Ledger Entry")

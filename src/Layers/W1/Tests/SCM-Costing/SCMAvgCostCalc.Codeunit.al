@@ -55,18 +55,21 @@ codeunit 137070 "SCM Avg. Cost Calc."
         Item: Record Item;
         PurchaseLine: Record "Purchase Line";
         InventorySetup: Record "Inventory Setup";
+        Location: Record Location;
+        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         // [SCENARIO] Average Cost Period: Day, Average Cost Calc. Type: Item & Location & Variant, verify expected Cost after posting: purchase - transfer - negative purchase - undo negative purchase - adjust cost - sale - adjust cost.
 
         Initialize();
         InvtSetup(InventorySetup."Average Cost Period"::Day, InventorySetup."Average Cost Calc. Type"::"Item & Location & Variant");
         CreateItem(Item);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         PostPurch(Item, '', WorkDate(), 142.7, 8.458);
-        PostTrans(Item, '', SelectLocBlue(), 132.5);
+        PostTrans(Item, '', Location.Code, 132.5);
         PostNegPurch(Item, PurchaseLine, '', -28.7);
         UndoNegPurch(PurchaseLine);
         AdjustCost(Item);
-        PostSaleOrder(Item, SelectLocBlue(), WorkDate(), 3.9, true, true, '');
+        PostSaleOrder(Item, Location.Code, WorkDate(), 3.9, true, true, '');
         AdjustCost(Item);
         VerifyExpectedCostunit(Item."No.", 8.458, 0.001);
     end;
@@ -853,19 +856,6 @@ codeunit 137070 "SCM Avg. Cost Calc."
     begin
         Item.Get(ItemNo);
         Assert.AreEqual(ExpectedUnitCost, Item."Unit Cost", 'The Unit Cost is not calculated correctly.');
-    end;
-
-    local procedure SelectLocBlue(): Code[10]
-    var
-        Location: Record Location;
-    begin
-        Location.SetRange("Use As In-Transit", false);
-        Location.SetRange("Bin Mandatory", false);
-        Location.SetRange("Directed Put-away and Pick", false);
-        Location.SetRange("Require Receive", false);
-        Location.SetRange("Require Shipment", false);
-        Location.FindFirst();
-        exit(Location.Code);
     end;
 
     local procedure CreateCurrencyWithRoundingPrecision(var Currency: Record Currency)
