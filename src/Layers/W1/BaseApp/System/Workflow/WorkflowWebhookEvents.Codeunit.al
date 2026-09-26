@@ -1,6 +1,7 @@
 ﻿namespace System.Automation;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.FixedAssets.Journal;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Requisition;
@@ -45,6 +46,8 @@ codeunit 1541 "Workflow Webhook Events"
                     WorkflowEventHandling.AddEventPredecessor(WorkflowWebhookResponseReceivedEventCode(),
                       WorkflowEventHandling.RunWorkflowOnSendRequisitionWkshBatchForApprovalCode());
                     WorkflowEventHandling.AddEventPredecessor(WorkflowWebhookResponseReceivedEventCode(),
+                      WorkflowEventHandling.RunWorkflowOnSendFAJournalBatchForApprovalCode());
+                    WorkflowEventHandling.AddEventPredecessor(WorkflowWebhookResponseReceivedEventCode(),
                       WorkflowEventHandling.RunWorkflowOnSendItemForApprovalCode());
                     WorkflowEventHandling.AddEventPredecessor(WorkflowWebhookResponseReceivedEventCode(),
                       WorkflowEventHandling.RunWorkflowOnSendPurchaseDocForApprovalCode());
@@ -74,6 +77,7 @@ codeunit 1541 "Workflow Webhook Events"
         DummyGenJournalLine: Record "Gen. Journal Line";
         DummyItemJournalBatch: Record "Item Journal Batch";
         DummyRequisitionWkshName: Record "Requisition Wksh. Name";
+        DummyFAJournalBatch: Record "FA Journal Batch";
         DummyPurchaseHeader: Record "Purchase Header";
         DummySalesHeader: Record "Sales Header";
         DummyVendor: Record Vendor;
@@ -89,6 +93,8 @@ codeunit 1541 "Workflow Webhook Events"
         WorkflowSetup.InsertTableRelation(Database::"Item Journal Batch", DummyItemJournalBatch.FieldNo(SystemId),
           Database::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         WorkflowSetup.InsertTableRelation(Database::"Requisition Wksh. Name", DummyRequisitionWkshName.FieldNo(SystemId),
+          Database::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
+        WorkflowSetup.InsertTableRelation(Database::"FA Journal Batch", DummyFAJournalBatch.FieldNo(SystemId),
           Database::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         WorkflowSetup.InsertTableRelation(DATABASE::Item, DummyItem.FieldNo(SystemId),
           DATABASE::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
@@ -110,6 +116,7 @@ codeunit 1541 "Workflow Webhook Events"
         DummyGenJournalLine: Record "Gen. Journal Line";
         DummyItemJournalBatch: Record "Item Journal Batch";
         DummyRequisitionWkshName: Record "Requisition Wksh. Name";
+        DummyFAJournalBatch: Record "FA Journal Batch";
         DummyPurchaseHeader: Record "Purchase Header";
         DummySalesHeader: Record "Sales Header";
         DummyVendor: Record Vendor;
@@ -122,6 +129,7 @@ codeunit 1541 "Workflow Webhook Events"
         CleanupIntegrationRecordTableRelation(DATABASE::"Gen. Journal Line", DummyGenJournalLine.FieldNo(SystemId), 8000, DATABASE::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         CleanupIntegrationRecordTableRelation(Database::"Item Journal Batch", DummyItemJournalBatch.FieldNo(SystemId), 8000, Database::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         CleanupIntegrationRecordTableRelation(Database::"Requisition Wksh. Name", DummyRequisitionWkshName.FieldNo(SystemId), 8000, Database::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
+        CleanupIntegrationRecordTableRelation(Database::"FA Journal Batch", DummyFAJournalBatch.FieldNo(SystemId), 8000, Database::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         CleanupIntegrationRecordTableRelation(DATABASE::Item, DummyItem.FieldNo(SystemId), 8000, DATABASE::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         CleanupIntegrationRecordTableRelation(DATABASE::"Purchase Header", DummyPurchaseHeader.FieldNo(SystemId), 8000, DATABASE::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
         CleanupIntegrationRecordTableRelation(DATABASE::"Sales Header", DummySalesHeader.FieldNo(SystemId), 8000, DATABASE::"Workflow Webhook Entry", DummyWorkflowWebhookEntry.FieldNo("Data ID"));
@@ -222,6 +230,15 @@ codeunit 1541 "Workflow Webhook Events"
     begin
         // Handles the scenario when a Requisition Worksheet Batch is deleted after it's been sent approval
         WorkflowWebhookManagement.FindAndCancel(RequisitionWkshName.RecordId(), true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnCancelFAJournalBatchApprovalRequest', '', false, false)]
+    local procedure HandleOnCancelFAJournalBatchApprovalRequest(var FAJournalBatch: Record "FA Journal Batch")
+    var
+        WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
+    begin
+        // Handles the scenario when a FA Journal Batch is deleted after it's been sent approval
+        WorkflowWebhookManagement.FindAndCancel(FAJournalBatch.RecordId(), true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnCancelVendorApprovalRequest', '', false, false)]
