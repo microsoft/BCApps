@@ -23,7 +23,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
-using Microsoft.Service.Item;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using Microsoft.TestLibraries.DynamicsFieldService;
@@ -1578,109 +1577,108 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    procedure IgnoreServiceItemWhenConvertToCustomerAssetIsFalse()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure InitialItemSynchronizationDisablesCustomerAssetConversion()
     var
-        Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
-        CRMProduct: Record "CRM Product";
         CRMIntegrationRecord: Record "CRM Integration Record";
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-        ProductId: Guid;
+        CRMProduct: Record "CRM Product";
+        CRMTransactioncurrency: Record "CRM Transactioncurrency";
+        CRMUom: Record "CRM Uom";
+        CRMUomschedule: Record "CRM Uomschedule";
+        Currency: Record Currency;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        JobID: Guid;
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item is skipped when linked CRM Product has Convert to Customer Asset = No.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] The first synchronization of an item disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
+        LibraryCRMIntegration.ConfigureCRM();
 
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
+        // [GIVEN] An uncoupled item whose unit of measure and currency are coupled to Dataverse.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        LibraryCRMIntegration.CreateCoupledUnitOfMeasureAndUomSchedule(UnitOfMeasure, CRMUom, CRMUomschedule);
+        LibraryCRMIntegration.CreateCoupledCurrencyAndTransactionCurrency(Currency, CRMTransactioncurrency);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Base Unit of Measure", UnitOfMeasure.Code);
+        Item.Modify();
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
 
-        ProductId := CreateGuid();
-        CRMProduct.ProductId := ProductId;
-        CRMProduct.ConvertToCustomerAsset := false;
-        CRMProduct.Insert(false);
+        // [WHEN] The item is synchronized to a new Field Service product.
+        JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, true);
 
-        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
-
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsTrue(IgnoreRecord, 'Service Item should be ignored when Convert to Customer Asset is false.');
+        // [THEN] Native Field Service customer asset creation is disabled on the new product.
+        VerifySuccessfulIntegrationSynchJob(JobID, 1, 0);
+        Assert.IsTrue(CRMIntegrationRecord.FindByRecordID(Item.RecordId()), 'The item should be coupled to a product.');
+        CRMProduct.Get(CRMIntegrationRecord."CRM ID");
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
 
     [Test]
-    procedure DoNotIgnoreServiceItemWhenConvertToCustomerAssetIsTrue()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
         Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
         CRMProduct: Record "CRM Product";
-        CRMIntegrationRecord: Record "CRM Integration Record";
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-        ProductId: Guid;
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        JobID: Guid;
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item is not skipped when linked CRM Product has Convert to Customer Asset = Yes.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
+        LibraryCRMIntegration.ConfigureCRM();
 
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
-
-        ProductId := CreateGuid();
-        CRMProduct.ProductId := ProductId;
+        // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes and the existing mapping has no conversion rule.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        LibraryCRMIntegration.CreateCoupledItemAndProduct(Item, CRMProduct);
         CRMProduct.ConvertToCustomerAsset := true;
-        CRMProduct.Insert(false);
+        CRMProduct.Modify();
 
-        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        IntegrationFieldMapping.DeleteAll();
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+        // [WHEN] The item is synchronized to the Field Service product.
+        JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
 
-        Assert.IsFalse(IgnoreRecord, 'Service Item should not be ignored when Convert to Customer Asset is true.');
+        // [THEN] Native Field Service customer asset creation is disabled.
+        VerifySuccessfulIntegrationSynchJob(JobID, 0, 1);
+        CRMProduct.Get(CRMProduct.ProductId);
+        Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
 
     [Test]
-    procedure DoNotIgnoreServiceItemWhenItemNoIsBlank()
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure ItemProductMappingDisablesCustomerAssetConversion()
     var
-        TempServiceItem: Record "Service Item" temporary;
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
+        CRMProduct: Record "CRM Product";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
     begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item with blank Item No. is not skipped by this filter.
+        // [FEATURE] [Item-Product Mapping]
+        // [SCENARIO] The item-product mapping always disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
 
-        TempServiceItem."Item No." := '';
-        RecordRef.GetTable(TempServiceItem);
+        // [WHEN] The default item-product mapping is reset.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
 
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsFalse(IgnoreRecord, 'Service Item with blank Item No. should not be ignored by this filter.');
-    end;
-
-    [Test]
-    procedure DoNotIgnoreServiceItemWhenItemIsNotCoupled()
-    var
-        Item: Record Item;
-        TempServiceItem: Record "Service Item" temporary;
-        RecordRef: RecordRef;
-        IgnoreRecord: Boolean;
-    begin
-        // [FEATURE] [Service Item Mapping]
-        // [SCENARIO] Service Item with uncoupled Item is not skipped by this filter.
-        Initialize();
-        InitSetup(true, '');
-
-        Item.Get(CreateItem());
-        TempServiceItem."Item No." := Item."No.";
-        RecordRef.GetTable(TempServiceItem);
-
-        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
-
-        Assert.IsFalse(IgnoreRecord, 'Service Item with uncoupled Item should not be ignored by this filter.');
+        // [THEN] Convert to Customer Asset is mapped to constant false in the outbound direction.
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        Assert.IsTrue(IntegrationFieldMapping.FindFirst(), 'The Convert to Customer Asset mapping should exist.');
+        Assert.AreEqual(0, IntegrationFieldMapping."Field No.", 'The mapping should use a constant value.');
+        Assert.AreEqual(IntegrationFieldMapping.Direction::ToIntegrationTable, IntegrationFieldMapping.Direction, 'The mapping should be outbound.');
+        Assert.AreEqual('false', IntegrationFieldMapping."Constant Value", 'The mapping should disable Convert to Customer Asset.');
     end;
 
     local procedure Initialize()
@@ -1710,6 +1708,20 @@ codeunit 139204 "FS Integration Test"
 
         IsInitialized := true;
         SetTenantLicenseStateToTrial();
+    end;
+
+    local procedure VerifySuccessfulIntegrationSynchJob(JobID: Guid; ExpectedInserted: Integer; ExpectedModified: Integer)
+    var
+        IntegrationSynchJob: Record "Integration Synch. Job";
+        IntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
+    begin
+        IntegrationSynchJob.Get(JobID);
+        IntegrationSynchJobErrors.SetRange("Integration Synch. Job ID", JobID);
+        if IntegrationSynchJobErrors.FindFirst() then
+            Assert.Fail('Unexpected synchronization error: ' + IntegrationSynchJobErrors.Message);
+        IntegrationSynchJob.TestField(Failed, 0);
+        IntegrationSynchJob.TestField(Inserted, ExpectedInserted);
+        IntegrationSynchJob.TestField(Modified, ExpectedModified);
     end;
 
     procedure ResetFSEnvironment()
@@ -2018,4 +2030,3 @@ codeunit 139204 "FS Integration Test"
         InventorySetup.Modify(true);
     end;
 }
-
