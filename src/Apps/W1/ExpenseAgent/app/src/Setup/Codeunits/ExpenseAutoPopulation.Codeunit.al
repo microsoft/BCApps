@@ -163,6 +163,7 @@ codeunit 6912 "Expense Auto Population"
 
             TotalAmount += DayPerDiemAmount;
             CurrentDate := CalcDate('<+1D>', CurrentDate);
+            ExpenseReportLine."Policy Eval Version" += 1;
         end;
 
         ExpenseReportLine.Validate(Amount, TotalAmount);
