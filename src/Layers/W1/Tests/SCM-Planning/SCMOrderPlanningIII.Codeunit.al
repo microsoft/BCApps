@@ -54,6 +54,189 @@ codeunit 137088 "SCM Order Planning - III"
         PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
         MinTotalQuantityMismatchErr: Label 'Expected total quantity >= %1, but got %2', Comment = '%1 = minimum expected quantity, %2 = actual summed quantity';
+        WrongProdCopyDestErr: Label 'The field Prod. Planning Wksh. Template of table Manufacturing User Template contains a value (%1) that cannot be found in the related table (Req. Wksh. Template).', Comment = '%1 = worksheet template name';
+
+    [Test]
+    procedure CopyToReqWkshTemplate_Fails_ForProductionSupply()
+    var
+        Item: Record Item;
+        ProdItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        RequisitionLine: Record "Requisition Line";
+        ProdOrder: Record "Production Order";
+        ReqWkshTemplateType: Enum "Req. Worksheet Template Type";
+        ReqWkshTemplateName: Code[10];
+        ReqWkshName: Code[10];
+    begin
+        // [SCENARIO 649861] Copying a production supply suggestion to a Req.-type worksheet
+        // template/batch is rejected, since Req. Wksh. cannot create production orders.
+        Initialize();
+
+        // [GIVEN] A production supply suggestion in Order Planning -- the requisition line
+        // produced by CalculateOrderPlanProduction is for the BOM COMPONENT (Item, Purchase-
+        // replenished), not the produced parent (ProdItem); mirrors ReserveProdOrderPlanCopyToReq.
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '');
+        CreateItemWithProductionBOM(ProdItem, Item, '', LibraryRandom.RandIntInRange(1, 5));
+        CreateAndRefreshProdOrder(ProdOrder, ProdOrder.Status::Released, ProdItem."No.", '', LibraryRandom.RandIntInRange(10, 20));
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", Item."No.");
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.Validate("Location Code", LocationBlue.Code);
+        ProdOrderComponent.Modify(true);
+        LibraryPlanning.CalculateOrderPlanProduction(RequisitionLine);
+        FindRequisitionLine(RequisitionLine, ProdOrder."No.", Item."No.", LocationBlue.Code);
+
+        // [GIVEN] A nonrecurring Req.-type worksheet template/batch
+        ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType::"Req.");
+        ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType::"Req.");
+
+        // [WHEN] Attempting to copy the production proposal to that Req.-type destination
+        asserterror MakeSupplyOrdersCopyToProdWksh(RequisitionLine, ReqWkshTemplateName, ReqWkshName);
+
+        // [THEN] The copy is rejected -- Req.-type template is not a valid production destination
+        Assert.ExpectedError(StrSubstNo(WrongProdCopyDestErr, ReqWkshTemplateName));
+
+        // Tear Down
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        if ProdOrderComponent.FindFirst() then
+            ProdOrderComponent.Delete();
+        ProdOrder.Get(ProdOrder.Status::Released, ProdOrder."No.");
+        ProdOrder.Delete(true);
+        ProdItem.Delete();
+        Item.Delete();
+    end;
+
+    [Test]
+    procedure CopyToPlanningWkshTemplate_Fails_ForRecurringBatch()
+    var
+        Item: Record Item;
+        ProdItem: Record Item;
+        ProdOrderComponent: Record "Prod. Order Component";
+        RequisitionLine: Record "Requisition Line";
+        ProdOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        // [SCENARIO 649861] Copying a production supply suggestion to a Planning-type worksheet
+        // whose batch is recurring is rejected -- only a nonrecurring Planning batch is valid.
+        Initialize();
+
+        // [GIVEN] A production supply suggestion in Order Planning -- requisition line is for
+        // the BOM COMPONENT (Item, Purchase-replenished), not the produced parent (ProdItem).
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '');
+        CreateItemWithProductionBOM(ProdItem, Item, '', LibraryRandom.RandIntInRange(1, 5));
+        CreateAndRefreshProdOrder(ProdOrder, ProdOrder.Status::Released, ProdItem."No.", '', LibraryRandom.RandIntInRange(10, 20));
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", Item."No.");
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.Validate("Location Code", LocationBlue.Code);
+        ProdOrderComponent.Modify(true);
+        LibraryPlanning.CalculateOrderPlanProduction(RequisitionLine);
+        FindRequisitionLine(RequisitionLine, ProdOrder."No.", Item."No.", LocationBlue.Code);
+
+        // [GIVEN] A Planning-type worksheet template with a RECURRING batch
+#pragma warning disable AA0210
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Planning);
+#pragma warning restore AA0210
+        ReqWkshTemplate.FindFirst();
+        ReqWkshTemplate.Validate(Recurring, true);
+        ReqWkshTemplate.Modify(true);
+        RequisitionWkshName.Init();
+        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.Validate(
+          Name,
+          CopyStr(
+            LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), DATABASE::"Requisition Wksh. Name"),
+            1, LibraryUtility.GetFieldLength(DATABASE::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
+        RequisitionWkshName.Insert(true);
+        Commit();
+
+        // [WHEN] Attempting to copy the production proposal to that recurring Planning-type destination
+        asserterror MakeSupplyOrdersCopyToProdWksh(RequisitionLine, ReqWkshTemplate.Name, RequisitionWkshName.Name);
+
+        // [THEN] The copy is rejected -- a recurring batch cannot be used as a production copy destination
+        Assert.ExpectedError(StrSubstNo(WrongProdCopyDestErr, ReqWkshTemplate.Name));
+
+        // Tear Down]
+#pragma warning disable AA0210
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Planning);
+#pragma warning restore AA0210
+        ReqWkshTemplate.FindFirst();
+        ReqWkshTemplate.Validate(Recurring, false);
+        ReqWkshTemplate.Modify(true);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        if ProdOrderComponent.FindFirst() then
+            ProdOrderComponent.Delete();
+        ProdOrder.Get(ProdOrder.Status::Released, ProdOrder."No.");
+        ProdOrder.Delete(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    procedure CopyToPlanningWkshTemplate_Succeeds_ForProductionSupply()
+    var
+        ProdItem: Record Item;
+        ComponentItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        SalesHeader: Record "Sales Header";
+        RequisitionLine: Record "Requisition Line";
+        DestRequisitionLine: Record "Requisition Line";
+        ProdOrderLine: Record "Prod. Order Line";
+        ReqWkshTemplateType: Enum "Req. Worksheet Template Type";
+        PlanningWkshTemplateName: Code[10];
+        PlanningWkshName: Code[10];
+    begin
+        // [SCENARIO 649861] A Prod.-Order supply suggestion, generated from sales demand,
+        // copied to a valid nonrecurring Planning-type worksheet succeeds end-to-end
+        // and creates a production order on Carry Out.
+        Initialize();
+
+        // [GIVEN] An item with Prod. Order replenishment and a certified production BOM
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ComponentItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", LibraryRandom.RandIntInRange(1, 5));
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+
+        LibraryInventory.CreateItem(ProdItem);
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ProdItem.Modify(true);
+
+        // [GIVEN] A released sales order creating demand for the Prod. item
+        CreateSalesOrder(SalesHeader, ProdItem."No.", LocationBlue.Code, LibraryRandom.RandDec(10, 2) + 10, 0);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] Order Planning calculated for the sales demand
+        LibraryPlanning.CalculateOrderPlanSales(RequisitionLine);
+        FindRequisitionLine(RequisitionLine, SalesHeader."No.", ProdItem."No.", LocationBlue.Code);
+
+        // [GIVEN] A nonrecurring Planning-type worksheet template/batch
+        ReqWkshTemplateType := ReqWkshTemplateType::Planning;
+        PlanningWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
+        PlanningWkshName := GetReqWkshName(PlanningWkshTemplateName, ReqWkshTemplateType);
+
+        // [WHEN] Copying to a valid nonrecurring Planning-type destination
+        MakeSupplyOrdersCopyToProdWksh(RequisitionLine, PlanningWkshTemplateName, PlanningWkshName);
+
+        // [THEN] The line lands in the destination Planning worksheet
+        DestRequisitionLine.SetRange("Worksheet Template Name", PlanningWkshTemplateName);
+        DestRequisitionLine.SetRange("Journal Batch Name", PlanningWkshName);
+        DestRequisitionLine.SetRange(Type, DestRequisitionLine.Type::Item);
+        DestRequisitionLine.SetRange("No.", ProdItem."No.");
+        Assert.RecordIsNotEmpty(DestRequisitionLine);
+        DestRequisitionLine.FindFirst();
+
+        // [THEN] Carry Out on the copied line creates the production order
+        Commit();
+        RunRequisitionCarryOutReportProdOrder(DestRequisitionLine);
+        ProdOrderLine.SetRange("Item No.", ProdItem."No.");
+        Assert.IsFalse(ProdOrderLine.IsEmpty(), 'Expected Carry Out to create a production order.');
+
+        // Tear Down
+        SalesHeader.Delete(true);
+    end;
 
     [Test]
     [HandlerFunctions('MakeSupplyOrdersPageHandler')]
@@ -687,6 +870,8 @@ codeunit 137088 "SCM Order Planning - III"
         ReservationEntry: Record "Reservation Entry";
         ReqWkshTemplateName: Code[10];
         ReqWkshName: Code[10];
+        PlanWkshTemplateName: Code[10];
+        PlanWkshName: Code[10];
         Qty: Decimal;
         QtyPer: Decimal;
     begin
@@ -712,9 +897,11 @@ codeunit 137088 "SCM Order Planning - III"
 
         ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
         ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType);
+        PlanWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType::Planning);
+        PlanWkshName := GetReqWkshName(PlanWkshTemplateName, ReqWkshTemplateType::Planning);
 
         // Exercise : Run Make order from Order Planning.
-        MakeSupplyOrdersCopyToWkshActiveOrder(ProdOrder."No.", ReqWkshTemplateName, ReqWkshName);
+        MakeSupplyOrdersCopyToWkshActiveOrder(ProdOrder."No.", ReqWkshTemplateName, ReqWkshName, PlanWkshTemplateName, PlanWkshName);
 
         // Verify : Check That Reservation Entry Created after Make Supply Order.
         // 246 indicates reserved from requisition line
@@ -812,6 +999,8 @@ codeunit 137088 "SCM Order Planning - III"
         TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
         ReqWkshTemplateName: Code[10];
         ReqWkshName: Code[10];
+        PlanWkshTemplateName: Code[10];
+        PlanWkshName: Code[10];
         Quantity: Decimal;
     begin
         // Setup : Create Sales Order and Calculate Plan
@@ -829,9 +1018,11 @@ codeunit 137088 "SCM Order Planning - III"
 
         ReqWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType);
         ReqWkshName := GetReqWkshName(ReqWkshTemplateName, ReqWkshTemplateType);
+        PlanWkshTemplateName := GetReqWkshTemplateName(ReqWkshTemplateType::Planning);
+        PlanWkshName := GetReqWkshName(PlanWkshTemplateName, ReqWkshTemplateType::Planning);
 
         // Exercise : Run Make order from Order Planning.
-        MakeSupplyOrdersCopyToWkshActiveOrder(SalesHeader."No.", ReqWkshTemplateName, ReqWkshName);
+        MakeSupplyOrdersCopyToWkshActiveOrder(SalesHeader."No.", ReqWkshTemplateName, ReqWkshName, PlanWkshTemplateName, PlanWkshName);
 
         // Verify : Check That Reservation Entry Created after Make Supply Order.
         // 246 indicates reserved from requisition line
@@ -1835,7 +2026,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLine.Modify(true);
 
         // [WHEN] Make a line in requisition worksheet to supply the assembly line.
-        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::"Req.");
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
         GetManufacturingUserTemplate(
           ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order",
           ManufacturingUserTemplate."Create Production Order"::"Copy to Req. Wksh");
@@ -2025,7 +2216,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLine.Modify(true);
 
         // [WHEN] Make a line in requisition worksheet to supply the job planning line.
-        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::"Req.");
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
         GetManufacturingUserTemplate(
           ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order",
           ManufacturingUserTemplate."Create Production Order"::"Copy to Req. Wksh");
@@ -3844,6 +4035,19 @@ codeunit 137088 "SCM Order Planning - III"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Order Planning - III");
     end;
 
+    local procedure MakeSupplyOrdersCopyToProdWksh(var RequisitionLine: Record "Requisition Line"; ProdWkshTemplateName: Code[10]; ProdWkshName: Code[10])
+    var
+        ManufacturingUserTemplate: Record "Manufacturing User Template";
+    begin
+        GetManufacturingUserTemplate(ManufacturingUserTemplate, ManufacturingUserTemplate."Make Orders"::"The Active Order",
+          ManufacturingUserTemplate."Create Production Order"::"Copy to Req. Wksh");
+        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", ProdWkshTemplateName);
+        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", ProdWkshName);
+        ManufacturingUserTemplate.Modify(true);
+        Commit();
+        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+    end;
+
     local procedure ClearGlobals()
     var
         RequisitionLine: Record "Requisition Line";
@@ -4407,7 +4611,9 @@ codeunit 137088 "SCM Order Planning - III"
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
     begin
+#pragma warning disable AA0210
         ReqWkshTemplate.SetRange(Type, TemplateType);
+#pragma warning restore AA0210
         ReqWkshTemplate.FindFirst();
         exit(ReqWkshTemplate.Name);
     end;
@@ -4434,7 +4640,7 @@ codeunit 137088 "SCM Order Planning - III"
           ManufacturingUserTemplate."Create Production Order"::"Firm Planned");
     end;
 
-    local procedure MakeSupplyOrdersCopyToWkshActiveOrder(DemandOrderNo: Code[20]; WkshTemplateName: Code[10]; WkshName: Code[10])
+    local procedure MakeSupplyOrdersCopyToWkshActiveOrder(DemandOrderNo: Code[20]; WkshTemplateName: Code[10]; WkshName: Code[10]; PlanWkshTemplateName: Code[10]; PlanWkshName: Code[10])
     var
         ManufacturingUserTemplate: Record "Manufacturing User Template";
         RequisitionLine: Record "Requisition Line";
@@ -4442,7 +4648,7 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLine.SetRange("Demand Order No.", DemandOrderNo);
         RequisitionLine.FindFirst();
         MakeSupplyOrdersCopyToWksh(
-          RequisitionLine, ManufacturingUserTemplate."Make Orders"::"The Active Order", WkshTemplateName, WkshName);
+          RequisitionLine, ManufacturingUserTemplate."Make Orders"::"The Active Order", WkshTemplateName, WkshName, PlanWkshTemplateName, PlanWkshName);
     end;
 
     local procedure MakeSupplyOrders(var RequisitionLine: Record "Requisition Line"; MakeOrders: Option; CreateProductionOrder: Enum "Planning Create Prod. Order")
@@ -4453,7 +4659,7 @@ codeunit 137088 "SCM Order Planning - III"
         LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
     end;
 
-    local procedure MakeSupplyOrdersCopyToWksh(var RequisitionLine: Record "Requisition Line"; MakeOrders: Option; WkshTemplateName: Code[10]; WkshName: Code[10])
+    local procedure MakeSupplyOrdersCopyToWksh(var RequisitionLine: Record "Requisition Line"; MakeOrders: Option; WkshTemplateName: Code[10]; WkshName: Code[10]; PlanWkshTemplateName: Code[10]; PlanWkshName: Code[10])
     var
         ManufacturingUserTemplate: Record "Manufacturing User Template";
     begin
@@ -4465,8 +4671,8 @@ codeunit 137088 "SCM Order Planning - III"
         ManufacturingUserTemplate.Validate("Purchase Req. Wksh. Template", WkshTemplateName);
         ManufacturingUserTemplate.Validate("Purchase Wksh. Name", WkshName);
 
-        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", WkshTemplateName);
-        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", WkshName);
+        ManufacturingUserTemplate.Validate("Prod. Req. Wksh. Template", PlanWkshTemplateName);
+        ManufacturingUserTemplate.Validate("Prod. Wksh. Name", PlanWkshName);
 
         ManufacturingUserTemplate.Validate("Create Transfer Order",
           ManufacturingUserTemplate."Create Transfer Order"::"Copy to Req. Wksh");
