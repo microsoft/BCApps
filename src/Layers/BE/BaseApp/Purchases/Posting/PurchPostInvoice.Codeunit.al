@@ -554,7 +554,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         CalculateVATAmounts(PurchHeader, TempInvoicePostingBuffer);
 
-        if TempInvoicePostingBuffer.Find('+') then
+        if TempInvoicePostingBuffer.Find('-') then
             repeat
                 LineCount := LineCount + 1;
                 if GuiAllowed() and not HideProgressWindow then
@@ -580,7 +580,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     SetJobLineFilters(JobPurchLine, TempInvoicePostingBuffer);
                     JobPostLine.PostJobPurchaseLines(JobPurchLine.GetView(), GLEntryNo);
                 end;
-            until TempInvoicePostingBuffer.Next(-1) = 0;
+            until TempInvoicePostingBuffer.Next(1) = 0;
 
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := TempInvoicePostingBuffer.Amount;
