@@ -1,6 +1,5 @@
 codeunit 139920 "APIV2 - Workflow Approvers E2E"
 {
-
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
@@ -29,6 +28,8 @@ codeunit 139920 "APIV2 - Workflow Approvers E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Check that workflow approvers can be retrieved via API
         // [GIVEN] A workflow exists
         LibraryWorkflow.CreateWorkflow(Workflow);
@@ -63,5 +64,11 @@ codeunit 139920 "APIV2 - Workflow Approvers E2E"
         ResponseText := LibraryGraphMgt.GetObjectFromCollectionByIndex(ResponseText, 0);
 
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(ResponseText, 'userId', UserId), 'Could not find workflow approver');
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

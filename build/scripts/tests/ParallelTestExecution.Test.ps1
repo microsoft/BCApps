@@ -555,6 +555,121 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
+    Describe "API test isolation metadata" {
+        It "preserves the scoped API codeunit isolation metadata" {
+            $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+            $typedIntegrationCodeunits = @(139917, 139918, 139919, 139920, 139921)
+            foreach ($apiVersion in @('APIV1', 'APIV2')) {
+                $testSource = Join-Path $repoRoot "src\Apps\W1\$apiVersion\test\src"
+                $disabledManifest = Join-Path $repoRoot "src\DisabledTests\_Exclude_${apiVersion}__Tests\_Exclude_${apiVersion}__Tests.DisabledTest.json"
+                $disabledCodeunitIds = if (Test-Path $disabledManifest) {
+                    @(
+                        Get-Content $disabledManifest -Raw |
+                            ConvertFrom-Json |
+                            Where-Object method -eq '*' |
+                            ForEach-Object { [int]$_.codeunitId }
+                    )
+                } else {
+                    @()
+                }
+                $enabledCodeunitCount = 0
+                foreach ($file in (Get-ChildItem $testSource -Filter '*.al' -File)) {
+                    $content = Get-Content $file.FullName -Raw
+                    if ($content -match 'Subtype\s*=\s*Test\s*;') {
+                        $codeunitId = [int]([regex]::Match($content, 'codeunit\s+(\d+)').Groups[1].Value)
+                        if ($codeunitId -in $disabledCodeunitIds) {
+                            continue
+                        }
+
+                        $enabledCodeunitCount++
+                        if ($codeunitId -in $typedIntegrationCodeunits) {
+                            $content | Should -Match 'TestType\s*=\s*IntegrationTest\s*;' `
+                                -Because "$($file.Name) runs through NAV's typed Integration task"
+                            $content | Should -Not -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                                -Because "$($file.Name) runs with normal Codeunit isolation in NAV"
+                            $content | Should -Match 'LibraryGraphMgt\.SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);'
+                        } else {
+                            $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                                -Because "$($file.Name) runs in a NAV Disabled-isolation path"
+                            $content | Should -Match 'LibraryGraphMgt\.SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);' `
+                                -Because "$($file.Name) must select Microsoft test-environment authentication"
+                            $content | Should -Match 'LibraryGraphMgt\.SetLicenseSafeWorkDate\(\);' `
+                                -Because "$($file.Name) must explicitly use a license-safe work date"
+                            $content | Should -Not -Match 'LibraryERM\.SetWorkDate\(\);' `
+                                -Because "$($file.Name) must not overwrite the API test license-safe work date"
+                        }
+                    }
+                }
+
+                $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 75 }
+                $enabledCodeunitCount | Should -Be $expectedEnabledCodeunits `
+                    -Because "$apiVersion must preserve the reviewed codeunit scope independently of method exclusions"
+            }
+        }
+    }
+
+    Describe "API test authentication adoption" {
+        BeforeAll {
+            $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+        }
+
+        It "selects Microsoft test authentication in every test codeunit that issues Graph requests" {
+            $candidateFiles = @(
+                & git -C $repoRoot grep -l 'Codeunit "Library - Graph Mgt"' -- '*.al'
+            )
+            foreach ($candidateFile in $candidateFiles) {
+                $content = Get-Content (Join-Path $repoRoot $candidateFile) -Raw
+                if (($content -match 'Subtype\s*=\s*Test\s*;') -and
+                    ($content -match '\.(GetFromWebService|PostToWebService|PatchToWebService|DeleteFromWebService|InitializeWebRequestWithURL|GetBinaryFromWebService)') -and
+                    ($candidateFile -notlike '*APITestAuthProviderTests.Codeunit.al') -and
+                    ($candidateFile -notlike '*APITestAuthHTTPTests.Codeunit.al')) {
+                    $content | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);' `
+                        -Because "$candidateFile issues API requests"
+                    $onRun = [regex]::Match($content, '(?is)trigger\s+OnRun\s*\(\)\s*begin\b.*?\bend\s*;')
+                    $onRun.Value | Should -Not -Match 'SetAuthenticationProvider' `
+                        -Because "$candidateFile must select authentication during initialization, not OnRun"
+                    $initializer = [regex]::Match(
+                        $content,
+                        '(?ims)^[ \t]*(?:local[ \t]+)?procedure[ \t]+Initialize\s*\([^)]*\)[^\r\n]*\r?\n(?<body>.*?)(?=^[ \t]*(?:(?:local|internal|protected)[ \t]+)?procedure\b|^[ \t]*\[[A-Za-z]|^\})')
+                    $initializer.Success | Should -BeTrue -Because "$candidateFile needs an initialization entry point"
+                    $initializer.Value | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);'
+                    $guard = [regex]::Match($initializer.Value, '(?i)if\s+\w*Initialized\s+then')
+                    if ($guard.Success) {
+                        $initializer.Value.IndexOf('SetAuthenticationProvider') | Should -BeGreaterThan $guard.Index `
+                            -Because "$candidateFile retains its Graph instance and should select its provider only during first-time initialization"
+                    }
+                    $negativeGuard = [regex]::Match($initializer.Value, '(?is)if\s+not\s+\w*Initialized\s+then\s+begin(?<body>.*?)end;')
+                    if ($negativeGuard.Success) {
+                        $negativeGuard.Groups['body'].Value | Should -Match 'SetAuthenticationProvider' `
+                            -Because "$candidateFile should select its provider in its existing first-time initialization branch"
+                    }
+                    if ($content -match 'SetLicenseSafeWorkDate\(\);') {
+                        $onRun.Value | Should -Not -Match 'SetLicenseSafeWorkDate'
+                        $initializer.Value | Should -Match '(?is)\bbegin\s+(?:(?:LibraryGraphMgt|LibGraphMgt)\.SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);\s*)?(?:LibraryGraphMgt|LibGraphMgt)\.SetLicenseSafeWorkDate\(\);' `
+                            -Because "$candidateFile needs the session date established before fixture creation"
+                        if ($guard.Success) {
+                            $initializer.Value.IndexOf('SetLicenseSafeWorkDate') | Should -BeLessThan $guard.Index `
+                                -Because "$candidateFile must reapply the session work date even after its instance was initialized"
+                        }
+                    }
+                }
+
+            }
+        }
+
+        It "initializes Dimension Lines authentication separately from journal fixtures" {
+            $source = Get-Content (Join-Path $repoRoot 'src\Apps\W1\APIV1\test\src\APIV1DimensionLinesE2E.Codeunit.al') -Raw
+            $tests = [regex]::Matches($source, '(?ms)^    \[Test\].*?^    procedure\s+\w+\([^)]*\).*?^    begin(?<body>.*?)(?=^    \[Test\]|^    (?:local )?procedure|^\})')
+            $tests.Count | Should -Be 9
+            foreach ($test in $tests) {
+                $body = $test.Groups['body'].Value
+                $localInitialize = [regex]::Match($body, '(?<![\w.])Initialize\(\);')
+                $localInitialize.Success | Should -BeTrue
+                $localInitialize.Index | Should -BeLessThan $body.IndexOf('LibraryGraphJournalLines.Initialize();')
+            }
+        }
+    }
+
     It "defers the automatic Unit disabled pass only for clean-tenant apps" {
         InModuleScope ParallelTestExecution {
             $script:skipValues = [System.Collections.Generic.List[bool]]::new()

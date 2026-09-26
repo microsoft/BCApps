@@ -3,6 +3,7 @@ codeunit 139800 "APIV2 - Items E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -30,8 +31,13 @@ codeunit 139800 "APIV2 - Items E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         if IsInitialized then
             exit;
+
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
         IsInitialized := true;
         Commit();
@@ -880,8 +886,6 @@ codeunit 139800 "APIV2 - Items E2E"
         Assert.IsFalse(Item.IsEmpty(), 'Item does not exist');
     end;
 }
-
-
 
 
 

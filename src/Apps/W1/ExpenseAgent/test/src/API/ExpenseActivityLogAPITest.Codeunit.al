@@ -19,7 +19,6 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseActivityLogEntries', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
@@ -606,7 +605,9 @@ codeunit 148343 "Expense Activity Log API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         if not ExpenseAgentSetup.Get() then begin

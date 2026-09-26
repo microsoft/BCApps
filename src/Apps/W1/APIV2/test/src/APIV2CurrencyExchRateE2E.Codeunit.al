@@ -1,6 +1,7 @@
 codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
 
     var
         LibraryERM: Codeunit "Library - ERM";
@@ -107,6 +108,10 @@ codeunit 139858 "APIV2 Currency Exch. Rate E2E"
         Currency: Record Currency;
         CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         Currency.DeleteAll();
         CurrencyExchangeRate.DeleteAll();
     end;

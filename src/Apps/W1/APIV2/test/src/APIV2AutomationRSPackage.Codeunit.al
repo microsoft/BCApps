@@ -3,6 +3,7 @@ codeunit 139831 "APIV2 - Automation RS Package"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -28,8 +29,11 @@ codeunit 139831 "APIV2 - Automation RS Package"
     var
         TenantConfigPackageFile: Record "Tenant Config. Package File";
     begin
-        TenantConfigPackageFile.DELETEALL(true);
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
 
+        TenantConfigPackageFile.DELETEALL(true);
 
         SamplePackageFile := GenerateSamplePackageFile();
     end;
@@ -331,7 +335,6 @@ codeunit 139831 "APIV2 - Automation RS Package"
         ConfigPackage.Insert(true);
     end;
 }
-
 
 
 
