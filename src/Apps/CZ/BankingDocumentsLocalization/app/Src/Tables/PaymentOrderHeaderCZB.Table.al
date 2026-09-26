@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.History;
 using System.Automation;
+using System.Reflection;
 using System.Utilities;
 
 table 31256 "Payment Order Header CZB"
@@ -515,7 +516,7 @@ table 31256 "Payment Order Header CZB"
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         TempBlob: Codeunit "Temp Blob";
         RecordRef: RecordRef;
-        DummyInStream: InStream;
+        ReportLayoutList: Record "Report Layout List";
         ReportOutStream: OutStream;
         DocumentInStream: InStream;
         FileName: Text[250];
@@ -526,7 +527,9 @@ table 31256 "Payment Order Header CZB"
         RecordRef.GetTable(PaymentOrderHeaderCZB);
         if not RecordRef.FindFirst() then
             exit;
-        if not Report.RdlcLayout(Report::"Payment Order - Test CZB", DummyInStream) then
+        ReportLayoutList.SetRange("Report ID", Report::"Payment Order - Test CZB");
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::RDLC);
+        if not ReportLayoutList.FindFirst() then
             exit;
 
         Clear(TempBlob);

@@ -7890,7 +7890,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
-                    if UnrealCVLedgEntryBuffer.FindSet(true, false) then
+                    if UnrealCVLedgEntryBuffer.FindSet(true) then
                         repeat
                             OldCustLedgEntry.Get(UnrealCVLedgEntryBuffer."Entry No.");
                             OldCustLedgEntry.CalcFields(
@@ -7938,7 +7938,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     else
                         UnrealCVLedgEntryBuffer.SetRange("Payment Slip No.", GenJnlLine."Document No.");
                     UnrealCVLedgEntryBuffer.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
-                    if UnrealCVLedgEntryBuffer.FindSet(true, false) then
+                    if UnrealCVLedgEntryBuffer.FindSet(true) then
                         repeat
                             OldVendLedgEntry.Get(UnrealCVLedgEntryBuffer."Entry No.");
                             OldVendLedgEntry.CalcFields(

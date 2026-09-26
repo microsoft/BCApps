@@ -1155,7 +1155,6 @@ report 18016 "Sales - Invoice IN GST"
         OtherTaxesAmount: Decimal;
         SupplementaryText: Text[30];
         TotalTCSAmount: Decimal;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         DisplayAssemblyInformation: Boolean;
         ServiceTaxRegistrationNo: Code[20];

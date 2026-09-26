@@ -828,7 +828,7 @@ codeunit 18080 "GST Purchase Subscribers"
     begin
         PurchaseLine.SetRange("Document Type", DocumentType);
         PurchaseLine.SetRange("Document No.", DocumentNo);
-        if PurchaseLine.FindSet(true, false) then
+        if PurchaseLine.FindSet(true) then
             repeat
                 PurchaseLine.Supplementary := Supplementary;
                 PurchaseLine.Modify(true);
@@ -996,7 +996,7 @@ codeunit 18080 "GST Purchase Subscribers"
             exit;
         end;
 
-        if PurchaseLine.findset(false, false) then
+        if PurchaseLine.FindSet(false) then
             repeat
                 if PurchaseHeader."GST Order Address State" <> '' then
                     GSTBaseValidation.VerifyPOSOutOfIndia(

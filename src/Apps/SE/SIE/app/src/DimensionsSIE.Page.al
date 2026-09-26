@@ -75,7 +75,6 @@ page 5315 "Dimensions SIE"
     end;
 
     var
-        [InDataSet]
         LookupModeActive: Boolean;
         CannotEditInLookupModeErr: label 'SIE dimension cannot be added or deleted when the page is opened in lookup mode. To add, remove or edit SIE dimensions, search for the page Dimensions SIE and open it.';
 }

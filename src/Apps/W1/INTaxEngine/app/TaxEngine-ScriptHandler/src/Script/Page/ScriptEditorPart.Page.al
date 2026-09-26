@@ -332,11 +332,9 @@ page 20199 "Script Editor Part"
         ContainerActionType: Enum "Container Action Type";
         DescriptionStyle: Text;
         TextEditable: Boolean;
-        [InDataSet]
         SearchEditable: Boolean;
         DescriptionText: Text;
         ActionText: Text;
-        [InDataSet]
         EnableAddElseIFAction: Boolean;
         ActionTextStyle: Text;
         Postition: Text;

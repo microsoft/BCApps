@@ -986,7 +986,6 @@ report 18014 "Return Order Confirmation GST"
         TypeInt: Integer;
         SalesLineNo: Code[20];
         SalesLineLineNo: Integer;
-        [InDataSet]
         LogInteractionEnable: Boolean;
         TotalSubTotal: Decimal;
         TotalAmount: Decimal;

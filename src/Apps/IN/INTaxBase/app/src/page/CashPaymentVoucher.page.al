@@ -1875,9 +1875,7 @@ page 18554 "Cash Payment Voucher"
         ShortcutDimCode: array[8] of Code[20];
         HasIncomingDocument: Boolean;
         ApplyEntriesActionEnabled: Boolean;
-        [InDataSet]
         BalanceVisible: Boolean;
-        [InDataSet]
         TotalBalanceVisible: Boolean;
         StyleTxt: Text;
         OpenApprovalEntriesExistForCurrUser: Boolean;

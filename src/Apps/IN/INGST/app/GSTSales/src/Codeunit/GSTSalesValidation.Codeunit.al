@@ -1006,7 +1006,7 @@ codeunit 18143 "GST Sales Validation"
     begin
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
-        if SalesLine.FindSet(true, false) then
+        if SalesLine.FindSet(true) then
             repeat
                 SalesLine."Invoice Type" := SalesHeader."Invoice Type";
                 SalesLine.Modify(true);

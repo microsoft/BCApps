@@ -27,6 +27,9 @@
       "to": 10503
     }
   ],
+  "resourceFolders": [
+    "AppResources"
+  ],
   "resourceExposurePolicy": {
     "allowDebugging": false,
     "allowDownloadingSource": true,
