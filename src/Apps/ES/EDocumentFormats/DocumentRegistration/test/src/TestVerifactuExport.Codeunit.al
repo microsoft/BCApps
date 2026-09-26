@@ -2504,16 +2504,16 @@ codeunit 148004 "Test Verifactu Export"
 
     local procedure VerifyNonTaxableBreakdown(XMLText: Text; OperationQualification: Text; ExpectedBaseAmount: Decimal)
     var
-        XMLDocument: XmlDocument;
+        ParsedXMLDocument: XmlDocument;
         BreakdownXMLNode: XmlNode;
         XMLNode: XmlNode;
         BreakdownXPath: Text;
     begin
-        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, XMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
         BreakdownXPath := StrSubstNo(
             '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]',
             OperationQualification);
-        Assert.IsTrue(XMLDocument.SelectSingleNode(BreakdownXPath, BreakdownXMLNode), 'Expected non-taxable breakdown was not found');
+        Assert.IsTrue(ParsedXMLDocument.SelectSingleNode(BreakdownXPath, BreakdownXMLNode), 'Expected non-taxable breakdown was not found');
         Assert.IsTrue(BreakdownXMLNode.SelectSingleNode('*[local-name()="BaseImponibleOimporteNoSujeto"]', XMLNode), 'Non-taxable breakdown should contain the base amount');
         Assert.AreEqual(Format(ExpectedBaseAmount, 0, 9), XMLNode.AsXmlElement().InnerText(), 'Non-taxable breakdown base amount is incorrect');
         Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoImpositivo"]', XMLNode), 'Non-taxable breakdown should not contain a tax rate');
@@ -2524,11 +2524,11 @@ codeunit 148004 "Test Verifactu Export"
 
     local procedure VerifyNonTaxableBreakdownCount(XMLText: Text; ExpectedCount: Integer)
     var
-        XMLDocument: XmlDocument;
+        ParsedXMLDocument: XmlDocument;
         BreakdownXMLNodes: XmlNodeList;
     begin
-        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, XMLDocument), 'Export should be valid XML');
-        Assert.IsTrue(XMLDocument.SelectNodes('//*[local-name()="DetalleDesglose"]', BreakdownXMLNodes), 'Export should contain breakdowns');
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes('//*[local-name()="DetalleDesglose"]', BreakdownXMLNodes), 'Export should contain breakdowns');
         Assert.AreEqual(ExpectedCount, BreakdownXMLNodes.Count(), 'Number of breakdowns is incorrect');
     end;
 
@@ -2601,4 +2601,3 @@ codeunit 148004 "Test Verifactu Export"
         exit(Count);
     end;
 }
-
