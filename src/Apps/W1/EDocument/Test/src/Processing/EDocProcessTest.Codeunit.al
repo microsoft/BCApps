@@ -554,7 +554,11 @@ codeunit 139883 "E-Doc Process Test"
             EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
             EDocRecordLink.SetRange("Target SystemId", PurchaseLine.SystemId);
             Assert.RecordCount(EDocRecordLink, 1);
+            Assert.IsTrue(PurchaseLine."Created From Draft E-Doc", 'The purchase line should be marked as created from a draft e-document.');
         until PurchaseLine.Next() = 0;
+
+        // [THEN] The purchase header is marked as created from a draft e-document
+        Assert.IsTrue(PurchaseHeader."Created From Draft E-Doc", 'The purchase header should be marked as created from a draft e-document.');
     end;
 
     [Test]
@@ -1163,10 +1167,13 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocRecordLink: Record "E-Doc. Record Link";
         EDocLogRecord: Record "E-Document Log";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentLog: Codeunit "E-Document Log";
         EDocumentProcessing: Codeunit "E-Document Processing";
+        PurchaseHeaderNo: Code[20];
     begin
         // [SCENARIO] A credit memo created via FinishDraft can be reverted
         Initialize(Enum::"Service Integration"::"Mock");
@@ -1192,13 +1199,74 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
         Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The document type should be Credit Memo.');
+        PurchaseHeaderNo := PurchaseHeader."No.";
 
         // [WHEN] Undo is performed
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
         EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
-        // [THEN] The credit memo is removed
-        Assert.RecordIsEmpty(PurchaseHeader);
+        // [THEN] The credit memo remains, but all draft e-document traces are cleared
+        PurchaseHeader.Reset();
+        PurchaseHeader.Get("Purchase Document Type"::"Credit Memo", PurchaseHeaderNo);
+        Assert.IsTrue(IsNullGuid(PurchaseHeader."E-Document Link"), 'The e-document link should be cleared.');
+        Assert.IsFalse(PurchaseHeader."Created From Draft E-Doc", 'The header should not be marked as created from a draft e-document.');
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("Created From Draft E-Doc", true);
+        Assert.RecordIsEmpty(PurchaseLine);
+
+        EDocRecordLink.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(EDocRecordLink);
+    end;
+
+    [Test]
+    procedure CopyPurchaseDocumentClearsDraftEDocumentTraces()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        SourcePurchaseHeader: Record "Purchase Header";
+        TargetPurchaseHeader: Record "Purchase Header";
+        TargetPurchaseLine: Record "Purchase Line";
+        CopyPurchaseDocument: Report "Copy Purchase Document";
+    begin
+        // [SCENARIO] Copying a draft-created purchase invoice clears the draft e-document traces from the copy. [AI Test]
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] A purchase invoice created from an e-document draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(
+            LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams),
+            'The e-document should be processed.');
+        EDocument.Get(EDocument."Entry No");
+        SourcePurchaseHeader.Get(EDocument."Document Record ID");
+
+        // [GIVEN] A target purchase invoice for the same vendor
+        LibraryPurchase.CreatePurchHeader(TargetPurchaseHeader, TargetPurchaseHeader."Document Type"::Invoice, SourcePurchaseHeader."Buy-from Vendor No.");
+
+        // [WHEN] The source invoice is copied with IncludeHeader enabled
+        CopyPurchaseDocument.SetParameters("Purchase Document Type From"::Invoice, SourcePurchaseHeader."No.", true, false);
+        CopyPurchaseDocument.SetPurchHeader(TargetPurchaseHeader);
+        CopyPurchaseDocument.UseRequestPage(false);
+        CopyPurchaseDocument.RunModal();
+
+        // [THEN] The copied header and lines are not marked as created from a draft e-document
+        TargetPurchaseHeader.Get(TargetPurchaseHeader."Document Type", TargetPurchaseHeader."No.");
+        Assert.IsTrue(IsNullGuid(TargetPurchaseHeader."E-Document Link"), 'The copied header e-document link should be cleared.');
+        Assert.IsFalse(TargetPurchaseHeader."Created From Draft E-Doc", 'The copied header should not be marked as created from a draft e-document.');
+
+        TargetPurchaseLine.SetRange("Document Type", TargetPurchaseHeader."Document Type");
+        TargetPurchaseLine.SetRange("Document No.", TargetPurchaseHeader."No.");
+        Assert.RecordIsNotEmpty(TargetPurchaseLine);
+        TargetPurchaseLine.SetRange("Created From Draft E-Doc", true);
+        Assert.RecordIsEmpty(TargetPurchaseLine);
+
+        // [THEN] The source invoice remains linked to the e-document
+        SourcePurchaseHeader.Get(SourcePurchaseHeader."Document Type", SourcePurchaseHeader."No.");
+        Assert.AreEqual(EDocument.SystemId, SourcePurchaseHeader."E-Document Link", 'The source header e-document link should be preserved.');
+        Assert.IsTrue(SourcePurchaseHeader."Created From Draft E-Doc", 'The source header should remain marked as created from a draft e-document.');
     end;
 
     [Test]
@@ -1264,6 +1332,7 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         // [SCENARIO] A PEPPOL CreditNote processed through the full pipeline creates a Purchase Credit Memo with correct content
         Initialize(Enum::"Service Integration"::"Mock");
@@ -1289,10 +1358,24 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual(2500, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the CreditNote total.');
         Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'The Vendor Order No. should match the OrderReference from the CreditNote.');
 
+        // [THEN] The document date and due date from the draft survive the insert trigger defaults
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        Assert.AreNotEqual(0D, EDocumentPurchaseHeader."Document Date", 'The draft should carry a document date for this scenario to be meaningful.');
+        Assert.AreNotEqual(0D, EDocumentPurchaseHeader."Due Date", 'The draft should carry a due date for this scenario to be meaningful.');
+        Assert.AreEqual(EDocumentPurchaseHeader."Document Date", PurchaseHeader."Document Date", 'The document date should be taken from the draft.');
+        Assert.AreEqual(EDocumentPurchaseHeader."Due Date", PurchaseHeader."Due Date", 'The due date should be taken from the draft.');
+
         // [THEN] The purchase credit memo has the correct number of lines
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         Assert.RecordCount(PurchaseLine, 1);
+
+        // [THEN] The purchase credit memo header and lines are marked as created from a draft e-document
+        Assert.IsTrue(PurchaseHeader."Created From Draft E-Doc", 'The purchase header should be marked as created from a draft e-document.');
+        PurchaseLine.FindSet();
+        repeat
+            Assert.IsTrue(PurchaseLine."Created From Draft E-Doc", 'The purchase line should be marked as created from a draft e-document.');
+        until PurchaseLine.Next() = 0;
 
         // [THEN] Links are created between e-document and purchase records
         EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");
