@@ -1092,6 +1092,60 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
+    procedure DeleteBillingPeriodTranslationsWhenDeletingContractType()
+    var
+        ContractType: Record "Subscription Contract Type";
+        FieldTranslation: Record "Field Translation";
+        LanguageMgt: Codeunit Language;
+    begin
+        Initialize();
+
+        FieldTranslation.Reset();
+        if not FieldTranslation.IsEmpty() then
+            FieldTranslation.DeleteAll(false);
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractTestLibrary.CreateTranslationForField(FieldTranslation, ContractType, ContractType.FieldNo("Billing Period Description"), LanguageMgt.GetLanguageCode(GlobalLanguage));
+
+        FieldTranslation.Reset();
+        // Setup-Failure: expected exactly one translation
+        Assert.RecordCount(FieldTranslation, 1);
+
+        ContractType.Delete(true);
+
+        // Translation has been deleted with its master-record
+        Assert.RecordIsEmpty(FieldTranslation);
+    end;
+
+    [Test]
+    procedure DeleteBillingPeriodTranslationsWhenClearingField()
+    var
+        ContractType: Record "Subscription Contract Type";
+        FieldTranslation: Record "Field Translation";
+        LanguageMgt: Codeunit Language;
+    begin
+        Initialize();
+
+        FieldTranslation.Reset();
+        if not FieldTranslation.IsEmpty() then
+            FieldTranslation.DeleteAll(false);
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType.Validate("Billing Period Description", 'Rental period: %1 to %2');
+        ContractType.Modify(false);
+        ContractTestLibrary.CreateTranslationForField(FieldTranslation, ContractType, ContractType.FieldNo("Billing Period Description"), LanguageMgt.GetLanguageCode(GlobalLanguage));
+
+        FieldTranslation.Reset();
+        // Setup-Failure: expected exactly one translation
+        Assert.RecordCount(FieldTranslation, 1);
+
+        // [WHEN] Clearing the billing period description
+        ContractType.Validate("Billing Period Description", '');
+
+        // [THEN] Related translations have been deleted
+        FieldTranslation.Reset();
+        Assert.RecordIsEmpty(FieldTranslation);
+    end;
+
+    [Test]
     procedure ManuallyCreateContractLineForItem()
     var
         Customer: Record Customer;
