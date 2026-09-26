@@ -19,6 +19,46 @@ codeunit 134064 "Sales Tax"
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
+        TaxAmountErr: Label 'The allocated tax amount is incorrect.';
+        TaxLineMissingErr: Label 'The allocated tax line was not found.';
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesTaxMaxConsumedByAmount()
+    var
+        TaxDetail: Record "Tax Detail";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
+        TaxAreaCode: Code[20];
+        TaxGroupCode: Code[20];
+    begin
+        Initialize();
+        TaxAreaCode := CreateTaxArea();
+        TaxGroupCode := CreateTaxGroup();
+        SetupMaximumTax(TaxDetail, TaxJurisdiction, TaxAreaCode, TaxGroupCode, TaxDetail."Tax Type"::"Sales Tax", 100, 10, 20);
+
+        VerifyAllocatedTaxAmount(SalesTaxCalculate, TaxAreaCode, TaxGroupCode, 60, 1, 6);
+        VerifyAllocatedTaxAmount(SalesTaxCalculate, TaxAreaCode, TaxGroupCode, 60, 1, 8);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExciseTaxMaxConsumedByQty()
+    var
+        TaxDetail: Record "Tax Detail";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
+        TaxAreaCode: Code[20];
+        TaxGroupCode: Code[20];
+    begin
+        Initialize();
+        TaxAreaCode := CreateTaxArea();
+        TaxGroupCode := CreateTaxGroup();
+        SetupMaximumTax(TaxDetail, TaxJurisdiction, TaxAreaCode, TaxGroupCode, TaxDetail."Tax Type"::"Excise Tax", 10, 1, 2);
+
+        VerifyAllocatedTaxAmount(SalesTaxCalculate, TaxAreaCode, TaxGroupCode, 1, 6, 6);
+        VerifyAllocatedTaxAmount(SalesTaxCalculate, TaxAreaCode, TaxGroupCode, 1, 6, 8);
+    end;
 
     [Test]
     [Scope('OnPrem')]
@@ -634,6 +674,25 @@ codeunit 134064 "Sales Tax"
         if MaxAmountQty = 0 then
             TaxDetail.Validate("Tax Above Maximum", 0);
         TaxDetail.Modify(true);
+    end;
+
+    local procedure SetupMaximumTax(var TaxDetail: Record "Tax Detail"; var TaxJurisdiction: Record "Tax Jurisdiction"; TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; TaxType: Option; MaximumAmountQty: Decimal; TaxBelowMaximum: Decimal; TaxAboveMaximum: Decimal)
+    begin
+        SetupSalesTax(TaxDetail, TaxJurisdiction, TaxAreaCode, TaxGroupCode, TaxType, MaximumAmountQty);
+        TaxDetail.Validate("Tax Below Maximum", TaxBelowMaximum);
+        TaxDetail.Validate("Tax Above Maximum", TaxAboveMaximum);
+        TaxDetail.Modify(true);
+    end;
+
+    local procedure VerifyAllocatedTaxAmount(var SalesTaxCalculate: Codeunit "Sales Tax Calculate"; TaxAreaCode: Code[20]; TaxGroupCode: Code[20]; Amount: Decimal; Quantity: Decimal; ExpectedTaxAmount: Decimal)
+    var
+        TaxDetail: Record "Tax Detail";
+        TaxAmount: Decimal;
+        TaxBaseAmount: Decimal;
+    begin
+        SalesTaxCalculate.InitSalesTaxLines(TaxAreaCode, TaxGroupCode, true, Amount, Quantity, WorkDate(), ExpectedTaxAmount);
+        Assert.IsTrue(SalesTaxCalculate.GetSalesTaxLine(TaxDetail, TaxAmount, TaxBaseAmount), TaxLineMissingErr);
+        Assert.AreEqual(ExpectedTaxAmount, TaxAmount, TaxAmountErr);
     end;
 
     local procedure VerifyGLEntry(DocumentNo: Code[20]; GLAccountNo: Code[20]; Amount: Decimal)
