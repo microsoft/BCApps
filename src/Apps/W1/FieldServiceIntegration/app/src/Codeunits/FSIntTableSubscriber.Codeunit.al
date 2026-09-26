@@ -2810,7 +2810,9 @@ codeunit 6610 "FS Int. Table Subscriber"
     var
         CRMProduct: Record "CRM Product";
     begin
-        DestinationRecordRef.Field(CRMProduct.FieldNo(ConvertToCustomerAsset)).Value(false);
+        DestinationRecordRef.SetTable(CRMProduct);
+        CRMProduct.ConvertToCustomerAsset := false;
+        DestinationRecordRef.GetTable(CRMProduct);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Mgt. Setup", 'OnBeforeValidateEvent', 'One Service Item Line/Order', true, false)]

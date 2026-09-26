@@ -1586,7 +1586,6 @@ codeunit 139204 "FS Integration Test"
         CRMUom: Record "CRM Uom";
         CRMUomschedule: Record "CRM Uomschedule";
         Currency: Record Currency;
-        IntegrationSynchJob: Record "Integration Synch. Job";
         IntegrationTableMapping: Record "Integration Table Mapping";
         Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
@@ -1613,9 +1612,7 @@ codeunit 139204 "FS Integration Test"
         JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, true);
 
         // [THEN] Native Field Service customer asset creation is disabled on the new product.
-        IntegrationSynchJob.Get(JobID);
-        IntegrationSynchJob.TestField(Failed, 0);
-        IntegrationSynchJob.TestField(Inserted, 1);
+        VerifySuccessfulIntegrationSynchJob(JobID, 1, 0);
         Assert.IsTrue(CRMIntegrationRecord.FindByRecordID(Item.RecordId()), 'The item should be coupled to a product.');
         CRMProduct.Get(CRMIntegrationRecord."CRM ID");
         Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
@@ -1628,7 +1625,6 @@ codeunit 139204 "FS Integration Test"
         Item: Record Item;
         CRMProduct: Record "CRM Product";
         IntegrationFieldMapping: Record "Integration Field Mapping";
-        IntegrationSynchJob: Record "Integration Synch. Job";
         IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
@@ -1655,9 +1651,7 @@ codeunit 139204 "FS Integration Test"
         JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
 
         // [THEN] Native Field Service customer asset creation is disabled.
-        IntegrationSynchJob.Get(JobID);
-        IntegrationSynchJob.TestField(Failed, 0);
-        IntegrationSynchJob.TestField(Modified, 1);
+        VerifySuccessfulIntegrationSynchJob(JobID, 0, 1);
         CRMProduct.Get(CRMProduct.ProductId);
         Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
@@ -1714,6 +1708,20 @@ codeunit 139204 "FS Integration Test"
 
         IsInitialized := true;
         SetTenantLicenseStateToTrial();
+    end;
+
+    local procedure VerifySuccessfulIntegrationSynchJob(JobID: Guid; ExpectedInserted: Integer; ExpectedModified: Integer)
+    var
+        IntegrationSynchJob: Record "Integration Synch. Job";
+        IntegrationSynchJobErrors: Record "Integration Synch. Job Errors";
+    begin
+        IntegrationSynchJob.Get(JobID);
+        IntegrationSynchJobErrors.SetRange("Integration Synch. Job ID", JobID);
+        if IntegrationSynchJobErrors.FindFirst() then
+            Assert.Fail('Unexpected synchronization error: ' + IntegrationSynchJobErrors.Message);
+        IntegrationSynchJob.TestField(Failed, 0);
+        IntegrationSynchJob.TestField(Inserted, ExpectedInserted);
+        IntegrationSynchJob.TestField(Modified, ExpectedModified);
     end;
 
     procedure ResetFSEnvironment()
