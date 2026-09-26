@@ -192,6 +192,7 @@ codeunit 134658 "Edit Posted Documents"
         Assert.AreNotEqual(PurchInvHeaderNew."Payment Method Code", PurchInvHeader."Payment Method Code", PurchInvHeader.FieldCaption("Payment Method Code"));
         Assert.AreNotEqual(PurchInvHeaderNew."Creditor No.", PurchInvHeader."Creditor No.", PurchInvHeader.FieldCaption("Creditor No."));
         Assert.AreNotEqual(PurchInvHeaderNew."Posting Description", PurchInvHeader."Posting Description", PurchInvHeader.FieldCaption("Posting Description"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Dispute Status", PurchInvHeader."Dispute Status", PurchInvHeader.FieldCaption("Dispute Status"));
 
         // [THEN] Values at the associated vendor ledger entry were not changed
         VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
@@ -199,6 +200,7 @@ codeunit 134658 "Edit Posted Documents"
         Assert.AreEqual(PurchInvHeader."Payment Method Code", VendorLedgerEntry."Payment Method Code", PurchInvHeader.FieldCaption("Payment Method Code"));
         Assert.AreEqual(PurchInvHeader."Creditor No.", VendorLedgerEntry."Creditor No.", PurchInvHeader.FieldCaption("Creditor No."));
         Assert.AreEqual(PurchInvHeader."Posting Description", VendorLedgerEntry.Description, PurchInvHeader.FieldCaption("Posting Description"));
+        Assert.AreEqual(PurchInvHeader."Dispute Status", VendorLedgerEntry."Dispute Status", PurchInvHeader.FieldCaption("Dispute Status"));
 
         LibraryVariableStorage.AssertEmpty();
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -244,6 +246,7 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader.TestField("Creditor No.", PurchInvHeaderNew."Creditor No.");
         PurchInvHeader.TestField("Ship-to Code", PurchInvHeaderNew."Ship-to Code");
         PurchInvHeader.TestField("Posting Description", PurchInvHeaderNew."Posting Description");
+        PurchInvHeader.TestField("Dispute Status", PurchInvHeaderNew."Dispute Status");
 
         // [THEN] Values at the associated vendor ledger entry were changed
         VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
@@ -251,6 +254,7 @@ codeunit 134658 "Edit Posted Documents"
         Assert.AreEqual(PurchInvHeaderNew."Payment Method Code", VendorLedgerEntry."Payment Method Code", PurchInvHeaderNew.FieldCaption("Payment Method Code"));
         Assert.AreEqual(PurchInvHeaderNew."Creditor No.", VendorLedgerEntry."Creditor No.", PurchInvHeaderNew.FieldCaption("Creditor No."));
         Assert.AreEqual(PurchInvHeaderNew."Posting Description", VendorLedgerEntry.Description, PurchInvHeaderNew.FieldCaption("Posting Description"));
+        Assert.AreEqual(PurchInvHeaderNew."Dispute Status", VendorLedgerEntry."Dispute Status", PurchInvHeaderNew.FieldCaption("Dispute Status"));
 
         LibraryVariableStorage.AssertEmpty();
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -1227,12 +1231,14 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader."Creditor No." := LibraryUtility.GenerateGUID();
         PurchInvHeader."Ship-to Code" := ShipToAddress.Code;
         PurchInvHeader."Posting Description" := LibraryRandom.RandText(25);
+        PurchInvHeader."Dispute Status" := CreateDisPuteStatusCode();
 
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Reference");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Method Code");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Creditor No.");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Ship-to Code");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Posting Description");
+        LibraryVariableStorage.Enqueue(PurchInvHeader."Dispute Status");
     end;
 
     local procedure PrepareEnqueueValuesForEditableFieldsPostedPurchaseCreditMemo(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
@@ -1322,6 +1328,18 @@ codeunit 134658 "Edit Posted Documents"
         GLAccount.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         GLAccount.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         GLAccount.Modify(true);
+    end;
+
+    local procedure CreateDisPuteStatusCode(): Code[10]
+    var
+        DisputeStatus: Record "Dispute Status";
+    begin
+        DisputeStatus.Init();
+        DisputeStatus.Validate(Code, LibraryUtility.GenerateRandomCode(DisputeStatus.FieldNo(Code), Database::"Dispute Status"));
+        DisputeStatus.Validate(Description, DisputeStatus.Code);
+        DisputeStatus.Insert(true);
+
+        exit(DisputeStatus.Code);
     end;
 
     [ModalPageHandler]
@@ -1420,6 +1438,7 @@ codeunit 134658 "Edit Posted Documents"
         PostedPurchInvoiceUpdate."Creditor No.".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Ship-to Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Posting Description".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Dispute Status".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate.OK().Invoke();
     end;
 
@@ -1432,6 +1451,7 @@ codeunit 134658 "Edit Posted Documents"
         PostedPurchInvoiceUpdate."Creditor No.".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Ship-to Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Posting Description".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Dispute Status".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate.Cancel().Invoke();
     end;
 
