@@ -19,6 +19,9 @@ codeunit 148500 "XRechnung Structured Tests"
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
         TestFileTok: Label 'xrechnung/xrechnung-invoice-0.xml', Locked = true;
+        MissingMandatoryFieldsFileTok: Label 'xrechnung/xrechnung-invoice-missing-mandatory-fields.xml', Locked = true;
+        InconsistentTotalsFileTok: Label 'xrechnung/xrechnung-invoice-inconsistent-totals.xml', Locked = true;
+        PeppolWithoutXRechnungFieldsFileTok: Label 'xrechnung/peppol-invoice-without-xrechnung-fields.xml', Locked = true;
         UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
         MockCurrencyCode: Code[10];
         MockDate: Date;
@@ -46,6 +49,81 @@ codeunit 148500 "XRechnung Structured Tests"
             XRechnungStructuredValidations.AssertFullEDocumentContentExtracted(EDocument."Entry No");
         end else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPeppolInvoice_WithoutXRechnungFieldsIsValid()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [FEATURE] [E-Document] [PEPPOL] [Import] [Validation]
+        // [SCENARIO] XRechnung-only mandatory fields are not applied to another EN 16931 profile
+
+        // [GIVEN] A core-valid PEPPOL invoice without BT-10, BT-23, BT-34, and BT-49
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupXRechnungEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, PeppolWithoutXRechnungFieldsFileTok);
+
+        // [WHEN] The document is read into draft
+        // [THEN] Core validation succeeds and a purchase draft is created
+        Assert.IsTrue(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), 'XRechnung-only fields must not be required for a PEPPOL profile.');
+    end;
+
+    [Test]
+    procedure TestXRechnungInvoice_InconsistentTotalsFailsWithRuleError()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        ErrorMessage: Record "Error Message";
+    begin
+        // [FEATURE] [E-Document] [XRechnung] [Import] [Validation]
+        // [SCENARIO] Inconsistent EN 16931 totals prevent draft creation and identify the violated rule
+
+        // [GIVEN] An XRechnung invoice whose total with VAT does not equal the net and VAT totals
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupXRechnungEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, InconsistentTotalsFileTok);
+
+        // [WHEN] The document is read into draft
+        Assert.IsFalse(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), 'The inconsistent document must not be read into a draft.');
+
+        // [THEN] The arithmetic violation is stored on the E-Document
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        Assert.IsTrue(HasErrorMessage(ErrorMessage, 'BR-CO-15'), 'An error for the inconsistent invoice total with VAT is expected.');
+
+        // [THEN] No partial purchase draft is stored
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(EDocumentPurchaseHeader);
+    end;
+
+    [Test]
+    procedure TestXRechnungInvoice_MissingMandatoryFieldsFailsWithItemizedErrors()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        ErrorMessage: Record "Error Message";
+    begin
+        // [FEATURE] [E-Document] [XRechnung] [Import] [Validation]
+        // [SCENARIO] Missing mandatory EN 16931 fields prevent draft creation and are reported separately
+
+        // [GIVEN] An XRechnung invoice without BT-1 invoice number and BT-5 document currency
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupXRechnungEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, MissingMandatoryFieldsFileTok);
+
+        // [WHEN] The document is read into draft
+        Assert.IsFalse(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), 'The invalid document must not be read into a draft.');
+
+        // [THEN] Both mandatory-field violations are stored on the E-Document
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        Assert.IsTrue(HasErrorMessage(ErrorMessage, 'BT-1'), 'An error for the missing invoice number is expected.');
+        Assert.IsTrue(HasErrorMessage(ErrorMessage, 'BT-5'), 'An error for the missing document currency is expected.');
+
+        // [THEN] No partial purchase draft is stored
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(EDocumentPurchaseHeader);
     end;
 
     [Test]
@@ -307,6 +385,16 @@ codeunit 148500 "XRechnung Structured Tests"
     begin
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::XRechnung;
         EDocumentService.Modify(false);
+    end;
+
+    local procedure HasErrorMessage(var ErrorMessage: Record "Error Message"; ExpectedText: Text): Boolean
+    begin
+        if ErrorMessage.FindSet() then
+            repeat
+                if ErrorMessage.Message.Contains(ExpectedText) then
+                    exit(true);
+            until ErrorMessage.Next() = 0;
+        exit(false);
     end;
 
     local procedure CreateInboundEDocumentFromXML(var EDocument: Record "E-Document"; FilePath: Text)

@@ -76,6 +76,70 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
     end;
 
     [Test]
+    procedure ZUGFeRDInvoiceWithMissingMandatoryFieldsFailsWithItemizedErrors()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        ErrorMessage: Record "Error Message";
+        XmlContent: Text;
+    begin
+        // [FEATURE] [E-Document] [ZUGFeRD] [Import] [Validation]
+        // [SCENARIO] Missing mandatory EN 16931 fields prevent a CII invoice from being read into draft
+
+        // [GIVEN] A ZUGFeRD CII invoice without an invoice number and document currency
+        Initialize();
+        SetReadIntoDraftImpl("E-Doc. Read into Draft"::ZUGFeRD);
+        XmlContent := NavApp.GetResourceAsText(ZUGFeRDInvoiceTok);
+        XmlContent := XmlContent.Replace('<ram:ID>ZF-INV-1001</ram:ID>', '<ram:ID></ram:ID>');
+        XmlContent := XmlContent.Replace('<ram:InvoiceCurrencyCode>XYZ</ram:InvoiceCurrencyCode>', '<ram:InvoiceCurrencyCode></ram:InvoiceCurrencyCode>');
+        CreateInboundEDocumentFromText(EDocument, XmlContent);
+
+        // [WHEN] The document is read into draft
+        Assert.IsFalse(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), 'The invalid CII document must not be read into a draft.');
+
+        // [THEN] Both mandatory-field violations are stored on the E-Document
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        Assert.IsTrue(HasErrorMessage(ErrorMessage, 'BT-1'), 'An error for the missing invoice number is expected.');
+        Assert.IsTrue(HasErrorMessage(ErrorMessage, 'BT-5'), 'An error for the missing document currency is expected.');
+
+        // [THEN] No partial purchase draft is stored
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(EDocumentPurchaseHeader);
+    end;
+
+    [Test]
+    procedure ZUGFeRDInvoiceWithInconsistentTotalsFailsWithRuleError()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        ErrorMessage: Record "Error Message";
+        XmlContent: Text;
+    begin
+        // [FEATURE] [E-Document] [ZUGFeRD] [Import] [Validation]
+        // [SCENARIO] Inconsistent EN 16931 totals prevent a CII invoice from being read into draft
+
+        // [GIVEN] A ZUGFeRD CII invoice whose total with VAT does not equal the net and VAT totals
+        Initialize();
+        SetReadIntoDraftImpl("E-Doc. Read into Draft"::ZUGFeRD);
+        XmlContent := NavApp.GetResourceAsText(ZUGFeRDInvoiceTok);
+        XmlContent := XmlContent.Replace('<ram:GrandTotalAmount>119.00</ram:GrandTotalAmount>', '<ram:GrandTotalAmount>120.00</ram:GrandTotalAmount>');
+        CreateInboundEDocumentFromText(EDocument, XmlContent);
+
+        // [WHEN] The document is read into draft
+        Assert.IsFalse(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft"), 'The inconsistent CII document must not be read into a draft.');
+
+        // [THEN] The arithmetic violation is stored on the E-Document
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        Assert.IsTrue(HasErrorMessage(ErrorMessage, 'BR-CO-15'), 'An error for the inconsistent invoice total with VAT is expected.');
+
+        // [THEN] No partial purchase draft is stored
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(EDocumentPurchaseHeader);
+    end;
+
+    [Test]
     procedure ZUGFeRDRepeatedTaxRegistrationsAreImportedByScheme()
     var
         EDocument: Record "E-Document";
@@ -285,6 +349,17 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
     begin
         EDocumentService."Read into Draft Impl." := ReadIntoDraftImpl;
         EDocumentService.Modify(false);
+    end;
+
+    local procedure HasErrorMessage(var ErrorMessage: Record "Error Message"; ExpectedText: Text): Boolean
+    begin
+        if ErrorMessage.FindSet() then
+            repeat
+                if ErrorMessage.Message.Contains(ExpectedText) then
+                    exit(true);
+            until ErrorMessage.Next() = 0;
+
+        exit(false);
     end;
 
     local procedure CreateInboundEDocumentFromResource(var EDocument: Record "E-Document"; FilePath: Text)
