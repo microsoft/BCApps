@@ -85,7 +85,7 @@ codeunit 9999 "Upgrade Tag"
     /// Sets the upgrade tag to skipped.
     /// </summary>
     /// <param name="ExistingTag">Tag code to set the Skipped Upgrade field</param>
-    /// <param name="TagCompanyName">Name of the company to check existance of tag</param>
+    /// <param name="TagCompanyName">Name of the company</param>
     /// <param name="SkipUpgrade">Sets the Skipped Upgrade field</param>
     procedure SetSkippedUpgrade(ExistingTag: Code[250]; TagCompanyName: Code[30]; SkipUpgrade: Boolean)
     begin
