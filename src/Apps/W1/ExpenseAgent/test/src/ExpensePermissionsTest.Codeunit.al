@@ -32,6 +32,9 @@ codeunit 148338 "Expense Permissions Test"
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
         D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
+        DetailOnlyPermissionSetTok: Label 'Exp. Detail Test', Locked = true;
+        HeaderModifyPermissionErr: Label 'TableData %1 %2 IndirectModify', Comment = '%1 = Spend Request table ID, %2 = Spend Request table caption', Locked = true;
+        RequestMustBeOpenErr: Label 'The %1 %2 must have the status %3.', Comment = '%1 = document type description, %2 = document number, %3 = Open status';
         ExpenseAgentAppIdTok: Label '66efe10c-8033-403b-a86d-77c0887178ba', Locked = true;
         ExpenseMgmtAdminPermissionSetTok: Label 'Expense Mgmt. Admin', Locked = true;
         SecurityPermissionSetTok: Label 'SECURITY', Locked = true;
@@ -63,13 +66,98 @@ codeunit 148338 "Expense Permissions Test"
     [Test]
     procedure D365BasicCanUpdateTravelRequestDetailsIndirectly()
     begin
+        // [SCENARIO 646383] D365 BASIC applies successive detail amount deltas without direct header or detail writes.
+        Initialize();
         VerifyTravelRequestDetailUpdateIndirectly(D365BasicPermissionSetTok);
     end;
 
     [Test]
     procedure ExpenseAgentCanUpdateTravelRequestDetailsIndirectly()
     begin
+        // [SCENARIO 646383] Expense Agent applies successive detail amount deltas without direct header or detail writes.
+        Initialize();
         VerifyTravelRequestDetailUpdateIndirectly(ExpenseAgentPermissionSetTok);
+    end;
+
+    [Test]
+    procedure DetailAmountUpdateFailsWithoutHeaderModifyPermission()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        TravelRequestSubform: TestPage "Travel Request Subform";
+        SpendRequestCanWrite: Boolean;
+        SpendRequestDetailCanWrite: Boolean;
+        PermissionErrorCode: Text;
+        PermissionErrorText: Text;
+    begin
+        // [SCENARIO 646383] A caller with only header read and indirect detail modify cannot update the header through an amount change.
+        Initialize();
+
+        // [GIVEN] An open request "R" with a committed detail "D" worth 10.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 10);
+        Commit();
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(DetailOnlyPermissionSetTok);
+        SpendRequestCanWrite := SpendRequest.WritePermission();
+        SpendRequestDetailCanWrite := SpendRequestDetail.WritePermission();
+        TravelRequestSubform.OpenEdit();
+        TravelRequestSubform.GoToRecord(SpendRequestDetail);
+
+        // [WHEN] The caller changes the amount through the public page.
+        asserterror TravelRequestSubform.Amount.SetValue(20);
+        PermissionErrorCode := GetLastErrorCode();
+        PermissionErrorText := GetLastErrorText();
+        TravelRequestSubform.Close();
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] The page reports the specific header modify denial and neither record changes.
+        VerifyCapturedPageError(PermissionErrorCode, PermissionErrorText,
+            StrSubstNo(HeaderModifyPermissionErr, Database::"Spend Request", SpendRequest.TableCaption()));
+        Assert.IsFalse(SpendRequestCanWrite, 'The caller must not have direct request write permission.');
+        Assert.IsFalse(SpendRequestDetailCanWrite, 'The caller must not have direct detail write permission.');
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 10);
+    end;
+
+    [Test]
+    procedure ReleasedTravelRequestDetailAmountCannotBeUpdatedIndirectly()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        TravelRequestSubform: TestPage "Travel Request Subform";
+        ValidationErrorCode: Text;
+        ValidationErrorText: Text;
+    begin
+        // [SCENARIO 646383] Indirect header modification does not bypass the Open status guard.
+        Initialize();
+
+        // [GIVEN] A released request "R" with a committed detail "D" worth 10.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 10);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        Commit();
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(ExpenseAgentPermissionSetTok);
+        TravelRequestSubform.OpenEdit();
+        TravelRequestSubform.GoToRecord(SpendRequestDetail);
+
+        // [WHEN] The caller changes the amount through the public page.
+        asserterror TravelRequestSubform.Amount.SetValue(20);
+        ValidationErrorCode := GetLastErrorCode();
+        ValidationErrorText := GetLastErrorText();
+        TravelRequestSubform.Close();
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] The status guard rejects the change and the released request retains both amounts.
+        VerifyCapturedPageError(ValidationErrorCode, ValidationErrorText,
+            StrSubstNo(RequestMustBeOpenErr, SpendRequest.GetDocumentTypeDescription(), SpendRequest."No.", SpendRequest.Status::Open));
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 10);
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The denied amount change must preserve the Released status.');
     end;
 
     [Test]
@@ -564,8 +652,7 @@ codeunit 148338 "Expense Permissions Test"
         SpendRequestDetail: Record "Spend Request Detail";
         TravelRequestSubform: TestPage "Travel Request Subform";
     begin
-        // [SCENARIO] Editing a detail through its page can update both the line and its header total.
-        Initialize();
+        // [GIVEN] An open request "R" with a detail "D" worth 10.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
 
@@ -584,10 +671,41 @@ codeunit 148338 "Expense Permissions Test"
         LibraryLowerPermissions.StopLoggingNAVPermissions();
 
         // [THEN] Both the line change and the base table's header update are persisted.
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 20);
+
+        // [GIVEN] The same exact role still has no direct writes after the first update.
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The caller must not have direct request write permission.');
+        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The caller must not have direct detail write permission.');
+
+        // [WHEN] The persisted detail amount is increased again from 20 to 30.
+        Clear(TravelRequestSubform);
+        TravelRequestSubform.OpenEdit();
+        TravelRequestSubform.GoToRecord(SpendRequestDetail);
+        TravelRequestSubform.Amount.SetValue(30);
+        TravelRequestSubform.Close();
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] The second update applies only its delta, not the entire new amount.
+        VerifyTravelRequestAmounts(SpendRequest, SpendRequestDetail, 30);
+    end;
+
+    local procedure VerifyTravelRequestAmounts(var SpendRequest: Record "Spend Request"; var SpendRequestDetail: Record "Spend Request Detail"; ExpectedAmount: Decimal)
+    begin
         SpendRequestDetail.Get(SpendRequestDetail."Spend Request No.", SpendRequestDetail."Line No.");
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(20, SpendRequestDetail."Expected Amount", 'The detail amount must be updated through indirect permissions.');
-        Assert.AreEqual(20, SpendRequest."Total Expected Amount (LCY)", 'The detail update must also update the header total.');
+        Assert.AreEqual(ExpectedAmount, SpendRequestDetail."Expected Amount", 'The detail amount must match the page operation.');
+        Assert.AreEqual(ExpectedAmount, SpendRequestDetail."Expected Amount (LCY)", 'The LCY detail amount must match the page operation.');
+        Assert.AreEqual(ExpectedAmount, SpendRequest."Total Expected Amount", 'The request amount must reflect the detail delta exactly once.');
+        Assert.AreEqual(ExpectedAmount, SpendRequest."Total Expected Amount (LCY)", 'The LCY request amount must reflect the detail delta exactly once.');
+    end;
+
+    local procedure VerifyCapturedPageError(ErrorCode: Text; ErrorText: Text; ExpectedErrorText: Text)
+    begin
+        Assert.AreEqual('TestValidation', ErrorCode, 'The amount field must fail through the TestPage validation wrapper.');
+        Assert.ExpectedMessage(ExpectedErrorText, ErrorText);
     end;
 
     local procedure VerifyCompanyEmailSynchronization(PermissionSetId: Code[20])
