@@ -1,7 +1,15 @@
 namespace Microsoft.API.Webhooks;
 
+using Microsoft.Bank.Ledger;
+using Microsoft.CostAccounting.Budget;
+using Microsoft.Finance.GeneralLedger.Budget;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Graph;
+using Microsoft.Inventory.Analysis;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System;
 using System.Environment;
@@ -21,7 +29,18 @@ codeunit 6154 "API Webhook Notification Send"
 
     Permissions = TableData "API Webhook Subscription" = rimd,
                   TableData "API Webhook Notification" = rimd,
-                  TableData "API Webhook Notification Aggr" = rimd;
+                  TableData "API Webhook Notification Aggr" = rimd,
+                  TableData "G/L Entry" = r,
+                  TableData "Item Ledger Entry" = r,
+                  TableData "Cust. Ledger Entry" = r,
+                  TableData "Detailed Cust. Ledg. Entry" = r,
+                  TableData "Vendor Ledger Entry" = r,
+                  TableData "Detailed Vendor Ledg. Entry" = r,
+                  TableData "G/L Register" = r,
+                  TableData "Item Budget Entry" = r,
+                  TableData "Cost Budget Entry" = r,
+                  TableData "G/L Budget Entry" = r,
+                  TableData "Bank Account Ledger Entry" = r;
 
     trigger OnRun()
     var
@@ -194,6 +213,7 @@ codeunit 6154 "API Webhook Notification Send"
         PostFailedTxt: Label 'Notification POST failed. Notification URL: %1. Response code %2.', Locked = true;
         PostCorrelationGuidTxt: Label 'Correlation GUID for notification POST created: %1', Locked = true;
         SameNotificationUrlDifferentTypeErr: Label 'Same notification URL cannot have multiple subscrition types.', Locked = true;
+        UserDoesNotHaveReadPermissionOnSubscribedTableMsg: Label 'User does not have read permission on subscribed table.', Locked = true;
 
     local procedure Initialize()
     begin
@@ -672,6 +692,7 @@ codeunit 6154 "API Webhook Notification Send"
 
     local procedure IsNullUpdate(var APIWebhookNotification: Record "API Webhook Notification"): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         RecordRef: RecordRef;
         ModifiedAt: DateTime;
         TableId: Integer;
@@ -687,6 +708,14 @@ codeunit 6154 "API Webhook Notification Send"
             exit(false);
 
         RecordRef.Open(TableId);
+
+        // ensure processing user has enough permission to check if notifiable record still exists
+        // this is to prevent crash during payload generation due to missing read access
+        if not RecordRef.ReadPermission then begin
+            Session.LogMessage('0000EW6', UserDoesNotHaveReadPermissionOnSubscribedTableMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', APIWebhookCategoryLbl, 'TableNumber', Format(TableId, 0, 9));
+            exit(false);
+        end;
+
         if not RecordRef.GetBySystemId(APIWebhookNotification."Entity ID") then begin
             // record has already been deleted
             Session.LogMessage('0000EW4', StrSubstNo(MissingEntityForNotificationTxt, GetSystemIdBySubscriptionId(APIWebhookNotification."Subscription ID"),
@@ -1939,4 +1968,3 @@ codeunit 6154 "API Webhook Notification Send"
     begin
     end;
 }
-
