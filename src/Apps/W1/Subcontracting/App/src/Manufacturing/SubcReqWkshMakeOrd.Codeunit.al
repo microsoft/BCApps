@@ -114,6 +114,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLineComp: Record "Purchase Line";
+        PurchaseLineChanged: Boolean;
     begin
         if RequisitionLine."Prod. Order No." = '' then
             exit;
@@ -132,9 +133,10 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity");
+        ProdOrderComponent.SetLoadFields("Item No.", "Variant Code", "Remaining Quantity", "Due Date");
         if ProdOrderComponent.FindSet() then
             repeat
+                Clear(PurchaseLineChanged);
                 PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
                 PurchaseLineComp.SetRange("Document No.", PurchaseLine."Document No.");
                 PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
@@ -142,11 +144,21 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 PurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
                 PurchaseLineComp.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
                 PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
-                if PurchaseLineComp.FindFirst() then
+                if PurchaseLineComp.FindFirst() then begin
                     if PurchaseLineComp.Quantity <> ProdOrderComponent."Remaining Quantity" then begin
                         PurchaseLineComp.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
-                        PurchaseLineComp.Modify(true);
+                        PurchaseLineChanged := true;
                     end;
+
+                    if PurchaseLineComp."Expected Receipt Date" <> ProdOrderComponent."Due Date" then begin
+                        PurchaseLineComp.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
+                        PurchaseLineComp."Requested Receipt Date" := PurchaseLineComp."Planned Receipt Date";
+                        PurchaseLineChanged := true;
+                    end;
+
+                    if PurchaseLineChanged then
+                        PurchaseLineComp.Modify(true);
+                end;
             until ProdOrderComponent.Next() = 0;
     end;
 }
