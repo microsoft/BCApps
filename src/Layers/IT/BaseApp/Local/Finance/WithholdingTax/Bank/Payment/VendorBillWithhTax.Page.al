@@ -165,9 +165,9 @@ page 12198 "Vendor Bill Withh. Tax"
 
     var
         Open: Boolean;
-        Text11200: Label 'Vendor Bill Withh. Tax ';
-        Text11201: Label 'Open';
-        Text11202: Label 'Sent';
+        VendorBillWithhTaxTxt: Label 'Vendor Bill Withh. Tax ';
+        OpenTxt: Label 'Open';
+        SentTxt: Label 'Sent';
 
     [Scope('OnPrem')]
     procedure SetValues(OpenPara: Boolean)
@@ -179,11 +179,11 @@ page 12198 "Vendor Bill Withh. Tax"
     procedure UpdateForm()
     begin
         CurrPage.Editable := Open;
-        CurrPage.Caption := Text11200;
+        CurrPage.Caption := VendorBillWithhTaxTxt;
         if Open then
-            CurrPage.Caption := CurrPage.Caption + Text11201
+            CurrPage.Caption := CurrPage.Caption + OpenTxt
         else
-            CurrPage.Caption := CurrPage.Caption + Text11202;
+            CurrPage.Caption := CurrPage.Caption + SentTxt;
     end;
 
     local procedure OKOnPush()
