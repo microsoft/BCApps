@@ -229,6 +229,35 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnBeforeIsFieldModified', '', false, false)]
+    local procedure OnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+    end;
+
+    // A skipped over-cap cross-env Blob carries no bytes, so report it as unchanged. The engine then leaves the
+    // destination Blob untouched (it never reads or writes it during transfer), which both preserves the existing
+    // value and avoids any primary-key-based Blob read while the mapped key may already have been renamed.
+    internal procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+        SourceRecordRef: RecordRef;
+        SourceSystemId: Guid;
+    begin
+        if SourceFieldRef.Type <> SourceFieldRef.Type::Blob then
+            exit;
+        if not IsCrossEnvironmentSync() then
+            exit;
+        SourceRecordRef := SourceFieldRef.Record();
+        if SourceRecordRef.Number() = 0 then
+            exit;
+        SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+        if not InlineMedia.IsBlobSkipped(SourceSystemId, SourceFieldRef.Number()) then
+            exit;
+        Result := false;
+        IsHandled := true;
+    end;
+
     internal procedure HandleOnTransferFieldData(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef; var NewValue: Variant; var IsValueFound: Boolean; var NeedsConversion: Boolean)
     var
         MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";

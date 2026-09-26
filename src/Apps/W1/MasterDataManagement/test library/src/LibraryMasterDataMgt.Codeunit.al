@@ -24,6 +24,15 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataMgtSubscribers.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
     end;
 
+    /// <summary>Invokes the before-is-field-modified subscriber that reports a skipped over-cap Blob as unchanged.</summary>
+    /// <param name="SourceFieldRef">The source Blob field being evaluated.</param>
+    /// <param name="Result">Returns whether the field is considered modified.</param>
+    /// <param name="IsHandled">Returns true when the subscriber resolved the comparison.</param>
+    procedure HandleOnBeforeIsFieldModified(var SourceFieldRef: FieldRef; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        MasterDataMgtSubscribers.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+    end;
+
     /// <summary>Invokes the deletion-conflict subscriber logic that resolves or fails a coupled-to-deleted-record conflict.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
     /// <param name="SourceRecordRef">The source record whose coupled record was deleted.</param>
