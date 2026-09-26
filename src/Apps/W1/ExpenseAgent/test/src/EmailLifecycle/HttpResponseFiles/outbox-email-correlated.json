@@ -1,0 +1,7 @@
+{
+  "toLine": "recipient@example.invalid",
+  "subject": "Test welcome",
+  "body": "<p>Test notification.</p>",
+  "correlationId": "__REQUEST_CORRELATION_GUID__",
+  "notificationType": "Welcome"
+}

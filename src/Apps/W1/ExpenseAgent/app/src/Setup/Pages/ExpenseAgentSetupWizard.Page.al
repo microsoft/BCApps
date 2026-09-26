@@ -8,7 +8,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using System.Agents;
 using System.AI;
-using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
@@ -965,6 +964,7 @@ page 6991 "Expense Agent Setup Wizard"
 
         UpdateAgentSetupBuffer();
 
+        UpdateControls();
         if AgentBeingEnabled() then
             if not ConfirmMissingAccountWarnings() then
                 exit(false);
@@ -1178,12 +1178,14 @@ page 6991 "Expense Agent Setup Wizard"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
+        ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Insert(true);
         ExpenseAgentSetup.TransferFields(Rec, false);
         if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
             ExpenseAgentSetup."User Security ID" := TempAgentSetupBuffer."User Security ID";
-        ExpenseAgentSetup.Modify(true);
+        // Save without automatic scheduling; ApplyScheduleChange reconciles once after defaults.
+        ExpenseAgentSetup.Modify(false);
     end;
 
     local procedure ResolveAgentUserSecurityID(): Guid
@@ -1360,8 +1362,12 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure UpdateControls()
     begin
-        ValidateSelectedMailboxExists();
-        ValidateNoreplyMailboxExists();
+        if not Rec.RepairMissingEmailAccountsInBuffer() then
+            exit;
+
+        Rec.Modify();
+        EnableMailboxChanged := true;
+        ConfigUpdated();
     end;
 
     local procedure ConfigUpdated()
@@ -1372,63 +1378,6 @@ page 6991 "Expense Agent Setup Wizard"
     local procedure StateChanged(): Boolean
     begin
         exit(TempAgentSetupBuffer.State <> InitialState);
-    end;
-
-    local procedure ValidateSelectedMailboxExists()
-    var
-        TempEmailAccount: Record "Email Account";
-        EmailAccountCU: Codeunit "Email Account";
-    begin
-        if IsNullGuid(Rec."Email Account ID") then
-            exit;
-
-        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
-        TempEmailAccount.SetRange("Account Id", Rec."Email Account ID");
-        TempEmailAccount.SetRange(Connector, Rec."Email Connector");
-        if not TempEmailAccount.IsEmpty() then
-            exit;
-
-        // Stage the repair only; validating Enable Agent here would cancel live tasks before Update.
-        Rec.ClearMailboxAndDependents();
-        Rec.Modify();
-        EnableMailboxChanged := true;
-        ConfigUpdated();
-    end;
-
-    local procedure ValidateNoreplyMailboxExists()
-    var
-        TempEmailAccount: Record "Email Account";
-        EmailAccountCU: Codeunit "Email Account";
-    begin
-        if IsNullGuid(Rec."Noreply Email Account ID") then
-            exit;
-
-        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
-        TempEmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
-        TempEmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
-        if not TempEmailAccount.IsEmpty() then
-            exit;
-
-        Rec."Noreply Email Address" := '';
-        Clear(Rec."Noreply Email Account ID");
-        Clear(Rec."Noreply Email Connector");
-        Rec.Modify();
-        EnableMailboxChanged := true;
-        ConfigUpdated();
-    end;
-
-    local procedure ScheduleAllTasks()
-    var
-        EAAgentScheduler: Codeunit "EA Agent Scheduler";
-    begin
-        EAAgentScheduler.ScheduleAgent(Rec);
-    end;
-
-    local procedure CancelAllTasks()
-    var
-        EAAgentScheduler: Codeunit "EA Agent Scheduler";
-    begin
-        EAAgentScheduler.RemoveAgentTasks();
     end;
 
     local procedure ValidatePrivacyNoticeApproval()
@@ -1534,13 +1483,14 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure ApplyScheduleChange()
+    var
+        EAAgentScheduler: Codeunit "EA Agent Scheduler";
     begin
         if not ScheduleAffectingChange() then
             exit;
-        if Rec.ShouldScheduleAgentTask(AgentBeingEnabled()) then
-            ScheduleAllTasks()
-        else
-            CancelAllTasks();
+
+        // Reconcile both enable and disable through the scheduler's locked, persisted setup.
+        EAAgentScheduler.ScheduleAgent(Rec);
     end;
 
     local procedure EnsureCurrentUserHasAccess()
@@ -1573,11 +1523,11 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure OnAssistEditMailbox()
     var
-        PrevEmailAddress: Text[250];
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
-        PrevEmailAddress := Rec."Email Address";
+        TempPreviousSetup := Rec;
         Rec.AssistEditMailbox();
-        if Rec."Email Address" <> PrevEmailAddress then begin
+        if MailboxConfigurationChanged(TempPreviousSetup) then begin
             EnableMailboxChanged := true;
             ConfigUpdated();
         end;
@@ -1585,14 +1535,23 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure OnAssistEditNoreplyMailbox()
     var
-        PrevNoreplyAddress: Text[250];
+        TempPreviousSetup: Record "Expense Agent Setup" temporary;
     begin
-        PrevNoreplyAddress := Rec."Noreply Email Address";
+        TempPreviousSetup := Rec;
         Rec.AssistEditNoreplyMailbox();
-        if Rec."Noreply Email Address" <> PrevNoreplyAddress then begin
+        if MailboxConfigurationChanged(TempPreviousSetup) then begin
             EnableMailboxChanged := true;
             ConfigUpdated();
         end;
+    end;
+
+    local procedure MailboxConfigurationChanged(TempPreviousSetup: Record "Expense Agent Setup" temporary): Boolean
+    begin
+        exit(Rec.HasSchedulingChanges(TempPreviousSetup) or
+             (Rec."Email Address" <> TempPreviousSetup."Email Address") or
+             (Rec."Email Folder" <> TempPreviousSetup."Email Folder") or
+             (Rec."Email Folder Id" <> TempPreviousSetup."Email Folder Id") or
+             (Rec."Noreply Email Address" <> TempPreviousSetup."Noreply Email Address"));
     end;
 
     local procedure RegisterErpConfiguration(): Boolean
