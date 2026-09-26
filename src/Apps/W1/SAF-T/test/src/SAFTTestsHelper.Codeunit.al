@@ -1,4 +1,6 @@
+#pragma warning disable AA0247
 codeunit 139512 "SAF-T Tests Helper"
+#pragma warning restore AA0247
 {
     EventSubscriberInstance = Manual;
 
@@ -164,10 +166,14 @@ codeunit 139512 "SAF-T Tests Helper"
         GLEntry.Description := LibraryUtility.GenerateGUID();
         GLEntry."External Document No." := LibraryUtility.GenerateGUID();
         GLEntry."User ID" := copystr(UserId(), 1, MaxStrLen(GLEntry."User ID"));
+#pragma warning disable AL0603
         GLEntry."Source Type" := SourceType;
+#pragma warning restore AL0603
         GLEntry."Source No." := SourceNo;
         GLEntry."Source Code" := SourceCode;
+#pragma warning disable AL0603
         GLEntry."Gen. Posting Type" := GenPostingType;
+#pragma warning restore AL0603
         GLEntry."VAT Bus. Posting Group" := VATBusPostingGroupCode;
         GLEntry."VAT Prod. Posting Group" := VATProdPostingGroupCode;
         GLEntry."Debit Amount" := DebitAmount;

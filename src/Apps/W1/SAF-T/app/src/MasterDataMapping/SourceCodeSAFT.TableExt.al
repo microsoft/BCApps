@@ -13,6 +13,7 @@ tableextension 5281 "Source Code SAF-T" extends "Source Code"
         field(5280; "Source Code SAF-T"; Code[9])
         {
             Caption = 'SAF-T Source Code';
+            DataClassification = CustomerContent;
             TableRelation = "Source Code SAF-T";
         }
     }
