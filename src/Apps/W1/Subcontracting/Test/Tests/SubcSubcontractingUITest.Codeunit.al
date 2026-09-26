@@ -214,6 +214,28 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
+    procedure ProdOrderCompLinesExposeTransferQuantities()
+    var
+        PageControl: Record "Page Control Field";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [SCENARIO 650391] Prod. Order Comp. Lines exposes subcontracting transfer quantities.
+        Initialize();
+
+        // [WHEN] Controls on Prod. Order Comp. Lines are inspected
+        // [THEN] Transfer quantities are available with the requested default visibility
+        AssertPageControlExists(
+            Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
+            ProdOrderComponent.FieldNo("Subc. Qty.on TransOrder (Base)"), 'Qty. on Transfer Order (Base)');
+        AssertPageControlIsInitiallyHidden(
+            PageControl, Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
+            ProdOrderComponent.FieldNo("Subc. Qty. in Transit (Base)"), 'Qty. in Transit (Base)');
+        AssertPageControlExists(
+            Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
+            ProdOrderComponent.FieldNo("Subc. Qty. transf. to Subcontr"), 'Qty. transf. to Subcontractor');
+    end;
+
+    [Test]
     procedure CommentPagesExposeOperationKeysAndFields()
     var
         PageAction: Record "Page Action";
