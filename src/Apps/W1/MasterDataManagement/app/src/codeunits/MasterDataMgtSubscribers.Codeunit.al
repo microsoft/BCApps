@@ -338,19 +338,30 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         end;
     end;
 
-    // Reads a Blob field's content as UTF8 text, matching the sync engine's GetTextValue/SetTextValue round-trip.
+    // Reads the stored destination Blob as UTF8 text, matching the engine's GetTextValue/SetTextValue round-trip.
+    // Resolves the row by stable SystemId rather than the buffer's key: an earlier key mapping in the same transfer
+    // may already have renamed the buffer, so CalcField on it would read by the new key and miss the stored row.
     local procedure GetBlobFieldText(DestinationFieldRef: FieldRef): Text
     var
         TempBlob: Codeunit "Temp Blob";
+        OriginalRecordRef: RecordRef;
+        OriginalFieldRef: FieldRef;
+        DestinationRecordRef: RecordRef;
         BlobInStream: InStream;
         BlobText: Text;
     begin
-        DestinationFieldRef.CalcField(); // load the current destination blob
-        TempBlob.FromFieldRef(DestinationFieldRef);
+        DestinationRecordRef := DestinationFieldRef.Record();
+        OriginalRecordRef.Open(DestinationRecordRef.Number());
+        if not OriginalRecordRef.GetBySystemId(DestinationRecordRef.Field(DestinationRecordRef.SystemIdNo()).Value()) then
+            exit(''); // new destination record: no stored blob to preserve
+        OriginalFieldRef := OriginalRecordRef.Field(DestinationFieldRef.Number());
+        OriginalFieldRef.CalcField();
+        TempBlob.FromFieldRef(OriginalFieldRef);
         if TempBlob.HasValue() then begin
             TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
             BlobInStream.Read(BlobText);
         end;
+        OriginalRecordRef.Close();
         exit(BlobText);
     end;
 
