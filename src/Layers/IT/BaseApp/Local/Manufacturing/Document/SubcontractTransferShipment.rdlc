@@ -64,7 +64,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!LablVendor.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                       <FontWeight>Bold</FontWeight>
@@ -133,7 +133,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_1_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -200,7 +200,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_2_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -267,7 +267,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_3_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -334,7 +334,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_4_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -401,7 +401,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_5_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -468,7 +468,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_6_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -535,7 +535,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_7_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -602,7 +602,7 @@
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=Fields!VendorAddr_8_.Value</Value>
+                                                    <Value></Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -2381,104 +2381,8 @@ Fields!CompanyText_4_.Value</Value>
                                       <TablixCell />
                                     </TablixCells>
                                   </TablixRow>
-                                  <TablixRow>
-                                    <Height>0.423cm</Height>
-                                    <TablixCells>
-                                      <TablixCell>
-                                        <CellContents>
-                                          <Textbox Name="TextBox13">
-                                            <KeepTogether>true</KeepTogether>
-                                            <Paragraphs>
-                                              <Paragraph>
-                                                <TextRuns>
-                                                  <TextRun>
-                                                    <Value />
-                                                    <Style>
-                                                      <FontSize>9pt</FontSize>
-                                                    </Style>
-                                                  </TextRun>
-                                                </TextRuns>
-                                              </Paragraph>
-                                            </Paragraphs>
-                                            <ZIndex>25</ZIndex>
-                                            <Style>
-                                              <VerticalAlign>Middle</VerticalAlign>
-                                              <PaddingLeft>2pt</PaddingLeft>
-                                              <PaddingRight>2pt</PaddingRight>
-                                            </Style>
-                                          </Textbox>
-                                        </CellContents>
-                                      </TablixCell>
-                                      <TablixCell>
-                                        <CellContents>
-                                          <Textbox Name="RefSubcOrd">
-                                            <KeepTogether>true</KeepTogether>
-                                            <Paragraphs>
-                                              <Paragraph>
-                                                <TextRuns>
-                                                  <TextRun>
-                                                    <Value>=Fields!RefSubcOrd.Value</Value>
-                                                    <Style>
-                                                      <FontSize>9pt</FontSize>
-                                                    </Style>
-                                                  </TextRun>
-                                                </TextRuns>
-                                              </Paragraph>
-                                            </Paragraphs>
-                                            <ZIndex>24</ZIndex>
-                                            <Style>
-                                              <VerticalAlign>Middle</VerticalAlign>
-                                              <PaddingLeft>0.105cm</PaddingLeft>
-                                              <PaddingRight>0.105cm</PaddingRight>
-                                            </Style>
-                                          </Textbox>
-                                          <ColSpan>5</ColSpan>
-                                        </CellContents>
-                                      </TablixCell>
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell>
-                                        <CellContents>
-                                          <Textbox Name="textbox20">
-                                            <CanGrow>true</CanGrow>
-                                            <KeepTogether>true</KeepTogether>
-                                            <Paragraphs>
-                                              <Paragraph>
-                                                <TextRuns>
-                                                  <TextRun>
-                                                    <Value />
-                                                    <Style />
-                                                  </TextRun>
-                                                </TextRuns>
-                                              </Paragraph>
-                                            </Paragraphs>
-                                            <rd:DefaultName>textbox20</rd:DefaultName>
-                                            <Style>
-                                              <PaddingLeft>2pt</PaddingLeft>
-                                              <PaddingRight>2pt</PaddingRight>
-                                              <PaddingTop>2pt</PaddingTop>
-                                              <PaddingBottom>2pt</PaddingBottom>
-                                            </Style>
-                                          </Textbox>
-                                          <ColSpan>13</ColSpan>
-                                        </CellContents>
-                                      </TablixCell>
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                      <TablixCell />
-                                    </TablixCells>
-                                  </TablixRow>
+
+
                                   <TablixRow>
                                     <Height>0.423cm</Height>
                                     <TablixCells>
@@ -3280,19 +3184,12 @@ First(Fields!Transfer_Shipment_Header___Posting_Date_.Value, "Table1")</Value>
                                       <DataElementName>Detail</DataElementName>
                                     </Group>
                                     <TablixMembers>
+
+
+
                                       <TablixMember>
                                         <Visibility>
-                                          <Hidden>=IIF(Fields!RefSubcOrd.Value&lt;&gt;"",FALSE,TRUE)</Hidden>
-                                        </Visibility>
-                                      </TablixMember>
-                                      <TablixMember>
-                                        <Visibility>
-                                          <Hidden>=IIF(Fields!RefSubcOrd.Value&lt;&gt;"",FALSE,TRUE)</Hidden>
-                                        </Visibility>
-                                      </TablixMember>
-                                      <TablixMember>
-                                        <Visibility>
-                                          <Hidden>=IIF(Fields!RefSubcOrd.Value&lt;&gt;"",FALSE,TRUE)</Hidden>
+                                          <Hidden>=IIF(Fields!RefProdOrd.Value&lt;&gt;"",FALSE,TRUE)</Hidden>
                                         </Visibility>
                                       </TablixMember>
                                       <TablixMember />
@@ -4395,33 +4292,15 @@ End Function
         <Field Name="TransportReasonCode_Description">
           <DataField>TransportReasonCode_Description</DataField>
         </Field>
-        <Field Name="VendorAddr_6_">
-          <DataField>VendorAddr_6_</DataField>
-        </Field>
-        <Field Name="VendorAddr_5_">
-          <DataField>VendorAddr_5_</DataField>
-        </Field>
-        <Field Name="VendorAddr_4_">
-          <DataField>VendorAddr_4_</DataField>
-        </Field>
-        <Field Name="VendorAddr_3_">
-          <DataField>VendorAddr_3_</DataField>
-        </Field>
-        <Field Name="VendorAddr_2_">
-          <DataField>VendorAddr_2_</DataField>
-        </Field>
-        <Field Name="VendorAddr_1_">
-          <DataField>VendorAddr_1_</DataField>
-        </Field>
-        <Field Name="VendorAddr_7_">
-          <DataField>VendorAddr_7_</DataField>
-        </Field>
-        <Field Name="VendorAddr_8_">
-          <DataField>VendorAddr_8_</DataField>
-        </Field>
-        <Field Name="LablVendor">
-          <DataField>LablVendor</DataField>
-        </Field>
+
+
+
+
+
+
+
+
+
         <Field Name="CopyText">
           <DataField>CopyText</DataField>
         </Field>
@@ -4563,15 +4442,15 @@ End Function
         <Field Name="Header_DimensionsCaption">
           <DataField>Header_DimensionsCaption</DataField>
         </Field>
-        <Field Name="RefSubcOrd">
-          <DataField>RefSubcOrd</DataField>
-        </Field>
+
         <Field Name="EmptyString">
           <DataField>EmptyString</DataField>
         </Field>
         <Field Name="RefProdOrd">
           <DataField>RefProdOrd</DataField>
         </Field>
+
+
         <Field Name="Transfer_Shipment_Line__Transfer_Shipment_Line___Line_No__">
           <DataField>Transfer_Shipment_Line__Transfer_Shipment_Line___Line_No__</DataField>
         </Field>
