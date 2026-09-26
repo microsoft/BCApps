@@ -905,7 +905,7 @@ report 1308 "Standard Sales - Shipment"
         if Header.GetFilters = '' then
             Error(NoFilterSetErr);
 
-        CompanyLogoPosition := SalesSetup."Logo Position on Documents";
+        CompanyLogoPosition := SalesSetup."Logo Position on Documents".AsInteger();
     end;
 
     var
@@ -1237,4 +1237,3 @@ report 1308 "Standard Sales - Shipment"
     begin
     end;
 }
-
