@@ -1316,6 +1316,83 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CrossEnvSkippedBlobSurvivesEngineWhenKeyMappedBeforeBlob()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        VerifyRecord: Record "MDM Test Table A";
+        TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        PreservedText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The real synch engine processes the key mapping before the Blob mapping (No. 1 vs No. 2), so the
+        // destination buffer's primary key is already the new source key by the time the skipped over-cap Blob field is
+        // reached. Under only-modified (update) semantics the transfer must not read the destination Blob by the stale
+        // key and must not fail, leaving the stored Blob untouched (S3/S5, key-before-Blob order through the engine).
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record (old key) with an existing blob
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record with a DIFFERENT (renamed) key whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+
+        // [GIVEN] the key mapping is ordered (No. 1) before the blob mapping (No. 2), so the engine renames the
+        // destination buffer key first and reaches the skipped blob with a key that no longer matches the stored row
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 1;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Primary Key");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Primary Key");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+        TempIntegrationFieldMapping.Init();
+        TempIntegrationFieldMapping."No." := 2;
+        TempIntegrationFieldMapping."Source Field No." := SourceRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Destination Field No." := DestinationRecord.FieldNo("Test Blob");
+        TempIntegrationFieldMapping."Validate Destination Field" := false;
+        TempIntegrationFieldMapping.Bidirectional := false;
+        TempIntegrationFieldMapping.Insert();
+
+        // [WHEN] the real engine transfers the mapped fields with only-modified (update) semantics
+        IntegrationRecordSynch.SetFieldMapping(TempIntegrationFieldMapping);
+        IntegrationRecordSynch.SetParameters(SourceRecordRef, DestinationRecordRef, true);
+        Commit();
+
+        // [THEN] the transfer succeeds - the skipped blob is never read by the renamed key ...
+        Assert.IsTrue(IntegrationRecordSynch.Run(), 'The transfer must succeed with the key mapped before the skipped blob');
+        // [THEN] ... the key mapping was actually processed (precondition held) ...
+        Assert.IsTrue(IntegrationRecordSynch.GetWasModified(), 'The key mapping must have been processed before the blob');
+
+        // [THEN] ... and the stored destination blob is left unchanged
+        VerifyRecord.GetBySystemId(DestinationRecord.SystemId);
+        VerifyRecord.CalcFields("Test Blob");
+        VerifyRecord."Test Blob".CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.Read(PreservedText);
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the stored destination content unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvSkippedBlobPreservesBinaryDestinationThroughOnAfter()
     var
         SourceRecord: Record "MDM Test Table A";
