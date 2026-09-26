@@ -1,8 +1,10 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.FixedAsset;
+
+using Microsoft.FixedAssets.Depreciation;
 
 page 5612 "FA Posting Group Card"
 {
@@ -54,11 +56,19 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+#if not CLEAN30
+#pragma warning disable AL0432
                 field("Depr. Difference Acc."; Rec."Depr. Difference Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                    Visible = LegacyDepreciationDifferencesVisible;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
+#pragma warning restore AL0432
+#endif
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -129,11 +139,19 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+#if not CLEAN30
+#pragma warning disable AL0432
                 field("Depr. Difference Bal. Acc."; Rec."Depr. Difference Bal. Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                    Visible = LegacyDepreciationDifferencesVisible;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
+#pragma warning restore AL0432
+#endif
                 field("Write-Down Bal. Acc. on Disp."; Rec."Write-Down Bal. Acc. on Disp.")
                 {
                     ApplicationArea = FixedAssets;
@@ -375,10 +393,17 @@ page 5612 "FA Posting Group Card"
         }
     }
 
+    trigger OnOpenPage()
     var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        LegacyDepreciationDifferencesVisible: Boolean;
 #pragma warning disable AA0074
         Text19064976: Label 'Allocated %';
         Text19080001: Label 'Allocated %';
 #pragma warning restore AA0074
 }
-

@@ -5,19 +5,10 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
-#if not CLEANSCHEMA33
-table 13401 "Depr. Diff. Posting Buffer"
+table 13477 "Depr. Diff. Posting Buffer FI"
 {
     Caption = 'Depr. Diff. Posting Buffer';
     DataClassification = CustomerContent;
-    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-#if not CLEAN30
-    ObsoleteState = Pending;
-    ObsoleteTag = '30.0';
-#else
-    ObsoleteState = Removed;
-    ObsoleteTag = '33.0';
-#endif
 
     fields
     {
@@ -57,4 +48,4 @@ table 13401 "Depr. Diff. Posting Buffer"
     {
     }
 }
-#endif
+

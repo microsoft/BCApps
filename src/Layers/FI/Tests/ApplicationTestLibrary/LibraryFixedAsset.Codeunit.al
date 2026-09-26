@@ -84,6 +84,10 @@ codeunit 131330 "Library - Fixed Asset"
     end;
 
     procedure CreateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group")
+#if not CLEAN30
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+#endif
     begin
         FAPostingGroup.Init();
         FAPostingGroup.Validate(
@@ -122,8 +126,14 @@ codeunit 131330 "Library - Fixed Asset"
         FAPostingGroup.Validate("Sales Bal. Acc.", LibraryERM.CreateGLAccountNo());
         FAPostingGroup.Validate("Sales Acc. on Disp. (Loss)", LibraryERM.CreateGLAccountNo());
         FAPostingGroup.Validate("Book Val. Acc. on Disp. (Loss)", LibraryERM.CreateGLAccountNo());
-        FAPostingGroup.Validate("Depr. Difference Acc.", LibraryERM.CreateGLAccountNo());
-        FAPostingGroup.Validate("Depr. Difference Bal. Acc.", LibraryERM.CreateGLAccountNo());
+#if not CLEAN30
+#pragma warning disable AL0432
+        if not DepreciationDifferencesFIFeature.IsEnabled() then begin
+            FAPostingGroup.Validate("Depr. Difference Acc.", LibraryERM.CreateGLAccountNo());
+            FAPostingGroup.Validate("Depr. Difference Bal. Acc.", LibraryERM.CreateGLAccountNo());
+        end;
+#pragma warning restore AL0432
+#endif
 
         FAPostingGroup.Insert(true);
     end;
@@ -532,4 +542,3 @@ codeunit 131330 "Library - Fixed Asset"
         until GLEntry.Next() = 0;
     end;
 }
-

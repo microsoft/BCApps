@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -231,6 +231,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Day Book Vendor Ledger Entry";
                         }
                     }
+
                 }
                 group("Group3")
                 {
@@ -1744,12 +1745,17 @@ page 8901 "Finance Manager Role Center"
                     RunObject = report "Index Insurance";
                     Tooltip = 'Run the Index Insurance report.';
                 }
+#if not CLEAN30
+#pragma warning disable AL0432
                 action("Calc. and Post Depr. Differenc")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Calc. and Post Depr. Difference';
                     RunObject = report "Calc. and Post Depr. Diff.";
+                    Visible = LegacyDepreciationDifferencesVisible;
                 }
+#pragma warning restore AL0432
+#endif
                 group("Group43")
                 {
                     Caption = 'Journals';
@@ -2620,6 +2626,17 @@ page 8901 "Finance Manager Role Center"
                     }
                 }
             }
+
         }
     }
+
+    trigger OnOpenPage()
+    var
+        DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
+    begin
+        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+    end;
+
+    var
+        LegacyDepreciationDifferencesVisible: Boolean;
 }

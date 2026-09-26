@@ -7,25 +7,18 @@ namespace Microsoft.Foundation.AuditCodes;
 
 using Microsoft.FixedAssets.Depreciation;
 
-pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
+pageextension 13479 "Source Code Setup DeprDiff Pg" extends "Source Code Setup"
 {
     layout
     {
         addafter("Insurance Journal")
         {
-#if not CLEAN30
-#pragma warning disable AL0432
-            field("Depr. Difference"; Rec."Depr. Difference")
+            field("Depreciation Difference Code"; Rec."Depreciation Difference Code")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
-                Visible = LegacyDepreciationDifferencesVisible;
-                ObsoleteState = Pending;
-                ObsoleteTag = '30.0';
-                ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+                Visible = DepreciationDifferencesEnabled;
             }
-#pragma warning restore AL0432
-#endif
         }
     }
 
@@ -33,9 +26,9 @@ pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
     var
         DepreciationDifferencesFIFeature: Codeunit "FI Depreciation Diff. Feature";
     begin
-        LegacyDepreciationDifferencesVisible := not DepreciationDifferencesFIFeature.IsEnabled();
+        DepreciationDifferencesEnabled := DepreciationDifferencesFIFeature.IsEnabled();
     end;
 
     var
-        LegacyDepreciationDifferencesVisible: Boolean;
+        DepreciationDifferencesEnabled: Boolean;
 }
