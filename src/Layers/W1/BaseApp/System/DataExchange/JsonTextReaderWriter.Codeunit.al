@@ -92,7 +92,7 @@ codeunit 1234 "Json Text Reader/Writer"
         Decimal: Decimal;
     begin
         case true of
-            Variable.IsInteger, Variable.IsDecimal:
+            Variable.IsInteger, Variable.IsBigInteger, Variable.IsDecimal:
                 Decimal := Variable;
             else
                 Evaluate(Decimal, Variable);

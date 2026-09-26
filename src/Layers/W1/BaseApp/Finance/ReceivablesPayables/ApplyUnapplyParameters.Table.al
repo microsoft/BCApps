@@ -29,7 +29,7 @@ table 579 "Apply Unapply Parameters"
         /// <summary>
         /// Entry number from the source ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;

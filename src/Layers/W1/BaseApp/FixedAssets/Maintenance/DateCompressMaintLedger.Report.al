@@ -311,12 +311,12 @@ report 5698 "Date Compress Maint. Ledger"
         Retain: array[10] of Boolean;
         FieldNumber: array[10] of Integer;
         FieldNameArray: array[10] of Text[100];
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoOfDeleted: Integer;
         FARegExists: Boolean;
         i: Integer;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -374,7 +374,7 @@ report 5698 "Date Compress Maint. Ledger"
     local procedure InsertRegisters(var FAReg: Record "FA Register"; var DateComprReg: Record "Date Compr. Register")
     var
         FAReg2: Record "FA Register";
-        CurrLastEntryNo: Integer;
+        CurrLastEntryNo: BigInteger;
     begin
         FAReg."To Maintenance Entry No." := NewMaintenanceLedgEntry."Entry No.";
 
@@ -434,9 +434,9 @@ report 5698 "Date Compress Maint. Ledger"
     local procedure ComprCollectedEntries()
     var
         MaintenanceLedgEntry: Record "Maintenance Ledger Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        MaintenanceLedgEntryNo: Integer;
+        MaintenanceLedgEntryNo: BigInteger;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, MaintenanceLedgEntryNo) then begin
@@ -492,7 +492,7 @@ report 5698 "Date Compress Maint. Ledger"
         Window.Update(3, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewMaintenanceLedgEntry: Record "Maintenance Ledger Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var NewMaintenanceLedgEntry: Record "Maintenance Ledger Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

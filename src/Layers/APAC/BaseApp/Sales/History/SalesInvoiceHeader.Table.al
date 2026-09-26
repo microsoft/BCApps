@@ -1117,7 +1117,7 @@ table 112 "Sales Invoice Header"
         /// <summary>
         /// Specifies the entry number in the customer ledger.
         /// </summary>
-        field(1304; "Cust. Ledger Entry No."; Integer)
+        field(1304; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             Editable = false;

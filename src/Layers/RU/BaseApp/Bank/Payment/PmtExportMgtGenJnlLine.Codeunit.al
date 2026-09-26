@@ -147,7 +147,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
         CODEUNIT.Run(CODEUNIT::"Exp. User Feedback Gen. Jnl.", DataExch);
     end;
 
-    local procedure CreateGenJnlDataExchLine(DataExchEntryNo: Integer; GenJnlLine: Record "Gen. Journal Line"; LineNo: Integer)
+    local procedure CreateGenJnlDataExchLine(DataExchEntryNo: BigInteger; GenJnlLine: Record "Gen. Journal Line"; LineNo: Integer)
     var
         TempPaymentExportData: Record "Payment Export Data" temporary;
         DataExch: Record "Data Exch.";
@@ -265,7 +265,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
     /// <param name="GenJnlLine">General journal line containing payment information.</param>
     /// <param name="DataExchEntryNo">Data exchange entry number for tracking.</param>
     /// <param name="LineNo">Line number for the payment export data.</param>
-    procedure PreparePaymentExportDataJnl(var TempPaymentExportData: Record "Payment Export Data" temporary; GenJnlLine: Record "Gen. Journal Line"; DataExchEntryNo: Integer; LineNo: Integer)
+    procedure PreparePaymentExportDataJnl(var TempPaymentExportData: Record "Payment Export Data" temporary; GenJnlLine: Record "Gen. Journal Line"; DataExchEntryNo: BigInteger; LineNo: Integer)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         Employee: Record Employee;
@@ -426,7 +426,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
     /// <param name="Handled">Set to true if the payment export has been handled by an external extension.</param>
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
-    procedure OnBeforePaymentExport(BalAccountNo: Code[20]; DataExchEntryNo: Integer; LineCount: Integer; TotalAmount: Decimal; TransferDate: Date; var Handled: Boolean)
+    procedure OnBeforePaymentExport(BalAccountNo: Code[20]; DataExchEntryNo: BigInteger; LineCount: Integer; TotalAmount: Decimal; TransferDate: Date; var Handled: Boolean)
     begin
     end;
 

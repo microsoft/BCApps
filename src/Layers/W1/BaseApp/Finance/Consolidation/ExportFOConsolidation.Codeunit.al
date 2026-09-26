@@ -54,7 +54,7 @@ codeunit 439 "Export F/O Consolidation"
     procedure InsertGLEntry(NewGLEntry: Record "G/L Entry"): Integer
     var
         GLAccount: Record "G/L Account";
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         NextEntryNo := TempGLEntry.GetLastEntryNo() + 1;
 
@@ -95,7 +95,7 @@ codeunit 439 "Export F/O Consolidation"
     /// </summary>
     /// <param name="NewDimBuf">Dimension buffer record containing dimension data to insert</param>
     /// <param name="GLEntryNo">G/L Entry number for dimension association</param>
-    procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: Integer)
+    procedure InsertEntryDim(NewDimBuf: Record "Dimension Buffer"; GLEntryNo: BigInteger)
     begin
         if TempDimBuf.Get(NewDimBuf."Table ID", GLEntryNo, NewDimBuf."Dimension Code") then begin
             if NewDimBuf."Dimension Value Code" <> TempDimBuf."Dimension Value Code" then

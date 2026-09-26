@@ -20,7 +20,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         UOMMgt: Codeunit "Unit of Measure Management";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateTreeForSource', '', true, false)]
-    local procedure ProdOrderLineOnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum Microsoft.Inventory.BOM."BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: Integer; sender: Codeunit "Calculate BOM Tree")
+    local procedure ProdOrderLineOnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum Microsoft.Inventory.BOM."BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: BigInteger; sender: Codeunit "Calculate BOM Tree")
     var
         ProdOrderLine: Record "Prod. Order Line";
     begin
@@ -34,7 +34,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         end;
     end;
 
-    procedure GenerateTreeForProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type"; var ItemFilter: Record Item; var EntryNo: Integer; var sender: Codeunit "Calculate BOM Tree")
+    procedure GenerateTreeForProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type"; var ItemFilter: Record Item; var EntryNo: BigInteger; var sender: Codeunit "Calculate BOM Tree")
     begin
         sender.InitBOMBuffer(BOMBuffer);
         sender.InitTreeType(TreeType);
@@ -48,7 +48,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         sender.CalculateTreeType(BOMBuffer, sender.GetShowTotalAvailability(), TreeType);
     end;
 
-    local procedure GenerateProdCompSubTree(ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: Integer; var sender: Codeunit "Calculate BOM Tree") FoundSubTree: Boolean
+    local procedure GenerateProdCompSubTree(ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: BigInteger; var sender: Codeunit "Calculate BOM Tree") FoundSubTree: Boolean
     var
         CopyOfParentItem: Record Item;
         ProdBOMLine: Record "Production BOM Line";
@@ -227,7 +227,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         BOMBuffer := ParentBOMBuffer;
     end;
 
-    local procedure GenerateProdOrderLineSubTree(ProdOrderLine: Record "Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: Integer; var sender: Codeunit "Calculate BOM Tree") Result: Boolean
+    local procedure GenerateProdOrderLineSubTree(ProdOrderLine: Record "Prod. Order Line"; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: BigInteger; var sender: Codeunit "Calculate BOM Tree") Result: Boolean
     var
         OldProdOrderLine: Record "Prod. Order Line";
         ProdOrderComp: Record "Prod. Order Component";
@@ -322,7 +322,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateItemSubTreeOnSetIsLeaf', '', true, false)]
-    local procedure OnGenerateItemSubTreeOnSetIsLeaf(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: Integer; sender: Codeunit "Calculate BOM Tree")
+    local procedure OnGenerateItemSubTreeOnSetIsLeaf(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: BigInteger; sender: Codeunit "Calculate BOM Tree")
     begin
         BOMBuffer."Is Leaf" := not GenerateProdCompSubTree(ParentItem, BOMBuffer, ItemFilter, EntryNo, sender);
     end;
@@ -338,7 +338,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromProdItem(var BOMBuffer: Record "BOM Buffer"; ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var EntryNo: Integer)
+    local procedure OnAfterTransferFromProdItem(var BOMBuffer: Record "BOM Buffer"; ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var EntryNo: BigInteger)
     begin
     end;
 
@@ -348,7 +348,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferFromProdBOM(var BOMBuffer: Record "BOM Buffer"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var ParentItem: Record Item; var ParentBOMBuffer: Record "BOM Buffer"; var EntryNo: Integer; TreeType: Enum "BOM Tree Type")
+    local procedure OnBeforeTransferFromProdBOM(var BOMBuffer: Record "BOM Buffer"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var ParentItem: Record Item; var ParentBOMBuffer: Record "BOM Buffer"; var EntryNo: BigInteger; TreeType: Enum "BOM Tree Type")
     begin
     end;
 
@@ -398,7 +398,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferProdBOMLine(var BOMBuffer: Record "BOM Buffer"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var ParentItem: Record Item; var ParentBOMBuffer: Record "BOM Buffer"; var EntryNo: Integer; TreeType: Option " ",Availability,Cost; var IsHandled: Boolean)
+    local procedure OnBeforeTransferProdBOMLine(var BOMBuffer: Record "BOM Buffer"; var ProdBOMLine: Record Microsoft.Manufacturing.ProductionBOM."Production BOM Line"; var ParentItem: Record Item; var ParentBOMBuffer: Record "BOM Buffer"; var EntryNo: BigInteger; TreeType: Option " ",Availability,Cost; var IsHandled: Boolean)
     begin
     end;
 

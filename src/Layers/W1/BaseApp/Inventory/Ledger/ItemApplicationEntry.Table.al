@@ -23,24 +23,24 @@ table 339 "Item Application Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "Item Ledger Entry No."; Integer)
+        field(2; "Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Item Ledger Entry No.';
             ToolTip = 'Specifies one or more item application entries for each inventory transaction that is posted.';
             TableRelation = "Item Ledger Entry";
         }
-        field(3; "Inbound Item Entry No."; Integer)
+        field(3; "Inbound Item Entry No."; BigInteger)
         {
             Caption = 'Inbound Item Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory increase or positive quantity in inventory.';
             TableRelation = "Item Ledger Entry";
         }
-        field(4; "Outbound Item Entry No."; Integer)
+        field(4; "Outbound Item Entry No."; BigInteger)
         {
             Caption = 'Outbound Item Entry No.';
             ToolTip = 'Specifies the number of the item ledger entry corresponding to the inventory decrease for this entry.';
@@ -53,7 +53,7 @@ table 339 "Item Application Entry"
             ToolTip = 'Specifies the quantity of the item that is being applied from the inventory decrease in the Outbound Item Entry No. field, to the inventory increase in the Inbound Item Entry No. field.';
             DecimalPlaces = 0 : 5;
         }
-        field(20; "Item Register No."; Integer)
+        field(20; "Item Register No."; BigInteger)
         {
             Caption = 'Item Register No.';
             Editable = false;
@@ -64,7 +64,7 @@ table 339 "Item Application Entry"
             Caption = 'Posting Date';
             ToolTip = 'Specifies the posting date that corresponds to the posting date of the item ledger entry, for which this item application entry was created.';
         }
-        field(23; "Transferred-from Entry No."; Integer)
+        field(23; "Transferred-from Entry No."; BigInteger)
         {
             Caption = 'Transferred-from Entry No.';
             ToolTip = 'Specifies the item ledger entry number of the original inventory increase of the item if the item application entry originates from a transfer.';
@@ -198,7 +198,7 @@ table 339 "Item Application Entry"
         AppliedFromEntryToAdjustErr: Label 'You have to run the %1 batch job, before you can revalue %2 %3.', Comment = '%1 = Report::"Adjust Cost - Item Entries", %2 = Item Ledger Entry table caption, %3 = Inbound Item Ledger Entry No.';
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -206,14 +206,15 @@ table 339 "Item Application Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
         exit(FindRecordManagement.GetLastEntryIntFieldValue(Rec, FieldNo("Entry No.")))
     end;
 
-    procedure AppliedOutbndEntryExists(InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
+#pragma warning disable AS0024
+    procedure AppliedOutbndEntryExists(InbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
     begin
         Reset();
         SetCurrentKey(
@@ -247,7 +248,7 @@ table 339 "Item Application Entry"
     end;
 #endif
 
-    procedure AppliedOutbndEntryExists(var ItemApplicationEntriesOutb: Query "Item Application Entries Outb."; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
+    procedure AppliedOutbndEntryExists(var ItemApplicationEntriesOutb: Query "Item Application Entries Outb."; InbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean; FilterOnOnlyCostNotAdjusted: Boolean): Boolean
     begin
         ItemApplicationEntriesOutb.SetRange(Inbound_Item_Entry_No, InbndItemLedgEntryNo);
         ItemApplicationEntriesOutb.SetFilter(Item_Ledger_Entry_No, '<>%1', InbndItemLedgEntryNo);
@@ -261,7 +262,7 @@ table 339 "Item Application Entry"
         exit(ItemApplicationEntriesOutb.Read());
     end;
 
-    procedure AppliedInbndTransEntryExists(InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
+    procedure AppliedInbndTransEntryExists(InbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
@@ -284,7 +285,7 @@ table 339 "Item Application Entry"
         exit(true);
     end;
 
-    procedure AppliedInbndTransEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
+    procedure AppliedInbndTransEntryExists(var ItemApplicationEntries: Query "Item Application Entries"; InbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean): Boolean
     begin
         ItemApplicationEntries.SetRange(Transferred_from_Entry_No, InbndItemLedgEntryNo);
         ItemApplicationEntries.SetRange(Cost_Application, IsCostApplication, true);
@@ -292,7 +293,7 @@ table 339 "Item Application Entry"
         exit(ItemApplicationEntries.Read());
     end;
 
-    procedure AppliedInbndEntryExists(OutbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
+    procedure AppliedInbndEntryExists(OutbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean): Boolean
     begin
         Reset();
         SetCurrentKey(
@@ -320,7 +321,7 @@ table 339 "Item Application Entry"
     end;
 #endif
 
-    procedure AppliedInbndEntryExists(var ItemApplicationEntriesInb: Query "Item Application Entries Inb."; OutbndItemLedgEntryNo: Integer; IsCostApplication: Boolean): Boolean
+    procedure AppliedInbndEntryExists(var ItemApplicationEntriesInb: Query "Item Application Entries Inb."; OutbndItemLedgEntryNo: BigInteger; IsCostApplication: Boolean): Boolean
     begin
         ItemApplicationEntriesInb.SetRange(Outbound_Item_Entry_No, OutbndItemLedgEntryNo);
         ItemApplicationEntriesInb.SetFilter(Item_Ledger_Entry_No, '<>%1', OutbndItemLedgEntryNo);
@@ -331,8 +332,9 @@ table 339 "Item Application Entry"
         ItemApplicationEntriesInb.Open();
         exit(ItemApplicationEntriesInb.Read());
     end;
+#pragma warning restore AS0024
 
-    procedure AppliedFromEntryExists(InbndItemLedgEntryNo: Integer): Boolean
+    procedure AppliedFromEntryExists(InbndItemLedgEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetCurrentKey("Outbound Item Entry No.", "Item Ledger Entry No.");
@@ -341,7 +343,7 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
-    procedure GetInboundEntriesTheOutbndEntryAppliedTo(OutbndItemLedgEntryNo: Integer): Boolean
+    procedure GetInboundEntriesTheOutbndEntryAppliedTo(OutbndItemLedgEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetCurrentKey("Outbound Item Entry No.", "Item Ledger Entry No.");
@@ -351,7 +353,7 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
-    procedure GetOutboundEntriesAppliedToTheInboundEntry(InbndItemLedgEntryNo: Integer): Boolean
+    procedure GetOutboundEntriesAppliedToTheInboundEntry(InbndItemLedgEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetCurrentKey("Inbound Item Entry No.", "Item Ledger Entry No.", "Outbound Item Entry No.", "Cost Application");
@@ -361,7 +363,7 @@ table 339 "Item Application Entry"
         exit(FindSet());
     end;
 
-    procedure CheckAppliedFromEntryToAdjust(InbndItemLedgEntryNo: Integer)
+    procedure CheckAppliedFromEntryToAdjust(InbndItemLedgEntryNo: BigInteger)
     var
         OutbndItemLedgerEntry: Record "Item Ledger Entry";
         ObjTransl: Record "Object Translation";
@@ -378,7 +380,7 @@ table 339 "Item Application Entry"
             until Next() = 0;
     end;
 
-    procedure CostReceiver(): Integer
+    procedure CostReceiver(): BigInteger
     begin
         if "Outbound Item Entry No." = 0 then
             exit(0);
@@ -414,11 +416,11 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    procedure InsertHistory(): Integer
+    procedure InsertHistory(): BigInteger
     var
         ItemApplicationEntryHistory: Record "Item Application Entry History";
         InventorySetup: Record "Inventory Setup";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if InventorySetup.UseLegacyPosting() then begin
             ItemApplicationEntryHistory.SetCurrentKey("Primary Entry No.");
@@ -608,7 +610,7 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    local procedure CheckCyclicFwdToAppliedOutbnds(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
+    local procedure CheckCyclicFwdToAppliedOutbnds(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: BigInteger): Boolean
     var
         ItemApplicationEntriesOutb: Query "Item Application Entries Outb.";
         Result: Boolean;
@@ -626,7 +628,7 @@ table 339 "Item Application Entry"
         exit(Result);
     end;
 
-    local procedure CheckCyclicFwdToAppliedInbnds(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
+    local procedure CheckCyclicFwdToAppliedInbnds(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: BigInteger): Boolean
     var
         ItemApplicationEntriesInb: Query "Item Application Entries Inb.";
         Result: Boolean;
@@ -644,7 +646,7 @@ table 339 "Item Application Entry"
         exit(Result);
     end;
 
-    local procedure CheckCyclicFwdToInbndTransfers(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
+    local procedure CheckCyclicFwdToInbndTransfers(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: BigInteger): Boolean
     var
         ItemApplicationEntries: Query "Item Application Entries";
         Result: Boolean;
@@ -662,7 +664,7 @@ table 339 "Item Application Entry"
         exit(Result);
     end;
 
-    local procedure CheckCyclicFwdToProdOutput(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
+    local procedure CheckCyclicFwdToProdOutput(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: BigInteger): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
@@ -671,7 +673,7 @@ table 339 "Item Application Entry"
         exit(CheckCyclicProdCyclicalLoop(CheckItemLedgerEntry, ItemLedgerEntry));
     end;
 
-    local procedure CheckCyclicFwdToAsmOutput(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: Integer): Boolean
+    local procedure CheckCyclicFwdToAsmOutput(CheckItemLedgerEntry: Record "Item Ledger Entry"; EntryNo: BigInteger): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
     begin
@@ -680,9 +682,9 @@ table 339 "Item Application Entry"
         exit(CheckCyclicAsmCyclicalLoop(CheckItemLedgerEntry, ItemLedgerEntry));
     end;
 
-    local procedure CheckCyclicFwdToAppliedEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntries: Query "Item Application Entries"; FromEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    local procedure CheckCyclicFwdToAppliedEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntries: Query "Item Application Entries"; FromEntryNo: BigInteger; IsPositiveToNegativeFlow: Boolean): Boolean
     var
-        ToEntryNo: Integer;
+        ToEntryNo: BigInteger;
     begin
         if EntryIsVisited(FromEntryNo) then
             exit(false);
@@ -702,9 +704,9 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    local procedure CheckCyclicFwdToAppliedInbEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntriesInb: Query "Item Application Entries Inb."; FromEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    local procedure CheckCyclicFwdToAppliedInbEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntriesInb: Query "Item Application Entries Inb."; FromEntryNo: BigInteger; IsPositiveToNegativeFlow: Boolean): Boolean
     var
-        ToEntryNo: Integer;
+        ToEntryNo: BigInteger;
     begin
         if EntryIsVisited(FromEntryNo) then
             exit(false);
@@ -724,9 +726,9 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    local procedure CheckCyclicFwdToAppliedOutbEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntriesOutb: Query "Item Application Entries Outb."; FromEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    local procedure CheckCyclicFwdToAppliedOutbEntries(CheckItemLedgerEntry: Record "Item Ledger Entry"; var ItemApplicationEntriesOutb: Query "Item Application Entries Outb."; FromEntryNo: BigInteger; IsPositiveToNegativeFlow: Boolean): Boolean
     var
-        ToEntryNo: Integer;
+        ToEntryNo: BigInteger;
     begin
         if EntryIsVisited(FromEntryNo) then
             exit(false);
@@ -746,7 +748,7 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    local procedure CheckCyclicFwdToSingleAppliedEntry(CheckItemLedgerEntry: Record "Item Ledger Entry"; ToEntryNo: Integer; ItemLedgerEntryNo: Integer; IsPositiveToNegativeFlow: Boolean): Boolean
+    local procedure CheckCyclicFwdToSingleAppliedEntry(CheckItemLedgerEntry: Record "Item Ledger Entry"; ToEntryNo: BigInteger; ItemLedgerEntryNo: BigInteger; IsPositiveToNegativeFlow: Boolean): Boolean
     var
         IsCyclicalLoop: Boolean;
         TargetInChain: Boolean;
@@ -793,7 +795,7 @@ table 339 "Item Application Entry"
         exit(IsCyclicalLoop);
     end;
 
-    local procedure EntryIsVisited(EntryNo: Integer): Boolean
+    local procedure EntryIsVisited(EntryNo: BigInteger): Boolean
     begin
         if TempVisitedItemApplicationEntry.Get(EntryNo) then begin
             // This is to take into account quantity flows from an inbound entry to an inbound transfer
@@ -810,14 +812,14 @@ table 339 "Item Application Entry"
         exit(false);
     end;
 
-    local procedure LookupChainResult(EntryNo: Integer; IsPositiveToNegative: Boolean; var TargetInChain: Boolean): Boolean
+    local procedure LookupChainResult(EntryNo: BigInteger; IsPositiveToNegative: Boolean; var TargetInChain: Boolean): Boolean
     begin
         if IsPositiveToNegative then
             exit(PositiveToNegativeChain.Get(EntryNo, TargetInChain));
         exit(NegativeToPositiveChain.Get(EntryNo, TargetInChain));
     end;
 
-    local procedure CacheChainResult(EntryNo: Integer; IsPositiveToNegative: Boolean; TargetInChain: Boolean)
+    local procedure CacheChainResult(EntryNo: BigInteger; IsPositiveToNegative: Boolean; TargetInChain: Boolean)
     begin
         if IsPositiveToNegative then begin
             if not PositiveToNegativeChain.ContainsKey(EntryNo) then
@@ -868,7 +870,7 @@ table 339 "Item Application Entry"
             until TempItemLedgerEntryInChainNo.Next() = 0;
     end;
 
-    procedure OutboundApplied(EntryNo: Integer; SameType: Boolean): Decimal
+    procedure OutboundApplied(EntryNo: BigInteger; SameType: Boolean): Decimal
     var
         ItemApplicationEntry: Record "Item Application Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -899,7 +901,7 @@ table 339 "Item Application Entry"
         exit(CalcQuantity);
     end;
 
-    procedure InboundApplied(EntryNo: Integer; SameType: Boolean): Decimal
+    procedure InboundApplied(EntryNo: BigInteger; SameType: Boolean): Decimal
     var
         ItemApplicationEntry: Record "Item Application Entry";
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -934,12 +936,12 @@ table 339 "Item Application Entry"
         exit(CalcQuantity);
     end;
 
-    procedure Returned(EntryNo: Integer): Decimal
+    procedure Returned(EntryNo: BigInteger): Decimal
     begin
         exit(-OutboundApplied(EntryNo, true) - InboundApplied(EntryNo, true));
     end;
 
-    procedure ExistsBetween(ILE1: Integer; ILE2: Integer): Boolean
+    procedure ExistsBetween(ILE1: BigInteger; ILE2: BigInteger): Boolean
     var
         ItemApplicationEntry: Record "Item Application Entry";
     begin
@@ -998,7 +1000,7 @@ table 339 "Item Application Entry"
             end;
     end;
 
-    procedure IsAppliedFromIncrease(InbndItemLedgEntryNo: Integer): Boolean
+    procedure IsAppliedFromIncrease(InbndItemLedgEntryNo: BigInteger): Boolean
     begin
         Reset();
         SetCurrentKey(
@@ -1010,7 +1012,7 @@ table 339 "Item Application Entry"
         exit(FindFirst());
     end;
 
-    procedure IsOutbndItemApplEntryCostApplication(OutboundItemLedgEntryNo: Integer): Boolean
+    procedure IsOutbndItemApplEntryCostApplication(OutboundItemLedgEntryNo: BigInteger): Boolean
     var
         ItemApplicationEntry: Record "Item Application Entry";
     begin
@@ -1021,7 +1023,7 @@ table 339 "Item Application Entry"
         exit(ItemApplicationEntry.IsEmpty());
     end;
 
-    local procedure CheckLatestItemLedgerEntryValuationDate(ItemLedgerEntryNo: Integer; MaxDate: Date): Boolean
+    local procedure CheckLatestItemLedgerEntryValuationDate(ItemLedgerEntryNo: BigInteger; MaxDate: Date): Boolean
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -1079,7 +1081,7 @@ table 339 "Item Application Entry"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnCheckCyclicFwdToAppliedEntriesOnAfterCheckItemApplicationEntry(CheckItemLedgerEntry: Record "Item Ledger Entry"; ToEntryNo: Integer; IsPositiveToNegativeFlow: Boolean; var IsCyclicalLoop: Boolean)
+    local procedure OnCheckCyclicFwdToAppliedEntriesOnAfterCheckItemApplicationEntry(CheckItemLedgerEntry: Record "Item Ledger Entry"; ToEntryNo: BigInteger; IsPositiveToNegativeFlow: Boolean; var IsCyclicalLoop: Boolean)
     begin
     end;
 }

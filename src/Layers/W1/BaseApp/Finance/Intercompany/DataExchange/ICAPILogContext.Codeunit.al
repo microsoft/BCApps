@@ -25,7 +25,7 @@ codeunit 537 "IC API Log Context"
 
     var
         TempICAPILog: Record "IC API Log" temporary;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
 
     procedure Initialize()
     begin

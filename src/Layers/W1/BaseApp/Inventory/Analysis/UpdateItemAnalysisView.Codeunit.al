@@ -50,14 +50,14 @@ codeunit 7150 "Update Item Analysis View"
         PrevCalculatedPostingDate: Date;
         NoOfEntries: Integer;
         ShowProgressWindow: Boolean;
-        WinLastEntryNo: Integer;
+        WinLastEntryNo: BigInteger;
         WinUpdateCounter: Integer;
         WinTotalCounter: Integer;
         WinTime0: Time;
         WinTime1: Time;
         WinTime2: Time;
-        LastValueEntryNo: Integer;
-        LastItemBudgetEntryNo: Integer;
+        LastValueEntryNo: BigInteger;
+        LastItemBudgetEntryNo: BigInteger;
         LastEntryNoIsInitialized: Boolean;
 
 #pragma warning disable AA0074
@@ -226,7 +226,7 @@ codeunit 7150 "Update Item Analysis View"
         FlushAnalysisViewEntry();
     end;
 
-    local procedure UpdateBudgetEntries(DeleteFromEntry: Integer)
+    local procedure UpdateBudgetEntries(DeleteFromEntry: BigInteger)
     begin
         ItemAnalysisViewBudgetEntry.SetRange("Analysis Area", ItemAnalysisView."Analysis Area");
         ItemAnalysisViewBudgetEntry.SetRange("Analysis View Code", ItemAnalysisView.Code);
@@ -259,7 +259,7 @@ codeunit 7150 "Update Item Analysis View"
     local procedure UpdateAnalysisViewEntry(DimValue1: Code[20]; DimValue2: Code[20]; DimValue3: Code[20]; EntryType: Enum "Item Ledger Entry Type")
     var
         PostingDate: Date;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         PostingDate := ItemAnalysisViewSource.PostingDate;
@@ -496,7 +496,7 @@ codeunit 7150 "Update Item Analysis View"
         Window.Update(6, Text010);
     end;
 
-    local procedure UpdateWindowCounter(EntryNo: Integer)
+    local procedure UpdateWindowCounter(EntryNo: BigInteger)
     begin
         WinUpdateCounter := WinUpdateCounter + 1;
         WinTime2 := Time;
@@ -513,7 +513,7 @@ codeunit 7150 "Update Item Analysis View"
         end;
     end;
 
-    local procedure UpdateWindowHeader(TableID: Integer; EntryNo: Integer)
+    local procedure UpdateWindowHeader(TableID: Integer; EntryNo: BigInteger)
     var
         AllObj: Record AllObj;
     begin
@@ -530,7 +530,7 @@ codeunit 7150 "Update Item Analysis View"
         WinTime2 := WinTime0;
     end;
 
-    procedure SetLastBudgetEntryNo(NewLastBudgetEntryNo: Integer)
+    procedure SetLastBudgetEntryNo(NewLastBudgetEntryNo: BigInteger)
     var
         ItemAnalysisView2: Record "Item Analysis View";
     begin
@@ -640,7 +640,7 @@ codeunit 7150 "Update Item Analysis View"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateOne(var NewItemAnalysisView: Record "Item Analysis View"; var ItemAnalysisView: Record "Item Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var ShowWindow: Boolean; var LastValueEntryEntryNo: Integer; var LastItemBudgetEntryNo: Integer; var IsHandled: Boolean);
+    local procedure OnBeforeUpdateOne(var NewItemAnalysisView: Record "Item Analysis View"; var ItemAnalysisView: Record "Item Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var ShowWindow: Boolean; var LastValueEntryEntryNo: BigInteger; var LastItemBudgetEntryNo: BigInteger; var IsHandled: Boolean);
     begin
     end;
 

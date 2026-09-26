@@ -753,7 +753,7 @@ codeunit 1720 "Deferral Utilities"
     /// </summary>
     /// <param name="GenJournalLine">General journal line being posted</param>
     /// <param name="FirstEntryNo">First G/L entry number created from the journal line</param>
-    procedure CreateScheduleFromGL(GenJournalLine: Record "Gen. Journal Line"; FirstEntryNo: Integer)
+    procedure CreateScheduleFromGL(GenJournalLine: Record "Gen. Journal Line"; FirstEntryNo: BigInteger)
     var
         DeferralHeader: Record "Deferral Header";
         DeferralLine: Record "Deferral Line";

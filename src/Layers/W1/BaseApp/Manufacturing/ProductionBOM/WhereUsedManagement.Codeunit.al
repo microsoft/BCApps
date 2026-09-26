@@ -24,7 +24,7 @@ codeunit 99000770 "Where-Used Management"
         VersionMgt: Codeunit VersionManagement;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         MultiLevel: Boolean;
-        NextWhereUsedEntryNo: Integer;
+        NextWhereUsedEntryNo: BigInteger;
 
     procedure FindRecord(Which: Text[30]; var WhereUsedList2: Record "Where-Used Line"): Boolean
     begin
@@ -201,7 +201,7 @@ codeunit 99000770 "Where-Used Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterBuildWhereUsedList(Type: Option " ",Item,"Production BOM"; No: Code[20]; CalcDate: Date; var WhereUsedList: Record "Where-Used Line" temporary; NextWhereUsedEntryNo: Integer; Level: Integer; Quantity: Decimal; MultiLevel: Boolean)
+    local procedure OnAfterBuildWhereUsedList(Type: Option " ",Item,"Production BOM"; No: Code[20]; CalcDate: Date; var WhereUsedList: Record "Where-Used Line" temporary; NextWhereUsedEntryNo: BigInteger; Level: Integer; Quantity: Decimal; MultiLevel: Boolean)
     begin
     end;
 
@@ -211,7 +211,7 @@ codeunit 99000770 "Where-Used Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeBuildWhereUsedList(Type: Option; No: Code[20]; var Multilevel: Boolean; var CalcDate: Date; var Level: Integer; var Quantity: Decimal; var NextWhereUsedEntryNo: Integer; var TempWhereUsedLine: Record "Where-Used Line" temporary)
+    local procedure OnBeforeBuildWhereUsedList(Type: Option; No: Code[20]; var Multilevel: Boolean; var CalcDate: Date; var Level: Integer; var Quantity: Decimal; var NextWhereUsedEntryNo: BigInteger; var TempWhereUsedLine: Record "Where-Used Line" temporary)
     begin
     end;
 
@@ -221,7 +221,7 @@ codeunit 99000770 "Where-Used Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBuildWhereUsedListOnLoopProdBomComponent(var ProductionBOMLine: Record "Production BOM Line"; var TempWhereUsedLine: Record "Where-Used Line" temporary; var NextWhereUsedEntryNo: Integer; No: Code[20]; CalcDate: Date; var Level: Integer)
+    local procedure OnBuildWhereUsedListOnLoopProdBomComponent(var ProductionBOMLine: Record "Production BOM Line"; var TempWhereUsedLine: Record "Where-Used Line" temporary; var NextWhereUsedEntryNo: BigInteger; No: Code[20]; CalcDate: Date; var Level: Integer)
     begin
     end;
 

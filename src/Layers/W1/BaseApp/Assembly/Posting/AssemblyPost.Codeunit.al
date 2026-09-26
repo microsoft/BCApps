@@ -521,7 +521,7 @@ codeunit 900 "Assembly-Post"
         LineCounter: Integer;
         QtyToConsume: Decimal;
         QtyToConsumeBase: Decimal;
-        ItemLedgEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
     begin
         AssemblyLine.Reset();
         AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
@@ -598,7 +598,7 @@ codeunit 900 "Assembly-Post"
     local procedure PostHeader(var AssemblyHeader: Record "Assembly Header"; var PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; NeedUpdateUnitCost: Boolean)
     var
         WhseAssemblyRelease: Codeunit "Whse.-Assembly Release";
-        ItemLedgEntryNo: Integer;
+        ItemLedgEntryNo: BigInteger;
         QtyToOutput: Decimal;
         QtyToOutputBase: Decimal;
     begin
@@ -636,7 +636,7 @@ codeunit 900 "Assembly-Post"
         OnAfterPostedAssemblyHeaderModify(PostedAssemblyHeader, AssemblyHeader, ItemLedgEntryNo);
     end;
 
-    local procedure PostItemConsumption(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: Integer) Result: Integer
+    local procedure PostItemConsumption(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger) Result: Integer
     var
         ItemJnlLine: Record "Item Journal Line";
         AssemblyLineReserve: Codeunit "Assembly Line-Reserve";
@@ -705,7 +705,7 @@ codeunit 900 "Assembly-Post"
         exit(ItemJnlLine."Item Shpt. Entry No.");
     end;
 
-    local procedure PostItemOutput(var AssemblyHeader: Record "Assembly Header"; PostingNoSeries: Code[20]; QtyToOutput: Decimal; QtyToOutputBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: Integer) Result: Integer
+    local procedure PostItemOutput(var AssemblyHeader: Record "Assembly Header"; PostingNoSeries: Code[20]; QtyToOutput: Decimal; QtyToOutputBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger) Result: Integer
     var
         ItemJnlLine: Record "Item Journal Line";
         AssemblyHeaderReserve: Codeunit "Assembly Header-Reserve";
@@ -779,7 +779,7 @@ codeunit 900 "Assembly-Post"
     local procedure PostItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     var
         OrigItemJnlLine: Record "Item Journal Line";
-        ItemShptEntry: Integer;
+        ItemShptEntry: BigInteger;
     begin
         OrigItemJnlLine := ItemJnlLine;
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
@@ -788,7 +788,7 @@ codeunit 900 "Assembly-Post"
         ItemJnlLine."Item Shpt. Entry No." := ItemShptEntry;
     end;
 
-    local procedure PostCorrectionItemJnLine(var ItemJnlLine: Record "Item Journal Line"; AssemblyHeader: Record "Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; SourceType: Integer; ApplyToEntry: Integer)
+    local procedure PostCorrectionItemJnLine(var ItemJnlLine: Record "Item Journal Line"; AssemblyHeader: Record "Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; SourceType: Integer; ApplyToEntry: BigInteger)
     var
         TempItemLedgEntry2: Record "Item Ledger Entry" temporary;
         ATOLink: Record "Assemble-to-Order Link";
@@ -845,7 +845,7 @@ codeunit 900 "Assembly-Post"
             until TempItemLedgEntry2.Next() = 0;
     end;
 
-    local procedure FindAppliesToATOUndoEntry(var ItemLedgEntryInChain: Record "Item Ledger Entry"): Integer
+    local procedure FindAppliesToATOUndoEntry(var ItemLedgEntryInChain: Record "Item Ledger Entry"): BigInteger
     begin
         ItemLedgEntryInChain.Reset();
         ItemLedgEntryInChain.SetCurrentKey("Item No.", Positive);
@@ -1064,7 +1064,7 @@ codeunit 900 "Assembly-Post"
         TimeSheetMgt.CreateTSLineFromAssemblyLine(AssemblyHeader, AssemblyLine, QtyToConsumeBase);
     end;
 
-    local procedure InsertLineItemEntryRelation(var PostedAssemblyLine: Record "Posted Assembly Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; ItemLedgEntryNo: Integer)
+    local procedure InsertLineItemEntryRelation(var PostedAssemblyLine: Record "Posted Assembly Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; ItemLedgEntryNo: BigInteger)
     var
         ItemEntryRelation: Record "Item Entry Relation";
         TempItemEntryRelation: Record "Item Entry Relation" temporary;
@@ -1080,7 +1080,7 @@ codeunit 900 "Assembly-Post"
             PostedAssemblyLine."Item Shpt. Entry No." := ItemLedgEntryNo;
     end;
 
-    local procedure InsertHeaderItemEntryRelation(var PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; ItemLedgEntryNo: Integer)
+    local procedure InsertHeaderItemEntryRelation(var PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; ItemLedgEntryNo: BigInteger)
     var
         ItemEntryRelation: Record "Item Entry Relation";
         TempItemEntryRelation: Record "Item Entry Relation" temporary;
@@ -1747,7 +1747,7 @@ codeunit 900 "Assembly-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostedAssemblyHeaderModify(var PostedAssemblyHeader: Record "Posted Assembly Header"; AssemblyHeader: Record "Assembly Header"; ItemLedgEntryNo: Integer)
+    local procedure OnAfterPostedAssemblyHeaderModify(var PostedAssemblyHeader: Record "Posted Assembly Header"; AssemblyHeader: Record "Assembly Header"; ItemLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -1832,12 +1832,12 @@ codeunit 900 "Assembly-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemConsumptionProcedure(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: Integer; var Result: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostItemConsumptionProcedure(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger; var Result: Integer; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemOutputProcedure(AssemblyHeader: Record "Assembly Header"; PostingNoSeries: Code[20]; QtyToOutput: Decimal; QtyToOutputBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: Integer; var Result: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostItemOutputProcedure(AssemblyHeader: Record "Assembly Header"; PostingNoSeries: Code[20]; QtyToOutput: Decimal; QtyToOutputBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger; var Result: Integer; var IsHandled: Boolean)
     begin
     end;
 

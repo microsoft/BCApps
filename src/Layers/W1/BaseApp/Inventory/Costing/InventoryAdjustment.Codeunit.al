@@ -77,9 +77,9 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         WindowItem: Code[20];
         WindowAdjust: Text[20];
         WindowFWLevel: Integer;
-        WindowEntry: Integer;
+        WindowEntry: BigInteger;
         IsAvgCostCalcTypeItem: Boolean;
-        WindowOutbndEntry: Integer;
+        WindowOutbndEntry: BigInteger;
         ConsumpAdjmtInPeriodWithOutput: Date;
         AdjustTillDate: Date;
         StartDateTime: DateTime;
@@ -469,7 +469,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             until not ItemApplicationEntriesOutb.Read();
     end;
 
-    local procedure AdjustAppliedOutbndEntries(OutbndItemLedgEntryNo: Integer; Recursion: Boolean; var InboundCompletelyInvoiced: Boolean): Boolean
+    local procedure AdjustAppliedOutbndEntries(OutbndItemLedgEntryNo: BigInteger; Recursion: Boolean; var InboundCompletelyInvoiced: Boolean): Boolean
     var
         OutbndItemLedgEntry: Record "Item Ledger Entry";
         OutbndValueEntry: Record "Value Entry";
@@ -708,7 +708,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         exit(false);
     end;
 
-    local procedure ForwardCostToInbndTransEntries(ItemLedgEntryNo: Integer; Recursion: Boolean)
+    local procedure ForwardCostToInbndTransEntries(ItemLedgEntryNo: BigInteger; Recursion: Boolean)
     var
         ItemApplnEntry: Record "Item Application Entry";
         ItemApplicationEntries: Query "Item Application Entries";
@@ -768,7 +768,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         end;
     end;
 
-    local procedure CalcTransEntryOldCost(var CostElementBuf: Record "Cost Element Buffer"; var TransValueEntry: Record "Value Entry"; ItemLedgEntryNo: Integer)
+    local procedure CalcTransEntryOldCost(var CostElementBuf: Record "Cost Element Buffer"; var TransValueEntry: Record "Value Entry"; ItemLedgEntryNo: BigInteger)
     var
         TransValueEntry2: Record "Value Entry";
         ProcessTransValueEntry: Boolean;
@@ -795,7 +795,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         TransValueEntry := TransValueEntry2;
     end;
 
-    local procedure ForwardCostToInbndEntries(ItemLedgEntryNo: Integer)
+    local procedure ForwardCostToInbndEntries(ItemLedgEntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
         ItemApplicationEntriesInb: Query "Item Application Entries Inb.";
@@ -968,7 +968,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
               CompletelyInvoiced);
     end;
 
-    local procedure CalcInbndEntryAdjustedCost(var AdjustedCostElementBuf: Record "Cost Element Buffer"; ItemApplnEntry: Record "Item Application Entry"; OutbndItemLedgEntryNo: Integer; InbndItemLedgEntryNo: Integer; ExactCostReversing: Boolean; Recursion: Boolean) CompletelyInvoiced: Boolean
+    local procedure CalcInbndEntryAdjustedCost(var AdjustedCostElementBuf: Record "Cost Element Buffer"; ItemApplnEntry: Record "Item Application Entry"; OutbndItemLedgEntryNo: BigInteger; InbndItemLedgEntryNo: BigInteger; ExactCostReversing: Boolean; Recursion: Boolean) CompletelyInvoiced: Boolean
     var
         InbndValueEntry: Record "Value Entry";
         InbndItemLedgEntry: Record "Item Ledger Entry";
@@ -1060,7 +1060,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         AdjustedCostElementBuf.AddActualCostElement(AdjustedCostElementBuf.Type::Total, AdjustedCostElementBuf."Actual Cost", AdjustedCostElementBuf."Actual Cost (ACY)");
     end;
 
-    local procedure AdjustAppliedCostEntry(ItemApplnEntry: Record "Item Application Entry"; ItemLedgEntryNo: Integer; Recursion: Boolean): Boolean
+    local procedure AdjustAppliedCostEntry(ItemApplnEntry: Record "Item Application Entry"; ItemLedgEntryNo: BigInteger; Recursion: Boolean): Boolean
     begin
         exit(
               (ItemApplnEntry."Transferred-from Entry No." <> ItemLedgEntryNo) and
@@ -1068,7 +1068,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
               not Recursion);
     end;
 
-    procedure IncludedInCostCalculation(InbndValueEntry: Record "Value Entry"; OutbndItemLedgEntryNo: Integer): Boolean
+    procedure IncludedInCostCalculation(InbndValueEntry: Record "Value Entry"; OutbndItemLedgEntryNo: BigInteger): Boolean
     var
         OutbndValueEntry: Record "Value Entry";
     begin
@@ -1738,7 +1738,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         end;
     end;
 
-    local procedure ForwardAvgCostToInbndEntries(ItemLedgEntryNo: Integer)
+    local procedure ForwardAvgCostToInbndEntries(ItemLedgEntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
         ItemApplicationEntriesInb: Query "Item Application Entries Inb.";
@@ -2170,7 +2170,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ItemLedgEntryNos: List of [Integer];
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if ItemNo <> '' then begin
             if not ItemLedgEntryToAdjust.ContainsKey(ItemNo) then
@@ -2286,7 +2286,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         WindowIsOpen := true;
     end;
 
-    local procedure UpDateWindow(NewWindowAdjmtLevel: Integer; NewWindowItem: Code[20]; NewWindowAdjust: Text[20]; NewWindowFWLevel: Integer; NewWindowEntry: Integer; NewWindowOutbndEntry: Integer)
+    local procedure UpDateWindow(NewWindowAdjmtLevel: Integer; NewWindowItem: Code[20]; NewWindowAdjust: Text[20]; NewWindowFWLevel: Integer; NewWindowEntry: BigInteger; NewWindowOutbndEntry: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -2547,7 +2547,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         SkipUpdateJobItemCost := SkipJobUpdate;
     end;
 
-    local procedure GetLastValidValueEntry(ValueEntryNo: Integer): Integer
+    local procedure GetLastValidValueEntry(ValueEntryNo: BigInteger): Integer
     var
         MaxInteger: Integer;
     begin
@@ -2560,7 +2560,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         exit(TempAvgCostExceptionBuf.Number);
     end;
 
-    local procedure FillFixApplBuffer(ItemLedgerEntryNo: Integer)
+    local procedure FillFixApplBuffer(ItemLedgerEntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
         ItemApplicationEntriesOutb: Query "Item Application Entries Outb.";
@@ -2693,14 +2693,14 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
             end;
     end;
 
-    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: List of [Integer]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: Integer; PeriodStart: Date)
+    local procedure CopyOpenItemLedgEntryToBuf(var OpenOutbndEntries: List of [Integer]; var ExcludedValueEntry: Record "Value Entry"; OpenItemLedgEntryNo: BigInteger; PeriodStart: Date)
     begin
         if CollectOpenValueEntries(ExcludedValueEntry, OpenItemLedgEntryNo, PeriodStart) then
             if not OpenOutbndEntries.Contains(OpenItemLedgEntryNo) then
                 OpenOutbndEntries.Add(OpenItemLedgEntryNo);
     end;
 
-    local procedure CollectOpenValueEntries(var ExcludedValueEntry: Record "Value Entry"; ItemLedgerEntryNo: Integer; PeriodStart: Date) FoundEntries: Boolean
+    local procedure CollectOpenValueEntries(var ExcludedValueEntry: Record "Value Entry"; ItemLedgerEntryNo: BigInteger; PeriodStart: Date) FoundEntries: Boolean
     var
         OpenValueEntry: Record "Value Entry";
     begin
@@ -2725,7 +2725,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     local procedure UseStandardCostMirroring(ItemLedgEntry: Record "Item Ledger Entry"): Boolean
     var
         ReturnShipmentLine: Record "Return Shipment Line";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if (ItemLedgEntry."Entry Type" <> ItemLedgEntry."Entry Type"::Purchase) or
            (ItemLedgEntry."Document Type" <> ItemLedgEntry."Document Type"::"Purchase Return Shipment")
@@ -2810,7 +2810,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         exit(false);
     end;
 
-    local procedure RestoreValuesFromBuffers(var OutbndCostElementBuf: Record "Cost Element Buffer"; var AdjustedCostElementBuf: Record "Cost Element Buffer"; OutbndItemLedgEntryNo: Integer): Boolean
+    local procedure RestoreValuesFromBuffers(var OutbndCostElementBuf: Record "Cost Element Buffer"; var AdjustedCostElementBuf: Record "Cost Element Buffer"; OutbndItemLedgEntryNo: BigInteger): Boolean
     begin
         TempValueEntryCalcdOutbndCostBuf.Reset();
         TempValueEntryCalcdOutbndCostBuf.SetRange("Item Ledger Entry No.", OutbndItemLedgEntryNo);
@@ -2828,7 +2828,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         exit(true);
     end;
 
-    local procedure SaveValuesToBuffers(var OutbndCostElementBuf: Record "Cost Element Buffer"; var AdjustedCostElementBuf: Record "Cost Element Buffer"; OutbndItemLedgEntryNo: Integer)
+    local procedure SaveValuesToBuffers(var OutbndCostElementBuf: Record "Cost Element Buffer"; var AdjustedCostElementBuf: Record "Cost Element Buffer"; OutbndItemLedgEntryNo: BigInteger)
     begin
         if AdjustedCostElementBuf.IsEmpty() then
             exit;
@@ -2840,9 +2840,9 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         until AdjustedCostElementBuf.Next() = 0;
     end;
 
-    local procedure CopyCostElementBufToValueEntryBuf(var ValueEntryBuf: Record "Value Entry"; CostElementBuffer: Record "Cost Element Buffer"; ItemLedgEntryNo: Integer)
+    local procedure CopyCostElementBufToValueEntryBuf(var ValueEntryBuf: Record "Value Entry"; CostElementBuffer: Record "Cost Element Buffer"; ItemLedgEntryNo: BigInteger)
     var
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         ValueEntryBuf.Reset();
         if ValueEntryBuf.FindLast() then
@@ -2884,7 +2884,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         CostElementBuffer.Insert();
     end;
 
-    local procedure ClearOutboundEntryCostBuffer(InboundEntryNo: Integer)
+    local procedure ClearOutboundEntryCostBuffer(InboundEntryNo: BigInteger)
     var
         ItemApplicationEntry: Record "Item Application Entry";
         ItemApplicationEntriesOutb: Query "Item Application Entries Outb.";
@@ -3122,7 +3122,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterCalcInbndEntryAdjustedCost(var AdjustedCostElementBuf: Record "Cost Element Buffer"; var InbndValueEntry: Record "Value Entry"; InbndItemLedgEntry: Record "Item Ledger Entry"; ItemApplnEntry: Record "Item Application Entry"; OutbndItemLedgEntryNo: Integer; var CompletelyInvoiced: Boolean)
+    local procedure OnAfterCalcInbndEntryAdjustedCost(var AdjustedCostElementBuf: Record "Cost Element Buffer"; var InbndValueEntry: Record "Value Entry"; InbndItemLedgEntry: Record "Item Ledger Entry"; ItemApplnEntry: Record "Item Application Entry"; OutbndItemLedgEntryNo: BigInteger; var CompletelyInvoiced: Boolean)
     begin
     end;
 
@@ -3172,7 +3172,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcInbndEntryAdjustedCost(var AdjustedCostElementBuf: Record "Cost Element Buffer"; ItemApplnEntry: Record "Item Application Entry"; OutbndItemLedgEntryNo: Integer; InbndItemLedgEntryNo: Integer; ExactCostReversing: Boolean; Recursion: Boolean; var CompletelyInvoiced: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeCalcInbndEntryAdjustedCost(var AdjustedCostElementBuf: Record "Cost Element Buffer"; ItemApplnEntry: Record "Item Application Entry"; OutbndItemLedgEntryNo: BigInteger; InbndItemLedgEntryNo: BigInteger; ExactCostReversing: Boolean; Recursion: Boolean; var CompletelyInvoiced: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -3457,7 +3457,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnEliminateRndgResidualOnAfterCalcInboundCost(var ValueEntry: Record "Value Entry"; InbndItemLedgEntryNo: Integer)
+    local procedure OnEliminateRndgResidualOnAfterCalcInboundCost(var ValueEntry: Record "Value Entry"; InbndItemLedgEntryNo: BigInteger)
     begin
     end;
 

@@ -126,7 +126,7 @@ table 366 "Analysis View Budget Entry"
         /// Sequential entry number for unique identification within the analysis view.
         /// Part of the primary key to distinguish entries with identical dimension combinations.
         /// </summary>
-        field(10; "Entry No."; Integer)
+        field(10; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

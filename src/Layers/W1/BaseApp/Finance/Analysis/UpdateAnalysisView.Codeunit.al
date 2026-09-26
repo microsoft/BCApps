@@ -64,14 +64,14 @@ codeunit 410 "Update Analysis View"
         PrevCalculatedPostingDate: Date;
         NoOfEntries: Integer;
         ShowProgressWindow: Boolean;
-        WinLastEntryNo: Integer;
+        WinLastEntryNo: BigInteger;
         WinUpdateCounter: Integer;
         WinTotalCounter: Integer;
         WinTime0: Time;
         WinTime1: Time;
         WinTime2: Time;
-        LastGLEntryNo: Integer;
-        LastBudgetEntryNo: Integer;
+        LastGLEntryNo: BigInteger;
+        LastBudgetEntryNo: BigInteger;
         LastEntryNoIsInitialized: Boolean;
 
 #pragma warning disable AA0074
@@ -169,7 +169,7 @@ codeunit 410 "Update Analysis View"
         Updated: Boolean;
         IsHandled: Boolean;
         TableID: Integer;
-        LastReportedEntryNo: Integer;
+        LastReportedEntryNo: BigInteger;
         Supported: Boolean;
     begin
         IsHandled := false;
@@ -268,7 +268,7 @@ codeunit 410 "Update Analysis View"
     local procedure UpdateEntriesForGLAccount()
     var
         AnalysisViewGLQry: Query "Analysis View Source";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -320,7 +320,7 @@ codeunit 410 "Update Analysis View"
     local procedure UpdateEntriesForGLAccountDetailed()
     var
         GLEntry: Record "G/L Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         GLEntry.SetRange("Entry No.", AnalysisView."Last Entry No." + 1, LastGLEntryNo);
         if AnalysisView."Account Filter" <> '' then
@@ -391,7 +391,7 @@ codeunit 410 "Update Analysis View"
             UpdateWindowCounter(CFForecastEntry."Entry No.");
     end;
 
-    local procedure UpdateBudgetEntries(DeleteFromEntry: Integer)
+    local procedure UpdateBudgetEntries(DeleteFromEntry: BigInteger)
     begin
         AnalysisViewBudgetEntry.SetRange("Analysis View Code", AnalysisView.Code);
         AnalysisViewBudgetEntry.SetFilter("Entry No.", '>=%1', DeleteFromEntry);
@@ -440,7 +440,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="DebitAmountACY">Debit amount in additional currency</param>
     /// <param name="CreditAmountACY">Credit amount in additional currency</param>
     /// <param name="EntryNo">Entry number from source transaction for traceability</param>
-    procedure UpdateAnalysisViewEntry(AccNo: Code[20]; BusUnitCode: Code[20]; CashFlowForecastNo: Code[20]; DimValue1: Code[20]; DimValue2: Code[20]; DimValue3: Code[20]; DimValue4: Code[20]; PostingDate: Date; Amount: Decimal; DebitAmount: Decimal; CreditAmount: Decimal; AmountACY: Decimal; DebitAmountACY: Decimal; CreditAmountACY: Decimal; EntryNo: Integer)
+    procedure UpdateAnalysisViewEntry(AccNo: Code[20]; BusUnitCode: Code[20]; CashFlowForecastNo: Code[20]; DimValue1: Code[20]; DimValue2: Code[20]; DimValue3: Code[20]; DimValue4: Code[20]; PostingDate: Date; Amount: Decimal; DebitAmount: Decimal; CreditAmount: Decimal; AmountACY: Decimal; DebitAmountACY: Decimal; CreditAmountACY: Decimal; EntryNo: BigInteger)
     var
         UpdAnalysisViewEntryBuffer: Record "Upd Analysis View Entry Buffer";
     begin
@@ -690,7 +690,7 @@ codeunit 410 "Update Analysis View"
     /// Tracks processing progress and updates user interface with percentage completion.
     /// </summary>
     /// <param name="EntryNo">Current entry number being processed for progress tracking</param>
-    procedure UpdateWindowCounter(EntryNo: Integer)
+    procedure UpdateWindowCounter(EntryNo: BigInteger)
     begin
         WinUpdateCounter := WinUpdateCounter + 1;
         WinTime2 := Time;
@@ -713,7 +713,7 @@ codeunit 410 "Update Analysis View"
     /// </summary>
     /// <param name="TableID">Table ID being processed for display in progress window</param>
     /// <param name="EntryNo">Entry number being processed for progress tracking</param>
-    procedure UpdateWindowHeader(TableID: Integer; EntryNo: Integer)
+    procedure UpdateWindowHeader(TableID: Integer; EntryNo: BigInteger)
     var
         AllObj: Record AllObj;
     begin
@@ -735,7 +735,7 @@ codeunit 410 "Update Analysis View"
     /// Updates the analysis view record with the latest processed budget entry number to track update progress.
     /// </summary>
     /// <param name="NewLastBudgetEntryNo">New last budget entry number to set for tracking processed entries</param>
-    procedure SetLastBudgetEntryNo(NewLastBudgetEntryNo: Integer)
+    procedure SetLastBudgetEntryNo(NewLastBudgetEntryNo: BigInteger)
     var
         AnalysisView2: Record "Analysis View";
     begin
@@ -767,7 +767,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="DimSetID">Dimension set ID to validate against analysis view filters</param>
     /// <param name="AnalysisView">Analysis view record containing dimension filter criteria</param>
     /// <returns>True if dimension set matches all analysis view filters, false otherwise</returns>
-    procedure DimSetIDInFilter(DimSetID: Integer; var AnalysisView: Record "Analysis View"): Boolean
+    procedure DimSetIDInFilter(DimSetID: BigInteger; var AnalysisView: Record "Analysis View"): Boolean
     var
         InFilters: Boolean;
     begin
@@ -808,7 +808,7 @@ codeunit 410 "Update Analysis View"
     /// </summary>
     /// <param name="LastGLEntryNo">Last G/L entry number that can be modified by subscribers</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitLastEntryNo(var LastGLEntryNo: Integer)
+    local procedure OnAfterInitLastEntryNo(var LastGLEntryNo: BigInteger)
     begin
     end;
 
@@ -860,7 +860,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="IsHandled">Set to true to skip standard entry processing</param>
     /// <param name="ShowProgressWindow">Indicates whether to show progress window</param>
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeUpdateEntriesForGLAccount(var TempAnalysisViewEntry: Record "Analysis View Entry" temporary; AnalysisView: Record "Analysis View"; LastGLEntryNo: Integer; var NoOfEntries: Integer; var IsHandled: Boolean; ShowProgressWindow: Boolean)
+    local procedure OnBeforeUpdateEntriesForGLAccount(var TempAnalysisViewEntry: Record "Analysis View Entry" temporary; AnalysisView: Record "Analysis View"; LastGLEntryNo: BigInteger; var NoOfEntries: Integer; var IsHandled: Boolean; ShowProgressWindow: Boolean)
     begin
     end;
 
@@ -908,7 +908,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="Which">Update type indicating whether to update ledger entries, budget entries, or both</param>
     /// <param name="LastGLEntryNo">Last G/L entry number processed in the update</param>
     [IntegrationEvent(false, false)]
-    local procedure OnUpdateOneOnBeforeUpdateEntries(var AnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; LastGLEntryNo: Integer)
+    local procedure OnUpdateOneOnBeforeUpdateEntries(var AnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; LastGLEntryNo: BigInteger)
     begin
     end;
 
@@ -989,7 +989,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="TableID">Table ID being processed</param>
     /// <param name="Supproted">Whether the operation is supported</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateOneUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: Integer; var TableID: Integer; var Supproted: Boolean)
+    local procedure OnBeforeUpdateOneUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: BigInteger; var TableID: Integer; var Supproted: Boolean)
     begin
     end;
 
@@ -1012,7 +1012,7 @@ codeunit 410 "Update Analysis View"
     /// <param name="DirectlyFromPosting">Whether update is triggered directly from posting</param>
     /// <param name="LastBudgetEntryNo">Last budget entry number processed</param>
     [IntegrationEvent(false, false)]
-    local procedure OnUpdateAllOnAfterFilterAnalysisView2(var AnalysisView: Record "Analysis View"; DirectlyFromPosting: Boolean; LastBudgetEntryNo: Integer)
+    local procedure OnUpdateAllOnAfterFilterAnalysisView2(var AnalysisView: Record "Analysis View"; DirectlyFromPosting: Boolean; LastBudgetEntryNo: BigInteger)
     begin
     end;
 

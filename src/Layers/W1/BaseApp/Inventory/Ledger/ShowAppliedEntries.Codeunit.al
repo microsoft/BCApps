@@ -48,7 +48,7 @@ codeunit 5801 "Show Applied Entries"
         end;
     end;
 
-    local procedure InsertTempEntry(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; EntryNo: Integer; AppliedQty: Decimal)
+    local procedure InsertTempEntry(var TempItemLedgerEntry: Record "Item Ledger Entry" temporary; EntryNo: BigInteger; AppliedQty: Decimal)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         IsHandled: Boolean;

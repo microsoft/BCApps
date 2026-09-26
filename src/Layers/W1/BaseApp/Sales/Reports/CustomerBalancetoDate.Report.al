@@ -480,7 +480,7 @@ report 121 "Customer - Balance to Date"
         OnAfterCalcRemainingAmount(TempCustLedgerEntry, PrintAmountInLCY, RemainingAmt, CurrencyCode);
     end;
 
-    local procedure CheckCustEntryIncluded(EntryNo: Integer): Boolean
+    local procedure CheckCustEntryIncluded(EntryNo: BigInteger): Boolean
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         ClosingCustLedgerEntry: Record "Cust. Ledger Entry";
@@ -513,7 +513,7 @@ report 121 "Customer - Balance to Date"
         exit(false);
     end;
 
-    local procedure CheckUnappliedEntryExists(EntryNo: Integer): Boolean
+    local procedure CheckUnappliedEntryExists(EntryNo: BigInteger): Boolean
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin
@@ -552,7 +552,7 @@ report 121 "Customer - Balance to Date"
                 exit(true);
     end;
 
-    local procedure CheckUnbalancedUnappliedEntryExists(EntryNo: Integer): Boolean
+    local procedure CheckUnbalancedUnappliedEntryExists(EntryNo: BigInteger): Boolean
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
     begin

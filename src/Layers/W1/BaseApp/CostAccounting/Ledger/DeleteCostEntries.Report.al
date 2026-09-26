@@ -151,7 +151,7 @@ report 1130 "Delete Cost Entries"
         CostRegisterHasBeenModifiedErr: Label 'Another user has modified the cost register. The To Register No. field must be equal to %1.\Run the Delete Cost Entries batch job again.';
 #pragma warning restore AA0470
 
-    procedure InitializeRequest(NewFromRegisterNo: Integer; NewToRegisterNo: Integer)
+    procedure InitializeRequest(NewFromRegisterNo: BigInteger; NewToRegisterNo: BigInteger)
     begin
         CostRegister2."No." := NewFromRegisterNo;
         CostRegister3."No." := NewToRegisterNo;

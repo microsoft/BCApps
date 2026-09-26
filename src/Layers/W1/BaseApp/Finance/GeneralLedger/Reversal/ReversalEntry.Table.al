@@ -88,7 +88,7 @@ table 179 "Reversal Entry"
         /// <summary>
         /// G/L Register number that contains the entry being reversed, used for register-based reversals.
         /// </summary>
-        field(4; "G/L Register No."; Integer)
+        field(4; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             ToolTip = 'Specifies the number of the general ledger register, where the general ledger entry in this record was posted.';
@@ -437,7 +437,7 @@ table 179 "Reversal Entry"
     /// Reverses all ledger entries from a specific G/L register number.
     /// </summary>
     /// <param name="RegisterNo">G/L register number to reverse</param>
-    procedure ReverseRegister(RegisterNo: Integer)
+    procedure ReverseRegister(RegisterNo: BigInteger)
     begin
         CheckRegister(RegisterNo);
         ReverseEntries(RegisterNo, "Reversal Type"::Register);
@@ -893,7 +893,7 @@ table 179 "Reversal Entry"
         OnAfterCheckDtldEmplLedgEntry(DetailedEmployeeLedgerEntry, EmployeeLedgerEntry2);
     end;
 
-    local procedure CheckRegister(RegisterNo: Integer)
+    local procedure CheckRegister(RegisterNo: BigInteger)
     var
         GLRegister: Record "G/L Register";
         IsHandled: Boolean;
@@ -1116,7 +1116,7 @@ table 179 "Reversal Entry"
     /// <param name="PostingDate">Posting date to validate</param>
     /// <param name="TableCaption">Table caption for error messaging</param>
     /// <param name="EntryNo">Entry number for error messaging</param>
-    procedure CheckPostingDate(PostingDate: Date; TableCaption: Text; EntryNo: Integer)
+    procedure CheckPostingDate(PostingDate: Date; TableCaption: Text; EntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -1137,7 +1137,7 @@ table 179 "Reversal Entry"
     /// <param name="FAPostingDate">FA posting date to validate</param>
     /// <param name="TableCaption">Table caption for error messaging</param>
     /// <param name="EntryNo">Entry number for error messaging</param>
-    procedure CheckFAPostingDate(FAPostingDate: Date; TableCaption: Text; EntryNo: Integer)
+    procedure CheckFAPostingDate(FAPostingDate: Date; TableCaption: Text; EntryNo: BigInteger)
     var
         UserSetup: Record "User Setup";
         FASetup: Record "FA Setup";
@@ -1181,7 +1181,7 @@ table 179 "Reversal Entry"
     /// </summary>
     /// <param name="TableCaption">Table caption for error messaging</param>
     /// <param name="EntryNo">Entry number that was already reversed</param>
-    procedure AlreadyReversedEntry(TableCaption: Text; EntryNo: Integer)
+    procedure AlreadyReversedEntry(TableCaption: Text; EntryNo: BigInteger)
     begin
         Error(Text011, TableCaption, EntryNo);
     end;
@@ -1233,7 +1233,7 @@ table 179 "Reversal Entry"
     /// <param name="TableCaption">Table caption for error messaging</param>
     /// <param name="EntryNo">Entry number that has changed</param>
     /// <returns>Formatted error message text</returns>
-    procedure ReversalErrorForChangedEntry(TableCaption: Text; EntryNo: Integer): Text[1024]
+    procedure ReversalErrorForChangedEntry(TableCaption: Text; EntryNo: BigInteger): Text[1024]
     begin
         exit(StrSubstNo(Text000, TableCaption, EntryNo));
     end;
@@ -1744,7 +1744,7 @@ table 179 "Reversal Entry"
         OnAfterCopyFromEmplLedgEntry(Rec, EmployeeLedgerEntry);
     end;
 
-    local procedure InsertCustTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; CustLedgEntryNo: Integer)
+    local procedure InsertCustTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; CustLedgEntryNo: BigInteger)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         IsHandled: Boolean;
@@ -1761,7 +1761,7 @@ table 179 "Reversal Entry"
         end;
     end;
 
-    local procedure InsertVendTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; VendLedgEntryNo: Integer)
+    local procedure InsertVendTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; VendLedgEntryNo: BigInteger)
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         IsHandled: Boolean;
@@ -1778,7 +1778,7 @@ table 179 "Reversal Entry"
         end;
     end;
 
-    local procedure InsertEmplTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; EmployeeLedgEntryNo: Integer)
+    local procedure InsertEmplTempRevertTransNo(var TempTransactionNoInteger: Record "Integer" temporary; EmployeeLedgEntryNo: BigInteger)
     var
         DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry";
     begin
@@ -2199,7 +2199,7 @@ table 179 "Reversal Entry"
     /// <param name="AllowPostingto">Latest allowed posting date</param>
     /// <param name="xReversalEntry">Previous reversal entry record state</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckFAPostingDate(FAPostingDate: Date; Caption: Text[50]; EntryNo: Integer; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry"; var MaxPostingDate: Date; var AllowPostingFrom: Date; var AllowPostingto: Date; var xReversalEntry: Record "Reversal Entry")
+    local procedure OnBeforeCheckFAPostingDate(FAPostingDate: Date; Caption: Text[50]; EntryNo: BigInteger; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry"; var MaxPostingDate: Date; var AllowPostingFrom: Date; var AllowPostingto: Date; var xReversalEntry: Record "Reversal Entry")
     begin
     end;
 
@@ -2239,7 +2239,7 @@ table 179 "Reversal Entry"
     /// <param name="IsHandled">Set to true to skip standard register validation</param>
     /// <param name="ReversalEntry">Reversal entry record being processed</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckRegister(RegisterNo: Integer; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry")
+    local procedure OnBeforeCheckRegister(RegisterNo: BigInteger; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry")
     begin
     end;
 
@@ -2383,7 +2383,7 @@ table 179 "Reversal Entry"
     /// <param name="ReversalEntry">Current reversal entry record</param>
     /// <param name="MaxPostingDate">Maximum allowed posting date</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckPostingDate(PostingDate: Date; Caption: Text[50]; EntryNo: Integer; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry"; var MaxPostingDate: Date)
+    local procedure OnBeforeCheckPostingDate(PostingDate: Date; Caption: Text[50]; EntryNo: BigInteger; var IsHandled: Boolean; var ReversalEntry: Record "Reversal Entry"; var MaxPostingDate: Date)
     begin
     end;
 
@@ -2534,7 +2534,7 @@ table 179 "Reversal Entry"
     /// <param name="CustLedgEntryNo">Customer ledger entry number for transaction tracking</param>
     /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertCustTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; CustLedgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInsertCustTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; CustLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -2545,7 +2545,7 @@ table 179 "Reversal Entry"
     /// <param name="VendLedgEntryNo">Vendor ledger entry number for transaction tracking</param>
     /// <param name="IsHandled">Set to true to skip standard insertion logic</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertVendTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; VendLedgEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInsertVendTempRevertTransNo(var TempRevertTransactionNoRecordInteger: Record "Integer" temporary; VendLedgEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

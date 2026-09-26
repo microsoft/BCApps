@@ -456,7 +456,7 @@ report 91 "Export Consolidation"
 
     local procedure WriteFile(var GLEntry2: Record "G/L Entry"; var DimBuf: Record "Dimension Buffer")
     var
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
     begin
         case FileFormat of
             FileFormat::"Version 4.00 or Later (.xml)":
@@ -491,7 +491,7 @@ report 91 "Export Consolidation"
 
     local procedure UpdateTempGLEntry(var TempDimBuf: Record "Dimension Buffer" temporary)
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
     begin
         DimEntryNo := DimBufMgt.FindDimensions(TempDimBuf);
         if (not TempDimBuf.IsEmpty) and (DimEntryNo = 0) then begin

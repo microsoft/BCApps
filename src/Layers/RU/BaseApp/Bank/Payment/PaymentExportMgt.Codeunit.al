@@ -221,7 +221,7 @@ codeunit 1210 "Payment Export Mgt"
         until DataExchFieldMapping.Next() = 0;
     end;
 
-    local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: Integer; DataExchLineNo: Integer)
+    local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: BigInteger; DataExchLineNo: Integer)
     var
         DataExchField: Record "Data Exch. Field";
         DataExchLineDef: Record "Data Exch. Line Def";
@@ -329,7 +329,7 @@ codeunit 1210 "Payment Export Mgt"
         until DataExchFieldMapping.Next() = 0;
     end;
 
-    local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: Integer; DataExchLineNo: Integer; var TempDataExchField: Record "Data Exch. Field" temporary)
+    local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: BigInteger; DataExchLineNo: Integer; var TempDataExchField: Record "Data Exch. Field" temporary)
     var
         DataExchLineDef: Record "Data Exch. Line Def";
         DataExchColumnDef: Record "Data Exch. Column Def";
@@ -494,7 +494,7 @@ codeunit 1210 "Payment Export Mgt"
     /// </summary>
     /// <param name="EntryNo">Data exchange entry number containing the payment data to export</param>
     [Scope('OnPrem')]
-    procedure ExportToFile(EntryNo: Integer)
+    procedure ExportToFile(EntryNo: BigInteger)
     var
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
