@@ -10068,13 +10068,17 @@ table 37 "Sales Line"
     local procedure ValidateUnitOfMeasureCodeFromNo()
     var
         IsHandled: Boolean;
+        OldStatusCheckSuspended: Boolean;
     begin
         IsHandled := false;
         OnBeforeValidateUnitOfMeasureCodeFromNo(Rec, xRec, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
 
+        OldStatusCheckSuspended := StatusCheckSuspended;
+        StatusCheckSuspended := true;
         Validate("Unit of Measure Code");
+        StatusCheckSuspended := OldStatusCheckSuspended;
     end;
 
     local procedure NotifyOnMissingSetup(FieldNumber: Integer)
