@@ -27,6 +27,61 @@ codeunit 1475 "RSA"
     end;
 
     /// <summary>
+    /// Imports the public or private RSA key from a PEM-encoded string into the current RSA instance.
+    /// Supported PEM labels: RSA PRIVATE KEY, PRIVATE KEY, ENCRYPTED PRIVATE KEY, RSA PUBLIC KEY, PUBLIC KEY.
+    /// </summary>
+    /// <param name="PemKey">The PEM-encoded RSA key to import.</param>
+    procedure ImportFromPem(PemKey: SecretText)
+    begin
+        RSAImpl.ImportFromPem(PemKey);
+    end;
+
+    /// <summary>
+    /// Exports the public key of the current RSA instance in PKCS#1 PEM format.
+    /// </summary>
+    /// <returns>The RSA public key as a PEM-encoded string.</returns>
+    procedure ExportRSAPublicKeyPem(): Text
+    begin
+        exit(RSAImpl.ExportRSAPublicKeyPem());
+    end;
+
+    /// <summary>
+    /// Exports the private key of the current RSA instance in PKCS#1 PEM format.
+    /// </summary>
+    /// <returns>The RSA private key as a PEM-encoded string.</returns>
+    procedure ExportRSAPrivateKeyPem(): SecretText
+    begin
+        exit(RSAImpl.ExportRSAPrivateKeyPem());
+    end;
+
+    /// <summary>
+    /// Computes the hash value of the specified data and signs it using the loaded RSA key.
+    /// Call ImportFromPem or InitializeRSA before using this overload.
+    /// </summary>
+    /// <param name="DataInStream">The input stream to hash and sign.</param>
+    /// <param name="HashAlgorithm">The hash algorithm to use to create the hash value.</param>
+    /// <param name="RSASignaturePadding">The padding mode to use for the RSA signature.</param>
+    /// <param name="SignatureOutStream">The RSA signature stream for the specified data.</param>
+    procedure SignData(DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureOutStream: OutStream)
+    begin
+        RSAImpl.SignData(DataInStream, HashAlgorithm, RSASignaturePadding, SignatureOutStream);
+    end;
+
+    /// <summary>
+    /// Verifies that a digital signature is valid using the loaded RSA key.
+    /// Call ImportFromPem or InitializeRSA before using this overload.
+    /// </summary>
+    /// <param name="DataInStream">The input stream of data that was signed.</param>
+    /// <param name="HashAlgorithm">The name of the hash algorithm used to create the hash value of the data.</param>
+    /// <param name="RSASignaturePadding">The padding mode to use for the RSA signature.</param>
+    /// <param name="SignatureInStream">The stream of signature data to be verified.</param>
+    /// <returns>True if the signature is valid; otherwise, false.</returns>
+    procedure VerifyData(DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureInStream: InStream): Boolean
+    begin
+        exit(RSAImpl.VerifyData(DataInStream, HashAlgorithm, RSASignaturePadding, SignatureInStream));
+    end;
+
+    /// <summary>
     /// Creates a RSA object with private key and returns the XML string.
     /// </summary>
     /// <param name="PrivateKey">private key as text</param>
