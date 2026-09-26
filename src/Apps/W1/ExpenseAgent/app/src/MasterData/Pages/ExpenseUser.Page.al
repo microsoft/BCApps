@@ -145,6 +145,20 @@ page 6949 "Expense User"
                     ToolTip = 'Specifies whether a welcome email has been queued, sent, or failed for the expense user.';
                 }
             }
+            group("Approval Information")
+            {
+                Caption = 'Approval Information';
+                Visible = Rec."Can Approve";
+
+                field("Approval Limit"; Rec."Approval Limit")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Unlimited Approval"; Rec."Unlimited Approval")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+            }
             part(ExpenseApprovalSetup; "Expense Approval Setups Part")
             {
                 ApplicationArea = Basic, Suite;
@@ -207,6 +221,21 @@ page 6949 "Expense User"
                     ExpenseApprovalMgmt.OpenApprovalSetupPage(Rec);
                 end;
             }
+            action("Alternate Approvers")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Alternate Approvers';
+                Image = UserSetup;
+                ToolTip = 'Configure planned alternate approvers and their coverage dates.';
+
+                trigger OnAction()
+                var
+                    ExpenseAlternateApprover: Record "Expense Alternate Approver";
+                begin
+                    ExpenseAlternateApprover.SetRange("Primary Approver No.", Rec."No.");
+                    Page.RunModal(Page::"Expense Alternate Approvers", ExpenseAlternateApprover);
+                end;
+            }
         }
 
         area(Promoted)
@@ -229,6 +258,9 @@ page 6949 "Expense User"
                 {
                 }
             }
+                actionref(AlternateApprovers_Promoted; "Alternate Approvers")
+                {
+                }
         }
     }
 

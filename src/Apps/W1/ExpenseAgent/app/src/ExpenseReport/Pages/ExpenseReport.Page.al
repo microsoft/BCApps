@@ -9,7 +9,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6910 "Expense Report"
 {
@@ -138,6 +137,14 @@ page 6910 "Expense Report"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the optional interim approver who approves before the final approver.';
+                    Importance = Additional;
+                    Editable = false;
+                    Visible = AgentEnabled;
+                }
+                field("Alternate Approver No."; Rec."Alternate Approver No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the alternate approver currently assigned to this expense report.';
                     Importance = Additional;
                     Editable = false;
                     Visible = AgentEnabled;
@@ -492,6 +499,20 @@ page 6910 "Expense Report"
                         AssignInterimApproverExpenseReport();
                     end;
                 }
+                action("Assign Alternate Approver")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Assign Alternate Approver';
+                    Image = UserSetup;
+                    ToolTip = 'Reassign this approval request to an alternate approver without creating a duplicate request.';
+                    Visible = AgentEnabled;
+                    Enabled = Rec.Status = Rec.Status::"Pending Approval";
+
+                    trigger OnAction()
+                    begin
+                        AssignAlternateApproverExpenseReport();
+                    end;
+                }
             }
         }
         area(Navigation)
@@ -680,6 +701,9 @@ page 6910 "Expense Report"
                 actionref(AssignInterimApprover_Promoted; "Assign Interim Approver")
                 {
                 }
+                actionref(AssignAlternateApprover_Promoted; "Assign Alternate Approver")
+                {
+                }
             }
             group(Category_Expense)
             {
@@ -712,17 +736,15 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        UserSetup: Record "User Setup";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
-            if not UserSetup."Unlimited Expense Approval" then begin
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then begin
                 CheckSetDefaultOwnerFilter();
-                ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
-                ExpenseUser.Get(ExpenseUserNo);
+                ExpenseUserNo := ExpenseUser."No.";
             end;
         end;
 
@@ -842,6 +864,24 @@ page 6910 "Expense Report"
 
         ExpenseUsers.GetRecord(ExpenseUserInterimApprover);
         Rec.AssignInterimApprover(ExpenseUserInterimApprover."No.");
+        CurrPage.Update(false);
+    end;
+
+    local procedure AssignAlternateApproverExpenseReport()
+    var
+        ExpenseUserAlternateApprover: Record "Expense User";
+        ExpenseUsers: Page "Expense Users";
+    begin
+        ExpenseUserAlternateApprover.SetRange("Can Approve", true);
+        ExpenseUserAlternateApprover.SetFilter("No.", '<>%1&<>%2', Rec."Expense User No.", Rec."Final Approver No.");
+
+        ExpenseUsers.LookupMode(true);
+        ExpenseUsers.SetTableView(ExpenseUserAlternateApprover);
+        if ExpenseUsers.RunModal() <> Action::LookupOK then
+            exit;
+
+        ExpenseUsers.GetRecord(ExpenseUserAlternateApprover);
+        Rec.AssignAlternateApprover(ExpenseUserAlternateApprover."No.");
         CurrPage.Update(false);
     end;
 

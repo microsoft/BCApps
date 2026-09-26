@@ -62,6 +62,14 @@ page 6918 "Expense Users API"
                 {
                     Caption = 'Employee Status';
                 }
+                field(approvalLimit; Rec."Approval Limit")
+                {
+                    Caption = 'Approval Limit';
+                }
+                field(unlimitedApproval; Rec."Unlimited Approval")
+                {
+                    Caption = 'Unlimited Approval';
+                }
 
                 part(employees; "Employees API")
                 {
