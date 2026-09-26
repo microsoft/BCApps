@@ -1869,6 +1869,107 @@ codeunit 148004 "Test Verifactu Export"
         SalesInvoiceHeader.CalcFields("Amount Including VAT");
         Assert.IsTrue(XMLText.Contains(Format(SalesInvoiceHeader."Amount Including VAT", 0, '<Precision,2:2><Standard Format,9>')), 'ImporteTotal should have two decimal places');
     end;
+
+    [Test]
+    procedure VerifyNonTaxableArt714InvoiceBreakdown()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 650982] Non-taxable article 7-14 sales invoice is exported with an N1 breakdown
+        Initialize();
+
+        // [GIVEN] Customer "C" and a VAT posting setup for non-taxable article 7-14 transactions
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        CreateNoTaxableVATPostingSetup(
+            VATPostingSetup, VATBusinessPostingGroup.Code,
+            VATPostingSetup."No Taxable Type"::"Non Taxable Art 7-14 and others");
+
+        // [GIVEN] Posted sales invoice "I" with a non-taxable line
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithVATPostingSetup(SalesInvoiceHeader, Customer, VATPostingSetup, Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Its breakdown has qualification N1 and base amount, without tax rate or tax amount
+        VerifyNonTaxableBreakdown(XMLText, 'N1', Amount);
+    end;
+
+    [Test]
+    procedure VerifyNonTaxableLocalizationInvoiceBreakdown()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 650982] Non-taxable localization sales invoice is exported with an N2 breakdown
+        Initialize();
+
+        // [GIVEN] Customer "C" and a VAT posting setup for non-taxable localization transactions
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        CreateNoTaxableVATPostingSetup(
+            VATPostingSetup, VATBusinessPostingGroup.Code,
+            VATPostingSetup."No Taxable Type"::"Non Taxable Due To Localization Rules");
+
+        // [GIVEN] Posted sales invoice "I" with a non-taxable line
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithVATPostingSetup(SalesInvoiceHeader, Customer, VATPostingSetup, Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Its breakdown has qualification N2 and base amount, without tax rate or tax amount
+        VerifyNonTaxableBreakdown(XMLText, 'N2', Amount);
+    end;
+
+    [Test]
+    procedure VerifyNonTaxableInvoiceBreakdownsAreNotCombined()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        Art714VATPostingSetup: Record "VAT Posting Setup";
+        LocalizationVATPostingSetup: Record "VAT Posting Setup";
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 650982] Non-taxable classifications with the same VAT percentage are exported separately
+        Initialize();
+
+        // [GIVEN] Customer "C" and distinct 0% VAT posting setups for N1 and N2 transactions
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        CreateNoTaxableVATPostingSetup(
+            Art714VATPostingSetup, VATBusinessPostingGroup.Code,
+            Art714VATPostingSetup."No Taxable Type"::"Non Taxable Art 7-14 and others");
+        CreateNoTaxableVATPostingSetup(
+            LocalizationVATPostingSetup, VATBusinessPostingGroup.Code,
+            LocalizationVATPostingSetup."No Taxable Type"::"Non Taxable Due To Localization Rules");
+
+        // [GIVEN] Posted sales invoice "I" with one N1 line and one N2 line
+        CreatePostedSalesInvoiceWithVATPostingSetups(
+            SalesInvoiceHeader, Customer, Art714VATPostingSetup, LocalizationVATPostingSetup);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Two breakdowns are exported, one qualified as N1 and one as N2
+        VerifyNonTaxableBreakdownCount(XMLText, 2);
+        VerifyNonTaxableBreakdown(XMLText, 'N1', 100);
+        VerifyNonTaxableBreakdown(XMLText, 'N2', 200);
+    end;
     #endregion
 
     local procedure Initialize()
@@ -2178,6 +2279,74 @@ codeunit 148004 "Test Verifactu Export"
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateNoTaxableVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusinessPostingGroupCode: Code[20]; NoTaxableType: Option)
+    var
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroupCode, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"No Taxable VAT");
+        VATPostingSetup.Validate("No Taxable Type", NoTaxableType);
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreatePostedSalesInvoiceWithVATPostingSetup(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; VATPostingSetup: Record "VAT Posting Setup"; Amount: Decimal)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Invoice Type", SalesHeader."Invoice Type"::"F1 Invoice");
+        SalesHeader.Validate("Special Scheme Code", SalesHeader."Special Scheme Code"::"01 General");
+        SalesHeader.Validate("Operation Description", 'Test Invoice');
+        SalesHeader.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", Amount);
+        SalesLine.Modify(true);
+
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreatePostedSalesInvoiceWithVATPostingSetups(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; Art714VATPostingSetup: Record "VAT Posting Setup"; LocalizationVATPostingSetup: Record "VAT Posting Setup")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        Customer.Validate("VAT Bus. Posting Group", Art714VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Invoice Type", SalesHeader."Invoice Type"::"F1 Invoice");
+        SalesHeader.Validate("Special Scheme Code", SalesHeader."Special Scheme Code"::"01 General");
+        SalesHeader.Validate("Operation Description", 'Test Invoice');
+        SalesHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", Art714VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 100);
+        SalesLine.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", LocalizationVATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", 200);
+        SalesLine.Modify(true);
+
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesCreditMemo(PostedSalesInvoiceNo: Code[20]; CustomerNo: Code[20]; Amount: Decimal): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -2333,6 +2502,36 @@ codeunit 148004 "Test Verifactu Export"
         Assert.IsTrue(XMLText.Contains(Format(VATRate)), 'XML should contain VAT breakdown');
     end;
 
+    local procedure VerifyNonTaxableBreakdown(XMLText: Text; OperationQualification: Text; ExpectedBaseAmount: Decimal)
+    var
+        ParsedXMLDocument: XmlDocument;
+        BreakdownXMLNode: XmlNode;
+        XMLNode: XmlNode;
+        BreakdownXPath: Text;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        BreakdownXPath := StrSubstNo(
+            '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]',
+            OperationQualification);
+        Assert.IsTrue(ParsedXMLDocument.SelectSingleNode(BreakdownXPath, BreakdownXMLNode), 'Expected non-taxable breakdown was not found');
+        Assert.IsTrue(BreakdownXMLNode.SelectSingleNode('*[local-name()="BaseImponibleOimporteNoSujeto"]', XMLNode), 'Non-taxable breakdown should contain the base amount');
+        Assert.AreEqual(Format(ExpectedBaseAmount, 0, 9), XMLNode.AsXmlElement().InnerText(), 'Non-taxable breakdown base amount is incorrect');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoImpositivo"]', XMLNode), 'Non-taxable breakdown should not contain a tax rate');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRepercutida"]', XMLNode), 'Non-taxable breakdown should not contain a tax amount');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoRecargoEquivalencia"]', XMLNode), 'Non-taxable breakdown should not contain an equivalence surcharge rate');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRecargoEquivalencia"]', XMLNode), 'Non-taxable breakdown should not contain an equivalence surcharge amount');
+    end;
+
+    local procedure VerifyNonTaxableBreakdownCount(XMLText: Text; ExpectedCount: Integer)
+    var
+        ParsedXMLDocument: XmlDocument;
+        BreakdownXMLNodes: XmlNodeList;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes('//*[local-name()="DetalleDesglose"]', BreakdownXMLNodes), 'Export should contain breakdowns');
+        Assert.AreEqual(ExpectedCount, BreakdownXMLNodes.Count(), 'Number of breakdowns is incorrect');
+    end;
+
     local procedure VerifyCompanyInformation(CompanyInformation: Record "Company Information"; XMLText: Text)
     begin
         Assert.IsTrue(XMLText.Contains(CompanyInformation.Name), 'XML should contain company name');
@@ -2402,4 +2601,3 @@ codeunit 148004 "Test Verifactu Export"
         exit(Count);
     end;
 }
-
