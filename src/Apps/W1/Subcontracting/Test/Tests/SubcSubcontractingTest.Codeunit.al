@@ -4734,6 +4734,68 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure VendorSuppliedPurchLineNotCancelledByPlanning()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 650344] Planning must not cancel a Vendor-Supplied component line on a subcontracting purchase order.
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] A released production order with a Vendor-Supplied component linked to a subcontracting operation
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] A subcontracting purchase order containing the Vendor-Supplied component line
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+#pragma warning disable AA0210
+        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ProductionBOMLine.FindFirst();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        PurchaseLineComp.FindFirst();
+        PurchaseLineComp.TestField("Subc. Prod. Order No.", ProductionOrder."No.");
+
+        // [WHEN] Regenerative planning is calculated for the Vendor-Supplied component
+        ComponentItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] Planning does not suggest cancelling the component purchase line
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        RequisitionLine.SetRange("Action Message", RequisitionLine."Action Message"::Cancel);
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] The Vendor-Supplied component purchase line remains linked to the production order
+        PurchaseLineComp.FindFirst();
+        PurchaseLineComp.TestField("Subc. Prod. Order No.", ProductionOrder."No.");
+    end;
+
+    [Test]
     procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
     var
         Item: Record Item;

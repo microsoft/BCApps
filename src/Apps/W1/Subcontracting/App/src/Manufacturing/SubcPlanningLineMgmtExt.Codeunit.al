@@ -11,6 +11,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Purchases.Document;
 
 codeunit 20518 "Subc. Planning Line Mgmt Ext."
 {
@@ -74,6 +75,18 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
             exit;
 #endif
         ProdOrderComponent.SetFilter("Component Supply Method", '<>%1', "Component Supply Method"::"Vendor-Supplied");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterFilterLinesWithItemToPlan, '', false, false)]
+    local procedure PurchaseLine_OnAfterFilterLinesWithItemToPlan(var PurchaseLine: Record "Purchase Line"; var Item: Record Item; DocumentType: Option)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        PurchaseLine.SetRange("Subc. Prod. Order No.", '');
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterFilterLinesWithItemToPlan, '', false, false)]
