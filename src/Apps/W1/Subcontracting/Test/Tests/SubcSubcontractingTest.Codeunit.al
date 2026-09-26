@@ -4264,7 +4264,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
         PurchaseLine.FindFirst();
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
