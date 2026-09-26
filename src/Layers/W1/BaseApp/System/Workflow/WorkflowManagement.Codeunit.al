@@ -671,7 +671,8 @@ codeunit 1501 "Workflow Management"
         if WorkflowEventQueue.FindSet() then
             repeat
                 WorkflowStepInstance.Get(WorkflowEventQueue."Step Record ID");
-                if WorkflowStepInstance.Status = WorkflowStepInstance.Status::Processing then begin
+                // Keep the saved records intact while another step still blocks this event.
+                if (WorkflowStepInstance.Status = WorkflowStepInstance.Status::Processing) and CanExecuteEvent(WorkflowStepInstance) then begin
                     WorkflowRecordManagement.RestoreRecord(WorkflowEventQueue."Record Index", Variant);
                     WorkflowRecordManagement.RestoreRecord(WorkflowEventQueue."xRecord Index", xVariant);
                     if Variant.IsRecord and xVariant.IsRecord then begin
@@ -679,7 +680,7 @@ codeunit 1501 "Workflow Management"
                         xRecRef.GetTable(xVariant);
                         WorkflowStepInstance.FindWorkflowRules(WorkflowRule);
                         if EvaluateCondition(RecRef, xRecRef, WorkflowStepInstance.Argument, WorkflowRule) then begin
-                            ExecuteResponses(RecRef, xRecRef, WorkflowStepInstance);
+                            ExecuteResponses(Variant, xVariant, WorkflowStepInstance);
                             WorkflowEventQueue.Delete();
                         end;
                     end;
