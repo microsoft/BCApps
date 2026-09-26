@@ -207,6 +207,8 @@ codeunit 6970 "Create Expense Agent Setup"
         if not UnitOfMeasure.WritePermission then
             exit('');
 
+        CreateKilometerUOM();
+
         UnitOfMeasure.Code := CopyStr(MilesCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code));
         UnitOfMeasure.Description := CopyStr(MilesTxt, 1, MaxStrLen(UnitOfMeasure.Description));
         UnitOfMeasure."International Standard Code" := 'SMI';
@@ -214,6 +216,21 @@ codeunit 6970 "Create Expense Agent Setup"
         if UnitOfMeasure.Insert() then
             exit(UnitOfMeasure.Code);
         exit('');
+    end;
+
+    local procedure CreateKilometerUOM()
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        if UnitOfMeasure.Get(KilometersCodeTxt) then
+            exit;
+
+        UnitOfMeasure.Code := CopyStr(KilometersCodeTxt, 1, MaxStrLen(UnitOfMeasure.Code));
+        UnitOfMeasure.Description := CopyStr(KilometersTxt, 1, MaxStrLen(UnitOfMeasure.Description));
+        UnitOfMeasure."International Standard Code" := 'KMT';
+        UnitOfMeasure.Symbol := 'km';
+
+        UnitOfMeasure.Insert();
     end;
 
     var
@@ -227,4 +244,6 @@ codeunit 6970 "Create Expense Agent Setup"
         XBANKTxt: Label 'Company paid by bank transfer', MaxLength = 100;
         MilesTxt: Label 'Miles';
         MilesCodeTxt: Label 'MILES';
+        KilometersTxt: Label 'Kilometers';
+        KilometersCodeTxt: Label 'KM';
 }
