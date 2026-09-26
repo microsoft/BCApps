@@ -874,16 +874,15 @@ page 20406 "Qlty. Inspection"
 
         CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
-        if IsOpen then
-            if QltyPermissionMgmt.CanChangeItemTracking() then begin
-                TempItemTrackingSetup."Lot No. Required" := true;
-                TempItemTrackingSetup."Serial No. Required" := true;
-                TempItemTrackingSetup."Package No. Required" := true;
-                Rec.IsItemTrackingUsed(TempItemTrackingSetup);
-                CanChangeLotTracking := TempItemTrackingSetup."Lot No. Required";
-                CanChangeSerialTracking := TempItemTrackingSetup."Serial No. Required";
-                CanChangePackageTracking := TempItemTrackingSetup."Package No. Required";
-            end;
+        if IsOpen then begin
+            TempItemTrackingSetup."Lot No. Required" := true;
+            TempItemTrackingSetup."Serial No. Required" := true;
+            TempItemTrackingSetup."Package No. Required" := true;
+            Rec.IsItemTrackingUsed(TempItemTrackingSetup);
+            CanChangeLotTracking := TempItemTrackingSetup."Lot No. Required";
+            CanChangeSerialTracking := TempItemTrackingSetup."Serial No. Required";
+            CanChangePackageTracking := TempItemTrackingSetup."Package No. Required";
+        end;
         CanChangeQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
 
         Rec.CalcFields("Source Table Name");
