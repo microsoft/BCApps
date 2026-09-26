@@ -10,38 +10,39 @@
     var
         CompanyInformation: Record "Company Information";
         DummyGenJournalTemplate: Record "Gen. Journal Template";
-        LibraryDTA: Codeunit "Library - DTA";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryRandom: Codeunit "Library - Random";
         DtaMgt: Codeunit DtaMgt;
+        LibraryDTA: Codeunit "Library - DTA";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryReportValidation: Codeunit "Library - Report Validation";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         isInitialized: Boolean;
-        NumberOfLinesErr: Label 'Number Of Lines Must be %1 in %2.';
+        DTAPaymentJournalLayout: Option Amounts,Bank;
         TestOption: Option "ESR5/15","ESR9/16","ESR9/27","ESR+5/15","ESR+9/16","ESR+9/27","Post Payment Domestic","Bank Payment Domestic","Cash Outpayment Order Domestic","Post Payment Abroad","Bank Payment Abroad","SWIFT Payment Abroad","Cash Outpayment Order Abroad","None";
-        DiscountAmountZeroErr: Label 'The discount amount should be greater than zero.';
-        UnexpectedConfirmDialogErr: Label 'An unexpected confirmation dialog popped up. Message: %1.';
         AmountNotCorrectlyDiscountedErr: Label 'The Gen. Jounrnal Line amount after running the DTA Suggest Vendor Payment report is not correctly discounted.';
-        FieldIncorrectErr: Label 'The field was not correctly filled in as part of the ESR/ISR Coding Line validation. ';
         BankCodeChangeErr: Label 'Reference numbers are only permitted for ESR and ESR+.';
-        GenJournalLineInfoErr: Label 'The Gen. Journal Line information is not correct after running the DTA Suggest Vendor Payment report.';
-        CurrencyCodeHeaderTxt: Label 'Currency Code';
+        BankESRTypeChangedErr: Label 'The reference number may only be modified for ESR type 9/16 and 9/27.';
+        BankPaymentFormChangedErr: Label 'The reference number may only be modified for payment type ESR and ESR+.';
         CHFCurrencyTxt: Label 'CHF';
-        TestDocNoTxt: Label 'TEST123Doc';
+        CurrencyCodeHeaderTxt: Label 'Currency Code';
+        DetailInfoMsg: Label '%1: %2.', Locked = true;
+        DiscountAmountZeroErr: Label 'The discount amount should be greater than zero.';
+        DTABankAccountNotChangeableTxt: Label 'The bank code should not be changeable in this situation.';
+        DTAESRAmountFormattedTxt: Label '23607';
         DTANoVendorBankAccountTxt: Label 'There is no vendor bank account with payment type %2 for vendor %1. Do you want to create it?';
         DTAOpenBankCardTxt: Label 'Bank %2 has been created for vendor %1.\\Do you want to see the bank card to check the entry or to add a balance account, bank account number or position of invoice number?';
-        DTAPaymentJournalLayout: Option Amounts,Bank;
-        DTABankAccountNotChangeableTxt: Label 'The bank code should not be changeable in this situation.';
         DTAReferenceNoTxt: Label '213896001901268000010035573';
-        DTAESRAmountFormattedTxt: Label '23607';
-        BankPaymentFormChangedErr: Label 'The reference number may only be modified for payment type ESR and ESR+.';
-        BankESRTypeChangedErr: Label 'The reference number may only be modified for ESR type 9/16 and 9/27.';
-        DetailInfoMsg: Label '%1: %2.', Locked = true;
+        FieldIncorrectErr: Label 'The field was not correctly filled in as part of the ESR/ISR Coding Line validation. ';
+        GenJournalLineInfoErr: Label 'The Gen. Journal Line information is not correct after running the DTA Suggest Vendor Payment report.';
+        NumberOfLinesErr: Label 'Number Of Lines Must be %1 in %2.';
+        TestDocNoTxt: Label 'TEST123Doc';
+        UnexpectedConfirmDialogErr: Label 'An unexpected confirmation dialog popped up. Message: %1.';
 
     [Test]
     [HandlerFunctions('DTASuggestVendorPaymentsRequestPageHandler,MessageHandler,ConfirmHandler,VendorLedgerEntryPageHandler')]
@@ -900,6 +901,62 @@
 
         // [THEN] Each of 3 footer total amount appears on appropriate page
         VerifyDTAPaymentOrderFooter(Amounts);
+    end;
+
+    [Test]
+    [HandlerFunctions('DTAPaymentJournalRequestPageHandler')]
+    procedure TestDTAPmtJournalRepWithVendorAndEmployeePayments()
+    var
+        Employee: Record Employee;
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Vendor: Record Vendor;
+        VendorBankAccount: Record "Vendor Bank Account";
+        EmployeePaymentAmount: Decimal;
+        VendorPaymentAmount: Decimal;
+    begin
+        // [SCENARIO 650329] Vendor and employee payments are included in the DTA Payment Journal.
+        Initialize();
+
+        // [GIVEN] Random employee and vendor payment amounts.
+        EmployeePaymentAmount := LibraryRandom.RandDecInRange(100, 300, 2);
+        VendorPaymentAmount := LibraryRandom.RandDecInRange(100, 300, 2);
+
+        // [GIVEN] Create Vendor and Vendor Bank Account. 
+        LibraryDTA.CreateVendor(Vendor);
+        LibraryDTA.CreateVendorBankAccount(VendorBankAccount, Vendor."No.", TestOption::"Post Payment Domestic", '');
+
+        // [GIVEN] Create Employee with bank account.
+        LibraryHumanResource.CreateEmployeeWithBankAccount(Employee);
+
+        // [GIVEN] Create General Journal Batch.
+        LibraryDTA.CreateGeneralJournalBatch(GenJournalBatch, DummyGenJournalTemplate.Type::Payments, true);
+
+        // [GIVEN] Create General Journal Line for Vendor.
+        LibraryDTA.CreateGeneralJournalLine(
+            GenJournalLine, GenJournalBatch, WorkDate(), Vendor."No.", GenJournalLine."Document Type"::Payment,
+            VendorPaymentAmount, VendorBankAccount.Code, TestOption::None, '');
+
+        // [GIVEN] Create General Journal Line for Employee.
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Employee, Employee."No.", GenJournalLine."Bal. Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountNo(), EmployeePaymentAmount);
+
+        // [WHEN] Running the DTA Payment Journal report.
+        LibraryVariableStorage.Enqueue(DTAPaymentJournalLayout::Bank);
+        Commit();
+        Report.Run(Report::"DTA Payment Journal");
+
+        // [THEN] Asserting the report dataset contains the expected values.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('AccountNo_GenJournalLine', Vendor."No.");
+        LibraryReportDataset.AssertElementWithValueExists('VendorName', Vendor.Name);
+        LibraryReportDataset.AssertElementWithValueExists('AccountNo_GenJournalLine', Employee."No.");
+        LibraryReportDataset.AssertElementWithValueExists('VendorName', Employee.FullName());
+        LibraryReportDataset.AssertElementWithValueExists('xAcc', Employee.GetBankAccountNo());
+
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
