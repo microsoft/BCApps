@@ -197,7 +197,9 @@ page 9652 "Report Layout Selection"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Show layout parts';
                 Image = ViewDocumentLine;
+#if not CLEAN30
                 Visible = DocumentReportExperienceEnabled;
+#endif
                 ToolTip = 'Show the header/footer and theme parts that will actually apply to the selected report in the current company, including where each part is resolved from.';
 
                 trigger OnAction()
@@ -282,11 +284,15 @@ page 9652 "Report Layout Selection"
     end;
 
     trigger OnOpenPage()
+#if not CLEAN30
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
     begin
         SelectedCompany := CompanyName;
+#if not CLEAN30
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
+#endif
     end;
 
     var
@@ -299,7 +305,9 @@ page 9652 "Report Layout Selection"
         DefaultLbl: Label '(Default)';
         CustomLayoutDescription: Text;
         IsInitialized: Boolean;
+#if not CLEAN30
         DocumentReportExperienceEnabled: Boolean;
+#endif
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
         CouldNotFindBuiltInReportLayoutErr: Label 'There is no built-in report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
         ShowLayoutPartsMsg: Label 'Header/Footer Part: %1\Theme Part: %2', Comment = '%1 = resolved header/footer part, %2 = resolved theme part';
