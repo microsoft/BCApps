@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.IO;
 
+using Microsoft.eServices.EDocument;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 #endif
@@ -18,9 +19,12 @@ codeunit 6161 "E-Document Install"
     Subtype = Install;
 
     trigger OnInstallAppPerCompany()
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         InsertDataExch();
         InsertDataExchV2();
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
     end;
 
 #if not CLEAN29

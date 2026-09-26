@@ -119,6 +119,11 @@ codeunit 10970 "E-Reporting Format" implements "E-Document"
             EDocumentServiceStatus.Status::Rejected,
             EDocumentServiceStatus.Status::"Not Cleared":
                 Rec."Clearance Date" := 0DT;
+            EDocumentServiceStatus.Status::Sent:
+                if EDocumentService."Document Format" in [
+                    EDocumentService."Document Format"::"Peppol BIS 3.0 FR",
+                    EDocumentService."Document Format"::"Factur-X FR"] then
+                    Rec."Clearance Date" := CurrentDateTime();
         end;
     end;
 

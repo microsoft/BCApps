@@ -358,6 +358,28 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure EnsurePaymentOccurrenceDispatcherSchedulesSingleJob()
+    var
+        Customer: Record Customer;
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Payment occurrence dispatcher setup is idempotent
+        Initialize(Customer);
+
+        // [WHEN] Dispatcher setup runs more than once
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
+
+        // [THEN] A single dispatcher job is scheduled
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Payment Occ. Dispatcher");
+        Assert.RecordCount(JobQueueEntry, 1);
+    end;
+
+    [Test]
     procedure PaymentOccurrenceDispatcherProcessesPendingCapture()
     var
         Customer: Record Customer;
@@ -441,7 +463,9 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         Clear(EDocImplState);
         LibraryLowerPermission.SetOutsideO365Scope();
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetFilter("Object ID to Run", '%1|%2', Codeunit::"E-Doc. Message Send Job", Codeunit::"E-Doc. Message Response Job");
+        JobQueueEntry.SetFilter(
+            "Object ID to Run", '%1|%2|%3', Codeunit::"E-Doc. Message Send Job",
+            Codeunit::"E-Doc. Message Response Job", Codeunit::"E-Doc. Payment Occ. Dispatcher");
         JobQueueEntry.DeleteAll();
         EDocMessage.DeleteAll();
         EDocPaymentOccurrence.DeleteAll();
