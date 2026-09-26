@@ -1090,6 +1090,75 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvSkippedBlobReportedUnmodifiedBeforeCompare()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A skipped over-cap source Blob is reported as unchanged before the engine's field comparison, so
+        // the engine leaves the destination Blob untouched (no key-based read, no clear) regardless of mapping order.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the engine asks whether the skipped blob field is modified
+        Result := true;
+        IsHandled := false;
+        LibraryMasterDataMgt.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+
+        // [THEN] it is reported handled and unchanged, so the engine skips the destination blob entirely
+        Assert.IsTrue(IsHandled, 'A skipped cross-env blob must short-circuit the engine field comparison');
+        Assert.IsFalse(Result, 'A skipped cross-env blob must be reported as unchanged');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvNonSkippedBlobNotShortCircuited()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        Result: Boolean;
+        IsHandled: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A blob with no skip marker is left to the engine's normal comparison (not short-circuited).
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+
+        SourceRecordRef.GetTable(SourceRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+
+        // [WHEN] the engine asks whether an ordinary (not skipped) blob field is modified
+        Result := false;
+        IsHandled := false;
+        LibraryMasterDataMgt.HandleOnBeforeIsFieldModified(SourceFieldRef, Result, IsHandled);
+
+        // [THEN] the subscriber leaves the decision to the engine
+        Assert.IsFalse(IsHandled, 'A blob without a skip marker must not short-circuit the engine comparison');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure InlineMediaContentSupersedesEarlierClearForSameKey()
     var
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
