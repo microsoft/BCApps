@@ -19,6 +19,7 @@ codeunit 148342 "Expense Activity Log Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
 
     [Test]
@@ -696,6 +697,1001 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.RecordIsEmpty(ExpenseActivityLogEntry);
     end;
 
+    [Test]
+    procedure SubmissionAggregatesGlobalPolicyPairsAndLineCategories()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        SecondLine: Record "Expense Report Line";
+        ThirdLine: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        PassedPolicy: Record "Expense Policy";
+        ExpectedCategories: JsonArray;
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Global policies count line-policy pairs and use line categories, not blank policy scope.
+        Initialize();
+
+        // [GIVEN] L1 and L2 have distinct codes sharing a description; L3 repeats L1's code.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryLine(Header, SecondLine);
+        SetHistoryCategoryName(Line, 'Meals "and" travel');
+        SetHistoryCategoryName(SecondLine, 'Meals "and" travel');
+        AddHistoryLine(Header, ThirdLine);
+        ThirdLine."Expense Category" := Line."Expense Category";
+        ThirdLine.Modify(false);
+        LibraryExpense.CreateExpensePolicy(PassedPolicy, '', 'Passing global policy');
+        AddHistoryEvaluation(Line, Policy, false);
+        AddHistoryEvaluation(Line, PassedPolicy, false);
+        AddHistoryEvaluation(SecondLine, Policy, false);
+        AddHistoryEvaluation(SecondLine, PassedPolicy, true);
+        AddHistoryEvaluation(ThirdLine, Policy, false);
+        AddHistoryEvaluation(ThirdLine, PassedPolicy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        SecondLine.MarkPoliciesEvaluated(SecondLine."Policy Eval Version");
+        ThirdLine.MarkPoliciesEvaluated(ThirdLine."Policy Eval Version");
+        ExpectedCategories.Add(Line."Expense Category");
+        ExpectedCategories.Add(SecondLine."Expense Category");
+
+        // [WHEN] The report is submitted with already-current manual results.
+        SubmissionID := SubmitHistoryReport(Header);
+
+        // [THEN] All four failures and two passes count, but repeated codes appear only at their first line position.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 4, 2, 2);
+        VerifyFlaggedCategoryCodes(SubmissionID, ExpectedCategories);
+    end;
+
+    [Test]
+    procedure ManualEvaluationDoesNotWriteHistory()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        Entry: Record "Expense Activity Log Entry";
+    begin
+        // [SCENARIO] Manual results and marks alone never create an activity entry.
+        Initialize();
+
+        // [GIVEN] An unsubmitted report with a policy.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        Header.Status := Header.Status::Open;
+        Header.Modify(false);
+
+        // [WHEN] A complete passing evaluation is recorded and confirmed.
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] No activity was written.
+        Entry.SetRange("Subject System ID", Header.SystemId);
+        Assert.RecordIsEmpty(Entry);
+    end;
+
+    [Test]
+    procedure FinalMarkCapturesSnapshotOnce()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        SecondLine: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Only the final confirmation writes a report snapshot; repeated marks do not duplicate it.
+        Initialize();
+
+        // [GIVEN] H is submitted with two unconfirmed lines.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryLine(Header, SecondLine);
+        SubmissionID := SubmitHistoryReport(Header);
+        AddHistoryEvaluation(Line, Policy, false);
+        AddHistoryEvaluation(SecondLine, Policy, true);
+
+        // [WHEN] Only L1 is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] The report still waits for L2 without an error.
+        VerifyNoPolicySnapshot(SubmissionID);
+
+        // [WHEN] L2 and both lines are confirmed again.
+        SecondLine.MarkPoliciesEvaluated(SecondLine."Policy Eval Version");
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        SecondLine.MarkPoliciesEvaluated(SecondLine."Policy Eval Version");
+
+        // [THEN] Exactly one snapshot records both completed checks, including the failure.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 1, 1, 1);
+        VerifyFlaggedCategory(SubmissionID, Line."Expense Category");
+    end;
+
+    [Test]
+    procedure RepeatedMarksKeepOriginalSnapshot()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        OriginalEntry: Record "Expense Activity Log Entry";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Confirmation before and after category and policy changes preserves the original snapshot.
+        Initialize();
+
+        // [GIVEN] A flagged snapshot with a captured category code.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        SetHistoryCategoryName(Line, 'Original meals');
+        AddHistoryEvaluation(Line, Policy, false);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        SubmissionID := SubmitHistoryReport(Header);
+        SetPolicySnapshotFilter(SubmissionID, OriginalEntry);
+        OriginalEntry.FindFirst();
+
+        // [WHEN] L is confirmed again before any changes.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] The immediate snapshot is not duplicated or modified.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 1, 0, 1);
+        VerifyUnchangedPolicySnapshot(OriginalEntry);
+
+        // [GIVEN] The category description changes and P is disabled.
+        SetHistoryCategoryName(Line, 'Renamed meals');
+        Policy.Enabled := false;
+        Policy.Modify(true);
+
+        // [WHEN] The line is confirmed twice with no policies now applicable.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] The one stored failure is not re-derived as cleared or no policies.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 1, 0, 1);
+        VerifyUnchangedPolicySnapshot(OriginalEntry);
+        VerifyFlaggedCategory(SubmissionID, Line."Expense Category");
+    end;
+
+    [Test]
+    procedure StaleLineWithoutPoliciesWaitsForConfirmation()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Removing policies does not erase the need to reconfirm a changed, previously evaluated line.
+        Initialize();
+
+        // [GIVEN] L was evaluated, then changed, and P was removed.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        Line.InvalidatePolicyEvaluation();
+        Policy.Delete(true);
+
+        // [WHEN] H is submitted.
+        SubmissionID := SubmitHistoryReport(Header);
+
+        // [THEN] No snapshot is captured before the current version is confirmed.
+        VerifyNoPolicySnapshot(SubmissionID);
+
+        // [WHEN] L is confirmed against the empty policy set.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] The snapshot explicitly records no applicable policies.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::"No Policies", 0, 0, 0);
+    end;
+
+    [Test]
+    procedure ResubmissionCapturesSecondSnapshot()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        Entry: Record "Expense Activity Log Entry";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Every resubmission can capture its own current snapshot.
+        Initialize();
+
+        // [GIVEN] H has a snapshot from its first submission.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        SubmissionID := SubmitHistoryReport(Header);
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
+        Header.Status := Header.Status::Rejected;
+        Header.Modify(false);
+
+        // [WHEN] H is resubmitted with the same current evidence.
+        SubmissionID := SubmitHistoryReport(Header);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] There is one snapshot in the new round and two for the report.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
+        Entry.SetRange("Subject System ID", Header.SystemId);
+        Entry.SetRange("Event Type", Entry."Event Type"::PolicyEvaluated);
+        Assert.RecordCount(Entry, 2);
+    end;
+
+    [Test]
+    procedure PendingReportWithoutSubmissionHistoryDoesNotLog()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        Entry: Record "Expense Activity Log Entry";
+        ActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        // [SCENARIO] Pending reports with only older creation history do not manufacture submission snapshots.
+        Initialize();
+
+        // [GIVEN] H is pending, but its history contains only Created.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        ActivityLogMgt.LogExpenseReportCreatedEvent(Header);
+        Header.Status := Header.Status::"Pending Approval";
+        Header.Modify(false);
+        AddHistoryEvaluation(Line, Policy, true);
+
+        // [WHEN] L is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] There is no policy snapshot or backfilled submission.
+        Entry.SetRange("Subject System ID", Header.SystemId);
+        Entry.SetFilter("Event Type", '<>%1', Entry."Event Type"::Created);
+        Assert.RecordIsEmpty(Entry);
+    end;
+
+    [Test]
+    procedure NoApplicablePoliciesSnapshotIsNotCleared()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] A report with no applicable policies has its own explicit outcome.
+        Initialize();
+
+        // [GIVEN] A report line without any applicable policies.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        Policy.Delete(true);
+
+        // [WHEN] The report is submitted.
+        SubmissionID := SubmitHistoryReport(Header);
+
+        // [THEN] No policies is recorded, not a fabricated clean evaluation.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::"No Policies", 0, 0, 0);
+    end;
+
+    [Test]
+    procedure DisabledPolicyEvaluationWritesNoHistory()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        Setup: Record "Expense Agent Setup";
+        Entry: Record "Expense Activity Log Entry";
+    begin
+        // [SCENARIO] BC enforces the feature switch at submission and confirmation.
+        Initialize();
+
+        // [GIVEN] Complete results with policy evaluation disabled.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        Setup.Get();
+        Setup."Evaluate Policies" := false;
+        Setup.Modify(false);
+
+        // [WHEN] H is submitted and L is confirmed with the feature disabled.
+        SubmitHistoryReport(Header);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] No policy activity is created.
+        Entry.SetRange("Subject System ID", Header.SystemId);
+        Entry.SetRange("Event Type", Entry."Event Type"::PolicyEvaluated);
+        Assert.RecordIsEmpty(Entry);
+    end;
+
+    [Test]
+    procedure PostingRetainsPolicySnapshot()
+    var
+        Header: Record "Expense Report Header";
+        PostedHeader: Record "Posted Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        Entry: Record "Expense Activity Log Entry";
+        OriginalEntry: Record "Expense Activity Log Entry";
+        ActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Source reassignment preserves policy snapshot contents and subject identity.
+        Initialize();
+
+        // [GIVEN] A completed snapshot and a posted report.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        SubmissionID := SubmitHistoryReport(Header);
+        SetPolicySnapshotFilter(SubmissionID, OriginalEntry);
+        OriginalEntry.FindFirst();
+        PostedHeader."No." := Header."No.";
+        PostedHeader.Insert(false);
+
+        // [WHEN] Posting reassigns the report's history.
+        ActivityLogMgt.ReassignExpenseReportEntriesToPosted(Header, PostedHeader);
+
+        // [THEN] The policy snapshot is unchanged and attached to the posted source.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
+        VerifyUnchangedPolicySnapshot(OriginalEntry);
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Entry.FindFirst();
+        Assert.AreEqual(Database::"Posted Expense Report Header", Entry."Source Table ID", 'The source table must identify the posted report.');
+        Assert.AreEqual(PostedHeader.SystemId, Entry."Source Record System ID", 'The posted source must own the snapshot.');
+    end;
+
+    [Test]
+    procedure SubmissionCountsOnlyCurrentPolicyVersions()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Superseded failed evaluations do not pollute a complete current passing snapshot.
+        Initialize();
+
+        // [GIVEN] A failed old policy version and a confirmed passing current version.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryEvaluation(Line, Policy, false);
+        Policy."Policy Text" := 'Revised policy';
+        Policy.Modify(true);
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [WHEN] Current results are reused during submission.
+        SubmissionID := SubmitHistoryReport(Header);
+
+        // [THEN] Only the applicable current policy pair is counted.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
+    end;
+
+    [Test]
+    procedure MarkCapturesPersistedUnconfirmedResults()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] A worker confirms existing pairs even when live policy status already reads Cleared.
+        Initialize();
+
+        // [GIVEN] L has a passing persisted result but no confirmation and H is submitted.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryEvaluation(Line, Policy, true);
+        Assert.AreEqual(Enum::"Expense Policy Status"::Cleared, Line.GetPolicyStatus(), 'The legacy status can precede confirmation.');
+        SubmissionID := SubmitHistoryReport(Header);
+        VerifyNoPolicySnapshot(SubmissionID);
+
+        // [WHEN] The worker confirms the captured version.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] Exactly one completed snapshot contains the persisted passing evidence.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
+    end;
+
+    [Test]
+    procedure MarkWaitsForStalePolicyOnAnotherLine()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        SecondLine: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Confirming one line waits without error when another line still has an old policy version.
+        Initialize();
+
+        // [GIVEN] Both lines were confirmed before P changed and H was submitted.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        AddHistoryLine(Header, SecondLine);
+        AddHistoryEvaluation(Line, Policy, false);
+        AddHistoryEvaluation(SecondLine, Policy, false);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        SecondLine.MarkPoliciesEvaluated(SecondLine."Policy Eval Version");
+        Policy."Policy Text" := 'Revised policy';
+        Policy.Modify(true);
+        SubmissionID := SubmitHistoryReport(Header);
+
+        // [THEN] Submission itself cannot capture stale policy evidence.
+        VerifyNoPolicySnapshot(SubmissionID);
+
+        // [WHEN] L1 has a current passing result confirmed.
+        AddHistoryEvaluation(Line, Policy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] L2's stale evidence does not produce a partial snapshot.
+        VerifyNoPolicySnapshot(SubmissionID);
+
+        // [WHEN] L2 has a current passing result confirmed.
+        AddHistoryEvaluation(SecondLine, Policy, true);
+        SecondLine.MarkPoliciesEvaluated(SecondLine."Policy Eval Version");
+
+        // [THEN] Only the current passing pairs are captured.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 2, 0);
+    end;
+
+    [Test]
+    procedure InterimApprovedReportCapturesFinalConfirmation()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Interim approval still leaves the report pending for policy history.
+        Initialize();
+
+        // [GIVEN] H was submitted and is now interim approved, with a current unconfirmed result.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        SubmissionID := SubmitHistoryReport(Header);
+        Header.Status := Header.Status::"Interim Approved";
+        Header.Modify(false);
+        AddHistoryEvaluation(Line, Policy, true);
+
+        // [WHEN] L is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] The pending report receives its completed snapshot.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Cleared, 0, 1, 0);
+    end;
+
+    [Test]
+    procedure ApprovedReportDoesNotCaptureLaterMark()
+    var
+        Line: Record "Expense Report Line";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Confirmation after final approval does not create policy history.
+        Initialize();
+
+        // [GIVEN] H was submitted but approved before evaluation finished.
+        SubmissionID := CreateUnconfirmedReportWithStatus(Line, Enum::"Expense Report Status"::Approved);
+
+        // [WHEN] Its line is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] No policy snapshot is created.
+        VerifyNoPolicySnapshot(SubmissionID);
+    end;
+
+    [Test]
+    procedure RejectedReportDoesNotCaptureLaterMark()
+    var
+        Line: Record "Expense Report Line";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Confirmation after rejection does not create policy history.
+        Initialize();
+
+        // [GIVEN] H was submitted but rejected before evaluation finished.
+        SubmissionID := CreateUnconfirmedReportWithStatus(Line, Enum::"Expense Report Status"::Rejected);
+
+        // [WHEN] Its line is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] No policy snapshot is created.
+        VerifyNoPolicySnapshot(SubmissionID);
+    end;
+
+    [Test]
+    procedure RecalledReportDoesNotCaptureLaterMark()
+    var
+        Line: Record "Expense Report Line";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Confirmation on an open recalled report does not create policy history.
+        Initialize();
+
+        // [GIVEN] H was submitted but reopened before evaluation finished.
+        SubmissionID := CreateUnconfirmedReportWithStatus(Line, Enum::"Expense Report Status"::Open);
+
+        // [WHEN] Its line is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] No policy snapshot is created.
+        VerifyNoPolicySnapshot(SubmissionID);
+    end;
+
+    [Test]
+    procedure ReleasedReportDoesNotCaptureLaterMark()
+    var
+        Line: Record "Expense Report Line";
+        SubmissionID: Guid;
+    begin
+        // [SCENARIO] Confirmation on a released report does not create policy history.
+        Initialize();
+
+        // [GIVEN] H was submitted but returned to released before evaluation finished.
+        SubmissionID := CreateUnconfirmedReportWithStatus(Line, Enum::"Expense Report Status"::Released);
+
+        // [WHEN] Its line is confirmed.
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [THEN] No policy snapshot is created.
+        VerifyNoPolicySnapshot(SubmissionID);
+    end;
+
+    [Test]
+    procedure FlaggedCategoryCodesOverflowWithEllipsis()
+    var
+        Header: Record "Expense Report Header";
+        Line: Record "Expense Report Line";
+        Policy: Record "Expense Policy";
+        PassedPolicy: Record "Expense Policy";
+        Entry: Record "Expense Activity Log Entry";
+        ExpectedCategories: JsonArray;
+        CategoriesText: Text;
+        CategoryCode: Code[20];
+        SubmissionID: Guid;
+        Index: Integer;
+    begin
+        // [SCENARIO] Escaped category codes fill the boundary; overflow replaces the tail with one final marker.
+        Initialize();
+
+        // [GIVEN] 51 escaped 20-character codes and a short code exactly fill the snapshot field.
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        LibraryExpense.CreateExpensePolicy(PassedPolicy, '', 'Passing global policy');
+        for Index := 1 to 51 do begin
+            CategoryCode := PadStr('', 3 - StrLen(Format(Index)), '0') + Format(Index) + PadStr('', 16, '"') + '\';
+            SetHistoryCategoryCode(Line, CategoryCode);
+            ExpectedCategories.Add(CategoryCode);
+            AddHistoryEvaluation(Line, Policy, false);
+            AddHistoryEvaluation(Line, PassedPolicy, true);
+            Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+            Clear(Line);
+            AddHistoryLine(Header, Line);
+        end;
+        ExpectedCategories.WriteTo(CategoriesText);
+        CategoryCode := CopyStr(PadStr('TAIL', MaxStrLen(Entry."Flagged Categories") - StrLen(CategoriesText) - 3, 'T'), 1, MaxStrLen(CategoryCode));
+        SetHistoryCategoryCode(Line, CategoryCode);
+        ExpectedCategories.Add(CategoryCode);
+        ExpectedCategories.WriteTo(CategoriesText);
+        Assert.AreEqual(MaxStrLen(Entry."Flagged Categories"), StrLen(CategoriesText), 'The fixture must exactly fill the serialized boundary.');
+        AddHistoryEvaluation(Line, Policy, false);
+        AddHistoryEvaluation(Line, PassedPolicy, true);
+        Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+
+        // [GIVEN] Two further codes overflow, with both failed and passing checks after the boundary.
+        for Index := 52 to 53 do begin
+            Clear(Line);
+            AddHistoryLine(Header, Line);
+            CategoryCode := PadStr('', 3 - StrLen(Format(Index)), '0') + Format(Index) + PadStr('', 16, '"') + '\';
+            SetHistoryCategoryCode(Line, CategoryCode);
+            AddHistoryEvaluation(Line, Policy, false);
+            AddHistoryEvaluation(Line, PassedPolicy, true);
+            Line.MarkPoliciesEvaluated(Line."Policy Eval Version");
+        end;
+        ExpectedCategories.RemoveAt(ExpectedCategories.Count() - 1);
+        ExpectedCategories.Add('...');
+
+        // [WHEN] H is submitted.
+        SubmissionID := SubmitHistoryReport(Header);
+
+        // [THEN] Counts include every pair while the valid preview keeps 51 distinct codes and one marker.
+        VerifyPolicySnapshot(SubmissionID, Enum::"Expense Policy Status"::Flagged, 54, 54, 52);
+        VerifyFlaggedCategoryPreview(SubmissionID, ExpectedCategories);
+    end;
+
+    [Test]
+    procedure HeaderPolicySummaryAggregatesWithoutWriting()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalExpenseReportHeader: Record "Expense Report Header";
+        FirstExpenseReportLine: Record "Expense Report Line";
+        SecondExpenseReportLine: Record "Expense Report Line";
+        ThirdExpenseReportLine: Record "Expense Report Line";
+        ClearedExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PassingExpensePolicy: Record "Expense Policy";
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+        FlaggedCategories: List of [Code[20]];
+        IsComplete: Boolean;
+    begin
+        // [SCENARIO] The header reads all current pairs and distinct category codes without changing an unsubmitted report.
+        Initialize();
+
+        // [GIVEN] H has three flagged lines and one cleared line, each evaluated against two global policies.
+        CreatePolicyHistoryScenario(ExpenseReportHeader, FirstExpenseReportLine, ExpensePolicy);
+        AddHistoryLine(ExpenseReportHeader, SecondExpenseReportLine);
+        AddHistoryLine(ExpenseReportHeader, ThirdExpenseReportLine);
+        AddHistoryLine(ExpenseReportHeader, ClearedExpenseReportLine);
+        SetHistoryCategoryName(FirstExpenseReportLine, 'Meals "and" travel');
+        SetHistoryCategoryName(SecondExpenseReportLine, 'Meals "and" travel');
+        SetHistoryCategoryName(ThirdExpenseReportLine, '');
+        LibraryExpense.CreateExpensePolicy(PassingExpensePolicy, '', 'Passing global policy');
+        AddHistoryEvaluation(FirstExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(FirstExpenseReportLine, PassingExpensePolicy, true);
+        AddHistoryEvaluation(SecondExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(SecondExpenseReportLine, PassingExpensePolicy, true);
+        AddHistoryEvaluation(ThirdExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(ThirdExpenseReportLine, PassingExpensePolicy, true);
+        AddHistoryEvaluation(ClearedExpenseReportLine, ExpensePolicy, true);
+        AddHistoryEvaluation(ClearedExpenseReportLine, PassingExpensePolicy, true);
+        FirstExpenseReportLine.MarkPoliciesEvaluated(FirstExpenseReportLine."Policy Eval Version");
+        SecondExpenseReportLine.MarkPoliciesEvaluated(SecondExpenseReportLine."Policy Eval Version");
+        ThirdExpenseReportLine.MarkPoliciesEvaluated(ThirdExpenseReportLine."Policy Eval Version");
+        ClearedExpenseReportLine.MarkPoliciesEvaluated(ClearedExpenseReportLine."Policy Eval Version");
+        FirstExpenseReportLine.Get(FirstExpenseReportLine."Document No.", FirstExpenseReportLine."Line No.");
+        SecondExpenseReportLine.Get(SecondExpenseReportLine."Document No.", SecondExpenseReportLine."Line No.");
+        ThirdExpenseReportLine.Get(ThirdExpenseReportLine."Document No.", ThirdExpenseReportLine."Line No.");
+        ClearedExpenseReportLine.Get(ClearedExpenseReportLine."Document No.", ClearedExpenseReportLine."Line No.");
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        OriginalExpenseReportHeader := ExpenseReportHeader;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategories.Add('OLD-CATEGORY');
+
+        // [WHEN] H is read directly through the rich helper.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] The summary counts all pairs and returns distinct codes in line order regardless of descriptions.
+        Assert.IsTrue(IsComplete, 'Confirmed results must be complete even before submission.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::Flagged, 3, 5, 3);
+        Assert.AreEqual(FirstExpenseReportLine."Expense Category", FlaggedCategories.Get(1), 'The first flagged code must retain line order.');
+        Assert.AreEqual(SecondExpenseReportLine."Expense Category", FlaggedCategories.Get(2), 'Distinct codes sharing a description must remain distinct.');
+        Assert.AreEqual(ThirdExpenseReportLine."Expense Category", FlaggedCategories.Get(3), 'A blank description must not affect the category code.');
+
+        // [THEN] H and every line retain their stored versions and status, and no activity is created.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(OriginalExpenseReportHeader.SystemRowVersion, ExpenseReportHeader.SystemRowVersion, 'Reading the summary must not modify the header.');
+        Assert.AreEqual(OriginalExpenseReportHeader.Status, ExpenseReportHeader.Status, 'Reading the summary must not change report status.');
+        VerifyUnchangedPolicySummaryLine(FirstExpenseReportLine);
+        VerifyUnchangedPolicySummaryLine(SecondExpenseReportLine);
+        VerifyUnchangedPolicySummaryLine(ThirdExpenseReportLine);
+        VerifyUnchangedPolicySummaryLine(ClearedExpenseReportLine);
+        VerifyNoReportActivity(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure HeaderPolicySummaryClearsIncompleteResultsOnEveryRead()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        FreshExpenseReportHeader: Record "Expense Report Header";
+        FirstExpenseReportLine: Record "Expense Report Line";
+        SecondExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+        FlaggedCategories: List of [Code[20]];
+        IsComplete: Boolean;
+    begin
+        // [SCENARIO] A later unconfirmed line discards partial results on repeated and freshly loaded header reads.
+        Initialize();
+
+        // [GIVEN] H has a confirmed flagged L1 followed by an unconfirmed flagged L2 and seeded outputs.
+        CreatePolicyHistoryScenario(ExpenseReportHeader, FirstExpenseReportLine, ExpensePolicy);
+        AddHistoryLine(ExpenseReportHeader, SecondExpenseReportLine);
+        SetHistoryCategoryName(FirstExpenseReportLine, 'First category');
+        SetHistoryCategoryName(SecondExpenseReportLine, 'Second category');
+        AddHistoryEvaluation(FirstExpenseReportLine, ExpensePolicy, false);
+        AddHistoryEvaluation(SecondExpenseReportLine, ExpensePolicy, false);
+        FirstExpenseReportLine.MarkPoliciesEvaluated(FirstExpenseReportLine."Policy Eval Version");
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategories.Add('OLD-CATEGORY');
+
+        // [WHEN] H is read before L2 is confirmed.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] No partial flagged result escapes when the summary is incomplete.
+        Assert.IsFalse(IsComplete, 'An unconfirmed later line must prevent report completion.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"Not Evaluated", 0, 0, 0);
+
+        // [WHEN] The same header and outputs are reused.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] Reading again cannot expose L1's accumulated counts or codes.
+        Assert.IsFalse(IsComplete, 'Repeated reads must still wait for L2.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"Not Evaluated", 0, 0, 0);
+
+        // [WHEN] A fresh H is read with newly seeded outputs.
+        FreshExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategories.Add('ANOTHER-OLD-CATEGORY');
+        IsComplete := FreshExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] Fresh reads also discard all partial and caller-provided outputs without logging.
+        Assert.IsFalse(IsComplete, 'A fresh header must observe the unconfirmed line.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"Not Evaluated", 0, 0, 0);
+        VerifyNoReportActivity(ExpenseReportHeader);
+
+        // [WHEN] L2 is confirmed and the rich helper is called again with reused, seeded outputs.
+        SecondExpenseReportLine.MarkPoliciesEvaluated(SecondExpenseReportLine."Policy Eval Version");
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategories.Add('OBSOLETE-CATEGORY');
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] The complete summary includes both current codes and no stale entries or activity.
+        Assert.IsTrue(IsComplete, 'Confirming the remaining line must complete the report.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::Flagged, 2, 0, 2);
+        Assert.AreEqual(FirstExpenseReportLine."Expense Category", FlaggedCategories.Get(1), 'The first flagged category must retain line order.');
+        Assert.AreEqual(SecondExpenseReportLine."Expense Category", FlaggedCategories.Get(2), 'The newly confirmed category must replace stale caller entries.');
+        VerifyNoReportActivity(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure HeaderPolicySummaryWithoutPoliciesOrLinesClearsOutputs()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        PolicyStatus: Enum "Expense Policy Status";
+        FailedCount: Integer;
+        PassedCount: Integer;
+        FlaggedCategories: List of [Code[20]];
+        IsComplete: Boolean;
+    begin
+        // [SCENARIO] No applicable policies and zero lines are complete helper results with empty overwritten outputs.
+        Initialize();
+
+        // [GIVEN] H has an unconfirmed L but no policies, and the caller has nonempty outputs.
+        CreatePolicyHistoryScenario(ExpenseReportHeader, ExpenseReportLine, ExpensePolicy);
+        ExpensePolicy.Delete(false);
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategories.Add('OLD-CATEGORY');
+
+        // [WHEN] H is read without applicable policies.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] No confirmation is required and the summary reports completion without retaining caller data.
+        Assert.IsTrue(IsComplete, 'A line with no applicable policies must be complete without confirmation.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"No Policies", 0, 0, 0);
+        VerifyNoReportActivity(ExpenseReportHeader);
+
+        // [GIVEN] H now has zero lines and the outputs contain earlier caller data again.
+        ExpenseReportLine.Delete(false);
+        PolicyStatus := PolicyStatus::Flagged;
+        FailedCount := 99;
+        PassedCount := 99;
+        FlaggedCategories.Add('ANOTHER-OLD-CATEGORY');
+
+        // [WHEN] The helper reads H with zero lines, independently of submission validation.
+        IsComplete := ExpenseReportHeader.IsPolicyEvaluationComplete(PolicyStatus, FailedCount, PassedCount, FlaggedCategories);
+
+        // [THEN] An empty header has the same complete, empty No Policies summary.
+        Assert.IsTrue(IsComplete, 'The helper must return complete for a header with zero lines.');
+        VerifyHeaderPolicySummary(PolicyStatus, FailedCount, PassedCount, FlaggedCategories, PolicyStatus::"No Policies", 0, 0, 0);
+        VerifyNoReportActivity(ExpenseReportHeader);
+    end;
+
+    local procedure Initialize()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log Test");
+        LibrarySetupStorage.Restore();
+        if IsInitialized then
+            exit;
+
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Evaluate Policies" := false;
+        ExpenseAgentSetup.Modify(false);
+        LibrarySetupStorage.Save(Database::"Expense Agent Setup");
+        IsInitialized := true;
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
+    end;
+
+    local procedure VerifyHeaderPolicySummary(PolicyStatus: Enum "Expense Policy Status"; FailedCount: Integer; PassedCount: Integer; FlaggedCategories: List of [Code[20]]; ExpectedPolicyStatus: Enum "Expense Policy Status"; ExpectedFailedCount: Integer; ExpectedPassedCount: Integer; ExpectedCategoryCount: Integer)
+    begin
+        Assert.AreEqual(ExpectedPolicyStatus, PolicyStatus, 'The summary must return the complete status or the offending incomplete line status.');
+        Assert.AreEqual(ExpectedFailedCount, FailedCount, 'The failed count must contain only complete current line-policy pairs.');
+        Assert.AreEqual(ExpectedPassedCount, PassedCount, 'The passed count must contain only complete current line-policy pairs.');
+        Assert.AreEqual(ExpectedCategoryCount, FlaggedCategories.Count(), 'The category list must discard caller entries and incomplete partial results.');
+    end;
+
+    local procedure VerifyUnchangedPolicySummaryLine(OriginalExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportLine.Get(OriginalExpenseReportLine."Document No.", OriginalExpenseReportLine."Line No.");
+        Assert.AreEqual(OriginalExpenseReportLine.SystemRowVersion, ExpenseReportLine.SystemRowVersion, 'Reading the summary must not modify the line.');
+        Assert.AreEqual(OriginalExpenseReportLine."Policy Eval Version", ExpenseReportLine."Policy Eval Version", 'Reading the summary must preserve the line policy version.');
+        Assert.AreEqual(OriginalExpenseReportLine."Evaluated Policy Version", ExpenseReportLine."Evaluated Policy Version", 'Reading the summary must preserve the confirmed version.');
+        Assert.AreEqual(OriginalExpenseReportLine.GetPolicyStatus(), ExpenseReportLine.GetPolicyStatus(), 'Reading the summary must preserve line policy status.');
+    end;
+
+    local procedure VerifyNoReportActivity(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        Assert.RecordIsEmpty(ExpenseActivityLogEntry);
+    end;
+
+    local procedure VerifyNoPolicySnapshot(SubmissionID: Guid)
+    var
+        Entry: Record "Expense Activity Log Entry";
+    begin
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Assert.RecordIsEmpty(Entry);
+    end;
+
+    local procedure CreateUnconfirmedReportWithStatus(var Line: Record "Expense Report Line"; Status: Enum "Expense Report Status") SubmissionID: Guid
+    var
+        Header: Record "Expense Report Header";
+        Policy: Record "Expense Policy";
+    begin
+        CreatePolicyHistoryScenario(Header, Line, Policy);
+        SubmissionID := SubmitHistoryReport(Header);
+        Header.Status := Status;
+        Header.Modify(false);
+        AddHistoryEvaluation(Line, Policy, true);
+    end;
+
+    local procedure VerifyFlaggedCategoryPreview(SubmissionID: Guid; ExpectedCategories: JsonArray)
+    var
+        Entry: Record "Expense Activity Log Entry";
+        Categories: JsonArray;
+        LastCategory: JsonToken;
+    begin
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Entry.FindFirst();
+        Assert.IsTrue(StrLen(Entry."Flagged Categories") <= MaxStrLen(Entry."Flagged Categories"), 'The preview must fit the field.');
+        Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'The preview must be a valid JSON array.');
+        VerifyFlaggedCategoryCodes(SubmissionID, ExpectedCategories);
+        Categories.Get(Categories.Count() - 1, LastCategory);
+        Assert.AreEqual('...', LastCategory.AsValue().AsText(), 'Overflow must end with a separate ellipsis entry.');
+    end;
+
+    local procedure VerifyFlaggedCategoryCodes(SubmissionID: Guid; ExpectedCategories: JsonArray)
+    var
+        Entry: Record "Expense Activity Log Entry";
+        Categories: JsonArray;
+        ExpectedText: Text;
+    begin
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Entry.FindFirst();
+        Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'Flagged categories must be a valid JSON array.');
+        ExpectedCategories.WriteTo(ExpectedText);
+        Assert.AreEqual(ExpectedText, Entry."Flagged Categories", 'Distinct codes must retain first-line order without partial entries or duplicate markers.');
+    end;
+
+    local procedure VerifyUnchangedPolicySnapshot(OriginalEntry: Record "Expense Activity Log Entry")
+    var
+        Entry: Record "Expense Activity Log Entry";
+    begin
+        Entry.Get(OriginalEntry."Entry No.");
+        Assert.AreEqual(OriginalEntry.SystemId, Entry.SystemId, 'The event identity must be preserved.');
+        Assert.AreEqual(OriginalEntry."Subject System ID", Entry."Subject System ID", 'The subject identity must be preserved.');
+        Assert.AreEqual(OriginalEntry."Occurred At", Entry."Occurred At", 'Capture time must not change.');
+        Assert.AreEqual(OriginalEntry."Flagged Categories", Entry."Flagged Categories", 'The category preview must not be recalculated.');
+        Assert.AreEqual(OriginalEntry.Comment, Entry.Comment, 'The captured summary must not change.');
+    end;
+
+    local procedure CreatePolicyHistoryScenario(var Header: Record "Expense Report Header"; var Line: Record "Expense Report Line"; var Policy: Record "Expense Policy")
+    var
+        Submitter: Record "Expense User";
+        Approver: Record "Expense User";
+        Setup: Record "Expense Agent Setup";
+    begin
+        Policy.DeleteAll(false);
+        CreateApprovalScenario(Submitter, Approver, Header);
+        Setup.Get();
+        Setup."Evaluate Policies" := true;
+        Setup.Modify(false);
+        AddHistoryLine(Header, Line);
+        LibraryExpense.CreateExpensePolicy(Policy, '', 'Global policy');
+    end;
+
+    local procedure AddHistoryLine(Header: Record "Expense Report Header"; var Line: Record "Expense Report Line")
+    var
+        Category: Record "Expense Category";
+        LastLine: Record "Expense Report Line";
+    begin
+        Category.Code := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Category.Code));
+        Category.Insert(false);
+        LastLine.SetRange("Document No.", Header."No.");
+        if not LastLine.FindLast() then
+            LastLine."Line No." := 0;
+        Line.Init();
+        Line."Document No." := Header."No.";
+        Line."Line No." := LastLine."Line No." + 10000;
+        Line."Expense Category" := Category.Code;
+        Line.Insert(false);
+    end;
+
+    local procedure AddHistoryEvaluation(Line: Record "Expense Report Line"; Policy: Record "Expense Policy"; Compliant: Boolean)
+    var
+        Evaluation: Record "Expense Policy Evaluation";
+    begin
+        LibraryExpense.CreateExpensePolicyEvaluation(Evaluation, Line, Policy, 'Evaluated', Compliant);
+    end;
+
+    local procedure SetHistoryCategoryName(Line: Record "Expense Report Line"; CategoryName: Text[250])
+    var
+        Category: Record "Expense Category";
+    begin
+        Category.Get(Line."Expense Category");
+        Category.Description := CategoryName;
+        Category.Modify(false);
+    end;
+
+    local procedure SetHistoryCategoryCode(var Line: Record "Expense Report Line"; CategoryCode: Code[20])
+    var
+        Category: Record "Expense Category";
+    begin
+        Category.Get(Line."Expense Category");
+        Category.Rename(CategoryCode);
+        Line.Get(Line."Document No.", Line."Line No.");
+        Line."Expense Category" := Category.Code;
+        Line.Modify(false);
+    end;
+
+    local procedure SubmitHistoryReport(var Header: Record "Expense Report Header") SubmissionID: Guid
+    var
+        Entry: Record "Expense Activity Log Entry";
+        ApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        ApprovalMgmt.Submit(Header, Header."Expense User No.");
+        Entry.SetRange("Subject System ID", Header.SystemId);
+        Entry.SetFilter("Event Type", '%1|%2', Entry."Event Type"::Submitted, Entry."Event Type"::Resubmitted);
+        Entry.FindLast();
+        exit(Entry.SystemId);
+    end;
+
+    local procedure VerifyPolicySnapshot(SubmissionID: Guid; Status: Enum "Expense Policy Status"; FailedCount: Integer; PassedCount: Integer; ExpectedCategoryCount: Integer)
+    var
+        Entry: Record "Expense Activity Log Entry";
+        Categories: JsonArray;
+    begin
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Assert.RecordCount(Entry, 1);
+        Entry.FindFirst();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::PolicyEvaluated, Entry."Event Type", 'The event type must identify the policy snapshot.');
+        Assert.AreEqual(Status, Entry."Policy Status", 'Snapshot status must reflect all applicable pairs.');
+        Assert.AreEqual(FailedCount, Entry."Failed Policy Count", 'Failed count counts line-policy pairs.');
+        Assert.AreEqual(PassedCount, Entry."Passed Policy Count", 'Passed count counts line-policy pairs.');
+        Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'Flagged categories must be valid JSON.');
+        Assert.AreEqual(ExpectedCategoryCount, Categories.Count(), 'The preview must contain the expected number of entries.');
+        Assert.AreEqual(Enum::"Expense Activity Initiator"::Agent, Entry."Initiated By", 'The snapshot is agent initiated.');
+        Assert.AreEqual(0, Entry."Actor Role".AsInteger(), 'No actor role may grant history access.');
+        Assert.AreEqual(0, Entry."Actor Table ID", 'No human identity may be attached.');
+        Assert.IsTrue(IsNullGuid(Entry."Actor Record System ID"), 'No human identity may be attached.');
+        Assert.AreNotEqual(0DT, Entry."Occurred At", 'A captured policy event must have a history timestamp.');
+    end;
+
+    local procedure VerifyFlaggedCategory(SubmissionID: Guid; CategoryCode: Code[20])
+    var
+        Entry: Record "Expense Activity Log Entry";
+        Categories: JsonArray;
+        Category: JsonToken;
+    begin
+        SetPolicySnapshotFilter(SubmissionID, Entry);
+        Entry.FindFirst();
+        Assert.IsTrue(Categories.ReadFrom(Entry."Flagged Categories"), 'Flagged categories must be valid JSON.');
+        Assert.AreEqual(1, Categories.Count(), 'Repeated failures for one code must not duplicate categories.');
+        Categories.Get(0, Category);
+        Assert.AreEqual(CategoryCode, Category.AsValue().AsText(), 'Capture the category code regardless of its description.');
+    end;
+
+    local procedure SetPolicySnapshotFilter(SubmissionID: Guid; var Entry: Record "Expense Activity Log Entry")
+    var
+        SubmissionEntry: Record "Expense Activity Log Entry";
+    begin
+        SubmissionEntry.GetBySystemId(SubmissionID);
+        Entry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        Entry.SetRange("Subject System ID", SubmissionEntry."Subject System ID");
+        Entry.SetRange("Event Type", Entry."Event Type"::PolicyEvaluated);
+        Entry.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
+    end;
+
     local procedure CreateApprovalScenario(
         var
             SubmitterExpenseUser: Record "Expense User";
@@ -753,17 +1749,6 @@ codeunit 148342 "Expense Activity Log Test"
 
         UserSetup."Unlimited Expense Approval" := UnlimitedExpenseApproval;
         UserSetup.Modify();
-    end;
-
-    local procedure Initialize()
-    begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log Test");
-        if IsInitialized then
-            exit;
-
-        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
-        IsInitialized := true;
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
     end;
 
 }

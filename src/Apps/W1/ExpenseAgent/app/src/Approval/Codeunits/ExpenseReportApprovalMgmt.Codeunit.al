@@ -443,6 +443,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
             Enum::"Expense Activity Actor Role"::Submitter,
             SubmitterExpenseUserNo,
             EventComment);
+        ExpenseActivityLogMgt.LogPolicyEvaluationIfReady(ExpenseReportHeader);
     end;
 
     local procedure LogExpenseReportEvent(

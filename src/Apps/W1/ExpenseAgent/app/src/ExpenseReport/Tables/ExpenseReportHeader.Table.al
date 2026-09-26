@@ -1265,10 +1265,68 @@ table 6906 "Expense Report Header"
             Error(InvalidApprovalStatusErr, Rec."No.");
     end;
 
+    internal procedure IsApprovalPending(): Boolean
+    begin
+        exit(Rec.Status in [Rec.Status::"Pending Approval", Rec.Status::"Interim Approved"]);
+    end;
+
     internal procedure TestApprovalPending()
     begin
-        if not (Rec.Status in [Rec.Status::"Pending Approval", Rec.Status::"Interim Approved"]) then
+        if not IsApprovalPending() then
             Error(NotPendingApprovalErr, Rec."No.");
+    end;
+
+    /// <summary>
+    /// Checks policy evaluation completion across the report's lines and returns a read-only summary.
+    /// Replaces all output values; incomplete reports return zero counts and an empty category list.
+    /// </summary>
+    /// <param name="PolicyStatus">Flagged, Cleared, or No Policies when complete; otherwise the first incomplete line's Not Evaluated or Stale status.</param>
+    /// <param name="FailedCount">Number of failed current line-policy evaluations, not the number of expenses or categories.</param>
+    /// <param name="PassedCount">Number of passed current line-policy evaluations.</param>
+    /// <param name="FlaggedCategories">Distinct nonblank failed-line category codes in line order. Not truncated; formatting and storage limits belong to the caller.</param>
+    /// <returns>True when every line's applicable current policies have confirmed results, including flagged results. Lines without applicable policies need no initial confirmation, but previously evaluated lines changed since confirmation remain incomplete. An empty report returns true with No Policies.</returns>
+    internal procedure IsPolicyEvaluationComplete(var PolicyStatus: Enum "Expense Policy Status"; var FailedCount: Integer; var PassedCount: Integer; var FlaggedCategories: List of [Code[20]]): Boolean
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        LinePolicyStatus: Enum "Expense Policy Status";
+        LineFailedCount: Integer;
+        LinePassedCount: Integer;
+        TotalFailedCount: Integer;
+        TotalPassedCount: Integer;
+        CategoryCodes: List of [Code[20]];
+    begin
+        PolicyStatus := PolicyStatus::"Not Evaluated";
+        FailedCount := 0;
+        PassedCount := 0;
+        Clear(FlaggedCategories);
+
+        ExpenseReportLine.ReadIsolation := IsolationLevel::RepeatableRead;
+        ExpenseReportLine.SetLoadFields(SystemId, "Expense Category", "Policy Eval Version", "Evaluated Policy Version", "Policies Evaluated At");
+        ExpenseReportLine.SetCurrentKey("Document No.", "Line No.");
+        ExpenseReportLine.SetRange("Document No.", Rec."No.");
+        if ExpenseReportLine.FindSet() then
+            repeat
+                if not ExpenseReportLine.IsPolicyEvaluationComplete(LinePolicyStatus, LineFailedCount, LinePassedCount) then begin
+                    PolicyStatus := LinePolicyStatus;
+                    exit(false);
+                end;
+                TotalFailedCount += LineFailedCount;
+                TotalPassedCount += LinePassedCount;
+                if (LineFailedCount > 0) and (ExpenseReportLine."Expense Category" <> '') and
+                   (not CategoryCodes.Contains(ExpenseReportLine."Expense Category"))
+                then
+                    CategoryCodes.Add(ExpenseReportLine."Expense Category");
+            until ExpenseReportLine.Next() = 0;
+
+        FailedCount := TotalFailedCount;
+        PassedCount := TotalPassedCount;
+        FlaggedCategories := CategoryCodes;
+        PolicyStatus := PolicyStatus::"No Policies";
+        if PassedCount > 0 then
+            PolicyStatus := PolicyStatus::Cleared;
+        if FailedCount > 0 then
+            PolicyStatus := PolicyStatus::Flagged;
+        exit(true);
     end;
 
     /// <summary>

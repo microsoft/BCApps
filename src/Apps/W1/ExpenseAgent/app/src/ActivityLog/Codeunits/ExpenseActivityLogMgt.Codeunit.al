@@ -130,6 +130,71 @@ codeunit 6926 "Expense Activity Log Mgt."
         exit(not ExpenseActivityLogEntry.IsEmpty());
     end;
 
+    internal procedure LogPolicyEvaluationIfReady(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        SubmissionEntry: Record "Expense Activity Log Entry";
+        Snapshot: Record "Expense Activity Log Entry";
+        FlaggedCategories: List of [Code[20]];
+        CategoryCode: Code[20];
+        Categories: JsonArray;
+        CategoriesText: Text;
+        CategoriesTruncated: Boolean;
+        SummaryLbl: Label '%1. Failed policy checks: %2. Passed policy checks: %3.', Comment = '%1 = policy status, %2 = failed line-policy pairs, %3 = passed line-policy pairs';
+    begin
+        // Policy history is opt-in; absent setup also leaves it disabled.
+        if not ExpenseAgentSetup.Get() then
+            exit;
+        if not ExpenseAgentSetup."Evaluate Policies" then
+            exit;
+
+        // Both submission and line confirmation lock the header before reading the report's lines.
+        ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        // Ignore draft checks and results arriving after the report leaves approval.
+        if not ExpenseReportHeader.IsApprovalPending() then
+            exit;
+
+        SubmissionEntry.SetRange("Source Table ID", Database::"Expense Report Header");
+        SubmissionEntry.SetRange("Source Record System ID", ExpenseReportHeader.SystemId);
+        SubmissionEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        SubmissionEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        SubmissionEntry.SetFilter("Event Type", '%1|%2', SubmissionEntry."Event Type"::Submitted, SubmissionEntry."Event Type"::Resubmitted);
+        // Do not create policy history for an untracked submission.
+        if not SubmissionEntry.FindLast() then
+            exit;
+
+        Snapshot.CopyFilters(SubmissionEntry);
+        Snapshot.SetRange("Event Type", Snapshot."Event Type"::PolicyEvaluated);
+        Snapshot.SetFilter("Entry No.", '>%1', SubmissionEntry."Entry No.");
+        // Log at most one PolicyEvaluated entry after the latest Submitted/Resubmitted entry.
+        // Example (Entry No.): Submitted 100, PolicyEvaluated 101 => skip duplicate.
+        // Resubmitted 105 starts a new round; entry 101 remains in history.
+        // Only PolicyEvaluated entries after 105 prevent another snapshot in that round.
+        if not Snapshot.IsEmpty() then
+            exit;
+        Snapshot.Reset();
+
+        InitializeExpenseReportEntry(
+            Snapshot, ExpenseReportHeader, Enum::"Expense Activity Event Type"::PolicyEvaluated,
+            Enum::"Expense Activity Initiator"::Agent, Enum::"Expense Activity Actor Role"::" ", '', 0DT);
+        // Wait for complete, current results across all lines; a later confirmation retries.
+        if not ExpenseReportHeader.IsPolicyEvaluationComplete(
+            Snapshot."Policy Status", Snapshot."Failed Policy Count", Snapshot."Passed Policy Count", FlaggedCategories)
+        then
+            exit;
+
+        foreach CategoryCode in FlaggedCategories do
+            AddBoundedCategory(Categories, CategoryCode, MaxStrLen(Snapshot."Flagged Categories"), CategoriesText, CategoriesTruncated);
+        Categories.WriteTo(CategoriesText);
+        Snapshot."Flagged Categories" := CopyStr(CategoriesText, 1, MaxStrLen(Snapshot."Flagged Categories"));
+        Snapshot."Occurred At" := CurrentDateTime();
+        Snapshot.Comment := CopyStr(
+            StrSubstNo(SummaryLbl, Format(Snapshot."Policy Status"), Snapshot."Failed Policy Count", Snapshot."Passed Policy Count"),
+            1, MaxStrLen(Snapshot.Comment));
+        InsertExpenseReportEntry(Snapshot, ExpenseReportHeader);
+    end;
+
     local procedure InitializeExpenseReportEntry(
         var ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportHeader: Record "Expense Report Header";
@@ -252,7 +317,6 @@ codeunit 6926 "Expense Activity Log Mgt."
         Categories: JsonArray;
         CategoryCodes: List of [Code[20]];
         CategoriesText: Text;
-        CandidateCategoriesText: Text;
         CategoriesTruncated: Boolean;
     begin
         ExpenseReportLine.SetLoadFields("Expense Category", "Receipt Attached");
@@ -269,24 +333,32 @@ codeunit 6926 "Expense Activity Log Mgt."
                    (not CategoryCodes.Contains(ExpenseReportLine."Expense Category"))
                 then begin
                     CategoryCodes.Add(ExpenseReportLine."Expense Category");
-                    Categories.Add(ExpenseReportLine."Expense Category");
-                    Categories.WriteTo(CandidateCategoriesText);
-                    if StrLen(CandidateCategoriesText) > MaxStrLen(ExpenseActivityLogEntry.Categories) then begin
-                        Categories.RemoveAt(Categories.Count() - 1);
-                        Categories.Add('...');
-                        Categories.WriteTo(CandidateCategoriesText);
-                        while StrLen(CandidateCategoriesText) > MaxStrLen(ExpenseActivityLogEntry.Categories) do begin
-                            Categories.RemoveAt(Categories.Count() - 2);
-                            Categories.WriteTo(CandidateCategoriesText);
-                        end;
-                        CategoriesText := CandidateCategoriesText;
-                        CategoriesTruncated := true;
-                    end;
-                    CategoriesText := CandidateCategoriesText;
+                    AddBoundedCategory(
+                        Categories, ExpenseReportLine."Expense Category", MaxStrLen(ExpenseActivityLogEntry.Categories), CategoriesText, CategoriesTruncated);
                 end;
             until ExpenseReportLine.Next() = 0;
 
         ExpenseActivityLogEntry.Categories :=
             CopyStr(CategoriesText, 1, MaxStrLen(ExpenseActivityLogEntry.Categories));
+    end;
+
+    local procedure AddBoundedCategory(var Categories: JsonArray; CategoryValueText: Text; MaxLength: Integer; var CategoriesText: Text; var CategoriesTruncated: Boolean)
+    begin
+        if CategoriesTruncated then
+            exit;
+
+        Categories.Add(CategoryValueText);
+        Categories.WriteTo(CategoriesText);
+        if StrLen(CategoriesText) <= MaxLength then
+            exit;
+
+        Categories.RemoveAt(Categories.Count() - 1);
+        Categories.Add('...');
+        Categories.WriteTo(CategoriesText);
+        while StrLen(CategoriesText) > MaxLength do begin
+            Categories.RemoveAt(Categories.Count() - 2);
+            Categories.WriteTo(CategoriesText);
+        end;
+        CategoriesTruncated := true;
     end;
 }
