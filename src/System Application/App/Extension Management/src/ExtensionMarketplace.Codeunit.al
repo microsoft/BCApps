@@ -33,7 +33,6 @@ codeunit 2501 "Extension Marketplace"
 
     var
         HttpWebRequest: DotNet HttpWebRequest;
-        GlobalPropertyValue: Text;
         ParseFailureErr: Label 'Failed to extract ''%1'' property from JSON object.', Comment = 'JSON parsing error. %1=target property name';
         TelemetryBodyTxt: Label '{"acquisitionResult":"%1", "detail":"%2"}', Comment = '%1=AppSource operation result option, %2=details describing the context or reason for the result', Locked = true;
         ParseApplicationIdErr: Label 'Failed to extract ''%1'' token from Application Id.', Comment = '%1=Name of token that we expected   ';
@@ -49,39 +48,16 @@ codeunit 2501 "Extension Marketplace"
         OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut;
         AppDoesntNeedSetupMsg: Label 'Your app is installed and ready to use.';
 
-    local procedure GetValue(JObject: DotNet JObject; Property: Text; ThrowError: Boolean): Text
-    begin
-        // Helper for extracting a property value out of a JObject
-        if TryGetValue(JObject, Property) then
-            exit(GlobalPropertyValue);
-
-        if ThrowError then
-            Error(ParseFailureErr, Property);
-
-        exit('');
-    end;
-
-    [TryFunction]
-    local procedure TryGetValue(JObject: DotNet JObject; Property: Text)
+    procedure GetTelementryUrlFromData(JObject: JsonObject): Text
     var
-        StringComparison: DotNet StringComparison;
-        JToken: DotNet JToken;
+        DataObject: JsonObject;
+        JsonToken: JsonToken;
     begin
-        // Helper to 'safely' extract the value of a JProperty. Ignores case and 'catches' exceptions
-        JToken := JObject.GetValue(Property, StringComparison.OrdinalIgnoreCase);
-        GlobalPropertyValue := JToken.ToString();
-    end;
-
-    procedure GetTelementryUrlFromData(JObject: DotNet JObject): Text
-    var
-        TempObject: DotNet JObject;
-    begin
-        // Extracts the telemetryUrl property, out of the data object, return by the AppSource site
-        // NOTE: the temp object is needed here. While JObject.Parse looks like a static call
-        // to the JObject type, it will in fact reload and modify the underlying referenced object
-        // as well as return the result of a 'parse'
-        TempObject := TempObject.Parse(GetValue(JObject, 'data', false));
-        exit(GetValue(TempObject, 'responseUrl', false));
+        if not TryGetValue(JObject, 'data', JsonToken) or not JsonToken.IsObject() then
+            exit('');
+        DataObject := JsonToken.AsObject();
+        if TryGetValue(DataObject, 'responseUrl', JsonToken) and JsonToken.IsValue() then
+            exit(GetJsonTokenText(JsonToken));
     end;
 
     [TryFunction]
@@ -453,19 +429,42 @@ codeunit 2501 "Extension Marketplace"
         exit(false);
     end;
 
-    procedure GetMessageType(JObject: DotNet JObject): Text;
+    procedure GetMessageType(JObject: JsonObject): Text
+    var
+        JsonToken: JsonToken;
     begin
-        // Extracts the 'msgType' property from the
-        exit(GetValue(JObject, 'msgType', true));
+        if not TryGetValue(JObject, 'msgType', JsonToken) or not JsonToken.IsValue() then
+            Error(ParseFailureErr, 'msgType');
+        exit(GetJsonTokenText(JsonToken));
     end;
 
-    procedure GetApplicationIdFromData(JObject: DotNet JObject): Text;
+    procedure GetApplicationIdFromData(JObject: JsonObject): Text
     var
-        TempObject: DotNet JObject;
+        DataObject: JsonObject;
+        JsonToken: JsonToken;
     begin
-        // Extracts the applicationId property out of the data object return by the SPZA site
-        TempObject := TempObject.Parse(GetValue(JObject, 'data', true));
-        exit(GetValue(TempObject, 'applicationId', true));
+        if not TryGetValue(JObject, 'data', JsonToken) or not JsonToken.IsObject() then
+            Error(ParseFailureErr, 'data');
+        DataObject := JsonToken.AsObject();
+        if not TryGetValue(DataObject, 'applicationId', JsonToken) or not JsonToken.IsValue() then
+            Error(ParseFailureErr, 'applicationId');
+        exit(GetJsonTokenText(JsonToken));
+    end;
+
+    local procedure GetJsonTokenText(JsonToken: JsonToken): Text
+    begin
+        if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+            exit('');
+        exit(JsonToken.AsValue().AsText());
+    end;
+
+    local procedure TryGetValue(JObject: JsonObject; Property: Text; var JsonToken: JsonToken): Boolean
+    var
+        PropertyName: Text;
+    begin
+        foreach PropertyName in JObject.Keys() do
+            if LowerCase(PropertyName) = LowerCase(Property) then
+                exit(JObject.Get(PropertyName, JsonToken));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", InvokeExtensionInstallation, '', false, false)]

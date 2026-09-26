@@ -595,14 +595,13 @@ codeunit 139800 "APIV2 - Items E2E"
         Item: Record "Item";
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         InventoryPostingGroup: Record "Inventory Posting Group";
-        JSONManagement: Codeunit "JSON Management";
         ItemGUID: Guid;
         GenProdPostGroupId: Text;
         InventoryPostGroupId: Text;
         TargetURL: Text;
         Response: Text;
         ResponseId: Text;
-        "Newtonsoft.Json.Linq.JObject": Dotnet JObject;
+        JsonObject: JsonObject;
     begin
         // [SCENARIO] Create an item with Gen. Prod. Post. Group and Inventory Post. Group. Verify they can be read from the response when expanding them.
         // [GIVEN] an Item, with a Gen. Prod. Post. Group and with and Inventory Post. Group
@@ -628,12 +627,12 @@ codeunit 139800 "APIV2 - Items E2E"
         LibraryGraphMgt.GetFromWebService(Response, TargetURL);
 
         // [THEN] the response should include them as properties
-        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'generalProductPostingGroup', "Newtonsoft.Json.Linq.JObject");
-        JSONManagement.GetStringPropertyValueFromJObjectByName("Newtonsoft.Json.Linq.JObject", 'id', ResponseId);
+        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'generalProductPostingGroup', JsonObject);
+        ResponseId := JsonObject.GetText('id');
         Assert.AreEqual(GenProdPostGroupId, LowerCase(ResponseId), 'The id of the gen. prod. post. group is not the one on the response.');
 
-        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'inventoryPostingGroup', "Newtonsoft.Json.Linq.JObject");
-        JSONManagement.GetStringPropertyValueFromJObjectByName("Newtonsoft.Json.Linq.JObject", 'id', ResponseId);
+        LibraryGraphMgt.GetComplexPropertyFromJSON(Response, 'inventoryPostingGroup', JsonObject);
+        ResponseId := JsonObject.GetText('id');
         Assert.AreEqual(InventoryPostGroupId, LowerCase(ResponseId), 'The id of the inventory post. group is not the one on the response.');
     end;
 
@@ -879,7 +878,6 @@ codeunit 139800 "APIV2 - Items E2E"
         Assert.IsFalse(Item.IsEmpty(), 'Item does not exist');
     end;
 }
-
 
 
 

@@ -8,7 +8,6 @@ using Microsoft.Foundation.Company;
 using Microsoft.Upgrade;
 using System.Integration;
 using System.Security.AccessControl;
-using System.Text;
 using System.Upgrade;
 
 codeunit 6060 "Hybrid Deployment"
@@ -55,6 +54,7 @@ codeunit 6060 "Hybrid Deployment"
         SqlTimeoutErr: Label 'The server timed out while attempting to connect to the specified SQL server.';
         TooManyReplicationRunsErr: Label 'Cannot start replication because a replication is currently in progress. Please try again at a later time.';
         NoAdfCapacityErr: Label 'The cloud migration service is temporarily unable to process your request. Please try again at a later time.';
+        InvalidErrorsJsonErr: Label 'The Errors property in the replication response must contain a JSON object.';
         RaisingOnCanStartUpgradeForCompanyTxt: Label 'Raising OnCanStartUpgrade for company %1.', Locked = true;
         VerifyingIfUpgradeCanBeStartedMsg: Label 'Verifying if upgrade can be started. Target version %1.%2, current version %3.%4', Locked = true;
         CloudMigrationTok: Label 'CloudMigration', Locked = true;
@@ -69,7 +69,7 @@ codeunit 6060 "Hybrid Deployment"
     [Scope('OnPrem')]
     procedure CreateIntegrationRuntime(var RuntimeName: Text; var PrimaryKey: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         InstanceId: Text;
         JsonOutput: Text;
     begin
@@ -78,9 +78,9 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedCreatingIRErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('Name', RuntimeName);
-        JSONManagement.GetStringPropertyValueByName('PrimaryKey', PrimaryKey);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        RuntimeName := GetJsonTokenText(ResponseJson, 'Name');
+        PrimaryKey := GetJsonTokenText(ResponseJson, 'PrimaryKey');
     end;
 
     [Scope('OnPrem')]
@@ -166,7 +166,7 @@ codeunit 6060 "Hybrid Deployment"
     [Scope('OnPrem')]
     procedure GetIntegrationRuntimeKeys(var PrimaryKey: Text; var SecondaryKey: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         InstanceId: Text;
         JsonOutput: Text;
     begin
@@ -175,17 +175,22 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedGettingIRKeyErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('PrimaryKey', PrimaryKey);
-        JSONManagement.GetStringPropertyValueByName('SecondaryKey', SecondaryKey);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        PrimaryKey := GetJsonTokenText(ResponseJson, 'PrimaryKey');
+        SecondaryKey := GetJsonTokenText(ResponseJson, 'SecondaryKey');
     end;
 
     [Scope('OnPrem')]
     procedure GetReplicationRunStatus(RunId: Text; var Status: Text; var Errors: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
+        ErrorsJson: JsonObject;
+        ErrorsArray: JsonArray;
+        ErrorsToken: JsonToken;
+        ErrorToken: JsonToken;
         InstanceId: Text;
         JsonOutput: Text;
+        ErrorsText: Text;
         TempError: Text;
         TempMessage: Text;
         i: Integer;
@@ -195,16 +200,35 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedGettingStatusErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('Status', Status);
-        JSONManagement.GetStringPropertyValueByName('Errors', Errors);
-        JSONManagement.InitializeObject(Errors);
-        JSONManagement.GetArrayPropertyValueAsStringByName('$values', Errors);
-        JSONManagement.InitializeCollection(Errors);
-
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        Status := GetJsonTokenText(ResponseJson, 'Status');
         Errors := '';
-        for i := 0 to JSONManagement.GetCollectionCount() - 1 do begin
-            JSONManagement.GetObjectFromCollectionByIndex(TempError, i);
+        if not ResponseJson.Get('Errors', ErrorsToken) then
+            exit;
+        if ErrorsToken.IsValue() then begin
+            if ErrorsToken.AsValue().IsNull() or ErrorsToken.AsValue().IsUndefined() then
+                exit;
+            ErrorsText := ErrorsToken.AsValue().AsText();
+            if ErrorsText = '' then
+                exit;
+            if not ErrorsToken.ReadFrom(ErrorsText) then
+                Error(InvalidErrorsJsonErr);
+        end;
+        if not ErrorsToken.IsObject() then
+            Error(InvalidErrorsJsonErr);
+        ErrorsJson := ErrorsToken.AsObject();
+        if ErrorsJson.Get('$values', ErrorsToken) and ErrorsToken.IsArray() then
+            ErrorsArray := ErrorsToken.AsArray();
+
+        for i := 0 to ErrorsArray.Count() - 1 do begin
+            ErrorsArray.Get(i, ErrorToken);
+            if ErrorToken.IsValue() then begin
+                if ErrorToken.AsValue().IsNull() or ErrorToken.AsValue().IsUndefined() then
+                    TempError := ''
+                else
+                    TempError := ErrorToken.AsValue().AsText();
+            end else
+                ErrorToken.WriteTo(TempError);
 
             // Check if the error contains an error code and fetch the message
             TempMessage := GetErrorMessage(TempError);
@@ -225,7 +249,7 @@ codeunit 6060 "Hybrid Deployment"
     [Scope('OnPrem')]
     procedure GetVersionInformation(var DeployedVersion: Text; var LatestVersion: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         InstanceId: Text;
         JsonOutput: Text;
     begin
@@ -234,15 +258,15 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedGettingVersionInformationErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('DeployedVersion', DeployedVersion);
-        JSONManagement.GetStringPropertyValueByName('LatestVersion', LatestVersion);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        DeployedVersion := GetJsonTokenText(ResponseJson, 'DeployedVersion');
+        LatestVersion := GetJsonTokenText(ResponseJson, 'LatestVersion');
     end;
 
     [Scope('OnPrem')]
     procedure InitiateDataLakeMigration(var RunId: Text; StorageAccountName: Text; StorageAccountKey: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         InstanceId: Text;
         JsonOutput: Text;
     begin
@@ -251,8 +275,8 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedDataLakeErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('RunId', RunId);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        RunId := GetJsonTokenText(ResponseJson, 'RunId');
     end;
 
     [Scope('OnPrem')]
@@ -265,7 +289,7 @@ codeunit 6060 "Hybrid Deployment"
     [Scope('OnPrem')]
     procedure RegenerateIntegrationRuntimeKeys(var PrimaryKey: Text; var SecondaryKey: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         InstanceId: Text;
         JsonOutput: Text;
     begin
@@ -274,9 +298,9 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedRegeneratingIRKeyErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('PrimaryKey', PrimaryKey);
-        JSONManagement.GetStringPropertyValueByName('SecondaryKey', SecondaryKey);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        PrimaryKey := GetJsonTokenText(ResponseJson, 'PrimaryKey');
+        SecondaryKey := GetJsonTokenText(ResponseJson, 'SecondaryKey');
     end;
 
     [Scope('OnPrem')]
@@ -291,7 +315,7 @@ codeunit 6060 "Hybrid Deployment"
     [Scope('OnPrem')]
     procedure RunReplication(var RunId: Text; ReplicationType: Integer)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
         InstanceId: Text;
         JsonOutput: Text;
     begin
@@ -302,8 +326,8 @@ codeunit 6060 "Hybrid Deployment"
 
         RetryGetStatus(InstanceId, FailedRunReplicationErr, JsonOutput);
 
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('RunId', RunId);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        RunId := GetJsonTokenText(ResponseJson, 'RunId');
     end;
 
     [Scope('OnPrem')]
@@ -612,11 +636,34 @@ codeunit 6060 "Hybrid Deployment"
     [TryFunction]
     local procedure TryGetError(JsonOutput: Text; var ErrorCode: Text; var Message: Text)
     var
-        JSONManagement: Codeunit "JSON Management";
+        ResponseJson: JsonObject;
     begin
-        JSONManagement.InitializeObject(JsonOutput);
-        JSONManagement.GetStringPropertyValueByName('ErrorCode', ErrorCode);
-        JSONManagement.GetStringPropertyValueByName('Message', Message);
+        ReadJsonObjectIfNotEmpty(JsonOutput, ResponseJson);
+        ErrorCode := GetJsonTokenText(ResponseJson, 'ErrorCode');
+        Message := GetJsonTokenText(ResponseJson, 'Message');
+    end;
+
+    local procedure ReadJsonObjectIfNotEmpty(JsonText: Text; var JsonObject: JsonObject)
+    begin
+        Clear(JsonObject);
+        if JsonText <> '' then
+            JsonObject.ReadFrom(JsonText);
+    end;
+
+    local procedure GetJsonTokenText(JsonObject: JsonObject; PropertyName: Text): Text
+    var
+        JsonToken: JsonToken;
+        JsonText: Text;
+    begin
+        if not JsonObject.Get(PropertyName, JsonToken) then
+            exit('');
+        if JsonToken.IsValue() then begin
+            if JsonToken.AsValue().IsNull() or JsonToken.AsValue().IsUndefined() then
+                exit('');
+            exit(JsonToken.AsValue().AsText());
+        end;
+        JsonToken.WriteTo(JsonText);
+        exit(JsonText);
     end;
 
     local procedure GetErrorMessage(JsonOutput: Text) Message: Text
@@ -742,4 +789,3 @@ codeunit 6060 "Hybrid Deployment"
     begin
     end;
 }
-
