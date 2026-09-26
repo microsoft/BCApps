@@ -16,6 +16,14 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataMgtSubscribers.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    /// <summary>Invokes the after-transfer subscriber that restores a skipped over-cap Blob to the destination's exact bytes.</summary>
+    /// <param name="SourceRecordRef">The source (temp) record being synchronized.</param>
+    /// <param name="DestinationRecordRef">The destination record whose skipped blob fields are restored byte-exact.</param>
+    procedure HandleOnAfterTransferRecordFields(SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
+    begin
+        MasterDataMgtSubscribers.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+    end;
+
     /// <summary>Invokes the deletion-conflict subscriber logic that resolves or fails a coupled-to-deleted-record conflict.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
     /// <param name="SourceRecordRef">The source record whose coupled record was deleted.</param>
@@ -292,6 +300,68 @@ codeunit 139757 "Library - Master Data Mgt."
         InlineMedia: Codeunit "MDM Inline Media";
     begin
         exit(InlineMedia.IsCleared(SystemId, FieldNo));
+    end;
+
+    /// <summary>Clears the per-batch inline media/blob cache.</summary>
+    procedure InlineMediaReset()
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.Reset();
+    end;
+
+    /// <summary>Caches inline media content for a source field (materialization path).</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    /// <param name="FileName">The media file name.</param>
+    /// <param name="MimeType">The media MIME type.</param>
+    /// <param name="ContentBase64">The base64-encoded media content.</param>
+    procedure InlineMediaPut(SystemId: Guid; FieldNo: Integer; FileName: Text; MimeType: Text; ContentBase64: Text)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.Put(SystemId, FieldNo, FileName, MimeType, ContentBase64);
+    end;
+
+    /// <summary>Marks an inline media field as cleared (empty on the source) for the same materialization path.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    procedure InlineMediaPutCleared(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.PutCleared(SystemId, FieldNo);
+    end;
+
+    /// <summary>Drops any cached content/cleared state for a media field (the skip = leave-unchanged transition).</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    procedure InlineMediaClearMediaState(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.ClearMediaState(SystemId, FieldNo);
+    end;
+
+    /// <summary>Marks an inline blob field as skipped (over the inline cap) so the transfer keeps the destination blob.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the blob field.</param>
+    procedure InlineBlobPutSkipped(SystemId: Guid; FieldNo: Integer)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        InlineMedia.PutBlobSkipped(SystemId, FieldNo);
+    end;
+
+    /// <summary>Checks whether an inline blob field was marked skipped (over the inline cap) during materialization.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the blob field.</param>
+    /// <returns>True if the field was marked skipped; otherwise false.</returns>
+    procedure InlineBlobIsSkipped(SystemId: Guid; FieldNo: Integer): Boolean
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        exit(InlineMedia.IsBlobSkipped(SystemId, FieldNo));
     end;
 
     /// <summary>Reads the source SystemModifiedAt watermark cached during cross-environment materialization.</summary>

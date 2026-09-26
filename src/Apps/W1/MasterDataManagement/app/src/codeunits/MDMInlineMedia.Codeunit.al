@@ -21,6 +21,7 @@ codeunit 7232 "MDM Inline Media"
         NameByKey: Dictionary of [Text, Text];
         MimeByKey: Dictionary of [Text, Text];
         ClearedByKey: Dictionary of [Text, Boolean];
+        BlobSkippedByKey: Dictionary of [Text, Boolean];
         MalformedMediaErr: Label 'The source returned media content that could not be decoded.', Locked = true;
 
     procedure Reset()
@@ -29,6 +30,7 @@ codeunit 7232 "MDM Inline Media"
         Clear(NameByKey);
         Clear(MimeByKey);
         Clear(ClearedByKey);
+        Clear(BlobSkippedByKey);
     end;
 
     procedure Put(SystemId: Guid; FieldNo: Integer; FileName: Text; MimeType: Text; ContentBase64: Text)
@@ -39,18 +41,59 @@ codeunit 7232 "MDM Inline Media"
         ContentByKey.Set(MediaKey, ContentBase64);
         NameByKey.Set(MediaKey, FileName);
         MimeByKey.Set(MediaKey, MimeType);
+        // Same (SystemId, field) can arrive twice across pages; drop a stale cleared marker so the newest state (content) wins.
+        ClearedByKey.Remove(MediaKey);
     end;
 
     // The source reported the media field empty (cleared): record it so the transfer clears the destination media
     // instead of leaving stale bytes. Distinct from an absent entry, which means "not projected / leave untouched".
     procedure PutCleared(SystemId: Guid; FieldNo: Integer)
+    var
+        MediaKey: Text;
     begin
-        ClearedByKey.Set(MakeKey(SystemId, FieldNo), true);
+        MediaKey := MakeKey(SystemId, FieldNo);
+        // Same (SystemId, field) can arrive twice across pages; drop cached content so the newest state (cleared) wins.
+        ContentByKey.Remove(MediaKey);
+        NameByKey.Remove(MediaKey);
+        MimeByKey.Remove(MediaKey);
+        ClearedByKey.Set(MediaKey, true);
     end;
 
     procedure IsCleared(SystemId: Guid; FieldNo: Integer): Boolean
     begin
         exit(ClearedByKey.ContainsKey(MakeKey(SystemId, FieldNo)));
+    end;
+
+    // A skipped (over-cap) media for the same (SystemId, field) means "leave the destination unchanged"; drop any
+    // earlier content or cleared marker so the newest (skip) state wins.
+    procedure ClearMediaState(SystemId: Guid; FieldNo: Integer)
+    var
+        MediaKey: Text;
+    begin
+        MediaKey := MakeKey(SystemId, FieldNo);
+        ContentByKey.Remove(MediaKey);
+        NameByKey.Remove(MediaKey);
+        MimeByKey.Remove(MediaKey);
+        ClearedByKey.Remove(MediaKey);
+    end;
+
+    // The source reported the Blob field over the inline cap and skipped it: record it so the transfer keeps the
+    // existing destination blob. Unlike media (out-of-band cache), blobs travel in-band on the temp record, so an
+    // absent value would otherwise clear the destination.
+    procedure PutBlobSkipped(SystemId: Guid; FieldNo: Integer)
+    begin
+        BlobSkippedByKey.Set(MakeKey(SystemId, FieldNo), true);
+    end;
+
+    // A real content or cleared result for the same (SystemId, field) supersedes an earlier skip so the newest state wins.
+    procedure ClearBlobSkipped(SystemId: Guid; FieldNo: Integer)
+    begin
+        BlobSkippedByKey.Remove(MakeKey(SystemId, FieldNo));
+    end;
+
+    procedure IsBlobSkipped(SystemId: Guid; FieldNo: Integer): Boolean
+    begin
+        exit(BlobSkippedByKey.ContainsKey(MakeKey(SystemId, FieldNo)));
     end;
 
     procedure Contains(SystemId: Guid; FieldNo: Integer): Boolean
