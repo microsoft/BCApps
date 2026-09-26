@@ -1129,6 +1129,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure CrossEnvSkippedBlobPreservedThroughSynchEngine()
     var
         SourceRecord: Record "MDM Test Table A";
@@ -1247,6 +1248,72 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         TempBlob.CreateInStream(BlobInStream);
         PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
         Assert.AreEqual(OriginalBase64, PreservedBase64, 'Non-UTF-8 destination blob bytes must be preserved byte-exact');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvSkippedBlobPreservedWhenPrimaryKeyRenamed()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        RenamedDestination: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        OriginalBase64: Text;
+        PreservedBase64: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A source rename changes the destination primary key, so the in-flight buffer's RecordId no
+        // longer matches the database row. The after-transfer restore must reload the original blob by the stable
+        // SystemId (not the stale primary key) so a skipped over-cap blob still leaves the destination bytes unchanged.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        OriginalBase64 := '//7+/QABAgP/';
+
+        // [GIVEN] a destination record whose blob holds non-UTF-8 binary content
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream);
+        Base64Convert.FromBase64(OriginalBase64, BlobOutStream);
+        DestinationRecord.Insert();
+
+        // [GIVEN] a source record whose over-cap blob was skipped
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] the in-flight destination buffer, captured with the blob cleared by the field transfer
+        DestinationRecordRef.GetTable(DestinationRecord);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        Clear(TempBlob);
+        TempBlob.ToFieldRef(DestBlobFieldRef);
+        SourceRecordRef.GetTable(SourceRecord);
+
+        // [GIVEN] the database row is renamed (as OnBeforeModifyRecord does), so the buffer's RecordId is now stale
+        // while the row keeps the same SystemId
+        RenamedDestination.Get(DestinationRecord."Primary Key");
+        RenamedDestination.Rename(CopyStr('R' + Format(LibraryRandomInt()), 1, MaxStrLen(RenamedDestination."Primary Key")));
+
+        // [WHEN] the after-transfer restore runs against the stale-key buffer
+        LibraryMasterDataMgt.HandleOnAfterTransferRecordFields(SourceRecordRef, DestinationRecordRef);
+
+        // [THEN] the blob is still restored byte-exact, reloaded via the stable SystemId rather than the renamed key
+        Clear(TempBlob);
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The blob must be restored even when the primary key was renamed');
+        TempBlob.CreateInStream(BlobInStream);
+        PreservedBase64 := Base64Convert.ToBase64(BlobInStream);
+        Assert.AreEqual(OriginalBase64, PreservedBase64, 'A renamed key must still preserve the destination blob byte-exact');
 
         CleanUp();
     end;

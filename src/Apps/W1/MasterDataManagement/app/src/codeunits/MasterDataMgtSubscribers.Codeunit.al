@@ -700,8 +700,10 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit;
 
         // The single tracked Modify has not run yet, so the database still holds the original destination blob bytes.
+        // Reload by the stable SystemId, not the primary key: mapped key fields may already carry the renamed
+        // source values in memory, so a RecordId-based Get would miss the (not-yet-renamed) database row.
         OriginalRecordRef.Open(DestinationRecordRef.Number());
-        if not OriginalRecordRef.Get(DestinationRecordRef.RecordId()) then begin
+        if not OriginalRecordRef.GetBySystemId(DestinationRecordRef.Field(DestinationRecordRef.SystemIdNo()).Value()) then begin
             OriginalRecordRef.Close(); // new destination record: no prior blob to preserve
             exit;
         end;
