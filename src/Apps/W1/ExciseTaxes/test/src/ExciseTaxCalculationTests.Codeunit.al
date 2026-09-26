@@ -5,12 +5,17 @@
 namespace Microsoft.Test.ExciseTaxes;
 
 using Microsoft.ExciseTaxes;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sustainability.ExciseTax;
@@ -30,6 +35,9 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryERM: Codeunit "Library - ERM";
         IsInitialized: Boolean;
         TotalTaxAmtMismatchTransLogPurchaseLbl: Label 'Total tax amount mismatch in transaction log for purchase';
         UnexpectedJournalLineCntLbl: Label 'Unexpected number of excise journal lines';
@@ -207,7 +215,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryExciseTax.CreateItemWithExciseTax(Item, TaxTypeCode);
 
         // [GIVEN] Create hierarchical rate for item source type
-        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), LibraryRandom.RandText(10));
+        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), GetRateDescription());
 
         // [GIVEN] Configure excise journal batch for excise journal line generation
         SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
@@ -225,7 +233,6 @@ codeunit 148351 "Excise Tax Calculation Tests"
         SustExciseJnlLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
         SustExciseJnlLine.SetRange("Journal Batch Name", SustExciseJournalBatch.Name);
         SustExciseJnlLine.SetRange("Excise Tax Type", TaxTypeCode);
-        SustExciseJnlLine.FindSet();
         Assert.AreEqual(1, SustExciseJnlLine.Count(), UnexpectedJournalLineCntLbl);
     end;
 
@@ -258,7 +265,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryExciseTax.CreateItemWithExciseTax(Item, ExciseTaxType.Code);
 
         // [GIVEN] Create hierarchical rate for item source type
-        LibraryExciseTax.CreateExciseTaxItemFARate(ExciseTaxType.Code, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), LibraryRandom.RandText(10));
+        LibraryExciseTax.CreateExciseTaxItemFARate(ExciseTaxType.Code, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), GetRateDescription());
 
         // [GIVEN] Configure excise journal batch for excise journal line generation
         SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
@@ -308,7 +315,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryExciseTax.CreateItemWithExciseTax(Item, ExciseTaxType.Code);
 
         // [GIVEN] Create hierarchical rate for item source type
-        LibraryExciseTax.CreateExciseTaxItemFARate(ExciseTaxType.Code, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), LibraryRandom.RandText(10));
+        LibraryExciseTax.CreateExciseTaxItemFARate(ExciseTaxType.Code, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), GetRateDescription());
 
         // [GIVEN] Configure excise journal batch for excise journal line generation
         SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
@@ -360,7 +367,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
         LibraryExciseTax.CreateItemWithExciseTax(Item, TaxTypeCode);
 
         // [GIVEN] Create hierarchical rate for item source type
-        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), LibraryRandom.RandText(10));
+        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::Item, Item."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), GetRateDescription());
 
         // [GIVEN] Configure excise journal batch for excise journal line generation
         SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
@@ -711,6 +718,232 @@ codeunit 148351 "Excise Tax Calculation Tests"
         Assert.IsTrue(ItemLedgerEntry."Excise Tax Posted", ExciseTaxPostedIgnoreDisabledLbl);
     end;
 
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure InboundPurchaseIntoBondedLocationIsExcluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Inbound purchase posted to bonded location "L1" is excluded from excise journal calculation.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Purchase, and location "L1" is bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::Purchase, "Excise Bonded Loc. Treatment"::Suspend);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostItemLedgerEntryForExcise(Item."No.", Enum::"Item Ledger Entry Type"::Purchase, 1, BondedLocationCode);
+
+        // [WHEN] A purchase entry is posted for item "I" in location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] No excise journal line is generated for that purchase entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure TransferReceiptIntoBondedLocationIsExcluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        FromLocationCode: Code[10];
+        BondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Transfer receipt into bonded location "L1" is excluded from excise journal calculation.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Transfer Receipt, and location "L1" is bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::"Transfer Receipt", "Excise Bonded Loc. Treatment"::Suspend);
+        FromLocationCode := CreateLocation("Excise Bonded Handling"::"Not Bonded", false);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostTransferForExcise(Item."No.", 1, FromLocationCode, BondedLocationCode, true);
+
+        // [WHEN] A transfer receipt entry is posted into location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] No excise journal line is generated for the transfer receipt entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure TransferShipmentFromBondedToNonBondedIsIncluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedLocationCode: Code[10];
+        NonBondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Transfer shipment from bonded location "L1" to non-bonded location "L2" is included as release from bond.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Transfer Shipment, location "L1" is bonded, and location "L2" is not bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::"Transfer Shipment", "Excise Bonded Loc. Treatment"::Suspend);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        NonBondedLocationCode := CreateLocation("Excise Bonded Handling"::"Not Bonded", false);
+        PostTransferForExcise(Item."No.", 1, BondedLocationCode, NonBondedLocationCode, false);
+
+        // [WHEN] A transfer shipment entry is posted from "L1" to "L2" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] One excise journal line is generated for that transfer shipment entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure TransferShipmentFromBondedToBondedIsExcluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedFromLocationCode: Code[10];
+        BondedToLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Transfer shipment from bonded location "L1" to bonded location "L2" is excluded from excise journal calculation.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Transfer Shipment, and both locations "L1" and "L2" are bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::"Transfer Shipment", "Excise Bonded Loc. Treatment"::Suspend);
+        BondedFromLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        BondedToLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostTransferForExcise(Item."No.", 1, BondedFromLocationCode, BondedToLocationCode, false);
+
+        // [WHEN] A transfer shipment entry is posted from "L1" to "L2" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] No excise journal line is generated for that transfer shipment entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure OutboundSaleFromBondedLocationIsIncluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Outbound sale from bonded location "L1" is included as release from bond.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Sale, and location "L1" is bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::Sale, "Excise Bonded Loc. Treatment"::Suspend);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostItemLedgerEntryForExcise(Item."No.", Enum::"Item Ledger Entry Type"::Sale, -1, BondedLocationCode);
+
+        // [WHEN] A sale entry is posted from location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] One excise journal line is generated for that sale entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure OutboundNegativeAdjustmentFromBondedLocationIsIncluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Outbound negative adjustment from bonded location "L1" is included as release from bond.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Negative Adjustment, and location "L1" is bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::"Negative Adjmt.", "Excise Bonded Loc. Treatment"::Suspend);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostItemLedgerEntryForExcise(Item."No.", Enum::"Item Ledger Entry Type"::"Negative Adjmt.", -1, BondedLocationCode);
+
+        // [WHEN] A negative adjustment entry is posted from location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] One excise journal line is generated for that negative adjustment entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure OutboundConsumptionFromBondedLocationIsIncluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Outbound consumption from bonded location "L1" is included as release from bond.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, entry permission allows Consumption, and location "L1" is bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::Consumption, "Excise Bonded Loc. Treatment"::Suspend);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostItemLedgerEntryForExcise(Item."No.", Enum::"Item Ledger Entry Type"::Consumption, -1, BondedLocationCode);
+
+        // [WHEN] A consumption entry is posted from location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] One excise journal line is generated for that consumption entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure EntriesInTransitLocationAreExcluded()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        FromLocationCode: Code[10];
+        ToLocationCode: Code[10];
+        InTransitLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Entries posted in in-transit location "L1" are excluded from excise journal calculation.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Suspend, allowed entry permissions, and location "L1" is marked as in-transit.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::"Transfer Receipt", "Excise Bonded Loc. Treatment"::Suspend);
+        FromLocationCode := CreateLocation("Excise Bonded Handling"::"Not Bonded", false);
+        ToLocationCode := CreateLocation("Excise Bonded Handling"::"Not Bonded", false);
+        InTransitLocationCode := CreateLocation("Excise Bonded Handling"::"Not Bonded", true);
+        PostTransferForExciseWithInTransit(Item."No.", 1, FromLocationCode, ToLocationCode, InTransitLocationCode, false);
+
+        // [WHEN] An eligible entry is posted in location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] No excise journal line is generated for that entry.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExciseTaxReportRequestPageHandler,MessageHandler')]
+    procedure BondedRulesAreIgnoredWhenTreatmentIsIgnore()
+    var
+        Item: Record Item;
+        SustExciseJournalBatch: Record "Sust. Excise Journal Batch";
+        TaxTypeCode: Code[20];
+        BondedLocationCode: Code[10];
+    begin
+        // [SCENARIO 626292] Bonded location rules are ignored when Bonded Location Treatment is set to Ignore.
+        Initialize();
+
+        // [GIVEN] Excise tax type with Bonded Location Treatment = Ignore, entry permission allows Purchase, and location "L1" is bonded.
+        SetupBondedLocation(Item, SustExciseJournalBatch, TaxTypeCode, "Excise Entry Type"::Purchase, "Excise Bonded Loc. Treatment"::Ignore);
+        BondedLocationCode := CreateLocation("Excise Bonded Handling"::Bonded, false);
+        PostItemLedgerEntryForExcise(Item."No.", Enum::"Item Ledger Entry Type"::Purchase, 1, BondedLocationCode);
+
+        // [WHEN] A purchase entry is posted in location "L1" and excise journal lines are generated.
+        GenerateExciseJournalLines(SustExciseJournalBatch);
+
+        // [THEN] The entry is processed by standard entry-permission logic and a journal line is generated.
+        VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch, TaxTypeCode, 1);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -991,6 +1224,167 @@ codeunit 148351 "Excise Tax Calculation Tests"
     begin
         ItemLedgerEntry.SetRange("Item No.", ItemNo);
         ItemLedgerEntry.FindFirst();
+    end;
+
+    local procedure SetupBondedLocation(var Item: Record Item; var SustExciseJournalBatch: Record "Sust. Excise Journal Batch"; var TaxTypeCode: Code[20]; EntryType: Enum "Excise Entry Type"; Treatment: Enum "Excise Bonded Loc. Treatment")
+    var
+        ExciseTaxType: Record "Excise Tax Type";
+        SustainabilityExciseJournalMgt: Codeunit "Sust. Excise Journal Mgt.";
+    begin
+        TaxTypeCode := LibraryExciseTax.SetupTaxType(Enum::"Excise Tax Basis"::Weight);
+
+        ExciseTaxType.Get(TaxTypeCode);
+        ExciseTaxType.Validate("Bonded Location Treatment", Treatment);
+        ExciseTaxType.Modify(true);
+
+        SetOnlyAllowedEntryType(TaxTypeCode, EntryType);
+
+        LibraryInventory.CreateItem(Item);
+        LibraryExciseTax.CreateItemExciseTax(Item."No.", TaxTypeCode);
+        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::Item, Item."No.", 5, CalcDate('<-CY>', WorkDate()), GetRateDescription());
+
+        SustExciseJournalBatch := SustainabilityExciseJournalMgt.GetASustainabilityJournalBatch();
+        SustExciseJournalBatch.Validate(Type, SustExciseJournalBatch.Type::Excises);
+        SustExciseJournalBatch.Validate("Excise Tax Type Filter", TaxTypeCode);
+        SustExciseJournalBatch.Modify(true);
+    end;
+
+    local procedure SetOnlyAllowedEntryType(TaxTypeCode: Code[20]; EntryType: Enum "Excise Entry Type")
+    var
+        ExciseTaxEntryPermission: Record "Excise Tax Entry Permission";
+    begin
+        ExciseTaxEntryPermission.SetRange("Excise Tax Type Code", TaxTypeCode);
+        if ExciseTaxEntryPermission.FindSet() then
+            repeat
+                ExciseTaxEntryPermission.Validate(Allowed, ExciseTaxEntryPermission."Excise Entry Type" = EntryType);
+                ExciseTaxEntryPermission.Modify(true);
+            until ExciseTaxEntryPermission.Next() = 0;
+    end;
+
+    local procedure CreateLocation(BondedHandling: Enum "Excise Bonded Handling"; IsInTransit: Boolean): Code[10]
+    var
+        Location: Record Location;
+    begin
+        if IsInTransit then
+            LibraryWarehouse.CreateInTransitLocation(Location)
+        else
+            LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        Location.Validate("Excise Bonded Location", BondedHandling);
+        Location.Modify(true);
+
+        exit(Location.Code);
+    end;
+
+    local procedure PostItemLedgerEntryForExcise(ItemNo: Code[20]; EntryType: Enum "Item Ledger Entry Type"; Quantity: Decimal; LocationCode: Code[10])
+    var
+        ItemJnlLine: Record "Item Journal Line";
+    begin
+        EnsureGeneralPostingSetupForItem(ItemNo);
+
+        if EntryType = EntryType::Consumption then begin
+            PostConsumptionEntryForExcise(ItemNo, Abs(Quantity), LocationCode);
+            exit;
+        end;
+
+        LibraryInventory.CreateItemJnlLine(ItemJnlLine, EntryType, WorkDate(), ItemNo, Quantity, LocationCode);
+        LibraryInventory.PostItemJnlLineWithCheck(ItemJnlLine);
+    end;
+
+    local procedure PostTransferForExcise(ItemNo: Code[20]; Quantity: Decimal; FromLocationCode: Code[10]; ToLocationCode: Code[10]; Receive: Boolean)
+    var
+        InTransitLocation: Record Location;
+    begin
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        PostTransferForExciseWithInTransit(ItemNo, Quantity, FromLocationCode, ToLocationCode, InTransitLocation.Code, Receive);
+    end;
+
+    local procedure PostTransferForExciseWithInTransit(ItemNo: Code[20]; Quantity: Decimal; FromLocationCode: Code[10]; ToLocationCode: Code[10]; InTransitLocationCode: Code[10]; Receive: Boolean)
+    var
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        InTransitLocation: Record Location;
+    begin
+        Item.Get(ItemNo);
+        FromLocation.Get(FromLocationCode);
+        ToLocation.Get(ToLocationCode);
+        InTransitLocation.Get(InTransitLocationCode);
+
+        // Transfer shipment requires on-hand inventory in the from location.
+        PostItemLedgerEntryForExcise(ItemNo, Enum::"Item Ledger Entry Type"::"Positive Adjmt.", Quantity, FromLocationCode);
+
+        LibraryInventory.CreateTransferOrder(
+            TransferHeader, TransferLine, Item, FromLocation, ToLocation, InTransitLocation,
+            '', Quantity, WorkDate(), WorkDate());
+
+        LibraryInventory.PostTransferHeader(TransferHeader, true, Receive);
+    end;
+
+    local procedure PostConsumptionEntryForExcise(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10])
+    var
+        ParentItem: Record Item;
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        ComponentItem.Get(ItemNo);
+
+        LibraryInventory.CreateItem(ParentItem);
+        LibraryManufacturing.AddProdBOMItem(ParentItem, ComponentItem."No.", 1);
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ParentItem, LocationCode, '', Quantity, WorkDate());
+        EnsureGeneralPostingSetupForItem(ParentItem."No.");
+
+        // Consumption posting requires stock for component item at the consumption location.
+        PostItemLedgerEntryForExcise(ItemNo, Enum::"Item Ledger Entry Type"::"Positive Adjmt.", Quantity, LocationCode);
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+
+        LibraryManufacturing.PostConsumption(ProdOrderLine, ComponentItem, LocationCode, '', Quantity, WorkDate(), 1);
+    end;
+
+    local procedure VerifyJournalLineCountForTaxTypeInBatch(SustExciseJournalBatch: Record "Sust. Excise Journal Batch"; TaxTypeCode: Code[20]; ExpectedCount: Integer)
+    var
+        ExciseJnlLine: Record "Sust. Excise Jnl. Line";
+    begin
+        ExciseJnlLine.SetRange("Journal Template Name", SustExciseJournalBatch."Journal Template Name");
+        ExciseJnlLine.SetRange("Journal Batch Name", SustExciseJournalBatch.Name);
+        ExciseJnlLine.SetRange("Excise Tax Type", TaxTypeCode);
+        Assert.AreEqual(ExpectedCount, ExciseJnlLine.Count(), UnexpectedJournalLineCntLbl);
+    end;
+
+    local procedure GetRateDescription(): Text[100]
+    begin
+        exit(CopyStr(LibraryRandom.RandText(10), 1, 100));
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(ItemNo: Code[20])
+    var
+        Item: Record Item;
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        Item.Get(ItemNo);
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     [RequestPageHandler]
