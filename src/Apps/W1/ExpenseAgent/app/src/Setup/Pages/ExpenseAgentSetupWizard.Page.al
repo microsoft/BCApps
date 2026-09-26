@@ -164,7 +164,13 @@ page 6991 "Expense Agent Setup Wizard"
                                         ConfigUpdated();
                                         CurrPage.Update(true);
                                     end;
-                                end;
+                                end else
+                                    if Rec."Default Approver No." <> '' then
+                                        if Confirm(ClearDefaultApproverQst, false) then begin
+                                            Rec."Default Approver No." := '';
+                                            ConfigUpdated();
+                                            CurrPage.Update(true);
+                                        end;
                             end;
                         }
                     }
@@ -1045,6 +1051,7 @@ page 6991 "Expense Agent Setup Wizard"
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
         AgentSummaryLbl: Label 'Processes employee expense reports by extracting receipt data, validating against company policies, and routing for approval.';
+        ClearDefaultApproverQst: Label 'Do you want to remove the current default approver?';
 
     local procedure LoadSetup()
     var
