@@ -6,6 +6,7 @@
 namespace System.TestLibraries.ExternalFileStorage;
 
 using System.ExternalFileStorage;
+using System.Utilities;
 
 codeunit 135814 "Test File Storage Connector" implements "External File Storage Connector"
 {
@@ -25,13 +26,43 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     end;
 
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream);
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Content: HttpContent;
+        TempBlobStream: InStream;
+        FileIndex: Integer;
     begin
         if FailOnGetFile then
             Error(FailedToGetFileErr);
+
+        if not StoreFileContent then
+            exit;
+
+        if not StoredFileIndexes.Get(Format(AccountId) + Path, FileIndex) then
+            Error(FileNotFoundErr, Path);
+
+        StoredFileContents.Get(FileIndex, TempBlob);
+        TempBlob.CreateInStream(TempBlobStream);
+        // Keep the stream alive across the connector interface, as the production connectors do.
+        Content.WriteFrom(TempBlobStream);
+        Content.ReadAs(Stream);
     end;
 
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
+    var
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
     begin
+        if not StoreFileContent then
+            exit;
+
+        if FileConnectorMock.FailOnSend() then
+            Error(FailedToCreateFileErr);
+
+        TempBlob.CreateOutStream(OutStream);
+        CopyStream(OutStream, Stream);
+        StoredFileContents.Add(TempBlob);
+        StoredFileIndexes.Set(Format(AccountId) + Path, StoredFileContents.Count());
     end;
 
     procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text);
@@ -77,6 +108,13 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     internal procedure SetFailOnGetFile(NewFailOnGetFile: Boolean)
     begin
         FailOnGetFile := NewFailOnGetFile;
+    end;
+
+    internal procedure SetStoreFileContent(NewStoreFileContent: Boolean)
+    begin
+        StoreFileContent := NewStoreFileContent;
+        Clear(StoredFileContents);
+        Clear(StoredFileIndexes);
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
@@ -140,8 +178,13 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
 
     var
         FileConnectorMock: Codeunit "File Connector Mock";
+        StoredFileContents: Codeunit "Temp Blob List";
+        StoredFileIndexes: Dictionary of [Text, Integer];
         FailOnGetFile: Boolean;
+        StoreFileContent: Boolean;
         FileExistsCallCount: Integer;
         LastDeletedFilePath: Text;
         FailedToGetFileErr: Label 'Failed to get file.';
+        FailedToCreateFileErr: Label 'Failed to create file.';
+        FileNotFoundErr: Label 'The file %1 does not exist.', Comment = '%1 = File path';
 }

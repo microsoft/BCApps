@@ -271,8 +271,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalFileStorage.GetFile(ExternalFilePath, InStream) then
             exit(false);
 
-        // Import the file into the Document Attachment
-        DocumentAttachment.ImportAttachment(InStream, FileName);
+        // Media import also validates the filename, independently of the attachment's display fields.
+        DocumentAttachment.ImportAttachment(InStream, SanitizeFileName(FileName));
         DocumentAttachment."Stored Internally" := true;
         DocumentAttachment.Modify();
 
@@ -543,6 +543,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     begin
         // Generate unique filename to prevent collisions
         FileNamePart := StrSubstNo(FileNameFormatLbl, DocumentAttachment."File Name", DelChr(Format(CreateGuid()), '=', '{}'), DocumentAttachment."File Extension");
+        // Sanitize only the path component, preserving the original attachment name and extension.
+        FileNamePart := SanitizeFileName(FileNamePart);
 
         // Get table name folder (based on the source table of the attachment)
         TableNameFolder := GetTableNameFolder(DocumentAttachment."Table ID");
@@ -580,6 +582,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         exit(CopyStr(FileName, 1, 2048));
     end;
 
+    local procedure SanitizeFileName(FileName: Text): Text
+    begin
+        exit(DelChr(FileName, '=', '"''<>/\|'));
+    end;
+
     local procedure GetTableNameFolder(TableID: Integer): Text[100]
     var
         TableName: Text;
@@ -589,7 +596,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             TableName := 'Table_' + Format(TableID);
 
         // Replace invalid characters for folder names
-        TableName := DelChr(TableName, '=', '<>:"/\|?*');
+        TableName := DelChr(TableName, '=', '<>:"''/\|?*');
         TableName := ConvertStr(TableName, ' ', '_');
 
         exit(CopyStr(TableName, 1, 100));
