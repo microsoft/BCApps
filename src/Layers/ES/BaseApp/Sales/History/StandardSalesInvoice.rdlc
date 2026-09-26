@@ -6438,7 +6438,7 @@
                                   </TablixMember>
                                   <TablixMember>
                                     <Visibility>
-                                      <Hidden>=(First(Fields!SelltoCustomerNo.Value) = First(Fields!BilltoCustumerNo.Value))</Hidden>
+                                      <Hidden>=IIF((First(Fields!SelltoCustomerNo.Value, "Table_ShipToAdress") &amp; "") = (First(Fields!BilltoCustumerNo.Value, "Table_ShipToAdress") &amp; ""), True, False)</Hidden>
                                     </Visibility>
                                     <KeepWithGroup>After</KeepWithGroup>
                                     <KeepTogether>true</KeepTogether>
