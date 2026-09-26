@@ -147,33 +147,6 @@
   {
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithReportIsBlocked"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithPostedReportIsBlocked"
-  },
-  {
-    "bugId": 650277,
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithPostedLineIsBlocked"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DeleteTravelRequestWithUnpostedLineIsBlocked"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "TravelRequestAPIDatesKeepValidation"
-  },
-  {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
     "method": "DefaultApproverFilterQuotesWildcardUserNo"
   },
   {
