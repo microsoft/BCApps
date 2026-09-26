@@ -1037,6 +1037,59 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvSkippedBlobPreservesDestinationBlobWhenKeyRenamed()
+    var
+        SourceRecord: Record "MDM Test Table A";
+        DestinationRecord: Record "MDM Test Table A";
+        RenamedDestination: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceRecordRef: RecordRef;
+        DestinationRecordRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        DestinationFieldRef: FieldRef;
+        BlobOutStream: OutStream;
+        NewValue: Variant;
+        IsValueFound: Boolean;
+        NeedsConversion: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A key mapping renames the destination buffer before the Blob mapping runs, so the buffer's key no
+        // longer matches the stored row. The skipped-blob transfer must still resolve the stored content by SystemId
+        // (not the renamed key) so the destination blob is preserved rather than cleared or the sync failing.
+        Initialize();
+        EnableCrossEnvForTransfer('PROD');
+
+        // [GIVEN] a destination record with an existing blob and a source record whose over-cap blob was skipped
+        Clear(DestinationRecord);
+        DestinationRecord."Primary Key" := CopyStr('D' + Format(LibraryRandomInt()), 1, MaxStrLen(DestinationRecord."Primary Key"));
+        DestinationRecord."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.Write('existing destination blob');
+        DestinationRecord.Insert();
+        Clear(SourceRecord);
+        SourceRecord."Primary Key" := CopyStr('S' + Format(LibraryRandomInt()), 1, MaxStrLen(SourceRecord."Primary Key"));
+        SourceRecord.Insert();
+        LibraryMasterDataMgt.InlineBlobPutSkipped(SourceRecord.SystemId, SourceRecord.FieldNo("Test Blob"));
+
+        SourceRecordRef.GetTable(SourceRecord);
+        DestinationRecordRef.GetTable(DestinationRecord);
+        SourceFieldRef := SourceRecordRef.Field(SourceRecord.FieldNo("Test Blob"));
+        DestinationFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+
+        // [GIVEN] the stored row is renamed, so the in-flight buffer's key no longer matches the database row
+        RenamedDestination.Get(DestinationRecord."Primary Key");
+        RenamedDestination.Rename(CopyStr('R' + Format(LibraryRandomInt()), 1, MaxStrLen(RenamedDestination."Primary Key")));
+
+        // [WHEN] the field-transfer subscriber resolves the blob value against the stale-key buffer
+        LibraryMasterDataMgt.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
+
+        // [THEN] the value resolves to the stored content via SystemId, so the destination blob is preserved unchanged
+        Assert.IsTrue(IsValueFound, 'A skipped cross-env blob must resolve even when the buffer key was renamed');
+        Assert.AreEqual('existing destination blob', Format(NewValue), 'The skipped blob must resolve to the stored content via SystemId, not the renamed key');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure InlineMediaContentSupersedesEarlierClearForSameKey()
     var
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
