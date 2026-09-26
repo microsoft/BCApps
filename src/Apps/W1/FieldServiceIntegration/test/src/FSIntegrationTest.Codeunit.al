@@ -1586,17 +1586,19 @@ codeunit 139204 "FS Integration Test"
         CRMUom: Record "CRM Uom";
         CRMUomschedule: Record "CRM Uomschedule";
         Currency: Record Currency;
+        IntegrationSynchJob: Record "Integration Synch. Job";
         IntegrationTableMapping: Record "Integration Table Mapping";
         Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        JobID: Guid;
     begin
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] The first synchronization of an item disables native Field Service customer asset creation.
         Initialize();
-        LibraryCRMIntegration.CreateCRMConnectionSetup('', '@@test@@', true);
         InitSetup(true, '');
+        LibraryCRMIntegration.ConfigureCRM();
 
         // [GIVEN] An uncoupled item whose unit of measure and currency are coupled to Dataverse.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
@@ -1608,9 +1610,12 @@ codeunit 139204 "FS Integration Test"
         IntegrationTableMapping.Get('ITEM-PRODUCT');
 
         // [WHEN] The item is synchronized to a new Field Service product.
-        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, true);
+        JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, true);
 
         // [THEN] Native Field Service customer asset creation is disabled on the new product.
+        IntegrationSynchJob.Get(JobID);
+        IntegrationSynchJob.TestField(Failed, 0);
+        IntegrationSynchJob.TestField(Inserted, 1);
         Assert.IsTrue(CRMIntegrationRecord.FindByRecordID(Item.RecordId()), 'The item should be coupled to a product.');
         CRMProduct.Get(CRMIntegrationRecord."CRM ID");
         Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
@@ -1623,15 +1628,17 @@ codeunit 139204 "FS Integration Test"
         Item: Record Item;
         CRMProduct: Record "CRM Product";
         IntegrationFieldMapping: Record "Integration Field Mapping";
+        IntegrationSynchJob: Record "Integration Synch. Job";
         IntegrationTableMapping: Record "Integration Table Mapping";
         CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
         CRMSetupDefaults: Codeunit "CRM Setup Defaults";
+        JobID: Guid;
     begin
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
-        LibraryCRMIntegration.CreateCRMConnectionSetup('', '@@test@@', true);
         InitSetup(true, '');
+        LibraryCRMIntegration.ConfigureCRM();
 
         // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes and the existing mapping has no conversion rule.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
@@ -1645,9 +1652,12 @@ codeunit 139204 "FS Integration Test"
         IntegrationTableMapping.Get('ITEM-PRODUCT');
 
         // [WHEN] The item is synchronized to the Field Service product.
-        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
+        JobID := CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
 
         // [THEN] Native Field Service customer asset creation is disabled.
+        IntegrationSynchJob.Get(JobID);
+        IntegrationSynchJob.TestField(Failed, 0);
+        IntegrationSynchJob.TestField(Modified, 1);
         CRMProduct.Get(CRMProduct.ProductId);
         Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
     end;
