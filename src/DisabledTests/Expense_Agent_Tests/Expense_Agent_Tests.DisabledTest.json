@@ -145,11 +145,6 @@
     "method": "ExpenseAgentCanUpdateTravelRequestDetailsIndirectly"
   },
   {
-    "codeunitId": 148339,
-    "codeunitName": "Spend Request Test",
-    "method": "DefaultApproverFilterQuotesWildcardUserNo"
-  },
-  {
     "bugId": 650277,
     "codeunitId": 148339,
     "codeunitName": "Spend Request Test",
