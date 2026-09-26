@@ -247,6 +247,7 @@ codeunit 104000 "Upgrade - BaseApp"
         SetEmployeeLedgerEntryCurrencyFactor();
         InitShipToPhoneNo();
         UpgradeReminderTextMultilines();
+        DeleteOrphanReminderLines();
         UpgradeCountryVATSchemeDK();
         UpgradeJobConsumpWhseHandlingForDirectedPutAwayAndPickLocation();
         UpgradeIntegrationTableMappingTemplates();
@@ -3834,6 +3835,21 @@ codeunit 104000 "Upgrade - BaseApp"
             until ReminderAttachmentText.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetMultilineReminderTextUpgradeTag());
+    end;
+
+    local procedure DeleteOrphanReminderLines()
+    var
+        ReminderLine: Record "Reminder Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDeleteOrphanReminderLinesTag()) then
+            exit;
+
+        ReminderLine.SetRange("Reminder No.", '');
+        ReminderLine.DeleteAll(true);
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDeleteOrphanReminderLinesTag());
     end;
 
     local procedure UpgradeCountryVATSchemeDK()
