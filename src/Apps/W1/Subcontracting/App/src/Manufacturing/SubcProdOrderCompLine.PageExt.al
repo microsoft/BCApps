@@ -15,20 +15,17 @@ pageextension 20513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line Li
             field("Subc. Qty.on TransOrder (Base)"; Rec."Subc. Qty.on TransOrder (Base)")
             {
                 ApplicationArea = Subcontracting;
-                Caption = 'Qty. on Transfer Order (Base)';
                 ToolTip = 'Specifies the item amount that is on the transfer order.';
             }
             field("Subc. Qty. in Transit (Base)"; Rec."Subc. Qty. in Transit (Base)")
             {
                 ApplicationArea = Subcontracting;
-                Caption = 'Qty. in Transit (Base)';
                 ToolTip = 'Specifies the items that are in transit.';
                 Visible = false;
             }
             field("Subc. Qty. transf. to Subcontractor"; Rec."Subc. Qty. transf. to Subcontr")
             {
                 ApplicationArea = Subcontracting;
-                Caption = 'Qty. transf. to Subcontractor';
                 ToolTip = 'Specifies the item amount transferred to the subcontractor.';
             }
         }
