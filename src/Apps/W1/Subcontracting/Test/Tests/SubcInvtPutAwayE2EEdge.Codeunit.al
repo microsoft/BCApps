@@ -19,6 +19,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
@@ -504,6 +505,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
         SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
         LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
@@ -556,6 +558,20 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Separate invoicing must not duplicate item output.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure CancelSeparateSubcontractingInvoiceReversesCapacityCost()
+    begin
+        VerifySeparateSubcontractingInvoiceReversal(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure CorrectiveCreditMemoForSeparateSubcontractingInvoiceReversesCapacityCost()
+    begin
+        VerifySeparateSubcontractingInvoiceReversal(false);
     end;
 
     [Test]
@@ -1419,6 +1435,117 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         Assert.ExpectedError('warehouse put-away lines have already been posted');
         SubcWarehouseLibrary.VerifyNoWarehouseEntry(Item."No.", Location.Code);
         SubcWarehouseLibrary.VerifyNoItemLedgerEntry(Item."No.", Location.Code);
+    end;
+
+    local procedure VerifySeparateSubcontractingInvoiceReversal(CancelInvoice: Boolean)
+    var
+        CancelledDocument: Record "Cancelled Document";
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PostedCreditMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        PostedInvoiceHeader: Record "Purch. Inv. Header";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WorkCenter: array[2] of Record "Work Center";
+        CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        CapacityLedgerEntryCount: Integer;
+        CapacityLedgerEntryNo: Integer;
+        OutputItemLedgerEntryCount: Integer;
+        PostedInvoiceNo: Code[20];
+        ExpectedCost: Decimal;
+        Quantity: Decimal;
+    begin
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify(true);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        CapacityLedgerEntryCount := CapacityLedgerEntry.Count();
+        CapacityLedgerEntry.FindFirst();
+        CapacityLedgerEntryNo := CapacityLedgerEntry."Entry No.";
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        OutputItemLedgerEntryCount := ItemLedgerEntry.Count();
+
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        InvoiceLine.SetRange("Receipt No.", PurchRcptLine."Document No.");
+        InvoiceLine.SetRange("Receipt Line No.", PurchRcptLine."Line No.");
+        InvoiceLine.FindFirst();
+        ExpectedCost := Round(Quantity * InvoiceLine."Direct Unit Cost");
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        PostedInvoiceHeader.Get(PostedInvoiceNo);
+        Commit();
+
+        if CancelInvoice then
+            CorrectPostedPurchInvoice.CancelPostedInvoice(PostedInvoiceHeader)
+        else begin
+            CorrectPostedPurchInvoice.CreateCreditMemoCopyDocument(PostedInvoiceHeader, InvoiceHeader);
+            InvoiceHeader.Validate(
+                "Vendor Cr. Memo No.",
+                CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(InvoiceHeader."Vendor Cr. Memo No.")));
+            InvoiceHeader.Modify(true);
+            LibraryPurchase.PostPurchaseDocument(InvoiceHeader, true, true);
+        end;
+
+        CancelledDocument.Get(Database::"Purch. Inv. Header", PostedInvoiceNo);
+        PostedCreditMemoHeader.Get(CancelledDocument."Cancelled By Doc. No.");
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Credit Memo");
+        ValueEntry.SetRange("Document No.", PostedCreditMemoHeader."No.");
+        ValueEntry.SetRange("Capacity Ledger Entry No.", CapacityLedgerEntryNo);
+        Assert.RecordIsNotEmpty(ValueEntry);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreEqual(-ExpectedCost, Round(ValueEntry."Cost Amount (Actual)"), 'The reversed invoice cost must remain assigned to the original capacity ledger entry.');
+
+        CapacityLedgerEntry.Reset();
+        CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntry.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.AreEqual(CapacityLedgerEntryCount, CapacityLedgerEntry.Count(), 'Reversing the invoice must not create capacity entries.');
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        Assert.AreEqual(OutputItemLedgerEntryCount, ItemLedgerEntry.Count(), 'Reversing the invoice must not create output entries.');
     end;
 
     [ConfirmHandler]

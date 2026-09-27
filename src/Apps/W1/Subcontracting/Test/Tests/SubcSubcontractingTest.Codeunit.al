@@ -4312,6 +4312,16 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(PurchRcptLine."Dimension Set ID", InvoiceLine."Dimension Set ID", 'Dimensions must be preserved.');
     end;
 
+#if not CLEAN30
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Obsolete('Use GetReceiptLinesCopiesSubcontractingReceiptLine instead.', '30.0')]
+    procedure GetReceiptLinesBlocksSubcontractingReceiptLine()
+    begin
+        GetReceiptLinesCopiesSubcontractingReceiptLine();
+    end;
+#endif
+
     [Test]
     [HandlerFunctions('GetOrderLinesPurchaseLinesPageHandler')]
     procedure GetOrderLinesExcludesSubcontractingPurchaseOrderLines()
