@@ -1594,8 +1594,7 @@ codeunit 139204 "FS Integration Test"
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] The first synchronization of an item disables native Field Service customer asset creation.
         Initialize();
-        InitSetup(true, '');
-        LibraryCRMIntegration.ConfigureCRM();
+        InitializeItemProductSynchronization();
 
         // [GIVEN] An uncoupled item whose unit of measure and currency are coupled to Dataverse.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
@@ -1629,8 +1628,7 @@ codeunit 139204 "FS Integration Test"
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
-        InitSetup(true, '');
-        LibraryCRMIntegration.ConfigureCRM();
+        InitializeItemProductSynchronization();
 
         // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes and the existing mapping has no conversion rule.
         CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
@@ -1734,6 +1732,20 @@ codeunit 139204 "FS Integration Test"
         Item.Modify();
         ItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
         LibraryCRMIntegration.CoupleItemUnitOfMeasure(ItemUnitOfMeasure, CRMUomschedule, CRMUom);
+    end;
+
+    local procedure InitializeItemProductSynchronization()
+    var
+        CRMConnectionSetup: Record "CRM Connection Setup";
+        CRMOrganization: Record "CRM Organization";
+    begin
+        InitSetup(true, '');
+        LibraryCRMIntegration.ConfigureCRM();
+        LibraryCRMIntegration.CreateCRMOrganization();
+        CRMOrganization.FindFirst();
+        CRMConnectionSetup.Get();
+        CRMConnectionSetup.BaseCurrencyId := CRMOrganization.BaseCurrencyId;
+        CRMConnectionSetup.Modify();
     end;
 
     procedure ResetFSEnvironment()
