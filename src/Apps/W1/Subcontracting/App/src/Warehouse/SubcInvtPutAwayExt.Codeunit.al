@@ -38,6 +38,16 @@ codeunit 20575 "Subc. Invt. Put-away Ext"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Put-away", OnBeforeInsertSNWhseActivLine, '', false, false)]
+    local procedure InsertFullQuantityForNotLastOperation_OnBeforeInsertSNWhseActivLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; WhseItemTrackingSetup: Record "Item Tracking Setup"; NextLineNo: Integer; var ReservationFound: Boolean; var IsHandled: Boolean; var RemQtyToPutAway: Decimal; sender: Codeunit "Create Inventory Put-away")
+    begin
+        if WarehouseActivityLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::NotLastOperation then
+            exit;
+
+        sender.InsertWhseActivLine(WarehouseActivityLine, RemQtyToPutAway);
+        IsHandled := true;
+    end;
+
     // Only last-operation lines create physical warehouse entries during inventory put-away posting.
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnBeforePostWhseJnlLine, '', false, false)]
     local procedure SkipWhseJnlForNotLastOp_OnBeforePostWhseJnlLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
