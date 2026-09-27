@@ -114,6 +114,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLineComp: Record "Purchase Line";
+        TempPurchaseLineComp: Record "Purchase Line" temporary;
         PurchaseLineChanged: Boolean;
     begin
         if RequisitionLine."Prod. Order No." = '' then
@@ -128,6 +129,20 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         then
             exit;
 
+        PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
+        PurchaseLineComp.SetRange("Document No.", PurchaseLine."Document No.");
+        PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLineComp.SetRange("Subc. Prod. Order No.", RequisitionLine."Prod. Order No.");
+        PurchaseLineComp.SetRange("Subc. Prod. Order Line No.", RequisitionLine."Routing Reference No.");
+        PurchaseLineComp.SetRange("Subc. Routing No.", RequisitionLine."Routing No.");
+        PurchaseLineComp.SetRange("Subc. Rtng Reference No.", RequisitionLine."Routing Reference No.");
+        PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
+        if PurchaseLineComp.FindSet() then
+            repeat
+                TempPurchaseLineComp := PurchaseLineComp;
+                TempPurchaseLineComp.Insert();
+            until PurchaseLineComp.Next() = 0;
+
         ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", RequisitionLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
@@ -137,28 +152,33 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         if ProdOrderComponent.FindSet() then
             repeat
                 Clear(PurchaseLineChanged);
-                PurchaseLineComp.SetRange("Document Type", PurchaseLine."Document Type");
-                PurchaseLineComp.SetRange("Document No.", PurchaseLine."Document No.");
-                PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
-                PurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
-                PurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
-                PurchaseLineComp.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-                PurchaseLineComp.SetRange("Subc. Operation No.", RequisitionLine."Operation No.");
-                if PurchaseLineComp.FindFirst() then begin
-                    if PurchaseLineComp.Quantity <> ProdOrderComponent."Remaining Quantity" then begin
-                        PurchaseLineComp.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
-                        PurchaseLineChanged := true;
-                    end;
+                TempPurchaseLineComp.Reset();
+                TempPurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
+                TempPurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
+                if not TempPurchaseLineComp.FindFirst() then
+                    Error(
+                        ComponentPurchLineNotFoundErr, ProdOrderComponent."Line No.",
+                        ProdOrderComponent."Prod. Order No.", PurchaseLine."Document No.");
 
-                    if PurchaseLineComp."Expected Receipt Date" <> ProdOrderComponent."Due Date" then begin
-                        PurchaseLineComp.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
-                        PurchaseLineComp."Requested Receipt Date" := PurchaseLineComp."Planned Receipt Date";
-                        PurchaseLineChanged := true;
-                    end;
-
-                    if PurchaseLineChanged then
-                        PurchaseLineComp.Modify(true);
+                PurchaseLineComp.Get(
+                    TempPurchaseLineComp."Document Type", TempPurchaseLineComp."Document No.", TempPurchaseLineComp."Line No.");
+                TempPurchaseLineComp.Delete();
+                if PurchaseLineComp.Quantity <> ProdOrderComponent."Remaining Quantity" then begin
+                    PurchaseLineComp.Validate(Quantity, ProdOrderComponent."Remaining Quantity");
+                    PurchaseLineChanged := true;
                 end;
+
+                if PurchaseLineComp."Expected Receipt Date" <> ProdOrderComponent."Due Date" then begin
+                    PurchaseLineComp.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
+                    PurchaseLineComp."Requested Receipt Date" := PurchaseLineComp."Planned Receipt Date";
+                    PurchaseLineChanged := true;
+                end;
+
+                if PurchaseLineChanged then
+                    PurchaseLineComp.Modify(true);
             until ProdOrderComponent.Next() = 0;
     end;
+
+    var
+        ComponentPurchLineNotFoundErr: Label 'A purchase line could not be found for production order component line %1 in production order %2 and purchase order %3.', Comment = '%1 = Production order component line number, %2 = Production order number, %3 = Purchase order number';
 }

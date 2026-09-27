@@ -394,7 +394,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
-    procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
+    procedure VendorSuppliedCompQtyAndDatesUpdatedOnPurchOrderReschedule()
     var
         Item: Record Item;
         ComponentItem: Record Item;
@@ -403,20 +403,24 @@ codeunit 139996 "Subc. Planning Test"
         ProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderComponent: Record "Prod. Order Component";
+        SecondProdOrderComponent: Record "Prod. Order Component";
         PurchaseLine: Record "Purchase Line";
         PurchaseLineComp: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
+        LeadTimeCalculation: DateFormula;
+        SafetyLeadTimeCalculation: DateFormula;
+        ComponentDueDate: array[2] of Date;
         InitialQty: Decimal;
         NewQty: Decimal;
+        ComponentIndex: Integer;
     begin
-        // [SCENARIO 637496] When a production order quantity changes and the subcontracting purchase order
-        // is rescheduled via the requisition worksheet, the Vendor-Supplied component purchase lines
-        // should be updated to reflect the new quantity.
+        // [SCENARIO 650504] When a subcontracting purchase order is rescheduled, duplicate Vendor-Supplied
+        // components are matched one-to-one and use their own quantities and requirement dates.
 
-        // [GIVEN] A subcontracting setup with a Vendor-Supplied component
+        // [GIVEN] A subcontracting setup with two Vendor-Supplied components for the same item and operation
         Initialize();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
@@ -427,10 +431,25 @@ codeunit 139996 "Subc. Planning Test"
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
         // [GIVEN] A released production order
         InitialQty := LibraryRandom.RandIntInRange(5, 10);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", InitialQty);
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+        LibraryManufacturing.CreateProductionOrderComponent(
+            SecondProdOrderComponent, ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        SecondProdOrderComponent.Validate("Item No.", ProdOrderComponent."Item No.");
+        SecondProdOrderComponent.Validate("Quantity per", 2);
+        SecondProdOrderComponent.Validate("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        SecondProdOrderComponent.Validate("Component Supply Method", ProdOrderComponent."Component Supply Method");
+        SecondProdOrderComponent.Modify(true);
 
         // [GIVEN] A subcontracting purchase order created via the requisition worksheet
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
@@ -438,24 +457,42 @@ codeunit 139996 "Subc. Planning Test"
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
         // [GIVEN] The vendor-supplied component purchase line exists
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-#pragma warning disable AA0210
-        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-#pragma warning restore AA0210
-        ProductionBOMLine.FindFirst();
-        ComponentItem.Get(ProductionBOMLine."No.");
-
         SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
         SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
         Assert.IsTrue(PurchaseLineComp.FindFirst(), 'Vendor-Supplied component purchase line should exist after initial PO creation.');
+        Assert.AreEqual(2, PurchaseLineComp.Count(), 'Two Vendor-Supplied component purchase lines should exist for the duplicate component item.');
+        Evaluate(LeadTimeCalculation, '<2D>');
+        Evaluate(SafetyLeadTimeCalculation, '<0D>');
+        if PurchaseLineComp.FindSet(true) then
+            repeat
+                PurchaseLineComp.Validate("Lead Time Calculation", LeadTimeCalculation);
+                PurchaseLineComp.Validate("Safety Lead Time", SafetyLeadTimeCalculation);
+                PurchaseLineComp.Modify(true);
+            until PurchaseLineComp.Next() = 0;
 
-        // [WHEN] The production order quantity is increased and refreshed
+        // [WHEN] The production order quantity and the two component due dates are changed
         NewQty := InitialQty + LibraryRandom.RandIntInRange(3, 7);
         ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
         ProdOrderLine.Validate(Quantity, NewQty);
         ProdOrderLine.Modify(true);
+
+        ComponentDueDate[1] := DMY2Date(7, 10, 2026);
+        ComponentDueDate[2] := DMY2Date(9, 10, 2026);
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+#pragma warning disable AA0210
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ComponentIndex := 1;
+        if ProdOrderComponent.FindSet(true) then
+            repeat
+                ProdOrderComponent.Validate("Due Date", ComponentDueDate[ComponentIndex]);
+                ProdOrderComponent.Modify(true);
+                ComponentIndex += 1;
+            until ProdOrderComponent.Next() = 0;
 
         // [WHEN] CalculateSubcontracts is run again and carried out (reschedule path)
         SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
@@ -468,20 +505,16 @@ codeunit 139996 "Subc. Planning Test"
 
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
-        // [THEN] The component purchase line quantity matches the updated component remaining quantity
-        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
-        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
-#pragma warning disable AA0210
-        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-#pragma warning restore AA0210
-        ProdOrderComponent.FindFirst();
-
-        PurchaseLineComp.FindFirst();
-        Assert.AreEqual(
-            ProdOrderComponent."Remaining Quantity",
-            PurchaseLineComp.Quantity,
-            'Vendor-Supplied component purchase line quantity should match the updated production order component remaining quantity.');
+        // [THEN] Each purchase line matches one component and has exact backward-scheduled dates
+        ProdOrderComponent.FindSet();
+        PurchaseLineComp.FindSet();
+        repeat
+            PurchaseLineComp.TestField(Quantity, ProdOrderComponent."Remaining Quantity");
+            PurchaseLineComp.TestField("Expected Receipt Date", ProdOrderComponent."Due Date");
+            PurchaseLineComp.TestField("Planned Receipt Date", ProdOrderComponent."Due Date");
+            PurchaseLineComp.TestField("Order Date", CalcDate('<-2D>', ProdOrderComponent."Due Date"));
+            PurchaseLineComp.Next();
+        until ProdOrderComponent.Next() = 0;
     end;
 
     local procedure Initialize()
@@ -519,6 +552,7 @@ codeunit 139996 "Subc. Planning Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPlanning: Codeunit "Library - Planning";
         LibraryRandom: Codeunit "Library - Random";
