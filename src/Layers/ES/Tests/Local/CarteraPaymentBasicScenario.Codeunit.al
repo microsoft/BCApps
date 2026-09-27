@@ -1813,10 +1813,8 @@ codeunit 147500 "Cartera Payment Basic Scenario"
         GLEntry.SetRange("Document No.", PaymentOrder."No.");
         GLEntry.FindSet();
         repeat
-            if GLEntry.Amount <> 0 then begin
-                Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
-                Assert.AreNotEqual(0, GLEntry."Source Currency Amount", 'Source Currency Amount must be populated on posted payment-order G/L entries.');
-            end;
+            Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", 'Source Currency Code must be populated on posted payment-order G/L entries.');
+            Assert.AreNotEqual(0, GLEntry."Source Currency Amount", 'Source Currency Amount must be populated on posted payment-order G/L entries.');
         until GLEntry.Next() = 0;
     end;
 
