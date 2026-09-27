@@ -10,7 +10,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 table 6841 "Spend Request Detail"
 {
     Caption = 'Spend Request Document Detail';
-    ReplicateData = false;
     DataClassification = CustomerContent;
 
     fields

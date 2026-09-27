@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 using System.Feedback;
 using System.Telemetry;
 using System.Text;
@@ -214,6 +215,7 @@ page 6181 "E-Document Purchase Draft"
                     begin
                         UpdateTotal();
                         EDocumentPurchaseHeader.Modify();
+                        GlobalEDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
                         CurrPage.Update();
                     end;
                 }
@@ -266,6 +268,7 @@ page 6181 "E-Document Purchase Draft"
                     trigger OnValidate()
                     begin
                         EDocumentPurchaseHeader.Modify();
+                        GlobalEDocumentNotification.RefreshAndShowSubTotalMismatchAfterHeaderEdit(EDocumentPurchaseHeader);
                         CurrPage.Update();
                     end;
                 }
@@ -416,6 +419,7 @@ page 6181 "E-Document Purchase Draft"
                     Caption = 'Provide feedback';
                     ToolTip = 'Provide feedback on the Payables Agent experience.';
                     Image = Comment;
+                    Visible = FeedbackActionVisible;
 
                     trigger OnAction()
                     begin
@@ -509,7 +513,6 @@ page 6181 "E-Document Purchase Draft"
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
@@ -528,7 +531,8 @@ page 6181 "E-Document Purchase Draft"
         HasErrors := false;
         PageEditable := IsEditable();
         IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
-        EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
+        GlobalEDocumentNotification.RefreshAndShowPendingDraftNotifications(Rec."Entry No");
+        FeedbackActionVisible := IsUserInitiatedFeedbackEnabled();
         if PurchasesPayablesSetup.Get() then
             ApplyVATDiffEnabled := PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc";
 
@@ -732,6 +736,13 @@ page 6181 "E-Document Purchase Draft"
         EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
+    local procedure IsUserInitiatedFeedbackEnabled(): Boolean
+    var
+        TenantFeedbackSettings: Codeunit "Tenant Feedback Settings";
+    begin
+        exit(TenantFeedbackSettings.GetUserInitiatedFeedbackEnabled());
+    end;
+
     local procedure ProvideFeedback()
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
@@ -742,6 +753,9 @@ page 6181 "E-Document Purchase Draft"
         InStream: InStream;
         ContextFiles, ContextProperties : Dictionary of [Text, Text];
     begin
+        if not IsUserInitiatedFeedbackEnabled() then
+            exit;
+
         if EDocDraftFeedback.RunModal() = Action::Yes then begin
             if EDocumentDataStorage.Get(Rec."Unstructured Data Entry No.") then begin
                 EDocumentDataStorage.GetTempBlob().CreateInStream(InStream);
@@ -779,6 +793,7 @@ page 6181 "E-Document Purchase Draft"
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        GlobalEDocumentNotification: Codeunit "E-Document Notification";
         EDocumentProcessing: Codeunit "E-Document Processing";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         GlobalEDocumentHelper: Codeunit "E-Document Helper";
@@ -792,5 +807,6 @@ page 6181 "E-Document Purchase Draft"
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         PageEditable, HasPDFSource, IsCreditMemo : Boolean;
         ApplyVATDiffEnabled: Boolean;
+        FeedbackActionVisible: Boolean;
         AppliedVATAmountDiff: Decimal;
 }

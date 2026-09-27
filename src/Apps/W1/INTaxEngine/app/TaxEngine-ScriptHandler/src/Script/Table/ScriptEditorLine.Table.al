@@ -59,11 +59,13 @@ table 20201 "Script Editor Line"
             DataClassification = EndUserIdentifiableInformation;
             Caption = 'Container Type';
         }
+#pragma warning disable AL0717 // Accepted: the FlowField is populated by code; adding a CalcFormula would change behavior.
         field(10; "Has Errors"; Boolean)
         {
             FieldClass = FlowField;
             Caption = 'Has Errors';
         }
+#pragma warning restore AL0717
         field(12; "Action ID Filter"; Guid)
         {
             FieldClass = FlowFilter;

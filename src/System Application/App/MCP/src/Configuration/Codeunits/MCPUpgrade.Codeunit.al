@@ -5,7 +5,6 @@
 
 namespace System.MCP;
 
-using System.Reflection;
 using System.Upgrade;
 
 codeunit 8356 "MCP Upgrade"
@@ -25,7 +24,6 @@ codeunit 8356 "MCP Upgrade"
     internal procedure UpgradeMCPAPIToolVersion()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        PageMetadata: Record "Page Metadata";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
@@ -35,14 +33,10 @@ codeunit 8356 "MCP Upgrade"
         MCPConfigurationTool.SetRange("API Version", '');
         if MCPConfigurationTool.FindSet() then
             repeat
-                if not PageMetadata.Get(MCPConfigurationTool."Object ID") then
-                    continue;
-
-                if PageMetadata.PageType <> PageMetadata.PageType::API then
-                    continue;
-
-                MCPConfigurationTool."API Version" := MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata);
-                MCPConfigurationTool.Modify();
+                if MCPConfigImplementation.IsAPIPage(MCPConfigurationTool."Object ID") then begin
+                    MCPConfigurationTool."API Version" := MCPConfigImplementation.GetHighestAPIPageVersion(MCPConfigurationTool."Object ID");
+                    MCPConfigurationTool.Modify();
+                end;
             until MCPConfigurationTool.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetMCPAPIToolVersionUpgradeTag());

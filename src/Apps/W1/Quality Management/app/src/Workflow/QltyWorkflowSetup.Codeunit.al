@@ -92,6 +92,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         exit(QMWorkflowResponseReopenInspectionTok);
     end;
 
+    /// <summary>
+    /// Returns the token for a workflow response to create a reinspection.
+    /// </summary>
+    /// <returns>The create-reinspection workflow response token.</returns>
     internal procedure GetWorkflowResponseCreateReinspection(): Text
     begin
         exit(QMWorkflowResponseCreateReinspectionTok);
@@ -199,7 +203,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to create a inventory adjustment
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The inventory adjustment workflow response token.</returns>
     procedure GetWorkflowResponseInventoryAdjustment(): Text
     begin
         exit(QMWorkflowResponseAdjInventoryTok);
@@ -208,7 +212,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to change item tracking
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The change-item-tracking workflow response token.</returns>
     internal procedure GetWorkflowResponseChangeItemTracking(): Text
     begin
         exit(QMWorkflowResponseChangeItemTrackingTok);
@@ -217,7 +221,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to create a transfer
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The create-transfer workflow response token.</returns>
     procedure GetWorkflowResponseCreateTransfer(): Text
     begin
         exit(QMWorkflowResponseCreateTransferTok);
@@ -226,7 +230,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to create a purchase return
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The create-purchase-return workflow response token.</returns>
     procedure GetWorkflowResponseCreatePurchaseReturn(): Text
     begin
         exit(QMWorkflowResponseCreatePurchaseReturnTok);
@@ -304,12 +308,18 @@ codeunit 20423 "Qlty. Workflow Setup"
         exit(QltyInspectionDelegateWorkflowEventTok);
     end;
 
+    /// <summary>
+    /// Adds Quality Management table relations to the workflow library.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowTableRelationsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowTableRelationsToLibrary()
     begin
         AddEmployeeUserRelationships();
     end;
 
+    /// <summary>
+    /// Adds user, inspection, and approval entry table relations used by workflows.
+    /// </summary>
     local procedure AddEmployeeUserRelationships()
     var
         User: Record User;
@@ -323,6 +333,9 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Line", QltyInspectionLine.FieldNo("Inspection No."), Database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
     end;
 
+    /// <summary>
+    /// Rebuilds the Quality Management workflow events in the workflow library.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowEventsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowEventsToLibrary()
     var
@@ -344,6 +357,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowEventHandling.AddEventToLibrary(GetInspectionReopenedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenReopenedLbl + OptionalSuffix, 0, false);
     end;
 
+    /// <summary>
+    /// Adds Quality Management event predecessors for approval workflow events.
+    /// </summary>
+    /// <param name="EventFunctionName">The workflow event function receiving predecessor links.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowEventPredecessorsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowEventPredecessorsToLibrary(EventFunctionName: Code[128])
     var
@@ -365,6 +382,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         end;
     end;
 
+    /// <summary>
+    /// Adds Quality Management event predecessors for a Quality Management workflow response.
+    /// </summary>
+    /// <param name="ResponseFunctionName">The workflow response function receiving predecessor links.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", 'OnAddWorkflowResponsePredecessorsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowResponsePredecessorsToLibrary(ResponseFunctionName: Code[128])
     var
@@ -385,6 +406,9 @@ codeunit 20423 "Qlty. Workflow Setup"
                 WorkflowResponseHandling.AddResponsePredecessor(ResponseFunctionName, CopyStr(QualityEvent, 1, 128));
     end;
 
+    /// <summary>
+    /// Rebuilds Quality Management workflow responses and their supported event predecessors.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", 'OnAddWorkflowResponsesToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowResponsesToLibrary()
     var

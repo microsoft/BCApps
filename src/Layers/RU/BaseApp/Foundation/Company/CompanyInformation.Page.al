@@ -24,6 +24,7 @@ using Microsoft.Sales.Setup;
 using System.Diagnostics;
 using System.Environment.Configuration;
 using System.Globalization;
+using System.Integration.PowerBI;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -152,7 +153,9 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                 field(Picture; Rec.Picture)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
 
@@ -599,6 +602,7 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the first four digits of the VAT registration number for the administrative tax authority code.';
                 }
+
                 field(DefaultThemePart; ThemePartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
@@ -635,6 +639,28 @@ page 1 "Company Information"
                     begin
                         if HeaderPartDisplay = '' then
                             LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
+                    end;
+                }
+                field(PowerBIWorkspace; Rec."Power BI Workspace Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Power BI Workspace';
+                    Editable = false;
+                    ToolTip = 'Specifies the Power BI workspace that Power BI reports are deployed to. Leave blank to deploy to "My Workspace".';
+
+                    trigger OnAssistEdit()
+                    var
+                        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+                        NewWorkspaceId: Guid;
+                        NewWorkspaceName: Text[200];
+                    begin
+                        NewWorkspaceId := Rec."Power BI Workspace Id";
+                        NewWorkspaceName := Rec."Power BI Workspace Name";
+                        if PowerBIWorkspaceMgt.LookupTargetWorkspace(NewWorkspaceId, NewWorkspaceName) then begin
+                            Rec.Validate("Power BI Workspace Id", NewWorkspaceId);
+                            Rec.Validate("Power BI Workspace Name", NewWorkspaceName);
+                            CurrPage.Update(true);
+                        end;
                     end;
                 }
             }

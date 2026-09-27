@@ -11,7 +11,8 @@ using Microsoft.Purchases.Vendor;
 
 codeunit 5057 "VendCont-Update"
 {
-    Permissions = tabledata Contact = rimd;
+    Permissions = tabledata Contact = rimd,
+                  tabledata "Contact Business Relation" = r;
 
     trigger OnRun()
     begin

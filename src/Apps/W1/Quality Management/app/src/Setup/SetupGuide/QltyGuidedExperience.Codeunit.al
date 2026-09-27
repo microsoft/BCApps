@@ -55,12 +55,18 @@ codeunit 20419 "Qlty. Guided Experience"
         InProgressTitleTxt: Label 'Get started';
         InProgressDescriptionTxt: Label 'The Contoso demo data is for demonstration, evaluation, and training purposes only.';
 
+    /// <summary>
+    /// Registers the Quality Management guided experience items.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterGuidedExperienceItem', '', false, false)]
     local procedure OnRegisterGuidedExperienceItem()
     begin
         RegisterGuidedExperienceItems();
     end;
 
+    /// <summary>
+    /// Registers guided experience and checklist items once after an eligible client login.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", 'OnAfterLogin', '', false, false)]
     local procedure InitializeChecklistOnAfterLogIn()
     var
@@ -96,6 +102,18 @@ codeunit 20419 "Qlty. Guided Experience"
         end;
     end;
 
+    /// <summary>
+    /// Replaces checklist banner labels for the Quality Manager role center.
+    /// </summary>
+    /// <param name="IsHandled">Set to true when the banner labels are supplied by this subscriber.</param>
+    /// <param name="IsEvaluationCompany">Indicates whether the current company is an evaluation company.</param>
+    /// <param name="TitleTxt">The expanded banner title to update.</param>
+    /// <param name="TitleCollapsedTxt">The collapsed banner title to update.</param>
+    /// <param name="HeaderTxt">The expanded banner header to update.</param>
+    /// <param name="HeaderCollapsedTxt">The collapsed banner header to update.</param>
+    /// <param name="DescriptionTxt">The banner description to update.</param>
+    /// <param name="IsSetupStarted">Indicates whether checklist setup has started.</param>
+    /// <param name="AreAllItemsSkippedOrCompleted">Indicates whether all checklist items are skipped or completed.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Checklist Banner", 'OnBeforeUpdateBannerLabels', '', false, false)]
     local procedure OnBeforeUpdateBannerLabels(var IsHandled: Boolean; IsEvaluationCompany: Boolean; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text; IsSetupStarted: Boolean; AreAllItemsSkippedOrCompleted: Boolean)
 
@@ -116,6 +134,10 @@ codeunit 20419 "Qlty. Guided Experience"
         end;
     end;
 
+    /// <summary>
+    /// Determines whether the current user has the Quality Manager role center.
+    /// </summary>
+    /// <returns>True if the current profile uses the Quality Manager role center; otherwise, false.</returns>
     local procedure IsQualityManagerRoleCenter(): Boolean
     var
         UserPersonalization: Record "User Personalization";
@@ -133,6 +155,9 @@ codeunit 20419 "Qlty. Guided Experience"
         exit(AllProfile."Role Center ID" = Page::"Qlty. Manager Role Center");
     end;
 
+    /// <summary>
+    /// Registers Quality Management tours, application features, and the learn link.
+    /// </summary>
     local procedure RegisterGuidedExperienceItems()
     var
         GuidedExperience: Codeunit "Guided Experience";
@@ -159,6 +184,9 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience.InsertLearnLink(MicrosoftLearnTitleTxt, MicrosoftLearnShortTitleTxt, MicrosoftLearnDescriptionTxt, 5, MicrosoftLearnLinkTxt);
     end;
 
+    /// <summary>
+    /// Adds the Quality Management checklist entries for the Quality Manager profile.
+    /// </summary>
     local procedure InitializeChecklist()
     var
         TempAllProfileQualityManager: Record "All Profile" temporary;
@@ -178,11 +206,20 @@ codeunit 20419 "Qlty. Guided Experience"
         Checklist.MarkChecklistSetupAsDone();
     end;
 
+    /// <summary>
+    /// Adds the Quality Manager profile to a temporary profile collection.
+    /// </summary>
+    /// <param name="TempAllProfile">The temporary profile collection to populate.</param>
     local procedure GetQualityManagerRole(var TempAllProfile: Record "All Profile" temporary)
     begin
         AddRoleToList(TempAllProfile, Page::"Qlty. Manager Role Center");
     end;
 
+    /// <summary>
+    /// Finds a profile by role center and adds it to a temporary profile collection.
+    /// </summary>
+    /// <param name="TempAllProfile">The temporary profile collection to populate.</param>
+    /// <param name="RoleCenterID">The role center page identifier to find.</param>
     local procedure AddRoleToList(var TempAllProfile: Record "All Profile" temporary; RoleCenterID: Integer)
     var
         AllProfile: Record "All Profile";
@@ -191,6 +228,11 @@ codeunit 20419 "Qlty. Guided Experience"
         AddRoleToList(AllProfile, TempAllProfile);
     end;
 
+    /// <summary>
+    /// Adds the first filtered profile to a temporary profile collection.
+    /// </summary>
+    /// <param name="AllProfile">The filtered profile record to read.</param>
+    /// <param name="TempAllProfile">The temporary profile collection to populate.</param>
     local procedure AddRoleToList(var AllProfile: Record "All Profile"; var TempAllProfile: Record "All Profile" temporary)
     begin
         if AllProfile.FindFirst() then begin

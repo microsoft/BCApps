@@ -152,6 +152,13 @@ codeunit 20408 "Qlty. Traversal"
         exit(FindPossibleTargetsBasedOnConfigRecursiveWithList(QltyConfigurationHelpers.GetArbitraryMaximumRecursion(), InputTable, TempAvailableQltyInspectSourceConfig));
     end;
 
+    /// <summary>
+    /// Recursively collects enabled inspection and chained source configurations reachable from a table.
+    /// </summary>
+    /// <param name="CurrentRecursionDepth">The remaining traversal depth before a configuration error is raised.</param>
+    /// <param name="InputTable">The table number from which traversal continues.</param>
+    /// <param name="TempAvailableQltyInspectSourceConfig">The temporary record that accumulates unique reachable configurations.</param>
+    /// <returns>True if at least one configuration is collected.</returns>
     local procedure FindPossibleTargetsBasedOnConfigRecursiveWithList(CurrentRecursionDepth: Integer; InputTable: Integer; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary) Found: Boolean
     var
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
@@ -444,6 +451,12 @@ codeunit 20408 "Qlty. Traversal"
             if ControlInfoToVisibility.Get(CurrentKey, Visible) then;
     end;
 
+    /// <summary>
+    /// Builds a cache key from an inspection header, its source record, and a requested field identifier.
+    /// </summary>
+    /// <param name="InputQltyInspectionHeader">The inspection header represented by the cache key.</param>
+    /// <param name="Input">The field name or caption represented by the cache key.</param>
+    /// <returns>The composite control-information cache key.</returns>
     local procedure GetSourceKey(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; Input: Text): Text
     begin
         exit(Format(InputQltyInspectionHeader.RecordId()) + Format(InputQltyInspectionHeader."Source RecordId") + Input);
@@ -470,6 +483,14 @@ codeunit 20408 "Qlty. Traversal"
         GetSourceFieldInfo(InputQltyInspectionHeader, Database::"Qlty. Inspection Header", Input, CurrentKey);
     end;
 
+    /// <summary>
+    /// Resolves and caches the display caption and visibility of a mapped inspection field.
+    /// </summary>
+    /// <param name="InputQltyInspectionHeader">The inspection header whose source records are searched.</param>
+    /// <param name="InputTable">The target table containing the requested field.</param>
+    /// <param name="Input">The requested field name or caption.</param>
+    /// <param name="CacheKey">The key used to cache caption and visibility.</param>
+    /// <returns>The configured display caption, source field caption, or original input.</returns>
     local procedure GetSourceFieldInfo(InputQltyInspectionHeader: Record "Qlty. Inspection Header"; InputTable: Integer; Input: Text; CacheKey: Text) ResultText: Text
     var
         SourceField: Record Field;
@@ -518,6 +539,16 @@ codeunit 20408 "Qlty. Traversal"
         end;
     end;
 
+    /// <summary>
+    /// Recursively resolves a target field's display override or source caption through configured table chains.
+    /// </summary>
+    /// <param name="ListOfConsideredSourceRecords">The configuration codes already inspected during traversal.</param>
+    /// <param name="Recursion">The remaining traversal depth.</param>
+    /// <param name="FromTable">The source table number for the current relationship.</param>
+    /// <param name="ToTable">The target table number for the current relationship.</param>
+    /// <param name="TestFieldNo">The target field number whose caption is resolved.</param>
+    /// <param name="BackupFieldCaption">The source field caption retained when no display override exists.</param>
+    /// <returns>The configured display override, or blank when traversal finds none.</returns>
     local procedure GetSourceFieldInfoFromChain(var ListOfConsideredSourceRecords: List of [Text]; Recursion: Integer; FromTable: Integer; ToTable: Integer; TestFieldNo: Integer; var BackupFieldCaption: Text) ResultText: Text
     var
         CurrentField: Record Field;

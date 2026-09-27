@@ -57,12 +57,16 @@ table 6794 "WHT Threshold Accumulator"
         {
             Caption = 'Accumulated Base Amount';
             AutoFormatType = 1;
+            // The accumulator only ever holds local currency amounts.
+            AutoFormatExpression = '';
             ToolTip = 'Specifies the accumulated base amount for the withholding tax threshold accumulator.';
         }
         field(9; "Accumulated WHT Amount"; Decimal)
         {
             Caption = 'Accumulated Withholding Tax Amount';
             AutoFormatType = 1;
+            // The accumulator only ever holds local currency amounts.
+            AutoFormatExpression = '';
             ToolTip = 'Specifies the accumulated withholding tax amount for the withholding tax threshold accumulator.';
         }
     }

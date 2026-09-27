@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.Document;
 
-pageextension 99001547 "Subc. Whse Shipm. Subform Ext." extends "Whse. Shipment Subform"
+pageextension 20547 "Subc. Whse Shipm. Subform Ext." extends "Whse. Shipment Subform"
 {
     layout
     {

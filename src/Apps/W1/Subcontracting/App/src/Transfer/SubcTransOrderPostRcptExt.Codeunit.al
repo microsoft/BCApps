@@ -9,7 +9,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
+codeunit 20540 "Subc. TransOrderPostRcpt Ext"
 {
 #if not CLEAN29
     var
@@ -60,6 +60,7 @@ codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
     local procedure OnCheckTransLine(TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header"; Location: Record Location; WhseReceive: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -74,7 +75,7 @@ codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
             exit;
 
         if Location.Code <> ProdOrderComponent."Location Code" then begin
-            ProdOrderComponent.Validate("Location Code", Location.Code);
+            SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, Location.Code);
             ProdOrderComponent.Modify();
         end;
     end;

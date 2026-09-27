@@ -196,11 +196,11 @@ page 6929 "Expense Report Lines API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
@@ -254,6 +254,11 @@ page 6929 "Expense Report Lines API"
                 {
                     Caption = 'Round Trip';
                     ToolTip = 'Specifies whether the mileage expense is a round trip.';
+                }
+                field(vehicleType; Rec."Vehicle Type")
+                {
+                    Caption = 'Vehicle Type';
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense.';
                 }
                 field(totalMileage; TotalMileage)
                 {
@@ -333,6 +338,26 @@ page 6929 "Expense Report Lines API"
                     Caption = 'Project Task Description';
                     Editable = false;
                 }
+                field(policiesEvaluatedAt; Rec."Policies Evaluated At")
+                {
+                    Caption = 'Policies Evaluated At';
+                    Editable = false;
+                }
+                field(policyEvalVersion; Rec."Policy Eval Version")
+                {
+                    Caption = 'Policy Eval Version';
+                    Editable = false;
+                }
+                field(policyStatus; PolicyStatusDisplay)
+                {
+                    Caption = 'Policy Status';
+                    Editable = false;
+                }
+                field(hasPolicyViolation; HasPolicyViolationDisplay)
+                {
+                    Caption = 'Has Policy Violation';
+                    Editable = false;
+                }
 
                 part(expense; "Expenses API")
                 {
@@ -376,6 +401,20 @@ page 6929 "Expense Report Lines API"
                     SubPageLink = "Expense Report No." = field("Document No."),
                                   "Report Line No." = field("Line No.");
                 }
+                part(expensePolicyEvaluations; "Expense Policy Evaluations API")
+                {
+                    Caption = 'Expense Policy Evaluations';
+                    EntityName = 'expensePolicyEvaluation';
+                    EntitySetName = 'expensePolicyEvaluations';
+                    SubPageLink = "Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Policy Eval Version");
+                }
+                part(policiesToEvaluate; "Exp. Policies To Eval API")
+                {
+                    Caption = 'Policies To Evaluate';
+                    EntityName = 'policyToEvaluate';
+                    EntitySetName = 'policiesToEvaluate';
+                    SubPageLink = "Subject System Id" = field(SystemId);
+                }
             }
         }
     }
@@ -390,6 +429,8 @@ page 6929 "Expense Report Lines API"
         TotalMileage: Decimal;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
+        PolicyStatusDisplay: Enum "Expense Policy Status";
+        HasPolicyViolationDisplay: Boolean;
         TargetExpenseReportNotFoundErr: Label 'Expense report with Id %1 not found.', Comment = '%1 = Expense Report Header SystemId';
 
     trigger OnInit()
@@ -403,7 +444,7 @@ page 6929 "Expense Report Lines API"
     trigger OnOpenPage()
     begin
         // Avoid JIT load consistency errors by ensuring fields read in OnAfterGetRecord are included in the initial record buffer.
-        Rec.AddLoadFields("Expense Currency Code", "Expense User No.", Mileage, "Round Trip");
+        Rec.AddLoadFields("Expense Currency Code", "Expense User No.", Mileage, "Round Trip", "Policy Eval Version", "Evaluated Policy Version");
     end;
 
     trigger OnAfterGetRecord()
@@ -416,6 +457,8 @@ page 6929 "Expense Report Lines API"
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        PolicyStatusDisplay := Rec.GetPolicyStatus();
+        HasPolicyViolationDisplay := PolicyStatusDisplay = PolicyStatusDisplay::Flagged;
 
         JobDescription := '';
         JobTaskDescription := '';
@@ -494,7 +537,18 @@ page 6929 "Expense Report Lines API"
     procedure ApplyExpenseReportRule(var ActionContext: WebServiceActionContext)
     begin
         Rec.ApplyRule();
-        Rec.Modify();
+        Rec.Modify(true);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Report Lines API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure MarkPoliciesEvaluated(var ActionContext: WebServiceActionContext; EvaluatedSubjectVersion: Integer)
+    begin
+        Rec.MarkPoliciesEvaluated(EvaluatedSubjectVersion);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Report Lines API");

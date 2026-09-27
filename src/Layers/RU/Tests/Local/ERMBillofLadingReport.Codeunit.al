@@ -147,11 +147,14 @@ codeunit 144722 "ERM Bill of Lading Report"
     local procedure RunReport(var SalesHeader: Record "Sales Header"; FileName: Text)
     var
         BillOfLading: Report "Bill of Lading";
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
     begin
+        BindSubscription(RUReportDownloadHandler);
         BillOfLading.SetTestMode(true);
         BillOfLading.SetFileNameSilent(FileName);
         BillOfLading.SetTableView(SalesHeader);
         BillOfLading.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     [RequestPageHandler]

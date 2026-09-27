@@ -1829,4 +1829,3 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
     begin
     end;
 }
-

@@ -12,7 +12,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001547 "Subc. TransOrderPostTrans Ext"
+codeunit 20547 "Subc. TransOrderPostTrans Ext"
 {
 #if not CLEAN29
     var
@@ -59,6 +59,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     local procedure OnBeforeInsertDirectTransLine(TransferLine: Record "Transfer Line")
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -72,7 +73,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         if not ProdOrderComponent.Get(ProdOrderComponent.Status::Released, TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Prod. Ord. Comp Line No.") then
             exit;
 
-        ProdOrderComponent.Validate("Location Code");
+        SubcontractingManagement.ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, ProdOrderComponent."Location Code");
         ProdOrderComponent.Modify();
     end;
 

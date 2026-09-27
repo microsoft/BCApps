@@ -14,11 +14,17 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     Subtype = Upgrade;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Privacy Notice" = rd,
+                  tabledata "Privacy Notice Approval" = rd;
+
+    var
+        LegacyPrivacyNoticeIdTok: Label 'Anthropic', Locked = true;
 
     trigger OnUpgradePerDatabase()
     var
         InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
     begin
+        UpgradeRemoveLegacyPrivacyNotice();
         // Registered on every upgrade (not gated by an upgrade tag) so environments provisioned
         // through the app-sync/upgrade path still get the capability registered. RegisterCapability
         // is idempotent via IsCapabilityRegistered, so it is a no-op when already registered and
@@ -28,9 +34,9 @@ codeunit 6978 "Upgrade Expense Agent Setup"
 
     trigger OnUpgradePerCompany()
     begin
-        UpgradeAnthropicPrivacyNoticePerCompany();
         UpgradeClearStaleCopyCompanyState();
         UpgradeEnableCommunicationDefault();
+        UpgradeMigratePostedExpRepLineCanceled();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -87,31 +93,41 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeTag.SetUpgradeTag(GetEnableCommunicationDefaultUpgradeTag());
     end;
 
-    local procedure UpgradeAnthropicPrivacyNoticePerCompany()
+    local procedure UpgradeRemoveLegacyPrivacyNotice()
     var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        PrivacyNotice: Codeunit "Privacy Notice";
-        ExpPrivacyNoticeReg: Codeunit "Exp. Privacy Notice Reg.";
+        PrivacyNotice: Record "Privacy Notice";
+        PrivacyNoticeApproval: Record "Privacy Notice Approval";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetAnthropicPrivacyNoticeUpgradeTag()) then
+        if UpgradeTag.HasDatabaseUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag()) then
             exit;
 
-        if ExpenseAgentSetup.Get() and ExpenseAgentSetup."Enable Agent" then begin
-            PrivacyNotice.CreateDefaultPrivacyNotices();
-            if ExpPrivacyNoticeReg.IsAnthropicPrivacyNoticeRequired() then
-                PrivacyNotice.SetApprovalState(ExpPrivacyNoticeReg.GetAnthropicName(), "Privacy Notice Approval State"::Agreed);
-        end;
+        PrivacyNoticeApproval.SetRange(ID, LegacyPrivacyNoticeIdTok);
+        if PrivacyNoticeApproval.FindSet() then
+            repeat
+                if not PrivacyNoticeApproval.Delete() then
+                    exit;
+            until PrivacyNoticeApproval.Next() = 0;
 
-        UpgradeTag.SetUpgradeTag(GetAnthropicPrivacyNoticeUpgradeTag());
+        if PrivacyNotice.Get(LegacyPrivacyNoticeIdTok) then
+            if not PrivacyNotice.Delete() then
+                exit;
+
+        UpgradeTag.SetDatabaseUpgradeTag(GetRemoveLegacyPrivacyNoticeUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
-        PerCompanyUpgradeTags.Add(GetAnthropicPrivacyNoticeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetClearStaleCopyCompanyStateUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEnableCommunicationDefaultUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
+    local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
+    begin
+        PerDatabaseUpgradeTags.Add(GetRemoveLegacyPrivacyNoticeUpgradeTag());
     end;
 
     /// <summary>
@@ -148,9 +164,34 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         InstallExpenseAgentSetup.ClearPerCompanyAgentState('');
     end;
 
-    local procedure GetAnthropicPrivacyNoticeUpgradeTag(): Code[250]
+    local procedure UpgradeMigratePostedExpRepLineCanceled()
+    var
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        exit('MS-621422-RegisterAnthropicPrivacyNotice-20260511');
+        if UpgradeTag.HasUpgradeTag(GetMigratePostedExpRepLineCanceledTag()) then
+            exit;
+
+        PostedExpenseReportHeader.SetLoadFields(Canceled);
+        PostedExpenseReportLine.SetLoadFields("Document No.", "Is Canceled");
+#pragma warning disable AL0432
+        PostedExpenseReportLine.SetRange(Canceled, true);
+#pragma warning restore AL0432
+        if PostedExpenseReportLine.FindSet() then
+            repeat
+                if PostedExpenseReportHeader.Get(PostedExpenseReportLine."Document No.") and PostedExpenseReportHeader.Canceled then begin
+                    PostedExpenseReportLine."Is Canceled" := true;
+                    PostedExpenseReportLine.Modify();
+                end;
+            until PostedExpenseReportLine.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(GetMigratePostedExpRepLineCanceledTag());
+    end;
+
+    local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]
+    begin
+        exit('MS-646070-RemoveLegacyPrivacyNotice-20260818');
     end;
 
     local procedure GetClearStaleCopyCompanyStateUpgradeTag(): Code[250]
@@ -161,5 +202,10 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure GetEnableCommunicationDefaultUpgradeTag(): Code[250]
     begin
         exit('MS-636970-EnableCommunicationDefault-20260701');
+    end;
+
+    local procedure GetMigratePostedExpRepLineCanceledTag(): Code[250]
+    begin
+        exit('MS-647233-MigratePostedExpRepLineCanceled-20260820');
     end;
 }

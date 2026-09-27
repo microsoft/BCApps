@@ -23,6 +23,88 @@ codeunit 6319 "Power BI Workspace Mgt."
         exit(MyWorkspaceTxt);
     end;
 
+    /// <summary>
+    /// Populates the buffer with the workspaces that deployable reports can be deployed to:
+    /// the "My Workspace" option (represented by a null ID) plus every shared workspace the user can write to
+    /// </summary>
+    procedure GetWritableWorkspaces(var TempPowerBISelectionElement: Record "Power BI Selection Element" temporary)
+    var
+        PowerBIServiceProvider: Interface "Power BI Service Provider";
+        ReturnedWorkspace: DotNet ReturnedWorkspace;
+        ReturnedWorkspaceList: DotNet ReturnedWorkspaceList;
+        OperationResult: DotNet OperationResult;
+    begin
+        TempPowerBISelectionElement.Reset();
+        TempPowerBISelectionElement.DeleteAll();
+
+        // "My Workspace" is represented by an empty (null) workspace ID.
+        AddPersonalWorkspace(TempPowerBISelectionElement);
+
+        PowerBIServiceMgt.CreateServiceProvider(PowerBIServiceProvider);
+        PowerBIServiceProvider.GetWorkspaces(ReturnedWorkspaceList, OperationResult);
+
+        if not OperationResult.Successful then begin
+            Session.LogMessage('0000VCZ', CouldntGetWorkspacesTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
+            exit;
+        end;
+
+        foreach ReturnedWorkspace in ReturnedWorkspaceList do
+            if not ReturnedWorkspace.IsReadOnly then begin
+                TempPowerBISelectionElement.Init();
+
+                Evaluate(TempPowerBISelectionElement.ID, ReturnedWorkspace.WorkspaceId);
+                Evaluate(TempPowerBISelectionElement.WorkspaceID, ReturnedWorkspace.WorkspaceId);
+
+                TempPowerBISelectionElement.Name := CopyStr(ReturnedWorkspace.WorkspaceName, 1, MaxStrLen(TempPowerBISelectionElement.Name));
+                TempPowerBISelectionElement.WorkspaceName := TempPowerBISelectionElement.Name;
+                TempPowerBISelectionElement.Type := TempPowerBISelectionElement.Type::Workspace;
+
+                if not TempPowerBISelectionElement.Insert() then
+                    Session.LogMessage('0000VD0', FailedToInsertWorkspaceTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
+            end;
+    end;
+
+    /// <summary>
+    /// Opens a lookup for the writable Power BI workspaces and returns the selected one.
+    /// An empty (null) WorkspaceId means "My Workspace".
+    /// </summary>
+    procedure LookupTargetWorkspace(var WorkspaceId: Guid; var WorkspaceName: Text[200]): Boolean
+    var
+        TempPowerBISelectionElement: Record "Power BI Selection Element" temporary;
+        PowerBIWorkspacesLookup: Page "Power BI Workspaces Lookup";
+    begin
+        PowerBIWorkspacesLookup.LookupMode(true);
+        if PowerBIWorkspacesLookup.RunModal() <> Action::LookupOK then
+            exit(false);
+
+        PowerBIWorkspacesLookup.GetRecord(TempPowerBISelectionElement);
+
+        WorkspaceId := TempPowerBISelectionElement.ID;
+        if IsNullGuid(WorkspaceId) then
+            WorkspaceName := ''
+        else
+            WorkspaceName := CopyStr(TempPowerBISelectionElement.Name, 1, MaxStrLen(WorkspaceName));
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Returns true if the given workspace still exists and the user can write to it.
+    /// An empty (null) WorkspaceId ("My Workspace") is always considered valid.
+    /// </summary>
+    procedure WorkspaceExists(WorkspaceId: Guid): Boolean
+    var
+        TempPowerBISelectionElement: Record "Power BI Selection Element" temporary;
+    begin
+        if IsNullGuid(WorkspaceId) then
+            exit(true);
+
+        GetWritableWorkspaces(TempPowerBISelectionElement);
+        TempPowerBISelectionElement.SetRange(ID, WorkspaceId);
+        TempPowerBISelectionElement.SetRange(Type, TempPowerBISelectionElement.Type::Workspace);
+        exit(not TempPowerBISelectionElement.IsEmpty());
+    end;
+
     procedure AddPersonalWorkspace(var TempPowerBISelectionElement: Record "Power BI Selection Element" temporary)
     begin
         TempPowerBISelectionElement.Init();

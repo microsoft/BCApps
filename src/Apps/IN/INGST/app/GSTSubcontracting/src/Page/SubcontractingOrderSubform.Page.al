@@ -511,7 +511,7 @@ page 18493 "Subcontracting Order Subform"
                 }
                 field("Qty. Rejected (Rework)"; Rec."Qty. Rejected (Rework)")
                 {
-                    ApplicationArea = Basic, suite;
+                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the quantity rejected for rework';
                     Visible = false;
                 }
