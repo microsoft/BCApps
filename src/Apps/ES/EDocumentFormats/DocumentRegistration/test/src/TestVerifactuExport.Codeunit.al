@@ -41,6 +41,7 @@ codeunit 148004 "Test Verifactu Export"
         QRCodeShouldBeGeneratedForDocumentLbl: Label 'QR code should be generated for document %1', Comment = '%1 = Document number';
         TestServiceInvoiceLbl: Label 'Test Service Invoice %1', Comment = '%1 = Invoice number';
         TestServiceCreditMemoLbl: Label 'Test Service Credit Memo %1', Comment = '%1 = Credit memo number';
+        NonTaxableBreakdownXPathLbl: Label '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]', Locked = true, Comment = '%1 = Operation qualification code';
 
     #region SalesInvoice
     [Test]
@@ -2510,9 +2511,7 @@ codeunit 148004 "Test Verifactu Export"
         BreakdownXPath: Text;
     begin
         Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
-        BreakdownXPath := StrSubstNo(
-            '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]',
-            OperationQualification);
+        BreakdownXPath := StrSubstNo(NonTaxableBreakdownXPathLbl, OperationQualification);
         Assert.IsTrue(ParsedXMLDocument.SelectSingleNode(BreakdownXPath, BreakdownXMLNode), 'Expected non-taxable breakdown was not found');
         Assert.IsTrue(BreakdownXMLNode.SelectSingleNode('*[local-name()="BaseImponibleOimporteNoSujeto"]', XMLNode), 'Non-taxable breakdown should contain the base amount');
         Assert.AreEqual(Format(ExpectedBaseAmount, 0, 9), XMLNode.AsXmlElement().InnerText(), 'Non-taxable breakdown base amount is incorrect');
