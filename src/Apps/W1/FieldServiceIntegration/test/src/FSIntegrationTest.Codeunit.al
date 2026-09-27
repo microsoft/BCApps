@@ -1737,15 +1737,15 @@ codeunit 139204 "FS Integration Test"
     local procedure InitializeItemProductSynchronization()
     var
         CRMConnectionSetup: Record "CRM Connection Setup";
-        CRMOrganization: Record "CRM Organization";
     begin
         InitSetup(true, '');
         LibraryCRMIntegration.ConfigureCRM();
         LibraryCRMIntegration.CreateCRMOrganization();
-        CRMOrganization.FindFirst();
         CRMConnectionSetup.Get();
-        CRMConnectionSetup.BaseCurrencyId := CRMOrganization.BaseCurrencyId;
-        CRMConnectionSetup.Modify();
+        CRMConnectionSetup.Validate("Is Enabled", false);
+        CRMConnectionSetup.Modify(true);
+        CRMConnectionSetup.Validate("Is Enabled", true);
+        CRMConnectionSetup.Modify(true);
     end;
 
     procedure ResetFSEnvironment()
