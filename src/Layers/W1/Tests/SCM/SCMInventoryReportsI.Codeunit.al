@@ -576,7 +576,7 @@ codeunit 137301 "SCM Inventory Reports - I"
         SubtotalsOutstandingAmount[1] := PurchaseLine."Outstanding Amount";
         LibraryReportDataset.AssertElementWithValueExists('Subtotals_OutstandingQuantity', PurchaseLine."Outstanding Quantity");
         LibraryReportDataset.AssertElementWithValueExists('Subtotals_AmountOnOrder', SubtotalsOutstandingAmount[1]);
-        
+
         PurchaseLine.SetRange("Document No.", PurchaseHeaderNos[2]);
         PurchaseLine.CalcSums("Outstanding Amount", "Outstanding Quantity");
         SubtotalsOutstandingAmount[2] := PurchaseLine."Outstanding Amount";
