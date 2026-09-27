@@ -226,13 +226,13 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [THEN] Transfer quantities are available with the requested default visibility
         AssertPageControlExists(
             Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
-            ProdOrderComponent.FieldNo("Subc. Qty.on TransOrder (Base)"), 'Qty. on Transfer Order (Base)');
+            ProdOrderComponent.FieldNo("Subc. Qty.on TransOrder (Base)"), 'Subc. Qty.on TransOrder (Base)');
         AssertPageControlIsInitiallyHidden(
             PageControl, Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
             ProdOrderComponent.FieldNo("Subc. Qty. in Transit (Base)"), 'Qty. in Transit (Base)');
         AssertPageControlExists(
             Database::"Prod. Order Component", Page::"Prod. Order Comp. Line List",
-            ProdOrderComponent.FieldNo("Subc. Qty. transf. to Subcontr"), 'Qty. transf. to Subcontractor');
+            ProdOrderComponent.FieldNo("Subc. Qty. transf. to Subcontr"), 'Subc. Qty. transf. to Subcontractor');
     end;
 
     [Test]
