@@ -1321,12 +1321,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         SourceRecord: Record "MDM Test Table A";
         DestinationRecord: Record "MDM Test Table A";
-        VerifyRecord: Record "MDM Test Table A";
         TempIntegrationFieldMapping: Record "Temp Integration Field Mapping" temporary;
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         IntegrationRecordSynch: Codeunit "Integration Record Synch.";
+        TempBlob: Codeunit "Temp Blob";
         SourceRecordRef: RecordRef;
         DestinationRecordRef: RecordRef;
+        DestBlobFieldRef: FieldRef;
         BlobOutStream: OutStream;
         BlobInStream: InStream;
         PreservedText: Text;
@@ -1335,7 +1336,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [SCENARIO] The real synch engine processes the key mapping before the Blob mapping (No. 1 vs No. 2), so the
         // destination buffer's primary key is already the new source key by the time the skipped over-cap Blob field is
         // reached. Under only-modified (update) semantics the transfer must not read the destination Blob by the stale
-        // key and must not fail, leaving the stored Blob untouched (S3/S5, key-before-Blob order through the engine).
+        // key and must not fail, leaving the transferred destination buffer's Blob untouched (S3/S5, key-before-Blob).
         Initialize();
         EnableCrossEnvForTransfer('PROD');
 
@@ -1354,6 +1355,9 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         SourceRecordRef.GetTable(SourceRecord);
         DestinationRecordRef.GetTable(DestinationRecord);
+        // load the existing bytes into the buffer up front, so a transfer that cleared the blob would be visible on it
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        DestBlobFieldRef.CalcField();
 
         // [GIVEN] the key mapping is ordered (No. 1) before the blob mapping (No. 2), so the engine renames the
         // destination buffer key first and reaches the skipped blob with a key that no longer matches the stored row
@@ -1382,12 +1386,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] ... the key mapping was actually processed (precondition held) ...
         Assert.IsTrue(IntegrationRecordSynch.GetWasModified(), 'The key mapping must have been processed before the blob');
 
-        // [THEN] ... and the stored destination blob is left unchanged
-        VerifyRecord.GetBySystemId(DestinationRecord.SystemId);
-        VerifyRecord.CalcFields("Test Blob");
-        VerifyRecord."Test Blob".CreateInStream(BlobInStream, TextEncoding::UTF8);
+        // [THEN] ... and the blob on the transferred buffer is left unchanged (a clear would empty it here)
+        DestBlobFieldRef := DestinationRecordRef.Field(DestinationRecord.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(DestBlobFieldRef);
+        Assert.IsTrue(TempBlob.HasValue(), 'The transferred destination buffer blob must not be cleared by the skipped source');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
         BlobInStream.Read(PreservedText);
-        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the stored destination content unchanged');
+        Assert.AreEqual('existing destination blob', PreservedText, 'The skipped blob must leave the transferred destination buffer content unchanged');
 
         CleanUp();
     end;
