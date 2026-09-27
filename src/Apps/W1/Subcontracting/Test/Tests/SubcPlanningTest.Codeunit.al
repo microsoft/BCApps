@@ -508,6 +508,9 @@ codeunit 139996 "Subc. Planning Test"
         // [THEN] Each purchase line matches one component and has exact backward-scheduled dates
         ProdOrderComponent.FindSet();
         PurchaseLineComp.FindSet();
+        Assert.AreEqual(
+            ProdOrderComponent.Count(), PurchaseLineComp.Count(),
+            'Each Vendor-Supplied component must have one purchase line after rescheduling.');
         repeat
             PurchaseLineComp.TestField(Quantity, ProdOrderComponent."Remaining Quantity");
             PurchaseLineComp.TestField("Expected Receipt Date", ProdOrderComponent."Due Date");
