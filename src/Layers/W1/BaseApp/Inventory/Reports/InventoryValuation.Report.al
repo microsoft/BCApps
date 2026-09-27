@@ -13,7 +13,7 @@ report 1001 "Inventory Valuation"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Valuation';
     DataAccessIntent = ReadOnly;
-    DefaultRenderingLayout = ExcelLayout;
+    DefaultRenderingLayout = RDLCLayout;
     EnableHyperlinks = true;
     UsageCategory = ReportsAndAnalysis;
 
@@ -235,7 +235,7 @@ report 1001 "Inventory Valuation"
             trigger OnPreDataItem()
             begin
                 if StartDate > 0D then
-                    SetRange("Opening Bal. Date Filter", 0D, CalcDate('<-1D>', StartDate));
+                    SetRange("Opening Bal. Date Filter", 0D, StartDate);
                 SetRange("Inv. Val. Period Date Filter", StartDate, EndDate);
                 SetRange("Closing Bal. Date Filter", 0D, EndDate);
                 SetAutoCalcFields("Assembly BOM", "Opening Bal. ILE Qty.", "Opening Bal. Inv. Qty.", "Opening Bal. Cost Amt. Act.", "Opening Bal. Cost Amt. Exp.", "Increases ILE Qty.",
