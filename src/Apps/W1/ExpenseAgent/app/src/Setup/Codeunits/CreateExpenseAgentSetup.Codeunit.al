@@ -229,7 +229,6 @@ codeunit 6970 "Create Expense Agent Setup"
         UnitOfMeasure.Description := CopyStr(KilometersTxt, 1, MaxStrLen(UnitOfMeasure.Description));
         UnitOfMeasure."International Standard Code" := 'KMT';
         UnitOfMeasure.Symbol := 'km';
-
         UnitOfMeasure.Insert();
     end;
 
