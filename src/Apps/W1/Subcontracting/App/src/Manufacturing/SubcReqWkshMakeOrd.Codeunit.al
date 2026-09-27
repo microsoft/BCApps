@@ -156,9 +156,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 TempPurchaseLineComp.SetRange("No.", ProdOrderComponent."Item No.");
                 TempPurchaseLineComp.SetRange("Variant Code", ProdOrderComponent."Variant Code");
                 if not TempPurchaseLineComp.FindFirst() then
-                    Error(
-                        ComponentPurchLineNotFoundErr, ProdOrderComponent."Line No.",
-                        ProdOrderComponent."Prod. Order No.", PurchaseLine."Document No.");
+                    RaiseComponentPurchLineNotFoundError(ProdOrderComponent, PurchaseLine."Document No.");
 
                 PurchaseLineComp.Get(
                     TempPurchaseLineComp."Document Type", TempPurchaseLineComp."Document No.", TempPurchaseLineComp."Line No.");
@@ -177,6 +175,19 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
                 if PurchaseLineChanged then
                     PurchaseLineComp.Modify(true);
             until ProdOrderComponent.Next() = 0;
+    end;
+
+    local procedure RaiseComponentPurchLineNotFoundError(ProdOrderComponent: Record "Prod. Order Component"; PurchaseOrderNo: Code[20])
+    var
+        ComponentPurchLineNotFoundErrorInfo: ErrorInfo;
+    begin
+        ComponentPurchLineNotFoundErrorInfo.ErrorType := ErrorType::Internal;
+        ComponentPurchLineNotFoundErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        ComponentPurchLineNotFoundErrorInfo.Message :=
+            StrSubstNo(
+                ComponentPurchLineNotFoundErr, ProdOrderComponent."Line No.",
+                ProdOrderComponent."Prod. Order No.", PurchaseOrderNo);
+        Error(ComponentPurchLineNotFoundErrorInfo);
     end;
 
     var
