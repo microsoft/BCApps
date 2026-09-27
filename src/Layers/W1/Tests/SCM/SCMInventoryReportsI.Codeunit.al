@@ -1087,61 +1087,72 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
         FindPurchInvHeader(PurchInvHeader, PurchaseHeader."No.");
 
-        // Exercise: Generate Inventory Valuation with include Expected Cost True/False.
+        // Exercise: Generate Inventory Valuation with include Expected Cost False.
         Commit();
         RunInvtValuationReport(Item, '', 0D, WorkDate(), IncludeExpectedCost);
 
         // Verify Value Entry Quantity.
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('ShowExpected', IncludeExpectedCost);
+        if IncludeExpectedCost then
+            LibraryReportDataset.AssertElementWithValueExists('Expected_Cost_IncludedCaption', 'Expected Cost Included');
 
         VerifyValueEntryQuantity(Item."No.", PurchInvHeader."No.");
     end;
-    
-    [Test]
-    [HandlerFunctions('InvtValuationRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure InventoryValuationDuplicateExpCostLinesTrue()
-    begin
-        Initialize();
-        InventoryValuationDuplicateExpCostLines(true);
-    end;
 
     [Test]
-    [HandlerFunctions('InvtValuationRequestPageHandler')]
     [Scope('OnPrem')]
-    procedure InventoryValuationDuplicateExpCostLinesFalse()
-    begin
-        Initialize();
-        InventoryValuationDuplicateExpCostLines(false);
-    end;
-
-    [Normal]
-    procedure InventoryValuationDuplicateExpCostLines(IncludeExpectedCost: Boolean)
+    procedure InventoryValuationNoDuplicateExpCostLines()
     var
         PurchaseHeader: Record "Purchase Header";
         Item: Record Item;
+        RowNo: Integer;
+        ValueFound: Boolean;
+    begin
+        // [FEATURE] [Inventory Valuation]
+        // [SCENARIO 378286] Expected cost line should not be shown in the report "Inventory Valuation" when expected amount is 0.
+        // [GIVEN] Create item
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Post purchase order as received and invoiced
+        CreatePurchaseOrder(PurchaseHeader, Item."No.", LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2), 1);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [WHEN] Run report "Inventory Valuation" with parameter "Include expected cost" = TRUE
+        SaveAsExcelInventoryValuationReport(Item."No.");
+
+        // [THEN] The string with description "Expected Cost Included" shouldn't be in this report for created item
+        RowNo := LibraryReportValidation.FindRowNoFromColumnNoAndValue(
+            LibraryReportValidation.FindColumnNoFromColumnCaption('Item No.'), Item."No.");
+        Assert.AreNotEqual(
+          'Expected Cost Included', LibraryReportValidation.GetValueAt(ValueFound, RowNo + 1,
+            LibraryReportValidation.FindColumnNoFromColumnCaption('Description')), IncorrectValueInCellErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InventoryValuationDuplicateExpCostLines()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        Item: Record Item;
+        RowNo: Integer;
     begin
         // [FEATURE] [Inventory Valuation]
         // [SCENARIO 378286] Expected cost line should be shown in the report "Inventory Valuation" when expected amount is not 0.
         // [GIVEN] Create item
-        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [GIVEN] Posting the receipt in Purchase Order
         CreatePurchaseOrder(PurchaseHeader, Item."No.", LibraryRandom.RandDec(100, 2), LibraryRandom.RandDec(100, 2), 1);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
-        Commit();
-        // [WHEN] Run report "Inventory Valuation" using parameter IncludeExpectedCost
-        RunInvtValuationReport(Item, '', 0D, WorkDate(), IncludeExpectedCost);
+        // [WHEN] Run report "Inventory Valuation" with parameter "Include expected cost" = TRUE
+        SaveAsExcelInventoryValuationReport(Item."No.");
 
-        // [THEN] The created item in this report should be included if IncludeExpectedCost = TRUE, or excluded if IncludeExpectedCost = FALSE
-        LibraryReportDataset.LoadDataSetFile();
-        if IncludeExpectedCost then
-            LibraryReportDataset.AssertElementWithValueExists('ItemNo', Item."No.")
-        else
-            LibraryReportDataset.AssertElementWithValueNotExist('ItemNo', Item."No.");
+        // [THEN] The string with description "Expected Cost Included" should be in this report for created item
+        RowNo := LibraryReportValidation.FindRowNoFromColumnNoAndValue(
+            LibraryReportValidation.FindColumnNoFromColumnCaption('Item No.'), Item."No.");
+        LibraryReportValidation.VerifyCellValueOnWorksheet(
+          RowNo + 1, LibraryReportValidation.FindColumnNoFromColumnCaption('Description'), 'Expected Cost Included', '1');
     end;
 
     [Test]
@@ -1382,20 +1393,19 @@ codeunit 137301 "SCM Inventory Reports - I"
     end;
 
     [Test]
-    [HandlerFunctions('InvtValuationRequestPageHandler')]
     [Scope('OnPrem')]
     procedure InventoryValuationFillZeroesInQtyAndExpectedCostIncluded()
     var
         PurchaseHeader: Record "Purchase Header";
         ReturnPurchaseHeader: Record "Purchase Header";
         Item: Record Item;
+        RowNo: Integer;
         Quantity: Decimal;
         DirectUnitCost: Decimal;
     begin
         // [FEATURE] [Inventory Valuation]
         // [SCENARIO 351691] Expected Cost Included line should show Quantity = 0 and Value = 0 for Inventory Posting Group Name = Increase (LCY)
         // [GIVEN] Created item
-        Initialize();
         LibraryInventory.CreateItem(Item);
 
         // [GIVEN] Posting the receipt and invoice for Purchase Order
@@ -1409,16 +1419,17 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryPurchase.PostPurchaseDocument(ReturnPurchaseHeader, true, false);
 
         // [WHEN] Run report "Inventory Valuation" with parameter "Include expected cost" = TRUE
-        Commit();
-        RunInvtValuationReport(Item, '', 0D, WorkDate(), true);
+        SaveAsExcelInventoryValuationReport(Item."No.");
 
         // [THEN] The Quantity should be equal to 0 for Inventory Posting Group Name = Increase (LCY) in Expected Cost Included line
         // [THEN] The Value should be equal to 0 for Inventory Posting Group Name = Increase (LCY) in Expected Cost Included line
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('ItemNo', Item."No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('IncreaseExpectedValue', 0);
-        LibraryReportDataset.AssertCurrentRowValueEquals('IncreaseExpectedQty', 0);
+        RowNo := LibraryReportValidation.FindRowNoFromColumnNoAndValue(
+            LibraryReportValidation.FindColumnNoFromColumnCaption('Item No.'), Item."No.");
+
+        LibraryReportValidation.VerifyCellValueOnWorksheet(
+          RowNo + 1, LibraryReportValidation.FindColumnNoFromColumnCaption('Increases (LCY)'), '0', '1');
+        LibraryReportValidation.VerifyCellValueOnWorksheet(
+          RowNo + 1, LibraryReportValidation.FindColumnNoFromColumnCaption('Increases (LCY)') + 2, '0', '1');
     end;
 
     [Test]
@@ -1610,7 +1621,7 @@ codeunit 137301 "SCM Inventory Reports - I"
     begin
         LibraryManufacturing.CreateItemManufacturing(
           Item, Item."Costing Method"::Standard, LibraryRandom.RandDec(100, 2), Item."Reordering Policy",
-          Item."Flushing Method", '', '');
+          Item."Flushing Method"::"Pick + Manual", '', '');
     end;
 
     local procedure CreateStockKeepingUnit(ItemNo: Code[20]; SKUCreationMethod: Enum "SKU Creation Method")
@@ -1753,6 +1764,21 @@ codeunit 137301 "SCM Inventory Reports - I"
         LibraryInventory.CreateItemJournalLine(
           ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name, EntryType, ItemNo, Qty);
         ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure CreateAndPostItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Document Type"; ItemNo: Code[20])
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalBatch."Template Type"::Item, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          EntryType, ItemNo, LibraryRandom.RandDec(100, 2));
+        ItemJournalLine.Validate("Unit Amount", LibraryRandom.RandDec(100, 2));
         ItemJournalLine.Modify(true);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
@@ -2236,5 +2262,19 @@ codeunit 137301 "SCM Inventory Reports - I"
         PostInventoryCostToGL.JnlTemplateName.SetValue(LibraryVariableStorage.DequeueText()); // Set New Template Name.
         PostInventoryCostToGL.JnlBatchName.SetValue(LibraryVariableStorage.DequeueText()); // Set New Batch Name.
         PostInventoryCostToGL.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemABCAnalysisRequestPageHandler(var ItemABCAnalysis: TestRequestPage "Item - ABC Analysis")
+    var
+        ItemNo: Variant;
+    begin
+        ItemABCAnalysis.RatioCatA.SetValue(LibraryRandom.RandInt(100));
+        ItemABCAnalysis.ShowCategoryA.SetValue(true);
+        ItemABCAnalysis.PrintZero.SetValue(true);
+        LibraryVariableStorage.Dequeue(ItemNo);
+        ItemABCAnalysis.Item.SetFilter("No.", ItemNo);
+        ItemABCAnalysis.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
