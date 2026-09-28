@@ -9,8 +9,10 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
@@ -193,8 +195,12 @@ codeunit 139791 "E-Doc. Self-Billing Test"
         DocumentSendingProfile: Record "Document Sending Profile";
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
+        BlankLocation: Record Location;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         ServiceParticipant: Record "Service Participant";
         LibraryEDoc: Codeunit "Library - E-Document";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryInventory: Codeunit "Library - Inventory";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
 
@@ -209,11 +215,19 @@ codeunit 139791 "E-Doc. Self-Billing Test"
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock);
 
-        // Setup vendor with document sending profile for self-billed purchase invoice export
+        // Setup vendor with document sending profile for self-billed purchase invoice export,
+        // and a self-billing number series that posting requires once the agreement is enabled
         LibraryPurchase.CreateVendor(Vendor);
         DocumentSendingProfile.FindLast();
         Vendor."Document Sending Profile" := DocumentSendingProfile.Code;
+        Vendor.Validate("Self-Billing Invoice Nos.", LibraryERM.CreateNoSeriesCode());
         Vendor.Modify(true);
+
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Posted Self-Billing Inv. Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
+
+        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation);
 
         LibraryEDoc.AddEDocServiceSupportedType(EDocumentService, Enum::"E-Document Type"::"Self-Billed Purchase Invoice");
         LibraryEDoc.AddEDocServiceSupportedType(EDocumentService, Enum::"E-Document Type"::"Self-Billed Purch. Cr. Memo");
