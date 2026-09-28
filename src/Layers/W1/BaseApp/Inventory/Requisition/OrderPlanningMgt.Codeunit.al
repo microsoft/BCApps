@@ -166,16 +166,17 @@ codeunit 5522 "Order Planning Mgt."
         HeaderExists := false;
 
         repeat
-            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then begin
-                if not HeaderExists then
-                    InsertDemandHeader(UnplannedDemand, ReqLine);
-                HeaderExists := true;
+            if DemandType in [TempUnplannedDemand."Demand Type", DemandType::" "] then
+                if not IsItemBlocked(Item, TempUnplannedDemand."Item No.") then begin
+                    if not HeaderExists then
+                        InsertDemandHeader(UnplannedDemand, ReqLine);
+                    HeaderExists := true;
 
-                ReqLine.TransferFromUnplannedDemand(TempUnplannedDemand);
-                ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
-                ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
-                InsertReqLineFromUnplannedDemand(ReqLine, Item);
-            end;
+                    ReqLine.TransferFromUnplannedDemand(TempUnplannedDemand);
+                    ReqLine.SetSupplyQty(TempUnplannedDemand."Quantity (Base)", TempUnplannedDemand."Needed Qty. (Base)");
+                    ReqLine.SetSupplyDates(TempUnplannedDemand."Demand Date");
+                    InsertReqLineFromUnplannedDemand(ReqLine, Item);
+                end;
             TempUnplannedDemand.Delete();
         until TempUnplannedDemand.Next() = 0;
 
@@ -500,6 +501,18 @@ codeunit 5522 "Order Planning Mgt."
         exit(AvailableQtyBaseTotal);
     end;
 
+    local procedure IsItemBlocked(var Item: Record Item; ItemNo: Code[20]): Boolean
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        if Item."No." <> ItemNo then
+            Item.Get(ItemNo);
+        OnBeforeCheckBlockedItem(Item, IsHandled);
+        if not IsHandled then
+            exit(Item.Blocked);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransformUnplannedDemandToRequisitionLines(var RequisitionLine: Record "Requisition Line")
     begin
@@ -595,6 +608,11 @@ codeunit 5522 "Order Planning Mgt."
 
     [InternalEvent(false, false)]
     local procedure OnSubstitutionPossibleOnAfterCheckReqLine(var RequisitionLine: Record "Requisition Line"; var ShouldExit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckBlockedItem(var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 }
