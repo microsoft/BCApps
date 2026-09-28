@@ -739,7 +739,7 @@ codeunit 410 "Update Analysis View"
     var
         AnalysisView2: Record "Analysis View";
     begin
-        AnalysisView.SetRange("Last Budget Entry No.", NewLastBudgetEntryNo + 1, 2147483647);
+        AnalysisView.SetFilter("Last Budget Entry No.", '>%1', NewLastBudgetEntryNo);
         AnalysisView.SetRange("Include Budgets", true);
         if AnalysisView.FindSet(true) then
             repeat

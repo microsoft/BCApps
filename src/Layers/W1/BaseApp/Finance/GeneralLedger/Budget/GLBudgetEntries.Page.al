@@ -212,7 +212,7 @@ page 120 "G/L Budget Entries"
         BudgetDimension1CodeVisible := true;
         GlobalDimension2CodeVisible := true;
         GlobalDimension1CodeVisible := true;
-        LowestModifiedEntryNo := 2147483647;
+        LowestModifiedEntryNo := 99999999999999999L;
     end;
 
     trigger OnModifyRecord(): Boolean

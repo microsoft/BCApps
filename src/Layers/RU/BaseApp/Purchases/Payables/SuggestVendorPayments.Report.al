@@ -111,7 +111,7 @@ report 393 "Suggest Vendor Payments"
                 Window2.Open(Text008);
 
                 TempPayableVendorLedgerEntry.Reset();
-                TempPayableVendorLedgerEntry.SetRange(Priority, 1, 2147483647);
+                TempPayableVendorLedgerEntry.SetFilter(Priority, '>=%1', 1);
                 MakeGenJnlLines();
                 TempPayableVendorLedgerEntry.Reset();
                 TempPayableVendorLedgerEntry.SetRange(Priority, 0);
@@ -164,7 +164,7 @@ report 393 "Suggest Vendor Payments"
                 OriginalAmtAvailable := AmountAvailable;
                 if UsePriority then begin
                     SetCurrentKey(Priority);
-                    SetRange(Priority, 1, 2147483647);
+                    SetFilter(Priority, '>=%1', 1);
                     UsePriority := true;
                 end;
                 Window.Open(Text006);

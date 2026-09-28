@@ -387,7 +387,7 @@ codeunit 6501 "Item Tracking Data Collection"
         LotNo, PackageNo : Code[50];
     begin
         LastSummaryEntryNo := 0;
-        LastReservEntryNo := 2147483647;
+        LastReservEntryNo := 99999999999999999L;
         TempTrackingSpecification2 := TempTrackingSpecification;
         TempGlobalReservEntry.Reset();
         TempGlobalReservEntry.DeleteAll();
