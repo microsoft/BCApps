@@ -17,6 +17,7 @@ using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 
@@ -594,6 +595,49 @@ codeunit 1001 "Job Post-Line"
         if JobPlanningLineInvoice.FindFirst() then begin
             JobPlanningLineInvoice."Job Ledger Entry No." := JobLedgerEntryNo;
             JobPlanningLineInvoice.Modify();
+        end;
+    end;
+
+    procedure PostJobPurchaseLinesFromQueue(var JobLineQueue: Record "Invoice Posting Buffer" temporary)
+    var
+        IsHandled: Boolean;
+    begin
+        TempPurchaseLineJob.Reset();
+        if TempPurchaseLineJob.FindSet() then begin
+            repeat
+                JobLineQueue.Reset();
+                JobLineQueue.SetRange("Fixed Asset Line No.", TempPurchaseLineJob."Line No.");
+                if JobLineQueue.FindFirst() then begin
+                    TempJobJournalLine.Reset();
+                    TempJobJournalLine.SetRange("Line No.", TempPurchaseLineJob."Line No.");
+                    TempJobJournalLine.FindFirst();
+                    JobJnlPostLine.SetGLEntryNo(JobLineQueue."Deferral Line No.");
+                    IsHandled := false;
+                    OnPostJobPurchaseLinesOnBeforeJobJnlPostLine(TempJobJournalLine, TempPurchaseLineJob, IsHandled);
+                    if not IsHandled then
+                        JobJnlPostLine.RunWithCheck(TempJobJournalLine);
+                    OnPostJobPurchaseLinesOnAfterJobJnlPostLine(TempJobJournalLine, TempPurchaseLineJob);
+                end;
+            until TempPurchaseLineJob.Next() = 0;
+        end;
+    end;
+
+    procedure PostSingleJobPurchaseLine(LineNo: Integer; GLEntryNo: Integer)
+    var
+        IsHandled: Boolean;
+    begin
+        TempPurchaseLineJob.Reset();
+        TempPurchaseLineJob.SetRange("Line No.", LineNo);
+        if TempPurchaseLineJob.FindFirst() then begin
+            TempJobJournalLine.Reset();
+            TempJobJournalLine.SetRange("Line No.", LineNo);
+            TempJobJournalLine.FindFirst();
+            JobJnlPostLine.SetGLEntryNo(GLEntryNo);
+            IsHandled := false;
+            OnPostJobPurchaseLinesOnBeforeJobJnlPostLine(TempJobJournalLine, TempPurchaseLineJob, IsHandled);
+            if not IsHandled then
+                JobJnlPostLine.RunWithCheck(TempJobJournalLine);
+            OnPostJobPurchaseLinesOnAfterJobJnlPostLine(TempJobJournalLine, TempPurchaseLineJob);
         end;
     end;
 
