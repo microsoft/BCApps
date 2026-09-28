@@ -931,7 +931,7 @@ page 6991 "Expense Agent Setup Wizard"
         LoadSetup();
         ExpenseDashboardUrl := GetExpenseDashboardUrl();
         ShowExpenseDashboardLink := ExpenseDashboardUrl <> '';
-        if not EAHttpClient.EnableHttpRequestForExpenseAgentApp() then;
+        if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         CanaryToggleVisible := Rec."Use Canary Endpoint" or EAHttpClient.IsTenantOnCanaryAllowlist();
 
         AgentUserSecurityID := ResolveAgentUserSecurityID();

@@ -425,7 +425,7 @@ codeunit 6941 "EA Http Client"
     end;
 
     [TryFunction]
-    internal procedure EnableHttpRequestForExpenseAgentApp()
+    internal procedure TryEnableHttpRequestForExpenseAgentApp()
     var
         ExtensionManagement: Codeunit "Extension Management";
         CallerModuleInfo: ModuleInfo;
