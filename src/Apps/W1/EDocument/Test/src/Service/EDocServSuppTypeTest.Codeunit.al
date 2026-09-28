@@ -511,26 +511,24 @@ codeunit 139541 "E-Doc. Serv. Supp. Type Test"
     end;
 
     [Test]
-    procedure CreatingPEPPOLBIS30ServiceFromCardSeedsPEPPOLDefaults()
+    procedure ValidatingPEPPOLBIS30FormatSeedsPEPPOLDefaults()
     var
         EDocumentService: Record "E-Document Service";
-        EDocServiceCode: Code[20];
         ExpectedSupportedTypesLbl: Label 'PEPPOL BIS 3.0 should seed 5 supported types.';
         RemittanceAdviceOutgoingLbl: Label 'Remittance Advice should be seeded as Outgoing.';
-        EDocumentServicePage: TestPage "E-Document Service";
     begin
-        // [SCENARIO] Creating a PEPPOL service from the card seeds PEPPOL defaults directly.
+        // [SCENARIO] Selecting the PEPPOL BIS 3.0 format seeds PEPPOL defaults.
 
-        // [GIVEN] A random service code exists.
-        EDocServiceCode := this.LibraryUtility.GenerateRandomCode20(EDocumentService.FieldNo(Code), Database::"E-Document Service");
+        // [GIVEN] A new service exists with no format validated yet.
+        this.CreateBlankService(EDocumentService);
 
-        // [WHEN] A new service card is created with the PEPPOL BIS 3.0 export format and closed.
-        this.CreateAndCloseNewServiceCardWithFormat(EDocServiceCode, Enum::"E-Document Format"::"PEPPOL BIS 3.0", EDocumentServicePage);
+        // [WHEN] The Document Format is validated to PEPPOL BIS 3.0.
+        this.ValidateDocumentFormat(EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0");
 
         // [THEN] 5 supported document types are seeded for the service.
-        Assert.AreEqual(5, this.CountSupportedTypes(EDocServiceCode), ExpectedSupportedTypesLbl);
+        Assert.AreEqual(5, this.CountSupportedTypes(EDocumentService.Code), ExpectedSupportedTypesLbl);
         // [THEN] Remittance Advice is seeded as Outgoing.
-        Assert.AreEqual(Enum::"E-Doc. Supp. Type Direction"::Outgoing, this.GetSupportedTypeDirection(EDocServiceCode, Enum::"E-Document Type"::"Remittance Advice"), RemittanceAdviceOutgoingLbl);
+        Assert.AreEqual(Enum::"E-Doc. Supp. Type Direction"::Outgoing, this.GetSupportedTypeDirection(EDocumentService.Code, Enum::"E-Document Type"::"Remittance Advice"), RemittanceAdviceOutgoingLbl);
     end;
     #endregion Tests
 
