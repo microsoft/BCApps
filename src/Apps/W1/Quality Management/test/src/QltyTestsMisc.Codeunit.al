@@ -2854,7 +2854,7 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.IsTrue(MyNotifications.IsEnabled(AssignToYourselfNotificationId), 'N should start enabled for the current user');
 
         // [WHEN] The user chooses the opt-out action on the assign-to-yourself notification
-        QltyInspectionUtility.HandleNotificationActionIgnore(MockNotification);
+        QltyInspectionUtility.HandleDontShowAssignToYourself(MockNotification);
 
         // [THEN] N is disabled in My Notifications so the assign-to-yourself prompt no longer appears
         LibraryAssert.IsFalse(MyNotifications.IsEnabled(AssignToYourselfNotificationId), 'N should be disabled in My Notifications after the user opts out');

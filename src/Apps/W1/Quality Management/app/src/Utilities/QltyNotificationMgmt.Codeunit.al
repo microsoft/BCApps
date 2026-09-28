@@ -25,7 +25,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         OpenTheDocumentLbl: Label 'Open the document';
         HandleNotificationActionAssignToSelfTok: Label 'HandleNotificationActionAssignToSelf', Locked = true;
         HandleOpenDocumentTok: Label 'HandleOpenDocument', Locked = true;
-        HandleNotificationActionIgnoreTok: Label 'HandleNotificationActionIgnore', Locked = true;
+        HandleDontShowAssignToYourselfTok: Label 'HandleDontShowAssignToYourself', Locked = true;
         NotificationDataInspectionRecordIdTok: Label 'InspectionRecordId', Locked = true;
         NotificationDataRelatedRecordIdTok: Label 'RelatedRecordId', Locked = true;
         YouHaveAlteredDoYouWantToAutoAssignQst: Label 'You have altered inspection %1, would you like to assign it to yourself?', Comment = '%1=the inspection number';
@@ -175,7 +175,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
             exit;
 
         AvailableOptions.Add(AssignToSelfLbl, HandleNotificationActionAssignToSelfTok);
-        AvailableOptions.Add(DontShowAgainLbl, HandleNotificationActionIgnoreTok);
+        AvailableOptions.Add(DontShowAgainLbl, HandleDontShowAssignToYourselfTok);
         AssignToSelfNotification.Id := GetAssignToYourselfNotificationId();
         AssignToSelfNotification.SetData(NotificationDataInspectionRecordIdTok, Format(QltyInspectionHeader.RecordId()));
         CreateActionNotification(AssignToSelfNotification, StrSubstNo(YouHaveAlteredDoYouWantToAutoAssignQst, QltyInspectionHeader."No."), AvailableOptions);
@@ -731,10 +731,10 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// <summary>
     /// Disables the "Assign to yourself" notification for the current user so the assign-to-yourself
     /// prompt no longer appears, matching the standard "Don't show again" opt-out pattern.
-    /// Procedure name must match HandleNotificationActionIgnoreTok.
+    /// Procedure name must match HandleDontShowAssignToYourselfTok.
     /// </summary>
     /// <param name="NotificationToShow">The notification that triggered the action.</param>
-    internal procedure HandleNotificationActionIgnore(NotificationToShow: Notification)
+    internal procedure HandleDontShowAssignToYourself(NotificationToShow: Notification)
     var
         MyNotifications: Record "My Notifications";
     begin
