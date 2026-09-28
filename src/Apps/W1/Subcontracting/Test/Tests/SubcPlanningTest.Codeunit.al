@@ -394,7 +394,7 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
-    procedure VendorSuppliedCompQtyAndDatesUpdatedOnPurchOrderReschedule()
+    procedure VendorSuppliedCompQtyUpdatedOnPurchOrderReschedule()
     var
         Item: Record Item;
         ComponentItem: Record Item;
