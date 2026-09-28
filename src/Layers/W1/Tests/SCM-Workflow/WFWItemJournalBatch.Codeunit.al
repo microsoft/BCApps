@@ -26,10 +26,10 @@ codeunit 139491 "WFW Item Journal Batch"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryERM: Codeunit "Library - ERM";
+        RestrictionCheckBatchId: RecordId;
         BatchRestrictionCheckCount: Integer;
         HandleItemJournalLineRestrictions: Boolean;
         IsInitialized: Boolean;
-        RestrictionCheckBatchId: RecordId;
         BogusUserIdTxt: Label 'CONTOSO';
         DynamicRequestPageParametersItemJournalBatchTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Item Journal Line">VERSION(1) SORTING(Field1,Field51,Field2)</DataItem></DataItems></ReportParameters>', Locked = true;
         RecordRestrictedErr: Label 'You cannot use %1 for this action.', Comment = '%1 = Record ID, for example Customer 10000';
