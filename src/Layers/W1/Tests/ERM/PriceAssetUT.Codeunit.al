@@ -594,7 +594,7 @@ codeunit 134119 "Price Asset UT"
     procedure ItemUOMBeforeProductPreservesNondefaultUnit()
     var
         Item: Record Item;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -603,21 +603,21 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] Item "I" has an additional unit "U" distinct from its default.
         UnitOfMeasureCode := CreateItemWithAlternateUOM(Item);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Item);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Item);
 
         // [WHEN] Unit "U" is validated before item "I".
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
-        PriceAsset.Validate("Asset No.", Item."No.");
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Asset No.", Item."No.");
 
         // [THEN] The resolved item retains unit "U".
-        VerifyAssetUnit(PriceAsset, Item."No.", UnitOfMeasureCode);
+        VerifyAssetUnit(TempPriceAsset, Item."No.", UnitOfMeasureCode);
     end;
 
     [Test]
     procedure ResourceUOMBeforeProductPreservesNondefaultUnit()
     var
         Resource: Record Resource;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -627,21 +627,21 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Resource "R" has an additional unit "U".
         LibraryResource.CreateResource(Resource, '');
         UnitOfMeasureCode := CreateResourceUOM(Resource."No.");
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Resource);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Resource);
 
         // [WHEN] Unit "U" is validated before resource "R".
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
-        PriceAsset.Validate("Asset No.", Resource."No.");
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Asset No.", Resource."No.");
 
         // [THEN] The resolved resource retains unit "U", not its base unit.
-        VerifyAssetUnit(PriceAsset, Resource."No.", UnitOfMeasureCode);
+        VerifyAssetUnit(TempPriceAsset, Resource."No.", UnitOfMeasureCode);
     end;
 
     [Test]
     procedure ItemProductPreservesAssignedNondefaultUOM()
     var
         Item: Record Item;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -650,21 +650,21 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] Item "I" has additional unit "U", supplied before asset initialization.
         UnitOfMeasureCode := CreateItemWithAlternateUOM(Item);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Item);
-        PriceAsset."Unit of Measure Code" := UnitOfMeasureCode;
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Item);
+        TempPriceAsset."Unit of Measure Code" := UnitOfMeasureCode;
 
         // [WHEN] Item "I" is assigned for the first time.
-        PriceAsset.Validate("Asset No.", Item."No.");
+        TempPriceAsset.Validate("Asset No.", Item."No.");
 
         // [THEN] Initialization preserves the actual supplied unit.
-        VerifyAssetUnit(PriceAsset, Item."No.", UnitOfMeasureCode);
+        VerifyAssetUnit(TempPriceAsset, Item."No.", UnitOfMeasureCode);
     end;
 
     [Test]
     procedure ResourceProductPreservesAssignedNondefaultUOM()
     var
         Resource: Record Resource;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -674,14 +674,14 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Resource "R" has additional unit "U", supplied before asset initialization.
         LibraryResource.CreateResource(Resource, '');
         UnitOfMeasureCode := CreateResourceUOM(Resource."No.");
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Resource);
-        PriceAsset."Unit of Measure Code" := UnitOfMeasureCode;
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Resource);
+        TempPriceAsset."Unit of Measure Code" := UnitOfMeasureCode;
 
         // [WHEN] Resource "R" is assigned for the first time.
-        PriceAsset.Validate("Asset No.", Resource."No.");
+        TempPriceAsset.Validate("Asset No.", Resource."No.");
 
         // [THEN] Initialization preserves the actual supplied unit.
-        VerifyAssetUnit(PriceAsset, Resource."No.", UnitOfMeasureCode);
+        VerifyAssetUnit(TempPriceAsset, Resource."No.", UnitOfMeasureCode);
     end;
 
     [Test]
@@ -689,7 +689,7 @@ codeunit 134119 "Price Asset UT"
     var
         Item: Record Item;
         OtherItem: Record Item;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -699,11 +699,11 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Unit "U" belongs to item "J", but not item "I".
         LibraryInventory.CreateItem(Item);
         UnitOfMeasureCode := CreateItemWithAlternateUOM(OtherItem);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Item);
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Item);
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
 
         // [WHEN] Item "I" is supplied after unit "U".
-        asserterror PriceAsset.Validate("Asset No.", Item."No.");
+        asserterror TempPriceAsset.Validate("Asset No.", Item."No.");
 
         // [THEN] The missing item-specific unit is rejected, rather than defaulted.
         VerifyMissingUnitError('Item Unit of Measure', UnitOfMeasureCode);
@@ -714,7 +714,7 @@ codeunit 134119 "Price Asset UT"
     var
         Resource: Record Resource;
         OtherResource: Record Resource;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -725,11 +725,11 @@ codeunit 134119 "Price Asset UT"
         LibraryResource.CreateResource(Resource, '');
         LibraryResource.CreateResource(OtherResource, '');
         UnitOfMeasureCode := CreateResourceUOM(OtherResource."No.");
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Resource);
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Resource);
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
 
         // [WHEN] Resource "R" is supplied after unit "U".
-        asserterror PriceAsset.Validate("Asset No.", Resource."No.");
+        asserterror TempPriceAsset.Validate("Asset No.", Resource."No.");
 
         // [THEN] The missing resource-specific unit is rejected, rather than defaulted.
         VerifyMissingUnitError('Resource Unit of Measure', UnitOfMeasureCode);
@@ -740,7 +740,7 @@ codeunit 134119 "Price Asset UT"
     var
         ResourceGroup: Record "Resource Group";
         UnitOfMeasure: Record "Unit of Measure";
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
     begin
         // [FEATURE] [AI test 0.3]
         // [SCENARIO] Resource groups use global units without requiring a resource-specific relation.
@@ -749,21 +749,21 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Resource group "G" and global unit "U" exist without any resource unit relation.
         LibraryResource.CreateResourceGroup(ResourceGroup);
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::"Resource Group");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::"Resource Group");
 
         // [WHEN] Unit "U" is supplied before group "G".
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
-        PriceAsset.Validate("Asset No.", ResourceGroup."No.");
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        TempPriceAsset.Validate("Asset No.", ResourceGroup."No.");
 
         // [THEN] The group retains the global unit.
-        VerifyAssetUnit(PriceAsset, ResourceGroup."No.", UnitOfMeasure.Code);
+        VerifyAssetUnit(TempPriceAsset, ResourceGroup."No.", UnitOfMeasure.Code);
     end;
 
     [Test]
     procedure ResourceGroupRejectsMissingGlobalUOMBeforeProduct()
     var
         UnitOfMeasure: Record "Unit of Measure";
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
     begin
         // [FEATURE] [AI test 0.3]
         // [SCENARIO] A resource group validates global unit existence even without a product number.
@@ -772,10 +772,10 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Unit "U" no longer exists and the resource group number is blank.
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         UnitOfMeasure.Delete(true);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::"Resource Group");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::"Resource Group");
 
         // [WHEN] Missing unit "U" is supplied.
-        asserterror PriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        asserterror TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
 
         // [THEN] The error concerns the missing global unit, not the blank product number.
         VerifyMissingUnitError('Unit of Measure', UnitOfMeasure.Code);
@@ -785,7 +785,7 @@ codeunit 134119 "Price Asset UT"
     procedure ItemProductFirstAcceptsNondefaultUOM()
     var
         Item: Record Item;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -794,22 +794,22 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] Item "I" has an additional unit "U".
         UnitOfMeasureCode := CreateItemWithAlternateUOM(Item);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Item);
-        PriceAsset.Validate("Asset No.", Item."No.");
-        VerifyAssetUnit(PriceAsset, Item."No.", Item."Base Unit of Measure");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Item);
+        TempPriceAsset.Validate("Asset No.", Item."No.");
+        VerifyAssetUnit(TempPriceAsset, Item."No.", Item."Base Unit of Measure");
 
         // [WHEN] Unit "U" is supplied after item "I".
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
 
         // [THEN] The alternate unit is accepted.
-        VerifyAssetUnit(PriceAsset, Item."No.", UnitOfMeasureCode);
+        VerifyAssetUnit(TempPriceAsset, Item."No.", UnitOfMeasureCode);
     end;
 
     [Test]
     procedure ResourceProductFirstAcceptsNondefaultUOM()
     var
         Resource: Record Resource;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -819,15 +819,15 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Resource "R" has an additional unit "U".
         LibraryResource.CreateResource(Resource, '');
         UnitOfMeasureCode := CreateResourceUOM(Resource."No.");
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Resource);
-        PriceAsset.Validate("Asset No.", Resource."No.");
-        VerifyAssetUnit(PriceAsset, Resource."No.", Resource."Base Unit of Measure");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Resource);
+        TempPriceAsset.Validate("Asset No.", Resource."No.");
+        VerifyAssetUnit(TempPriceAsset, Resource."No.", Resource."Base Unit of Measure");
 
         // [WHEN] Unit "U" is supplied after resource "R".
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
 
         // [THEN] The alternate unit is accepted.
-        VerifyAssetUnit(PriceAsset, Resource."No.", UnitOfMeasureCode);
+        VerifyAssetUnit(TempPriceAsset, Resource."No.", UnitOfMeasureCode);
     end;
 
     [Test]
@@ -835,7 +835,7 @@ codeunit 134119 "Price Asset UT"
     var
         Item: Record Item;
         OtherItem: Record Item;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -845,15 +845,15 @@ codeunit 134119 "Price Asset UT"
         // [GIVEN] Item "I" uses alternate unit "U" and item "J" has a different default.
         UnitOfMeasureCode := CreateItemWithAlternateUOM(Item);
         LibraryInventory.CreateItem(OtherItem);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Item);
-        PriceAsset.Validate("Asset No.", Item."No.");
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Item);
+        TempPriceAsset.Validate("Asset No.", Item."No.");
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
 
         // [WHEN] The product changes to item "J".
-        PriceAsset.Validate("Asset No.", OtherItem."No.");
+        TempPriceAsset.Validate("Asset No.", OtherItem."No.");
 
         // [THEN] The new item's default replaces unit "U".
-        VerifyAssetUnit(PriceAsset, OtherItem."No.", OtherItem."Base Unit of Measure");
+        VerifyAssetUnit(TempPriceAsset, OtherItem."No.", OtherItem."Base Unit of Measure");
     end;
 
     [Test]
@@ -861,7 +861,7 @@ codeunit 134119 "Price Asset UT"
     var
         Resource: Record Resource;
         OtherResource: Record Resource;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasureCode: Code[10];
     begin
         // [FEATURE] [AI test 0.3]
@@ -872,21 +872,21 @@ codeunit 134119 "Price Asset UT"
         LibraryResource.CreateResource(Resource, '');
         LibraryResource.CreateResource(OtherResource, '');
         UnitOfMeasureCode := CreateResourceUOM(Resource."No.");
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Resource);
-        PriceAsset.Validate("Asset No.", Resource."No.");
-        PriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Resource);
+        TempPriceAsset.Validate("Asset No.", Resource."No.");
+        TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasureCode);
 
         // [WHEN] The product changes to resource "S".
-        PriceAsset.Validate("Asset No.", OtherResource."No.");
+        TempPriceAsset.Validate("Asset No.", OtherResource."No.");
 
         // [THEN] The new resource's default replaces unit "U".
-        VerifyAssetUnit(PriceAsset, OtherResource."No.", OtherResource."Base Unit of Measure");
+        VerifyAssetUnit(TempPriceAsset, OtherResource."No.", OtherResource."Base Unit of Measure");
     end;
 
     [Test]
     procedure BlankAssetTypeRejectsUOMBeforeProduct()
     var
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasure: Record "Unit of Measure";
     begin
         // [FEATURE] [AI test 0.3]
@@ -895,10 +895,10 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] The asset type is blank and global unit "U" exists.
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::" ");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::" ");
 
         // [WHEN] Unit "U" is supplied.
-        asserterror PriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        asserterror TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
 
         // [THEN] Unsupported types remain rejected.
         VerifyUnsupportedUnitError();
@@ -907,7 +907,7 @@ codeunit 134119 "Price Asset UT"
     [Test]
     procedure GLAccountRejectsUOMBeforeProduct()
     var
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasure: Record "Unit of Measure";
     begin
         // [FEATURE] [AI test 0.3]
@@ -916,10 +916,10 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] The asset type is G/L Account and global unit "U" exists.
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::"G/L Account");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::"G/L Account");
 
         // [WHEN] Unit "U" is supplied.
-        asserterror PriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        asserterror TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
 
         // [THEN] Unsupported types remain rejected.
         VerifyUnsupportedUnitError();
@@ -928,7 +928,7 @@ codeunit 134119 "Price Asset UT"
     [Test]
     procedure ItemDiscountGroupRejectsUOMBeforeProduct()
     var
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasure: Record "Unit of Measure";
     begin
         // [FEATURE] [AI test 0.3]
@@ -937,10 +937,10 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] The asset type is Item Discount Group and global unit "U" exists.
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::"Item Discount Group");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::"Item Discount Group");
 
         // [WHEN] Unit "U" is supplied.
-        asserterror PriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        asserterror TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
 
         // [THEN] Unsupported types remain rejected.
         VerifyUnsupportedUnitError();
@@ -949,7 +949,7 @@ codeunit 134119 "Price Asset UT"
     [Test]
     procedure ServiceCostRejectsUOMBeforeProduct()
     var
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
         UnitOfMeasure: Record "Unit of Measure";
     begin
         // [FEATURE] [AI test 0.3]
@@ -958,10 +958,10 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] The asset type is Service Cost and global unit "U" exists.
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::"Service Cost");
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::"Service Cost");
 
         // [WHEN] Unit "U" is supplied.
-        asserterror PriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        asserterror TempPriceAsset.Validate("Unit of Measure Code", UnitOfMeasure.Code);
 
         // [THEN] Unsupported types remain rejected.
         VerifyUnsupportedUnitError();
@@ -971,7 +971,7 @@ codeunit 134119 "Price Asset UT"
     procedure BlankUOMBeforeItemUsesProductDefault()
     var
         Item: Record Item;
-        PriceAsset: Record "Price Asset";
+        TempPriceAsset: Record "Price Asset";
     begin
         // [FEATURE] [AI test 0.3]
         // [SCENARIO] A blank deferred unit does not suppress normal item defaulting.
@@ -979,14 +979,14 @@ codeunit 134119 "Price Asset UT"
 
         // [GIVEN] Item "I" exists and no product has been supplied.
         LibraryInventory.CreateItem(Item);
-        PriceAsset.Validate("Asset Type", PriceAsset."Asset Type"::Item);
+        TempPriceAsset.Validate("Asset Type", TempPriceAsset."Asset Type"::Item);
 
         // [WHEN] A blank unit is validated before item "I".
-        PriceAsset.Validate("Unit of Measure Code", '');
-        PriceAsset.Validate("Asset No.", Item."No.");
+        TempPriceAsset.Validate("Unit of Measure Code", '');
+        TempPriceAsset.Validate("Asset No.", Item."No.");
 
         // [THEN] The item's default unit is used.
-        VerifyAssetUnit(PriceAsset, Item."No.", Item."Base Unit of Measure");
+        VerifyAssetUnit(TempPriceAsset, Item."No.", Item."Base Unit of Measure");
     end;
 
     [Test]
@@ -1323,10 +1323,10 @@ codeunit 134119 "Price Asset UT"
         exit(ItemUnitOfMeasure.Code);
     end;
 
-    local procedure VerifyAssetUnit(PriceAsset: Record "Price Asset"; AssetNo: Code[20]; UnitOfMeasureCode: Code[10])
+    local procedure VerifyAssetUnit(TempPriceAsset: Record "Price Asset"; AssetNo: Code[20]; UnitOfMeasureCode: Code[10])
     begin
-        Assert.AreEqual(AssetNo, PriceAsset."Asset No.", 'The selected product must be retained.');
-        Assert.AreEqual(UnitOfMeasureCode, PriceAsset."Unit of Measure Code", 'The product must use the expected unit.');
+        Assert.AreEqual(AssetNo, TempPriceAsset."Asset No.", 'The selected product must be retained.');
+        Assert.AreEqual(UnitOfMeasureCode, TempPriceAsset."Unit of Measure Code", 'The product must use the expected unit.');
     end;
 
     local procedure VerifyPriceLineUnit(PriceListLine: Record "Price List Line"; ProductNo: Code[20]; UnitOfMeasureCode: Code[10])
