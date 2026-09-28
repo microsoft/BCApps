@@ -120,7 +120,7 @@ codeunit 139061 "Office Line Generation Test"
 
         TempOfficeSuggestedLineItem.FindSet();
         asserterror OfficeLineGeneration.InsertLineItemsAndUpdateAggregate(TempOfficeSuggestedLineItem, HeaderRecRef, AddedCount);
-        LibraryAssert.ExpectedErrorCannotFind(Database::Item);
+        LibraryAssert.ExpectedError('You must select an existing item.');
 
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
