@@ -998,35 +998,29 @@ codeunit 139629 "Library - E-Document"
 
     /// <summary>
     /// Adds the purchase document types a receiving E-Document Service needs, with direction Incoming.
+    /// Purchase Order is not added: inbound Purchase Order falls back to the Purchase Invoice row, and an own
+    /// Incoming-only row would block tests that export Purchase Orders.
     /// </summary>
     /// <param name="EDocService">The E-Document Service that receives the documents.</param>
     procedure CreateInboundSupportedDocTypes(EDocService: Record "E-Document Service")
     begin
         AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Invoice", Enum::"E-Doc. Supp. Type Direction"::Incoming);
         AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Incoming);
-        AddEDocServiceSupportedType(EDocService, Enum::"E-Document Type"::"Purchase Order", Enum::"E-Doc. Supp. Type Direction"::Incoming);
     end;
 
     /// <summary>
-    /// Adds a supported source document type to an E-Document Service.
+    /// Adds a supported source document type to an E-Document Service for both directions.
     /// </summary>
     /// <param name="EDocService">The E-Document Service that supports the document type.</param>
     /// <param name="EDocumentType">The source document type to add.</param>
     procedure AddEDocServiceSupportedType(EDocService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type")
-    var
-        EDocServiceSupportedType: Record "E-Doc. Service Supported Type";
     begin
-        if not EDocService.Get(EDocService.Code) then
-            exit;
-
-        EDocServiceSupportedType.Init();
-        EDocServiceSupportedType."E-Document Service Code" := EDocService.Code;
-        EDocServiceSupportedType."Source Document Type" := EDocumentType;
-        if EDocServiceSupportedType.Insert() then;
+        AddEDocServiceSupportedType(EDocService, EDocumentType, Enum::"E-Doc. Supp. Type Direction"::Both);
     end;
 
     /// <summary>
     /// Adds a supported source document type with its allowed direction to an E-Document Service.
+    /// If the type is already configured with a different direction, the row is widened to Both.
     /// </summary>
     /// <param name="EDocService">The E-Document Service that supports the document type.</param>
     /// <param name="EDocumentType">The source document type to add.</param>
@@ -1038,11 +1032,19 @@ codeunit 139629 "Library - E-Document"
         if not EDocService.Get(EDocService.Code) then
             exit;
 
+        if EDocServiceSupportedType.Get(EDocService.Code, EDocumentType) then begin
+            if EDocServiceSupportedType.Direction <> Direction then begin
+                EDocServiceSupportedType.Direction := Enum::"E-Doc. Supp. Type Direction"::Both;
+                EDocServiceSupportedType.Modify(false);
+            end;
+            exit;
+        end;
+
         EDocServiceSupportedType.Init();
         EDocServiceSupportedType."E-Document Service Code" := EDocService.Code;
         EDocServiceSupportedType."Source Document Type" := EDocumentType;
         EDocServiceSupportedType.Direction := Direction;
-        if EDocServiceSupportedType.Insert(false) then;
+        EDocServiceSupportedType.Insert(false);
     end;
 
     procedure CreateTestReceiveServiceForEDoc(var EDocService: Record "E-Document Service"; Integration: Enum "Service Integration")
