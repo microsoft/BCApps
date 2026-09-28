@@ -73,6 +73,7 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
     var
         VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
         SOAPWebServiceRequestMgt: Codeunit "SOAP Web Service Request Mgt.";
+        VATLookupQuotaMgt: Codeunit "VAT Lookup Quota Mgt.";
         ResponseInStream: InStream;
         InStream: InStream;
         ResponseOutStream: OutStream;
@@ -83,6 +84,12 @@ codeunit 248 "VAT Lookup Ext. Data Hndl"
 
         if VATRegistrationLog."VAT Registration No." = '' then
             Error(NoVATNoToValidateErr);
+
+        // Charge the per-environment daily VIES quota on the standard request path only - after the blank-number
+        // check and only when the lookup was not handled by a subscriber - so handled or invalid lookups that never
+        // contact VIES do not consume quota. The dedicated codeunit commits the counter before the request; that
+        // commit also commits the ambient transaction, the same boundary this codeunit already commits at below.
+        VATLookupQuotaMgt.Run();
 
         PrepareSOAPRequestBody(TempBlobBody);
 

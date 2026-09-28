@@ -75,6 +75,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest.Status := SpendRequest.Status::Approved;
         SpendRequest."Approved/Rejected At" := CurrentDateTime();
         SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
+        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
@@ -101,6 +102,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest.Status := SpendRequest.Status::Rejected;
         SpendRequest."Approved/Rejected At" := CurrentDateTime();
         SpendRequest."Approved/Rejected by User ID" := UserSecurityId();
+        SpendRequest."Approved/Rejected by User Name" := CopyStr(UserId(), 1, MaxStrLen(SpendRequest."Approved/Rejected by User Name"));
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         SpendRequest."Rejection Reason" := CopyStr(RejectReason, 1, MaxStrLen(SpendRequest."Rejection Reason"));
         SpendRequest.Modify();
