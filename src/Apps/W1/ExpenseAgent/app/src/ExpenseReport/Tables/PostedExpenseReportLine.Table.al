@@ -133,7 +133,8 @@ table 6916 "Posted Expense Report Line"
         field(21; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text"
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text"
             else
             if ("Account Type" = const(Resource)) Resource
             else
@@ -486,6 +487,9 @@ table 6916 "Posted Expense Report Line"
         {
         }
         key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
+        {
+        }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
         {
         }
     }

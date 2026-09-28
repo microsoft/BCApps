@@ -36,4 +36,20 @@ enum 7432 "EA Corp Card Trans Status"
     {
         Caption = 'Exception';
     }
+    value(7; ReadyForReconciliation)
+    {
+        Caption = 'Ready for Reconciliation';
+    }
+    value(8; ReconciliationCreated)
+    {
+        Caption = 'Reconciliation Created';
+    }
+    value(9; BankEntryCreated)
+    {
+        Caption = 'Bank Entry Created';
+    }
+    value(10; Reconciled)
+    {
+        Caption = 'Reconciled';
+    }
 }

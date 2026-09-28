@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Bank.Reconciliation;
+
 page 7433 "EA Corp Card Trans List"
 {
     ApplicationArea = Basic, Suite;
@@ -75,6 +77,26 @@ page 7433 "EA Corp Card Trans List"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the linked expense number if created.';
                 }
+                field("Posted Expense Report No."; Rec."Posted Expense Report No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the posted expense report linked to this transaction.';
+                }
+                field("Bank Account No."; Rec."Bank Account No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the corporate card bank account used for payment reconciliation.';
+                }
+                field("Bank Acc. Reconciliation No."; Rec."Bank Acc. Reconciliation No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the payment reconciliation that contains this transaction.';
+                }
+                field("Bank Acc. Ledger Entry No."; Rec."Bank Acc. Ledger Entry No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the bank account ledger entry created from this transaction.';
+                }
             }
         }
     }
@@ -115,6 +137,41 @@ page 7433 "EA Corp Card Trans List"
                 begin
                     CorpCardTransDetail.SetRange("Trans Entry No.", Rec."Entry No.");
                     Page.RunModal(Page::"EA Corp Card Details", CorpCardTransDetail);
+                end;
+            }
+            action(CreatePaymentReconciliation)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Create Payment Reconciliation';
+                Enabled = (Rec."Posted Expense Report No." <> '') and (Rec."Bank Acc. Reconciliation No." = '');
+                Image = Reconcile;
+                ToolTip = 'Creates a payment reconciliation line for the posted corporate card expense.';
+
+                trigger OnAction()
+                var
+                    CorpCardBankRecMgt: Codeunit "EA Corp Card Bank Rec Mgt";
+                begin
+                    CorpCardBankRecMgt.CreateReconciliation(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(OpenPaymentReconciliation)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Payment Reconciliation';
+                Enabled = Rec."Bank Acc. Reconciliation No." <> '';
+                Image = Reconcile;
+                ToolTip = 'Opens the payment reconciliation that contains this corporate card transaction.';
+
+                trigger OnAction()
+                var
+                    BankAccReconciliation: Record "Bank Acc. Reconciliation";
+                begin
+                    BankAccReconciliation.Get(
+                        BankAccReconciliation."Statement Type"::"Payment Application",
+                        Rec."Bank Account No.",
+                        Rec."Bank Acc. Reconciliation No.");
+                    Page.Run(Page::"Payment Reconciliation Journal", BankAccReconciliation);
                 end;
             }
         }

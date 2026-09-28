@@ -1,5 +1,8 @@
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Setup;
+using Microsoft.Foundation.NoSeries;
 using System.IO;
 
 codeunit 7442 "EA Create Corp Card Setup"
@@ -15,6 +18,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         tabledata "Data Exch. Column Def" = rimd,
         tabledata "Data Exch. Mapping" = rimd,
         tabledata "Data Exch. Field Mapping" = rimd,
+        tabledata "Bank Account" = rim,
         tabledata "EA Corp Card" = rimd,
         tabledata "EA Corp Card Provider" = rimd;
 
@@ -28,6 +32,7 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardProvider: Record "EA Corp Card Provider";
         CorpCardMCCMgt: Codeunit "EA Corp Card MCC Mgt";
     begin
+        EnsureCorpCardBankAccount();
         EnsureCorpCardProviders();
 
         CorpCardProvider.SetFilter(Code, '%1|%2|%3|%4|%5', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok, CorpCardIsoProviderCodeTok, CorpCardCamt053ProviderCodeTok, CorpCardCamt054ProviderCodeTok);
@@ -37,8 +42,40 @@ codeunit 7442 "EA Create Corp Card Setup"
                 EnsureDefaultCorpCardLinks(CorpCardProvider.Code);
             until CorpCardProvider.Next() = 0;
 
+        AssignCorpCardBankAccount();
         EnsureCorpCardSetup();
         CorpCardMCCMgt.InitializeDefaultMCCMappings();
+    end;
+
+    local procedure EnsureCorpCardBankAccount()
+    var
+        BankAccount: Record "Bank Account";
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
+        BankExportImportSetup: Record "Bank Export/Import Setup";
+        NoSeries: Record "No. Series";
+    begin
+        if BankAccount.Get(CorpCardBankAccountTok) then
+            exit;
+
+        BankAccount.Init();
+        BankAccount.Validate("No.", CorpCardBankAccountTok);
+        BankAccount.Validate(Name, CorpCardBankAccountNameLbl);
+        BankAccount."Bank Account No." := CorpCardBankAccountNoTok;
+        if BankAccountPostingGroup.Get(CheckingBankAccountPostingGroupTok) then
+            BankAccount."Bank Acc. Posting Group" := BankAccountPostingGroup.Code;
+        if NoSeries.Get(PaymentReconciliationNoSeriesTok) then
+            BankAccount."Pmt. Rec. No. Series" := NoSeries.Code;
+        if BankExportImportSetup.Get(SepaCamtImportFormatTok) then
+            BankAccount."Bank Statement Import Format" := BankExportImportSetup.Code;
+        BankAccount.Insert(true);
+    end;
+
+    local procedure AssignCorpCardBankAccount()
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.SetRange("Bank Account No.", '');
+        CorpCard.ModifyAll("Bank Account No.", CorpCardBankAccountTok, true);
     end;
 
     internal procedure EnsureDataExchangeForProvider(var CorpCardProvider: Record "EA Corp Card Provider")
@@ -1148,5 +1185,11 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCardIsoSampleFileNameTok: Label 'CorpCardISO20022Sample.xml', Locked = true;
         CorpCardCamt053SampleFileNameTok: Label 'CorpCard-Sample-60-SEPA-CAMT053.xml', Locked = true;
         CorpCardCamt054SampleFileNameTok: Label 'CorpCard-Sample-60-SEPA-CAMT054.xml', Locked = true;
+        CorpCardBankAccountTok: Label 'CORPCARD', Locked = true;
+        CorpCardBankAccountNameLbl: Label 'Corporate Card Settlement Account', MaxLength = 100;
+        CorpCardBankAccountNoTok: Label '99-55-000', Locked = true;
+        CheckingBankAccountPostingGroupTok: Label 'CHECKING', Locked = true;
+        PaymentReconciliationNoSeriesTok: Label 'PREC', Locked = true;
+        SepaCamtImportFormatTok: Label 'SEPA CAMT', Locked = true;
         CardIDTok: Label 'CARD-%1', Locked = true;
 }

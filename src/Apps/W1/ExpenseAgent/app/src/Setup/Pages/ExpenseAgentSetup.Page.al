@@ -546,7 +546,7 @@ page 6996 "Expense Agent Setup"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Apply corp card default settings';
                     Image = SetupPayment;
-                    ToolTip = 'Applies corporate card defaults, including provider setup, data exchange mapping, user card links, and corporate card setup values.';
+                    ToolTip = 'Applies corporate card defaults, including provider setup, data exchange mapping, user card links, the corporate card settlement bank account, and corporate card setup values.';
 
                     trigger OnAction()
                     var

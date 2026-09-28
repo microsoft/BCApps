@@ -18,6 +18,7 @@ permissionset 7421 EACorpCardEdit
         page "EA Corp Card JQ Schedule Sub" = X,
         codeunit "EA Create Corp Card Setup" = X,
         codeunit "EA Create Corp Card L3 Demo" = X,
+        codeunit "EA Corp Card Bank Rec Mgt" = X,
         codeunit "EA Corp Card DE Noop" = X,
         tabledata "EA Corp Card Provider" = IM,
         tabledata "EA Corp Card" = IM,

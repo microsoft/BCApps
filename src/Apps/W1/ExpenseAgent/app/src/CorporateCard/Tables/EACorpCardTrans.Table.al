@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.Ledger;
+using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 
@@ -143,6 +146,56 @@ table 7428 "EA Corp Card Trans"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies the hash of the source payload of the corporate card transaction.';
         }
+        field(20; "Bank Account No."; Code[20])
+        {
+            Caption = 'Bank Account No.';
+            DataClassification = AccountData;
+            Editable = false;
+            TableRelation = "Bank Account"."No.";
+            ToolTip = 'Specifies the corporate card bank account used for payment reconciliation.';
+        }
+        field(21; "Bank Acc. Reconciliation No."; Code[20])
+        {
+            Caption = 'Bank Acc. Reconciliation No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Bank Acc. Reconciliation"."Statement No." where("Statement Type" = const("Payment Application"),
+                                                                              "Bank Account No." = field("Bank Account No."));
+            ToolTip = 'Specifies the payment reconciliation that contains this corporate card transaction.';
+        }
+        field(22; "Bank Acc. Rec. Line No."; Integer)
+        {
+            Caption = 'Bank Acc. Rec. Line No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Bank Acc. Reconciliation Line"."Statement Line No." where("Statement Type" = const("Payment Application"),
+                                                                                        "Bank Account No." = field("Bank Account No."),
+                                                                                        "Statement No." = field("Bank Acc. Reconciliation No."));
+            ToolTip = 'Specifies the payment reconciliation line created for this corporate card transaction.';
+        }
+        field(23; "Posted Expense Report No."; Code[20])
+        {
+            Caption = 'Posted Expense Report No.';
+            DataClassification = AccountData;
+            Editable = false;
+            TableRelation = "Posted Expense Report Header"."No.";
+            ToolTip = 'Specifies the posted expense report that made this corporate card transaction ready for payment reconciliation.';
+        }
+        field(24; "Bank Account Statement No."; Code[20])
+        {
+            Caption = 'Bank Account Statement No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies the posted bank account statement that contains this corporate card transaction.';
+        }
+        field(25; "Bank Acc. Ledger Entry No."; Integer)
+        {
+            Caption = 'Bank Acc. Ledger Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Bank Account Ledger Entry"."Entry No.";
+            ToolTip = 'Specifies the bank account ledger entry created from this corporate card transaction.';
+        }
     }
 
     keys
@@ -159,6 +212,9 @@ table 7428 "EA Corp Card Trans"
         {
         }
         key(Status; Status)
+        {
+        }
+        key(BankReconciliation; "Bank Account No.", "Bank Acc. Reconciliation No.", "Bank Acc. Rec. Line No.")
         {
         }
     }

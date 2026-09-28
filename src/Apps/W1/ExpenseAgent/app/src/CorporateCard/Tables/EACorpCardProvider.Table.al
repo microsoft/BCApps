@@ -131,7 +131,6 @@ table 7426 "EA Corp Card Provider"
         SourceFileNameLower: Text;
         DataExchDefCodeUpper: Text;
     begin
-        CalcFields("Source Payload");
         if not "Source Payload".HasValue() then begin
             "Source Payload Record Count" := 0;
             exit;

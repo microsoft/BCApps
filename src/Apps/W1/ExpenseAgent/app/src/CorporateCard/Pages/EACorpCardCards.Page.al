@@ -42,6 +42,11 @@ page 7431 "EA Corp Card Cards"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the expense user linked to this card.';
                 }
+                field("Bank Account No."; Rec."Bank Account No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the corporate card bank account used to create payment reconciliation lines after linked expenses are posted.';
+                }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;

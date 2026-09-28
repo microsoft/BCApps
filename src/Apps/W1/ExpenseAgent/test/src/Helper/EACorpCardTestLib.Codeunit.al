@@ -18,6 +18,7 @@ codeunit 148357 EACorpCardTestLib
 
     internal procedure InitializeCorpCardData()
     var
+        CorpCard: Record "EA Corp Card";
         ExpenseUser: Record "Expense User";
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
         CreateCorpCardL3Demo: Codeunit "EA Create Corp Card L3 Demo";
@@ -25,6 +26,7 @@ codeunit 148357 EACorpCardTestLib
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         DeleteCorpCardTransactionalData();
+        CorpCard.DeleteAll();
 
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         CreateCorpCardSetup.CreateDefaults();

@@ -246,6 +246,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Import Expense User" = X,
         codeunit "EA Corp Card Approval Mgt" = X,
         codeunit "EA Corp Card Audit Subscribers" = X,
+        codeunit "EA Corp Card Bank Rec Mgt" = X,
         codeunit "EA Corp Card Data Exch Prov" = X,
         codeunit "EA Create Corp Card Setup" = X,
         codeunit "EA Create Corp Card L3 Demo" = X,

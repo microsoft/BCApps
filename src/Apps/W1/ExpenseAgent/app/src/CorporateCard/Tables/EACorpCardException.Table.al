@@ -88,10 +88,13 @@ table 7423 "EA Corp Card Exception"
     }
 
     trigger OnModify()
+    var
+        StoredCorpCardException: Record "EA Corp Card Exception";
     begin
-        if Resolved = xRec.Resolved then begin
-            "Resolved By" := xRec."Resolved By";
-            "Resolved DT" := xRec."Resolved DT";
+        StoredCorpCardException.Get("Entry No.");
+        if Resolved = StoredCorpCardException.Resolved then begin
+            "Resolved By" := StoredCorpCardException."Resolved By";
+            "Resolved DT" := StoredCorpCardException."Resolved DT";
             exit;
         end;
 

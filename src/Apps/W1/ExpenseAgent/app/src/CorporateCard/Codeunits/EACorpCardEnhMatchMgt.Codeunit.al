@@ -76,6 +76,7 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
 
         Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Status", Expense."Status"::Open);
+        Expense.SetRange("Credit Card Feed No.", 0);
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
         Expense.SetFilter("Expense Date", '%1..%2', CorpCardTrans."Trans Date" - MaxDateDiff, CorpCardTrans."Trans Date" + MaxDateDiff);
         Expense.SetFilter("Amount", '%1..%2', CorpCardTrans.Amount - MaxAmountDiff, CorpCardTrans.Amount + MaxAmountDiff);
@@ -117,6 +118,7 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         Expense.SetLoadFields("No.", "Merchant Name");
         Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Status", Expense."Status"::Open);
+        Expense.SetRange("Credit Card Feed No.", 0);
 
         if not Expense.FindSet() then
             exit(false);
@@ -154,6 +156,7 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
 
         Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Status", Expense."Status"::Open);
+        Expense.SetRange("Credit Card Feed No.", 0);
 
         if Expense.FindFirst() then begin
             ExpenseNo := Expense."No.";

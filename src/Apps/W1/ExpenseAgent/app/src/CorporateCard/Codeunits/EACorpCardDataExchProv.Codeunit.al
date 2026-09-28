@@ -119,7 +119,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         OnAfterAck(BatchNo);
     end;
 
-    local procedure InjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var DataExch: Record "Data Exch.")
+    local procedure InjectSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardBatch: Record "EA Corp Card Batch"; var DataExch: Record "Data Exch.")
     var
         TempBlob: Codeunit "Temp Blob";
         CryptographyManagement: Codeunit "Cryptography Management";
@@ -243,7 +243,7 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
 
         CorpCardBatch.Modify();
 
-        if CorpCardBatch.Imported = 0 then begin
+        if (CorpCardBatch.Imported = 0) and (CorpCardBatch.Duplicates = 0) then begin
             CorpCardBatch.Status := CorpCardBatch.Status::Failed;
             CorpCardBatch.Rejected += 1;
             CorpCardBatch.Modify();
