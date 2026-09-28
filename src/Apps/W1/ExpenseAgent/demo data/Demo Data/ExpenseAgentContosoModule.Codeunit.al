@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.DemoData.Bank;
 using Microsoft.DemoData.Finance;
 using Microsoft.DemoTool;
 
