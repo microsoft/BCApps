@@ -182,7 +182,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
         ComponentPurchLineNotFoundErrorInfo: ErrorInfo;
     begin
         ComponentPurchLineNotFoundErrorInfo.ErrorType := ErrorType::Internal;
-        ComponentPurchLineNotFoundErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        ComponentPurchLineNotFoundErrorInfo.DataClassification := DataClassification::CustomerContent;
         ComponentPurchLineNotFoundErrorInfo.Message :=
             StrSubstNo(
                 ComponentPurchLineNotFoundErr, ProdOrderComponent."Line No.",
