@@ -638,6 +638,8 @@ report 11564 "SR G/L Acc Sheet Foreign Curr"
         else
             GLAccountSourceCurrency.SetFilter("Currency Code", '<>%1', '');
         GLAccountSourceCurrency.SetRange("Date Filter", 0D, ClosingDate(StartDate - 1));
+        "G/L Account".CopyFilter("Global Dimension 1 Filter", GLAccountSourceCurrency."Global Dimension 1 Filter");
+        "G/L Account".CopyFilter("Global Dimension 2 Filter", GLAccountSourceCurrency."Global Dimension 2 Filter");
         if GLAccountSourceCurrency.FindSet() then
             repeat
                 GLAccountSourceCurrency.CalcFields("Source Curr. Balance at Date");
