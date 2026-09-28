@@ -11,6 +11,8 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -28,6 +30,90 @@ codeunit 139996 "Subc. Planning Test"
     trigger OnRun()
     begin
         IsInitialized := false;
+    end;
+
+    [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    procedure TransferWIPItemFromRoutingVersionThroughPlanning()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PlanningRoutingLine: Record "Planning Routing Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 648937] Transfer WIP settings from a routing version are retained through planning and production order creation
+        Initialize();
+
+        // [GIVEN] Manufactured item "I" with a certified subcontracting routing version that transfers the WIP item
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        CreateCertifiedRoutingVersionWithTransferWIPItem(Item."Routing No.", WorkCenter[2]."No.", RoutingLine);
+
+        // [GIVEN] Planning worksheet line "P" for item "I" is refreshed
+        CreateAndRefreshPlanningLine(Item, Location, RequisitionWkshName, RequisitionLine);
+
+        // [THEN] Planning line "P" uses the certified routing version and retains its WIP transfer settings
+        Assert.AreEqual(RoutingLine."Version Code", RequisitionLine."Routing Version Code", 'The planning line should use the certified routing version.');
+        FindPlanningRoutingLine(PlanningRoutingLine, RequisitionLine, WorkCenter[2]."No.");
+        VerifyTransferWIPItemFields(PlanningRoutingLine."Transfer WIP Item", PlanningRoutingLine."Transfer Description", PlanningRoutingLine."Transfer Description 2");
+
+        // [WHEN] Planning line "P" is carried out as a firm planned production order
+        CarryOutPlanningLine(RequisitionLine);
+
+        // [THEN] The production order routing line retains the WIP transfer settings
+        FindProdOrderRoutingLine(ProdOrderRoutingLine, Item."No.", WorkCenter[2]."No.");
+        VerifyTransferWIPItemFields(ProdOrderRoutingLine."Transfer WIP Item", ProdOrderRoutingLine."Transfer Description", ProdOrderRoutingLine."Transfer Description 2");
+    end;
+
+    [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    procedure TransferWIPItemFromBaseRoutingThroughPlanning()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PlanningRoutingLine: Record "Planning Routing Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 648937] Transfer WIP settings from a base routing are retained through planning and production order creation
+        Initialize();
+
+        // [GIVEN] Manufactured item "I" with a certified subcontracting base routing that transfers the WIP item
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnBaseRoutingLine(Item."Routing No.", WorkCenter[2]."No.", RoutingLine);
+
+        // [GIVEN] Planning worksheet line "P" for item "I" is refreshed
+        CreateAndRefreshPlanningLine(Item, Location, RequisitionWkshName, RequisitionLine);
+
+        // [THEN] Planning line "P" uses the base routing and retains its WIP transfer settings
+        Assert.AreEqual('', RequisitionLine."Routing Version Code", 'The planning line should use the base routing.');
+        FindPlanningRoutingLine(PlanningRoutingLine, RequisitionLine, WorkCenter[2]."No.");
+        VerifyTransferWIPItemFields(PlanningRoutingLine."Transfer WIP Item", PlanningRoutingLine."Transfer Description", PlanningRoutingLine."Transfer Description 2");
+
+        // [WHEN] Planning line "P" is carried out as a firm planned production order
+        CarryOutPlanningLine(RequisitionLine);
+
+        // [THEN] The production order routing line retains the WIP transfer settings
+        FindProdOrderRoutingLine(ProdOrderRoutingLine, Item."No.", WorkCenter[2]."No.");
+        VerifyTransferWIPItemFields(ProdOrderRoutingLine."Transfer WIP Item", ProdOrderRoutingLine."Transfer Description", ProdOrderRoutingLine."Transfer Description 2");
     end;
 
     [Test]
@@ -279,7 +365,6 @@ codeunit 139996 "Subc. Planning Test"
         Item: Record Item;
         Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
-        ManufacturingUserTemplate: Record "Manufacturing User Template";
         PlanningComponent: Record "Planning Component";
         ProdOrderComponent: Record "Prod. Order Component";
         ProductionBOMLine: Record "Production BOM Line";
@@ -349,19 +434,12 @@ codeunit 139996 "Subc. Planning Test"
         PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
 
         // [WHEN] Carry out the parent item's planning line to create a planned production order
-        if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
-            LibraryPlanning.CreateManufUserTemplate(
-                ManufacturingUserTemplate, CopyStr(UserId(), 1, 50),
-                ManufacturingUserTemplate."Make Orders"::"All Lines",
-                ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
-                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
-                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
         RequisitionLine.Reset();
         RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
         RequisitionLine.SetRange("No.", Item."No.");
         RequisitionLine.FindFirst();
-        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+        CarryOutPlanningLine(RequisitionLine);
 
         // [THEN] The created planned production order contains the Vendor-Supplied component
         // (carrying out the planning line must not strip the component from the production order)
@@ -510,6 +588,131 @@ codeunit 139996 "Subc. Planning Test"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Planning Test");
     end;
 
+    local procedure CreateCertifiedRoutingVersionWithTransferWIPItem(RoutingNo: Code[20]; WorkCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    var
+        RoutingVersion: Record "Routing Version";
+        SourceRoutingLine: Record "Routing Line";
+        VersionRoutingLine: Record "Routing Line";
+        VersionCode: Code[20];
+    begin
+        VersionCode := 'V1';
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingNo, VersionCode);
+
+        SourceRoutingLine.SetRange("Routing No.", RoutingNo);
+        SourceRoutingLine.SetRange("Version Code", '');
+        SourceRoutingLine.FindSet();
+        repeat
+            VersionRoutingLine.Init();
+            VersionRoutingLine.TransferFields(SourceRoutingLine, true);
+            VersionRoutingLine."Version Code" := RoutingVersion."Version Code";
+            VersionRoutingLine.Insert(true);
+        until SourceRoutingLine.Next() = 0;
+
+        SetTransferWIPItemOnRoutingLine(RoutingNo, RoutingVersion."Version Code", WorkCenterNo, RoutingLine);
+        RoutingVersion.Validate("Starting Date", WorkDate());
+        RoutingVersion.Validate(Status, RoutingVersion.Status::Certified);
+        RoutingVersion.Modify(true);
+    end;
+
+    local procedure SetTransferWIPItemOnBaseRoutingLine(RoutingNo: Code[20]; WorkCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    var
+        RoutingHeader: Record "Routing Header";
+    begin
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        SetTransferWIPItemOnRoutingLine(RoutingNo, '', WorkCenterNo, RoutingLine);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    local procedure SetTransferWIPItemOnRoutingLine(RoutingNo: Code[20]; VersionCode: Code[20]; WorkCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    begin
+        RoutingLine.SetRange("Routing No.", RoutingNo);
+        RoutingLine.SetRange("Version Code", VersionCode);
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Transfer WIP Item", true);
+        RoutingLine.Validate("Transfer Description", 'WIP transfer description');
+        RoutingLine.Validate("Transfer Description 2", 'WIP transfer description 2');
+        RoutingLine.Modify(true);
+    end;
+
+    local procedure CreateAndRefreshPlanningLine(Item: Record Item; var Location: Record Location; var RequisitionWkshName: Record "Requisition Wksh. Name"; var RequisitionLine: Record "Requisition Line")
+    var
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+        RequisitionLine.Find();
+    end;
+
+    local procedure FindPlanningRoutingLine(var PlanningRoutingLine: Record "Planning Routing Line"; RequisitionLine: Record "Requisition Line"; WorkCenterNo: Code[20])
+    begin
+        PlanningRoutingLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+        PlanningRoutingLine.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+        PlanningRoutingLine.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningRoutingLine.SetRange(Type, PlanningRoutingLine.Type::"Work Center");
+        PlanningRoutingLine.SetRange("No.", WorkCenterNo);
+        PlanningRoutingLine.FindFirst();
+    end;
+
+    local procedure CarryOutPlanningLine(var RequisitionLine: Record "Requisition Line")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ManufacturingUserTemplate: Record "Manufacturing User Template";
+    begin
+        if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
+            LibraryPlanning.CreateManufUserTemplate(
+                ManufacturingUserTemplate, CopyStr(UserId(), 1, 50),
+                ManufacturingUserTemplate."Make Orders"::"All Lines",
+                ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
+                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
+                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
+
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            Database::"Manufacturing Setup", ManufacturingSetup.FieldNo("Firm Planned Order Nos."));
+        RequisitionLine.SetRecFilter();
+        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+    end;
+
+    local procedure FindProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ItemNo: Code[20]; WorkCenterNo: Code[20])
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::"Firm Planned");
+        ProductionOrder.SetRange("Source Type", ProductionOrder."Source Type"::Item);
+        ProductionOrder.SetRange("Source No.", ItemNo);
+        ProductionOrder.FindFirst();
+
+        ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Work Center");
+        ProdOrderRoutingLine.SetRange("No.", WorkCenterNo);
+        ProdOrderRoutingLine.FindFirst();
+    end;
+
+    local procedure VerifyTransferWIPItemFields(TransferWIPItem: Boolean; TransferDescription: Text[100]; TransferDescription2: Text[50])
+    begin
+        Assert.IsTrue(TransferWIPItem, 'Transfer WIP Item should be enabled.');
+        Assert.AreEqual('WIP transfer description', TransferDescription, 'Transfer Description should be retained.');
+        Assert.AreEqual('WIP transfer description 2', TransferDescription2, 'Transfer Description 2 should be retained.');
+    end;
+
     [ModalPageHandler]
     procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
     begin
@@ -519,12 +722,14 @@ codeunit 139996 "Subc. Planning Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPlanning: Codeunit "Library - Planning";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
