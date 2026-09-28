@@ -212,7 +212,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ProfileIdNode.ReplaceWith(NewProfileIdNode);
     end;
 
-    internal procedure GetFrenchBillingMode(SourceDocumentLines: RecordRef): Text
+    internal procedure GetFrenchBillingMode(SourceDocumentLines: RecordRef) Result: Text
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -220,7 +220,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
         HasItemLines: Boolean;
         HasNonItemLines: Boolean;
+        IsHandled: Boolean;
     begin
+        OnBeforeGetFrenchBillingMode(SourceDocumentLines, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         case SourceDocumentLines.Number of
             Database::"Sales Invoice Line":
                 begin
@@ -264,6 +269,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if HasNonItemLines then
             exit(BillingModeS1Tok);
         exit(BillingModeB1Tok);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetFrenchBillingMode(SourceDocumentLines: RecordRef; var Result: Text; var IsHandled: Boolean)
+    begin
     end;
 
     local procedure RemoveZeroAllowanceTotal(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager)

@@ -93,10 +93,6 @@ pageextension 6137 "E-Doc. Purchase Order List" extends "Purchase Order List"
 
     }
 
-
-    var
-        ShowMapToEDocument: Boolean;
-
     trigger OnAfterGetCurrRecord()
     var
         EDocument: Record "E-Document";
@@ -111,4 +107,6 @@ pageextension 6137 "E-Doc. Purchase Order List" extends "Purchase Order List"
         end;
     end;
 
+    var
+        ShowMapToEDocument: Boolean;
 }

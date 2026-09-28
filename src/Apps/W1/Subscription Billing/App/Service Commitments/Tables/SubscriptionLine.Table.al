@@ -2070,6 +2070,8 @@ table 8059 "Subscription Line"
                     end;
                 end;
         end;
+        if (Rec."Period Calculation" = Rec."Period Calculation"::"Align to End of Month") and not (Letter in ['D', 'W']) and (Rec."Subscription Line End Date" <> 0D) and (NextToDate < Rec."Subscription Line End Date") and (Rec."Subscription Line End Date" <= CalcDate(PeriodFormula, FromDate) - 1) then
+            NextToDate := Rec."Subscription Line End Date";
     end;
 
     local procedure GetBillingReferenceDate() BillingReferenceDate: Date

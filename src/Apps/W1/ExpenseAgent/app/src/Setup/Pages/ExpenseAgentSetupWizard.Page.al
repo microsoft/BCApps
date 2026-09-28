@@ -11,11 +11,8 @@ using System.AI;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Security.AccessControl;
 using System.Telemetry;
 using System.Utilities;
-#pragma warning disable AS0031
-#pragma warning disable AA0073
 page 6991 "Expense Agent Setup Wizard"
 {
     PageType = ConfigurationDialog;
@@ -736,6 +733,7 @@ page 6991 "Expense Agent Setup Wizard"
                 {
                     Caption = 'Rate per unit';
                     ToolTip = 'Specifies the reimbursement amount per unit of distance used to calculate mileage expenses.';
+                    Enabled = StandardRateOfMileageEnabled;
 
                     trigger OnValidate()
                     begin
@@ -939,20 +937,22 @@ page 6991 "Expense Agent Setup Wizard"
         CurrPage.AgentSetupPart.Page.Initialize(AgentUserSecurityID, "Agent Metadata Provider"::"Expense Agent", AgentUserName(), AgentDisplayNameLbl, AgentSummaryLbl);
         UpdateAgentSetupBuffer();
 
-        InitialState := AgentSetupBuffer.State;
+        InitialState := TempAgentSetupBuffer.State;
         UpdateControls();
     end;
 
     trigger OnAfterGetCurrRecord()
     var
+        MileageRateSetup: Record "Mileage Rate Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
     begin
         UpdateAgentSetupBuffer();
-        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(AgentSetupBuffer);
+        IsConfigUpdated := IsConfigUpdated or AgentSetup.GetChangesMade(TempAgentSetupBuffer);
         EnableSendingEmailWithReceipts := EnableSendingEmailWithReceipts or (Rec."Email Address" <> '');
         if Rec."Default Mileage UOM" = '' then
             Rec."Default Mileage UOM" := CreateExpenseAgentSetup.GetDefaultMileageUOM();
         RefreshPerDiemSummaries();
+        StandardRateOfMileageEnabled := MileageRateSetup.IsEmpty();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -986,7 +986,7 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     var
-        AgentSetupBuffer: Record "Agent Setup Buffer";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         AgentSetup: Codeunit "Agent Setup";
         InitialState: Option;
         EnableMailboxChanged: Boolean;
@@ -1011,6 +1011,7 @@ page 6991 "Expense Agent Setup Wizard"
         PartialDayRuleEnabled: Boolean;
         UseCanaryEndpoint: Boolean;
         CanaryToggleVisible: Boolean;
+        StandardRateOfMileageEnabled: Boolean;
         PaymentMethodsLinkTxt: Label 'Preview the default payment methods that will be added';
         PaymentMethodsAppliedLinkTxt: Label 'View payment methods including new defaults';
         PostingGroupsLinkTxt: Label 'Preview the default expense posting groups that will be added';
@@ -1036,7 +1037,6 @@ page 6991 "Expense Agent Setup Wizard"
         IncludeCategoriesForRulesQst: Label 'Default management rules require default expense categories. Do you want to add them to the configuration?';
         IncludeCategoriesAndPostingGroupsForRulesQst: Label 'Default management rules require default expense categories and posting groups. Do you want to add them to the configuration?';
         PrivacyNoticeNotAcceptedMsg: Label 'To use the Expense Agent, you must first accept the privacy notice. Please accept the privacy notice and try again.';
-        ExpenseAgentPermissionSetLbl: Label 'Expense Agent', Locked = true;
         NoExpenseUsersErr: Label 'You must first specify who can access.';
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
@@ -1181,8 +1181,8 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.Insert(true);
         ExpenseAgentSetup.TransferFields(Rec, false);
-        if not IsNullGuid(AgentSetupBuffer."User Security ID") then
-            ExpenseAgentSetup."User Security ID" := AgentSetupBuffer."User Security ID";
+        if not IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            ExpenseAgentSetup."User Security ID" := TempAgentSetupBuffer."User Security ID";
         ExpenseAgentSetup.Modify(true);
     end;
 
@@ -1284,7 +1284,7 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure UpdateAgentSetupBuffer()
     begin
-        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(AgentSetupBuffer);
+        CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
     end;
 
     local procedure EditPerDiemPartialSettings()
@@ -1371,21 +1371,21 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure StateChanged(): Boolean
     begin
-        exit(AgentSetupBuffer.State <> InitialState);
+        exit(TempAgentSetupBuffer.State <> InitialState);
     end;
 
     local procedure ValidateSelectedMailboxExists()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailAccountCU: Codeunit "Email Account";
     begin
         if IsNullGuid(Rec."Email Account ID") then
             exit;
 
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Email Connector");
-        if not EmailAccount.IsEmpty() then
+        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", Rec."Email Account ID");
+        TempEmailAccount.SetRange(Connector, Rec."Email Connector");
+        if not TempEmailAccount.IsEmpty() then
             exit;
 
         // Stage the repair only; validating Enable Agent here would cancel live tasks before Update.
@@ -1397,16 +1397,16 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure ValidateNoreplyMailboxExists()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailAccountCU: Codeunit "Email Account";
     begin
         if IsNullGuid(Rec."Noreply Email Account ID") then
             exit;
 
-        EmailAccountCU.GetAllAccounts(false, EmailAccount);
-        EmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
-        EmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
-        if not EmailAccount.IsEmpty() then
+        EmailAccountCU.GetAllAccounts(false, TempEmailAccount);
+        TempEmailAccount.SetRange("Account Id", Rec."Noreply Email Account ID");
+        TempEmailAccount.SetRange(Connector, Rec."Noreply Email Connector");
+        if not TempEmailAccount.IsEmpty() then
             exit;
 
         Rec."Noreply Email Address" := '';
@@ -1459,12 +1459,12 @@ page 6991 "Expense Agent Setup Wizard"
 
     local procedure AgentBeingEnabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Enabled);
     end;
 
     local procedure AgentBeingDisabled(): Boolean
     begin
-        exit(AgentSetupBuffer.State = AgentSetupBuffer.State::Disabled);
+        exit(TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled);
     end;
 
     local procedure ScheduleAffectingChange(): Boolean
@@ -1482,6 +1482,8 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure ActivateAgent(): Boolean
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
         ValidatePrivacyNoticeApproval();
         ValidateCapabilityIsEnabled();
@@ -1490,7 +1492,7 @@ page 6991 "Expense Agent Setup Wizard"
             Error(ApprovalWorkflowConflictErr, Rec.FieldCaption("Enable Approval Workflow"));
 
         EnsureCurrentUserHasAccess();
-        EnableAadApplication();
+        ExpenseAgentEntraApp.EnableAadApplicationForCurrentCompany();
         Commit();
         if not RegisterErpConfiguration() then
             exit(false);
@@ -1499,11 +1501,15 @@ page 6991 "Expense Agent Setup Wizard"
     end;
 
     local procedure DeactivateAgent(): Boolean
+    var
+        ExpenseAgentEntraApp: Codeunit "Expense Agent Entra App Mgt.";
     begin
+        ExpenseAgentEntraApp.VerifyCanDisableAadApplicationForCurrentCompany();
         if not Rec.ShowDeactivationAccessWarning() then
             exit(false);
         if not UnregisterErpConfiguration() then
             exit(false);
+        ExpenseAgentEntraApp.DisableAadApplicationForCurrentCompany();
         Rec.LogAgentDisabledTelemetry();
         exit(true);
     end;
@@ -1519,10 +1525,10 @@ page 6991 "Expense Agent Setup Wizard"
         // creating a duplicate through the platform CreateAgent branch.
         ExpenseAgentSetup.ReadIsolation := IsolationLevel::UpdLock;
         if ExpenseAgentSetup.Get() then;
-        if IsNullGuid(AgentSetupBuffer."User Security ID") then
-            AgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
+        if IsNullGuid(TempAgentSetupBuffer."User Security ID") then
+            TempAgentSetupBuffer."User Security ID" := ResolveAgentUserSecurityID();
 
-        AgentSetup.SaveChanges(AgentSetupBuffer);
+        AgentSetup.SaveChanges(TempAgentSetupBuffer);
         SaveSetup();
         ApplyDefaultsIfRequested();
     end;
@@ -1563,60 +1569,6 @@ page 6991 "Expense Agent Setup Wizard"
 
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Expense Agent", true) then
             Error(CapabilityDisabledErr, Enum::"Copilot Capability"::"Expense Agent");
-    end;
-
-    local procedure EnableAadApplication()
-    var
-        AadApplication: Record "AAD Application";
-        ExpenseAgentApiValidation: Codeunit "Expense Agent API Validation";
-    begin
-        AadApplication.SetRange("Client Id", ExpenseAgentApiValidation.GetAadAppId());
-        if not AadApplication.FindFirst() then
-            exit;
-
-        // We need to enable the AAD application first because enabling creates the user record.
-        // Once the user exists, we disable it, add the permission set, and re-enable it.
-        if AadApplication.State <> AadApplication.State::Enabled then begin
-            AadApplication.Validate(State, AadApplication.State::Enabled);
-            AadApplication.Modify(true);
-        end;
-
-        if HasExpenseAgentPermissionSet(AadApplication) then
-            exit;
-
-        AadApplication.Validate(State, AadApplication.State::Disabled);
-        AadApplication.Modify(true);
-
-        AddExpenseAgentPermissionSet(AadApplication);
-
-        AadApplication.Validate(State, AadApplication.State::Enabled);
-        AadApplication.Modify(true);
-    end;
-
-    local procedure HasExpenseAgentPermissionSet(AadApplication: Record "AAD Application"): Boolean
-    var
-        AccessControl: Record "Access Control";
-    begin
-        AccessControl.SetRange("User Security ID", AadApplication."User ID");
-        AccessControl.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        exit(not AccessControl.IsEmpty());
-    end;
-
-    local procedure AddExpenseAgentPermissionSet(AadApplication: Record "AAD Application")
-    var
-        AccessControl: Record "Access Control";
-        AggregatePermissionSet: Record "Aggregate Permission Set";
-    begin
-        AggregatePermissionSet.SetRange("Role ID", ExpenseAgentPermissionSetLbl);
-        if not AggregatePermissionSet.FindFirst() then
-            exit;
-
-        AccessControl.Init();
-        AccessControl.Validate("User Security ID", AadApplication."User ID");
-        AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
-        AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
-        AccessControl.Validate("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name")));
-        AccessControl.Insert(true);
     end;
 
     local procedure OnAssistEditMailbox()
@@ -1684,4 +1636,3 @@ page 6991 "Expense Agent Setup Wizard"
         exit('');
     end;
 }
-#pragma warning restore AS0031
