@@ -13,7 +13,7 @@ permissionset 1001 "LOCAL"
     IncludedPermissionSets = "LOCAL READ";
 
     Permissions =
-#if not CLEANSCHEMA33
+#if not CLEAN30
 #pragma warning disable AL0432
                   tabledata "Depr. Diff. Posting Buffer" = IMD,
 #pragma warning restore AL0432

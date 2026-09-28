@@ -571,7 +571,7 @@ table 5601 "FA Ledger Entry"
         key(Key12; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Document No.")
         {
         }
-#if not CLEANSCHEMA33
+#if not CLEAN30
         key(Key13; "FA No.", "FA Posting Group", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted")
         {
             SumIndexFields = Amount;
@@ -752,4 +752,3 @@ table 5601 "FA Ledger Entry"
     begin
     end;
 }
-

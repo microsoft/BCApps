@@ -11,7 +11,7 @@ permissionset 1002 "LOCAL READ"
     Caption = 'Country/region-specific read only access.';
 
     Permissions =
-#if not CLEANSCHEMA33
+#if not CLEAN30
 #pragma warning disable AL0432
                   tabledata "Depr. Diff. Posting Buffer" = R,
 #pragma warning restore AL0432
